@@ -29,7 +29,7 @@ def render_item(it):
     reason = f'<div class="why"><span class="w">推荐理由</span><span>{esc(it["reason"])}</span></div>' if it.get("reason") else ""
     vtags = "".join(f'<span class="vtag">{esc(v)}</span>' for v in it.get("vendors", []))
     vbox = f'<div class="vendors">{vtags}</div>' if vtags else ""
-    return f'''<div class="item" data-cat="{it["category"]}">
+    return f'''<div class="item" data-cat="{it["category"]}" data-link="{esc(it["link"])}">
       <div class="top"><span>{fmt_time(it["published"])}</span><span>{esc(it["source"])}</span>
       <span class="badge {CAT_BADGE[it["category"]]}">{CAT_LABEL[it["category"]]}</span>{star}
       <span class="heatnum">🔥 {it["heat"]}</span></div>
@@ -49,7 +49,7 @@ def main():
         it = next((i for i in items if i["id"] == iid), None)
         if not it:
             continue
-        hot_cards += f'''<div class="hot"><span class="rank">TOP {n}</span><span class="heat">{it["heat"]} 热度</span>
+        hot_cards += f'''<div class="hot" data-link="{esc(it["link"])}"><span class="rank">TOP {n}</span><span class="heat">{it["heat"]} 热度</span>
         <h3><a href="{esc(it["link"])}" target="_blank" rel="noopener">{esc(it.get("zh_title") or it["title"])}</a></h3>
         <div class="sources"><span class="src">{esc(it["source"])}</span></div></div>'''
 
@@ -141,6 +141,14 @@ document.getElementById('q').addEventListener('input',e=>{{
   const q=e.target.value.toLowerCase();
   document.querySelectorAll('.item').forEach(el=>{{
     el.style.display=el.textContent.toLowerCase().includes(q)?'':'none';
+  }});
+}});
+// 整卡可点：点击卡片任意位置打开原文（点击标题/标签等真实链接时除外）
+document.querySelectorAll('.item,.hot').forEach(el=>{{
+  el.addEventListener('click',e=>{{
+    if(e.target.closest('a')) return;
+    const url=el.dataset.link;
+    if(url) window.open(url,'_blank','noopener');
   }});
 }});
 </script>

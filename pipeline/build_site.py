@@ -14,6 +14,26 @@ TZ = timezone(timedelta(hours=8))
 CAT_BADGE = {"agent": "b-agent", "platform": "b-platform", "bi": "b-bi", "product": "b-product"}
 CAT_LABEL = {"agent": "Data Agent", "platform": "AI 数据平台", "bi": "BI 与可视化", "product": "数据产品"}
 WEEK_CN = "一二三四五六日"
+
+ICONS = {
+ "flame": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>',
+ "map": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>',
+ "search": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>',
+ "clock": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>',
+ "building": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-5 7 5v13"/><path d="M9 10h1.5M9 14h1.5M13.5 10H15M13.5 14H15"/></svg>',
+ "tag": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.3 9.3a2 2 0 0 0 2.8 0l7-7a2 2 0 0 0 0-2.8L12 2z"/><circle cx="7.5" cy="7.5" r="1.3"/></svg>',
+ "calendar": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+ "arrow": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>',
+ "image": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg>',
+ "link": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>',
+ "share": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>',
+ "sparkle": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>',
+ "file": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg>',
+ "list": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>',
+}
+def ic(name, size=15):
+    return ICONS[name].replace("<svg ", '<svg width="{}" height="{}" style="vertical-align:-2px" aria-hidden="true" '.format(size, size))
+
 TOPICS_META = json.load(open(ROOT / "pipeline" / "topics.json"))
 TOPIC_SLUG = {t["name"]: t["slug"] for t in TOPICS_META}
 
@@ -55,7 +75,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 """
 
 def tabbar(active, prefix=""):
-    items = [("热榜", "🔥", "index.html", "home"), ("主题", "🗺️", "topics.html", "topics")]
+    items = [("热榜", ic("flame",20), "index.html", "home"), ("主题", ic("map",20), "topics.html", "topics")]
     return ('<nav class="tabbar">' + "".join(
         f'<a href="{prefix}{u}" class="{"on" if k == active else ""}"><span class="ico">{i}</span>{n}</a>'
         for n, i, u, k in items) + "</nav>")
@@ -97,7 +117,7 @@ def render_card(e, prefix=""):
     if n > 1:
         names = " · ".join(esc(s["source"]) for s in e["items"][1:])
         also = f'<div class="also">另有 <b>{n-1} 家信源</b>报道：{names}</div>'
-    reason = f'<div class="why"><span class="w">推荐理由</span><span>{esc(e["reason"])}</span></div>' if e.get("reason") else ""
+    reason = f'<div class="why"><span class="w">{ic('sparkle',13)} 推荐理由</span><span>{esc(e["reason"])}</span></div>' if e.get("reason") else ""
     tchips = "".join(
         f'<a class="chip" href="{prefix}topics/{TOPIC_SLUG[t]}.html">{esc(t)}</a>'
         for t in e.get("topics", []) if t in TOPIC_SLUG)
@@ -107,7 +127,7 @@ def render_card(e, prefix=""):
     return f'''<div class="item" data-cat="{e["category"]}" data-topics="{esc("|".join(e.get("topics", [])))}" data-link="{url}">
       <div class="top"><span>{fmt_time(e["published"])}</span><span>{esc(e["items"][0]["source"])}</span>
       <span class="badge {CAT_BADGE[e["category"]]}">{CAT_LABEL[e["category"]]}</span>{star}
-      <span class="heatnum">🔥 {e["heat"]}</span></div>
+      <span class="heatnum">{ic("flame",13)} {e["heat"]}</span></div>
       <h3><a href="{url}">{esc(e["zh_title"])}</a></h3>
       <p class="sum">{esc(e["zh_summary"])}</p>{also}{reason}{vbox}
     </div>'''
@@ -139,7 +159,7 @@ def render_detail(e, all_events, css):
         reverse=True)[:3]
     rel_html = "".join(
         f'<a class="vendor-row" href="../{detail_url(x)}">'
-        f'<span class="n">›</span>{esc(x["zh_title"])}<span class="count">🔥 {x["heat"]}</span></a>'
+        f'<span class="n">›</span>{esc(x["zh_title"])}<span class="count">{x["heat"]}</span></a>'
         for x in related) or '<div style="font-size:12.5px;color:var(--sub)">暂无相关事件</div>'
     sorted_items = sorted(e["items"], key=lambda s: s["published"])
     srcs = ""
@@ -162,7 +182,7 @@ def render_detail(e, all_events, css):
         f"<p>{esc(p)}</p>" for p in re.split(r"\n\s*\n|\n", e.get("full_zh", "")) if p.strip())
     full_block = ""
     if full_paras:
-        full_block = f'''<div class="card"><h4>📄 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
+        full_block = f'''<div class="card"><h4>{ic("file")} 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
   <div class="fulltext">{full_paras}</div>
   <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="{main_link}" target="_blank" rel="noopener">查看原文 ↗</a></div>
 </div>'''
@@ -214,24 +234,24 @@ def render_detail(e, all_events, css):
   <div class="topbar">
     <a class="back" href="../index.html" style="margin-bottom:0">← 返回热榜</a>
     <span class="sharebtns">
-      <a class="sbtn ghost" href="{main_link}" target="_blank" rel="noopener">原文 ↗</a>
-      <button class="sbtn ghost" onclick="openPoster()">🖼 海报</button>
-      <button class="sbtn" onclick="openSheet()">↗ 分享</button>
+      <a class="sbtn ghost" href="{main_link}" target="_blank" rel="noopener">{ic("arrow",13)} 原文</a>
+      <button class="sbtn ghost" onclick="openPoster()">{ic("image",13)} 海报</button>
+      <button class="sbtn" onclick="openSheet()">{ic("share",13)} 分享</button>
     </span>
   </div>
   <div class="meta">
     <span class="badge {CAT_BADGE[e["category"]]}">{CAT_LABEL[e["category"]]}</span>
     {'<span class="star">精选</span>' if e.get("star") else ''}
     <span title="{fmt_date(e["published"])}">{human_time(e["published"])}</span>
-    <span style="margin-left:auto" class="heatnum">🔥 {e["heat"]} 热度</span>
+    <span style="margin-left:auto" class="heatnum">{ic("flame",13)} {e["heat"]}</span>
   </div>
   <h1>{esc(e["zh_title"])}</h1>
   <div class="body">{esc(e["zh_summary"])}</div>
-  {f'<div class="why" style="border-top:1px dashed var(--line);padding-top:14px;margin-top:18px;font-size:14px"><span class="w">推荐理由</span><span>{esc(e["reason"])}</span></div>' if e.get("reason") else ""}
+  {f'<div class="why" style="border-top:1px dashed var(--line);padding-top:14px;margin-top:18px;font-size:14px"><span class="w">{ic('sparkle',13)} 推荐理由</span><span>{esc(e["reason"])}</span></div>' if e.get("reason") else ""}
   {f'<div class="vendors" style="margin-top:14px">{vtags}</div>' if vtags else ""}
   {full_block}
-  <div class="card"><h4>🔗 信源（{len(e["items"])} 家报道 · 按时间排序）</h4>{srcs}</div>
-  <div class="card"><h4>📌 相关事件</h4>{rel_html}</div>
+  <div class="card"><h4>{ic("link")} 信源（{len(e["items"])} 家报道 · 按时间排序）</h4>{srcs}</div>
+  <div class="card"><h4>{ic("list")} 相关事件</h4>{rel_html}</div>
 </div>
 <footer>DataHot · 数据领域 AI 资讯热榜 · 仅聚合摘要与编译内容，版权归原作者</footer>
 {tabbar("home", "../")}
@@ -251,9 +271,9 @@ def share_ui(e, page_url):
 <div class="sh-sheet" id="shSheet"><div class="sh-panel">
   <div class="sh-group">
     <div class="sh-title">分享这条资讯</div>
-    <button class="sh-opt" onclick="shCopy()">🔗 复制链接</button>
-    <button class="sh-opt" onclick="shClose();openPoster()">🖼 分享海报</button>
-    <button class="sh-opt" onclick="shNative()">📲 系统分享…</button>
+    <button class="sh-opt" onclick="shCopy()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 复制链接</button>
+    <button class="sh-opt" onclick="shClose();openPoster()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 分享海报</button>
+    <button class="sh-opt" onclick="shNative()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 系统分享…</button>
   </div>
   <button class="sh-cancel" onclick="shClose()">取消</button>
 </div></div>
@@ -269,7 +289,7 @@ def share_ui(e, page_url):
 <style>
 .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .sharebtns{display:flex;gap:8px}
-.sbtn{border:none;background:var(--ink);color:var(--bg);border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
+.sbtn{border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
 .sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .sbtn:active{transform:scale(.95)}
 @media (prefers-color-scheme: dark){
@@ -400,7 +420,7 @@ function drawPoster(qrImg,dark){
     y=ry+180;
   }
   x.fillStyle=P.meta;x.font='400 26px -apple-system,sans-serif';
-  x.fillText('🔥 '+SH_EV.heat+' 热度 · '+SH_EV.source+' · '+SH_EV.date,64,Math.max(y,H-320));
+  x.fillText('热度 '+SH_EV.heat · '+SH_EV.source+' · '+SH_EV.date,64,Math.max(y,H-320));
   x.strokeStyle=P.dash;x.setLineDash([8,8]);x.lineWidth=2;
   x.beginPath();x.moveTo(64,H-240);x.lineTo(W-64,H-240);x.stroke();x.setLineDash([]);
   x.fillStyle=P.qrBox;x.beginPath();x.roundRect(64,H-200,150,150,14);x.fill();
@@ -452,7 +472,7 @@ def render_topics_map(events, css):
 </a>'''
     return page_shell("主题地图 · DataHot", "按主题看数据领域：8 条持续演进的叙事线", css, f'''
 <div class="wrap" style="padding:28px 20px 60px;max-width:900px">
-  <div class="section-title"><h2>🗺️ 主题地图</h2><span>按议题看数据领域 · 持续更新</span></div>
+  <div class="section-title"><h2>{ic("map",18)} 主题地图</h2><span>按议题看数据领域 · 持续更新</span></div>
   <div class="tgrid">{cards}</div>
 </div>''', tabbar("topics"))
 
@@ -564,7 +584,7 @@ def main():
 
     ok = sum(1 for s in payload["sources"] if s["ok"])
     bad = [s["name"] for s in payload["sources"] if not s["ok"]]
-    bad_txt = "、".join(bad) if bad else "0 ✅"
+    bad_txt = "、".join(bad) if bad else "无"
 
     # 主题筛选条：只显示当前有事件的主题
     active_topics = {t for e in events for t in e.get("topics", [])}
@@ -598,14 +618,14 @@ def main():
 <div id="ptr"><span>下拉刷新</span></div>
 <header><div class="wrap nav">
   <div class="logo">Data<em>Hot</em><span class="tag">每 6 小时更新</span></div>
-  <a class="tab d-only" href="topics.html" style="text-decoration:none">🗺️ 主题</a>
+  <a class="tab d-only" href="topics.html" style="text-decoration:none">{ic("map",14)} 主题</a>
 </div></header>
 
 <div class="wrap"><div class="layout"><main>
-  <div class="section-title"><h2>🔥 本期热点</h2><span>多信源聚簇 · 按热度排序</span></div>
+  <div class="section-title"><h2>{ic("flame",18)} 本期热点</h2><span>多信源聚簇 · 按热度排序</span></div>
   <div class="hotlist">{hot_cards}</div>
-  <div class="section-title" style="align-items:center"><h2>📅 时间轴</h2><span>近 7 天</span>
-    <input id="q" class="tlsearch" placeholder="🔍 搜索">
+  <div class="section-title" style="align-items:center"><h2>{ic("calendar",18)} 时间轴</h2><span>近 7 天</span>
+    <input id="q" class="tlsearch" placeholder="搜索">
   </div>
   <div class="chiprow" id="chiprow">
     <span class="fchip on" data-topic="all">全部</span>
@@ -615,14 +635,14 @@ def main():
 </main>
 
 <aside>
-  <div class="card"><h4>🏢 厂商热榜 <span style="font-size:11px;color:var(--sub);font-weight:400">近7天</span></h4>{vrows}</div>
-  <div class="card"><h4>🏷️ 栏目说明</h4><div class="legend">
+  <div class="card"><h4>{ic("building")} 厂商热榜 <span style="font-size:11px;color:var(--sub);font-weight:400">近7天</span></h4>{vrows}</div>
+  <div class="card"><h4>{ic("tag")} 栏目说明</h4><div class="legend">
     <div class="row"><span class="badge b-agent">Data Agent</span>ChatBI · NL2SQL · 分析 Agent</div>
     <div class="row"><span class="badge b-platform">AI 数据平台</span>湖仓 · 语义层 · 数据治理</div>
     <div class="row"><span class="badge b-bi">BI 与可视化</span>BI 厂商 · 报表 · 可视化</div>
     <div class="row"><span class="badge b-product">数据产品</span>方法论 · 融资并购 · 报告</div>
   </div></div>
-  <div class="card"><h4>🕐 更新状态</h4><div class="status">
+  <div class="card"><h4>{ic("clock")} 更新状态</h4><div class="status">
     最后更新：<b>{gen.strftime("%Y-%m-%d %H:%M")}</b><br>
     信源正常：<b>{ok}/{len(payload["sources"])}</b> · 在站事件 <b>{len(events)} 个</b><br>
     信源异常：{esc(bad_txt)}

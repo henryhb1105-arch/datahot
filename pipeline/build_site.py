@@ -133,6 +133,10 @@ def render_detail(e, all_events, css):
 <meta property="og:type" content="article">
 <meta property="og:url" content="{page_url}">
 <meta property="og:site_name" content="DataHot · 数据领域 AI 热榜">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="theme-color" content="#1a1d23">
 <script type="application/ld+json">{jsonld}</script>
 <style>{css}
 .article{{max-width:760px;margin:0 auto;padding:32px 20px 60px}}
@@ -235,6 +239,14 @@ def main():
 <meta property="og:title" content="DataHot · 数据领域 AI 热榜">
 <meta property="og:description" content="Data Agent / AI 数据平台 / BI / 数据产品的每日热点，每 6 小时自动更新。">
 <meta property="og:type" content="website">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="icons/manifest.json">
+<meta name="theme-color" content="#1a1d23">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="DataHot">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>{css}
 .item a:hover{{color:var(--accent)}}
 .hot a:hover{{color:var(--accent)}}

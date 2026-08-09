@@ -184,6 +184,26 @@ main,.layout>*,.hotlist>*{min-width:0}
   .chiprow .fchip.on{background:var(--ink);color:#121417;border-color:var(--ink)}
   .chiprow .fchip{background:var(--card);color:var(--sub);border-color:var(--line)}
 }
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot.ok{background:var(--green)}.dot.warn{background:var(--amber)}.dot.fail{background:var(--accent)}.dot.off{background:var(--sub)}
+.scard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 20px;margin-bottom:14px}
+.srow{padding:12px 0;border-bottom:1px solid var(--soft)}
+.srow:last-child{border-bottom:none}
+.srow-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.stype{font-size:10.5px;border:1px solid var(--line);border-radius:6px;padding:0 7px;color:var(--sub)}
+.sstat{font-size:11.5px}
+.st-ok{color:var(--green)}.st-warn{color:var(--amber)}.st-fail{color:var(--accent)}.st-off{color:var(--sub)}
+.scount{margin-left:auto;font-size:12px;color:var(--accent);font-weight:700}
+.srow-sub{font-size:11.5px;color:var(--sub);margin-top:4px}
+.slow{color:var(--amber);font-weight:700}
+.serr{font-size:11px;color:var(--accent);margin-top:3px}
+.snote{font-size:11px;color:var(--sub);margin-top:3px}
+.sys-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ssub{font-size:12.5px;color:var(--sub)}
+.act{cursor:pointer}
+.act summary{padding:2px 0;list-style:none}
+.act-body{font-size:13px;color:var(--txt2);line-height:1.8;margin:10px 0}
+.tpl{background:var(--soft);border-radius:8px;padding:10px 14px;font-size:12.5px;white-space:pre-line;margin-bottom:10px;color:var(--txt3)}
 .tabbar{display:none}
 @media(max-width:960px){
   body{padding-bottom:64px}
@@ -209,8 +229,9 @@ main,.layout>*,.hotlist>*{min-width:0}
 <div id="ptr"><span>下拉刷新</span></div>
 <header><div class="wrap nav">
   <div class="logo">Data<em>Hot</em><span class="tag">每 6 小时更新</span></div>
-  <span class="upd-time"><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> 08-09 23:07 更新</span>
+  <span class="upd-time"><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> 08-09 23:46 更新</span>
   <a class="tab d-only" href="topics.html" style="text-decoration:none"><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg> 主题</a>
+  <a class="tab d-only" href="sources.html" style="text-decoration:none"><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg> 信源</a>
 </div></header>
 
 <div class="wrap"><div class="layout"><main>
@@ -293,21 +314,21 @@ main,.layout>*,.hotlist>*{min-width:0}
 <div class="item" data-cat="agent" data-topics="Data Agent" data-link="e/08162567f084.html">
       <div class="top"><span>05:36</span><span>Databricks Blog</span>
       <span class="badge b-agent">Data Agent</span><span class="star">精选</span>
-      <span class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 35</span></div>
+      <span class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 34</span></div>
       <h3><a href="e/08162567f084.html">什么是Agentic Workflows？Databricks解读智能代理工作流</a></h3>
       <p class="sum">Agentic workflows是AI驱动的流程，智能代理通过推理、工具使用和反馈的持续循环，自主规划、执行并优化多步骤任务。与传统自动化不同，代理在运行时动态调整策略并选择工具，而非遵循固定脚本。企业采用这类工作流可提升效率与扩展性，但需配合强治理、生产级基础设施和明确的业务目标。本文来自Databricks博客，是理解Data Agent落地模式的关键参考。</p><div class="why"><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由</span><span>Agentic Workflows是Data Agent（分析代理）的核心运行范式，数据从业者需理解其机制以设计自主数据分析流程。</span></div><div class="vendors"><a class="chip" href="topics/data-agent.html">Data Agent</a><span class="vtag">Databricks</span></div>
     </div>
 <div class="item" data-cat="agent" data-topics="Data Agent" data-link="e/d42105556279.html">
       <div class="top"><span>05:31</span><span>Databricks Blog</span>
       <span class="badge b-agent">Data Agent</span><span class="star">精选</span>
-      <span class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 35</span></div>
+      <span class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 34</span></div>
       <h3><a href="e/d42105556279.html">什么是工具调用？Databricks解读AI Agent核心机制</a></h3>
       <p class="sum">工具调用（Tool Calling）是AI模型与外部工具、API和系统交互的机制，使聊天机器人进化为能执行真实操作的AI Agent。Databricks在博客中详解了其工作流程，并介绍Agent Bricks平台提供受治理的工具调用构建环境，原生支持Model Context Protocol（MCP）与Unity Catalog治理。</p><div class="why"><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由</span><span>这是数据领域厂商Databricks对AI Agent关键技术的官方解读，数据从业者需理解工具调用如何连接模型与企业数据系统。</span></div><div class="vendors"><a class="chip" href="topics/data-agent.html">Data Agent</a><span class="vtag">Databricks</span></div>
     </div>
 <div class="item" data-cat="platform" data-topics="湖仓" data-link="e/84c52b21b73d.html">
       <div class="top"><span>05:15</span><span>Snowflake Engineering（Medium）</span>
       <span class="badge b-platform">AI 数据平台</span><span class="star">精选</span>
-      <span class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 35</span></div>
+      <span class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 34</span></div>
       <h3><a href="e/84c52b21b73d.html">Snowflake Horizon Catalog扩展至企业非结构化数据</a></h3>
       <p class="sum">Snowflake Horizon Catalog目标是为所有数据和AI资产提供统一目录，实现可发现、可治理并产生可信答案。现在它将扩展到非结构化数据领域。约80%企业数据以文件和对象形式存在，且大多位于本地，包括媒体素材、芯片设计、医学影像、合同和传感器数据等。Snowflake采用元数据优先、内容按需获取的策略，覆盖NAS、对象存储和归档层。</p><div class="why"><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由</span><span>非结构化数据治理是数据平台的关键边界，Snowflake的目录扩展将影响企业数据架构与AI就绪数据策略。</span></div><div class="vendors"><a class="chip" href="topics/lakehouse.html">湖仓</a><span class="vtag">Snowflake</span></div>
     </div>
@@ -345,7 +366,7 @@ main,.layout>*,.hotlist>*{min-width:0}
       <span class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 34</span></div>
       <h3><a href="e/7b5dd4cae0ec.html">Databricks发布OfficeQA Pro V2企业推理基准</a></h3>
       <p class="sum">Databricks今日发布OfficeQA Pro V2，这是一个用于评估企业级 grounded-reasoning 能力的新基准，基于约1400份美国财政部PDF、跨越233年、约12万页资料构建。测试显示，开箱即用的智能体平均准确率仅26.0%，而Databricks的Genie在相同模型下平均相对提升92%，最高达60%准确率。该基准旨在检验AI智能体能否泛化到陌生的企业式推理任务，弥补此前OfficeQA基准的局限。</p><div class="why"><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由</span><span>该基准直接面向企业数据分析中的智能体推理能力，是评估Data Agent落地效果的重要参考，数据从业者可借此衡量自身方案的技术水位。</span></div><div class="vendors"><a class="chip" href="topics/data-agent.html">Data Agent</a><span class="vtag">Databricks</span></div>
-    </div></div><div class="day"><div class="day-head"><span class="date">8月6日</span><span class="info">星期四 · 13 个事件</span></div><div class="item" data-cat="platform" data-topics="平台AI化" data-link="e/04e2fe73b6ac.html">
+    </div></div><div class="day"><div class="day-head"><span class="date">8月6日</span><span class="info">星期四 · 14 个事件</span></div><div class="item" data-cat="platform" data-topics="平台AI化" data-link="e/04e2fe73b6ac.html">
       <div class="top"><span>23:50</span><span>Databricks Blog</span>
       <span class="badge b-platform">AI 数据平台</span><span class="star">精选</span>
       <span class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 34</span></div>
@@ -390,9 +411,16 @@ main,.layout>*,.hotlist>*{min-width:0}
 <div class="item" data-cat="platform" data-topics="" data-link="e/4c9db581d5c6.html">
       <div class="top"><span>17:34</span><span>InfoQ（AI/数据工程）</span>
       <span class="badge b-platform">AI 数据平台</span>
-      <span class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 34</span></div>
+      <span class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 33</span></div>
       <h3><a href="e/4c9db581d5c6.html">从毫秒到微秒：Valkey架构模式助力现代AI数据层</a></h3>
       <p class="sum">Dumanshu Goyal在演讲中讨论了如何为AI特征存储等低延迟工作负载优化数据层。他借鉴NASA航天飞机的经验，指出代理架构会带来隐藏CPU成本、尾部延迟升高和爆炸半径风险。他展示了直接访问型Valkey架构如何实现微秒级延迟、提升弹性并大幅降低基础设施成本。</p><div class="why"><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由</span><span>Valkey作为Redis的开源替代，其架构模式直接关系到AI特征存储等数据基础设施的性能与成本，值得数据从业者关注。</span></div>
+    </div>
+<div class="item" data-cat="agent" data-topics="Data Agent" data-link="e/26c7d5691708.html">
+      <div class="top"><span>17:00</span><span>InfoQ（AI/数据工程）</span>
+      <span class="badge b-agent">Data Agent</span>
+      <span class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 37</span></div>
+      <h3><a href="e/26c7d5691708.html">运行时无关的AI工作流：兼顾生产持久性与快速评估</a></h3>
+      <p class="sum">本文提出一种运行时无关的AI工作流模式，用于解决生产环境持久性与评估迭代速度之间的矛盾。通过将业务逻辑与运行环境解耦，同一套代码可以在生产与评估中运行，避免版本漂移。作者认为正确架构应让默认路径即最优路径。</p><div class="why"><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由</span><span>该模式直接适用于Data Agent类应用的工程实现，帮助数据从业者构建既可靠又能快速迭代的AI分析工作流。</span></div><div class="vendors"><a class="chip" href="topics/data-agent.html">Data Agent</a></div>
     </div>
 <div class="item" data-cat="bi" data-topics="" data-link="e/37d58f2d9863.html">
       <div class="top"><span>08:00</span><span>Metabase Blog</span>
@@ -425,7 +453,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 <div class="item" data-cat="platform" data-topics="" data-link="e/1913cbcdb569.html">
       <div class="top"><span>05:21</span><span>TechCrunch AI</span>
       <span class="badge b-platform">AI 数据平台</span>
-      <span class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 33</span></div>
+      <span class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 32</span></div>
       <h3><a href="e/1913cbcdb569.html">Meta launches Muse Code, an AI agent for large code bases</a></h3>
       <p class="sum">Meta expanded its AI coding offerings with a new agent that, it promises, can handle complex tasks with complex software.</p>
     </div>
@@ -584,15 +612,15 @@ main,.layout>*,.hotlist>*{min-width:0}
     <div class="row"><span class="badge b-product">数据产品</span>方法论 · 融资并购 · 报告</div>
   </div></div>
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> 更新状态</h4><div class="status">
-    最后更新：<b>2026-08-09 23:07</b><br>
-    信源正常：<b>14/15</b> · 在站事件 <b>50 个</b><br>
-    信源异常：Bluesky 数据社区
+    最后更新：<b>2026-08-09 23:46</b><br>
+    信源正常：<b>16/16</b> · 在站事件 <b>51 个</b><br>
+    信源异常：无
   </div></div>
 </aside>
 </div></div>
 
 <footer>DataHot · 数据领域 AI 资讯热榜 · 仅聚合摘要与链接，版权归原作者 · 每 6 小时自动更新</footer>
-<nav class="tabbar"><a href="index.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span>热榜</a><a href="topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span>主题</a></nav>
+<nav class="tabbar"><a href="index.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span>热榜</a><a href="topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span>主题</a><a href="sources.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span>信源</a></nav>
 
 <script>
 // 主题筛选条

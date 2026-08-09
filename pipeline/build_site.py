@@ -30,6 +30,7 @@ ICONS = {
  "sparkle": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>',
  "file": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg>',
  "list": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>',
+ "rss": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>',
 }
 def ic(name, size=15):
     return ICONS[name].replace("<svg ", '<svg width="{}" height="{}" style="vertical-align:-2px" aria-hidden="true" '.format(size, size))
@@ -57,6 +58,26 @@ main,.layout>*,.hotlist>*{min-width:0}
   .chiprow .fchip.on{background:var(--ink);color:#121417;border-color:var(--ink)}
   .chiprow .fchip{background:var(--card);color:var(--sub);border-color:var(--line)}
 }
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot.ok{background:var(--green)}.dot.warn{background:var(--amber)}.dot.fail{background:var(--accent)}.dot.off{background:var(--sub)}
+.scard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 20px;margin-bottom:14px}
+.srow{padding:12px 0;border-bottom:1px solid var(--soft)}
+.srow:last-child{border-bottom:none}
+.srow-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.stype{font-size:10.5px;border:1px solid var(--line);border-radius:6px;padding:0 7px;color:var(--sub)}
+.sstat{font-size:11.5px}
+.st-ok{color:var(--green)}.st-warn{color:var(--amber)}.st-fail{color:var(--accent)}.st-off{color:var(--sub)}
+.scount{margin-left:auto;font-size:12px;color:var(--accent);font-weight:700}
+.srow-sub{font-size:11.5px;color:var(--sub);margin-top:4px}
+.slow{color:var(--amber);font-weight:700}
+.serr{font-size:11px;color:var(--accent);margin-top:3px}
+.snote{font-size:11px;color:var(--sub);margin-top:3px}
+.sys-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ssub{font-size:12.5px;color:var(--sub)}
+.act{cursor:pointer}
+.act summary{padding:2px 0;list-style:none}
+.act-body{font-size:13px;color:var(--txt2);line-height:1.8;margin:10px 0}
+.tpl{background:var(--soft);border-radius:8px;padding:10px 14px;font-size:12.5px;white-space:pre-line;margin-bottom:10px;color:var(--txt3)}
 .tabbar{display:none}
 @media(max-width:960px){
   body{padding-bottom:64px}
@@ -76,7 +97,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 """
 
 def tabbar(active, prefix=""):
-    items = [("热榜", ic("flame",20), "index.html", "home"), ("主题", ic("map",20), "topics.html", "topics")]
+    items = [("热榜", ic("flame",20), "index.html", "home"), ("主题", ic("map",20), "topics.html", "topics"), ("信源", ic("rss",20), "sources.html", "sources")]
     return ('<nav class="tabbar">' + "".join(
         f'<a href="{prefix}{u}" class="{"on" if k == active else ""}"><span class="ico">{i}</span>{n}</a>'
         for n, i, u, k in items) + "</nav>")
@@ -521,6 +542,108 @@ def page_shell(title, desc, css, body, tabbar_html, prefix=""):
 {tabbar_html}
 </body></html>'''
 
+def render_sources_page(events, payload, css):
+    """信源状态页：系统状态条 + 信源质量记分牌 + 行动区"""
+    from collections import Counter
+    insite = Counter(sub["source"] for e in events for sub in e["items"])
+    ss_path = SITE / "data" / "sources_status.json"
+    ss = json.load(open(ss_path)) if ss_path.exists() else {}
+    all_sources = json.load(open(ROOT / "pipeline" / "sources.json"))
+    gen = datetime.fromisoformat(payload["generated_at"])
+
+    TYPE_LABEL = {"vendor": "厂商", "media": "媒体", "community": "社区"}
+
+    def status_of(src):
+        rec = ss.get(src["name"], {})
+        if not src.get("enabled"):
+            return ("off", "已停用")
+        fails = rec.get("fails", 0)
+        if fails >= 2:
+            return ("fail", f"连续失败 {fails} 次")
+        if fails == 1:
+            return ("warn", "上次失败（抖动观察中）")
+        return ("ok", "正常")
+
+    rows = []
+    for src in all_sources:
+        st, st_txt = status_of(src)
+        rec = ss.get(src["name"], {})
+        fetched, acc = rec.get("total_fetched", 0), rec.get("total_accepted", 0)
+        rate = round(acc / fetched * 100) if fetched else None
+        rate_txt = f"入选率 {rate}%" if rate is not None else "暂无数据"
+        low = ' <span class="slow">低产</span>' if (rate is not None and rate < 20 and fetched >= 10) else ""
+        last_ok = rec.get("last_ok", "")[5:16].replace("T", " ") if rec.get("last_ok") else "—"
+        err = f'<div class="serr">{esc(rec.get("error",""))}</div>' if rec.get("error") and st in ("fail", "warn") else ""
+        note = f'<div class="snote">{esc(src.get("note",""))}</div>' if src.get("note") else ""
+        rows.append({
+            "st": st, "html": f'''<div class="srow">
+  <div class="srow-top">
+    <span class="dot {st}"></span><b>{esc(src["name"])}</b>
+    <span class="stype">{TYPE_LABEL.get(src.get("type"), "其他")}</span>
+    <span class="sstat {'st-'+st}">{st_txt}</span>
+    <span class="scount">在站 {insite.get(src["name"], 0)} 条</span>
+  </div>
+  <div class="srow-sub">最近成功 {last_ok} · 上次新增 {rec.get("last_new", 0)} · {rate_txt}{low}</div>
+  {err}{note}
+</div>'''})
+
+    order = {"fail": 0, "warn": 1, "off": 2, "ok": 3}
+    rows.sort(key=lambda r: (order[r["st"]], -insite.get(r["html"].split("<b>")[1].split("</b>")[0], 0)))
+    rows_html = "".join(r["html"] for r in rows)
+
+    n_ok = sum(1 for r in rows if r["st"] == "ok")
+    sys_ok = all(r["st"] in ("ok", "off") for r in rows)
+    sys_dot = "ok" if sys_ok else "warn"
+
+    body = f'''
+<div class="wrap" style="padding:28px 20px 60px;max-width:900px">
+  <div class="section-title"><h2>{ic("rss",18)} 信源与更新状态</h2><span>透明公开 · 每 6 小时自动巡检</span></div>
+
+  <div class="scard syscard">
+    <div class="sys-line"><span class="dot {sys_dot}"></span><b>{"系统运行中" if sys_ok else "存在异常信源"}</b>
+    <span class="ssub">最后更新 {gen.strftime("%m-%d %H:%M")} · <span id="nextRun">计算下次更新…</span></span></div>
+    <div class="ssub" style="margin-top:6px">每日 4 批：08:17 / 14:17 / 20:17 / 02:17（北京时间）· 采集 → AI 加工 → 聚簇 → 自动发布</div>
+  </div>
+
+  <div class="section-title"><h2>信源记分牌</h2><span>{len(all_sources)} 个信源 · 按需要关注排序</span></div>
+  <div class="scard" style="padding:6px 18px">{rows_html}</div>
+
+  <details class="scard act"><summary><b>➕ 如何添加信源</b></summary>
+    <div class="act-body">想监控新的信源（博客 RSS / 公众号官网 / 社区账号）？复制下面模板，发给 Kimi 或在 GitHub 提 issue，测通即上线：</div>
+    <div class="tpl" id="srcTpl">新信源申请：\n名称：（如 机器之心）\n网址：（官网或 RSS 地址）</div>
+    <button class="sbtn" id="tplBtn" onclick="copyTpl()">复制模板</button>
+  </details>
+  <details class="scard act"><summary><b>⚙️ 更新机制</b></summary>
+    <div class="act-body">GitHub Actions 定时任务（免费额度），每日 4 批：采集 RSS/社区 → DeepSeek 过滤与编译 → 事件聚簇去重 → 热度打分 → 静态页生成 → 自动发布。每次发布前自动执行 gitleaks 密钥扫描。定时任务高峰期可能延迟几分钟，属正常现象。</div>
+  </details>
+  <details class="scard act"><summary><b>📜 内容声明</b></summary>
+    <div class="act-body">本站仅聚合各信源的摘要与 AI 编译内容并链接原文，不转载全文，版权归原作者与原发布方所有。信源方如需调整展示方式，可通过 GitHub issue 联系。</div>
+  </details>
+</div>
+<script>
+(function(){{
+  var times=[[8,17],[14,17],[20,17],[2,17]];
+  var now=new Date(), best=null;
+  for(var d=0; d<2 && !best; d++){{
+    for(var i=0;i<times.length;i++){{
+      var t=new Date(now); t.setDate(now.getDate()+d); t.setHours(times[i][0],times[i][1],0,0);
+      if(t>now){{best=t;break;}}
+    }}
+  }}
+  if(best){{
+    var mins=Math.round((best-now)/60000), h=Math.floor(mins/60), m=mins%60;
+    document.getElementById('nextRun').textContent='下次更新 '+best.getHours().toString().padStart(2,'0')+':'+best.getMinutes().toString().padStart(2,'0')+'（约 '+(h?h+' 小时 ':'')+m+' 分钟后）';
+  }}
+}})();
+function copyTpl(){{
+  var t=document.getElementById('srcTpl').innerText;
+  function done(){{var b=document.getElementById('tplBtn');b.textContent='已复制 ✓';setTimeout(function(){{b.textContent='复制模板'}},1500);}}
+  if(navigator.clipboard){{navigator.clipboard.writeText(t).then(done,done);}}else{{done();}}
+}}
+</script>'''
+    return page_shell("信源与更新状态 · DataHot", "DataHot 的信源清单、健康状态与更新机制", css, body,
+                      tabbar("sources"), prefix="")
+
 def main():
     payload = json.load(open(SITE / "data" / "latest.json"))
     events = payload["events"]
@@ -621,6 +744,7 @@ def main():
   <div class="logo">Data<em>Hot</em><span class="tag">每 6 小时更新</span></div>
   <span class="upd-time">{ic("clock",12)} {gen.strftime("%m-%d %H:%M")} 更新</span>
   <a class="tab d-only" href="topics.html" style="text-decoration:none">{ic("map",14)} 主题</a>
+  <a class="tab d-only" href="sources.html" style="text-decoration:none">{ic("rss",14)} 信源</a>
 </div></header>
 
 <div class="wrap"><div class="layout"><main>
@@ -713,6 +837,8 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
 }})();
 </script>
 </body></html>'''
+
+    (SITE / "sources.html").write_text(render_sources_page(events, payload, css), encoding="utf-8")
 
     out = SITE / "index.html"
     out.write_text(page, encoding="utf-8")

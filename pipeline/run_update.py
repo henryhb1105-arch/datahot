@@ -516,6 +516,28 @@ def main():
     # F1：聚簇
     events = cluster_events(new_items, events, cfg)
 
+    # 信源状态持久化：连续失败计数 + 抓取/入选计数（入选率 = 信源质量记分牌）
+    from collections import Counter as _Counter
+    accepted = _Counter(it["source"] for it in new_items)
+    ss_path = DATA / "sources_status.json"
+    ss = json.load(open(ss_path)) if ss_path.exists() else {}
+    now_iso = now.astimezone(TZ).isoformat()
+    for st in source_status:
+        rec = ss.get(st["name"], {})
+        rec["last_run"] = now_iso
+        rec["ok"] = st["ok"]
+        if st["ok"]:
+            rec["last_ok"] = now_iso
+            rec["fails"] = 0
+            rec["total_fetched"] = rec.get("total_fetched", 0) + st.get("new", 0)
+            rec["total_accepted"] = rec.get("total_accepted", 0) + accepted.get(st["name"], 0)
+            rec["last_new"] = st.get("new", 0)
+        else:
+            rec["fails"] = rec.get("fails", 0) + 1
+            rec["error"] = st.get("error", "")[:120]
+        ss[st["name"]] = rec
+    json.dump(ss, open(ss_path, "w"), ensure_ascii=False, indent=1)
+
     # 清理过期
     events = [e for e in events if datetime.fromisoformat(e["published"]) > cutoff]
 

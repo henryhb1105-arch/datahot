@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ClickHouse托管Postgres的WAL背压机制解析 · DataHot</title>
-<meta name="description" content="ClickHouse Managed Postgres通过WAL感知背压机制限制客户端写入，以保护磁盘空间并让归档进程恢复。当写入快于归档时，WAL堆积直至磁盘满，Postgres会将其视为PANIC并宕机。系统每15秒统计待处理段，通过cgroup v2 I/O控制器分级限制写入带宽，例如在500">
-<link rel="canonical" href="https://henryhb1105-arch.github.io/datahot/e/e8b8a1edf33a.html">
-<meta property="og:title" content="ClickHouse托管Postgres的WAL背压机制解析">
-<meta property="og:description" content="ClickHouse Managed Postgres通过WAL感知背压机制限制客户端写入，以保护磁盘空间并让归档进程恢复。当写入快于归档时，WAL堆积直至磁盘满，Postgres会将其视为PANIC并宕机。系统每15秒统计待处理段，通过cgroup v2 I/O控制器分级限制写入带宽，例如在500">
+<title>七招控制Snowflake CoCo AI成本 · DataHot</title>
+<meta name="description" content="Snowflake CoCo能将自然语言转化为实际工作，自动运行SQL、执行多步骤流程并在每轮调用大模型，token消耗会直接转化为credits费用。缺乏管控的团队可能迅速推高成本。Snowflake提供了从SQL、Snowsight或CoCo内部管理的完整成本控制体系，核心思路是三步：看清花费、">
+<link rel="canonical" href="https://henryhb1105-arch.github.io/datahot/e/ae39e628c113.html">
+<meta property="og:title" content="七招控制Snowflake CoCo AI成本">
+<meta property="og:description" content="Snowflake CoCo能将自然语言转化为实际工作，自动运行SQL、执行多步骤流程并在每轮调用大模型，token消耗会直接转化为credits费用。缺乏管控的团队可能迅速推高成本。Snowflake提供了从SQL、Snowsight或CoCo内部管理的完整成本控制体系，核心思路是三步：看清花费、">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://henryhb1105-arch.github.io/datahot/e/e8b8a1edf33a.html">
+<meta property="og:url" content="https://henryhb1105-arch.github.io/datahot/e/ae39e628c113.html">
 <meta property="og:site_name" content="DataHot · 数据领域 AI 热榜">
 <link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 <meta name="theme-color" content="#1a1d23">
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "NewsArticle", "headline": "ClickHouse托管Postgres的WAL背压机制解析", "description": "ClickHouse Managed Postgres通过WAL感知背压机制限制客户端写入，以保护磁盘空间并让归档进程恢复。当写入快于归档时，WAL堆积直至磁盘满，Postgres会将其视为PANIC并宕机。系统每15秒统计待处理段，通过cgroup v2 I/O控制器分级限制写入带宽，例如在500", "datePublished": "2026-08-05T08:00:00+08:00", "inLanguage": "zh-CN", "isBasedOn": "https://clickhouse.com/blog/wal-backpressure-clickhouse-managed-postgres", "publisher": {"@type": "Organization", "name": "DataHot"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "NewsArticle", "headline": "七招控制Snowflake CoCo AI成本", "description": "Snowflake CoCo能将自然语言转化为实际工作，自动运行SQL、执行多步骤流程并在每轮调用大模型，token消耗会直接转化为credits费用。缺乏管控的团队可能迅速推高成本。Snowflake提供了从SQL、Snowsight或CoCo内部管理的完整成本控制体系，核心思路是三步：看清花费、", "datePublished": "2026-08-06T23:29:35+08:00", "inLanguage": "zh-CN", "isBasedOn": "https://medium.com/snowflake/7-ways-to-control-your-snowflake-coco-ai-spend-91fe829fce82?source=rss----34b6daafc07---4", "publisher": {"@type": "Organization", "name": "DataHot"}}</script>
 <style>
   :root{
     --bg:#f6f7f9; --card:#ffffff; --ink:#1a1d23; --sub:#6b7280; --line:#e5e7eb;
@@ -142,22 +142,22 @@
 <div class="article">
   <a class="back" href="../index.html">← 返回热榜</a>
   <div class="meta">
-    <span class="badge b-platform">AI 数据平台</span>
-    
-    <span title="2026-08-05 08:00">4 天前</span>
-    <span style="margin-left:auto" class="heatnum">🔥 31 热度</span>
+    <span class="badge b-agent">Data Agent</span>
+    <span class="star">精选</span>
+    <span title="2026-08-06 23:29">2 天前</span>
+    <span style="margin-left:auto" class="heatnum">🔥 34 热度</span>
   </div>
-  <h1>ClickHouse托管Postgres的WAL背压机制解析</h1>
-  <div class="body">ClickHouse Managed Postgres通过WAL感知背压机制限制客户端写入，以保护磁盘空间并让归档进程恢复。当写入快于归档时，WAL堆积直至磁盘满，Postgres会将其视为PANIC并宕机。系统每15秒统计待处理段，通过cgroup v2 I/O控制器分级限制写入带宽，例如在500 MB/s磁盘上，100个待处理段时限制为400 MB/s，500个时250 MB/s，1000个时100 MB/s。该机制运行在数据平面，即使控制平面不可用，数据库也能自我保护。</div>
-  <a class="cta" href="https://clickhouse.com/blog/wal-backpressure-clickhouse-managed-postgres" target="_blank" rel="noopener">阅读原文 · ClickHouse Blog ↗</a>
-  <div class="why" style="border-top:1px dashed var(--line);padding-top:14px;margin-top:18px;font-size:14px"><span class="w">推荐理由</span><span>数据从业者应关注托管数据库如何处理WAL堆积与背压，避免磁盘满导致宕机，这是数据平台可靠性的关键实践。</span></div>
-  <div class="vendors" style="margin-top:14px"><span class="vtag">ClickHouse</span></div>
+  <h1>七招控制Snowflake CoCo AI成本</h1>
+  <div class="body">Snowflake CoCo能将自然语言转化为实际工作，自动运行SQL、执行多步骤流程并在每轮调用大模型，token消耗会直接转化为credits费用。缺乏管控的团队可能迅速推高成本。Snowflake提供了从SQL、Snowsight或CoCo内部管理的完整成本控制体系，核心思路是三步：看清花费、优化默认运行配置、强制执行硬性限制。</div>
+  <a class="cta" href="https://medium.com/snowflake/7-ways-to-control-your-snowflake-coco-ai-spend-91fe829fce82?source=rss----34b6daafc07---4" target="_blank" rel="noopener">阅读原文 · Snowflake Engineering（Medium） ↗</a>
+  <div class="why" style="border-top:1px dashed var(--line);padding-top:14px;margin-top:18px;font-size:14px"><span class="w">推荐理由</span><span>数据从业者若使用CoCo这类分析Agent，必须理解其token计费模式与治理手段，避免AI成本失控，本指南给出了可落地的控制框架。</span></div>
+  <div class="vendors" style="margin-top:14px"><span class="vtag">Snowflake</span></div>
   <div class="card"><h4>📄 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
-  <div class="fulltext"><p>在ClickHouse Managed Postgres中，所有对Postgres的更改在写入表之前都会先进入预写日志（WAL）。为了支持时间点恢复，系统会将每个已完成的WAL段上传到对象存储。Postgres在段上传成功前不会删除该段，因此当工作负载写入速度快于归档器传输速度时，WAL会不断堆积，直到磁盘耗尽。而Postgres将WAL磁盘写满视为PANIC状态，导致整个实例宕机。</p><p>ClickHouse Managed Postgres的应对方案是背压机制。一个systemd计时器每15秒统计一次待处理的WAL段数量，并通过cgroup v2 I/O控制器来限制Postgres的写入带宽。这个限制是磁盘预配吞吐量的百分比，且随积压深度增加而收紧：当待处理段为100个时，写入上限为基线带宽的80%（在500 MB/s磁盘上即400 MB/s）；当达到500个时，降至50%（250 MB/s）；当达到1,000个时，仅保留20%（100 MB/s）。</p><p>更慢的写入意味着每秒产生的WAL更少，归档器得以追赶进度。整个过程完全在数据平面上执行，即使控制平面不可用或无法访问，数据库依然能够自我守护，不会因为控制面失联而失去保护能力。</p><p>设计者特别强调“不要限制解药”。如果对整个服务统一限流，同样会限制归档器排空队列、检查点进程删除旧WAL，以及归档器写入所用的日志器。因此，限流机制将cgroup一分为二：每个Postgres进程都会在进程标题中声明自己的角色，使得排空路径被单独划分，避免与普通写入流量一同被抑制，从而保证恢复通道始终畅通。</p><p>这项WAL感知背压机制是托管数据库可靠性设计中的一个范例：当归档滞后时，系统自动降速而非崩溃，同时确保恢复路径不被误伤。对于使用ClickHouse Managed Postgres或类似托管数据库的团队来说，理解这一机制有助于更好地规划写入负载和容量，避免因瞬时写入高峰触发PANIC导致服务中断。</p></div>
-  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://clickhouse.com/blog/wal-backpressure-clickhouse-managed-postgres" target="_blank" rel="noopener">查看原文 ↗</a></div>
+  <div class="fulltext"><p>Snowflake CoCo正在改变数据分析的交互方式：它不再只是回答简单查询，而是将自然语言转化为真正的执行动作——运行SQL、编排多步骤工作流，并在每一轮交互中调用大型语言模型。这种能力带来了全新的成本结构，每一次推理、每一段token处理都会被计入credits消耗。如果团队缺乏监督，AI花销可能迅速攀升，成为企业账单上的意外黑洞。</p><p>好消息是，Snowflake为AI支出提供了一整套控制机制。管理员既可以通过SQL操作，也可以在Snowsight界面中配置，甚至直接在CoCo内部设定策略。官方给出的核心方法论是三个固定动作：首先获得对支出的可见性，清楚知道每个会话、每个用户消耗了多少；其次优化默认运行方式，让成本在源头就处于合理区间；最后强制执行硬性限制，确保预算不会被突破。</p><p>可见性是成本治理的第一步。CoCo的使用记录会包含token消耗、会话时长和执行的workflow等维度。企业可以按团队、项目或用户维度汇总这些数据，形成每日或每周的成本报告。没有这种可见性，任何优化都只能凭直觉，无法形成闭环。Snowflake允许用户通过SQL查询相关视图，进而将这些数据接入现有的运维看板或告警系统。</p><p>优化默认运行是第二步。许多成本浪费来自不必要的模型调用或冗长的上下文。CoCo允许管理员设置默认的模型參数、最大token数、会话超时时间等。比如，对于简单的SQL生成任务，可以限制使用较小的模型；对于复杂分析，再允许使用更强的推理模型。这种分层策略能避免“杀鸡用牛刀”式的高成本消耗。</p><p>强制执行硬性限制是最后一道防线。Snowflake支持在账户或工作区级别设定消费预算上限，一旦触发阈值，系统可以自动暂停会话、限制用户或发送通知。管理员还可以结合角色权限，规定哪些人可以使用CoCo、哪些人只能查看结果。这样即使个别用户误操作或恶意消耗，也不会影响整个组织的成本安全。</p><p>从实现方式来看，所有治理动作都保留了SQL接口和图形界面双重路径，方便不同技术背景的管理员操作。CoCo本身也内置了策略配置入口，使AI平台的使用者能够在不脱离工作环境的情况下完成治理。这种设计体现了Snowflake的一贯思路：AI能力与数据治理同源，用数据平台的方式管理AI支出。</p><p>对于正在评估或已经使用CoCo的企业，建议优先建立成本观测体系，再从默认配置入手优化，最后设置不可突破的限额。三步循环执行，既能享受AI Agent带来的效率提升，又能将财务风险控制在可接受的范围内。随着AI功能在数据平台中的渗透，类似CoCo这样的成本治理实践将成为数据团队的基础技能。</p></div>
+  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://medium.com/snowflake/7-ways-to-control-your-snowflake-coco-ai-spend-91fe829fce82?source=rss----34b6daafc07---4" target="_blank" rel="noopener">查看原文 ↗</a></div>
 </div>
-  <div class="card"><h4>🔗 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://clickhouse.com/blog/wal-backpressure-clickhouse-managed-postgres" target="_blank" rel="noopener">ClickHouse Blog（英文）</a><span class="src more">首发</span><span class="count">2026-08-05 08:00</span></div></div>
-  <div class="card"><h4>📌 相关事件</h4><a class="vendor-row" href="../e/fda342751ac4.html"><span class="n">›</span>ClickHouse托管Postgres更新：通知、可观测性、备份等<span class="count">🔥 33</span></a><a class="vendor-row" href="../e/6539aeeb4002.html"><span class="n">›</span>Physical Intelligence用ClickHouse管理Postgres统一机器人数据栈<span class="count">🔥 33</span></a><a class="vendor-row" href="../e/f24d7f17e186.html"><span class="n">›</span>ClickHouse 26.7发布：性能大幅优化，新增多项查询能力<span class="count">🔥 33</span></a></div>
+  <div class="card"><h4>🔗 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://medium.com/snowflake/7-ways-to-control-your-snowflake-coco-ai-spend-91fe829fce82?source=rss----34b6daafc07---4" target="_blank" rel="noopener">Snowflake Engineering（Medium）（英文）</a><span class="src more">首发</span><span class="count">2026-08-06 23:29</span></div></div>
+  <div class="card"><h4>📌 相关事件</h4><a class="vendor-row" href="../e/1126df123262.html"><span class="n">›</span>Snowflake CoCo服务器模式实现安全远程访问<span class="count">🔥 36</span></a><a class="vendor-row" href="../e/248c3854ae12.html"><span class="n">›</span>Snowflake发布自主电信网络运维蓝图<span class="count">🔥 30</span></a><a class="vendor-row" href="../e/08162567f084.html"><span class="n">›</span>什么是Agentic Workflows？Databricks解读智能代理工作流<span class="count">🔥 35</span></a></div>
 </div>
 <footer>DataHot · 数据领域 AI 资讯热榜 · 仅聚合摘要与编译内容，版权归原作者</footer>
 </body></html>

@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ClickHouse托管Postgres的WAL背压机制解析 · DataHot</title>
-<meta name="description" content="ClickHouse Managed Postgres通过WAL感知背压机制限制客户端写入，以保护磁盘空间并让归档进程恢复。当写入快于归档时，WAL堆积直至磁盘满，Postgres会将其视为PANIC并宕机。系统每15秒统计待处理段，通过cgroup v2 I/O控制器分级限制写入带宽，例如在500">
-<link rel="canonical" href="https://henryhb1105-arch.github.io/datahot/e/e8b8a1edf33a.html">
-<meta property="og:title" content="ClickHouse托管Postgres的WAL背压机制解析">
-<meta property="og:description" content="ClickHouse Managed Postgres通过WAL感知背压机制限制客户端写入，以保护磁盘空间并让归档进程恢复。当写入快于归档时，WAL堆积直至磁盘满，Postgres会将其视为PANIC并宕机。系统每15秒统计待处理段，通过cgroup v2 I/O控制器分级限制写入带宽，例如在500">
+<title>Snowflake在线特征存储与推理服务实现实时ML · DataHot</title>
+<meta name="description" content="Snowflake推出在线特征存储与推理服务，旨在解决训练-服务偏差（training-serving skew）问题。该偏差源于训练与推理时特征计算路径不一致，导致模型上线后预测质量逐渐下降。Snowflake通过统一特征管理，帮助团队保持训练与服务特征的一致性和实时性。">
+<link rel="canonical" href="https://henryhb1105-arch.github.io/datahot/e/6cb1f7adcf49.html">
+<meta property="og:title" content="Snowflake在线特征存储与推理服务实现实时ML">
+<meta property="og:description" content="Snowflake推出在线特征存储与推理服务，旨在解决训练-服务偏差（training-serving skew）问题。该偏差源于训练与推理时特征计算路径不一致，导致模型上线后预测质量逐渐下降。Snowflake通过统一特征管理，帮助团队保持训练与服务特征的一致性和实时性。">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://henryhb1105-arch.github.io/datahot/e/e8b8a1edf33a.html">
+<meta property="og:url" content="https://henryhb1105-arch.github.io/datahot/e/6cb1f7adcf49.html">
 <meta property="og:site_name" content="DataHot · 数据领域 AI 热榜">
 <link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 <meta name="theme-color" content="#1a1d23">
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "NewsArticle", "headline": "ClickHouse托管Postgres的WAL背压机制解析", "description": "ClickHouse Managed Postgres通过WAL感知背压机制限制客户端写入，以保护磁盘空间并让归档进程恢复。当写入快于归档时，WAL堆积直至磁盘满，Postgres会将其视为PANIC并宕机。系统每15秒统计待处理段，通过cgroup v2 I/O控制器分级限制写入带宽，例如在500", "datePublished": "2026-08-05T08:00:00+08:00", "inLanguage": "zh-CN", "isBasedOn": "https://clickhouse.com/blog/wal-backpressure-clickhouse-managed-postgres", "publisher": {"@type": "Organization", "name": "DataHot"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "NewsArticle", "headline": "Snowflake在线特征存储与推理服务实现实时ML", "description": "Snowflake推出在线特征存储与推理服务，旨在解决训练-服务偏差（training-serving skew）问题。该偏差源于训练与推理时特征计算路径不一致，导致模型上线后预测质量逐渐下降。Snowflake通过统一特征管理，帮助团队保持训练与服务特征的一致性和实时性。", "datePublished": "2026-08-05T22:01:05+08:00", "inLanguage": "zh-CN", "isBasedOn": "https://medium.com/snowflake/building-real-time-ml-with-snowflakes-online-feature-store-and-inference-service-bb88825c98b4?source=rss----34b6daafc07---4", "publisher": {"@type": "Organization", "name": "DataHot"}}</script>
 <style>
   :root{
     --bg:#f6f7f9; --card:#ffffff; --ink:#1a1d23; --sub:#6b7280; --line:#e5e7eb;
@@ -143,21 +143,21 @@
   <a class="back" href="../index.html">← 返回热榜</a>
   <div class="meta">
     <span class="badge b-platform">AI 数据平台</span>
-    
-    <span title="2026-08-05 08:00">4 天前</span>
-    <span style="margin-left:auto" class="heatnum">🔥 31 热度</span>
+    <span class="star">精选</span>
+    <span title="2026-08-05 22:01">3 天前</span>
+    <span style="margin-left:auto" class="heatnum">🔥 32 热度</span>
   </div>
-  <h1>ClickHouse托管Postgres的WAL背压机制解析</h1>
-  <div class="body">ClickHouse Managed Postgres通过WAL感知背压机制限制客户端写入，以保护磁盘空间并让归档进程恢复。当写入快于归档时，WAL堆积直至磁盘满，Postgres会将其视为PANIC并宕机。系统每15秒统计待处理段，通过cgroup v2 I/O控制器分级限制写入带宽，例如在500 MB/s磁盘上，100个待处理段时限制为400 MB/s，500个时250 MB/s，1000个时100 MB/s。该机制运行在数据平面，即使控制平面不可用，数据库也能自我保护。</div>
-  <a class="cta" href="https://clickhouse.com/blog/wal-backpressure-clickhouse-managed-postgres" target="_blank" rel="noopener">阅读原文 · ClickHouse Blog ↗</a>
-  <div class="why" style="border-top:1px dashed var(--line);padding-top:14px;margin-top:18px;font-size:14px"><span class="w">推荐理由</span><span>数据从业者应关注托管数据库如何处理WAL堆积与背压，避免磁盘满导致宕机，这是数据平台可靠性的关键实践。</span></div>
-  <div class="vendors" style="margin-top:14px"><span class="vtag">ClickHouse</span></div>
+  <h1>Snowflake在线特征存储与推理服务实现实时ML</h1>
+  <div class="body">Snowflake推出在线特征存储与推理服务，旨在解决训练-服务偏差（training-serving skew）问题。该偏差源于训练与推理时特征计算路径不一致，导致模型上线后预测质量逐渐下降。Snowflake通过统一特征管理，帮助团队保持训练与服务特征的一致性和实时性。</div>
+  <a class="cta" href="https://medium.com/snowflake/building-real-time-ml-with-snowflakes-online-feature-store-and-inference-service-bb88825c98b4?source=rss----34b6daafc07---4" target="_blank" rel="noopener">阅读原文 · Snowflake Engineering（Medium） ↗</a>
+  <div class="why" style="border-top:1px dashed var(--line);padding-top:14px;margin-top:18px;font-size:14px"><span class="w">推荐理由</span><span>数据从业者需关注特征平台如何消除实时推理中的训练-服务偏差，这是ML系统稳定性的关键环节。</span></div>
+  <div class="vendors" style="margin-top:14px"><span class="vtag">Snowflake</span></div>
   <div class="card"><h4>📄 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
-  <div class="fulltext"><p>在ClickHouse Managed Postgres中，所有对Postgres的更改在写入表之前都会先进入预写日志（WAL）。为了支持时间点恢复，系统会将每个已完成的WAL段上传到对象存储。Postgres在段上传成功前不会删除该段，因此当工作负载写入速度快于归档器传输速度时，WAL会不断堆积，直到磁盘耗尽。而Postgres将WAL磁盘写满视为PANIC状态，导致整个实例宕机。</p><p>ClickHouse Managed Postgres的应对方案是背压机制。一个systemd计时器每15秒统计一次待处理的WAL段数量，并通过cgroup v2 I/O控制器来限制Postgres的写入带宽。这个限制是磁盘预配吞吐量的百分比，且随积压深度增加而收紧：当待处理段为100个时，写入上限为基线带宽的80%（在500 MB/s磁盘上即400 MB/s）；当达到500个时，降至50%（250 MB/s）；当达到1,000个时，仅保留20%（100 MB/s）。</p><p>更慢的写入意味着每秒产生的WAL更少，归档器得以追赶进度。整个过程完全在数据平面上执行，即使控制平面不可用或无法访问，数据库依然能够自我守护，不会因为控制面失联而失去保护能力。</p><p>设计者特别强调“不要限制解药”。如果对整个服务统一限流，同样会限制归档器排空队列、检查点进程删除旧WAL，以及归档器写入所用的日志器。因此，限流机制将cgroup一分为二：每个Postgres进程都会在进程标题中声明自己的角色，使得排空路径被单独划分，避免与普通写入流量一同被抑制，从而保证恢复通道始终畅通。</p><p>这项WAL感知背压机制是托管数据库可靠性设计中的一个范例：当归档滞后时，系统自动降速而非崩溃，同时确保恢复路径不被误伤。对于使用ClickHouse Managed Postgres或类似托管数据库的团队来说，理解这一机制有助于更好地规划写入负载和容量，避免因瞬时写入高峰触发PANIC导致服务中断。</p></div>
-  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://clickhouse.com/blog/wal-backpressure-clickhouse-managed-postgres" target="_blank" rel="noopener">查看原文 ↗</a></div>
+  <div class="fulltext"><p>模型训练完成后，各项指标看起来都很扎实，部署上线。数周后，预测质量开始下降，却没人能立刻解释原因。这通常是训练-服务偏差（training-serving skew）在作祟：模型在推理时看到的特征，与训练时使用的特征计算方式不同。代码路径不同，数据源不同，聚合窗口也不同。</p><p>模型本身没有变化，但数据已经悄悄变了——因为训练和服务流水线是两套独立系统，会逐渐漂移。这种漂移是实时机器学习落地中最隐蔽的敌人之一。Snowflake近日在其官方博客中介绍了如何利用在线特征存储（Online Feature Store）和推理服务（Inference Service）构建实时ML系统。</p><p>Snowflake的在线特征存储允许团队将训练和推理阶段统一到同一套特征定义与计算逻辑上。特征在批处理和流处理中保持一致，模型在线服务时可以直接读取最新计算好的特征值，避免了训练和服务两端各自维护特征逻辑带来的偏差。</p><p>同时，推理服务提供了低延迟的特征检索和模型打分能力，使得模型能够基于实时数据做出决策。这尤其适用于推荐、风控、个性化交互等对时效性要求高的场景。</p><p>Snowflake此举将其数据云平台的能力从传统的批处理分析扩展到实时特征工程和模型推理领域。对于已经使用Snowflake作为湖仓平台的组织来说，这种集成意味着不需要额外搭建独立的特征存储系统，降低了架构复杂度和运维成本。</p><p>文章指出，训练-服务偏差的根源在于训练和服务是两个隔离的系统。Snowflake的方案本质上是将特征工程的所有环节——定义、计算、存储、检索——收拢到一个平台内，让特征在时间上保持一致，从机制上减少偏差。</p><p>对于数据团队而言，这不仅是一个技术产品更新，更是实时ML工程实践的一种范式参考：只有在特征生命周期中统一治理，模型上线后的表现才能持续稳定。Snowflake的在线特征存储与推理服务，正是针对这一核心痛点提供的平台级解法。</p></div>
+  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://medium.com/snowflake/building-real-time-ml-with-snowflakes-online-feature-store-and-inference-service-bb88825c98b4?source=rss----34b6daafc07---4" target="_blank" rel="noopener">查看原文 ↗</a></div>
 </div>
-  <div class="card"><h4>🔗 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://clickhouse.com/blog/wal-backpressure-clickhouse-managed-postgres" target="_blank" rel="noopener">ClickHouse Blog（英文）</a><span class="src more">首发</span><span class="count">2026-08-05 08:00</span></div></div>
-  <div class="card"><h4>📌 相关事件</h4><a class="vendor-row" href="../e/fda342751ac4.html"><span class="n">›</span>ClickHouse托管Postgres更新：通知、可观测性、备份等<span class="count">🔥 33</span></a><a class="vendor-row" href="../e/6539aeeb4002.html"><span class="n">›</span>Physical Intelligence用ClickHouse管理Postgres统一机器人数据栈<span class="count">🔥 33</span></a><a class="vendor-row" href="../e/f24d7f17e186.html"><span class="n">›</span>ClickHouse 26.7发布：性能大幅优化，新增多项查询能力<span class="count">🔥 33</span></a></div>
+  <div class="card"><h4>🔗 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://medium.com/snowflake/building-real-time-ml-with-snowflakes-online-feature-store-and-inference-service-bb88825c98b4?source=rss----34b6daafc07---4" target="_blank" rel="noopener">Snowflake Engineering（Medium）（英文）</a><span class="src more">首发</span><span class="count">2026-08-05 22:01</span></div></div>
+  <div class="card"><h4>📌 相关事件</h4><a class="vendor-row" href="../e/5a003e60d050.html"><span class="n">›</span>Snowflake可观测性成熟度三级框架解析<span class="count">🔥 31</span></a><a class="vendor-row" href="../e/caa8145425d1.html"><span class="n">›</span>Snowflake AIM：将数据迁移从数年缩短至数周<span class="count">🔥 35</span></a><a class="vendor-row" href="../e/04a9eab02673.html"><span class="n">›</span>掌握Snowflake RBAC：可扩展安全访问控制实战指南<span class="count">🔥 33</span></a></div>
 </div>
 <footer>DataHot · 数据领域 AI 资讯热榜 · 仅聚合摘要与编译内容，版权归原作者</footer>
 </body></html>

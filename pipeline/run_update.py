@@ -109,14 +109,27 @@ def parse_feed(root_el, source):
         })
     return [i for i in items if i["title"] and i["link"]][:PER_SOURCE_MAX]
 
-def heat_score(source_weight, published):
-    base = source_weight * 10
-    if published:
-        age_h = (datetime.now(timezone.utc) - published.astimezone(timezone.utc)).total_seconds() / 3600
-        decay = max(0.3, 1 - age_h / (KEEP_DAYS * 24) * 0.7)
-    else:
-        decay = 0.5
-    return round(base * decay)
+import math
+
+def freshness(published):
+    """时间新鲜度 0.3~1.0：7 天内线性衰减"""
+    if not published:
+        return 0.5
+    age_h = (datetime.now(timezone.utc) - published.astimezone(timezone.utc)).total_seconds() / 3600
+    return max(0.3, 1 - age_h / (KEEP_DAYS * 24) * 0.7)
+
+def community_score(signal):
+    """社区信号（HN 赞数 / Bluesky 赞数）对数归一到 0-100，500 赞 ≈ 满分"""
+    if not signal or signal <= 0:
+        return 0
+    return min(100, round(math.log1p(signal) / math.log1p(500) * 100))
+
+def calc_heat(importance=50, published=None, signal=0, extra_sources=0):
+    """热度分 2.0：LLM重要性×0.4 + 新鲜度×0.2 + 社区信号×0.3 + 多信源加成×0.1，归一 0-100"""
+    multi = min(100, 25 * extra_sources)
+    return round(min(100,
+        0.4 * importance + 0.2 * freshness(published) * 100
+        + 0.3 * community_score(signal) + 0.1 * multi))
 
 # ── F5：HN 条目抓原文 ──────────────────────────────────────
 def fetch_article_text(url, max_chars=2000):
@@ -152,12 +165,13 @@ def llm_chat(base, key, model, prompt, timeout=120):
     with urllib.request.urlopen(req, timeout=timeout) as r:
         content = json.loads(r.read())["choices"][0]["message"]["content"]
     m = re.search(r"\{.*\}", content, re.S)
-    return json.loads(m.group(0)) if m else {}
+    return json.loads(m.group(0), strict=False) if m else {}  # strict=False 容忍编译稿中的原始换行
 
 # ── F4：加固的相关性过滤 + AI 加工 ─────────────────────────
 ENRICH_RULES = """你是一个数据领域垂直资讯站的编辑。本站只覆盖四个领域：Data Agent（ChatBI/Text-to-SQL/分析Agent）、AI数据平台（数仓/湖仓/语义层/数据集成治理）、BI与可视化（BI工具/报表）、数据产品（方法论/融资并购/行业报告）。
 
 【相关性硬规则】
+- 注意：dbt 指数据工具 dbt Labs；心理疗法 DBT（辩证行为疗法）等无关内容一律 false
 - 仅当内容直接涉及上述领域时 relevant=true
 - 泛AI新闻一律 false：AI消费应用、AI硬件、AI政策八卦、模型发布（与数据场景无关）、AI音乐/绘画/社交等
 - 数据分析/数据库/数据基础设施的融资并购、产品发布、技术实践 → true
@@ -193,7 +207,8 @@ def llm_enrich(items, cfg):
             it["category"], it["category_label"] = cat, CATEGORIES_LABEL[cat]
         llm_vendors = [v for v in (out.get("vendors") or []) if isinstance(v, str) and v.strip()]
         it["vendors"] = list(dict.fromkeys(it.get("vendors", []) + llm_vendors))[:5]
-        it["heat"] = round(it["heat"] * 0.5 + int(out.get("importance", 50)) * 0.5)
+        it["importance"] = int(out.get("importance", 50))
+        it["heat"] = calc_heat(it["importance"], it.get("_pub_dt"), it.get("signal", 0))
         return it
 
     kept = []
@@ -289,8 +304,10 @@ def cluster_events(new_items, events, cfg):
                     if llm_same_event([(ev_desc(a), ev_desc(b))], cfg)[0]:
                         for sub in b["items"]:
                             a["items"].append(sub)
-                        a["heat"] = max(a["heat"], b["heat"]) + 8 * (len(a["items"]) - 1)
                         a["published"] = max(a["published"], b["published"])
+                        a["importance"] = max(a.get("importance", 50), b.get("importance", 50))
+                        a["signal"] = max(a.get("signal", 0), b.get("signal", 0))
+                        recalc_event_heat(a)
                         a["vendors"] = list(dict.fromkeys(a.get("vendors", []) + b.get("vendors", [])))[:5]
                         events.pop(j)
                         print(f"[cluster] 合并事件: {b['zh_title'][:30]} → {a['zh_title'][:30]}")
@@ -308,16 +325,24 @@ def make_event(it):
         "full_zh": it.get("full_zh", ""),
         "category": it["category"], "category_label": it["category_label"],
         "vendors": it.get("vendors", []), "heat": it["heat"], "star": it.get("star", False),
+        "importance": it.get("importance", 50), "signal": it.get("signal", 0),
         "published": it["published"],
         "items": [{"id": it["id"], "source": it["source"], "link": it["link"],
                    "published": it["published"], "title": it["title"]}],
     }
 
+def recalc_event_heat(e):
+    """事件热度 = calc_heat(最高重要性, 最新发布时间, 最强社区信号, 信源数-1)"""
+    pub = datetime.fromisoformat(e["published"])
+    e["heat"] = calc_heat(e.get("importance", 50), pub, e.get("signal", 0), len(e["items"]) - 1)
+
 def merge_into(e, it):
     e["items"].append({"id": it["id"], "source": it["source"], "link": it["link"],
                        "published": it["published"], "title": it["title"]})
-    e["heat"] = max(e["heat"], it["heat"]) + 8
     e["published"] = max(e["published"], it["published"])
+    e["importance"] = max(e.get("importance", 50), it.get("importance", 50))
+    e["signal"] = max(e.get("signal", 0), it.get("signal", 0))
+    recalc_event_heat(e)
     if len(it.get("zh_summary", "")) > len(e.get("zh_summary", "")):
         e["zh_summary"], e["reason"] = it["zh_summary"], it.get("reason", e["reason"])
     if len(it.get("full_zh", "")) > len(e.get("full_zh", "")):
@@ -340,6 +365,7 @@ def fetch_hn_algolia(source):
                 "link": h.get("url") or f"https://news.ycombinator.com/item?id={h['objectID']}",
                 "published": datetime.fromtimestamp(h["created_at_i"], tz=timezone.utc),
                 "summary": f"Hacker News 热帖 · {h.get('points',0)} 赞 · {h.get('num_comments',0)} 评论",
+                "signal": h.get("points", 0),
             })
     seen_links, out = set(), []
     for e in entries:
@@ -396,6 +422,7 @@ def fetch_bluesky(source):
                 "link": link,
                 "published": parse_date(rec.get("createdAt", "")),
                 "summary": f"Bluesky 热帖 · @{handle} · {likes} 赞 · {text[:300]}",
+                "signal": likes,
             })
     seen_links, out = set(), []
     for e in entries:
@@ -441,6 +468,7 @@ def main():
                     continue
                 seen.add(iid); seen_urls.add(norm_url(e["link"]))
                 pub = e["published"].astimezone(TZ) if e["published"] else now.astimezone(TZ)
+                pub_dt = e["published"] or now
                 new_items.append({
                     "id": iid, "title": e["title"], "zh_title": e["title"],
                     "summary": e["summary"][:600], "zh_summary": e["summary"][:300],
@@ -449,8 +477,9 @@ def main():
                     "category": "platform", "category_label": "AI 数据平台",
                     "vendors": VENDOR_TAGS.get(s["name"], []),
                     "vendor_default": s["type"] == "vendor",
-                    "published": pub.isoformat(),
-                    "heat": heat_score(s["weight"], e["published"]),
+                    "published": pub.isoformat(), "_pub_dt": pub_dt,
+                    "signal": e.get("signal", 0), "importance": 50,
+                    "heat": calc_heat(50, pub_dt, e.get("signal", 0)),
                     "star": s["type"] == "vendor" and s["weight"] >= 3,
                     "article_text": "",
                 })
@@ -478,6 +507,10 @@ def main():
 
     # 清理过期
     events = [e for e in events if datetime.fromisoformat(e["published"]) > cutoff]
+
+    # 热度分 2.0：全量重算（新鲜度随时间衰减，分数每天自然"降温"）
+    for e in events:
+        recalc_event_heat(e)
 
     top = [e["event_id"] for e in sorted(events, key=lambda e: -e["heat"])[:3]]
     events.sort(key=lambda e: e["published"], reverse=True)

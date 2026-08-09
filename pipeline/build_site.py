@@ -30,6 +30,12 @@ main,.layout>*,.hotlist>*{min-width:0}
 .chiprow::-webkit-scrollbar{display:none}
 .chiprow .fchip{flex-shrink:0;font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
 .chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
+@media (prefers-color-scheme: dark){
+  .chip{background:rgba(110,168,255,.16);color:#6ea8ff}
+  .chip:hover{background:rgba(110,168,255,.26)}
+  .chiprow .fchip.on{background:var(--ink);color:#121417;border-color:var(--ink)}
+  .chiprow .fchip{background:var(--card);color:var(--sub);border-color:var(--line)}
+}
 .tabbar{display:none}
 @media(max-width:960px){
   body{padding-bottom:64px}
@@ -208,6 +214,7 @@ def render_detail(e, all_events, css):
   <div class="topbar">
     <a class="back" href="../index.html" style="margin-bottom:0">← 返回热榜</a>
     <span class="sharebtns">
+      <a class="sbtn ghost" href="{main_link}" target="_blank" rel="noopener">原文 ↗</a>
       <button class="sbtn ghost" onclick="openPoster()">🖼 海报</button>
       <button class="sbtn" onclick="openSheet()">↗ 分享</button>
     </span>
@@ -220,7 +227,6 @@ def render_detail(e, all_events, css):
   </div>
   <h1>{esc(e["zh_title"])}</h1>
   <div class="body">{esc(e["zh_summary"])}</div>
-  <a class="cta" href="{main_link}" target="_blank" rel="noopener">阅读原文 · {main_src} ↗</a>
   {f'<div class="why" style="border-top:1px dashed var(--line);padding-top:14px;margin-top:18px;font-size:14px"><span class="w">推荐理由</span><span>{esc(e["reason"])}</span></div>' if e.get("reason") else ""}
   {f'<div class="vendors" style="margin-top:14px">{vtags}</div>' if vtags else ""}
   {full_block}

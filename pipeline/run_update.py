@@ -36,6 +36,7 @@ VENDOR_TAGS = {
     "ClickHouse Blog": ["ClickHouse"], "AWS Big Data Blog": ["AWS"],
     "Fivetran Blog": ["Fivetran"], "StarRocks Blog": ["StarRocks"],
     "Snowflake Engineering（Medium）": ["Snowflake"], "帆软": ["帆软", "FineBI"],
+    "Aloudata 动态": ["Aloudata"], "Aloudata 博客": ["Aloudata"],
     "Microsoft Power BI（Power Platform Blog）": ["Microsoft", "Power BI"],
     "Tableau Engineering（Medium）": ["Tableau"],
 }
@@ -48,6 +49,11 @@ def strip_html(s):
 def parse_date(s):
     if not s:
         return None
+    s = s.strip()
+    try:  # ISO 8601（含毫秒/Z 后缀）
+        return datetime.fromisoformat(s.replace("Z", "+00:00"))
+    except Exception:
+        pass
     from email.utils import parsedate_to_datetime
     try:
         return parsedate_to_datetime(s)
@@ -141,18 +147,23 @@ def calc_heat(importance=50, published=None, signal=0, extra_sources=0):
 
 # ── F5：HN 条目抓原文 ──────────────────────────────────────
 def fetch_article_text(url, max_chars=2000):
-    """粗提取网页正文：去脚本/样式/标签，取前 max_chars 字符"""
+    """粗提取网页正文：去脚本/样式/标签，取前 max_chars 字符；同时返回 <title>"""
     try:
         raw = fetch_url(url, timeout=10)
         try:
-            text = raw.decode("utf-8", errors="ignore")
+            html_txt = raw.decode("utf-8", errors="ignore")
         except Exception:
-            return ""
-        text = re.sub(r"(?is)<(script|style|noscript|nav|footer|header)[^>]*>.*?</\1>", " ", text)
+            return "", ""
+        title = ""
+        m = re.search(r"(?is)<title[^>]*>(.*?)</title>", html_txt)
+        if m:
+            title = strip_html(m.group(1))
+            title = re.split(r"[|｜_-]{1,2}\s*(?:Aloudata|官网|博客).*$", title)[0].strip() or title
+        text = re.sub(r"(?is)<(script|style|noscript|nav|footer|header)[^>]*>.*?</\1>", " ", html_txt)
         text = strip_html(text)
-        return text[:max_chars] if len(text) > 400 else ""
+        return (text[:max_chars] if len(text) > 400 else ""), title
     except Exception:
-        return ""
+        return "", ""
 
 # ── LLM 配置 ──────────────────────────────────────────────
 def load_llm_config():
@@ -441,6 +452,25 @@ def fetch_bluesky(source):
             seen_links.add(e["link"]); out.append(e)
     return out
 
+def fetch_sitemap(source):
+    """sitemap 信源：无 RSS 的官网，用 sitemap 的 URL+lastmod 作为更新流（标题由抓正文阶段从 <title> 补全）"""
+    ns = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
+    entries = []
+    for u in source.get("urls", []):
+        root = fetch_feed(u)
+        for url_el in root.iter(ns + "url"):
+            loc_el = url_el.find(ns + "loc")
+            if loc_el is None or not loc_el.text:
+                continue
+            lm = url_el.find(ns + "lastmod")
+            slug = loc_el.text.rstrip("/").split("/")[-1].replace("-", " ")
+            entries.append({
+                "title": slug, "link": loc_el.text,
+                "published": parse_date(lm.text) if lm is not None and lm.text else None,
+                "summary": "", "_slug_title": True,
+            })
+    return entries
+
 # ── 主流程 ────────────────────────────────────────────────
 def main():
     sources = [s for s in json.load(open(ROOT / "pipeline" / "sources.json")) if s.get("enabled")]
@@ -468,6 +498,8 @@ def main():
                 entries = fetch_hn_algolia(s)
             elif s.get("kind") == "bluesky":
                 entries = fetch_bluesky(s)
+            elif s.get("kind") == "sitemap":
+                entries = fetch_sitemap(s)
             else:
                 entries = parse_feed(fetch_feed(s["url"]), s)
             kept = 0
@@ -490,6 +522,7 @@ def main():
                     "vendor_default": s["type"] == "vendor",
                     "published": pub.isoformat(), "_pub_dt": pub_dt,
                     "signal": e.get("signal", 0), "importance": 50, "topics": [],
+                    "_slug_title": e.get("_slug_title", False),
                     "heat": calc_heat(50, pub_dt, e.get("signal", 0)),
                     "star": s["type"] == "vendor" and s["weight"] >= 3,
                     "article_text": "",
@@ -503,7 +536,11 @@ def main():
 
     # F5+：全部新条目抓原文正文（用于摘要质量 + AI 全文编译），并发执行
     def grab(it):
-        it["article_text"] = fetch_article_text(it["link"])
+        text, page_title = fetch_article_text(it["link"])
+        it["article_text"] = text
+        if it.get("_slug_title") and page_title:
+            it["title"] = page_title
+            it["zh_title"] = page_title
         return it
     with ThreadPoolExecutor(max_workers=12) as pool:
         list(pool.map(grab, new_items))

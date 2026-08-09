@@ -460,7 +460,13 @@ def fetch_bluesky(source):
 def fetch_snowflake_rn(source):
     """Snowflake 文档站 Release Notes：索引页提取周更版本页链接，新版本页出现即为一个事件"""
     html_txt = fetch_url(source["url"], timeout=20).decode("utf-8", errors="ignore")
-    links = sorted(set(re.findall(r'/en/release-notes/\d{4}/\d+_\d+', html_txt)))
+    links = set(re.findall(r'/en/release-notes/\d{4}/\d+_\d+', html_txt))
+    # 只保留最近 6 个周版本（按 年/主版本/次版本 排序），避免首次运行洪水
+    def vkey(path):
+        import re as _re
+        m = _re.search(r'(\d{4})/(\d+)_(\d+)', path)
+        return (int(m.group(1)), int(m.group(2)), int(m.group(3))) if m else (0,0,0)
+    links = sorted(links, key=vkey, reverse=True)[:6]
     entries = []
     for path in links:
         ver = path.rsplit("/", 1)[-1].replace("_", ".")

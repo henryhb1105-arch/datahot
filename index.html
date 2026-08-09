@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>DataHot · 数据领域 AI 热榜</title>
 <meta name="description" content="监控 Data Agent、AI 数据平台、BI、数据产品四个领域的资讯热榜，多信源聚簇 + AI 中文摘要与推荐理由，每 6 小时更新。">
 <meta property="og:title" content="DataHot · 数据领域 AI 热榜">
@@ -52,6 +52,34 @@
     .tab{flex-shrink:0;padding:5px 12px;font-size:13px}
     .search{margin-left:auto;min-width:0;padding:5px 12px}
     .btn-sub{display:none}
+  }
+
+  /* ── iPhone 体验适配 ── */
+  @media(max-width:600px){
+    body{-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+    .wrap{padding:0 14px}
+    .section-title h2{font-size:17px}
+    .hotlist{grid-template-columns:1fr;gap:10px}
+    .hot{padding:14px 16px}
+    .hot h3{font-size:14px}
+    .item{padding:14px 16px;border-radius:12px}
+    .item h3{font-size:15px;overflow-wrap:anywhere}
+    .item .sum{font-size:13px;line-height:1.7;overflow-wrap:anywhere}
+    .item .top{font-size:11px;gap:6px}
+    .heatnum{font-size:12px}
+    .why{font-size:12.5px;line-height:1.7}
+    .brief{padding:16px 18px}
+    .brief p{font-size:13.5px}
+    .chiprow{gap:6px}
+    .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:32px;display:inline-flex;align-items:center}
+    .tab,.fchip,.chip{touch-action:manipulation}
+    aside .card{padding:14px 16px}
+    .article{padding:20px 14px 48px}
+    .article h1{font-size:20px}
+    .article .body{font-size:14.5px}
+    .fulltext p{font-size:14px}
+    .cta{width:100%;text-align:center;padding:13px 0;font-size:15px}
+    .day-head .date{font-size:15px}
   }
 
   /* ── 每日简报 ── */
@@ -153,12 +181,7 @@
 <div id="ptr"><span>下拉刷新</span></div>
 <header><div class="wrap nav">
   <div class="logo">Data<em>Hot</em><span class="tag">每 6 小时更新</span></div>
-  <nav class="tabs" id="tabs">
-    <span class="tab on" data-cat="all">🔥 全部</span>
-    <span class="tab" data-cat="agent">🤖 Data Agent</span>
-    <span class="tab" data-cat="platform">🏗️ AI 数据平台</span>
-    <span class="tab" data-cat="bi">📊 BI 与可视化</span>
-    <span class="tab" data-cat="product">🧩 数据产品</span>
+  <nav class="tabs">
     <a class="tab" href="topics.html" style="text-decoration:none">🗺️ 主题</a>
   </nav>
   <div class="search" onclick="document.getElementById('q').focus()">🔍 <input id="q" placeholder="搜索标题 / 主题…" style="border:none;outline:none;background:transparent;font-size:13px;width:110px"></div>
@@ -526,7 +549,7 @@
     <div class="row"><span class="badge b-product">数据产品</span>方法论 · 融资并购 · 报告</div>
   </div></div>
   <div class="card"><h4>🕐 更新状态</h4><div class="status">
-    最后更新：<b>2026-08-09 20:58</b><br>
+    最后更新：<b>2026-08-09 21:06</b><br>
     信源正常：<b>15/15</b> · 在站事件 <b>49 个</b><br>
     信源异常：0 ✅
   </div></div>
@@ -537,14 +560,6 @@
 <nav class="tabbar"><a href="index.html" class="on"><span class="ico">🔥</span>热榜</a><a href="topics.html" class=""><span class="ico">🗺️</span>主题</a></nav>
 
 <script>
-const tabs=document.querySelectorAll('#tabs .tab[data-cat]');
-tabs.forEach(t=>t.addEventListener('click',()=>{
-  tabs.forEach(x=>x.classList.remove('on'));t.classList.add('on');
-  const c=t.dataset.cat;
-  document.querySelectorAll('.item').forEach(el=>{
-    el.style.display=(c==='all'||el.dataset.cat===c)?'':'none';
-  });
-}));
 // 主题筛选条
 document.querySelectorAll('#chiprow .fchip').forEach(c=>c.addEventListener('click',()=>{
   document.querySelectorAll('#chiprow .fchip').forEach(x=>x.classList.remove('on'));

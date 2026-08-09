@@ -150,8 +150,14 @@
   .mock-banner b{color:#f5b48a}
 
 
+body{overflow-x:clip}
+main,.layout>*,.hotlist>*{min-width:0}
+.d-only{display:inline-block}
+@media(max-width:960px){.d-only{display:none}}
 .chip{display:inline-block;font-size:11px;background:#eef2ff;color:var(--blue);border-radius:99px;padding:1px 10px;text-decoration:none}
 .chip:hover{background:#dbe4ff}
+.tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
+.tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
 .chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px}
 .chiprow::-webkit-scrollbar{display:none}
 .chiprow .fchip{flex-shrink:0;font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
@@ -181,10 +187,7 @@
 <div id="ptr"><span>下拉刷新</span></div>
 <header><div class="wrap nav">
   <div class="logo">Data<em>Hot</em><span class="tag">每 6 小时更新</span></div>
-  <nav class="tabs">
-    <a class="tab" href="topics.html" style="text-decoration:none">🗺️ 主题</a>
-  </nav>
-  <div class="search" onclick="document.getElementById('q').focus()">🔍 <input id="q" placeholder="搜索标题 / 主题…" style="border:none;outline:none;background:transparent;font-size:13px;width:110px"></div>
+  <a class="tab d-only" href="topics.html" style="text-decoration:none">🗺️ 主题</a>
 </div></header>
 
 <div class="wrap"><div class="layout"><main>
@@ -193,10 +196,12 @@
         <h3><a href="e/3f8cf5140961.html">Bluesky热帖推荐dbt好文</a></h3>
         <div class="sources"><span class="src">Bluesky 数据社区</span></div></div><div class="hot" data-link="e/55d25a6e466b.html"><span class="rank">TOP 2</span><span class="heat">69 热度</span>
         <h3><a href="e/55d25a6e466b.html">热帖：为什么说dbt其实很好</a></h3>
-        <div class="sources"><span class="src">Bluesky 数据社区</span></div></div><div class="hot" data-link="e/63b7989f4b33.html"><span class="rank">TOP 3</span><span class="heat">40 热度</span>
-        <h3><a href="e/63b7989f4b33.html">Stripe用图搜索与状态机自动化数据库修复</a></h3>
-        <div class="sources"><span class="src">InfoQ（AI/数据工程）</span></div></div></div>
-  <div class="section-title"><h2>📅 时间轴</h2><span>近 7 天 · 按日分组</span></div>
+        <div class="sources"><span class="src">Bluesky 数据社区</span></div></div><div class="hot" data-link="e/b66e4f9b44c9.html"><span class="rank">TOP 3</span><span class="heat">40 热度</span>
+        <h3><a href="e/b66e4f9b44c9.html">Power Platform 2026年7/8月功能更新：数据网格控件正式发布</a></h3>
+        <div class="sources"><span class="src">Microsoft Power BI（Power Platform Blog）</span></div></div></div>
+  <div class="section-title" style="align-items:center"><h2>📅 时间轴</h2><span>近 7 天</span>
+    <input id="q" class="tlsearch" placeholder="🔍 搜索">
+  </div>
   <div class="chiprow" id="chiprow">
     <span class="fchip on" data-topic="all">全部</span>
     <span class="fchip" data-topic="ChatBI">ChatBI</span><span class="fchip" data-topic="Data Agent">Data Agent</span><span class="fchip" data-topic="语义层">语义层</span><span class="fchip" data-topic="平台AI化">平台AI化</span><span class="fchip" data-topic="BI变局">BI变局</span><span class="fchip" data-topic="湖仓">湖仓</span><span class="fchip" data-topic="实时分析">实时分析</span><span class="fchip" data-topic="数据人">数据人</span>
@@ -218,7 +223,7 @@
 <div class="item" data-cat="platform" data-topics="Data Agent" data-link="e/63b7989f4b33.html">
       <div class="top"><span>14:55</span><span>InfoQ（AI/数据工程）</span>
       <span class="badge b-platform">AI 数据平台</span>
-      <span class="heatnum">🔥 40</span></div>
+      <span class="heatnum">🔥 39</span></div>
       <h3><a href="e/63b7989f4b33.html">Stripe用图搜索与状态机自动化数据库修复</a></h3>
       <p class="sum">Stripe工程团队近日分享了如何将全球基础设施建模为图，结合图搜索算法与状态机，自动计算并执行数据库事故修复方案。该方法旨在减少人工干预，提升数据库运维的自动化水平。</p><div class="why"><span class="w">推荐理由</span><span>数据库基础设施的自动化修复是数据平台领域的重要实践，对关注数据运维与平台稳定性的从业者具有参考价值。</span></div><div class="vendors"><a class="chip" href="topics/data-agent.html">Data Agent</a></div>
     </div></div><div class="day"><div class="day-head"><span class="date">8月8日</span><span class="info">星期六 · 1 个事件</span></div><div class="item" data-cat="platform" data-topics="" data-link="e/fbbccffba47d.html">
@@ -279,7 +284,7 @@
 <div class="item" data-cat="platform" data-topics="平台AI化" data-link="e/caa8145425d1.html">
       <div class="top"><span>03:01</span><span>Snowflake Engineering（Medium）</span>
       <span class="badge b-platform">AI 数据平台</span><span class="star">精选</span>
-      <span class="heatnum">🔥 35</span></div>
+      <span class="heatnum">🔥 34</span></div>
       <h3><a href="e/caa8145425d1.html">Snowflake AIM：将数据迁移从数年缩短至数周</a></h3>
       <p class="sum">企业数据迁移长期以来是转型项目的高风险区，计划耗时数年、预算失控、工程师逐行重写SQL，且切换时充满风险。Snowflake推出的AI辅助迁移与交付平台（AIM）旨在改变这一局面。CTO应将其视为战略差异化工具，而非普通厂商功能。该平台有望大幅降低迁移复杂度和时间成本。</p><div class="why"><span class="w">推荐理由</span><span>数据迁移是数据平台建设中的核心痛点，Snowflake AIM代表了AI在数据工程实践中的落地，值得数据从业者关注其方法论与工具化路径。</span></div><div class="vendors"><a class="chip" href="topics/platform-ai.html">平台AI化</a><span class="vtag">Snowflake</span></div>
     </div>
@@ -390,7 +395,7 @@
 <div class="item" data-cat="platform" data-topics="" data-link="e/04a9eab02673.html">
       <div class="top"><span>03:01</span><span>Snowflake Engineering（Medium）</span>
       <span class="badge b-platform">AI 数据平台</span><span class="star">精选</span>
-      <span class="heatnum">🔥 33</span></div>
+      <span class="heatnum">🔥 32</span></div>
       <h3><a href="e/04a9eab02673.html">掌握Snowflake RBAC：可扩展安全访问控制实战指南</a></h3>
       <p class="sum">Snowflake中的RBAC设计往往始于简单授权，但一年后可能面临权限混乱、管道因孤立权限中断、ACCOUNTADMIN被用于日常任务等困境。Snowflake官方推荐采用3层角色架构来应对访问控制失控。本文提供了一套从核心原则到基础设施的RBAC构建、管理与加固框架，帮助数据团队实现可扩展且安全可控的访问权限。</p><div class="why"><span class="w">推荐理由</span><span>数据从业者应关注如何系统化设计RBAC，避免权限膨胀与敏感数据暴露，确保数据平台的安全合规与可运维性。</span></div><div class="vendors"><span class="vtag">Snowflake</span></div>
     </div></div><div class="day"><div class="day-head"><span class="date">8月5日</span><span class="info">星期三 · 7 个事件</span></div><div class="item" data-cat="platform" data-topics="实时分析" data-link="e/6cb1f7adcf49.html">
@@ -431,7 +436,7 @@
 <div class="item" data-cat="platform" data-topics="" data-link="e/5a003e60d050.html">
       <div class="top"><span>03:01</span><span>Snowflake Engineering（Medium）</span>
       <span class="badge b-platform">AI 数据平台</span><span class="star">精选</span>
-      <span class="heatnum">🔥 31</span></div>
+      <span class="heatnum">🔥 30</span></div>
       <h3><a href="e/5a003e60d050.html">Snowflake可观测性成熟度三级框架解析</a></h3>
       <p class="sum">Snowflake提出三级可观测性成熟度框架，帮助数据团队从“作业是否跑通”迈向数据和AI全链路可追溯。框架覆盖 freshness SLA、质量SLA、跨业务单元成本管理以及模型决策追踪，并强调Snowflake原生可观测性能力尚未被多数团队充分利用。适用于AI驱动的数据管道与行业合规场景。</p><div class="why"><span class="w">推荐理由</span><span>数据从业者可借此审视自身可观测性建设阶段，理解Snowflake原生能力如何支撑AI管道治理与合规追溯。</span></div><div class="vendors"><span class="vtag">Snowflake</span></div>
     </div>
@@ -549,7 +554,7 @@
     <div class="row"><span class="badge b-product">数据产品</span>方法论 · 融资并购 · 报告</div>
   </div></div>
   <div class="card"><h4>🕐 更新状态</h4><div class="status">
-    最后更新：<b>2026-08-09 20:14</b><br>
+    最后更新：<b>2026-08-09 20:58</b><br>
     信源正常：<b>15/15</b> · 在站事件 <b>49 个</b><br>
     信源异常：0 ✅
   </div></div>

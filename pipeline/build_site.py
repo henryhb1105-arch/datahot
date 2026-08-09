@@ -18,8 +18,14 @@ TOPICS_META = json.load(open(ROOT / "pipeline" / "topics.json"))
 TOPIC_SLUG = {t["name"]: t["slug"] for t in TOPICS_META}
 
 SHARED_CSS = """
+body{overflow-x:clip}
+main,.layout>*,.hotlist>*{min-width:0}
+.d-only{display:inline-block}
+@media(max-width:960px){.d-only{display:none}}
 .chip{display:inline-block;font-size:11px;background:#eef2ff;color:var(--blue);border-radius:99px;padding:1px 10px;text-decoration:none}
 .chip:hover{background:#dbe4ff}
+.tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
+.tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
 .chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px}
 .chiprow::-webkit-scrollbar{display:none}
 .chiprow .fchip{flex-shrink:0;font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
@@ -179,6 +185,7 @@ def render_detail(e, all_events, css):
 <meta name="theme-color" content="#1a1d23">
 <script type="application/ld+json">{jsonld}</script>
 <style>{css}
+{SHARED_CSS}
 .article{{max-width:760px;margin:0 auto;padding:32px 20px 60px}}
 .article .back{{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}}
 .article .back:hover{{color:var(--accent)}}
@@ -379,16 +386,15 @@ def main():
 <div id="ptr"><span>下拉刷新</span></div>
 <header><div class="wrap nav">
   <div class="logo">Data<em>Hot</em><span class="tag">每 6 小时更新</span></div>
-  <nav class="tabs">
-    <a class="tab" href="topics.html" style="text-decoration:none">🗺️ 主题</a>
-  </nav>
-  <div class="search" onclick="document.getElementById('q').focus()">🔍 <input id="q" placeholder="搜索标题 / 主题…" style="border:none;outline:none;background:transparent;font-size:13px;width:110px"></div>
+  <a class="tab d-only" href="topics.html" style="text-decoration:none">🗺️ 主题</a>
 </div></header>
 
 <div class="wrap"><div class="layout"><main>
   <div class="section-title"><h2>🔥 本期热点</h2><span>多信源聚簇 · 按热度排序</span></div>
   <div class="hotlist">{hot_cards}</div>
-  <div class="section-title"><h2>📅 时间轴</h2><span>近 7 天 · 按日分组</span></div>
+  <div class="section-title" style="align-items:center"><h2>📅 时间轴</h2><span>近 7 天</span>
+    <input id="q" class="tlsearch" placeholder="🔍 搜索">
+  </div>
   <div class="chiprow" id="chiprow">
     <span class="fchip on" data-topic="all">全部</span>
     {topic_fchips}

@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-08-10T01:32:58.260137+08:00",
+ "generated_at": "2026-08-10T01:51:50.783936+08:00",
  "events": [
   {
    "event_id": "bb635a23106c",
@@ -649,7 +649,7 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 36,
+   "heat": 35,
    "star": true,
    "published": "2026-08-07T19:50:39+08:00",
    "items": [
@@ -677,7 +677,7 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 36,
+   "heat": 35,
    "star": true,
    "published": "2026-08-07T19:44:24+08:00",
    "items": [
@@ -694,6 +694,38 @@
     "Data Agent"
    ],
    "shelf": "evergreen"
+  },
+  {
+   "event_id": "cf0a8f7b6f35",
+   "zh_title": "HBM不够用，AI SSD迎来爆发前夜",
+   "zh_summary": "大模型推理遭遇容量墙和I/O墙，SSD正进入实时数据路径，成为HBM、VRAM和DRAM之外的正式存储层级。月之暗面Mooncake已采用KV Cache分离式推理架构，英伟达推出CMX上下文内存存储平台。传统SSD难以满足推理的时序约束，业界出现AI负载强化型与企业级两类AI SSD路线。",
+   "reason": "数据从业者需关注存储层级变化对推理基础设施的影响，AI SSD将重塑数据平台底层的IO架构。",
+   "full_zh": "大语言模型推理正在同时撞上两堵墙：一堵是容量墙，另一堵是I/O墙。模型参数持续扩大，长上下文、多轮对话和智能体任务又让KV Cache快速膨胀；MoE模型虽然降低了单次计算的激活参数量，却需要保存远大于显存或内存容量的专家权重。在云侧算力中心，昂贵的HBM被模型权重和KV Cache长期占用，GPU有效利用率受制于数据搬运；在边缘侧和端侧，有限的DRAM或统一内存则直接限制了本地可运行模型的规模。\n\n当显存和内存越来越难以独自承接推理负载，SSD开始从模型文件的静态存放设备进入大模型推理的实时数据路径，成为HBM、VRAM和DRAM之后的一层正式存储层级。这一变化最早在推理基础设施和集群架构中得到清晰体现。月之暗面的Mooncake采用以KV Cache为中心的分离式推理架构，将GPU集群中原本未被充分利用的CPU、DRAM和SSD组织为分布式缓存资源；Mooncake Store进一步支持由DRAM与SSD/NVMe构成的多级缓存，使冷数据能够在容量更大、成本更低的闪存层长期保留。\n\n2026年，英伟达推出CMX上下文内存存储平台，在Vera Rubin基础设施中增加一个面向KV Cache优化、通过以太网连接的闪存层级，由BlueField-4负责NVMe SSD管理、数据保护和网络传输。英伟达将其定义为介于GPU内存与共享存储之间的pod级上下文层。产业信号已经很明确：SSD正在成为推理系统需要直接调度的资源，而不再只是模型加载前后的外围设备。\n\n然而，推理系统开始调用SSD，并不等于传统SSD已经适合承担常驻推理任务。传统SSD面向文件和块数据存储设计，性能指标主要围绕顺序带宽、随机IOPS、数据可靠性与单位容量成本展开；LLM推理需要的却是具有严格时序约束的数据供应。KV Cache会在prefill阶段集中生成并持续写入，在后续请求中按会话、模型层和Token位置反复读取；MoE推理则需要根据路由结果，在每一层计算前及时取得特定专家权重。一次读取未能赶上计算窗口，就可能让GPU、NPU或CPU进入等待状态，而SSD在高队列深度下取得的峰值IOPS，并不等同于低队列深度、细粒度访问时的稳定延迟。\n\n这种矛盾还延伸至SSD内部。NAND Flash以页为单位读取、以块为单位擦除，FTL需要执行地址映射、垃圾回收和磨损均衡，容易产生写放大与尾延迟；持续写入KV Cache还会对闪存寿命提出远高于普通消费负载的要求。传统LBA排布并不了解模型层、MoE专家、KV块及其访问顺序之间的语义关系，相互关联的数据可能被分散到不同物理位置，难以形成可预测的并行读取。文件系统、块设备和NVMe软件栈中的排队、中断、数据复制与页缓存，也会增加端到端延迟。\n\n于是，市场上出现了多种被称为“AI SSD”的产品。但到目前为止，“AI SSD”仍没有统一的技术定义，主流方案大致可以分为两类。第一类可以称为“AI负载强化型企业级SSD”，这类产品仍以块存储设备为基本形态，但其设计指标开始围绕AI集群的数据路径重新排序。英韧科技的洞庭N3X系列是这一方向的代表之一，该系列针对训练、微调和推理中的高频缓存数据访问，采用XL-Flash等介质优化延迟与寿命。另一类则开始直接参与推理调度，通过理解模型执行顺序来优化地址布局、缓存划分、优先级调度和异步预取，使SSD能够像DRAM或VRAM一样稳定参与每一个Token的生成。\n\nAI SSD的爆发前夜，本质上是存储从“容量供给”向“时序计算”转型的开始。对于数据平台和基础设施从业者而言，这意味着存储系统不再只是承载分析负载的静态底座，而将成为推理数据流中的关键一环。",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [
+    "月之暗面",
+    "英伟达",
+    "英韧科技",
+    "华为"
+   ],
+   "heat": 44,
+   "star": false,
+   "importance": 72,
+   "signal": 0,
+   "topics": [],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-08-07T18:38:28+08:00",
+   "items": [
+    {
+     "id": "5b26b7250d77",
+     "source": "InfoQ 中文",
+     "link": "https://www.infoq.cn/article/sQW5F63ZP4QMyhlWAzQi?utm_source=rss&utm_medium=article",
+     "published": "2026-08-07T18:38:28+08:00",
+     "title": "HBM 不够用了，AI SSD 迎来爆发前夜"
+    }
+   ]
   },
   {
    "event_id": "08162567f084",
@@ -2019,7 +2051,7 @@
   {
    "name": "Snowflake Release Notes",
    "ok": true,
-   "new": 6
+   "new": 0
   },
   {
    "name": "Aloudata 博客",
@@ -2074,12 +2106,12 @@
   {
    "name": "人人都是产品经理",
    "ok": true,
-   "new": 14
+   "new": 13
   },
   {
    "name": "帆软",
-   "ok": false,
-   "error": "The read operation timed out"
+   "ok": true,
+   "new": 0
   },
   {
    "name": "InfoQ 中文",
@@ -2109,7 +2141,7 @@
   {
    "name": "TechCrunch AI",
    "ok": true,
-   "new": 19
+   "new": 18
   },
   {
    "name": "The Verge AI",

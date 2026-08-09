@@ -35,7 +35,7 @@ VENDOR_TAGS = {
     "ThoughtSpot Blog": ["ThoughtSpot"], "Metabase Blog": ["Metabase"],
     "ClickHouse Blog": ["ClickHouse"], "AWS Big Data Blog": ["AWS"],
     "Fivetran Blog": ["Fivetran"], "StarRocks Blog": ["StarRocks"],
-    "Snowflake Engineering（Medium）": ["Snowflake"],
+    "Snowflake Engineering（Medium）": ["Snowflake"], "帆软": ["帆软", "FineBI"],
     "Microsoft Power BI（Power Platform Blog）": ["Microsoft", "Power BI"],
     "Tableau Engineering（Medium）": ["Tableau"],
 }

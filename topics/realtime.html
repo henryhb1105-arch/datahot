@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>实时分析 · DataHot 主题</title>
+<meta name="description" content="OLAP、性能优化与降本案例——性能竞赛进入成本阶段">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="theme-color" content="#1a1d23">
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#ffffff; --ink:#1a1d23; --sub:#6b7280; --line:#e5e7eb;
+    --accent:#d94f2b; --accent-soft:#fdf0ec;
+    --blue:#2563eb; --green:#0f9d6c; --purple:#7c3aed; --amber:#b45309;
+    --radius:14px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 20px}
+
+  /* ── 顶部导航 ── */
+  header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;gap:28px;height:58px}
+  .logo{font-size:20px;font-weight:800;letter-spacing:-.5px}
+  .logo em{font-style:normal;color:var(--accent)}
+  .logo .tag{font-size:11px;font-weight:500;color:var(--sub);margin-left:8px;border:1px solid var(--line);border-radius:99px;padding:2px 8px;vertical-align:middle}
+  .tabs{display:flex;gap:4px;flex:1}
+  .tab{padding:6px 14px;border-radius:99px;font-size:14px;color:var(--sub);cursor:pointer;white-space:nowrap}
+  .tab:hover{background:#f0f1f3}
+  .tab.on{background:var(--ink);color:#fff;font-weight:600}
+  .search{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:6px 14px;font-size:13px;color:var(--sub);min-width:180px;cursor:pointer}
+  .btn-sub{background:var(--accent);color:#fff;border-radius:99px;padding:7px 16px;font-size:13px;font-weight:600;white-space:nowrap}
+
+  .layout{display:grid;grid-template-columns:1fr 320px;gap:24px;padding:24px 0 60px}
+  @media(max-width:960px){.layout{grid-template-columns:1fr}}
+
+  /* ── 移动端导航适配 ── */
+  @media(max-width:960px){
+    .nav{flex-wrap:wrap;height:auto;padding:10px 0;gap:10px}
+    .logo{font-size:18px}
+    .logo .tag{display:none}
+    .tabs{order:3;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
+    .tabs::-webkit-scrollbar{display:none}
+    .tab{flex-shrink:0;padding:5px 12px;font-size:13px}
+    .search{margin-left:auto;min-width:0;padding:5px 12px}
+    .btn-sub{display:none}
+  }
+
+  /* ── 每日简报 ── */
+  .brief{background:linear-gradient(135deg,#1a1d23 0%,#2b2418 60%,#3d2412 100%);color:#fff;border-radius:var(--radius);padding:22px 26px;margin-bottom:22px;position:relative;overflow:hidden}
+  .brief .label{font-size:12px;letter-spacing:2px;color:#f5b48a;font-weight:700;margin-bottom:8px}
+  .brief p{font-size:15px;line-height:1.8;color:#f3f4f6}
+  .brief .meta{margin-top:10px;font-size:12px;color:#9ca3af}
+  .brief::after{content:"⚡";position:absolute;right:18px;top:14px;font-size:42px;opacity:.25}
+
+  /* ── 热点榜 ── */
+  .section-title{display:flex;align-items:baseline;gap:10px;margin:6px 0 14px}
+  .section-title h2{font-size:19px;font-weight:800}
+  .section-title span{font-size:12px;color:var(--sub)}
+  .hotlist{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:30px}
+  @media(max-width:960px){.hotlist{grid-template-columns:1fr}}
+  .hot{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;position:relative;transition:.15s;cursor:pointer}
+  .hot:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+  .hot .rank{position:absolute;top:-1px;left:16px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:0 0 8px 8px}
+  .hot .heat{position:absolute;top:12px;right:16px;font-size:12px;color:var(--accent);font-weight:700}
+  .hot h3{font-size:15px;font-weight:700;margin:14px 0 8px;line-height:1.5}
+  .hot .sources{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
+  .src{font-size:11px;background:#f3f4f6;color:var(--sub);border-radius:6px;padding:2px 8px}
+  .src.more{background:var(--accent-soft);color:var(--accent)}
+
+  /* ── 时间轴 ── */
+  .day{margin-bottom:8px}
+  .day-head{display:flex;align-items:center;gap:12px;margin:22px 0 12px}
+  .day-head .date{font-size:17px;font-weight:800}
+  .day-head .info{font-size:12px;color:var(--sub)}
+  .day-head::after{content:"";flex:1;height:1px;background:var(--line)}
+  .item{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin-bottom:12px;transition:.15s;cursor:pointer}
+  .item:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+  .item .top{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub);flex-wrap:wrap}
+  .badge{font-weight:600;border-radius:6px;padding:1px 8px;font-size:11px}
+  .b-agent{background:#eef2ff;color:var(--blue)}
+  .b-platform{background:#ecfdf5;color:var(--green)}
+  .b-bi{background:#f5f3ff;color:var(--purple)}
+  .b-product{background:#fef7e8;color:var(--amber)}
+  .star{color:var(--accent);font-weight:700}
+  .item .heatnum{margin-left:auto;font-weight:800;color:var(--accent);font-size:13px}
+  .item h3{font-size:16px;font-weight:700;margin:8px 0 6px;line-height:1.55}
+  .item .sum{font-size:13.5px;color:#4b5563;line-height:1.75}
+  .item .also{margin-top:10px;font-size:12px;color:var(--sub)}
+  .item .also b{color:var(--ink)}
+  .why{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px;font-size:13px;color:#374151;display:flex;gap:8px}
+  .why .w{color:var(--accent);font-weight:700;white-space:nowrap}
+  .vendors{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
+  .vtag{font-size:11px;border:1px solid var(--line);color:var(--sub);border-radius:99px;padding:1px 10px}
+  .vtag:hover{border-color:var(--accent);color:var(--accent)}
+
+  /* ── 侧栏 ── */
+  aside .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
+  aside h4{font-size:14px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+  .vendor-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f3f4f6;font-size:13px;cursor:pointer}
+  .vendor-row:last-child{border-bottom:none}
+  .vendor-row .n{width:16px;color:var(--sub);font-size:12px}
+  .vendor-row .count{margin-left:auto;font-size:12px;color:var(--accent);font-weight:700}
+  .up{transform:scale(.8)}
+  .sub-box input{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:8px;outline:none}
+  .sub-box button{width:100%;background:var(--ink);color:#fff;border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer}
+  .status{font-size:12.5px;color:var(--sub);line-height:2}
+  .status b{color:var(--green)}
+  .legend{display:flex;flex-direction:column;gap:6px;font-size:12.5px}
+  .legend .row{display:flex;align-items:center;gap:8px;color:var(--sub)}
+
+  footer{border-top:1px solid var(--line);padding:26px 0;text-align:center;font-size:12px;color:var(--sub)}
+  .mock-banner{background:#1a1d23;color:#fff;text-align:center;font-size:12px;padding:7px;letter-spacing:1px}
+  .mock-banner b{color:#f5b48a}
+
+
+.chip{display:inline-block;font-size:11px;background:#eef2ff;color:var(--blue);border-radius:99px;padding:1px 10px;text-decoration:none}
+.chip:hover{background:#dbe4ff}
+.chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px}
+.chiprow::-webkit-scrollbar{display:none}
+.chiprow .fchip{flex-shrink:0;font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
+.chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
+.tabbar{display:none}
+@media(max-width:960px){
+  body{padding-bottom:64px}
+  .tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:70;padding-bottom:env(safe-area-inset-bottom)}
+  .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0 6px;font-size:11px;color:var(--sub);text-decoration:none;gap:2px}
+  .tabbar a .ico{font-size:19px}
+  .tabbar a.on{color:var(--accent);font-weight:600}
+}
+.tgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+@media(max-width:960px){.tgrid{grid-template-columns:1fr}}
+.tcard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;text-decoration:none;display:block;transition:.15s}
+.tcard:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+.tcard h3{font-size:17px;font-weight:800;margin-bottom:6px}
+.tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:10px}
+.tcard .tn{font-size:12px;color:var(--accent);font-weight:700}
+.tcard .tt{font-size:12.5px;color:#4b5563;margin-top:8px;line-height:1.7}
+
+</style></head><body>
+<header><div class="wrap nav">
+  <div class="logo"><a href="../index.html" style="text-decoration:none">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
+</div></header>
+
+<div class="wrap" style="padding:28px 20px 60px;max-width:900px">
+  <a class="back" href="../topics.html" style="font-size:13px;color:var(--sub)">← 主题地图</a>
+  <h1 style="font-size:26px;font-weight:800;margin:14px 0 6px">实时分析</h1>
+  <p style="font-size:14px;color:var(--sub);margin-bottom:8px">OLAP、性能优化与降本案例——性能竞赛进入成本阶段</p>
+  <p style="font-size:12.5px;color:var(--sub);margin-bottom:18px">近 7 天收录 5 个事件 · 每 6 小时更新</p>
+  <div class="vendors" style="margin-bottom:18px"><span class="vtag">AWS</span><span class="vtag">Amazon Redshift</span><span class="vtag">ClickHouse</span><span class="vtag">Snowflake</span></div>
+  <div class="day"><div class="day-head"><span class="date">8月6日</span><span class="info">2 个事件</span></div><div class="item" data-cat="platform" data-topics="实时分析" data-link="../e/fda342751ac4.html">
+      <div class="top"><span>08:00</span><span>ClickHouse Blog</span>
+      <span class="badge b-platform">AI 数据平台</span>
+      <span class="heatnum">🔥 33</span></div>
+      <h3><a href="../e/fda342751ac4.html">ClickHouse托管Postgres更新：通知、可观测性、备份等</a></h3>
+      <p class="sum">ClickHouse宣布其托管Postgres服务自Beta发布以来的多项新特性，包括更简化的入门体验、客户通知、更丰富的可观测性、更快的备份以及扩展的插件支持。该服务旨在统一OLTP与OLAP数据栈，让用户通过PostgreSQL接口同时查询Postgres与ClickHouse数据。</p><div class="why"><span class="w">推荐理由</span><span>ClickHouse扩展托管Postgres能力，体现数据平台融合OLTP/OLAP趋势，数据架构师应关注。</span></div><div class="vendors"><a class="chip" href="../topics/realtime.html">实时分析</a><span class="vtag">ClickHouse</span></div>
+    </div>
+<div class="item" data-cat="platform" data-topics="实时分析" data-link="../e/f24d7f17e186.html">
+      <div class="top"><span>08:00</span><span>ClickHouse Blog</span>
+      <span class="badge b-platform">AI 数据平台</span>
+      <span class="heatnum">🔥 33</span></div>
+      <h3><a href="../e/f24d7f17e186.html">ClickHouse 26.7发布：性能大幅优化，新增多项查询能力</a></h3>
+      <p class="sum">ClickHouse 26.7版本于2026年8月6日发布，包含61项新特性、112项性能优化和329项Bug修复。重点改进包括GROUP BY...ORDER BY...LIMIT加速、三项JOIN优化、四项向量搜索改进、位置感知短语搜索、EXPLAIN ANALYZE以及统一URL访问。该版本还迎来大量新贡献者，社区持续壮大。</p><div class="why"><span class="w">推荐理由</span><span>ClickHouse是主流的开源分析型数据库，其版本更新直接影响数据平台工程师的查询性能和功能选型，值得关注。</span></div><div class="vendors"><a class="chip" href="../topics/realtime.html">实时分析</a><span class="vtag">ClickHouse</span></div>
+    </div></div><div class="day"><div class="day-head"><span class="date">8月5日</span><span class="info">1 个事件</span></div><div class="item" data-cat="platform" data-topics="实时分析" data-link="../e/6cb1f7adcf49.html">
+      <div class="top"><span>22:01</span><span>Snowflake Engineering（Medium）</span>
+      <span class="badge b-platform">AI 数据平台</span><span class="star">精选</span>
+      <span class="heatnum">🔥 32</span></div>
+      <h3><a href="../e/6cb1f7adcf49.html">Snowflake在线特征存储与推理服务实现实时ML</a></h3>
+      <p class="sum">Snowflake推出在线特征存储与推理服务，旨在解决训练-服务偏差（training-serving skew）问题。该偏差源于训练与推理时特征计算路径不一致，导致模型上线后预测质量逐渐下降。Snowflake通过统一特征管理，帮助团队保持训练与服务特征的一致性和实时性。</p><div class="why"><span class="w">推荐理由</span><span>数据从业者需关注特征平台如何消除实时推理中的训练-服务偏差，这是ML系统稳定性的关键环节。</span></div><div class="vendors"><a class="chip" href="../topics/realtime.html">实时分析</a><span class="vtag">Snowflake</span></div>
+    </div></div><div class="day"><div class="day-head"><span class="date">8月4日</span><span class="info">2 个事件</span></div><div class="item" data-cat="platform" data-topics="实时分析" data-link="../e/e37fa4fab9fd.html">
+      <div class="top"><span>08:00</span><span>ClickHouse Blog</span>
+      <span class="badge b-platform">AI 数据平台</span>
+      <span class="heatnum">🔥 29</span></div>
+      <h3><a href="../e/e37fa4fab9fd.html">Mercado Libre基于ClickHouse Cloud重构可观测性平台，查询提速50倍</a></h3>
+      <p class="sum">Mercado Libre在ClickHouse Cloud上重建其可观测性平台O11y events，将追踪查询时间从超过5分钟缩短至约4秒（50倍提速），压缩率最高达89%，每分钟可摄入4亿个span。该平台帮助这家拉美电商与金融科技巨头将故障排查从数天缩短至数分钟，并支持按支付ID、用户ID等高基数维度进行过滤。目前其规模已从每分钟700万span扩展至4亿并持续增长。</p><div class="why"><span class="w">推荐理由</span><span>数据从业者可借鉴ClickHouse Cloud在大规模可观测性数据场景下的性能与压缩实践，了解高基数追踪数据处理的实际落地效果。</span></div><div class="vendors"><a class="chip" href="../topics/realtime.html">实时分析</a><span class="vtag">ClickHouse</span></div>
+    </div>
+<div class="item" data-cat="platform" data-topics="湖仓|实时分析" data-link="../e/a6705e0f3427.html">
+      <div class="top"><span>00:09</span><span>AWS Big Data Blog</span>
+      <span class="badge b-platform">AI 数据平台</span><span class="star">精选</span>
+      <span class="heatnum">🔥 28</span></div>
+      <h3><a href="../e/a6705e0f3427.html">升级Amazon Redshift DC2至RG实例，解锁托管存储与零ETL</a></h3>
+      <p class="sum">AWS宣布Amazon Redshift DC2集群可升级至基于Graviton的RG实例。升级后将获得托管存储、数据共享、零ETL集成、流式摄入、更快查询编译，以及跨可用区迁移和写入并发扩展等能力。RG还内置数据湖引擎，可直接查询Iceberg和Parquet表。本文还提供节点映射、升级方法和Test Drive验证建议。</p><div class="why"><span class="w">推荐理由</span><span>数据从业者关注Redshift集群升级路径，可理解新一代RG实例在性能、成本和架构上的关键变化，对数据平台选型与迁移有直接参考价值。</span></div><div class="vendors"><a class="chip" href="../topics/lakehouse.html">湖仓</a><a class="chip" href="../topics/realtime.html">实时分析</a><span class="vtag">AWS</span><span class="vtag">Amazon Redshift</span></div>
+    </div></div>
+</div>
+<footer>DataHot · 数据领域 AI 资讯热榜 · 仅聚合摘要与链接，版权归原作者</footer>
+<nav class="tabbar"><a href="../index.html" class=""><span class="ico">🔥</span>热榜</a><a href="../topics.html" class="on"><span class="ico">🗺️</span>主题</a></nav>
+</body></html>

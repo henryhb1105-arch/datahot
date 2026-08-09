@@ -1,21 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-DataHot 更新管道：采集 RSS → 过滤 → 分类 → 打分 → （可选 LLM 加工）→ 生成静态站
+DataHot 更新管道 V1.1
+采集 RSS/HN → 正文抓取(HN) → LLM 加工(过滤·摘要·推荐理由) → 事件聚簇 → latest.json
 用法：python3 run_update.py
-LLM 加工（可选）：设置环境变量 LLM_API_KEY / LLM_BASE_URL / LLM_MODEL（OpenAI 兼容接口）
+LLM 配置：环境变量 LLM_API_KEY/LLM_BASE_URL/LLM_MODEL 优先，其次 pipeline/config.json
 """
 import json, os, re, sys, html, socket, hashlib, urllib.request, urllib.error, urllib.parse
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 DATA = SITE / "data"
 ARCHIVE = DATA / "archive"
-KEEP_DAYS = 7          # 时间轴保留天数
-PER_SOURCE_MAX = 20    # 每个源最多取多少条
+KEEP_DAYS = 7
+PER_SOURCE_MAX = 20
 TZ = timezone(timedelta(hours=8))
 
 UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/126.0 Safari/537.36",
@@ -23,19 +25,7 @@ UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit
 
 socket.setdefaulttimeout(20)
 
-# ── 栏目分类规则 ──────────────────────────────────────────
-CATEGORIES = [
-    ("agent",    "Data Agent",  ["text-to-sql", "text2sql", "nl2sql", "chatbi", "natural language query",
-                                 "analytics agent", "data agent", "copilot", "agent", "conversational analytics",
-                                 "对话式", "取数", "chatbot"]),
-    ("platform", "AI 数据平台", ["data warehouse", "lakehouse", "warehouse", "etl", "elt", "pipeline",
-                                 "semantic layer", "ingestion", "governance", "data platform", "streaming",
-                                 "iceberg", "delta", "catalog", "数据平台", "湖仓", "语义层", "治理"]),
-    ("bi",       "BI 与可视化", ["dashboard", "visualization", "visualisation", "chart", "reporting", "bi ",
-                                 "business intelligence", "报表", "仪表盘", "可视化"]),
-    ("product",  "数据产品",    ["funding", "acquisition", "acquires", "raises", "ipo", "gartner", "forrester",
-                                 "magic quadrant", "pricing", "融资", "收购", "并购", "报告"]),
-]
+CATEGORIES_LABEL = dict(agent="Data Agent", platform="AI 数据平台", bi="BI 与可视化", product="数据产品")
 
 VENDOR_TAGS = {
     "Databricks Blog": ["Databricks"], "dbt Blog": ["dbt Labs"],
@@ -44,6 +34,7 @@ VENDOR_TAGS = {
     "Fivetran Blog": ["Fivetran"], "StarRocks Blog": ["StarRocks"],
 }
 
+# ── 基础工具 ──────────────────────────────────────────────
 def strip_html(s):
     s = re.sub(r"<[^>]+>", " ", s or "")
     return html.unescape(re.sub(r"\s+", " ", s)).strip()
@@ -64,11 +55,22 @@ def parse_date(s):
             continue
     return None
 
-def fetch_feed(url):
+def norm_url(u):
+    """URL 归一化：去跟踪参数/hash/末尾斜杠，用于同链接去重"""
+    p = urllib.parse.urlparse(u.strip())
+    q = [(k, v) for k, v in urllib.parse.parse_qsl(p.query)
+         if not k.lower().startswith(("utm_", "ref", "fbclid", "gclid"))]
+    return urllib.parse.urlunparse((p.scheme.lower(), p.netloc.lower(),
+                                    p.path.rstrip("/"), "", urllib.parse.urlencode(q), ""))
+
+def fetch_url(url, timeout=20):
     req = urllib.request.Request(url, headers=UA)
-    with urllib.request.urlopen(req) as r:
-        raw = r.read()
-    raw = re.sub(rb'&(?!amp;|lt;|gt;|quot;|apos;|#)', b'&amp;', raw)  # 修复裸 &
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read()
+
+def fetch_feed(url):
+    raw = fetch_url(url)
+    raw = re.sub(rb'&(?!amp;|lt;|gt;|quot;|apos;|#)', b'&amp;', raw)
     return ET.fromstring(raw)
 
 def text_of(el, *names):
@@ -76,7 +78,6 @@ def text_of(el, *names):
         c = el.find(n)
         if c is not None and c.text:
             return c.text
-        # 带命名空间
         for child in el:
             if child.tag.split("}")[-1] == n and child.text:
                 return child.text
@@ -84,7 +85,6 @@ def text_of(el, *names):
 
 def parse_feed(root_el, source):
     items = []
-    # RSS 2.0
     for it in root_el.iter("item"):
         items.append({
             "title": strip_html(text_of(it, "title")),
@@ -92,7 +92,6 @@ def parse_feed(root_el, source):
             "published": parse_date(text_of(it, "pubDate", "published", "updated", "date")),
             "summary": strip_html(text_of(it, "description", "summary", "encoded")),
         })
-    # Atom
     ns = "{http://www.w3.org/2005/Atom}"
     for it in root_el.iter(ns + "entry"):
         link = ""
@@ -107,13 +106,6 @@ def parse_feed(root_el, source):
         })
     return [i for i in items if i["title"] and i["link"]][:PER_SOURCE_MAX]
 
-def categorize(title, summary):
-    text = (title + " " + summary).lower()
-    for key, label, kws in CATEGORIES:
-        if any(k in text for k in kws):
-            return key, label
-    return "platform", "AI 数据平台"
-
 def heat_score(source_weight, published):
     base = source_weight * 10
     if published:
@@ -123,9 +115,23 @@ def heat_score(source_weight, published):
         decay = 0.5
     return round(base * decay)
 
-# ── LLM 加工（可选，OpenAI 兼容接口）──────────────────────
+# ── F5：HN 条目抓原文 ──────────────────────────────────────
+def fetch_article_text(url, max_chars=2000):
+    """粗提取网页正文：去脚本/样式/标签，取前 max_chars 字符"""
+    try:
+        raw = fetch_url(url, timeout=15)
+        try:
+            text = raw.decode("utf-8", errors="ignore")
+        except Exception:
+            return ""
+        text = re.sub(r"(?is)<(script|style|noscript|nav|footer|header)[^>]*>.*?</\1>", " ", text)
+        text = strip_html(text)
+        return text[:max_chars] if len(text) > 400 else ""
+    except Exception:
+        return ""
+
+# ── LLM 配置 ──────────────────────────────────────────────
 def load_llm_config():
-    """优先级：环境变量 > pipeline/config.json"""
     key, base, model = os.getenv("LLM_API_KEY"), os.getenv("LLM_BASE_URL"), os.getenv("LLM_MODEL")
     cfg_path = Path(__file__).resolve().parent / "config.json"
     if cfg_path.exists():
@@ -135,40 +141,54 @@ def load_llm_config():
         model = model or cfg.get("LLM_MODEL", "")
     return key, base, model
 
-def llm_enrich(items):
-    key, base, model = load_llm_config()
+def llm_chat(base, key, model, prompt, timeout=120):
+    req = urllib.request.Request(
+        base.rstrip("/") + "/chat/completions",
+        data=json.dumps({"model": model, "messages": [{"role": "user", "content": prompt}]}).encode(),
+        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}, method="POST")
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        content = json.loads(r.read())["choices"][0]["message"]["content"]
+    m = re.search(r"\{.*\}", content, re.S)
+    return json.loads(m.group(0)) if m else {}
+
+# ── F4：加固的相关性过滤 + AI 加工 ─────────────────────────
+ENRICH_RULES = """你是一个数据领域垂直资讯站的编辑。本站只覆盖四个领域：Data Agent（ChatBI/Text-to-SQL/分析Agent）、AI数据平台（数仓/湖仓/语义层/数据集成治理）、BI与可视化（BI工具/报表）、数据产品（方法论/融资并购/行业报告）。
+
+【相关性硬规则】
+- 仅当内容直接涉及上述领域时 relevant=true
+- 泛AI新闻一律 false：AI消费应用、AI硬件、AI政策八卦、模型发布（与数据场景无关）、AI音乐/绘画/社交等
+- 数据分析/数据库/数据基础设施的融资并购、产品发布、技术实践 → true
+
+【示例】
+标题 "Databricks launches new semantic layer" → {"relevant": true, ...}
+标题 "OpenAI 发布新款AI智能音箱" → {"relevant": false}
+标题 "Airbnb 测试 AI 搜索功能" → {"relevant": false}
+
+输出 JSON（不要输出多余内容）：
+{"relevant": true或false, "zh_title": "中文标题(≤40字)", "zh_summary": "中文摘要3-4句，保留产品名与数字，不得编造原文没有的信息", "reason": "推荐理由：为什么数据从业者应关注，1-2句", "category": "agent|platform|bi|product", "vendors": ["提到的数据厂商，如Snowflake/Databricks/PowerBI/帆软等，没有则空数组"], "importance": 1-100整数}"""
+
+def llm_enrich(items, cfg):
+    key, base, model = cfg
     if not (key and base and model):
-        print("[llm] 未配置 LLM_API_KEY/LLM_BASE_URL/LLM_MODEL，跳过 AI 加工（标题/摘要保留原文）")
+        print("[llm] 未配置 LLM，跳过 AI 加工")
         return items
-    from concurrent.futures import ThreadPoolExecutor
 
     def enrich_one(it):
-        prompt = (
-            "你是面向数据从业者的资讯编辑，服务于一个监控 Data Agent、AI数据平台、BI、数据产品 四个领域的资讯站。"
-            "基于以下资讯判断相关性并输出 JSON（不要输出多余内容）：\n"
-            '{"relevant": true或false（与上述四个领域无关则为false）, '
-            '"zh_title": "中文标题（不超过40字）", "zh_summary": "中文摘要，3-4句，保留产品名与数字", '
-            '"reason": "推荐理由：为什么数据从业者应关注，1-2句", '
-            '"category": "agent|platform|bi|product 四选一", "importance": 1到100的整数}\n\n'
-            f"标题：{it['title']}\n摘要：{it['summary'][:800]}"
-        )
-        req = urllib.request.Request(
-            base.rstrip("/") + "/chat/completions",
-            data=json.dumps({"model": model, "messages": [{"role": "user", "content": prompt}]}).encode(),
-            headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}, method="POST")
-        with urllib.request.urlopen(req, timeout=120) as r:
-            content = json.loads(r.read())["choices"][0]["message"]["content"]
-        m = re.search(r"\{.*\}", content, re.S)  # 容错：从文本中提取 JSON
-        out = json.loads(m.group(0)) if m else {}
+        content = f"标题：{it['title']}\n摘要：{it['summary'][:800]}"
+        if it.get("article_text"):
+            content += f"\n原文节选：{it['article_text'][:1500]}"
+        note = "\n（注：该条目来自数据领域厂商官方博客，默认相关，除非明显是招聘/活动/公关软文）" if it.get("vendor_default") else ""
+        out = llm_chat(base, key, model, ENRICH_RULES + "\n\n" + content + note)
         if out.get("relevant") is False:
             return None
         it["zh_title"] = out.get("zh_title") or it["title"]
         it["zh_summary"] = out.get("zh_summary") or it["summary"][:300]
         it["reason"] = out.get("reason", "")
-        if out.get("category") in ("agent", "platform", "bi", "product"):
-            it["category"] = out["category"]
-            it["category_label"] = dict(agent="Data Agent", platform="AI 数据平台",
-                                        bi="BI 与可视化", product="数据产品")[out["category"]]
+        cat = out.get("category")
+        if cat in CATEGORIES_LABEL:
+            it["category"], it["category_label"] = cat, CATEGORIES_LABEL[cat]
+        llm_vendors = [v for v in (out.get("vendors") or []) if isinstance(v, str) and v.strip()]
+        it["vendors"] = list(dict.fromkeys(it.get("vendors", []) + llm_vendors))[:5]
         it["heat"] = round(it["heat"] * 0.5 + int(out.get("importance", 50)) * 0.5)
         return it
 
@@ -187,17 +207,123 @@ def llm_enrich(items):
                 kept.append(it)
     return kept
 
-# ── 主流程 ────────────────────────────────────────────────
+# ── F1：事件聚簇 ──────────────────────────────────────────
+def title_bigrams(t):
+    t = re.sub(r"[^\w一-鿿]+", "", (t or "").lower())
+    return {t[i:i+2] for i in range(len(t) - 1)} if len(t) > 1 else {t} if t else set()
+
+def jaccard(a, b):
+    if not a or not b:
+        return 0.0
+    return len(a & b) / len(a | b)
+
+def llm_same_event(pairs, cfg):
+    """pairs: [(a_desc, b_desc), ...] → [bool]"""
+    key, base, model = cfg
+    if not (key and base and model):
+        return [False] * len(pairs)
+    def judge(p):
+        try:
+            out = llm_chat(base, key, model,
+                "判断以下两条资讯是否报道同一事件/同一产品发布（同一事件的不同媒体报道算同一事件）。"
+                '只输出JSON {"same": true或false}。\n\n'
+                f"【A】{p[0][:400]}\n【B】{p[1][:400]}")
+            return out.get("same") is True
+        except Exception:
+            return False
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        return list(pool.map(judge, pairs))
+
+def event_titles(e):
+    """事件的所有标题变体（中文标题 + 各信源原始标题），用于跨语言相似度"""
+    return [e.get("zh_title", "")] + [s.get("title", "") for s in e.get("items", [])]
+
+def max_sim(a_titles, b_titles):
+    best = 0.0
+    for ta in a_titles:
+        ba = title_bigrams(ta)
+        for tb in b_titles:
+            best = max(best, jaccard(ba, title_bigrams(tb)))
+    return best
+
+def cluster_events(new_items, events, cfg):
+    """把新条目分配进已有事件或新建事件。events: 既有事件列表（原地更新）"""
+    def ev_desc(e):
+        return f"标题:{e['zh_title']} 摘要:{e.get('zh_summary','')[:200]}"
+
+    # 1) 新条目 vs 既有事件
+    for it in new_items:
+        it_titles = [it["zh_title"], it.get("title", "")]
+        cand = []
+        for e in events:
+            if norm_url(e["items"][0]["link"]) == norm_url(it["link"]):
+                cand.append((e, 1.0)); continue
+            sim = max_sim(it_titles, event_titles(e))
+            if sim > 0.3:
+                cand.append((e, sim))
+        if not cand:
+            events.append(make_event(it))
+            continue
+        pairs = [(f"标题:{it['zh_title']} 摘要:{it.get('zh_summary','')[:200]}", ev_desc(e)) for e, _ in cand]
+        verdicts = llm_same_event(pairs, cfg)
+        hit = next((cand[i][0] for i, v in enumerate(verdicts) if v), None)
+        if hit:
+            merge_into(hit, it)
+            print(f"[cluster] 并入事件: {it['zh_title'][:30]} → {hit['zh_title'][:30]}")
+        else:
+            events.append(make_event(it))
+
+    # 2) 既有事件之间的迟到合并（同事件分两批到达）
+    changed = True
+    while changed:
+        changed = False
+        for i in range(len(events)):
+            for j in range(i + 1, len(events)):
+                a, b = events[i], events[j]
+                if max_sim(event_titles(a), event_titles(b)) > 0.3:
+                    if llm_same_event([(ev_desc(a), ev_desc(b))], cfg)[0]:
+                        for sub in b["items"]:
+                            a["items"].append(sub)
+                        a["heat"] = max(a["heat"], b["heat"]) + 8 * (len(a["items"]) - 1)
+                        a["published"] = max(a["published"], b["published"])
+                        a["vendors"] = list(dict.fromkeys(a.get("vendors", []) + b.get("vendors", [])))[:5]
+                        events.pop(j)
+                        print(f"[cluster] 合并事件: {b['zh_title'][:30]} → {a['zh_title'][:30]}")
+                        changed = True
+                        break
+            if changed:
+                break
+    return events
+
+def make_event(it):
+    eid = hashlib.md5(norm_url(it["link"]).encode()).hexdigest()[:12]
+    return {
+        "event_id": eid,
+        "zh_title": it["zh_title"], "zh_summary": it["zh_summary"], "reason": it.get("reason", ""),
+        "category": it["category"], "category_label": it["category_label"],
+        "vendors": it.get("vendors", []), "heat": it["heat"], "star": it.get("star", False),
+        "published": it["published"],
+        "items": [{"id": it["id"], "source": it["source"], "link": it["link"],
+                   "published": it["published"], "title": it["title"]}],
+    }
+
+def merge_into(e, it):
+    e["items"].append({"id": it["id"], "source": it["source"], "link": it["link"],
+                       "published": it["published"], "title": it["title"]})
+    e["heat"] = max(e["heat"], it["heat"]) + 8
+    e["published"] = max(e["published"], it["published"])
+    if len(it.get("zh_summary", "")) > len(e.get("zh_summary", "")):
+        e["zh_summary"], e["reason"] = it["zh_summary"], it.get("reason", e["reason"])
+    e["vendors"] = list(dict.fromkeys(e.get("vendors", []) + it.get("vendors", [])))[:5]
+
+# ── HN 信源 ───────────────────────────────────────────────
 def fetch_hn_algolia(source):
-    """通过 Algolia HN API 按关键词检索热帖（points 过滤）"""
     entries = []
     min_points = source.get("min_points", 30)
     for q in source.get("queries", []):
         url = ("https://hn.algolia.com/api/v1/search_by_date?tags=story&hitsPerPage=15&query="
                + urllib.parse.quote(q))
-        req = urllib.request.Request(url, headers=UA)
-        with urllib.request.urlopen(req) as r:
-            hits = json.loads(r.read())["hits"]
+        hits = json.loads(fetch_url(url))["hits"]
         for h in hits:
             if (h.get("points") or 0) < min_points:
                 continue
@@ -213,18 +339,25 @@ def fetch_hn_algolia(source):
             seen_links.add(e["link"]); out.append(e)
     return out
 
+# ── 主流程 ────────────────────────────────────────────────
 def main():
     sources = [s for s in json.load(open(ROOT / "pipeline" / "sources.json")) if s.get("enabled")]
     now = datetime.now(timezone.utc)
     cutoff = now - timedelta(days=KEEP_DAYS)
+    cfg = load_llm_config()
 
-    # 历史条目（用于跨次累积 + 去重）
     DATA.mkdir(parents=True, exist_ok=True); ARCHIVE.mkdir(parents=True, exist_ok=True)
-    old_items = []
     latest_path = DATA / "latest.json"
+    events = []
     if latest_path.exists():
-        old_items = json.load(open(latest_path)).get("items", [])
-    seen = {i["id"] for i in old_items}
+        old = json.load(open(latest_path))
+        if old.get("events"):
+            events = old["events"]
+        else:  # 旧版 items 结构迁移
+            for i in old.get("items", []):
+                events.append(make_event(i))
+    seen = {sub["id"] for e in events for sub in e["items"]}
+    seen_urls = {norm_url(sub["link"]) for e in events for sub in e["items"]}
 
     new_items, source_status = [], []
     for s in sources:
@@ -232,53 +365,64 @@ def main():
             if s.get("kind") == "hn_algolia":
                 entries = fetch_hn_algolia(s)
             else:
-                feed = fetch_feed(s["url"])
-                entries = parse_feed(feed, s)
+                entries = parse_feed(fetch_feed(s["url"]), s)
             kept = 0
             for e in entries:
                 if e["published"] and e["published"] < cutoff:
                     continue
                 iid = hashlib.md5(e["link"].encode()).hexdigest()[:12]
-                if iid in seen:
+                if iid in seen or norm_url(e["link"]) in seen_urls:
                     continue
-                seen.add(iid)
-                cat, label = categorize(e["title"], e["summary"])
+                seen.add(iid); seen_urls.add(norm_url(e["link"]))
                 pub = e["published"].astimezone(TZ) if e["published"] else now.astimezone(TZ)
                 new_items.append({
                     "id": iid, "title": e["title"], "zh_title": e["title"],
                     "summary": e["summary"][:600], "zh_summary": e["summary"][:300],
                     "reason": "", "link": e["link"],
                     "source": s["name"], "source_type": s["type"],
-                    "category": cat, "category_label": label,
+                    "category": "platform", "category_label": "AI 数据平台",
                     "vendors": VENDOR_TAGS.get(s["name"], []),
+                    "vendor_default": s["type"] == "vendor",
                     "published": pub.isoformat(),
                     "heat": heat_score(s["weight"], e["published"]),
                     "star": s["type"] == "vendor" and s["weight"] >= 3,
+                    "article_text": "",
                 })
                 kept += 1
             source_status.append({"name": s["name"], "ok": True, "new": kept})
-            print(f"[fetch] {s['name']:30s} 新增 {kept} 条")
+            print(f"[fetch] {s['name']:28s} 新增 {kept} 条")
         except Exception as e:
             source_status.append({"name": s["name"], "ok": False, "error": str(e)})
-            print(f"[fetch] {s['name']:30s} 失败: {e}")
+            print(f"[fetch] {s['name']:28s} 失败: {e}")
 
-    all_items = llm_enrich(new_items) + old_items
-    # 清理过期 + 排序
-    all_items = [i for i in all_items if not i.get("published") or datetime.fromisoformat(i["published"]) > cutoff]
-    all_items.sort(key=lambda i: i["heat"], reverse=True)
-    top3 = all_items[:3]
-    all_items.sort(key=lambda i: i["published"], reverse=True)
+    # F5：HN 条目抓正文
+    for it in new_items:
+        if it["source_type"] == "community" and not it["link"].startswith("https://news.ycombinator.com"):
+            it["article_text"] = fetch_article_text(it["link"])
+            if it["article_text"]:
+                print(f"[article] 抓到正文 {len(it['article_text'])} 字符: {it['title'][:40]}")
+
+    # F4：LLM 加工
+    new_items = llm_enrich(new_items, cfg)
+
+    # F1：聚簇
+    events = cluster_events(new_items, events, cfg)
+
+    # 清理过期
+    events = [e for e in events if datetime.fromisoformat(e["published"]) > cutoff]
+
+    top = [e["event_id"] for e in sorted(events, key=lambda e: -e["heat"])[:3]]
+    events.sort(key=lambda e: e["published"], reverse=True)
 
     payload = {
         "generated_at": now.astimezone(TZ).isoformat(),
-        "items": all_items, "top": [i["id"] for i in top3],
-        "sources": source_status,
+        "events": events, "top": top, "sources": source_status,
     }
     json.dump(payload, open(latest_path, "w"), ensure_ascii=False, indent=1)
     json.dump(payload, open(ARCHIVE / (now.astimezone(TZ).strftime("%Y-%m-%d-%H%M") + ".json"), "w"),
               ensure_ascii=False, indent=1)
-    print(f"[done] 总条目 {len(all_items)}，新增 {len(new_items)}")
-    return payload
+    n_sub = sum(len(e["items"]) for e in events)
+    print(f"[done] 事件 {len(events)} 个（含条目 {n_sub} 条），本次新增 {len(new_items)} 条")
 
 if __name__ == "__main__":
     main()

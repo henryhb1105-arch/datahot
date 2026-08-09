@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""读取 site/data/latest.json，生成 site/index.html 静态页"""
+"""V1.1：读取 latest.json（事件结构），生成首页 + 每个事件的站内详情页（带 OG meta）"""
 import json, html
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
@@ -8,6 +8,7 @@ from collections import defaultdict
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
+DETAIL_DIR = SITE / "e"
 TZ = timezone(timedelta(hours=8))
 CAT_BADGE = {"agent": "b-agent", "platform": "b-platform", "bi": "b-bi", "product": "b-product"}
 CAT_LABEL = {"agent": "Data Agent", "platform": "AI 数据平台", "bi": "BI 与可视化", "product": "数据产品"}
@@ -19,56 +20,146 @@ def esc(s):
 def fmt_time(iso):
     return datetime.fromisoformat(iso).astimezone(TZ).strftime("%H:%M")
 
+def fmt_date(iso):
+    d = datetime.fromisoformat(iso).astimezone(TZ)
+    return d.strftime("%Y-%m-%d %H:%M")
+
 def day_key(iso):
     return datetime.fromisoformat(iso).astimezone(TZ).date()
 
-def render_item(it):
-    star = '<span class="star">精选</span>' if it.get("star") else ""
-    title = esc(it.get("zh_title") or it["title"])
-    summary = esc(it.get("zh_summary") or it.get("summary", ""))
-    reason = f'<div class="why"><span class="w">推荐理由</span><span>{esc(it["reason"])}</span></div>' if it.get("reason") else ""
-    vtags = "".join(f'<span class="vtag">{esc(v)}</span>' for v in it.get("vendors", []))
+def detail_url(e):
+    return f'e/{e["event_id"]}.html'
+
+def load_css():
+    css = open(ROOT / "ui-mockup" / "index.html").read()
+    return css.split("<style>", 1)[1].split("</style>", 1)[0]
+
+def sources_html(e, link=False):
+    """信源列表：首页纯展示，详情页带链接"""
+    parts = []
+    for sub in e["items"]:
+        if link:
+            parts.append(f'<a class="src" href="{esc(sub["link"])}" target="_blank" rel="noopener">{esc(sub["source"])} ↗</a>')
+        else:
+            parts.append(f'<span class="src">{esc(sub["source"])}</span>')
+    return "".join(parts)
+
+def render_card(e):
+    star = '<span class="star">精选</span>' if e.get("star") else ""
+    n = len(e["items"])
+    also = ""
+    if n > 1:
+        names = " · ".join(esc(s["source"]) for s in e["items"][1:])
+        also = f'<div class="also">另有 <b>{n-1} 家信源</b>报道：{names}</div>'
+    reason = f'<div class="why"><span class="w">推荐理由</span><span>{esc(e["reason"])}</span></div>' if e.get("reason") else ""
+    vtags = "".join(f'<span class="vtag">{esc(v)}</span>' for v in e.get("vendors", []))
     vbox = f'<div class="vendors">{vtags}</div>' if vtags else ""
-    return f'''<div class="item" data-cat="{it["category"]}" data-link="{esc(it["link"])}">
-      <div class="top"><span>{fmt_time(it["published"])}</span><span>{esc(it["source"])}</span>
-      <span class="badge {CAT_BADGE[it["category"]]}">{CAT_LABEL[it["category"]]}</span>{star}
-      <span class="heatnum">🔥 {it["heat"]}</span></div>
-      <h3><a href="{esc(it["link"])}" target="_blank" rel="noopener">{title}</a></h3>
-      <p class="sum">{summary}</p>{reason}{vbox}
+    url = detail_url(e)
+    return f'''<div class="item" data-cat="{e["category"]}" data-link="{url}">
+      <div class="top"><span>{fmt_time(e["published"])}</span><span>{esc(e["items"][0]["source"])}</span>
+      <span class="badge {CAT_BADGE[e["category"]]}">{CAT_LABEL[e["category"]]}</span>{star}
+      <span class="heatnum">🔥 {e["heat"]}</span></div>
+      <h3><a href="{url}">{esc(e["zh_title"])}</a></h3>
+      <p class="sum">{esc(e["zh_summary"])}</p>{also}{reason}{vbox}
     </div>'''
+
+def render_detail(e, all_events, css):
+    related = [x for x in all_events
+               if x["category"] == e["category"] and x["event_id"] != e["event_id"]][:3]
+    rel_html = "".join(
+        f'<div class="vendor-row" data-link="{esc("../" + detail_url(x))}" onclick="location.href=\'../{detail_url(x)}\'">'
+        f'<span class="n">›</span>{esc(x["zh_title"])}<span class="count">🔥 {x["heat"]}</span></div>'
+        for x in related) or '<div style="font-size:12.5px;color:var(--sub)">暂无相关事件</div>'
+    srcs = "".join(
+        f'<div class="vendor-row"><span class="n">↗</span>'
+        f'<a href="{esc(s["link"])}" target="_blank" rel="noopener">{esc(s["source"])}</a>'
+        f'<span class="count">{fmt_date(s["published"])}</span></div>'
+        for s in e["items"])
+    vtags = "".join(f'<span class="vtag">{esc(v)}</span>' for v in e.get("vendors", []))
+    desc = esc(e["zh_summary"][:150])
+    return f'''<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{esc(e["zh_title"])} · DataHot</title>
+<meta name="description" content="{desc}">
+<meta property="og:title" content="{esc(e["zh_title"])}">
+<meta property="og:description" content="{desc}">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="DataHot · 数据领域 AI 热榜">
+<style>{css}
+.article{{max-width:760px;margin:0 auto;padding:32px 20px 60px}}
+.article .back{{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}}
+.article .back:hover{{color:var(--accent)}}
+.article h1{{font-size:24px;font-weight:800;line-height:1.5;margin:12px 0 16px}}
+.article .meta{{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}}
+.article .body{{font-size:15.5px;line-height:1.9;color:#374151;margin:20px 0}}
+.article .card{{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}}
+.article h4{{font-size:14px;font-weight:800;margin-bottom:10px}}
+</style></head><body>
+<header><div class="wrap nav">
+  <div class="logo"><a href="../index.html">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
+</div></header>
+<div class="article">
+  <a class="back" href="../index.html">← 返回热榜</a>
+  <div class="meta">
+    <span class="badge {CAT_BADGE[e["category"]]}">{CAT_LABEL[e["category"]]}</span>
+    {'<span class="star">精选</span>' if e.get("star") else ''}
+    <span>{fmt_date(e["published"])}</span>
+    <span style="margin-left:auto" class="heatnum">🔥 {e["heat"]} 热度</span>
+  </div>
+  <h1>{esc(e["zh_title"])}</h1>
+  <div class="body">{esc(e["zh_summary"])}</div>
+  {f'<div class="why" style="border-top:1px dashed var(--line);padding-top:14px;font-size:14px"><span class="w">推荐理由</span><span>{esc(e["reason"])}</span></div>' if e.get("reason") else ""}
+  {f'<div class="vendors" style="margin-top:14px">{vtags}</div>' if vtags else ""}
+  <div class="card"><h4>🔗 信源（{len(e["items"])} 家报道）</h4>{srcs}</div>
+  <div class="card"><h4>📌 相关事件</h4>{rel_html}</div>
+</div>
+<footer>DataHot · 数据领域 AI 资讯热榜 · 仅聚合摘要与链接，版权归原作者</footer>
+</body></html>'''
 
 def main():
     payload = json.load(open(SITE / "data" / "latest.json"))
-    items = payload["items"]
-    top_ids = set(payload.get("top", []))
+    events = payload["events"]
     gen = datetime.fromisoformat(payload["generated_at"])
+    css = load_css()
 
-    # 热点榜
+    # ── 详情页 ──
+    DETAIL_DIR.mkdir(parents=True, exist_ok=True)
+    valid_ids = set()
+    for e in events:
+        valid_ids.add(e["event_id"] + ".html")
+        (DETAIL_DIR / (e["event_id"] + ".html")).write_text(render_detail(e, events, css), encoding="utf-8")
+    # 清理过期详情页
+    for f in DETAIL_DIR.glob("*.html"):
+        if f.name not in valid_ids:
+            f.unlink()
+
+    # ── 热点榜 ──
     hot_cards = ""
-    for n, iid in enumerate(payload.get("top", [])[:3], 1):
-        it = next((i for i in items if i["id"] == iid), None)
-        if not it:
+    for n, eid in enumerate(payload.get("top", [])[:3], 1):
+        e = next((x for x in events if x["event_id"] == eid), None)
+        if not e:
             continue
-        hot_cards += f'''<div class="hot" data-link="{esc(it["link"])}"><span class="rank">TOP {n}</span><span class="heat">{it["heat"]} 热度</span>
-        <h3><a href="{esc(it["link"])}" target="_blank" rel="noopener">{esc(it.get("zh_title") or it["title"])}</a></h3>
-        <div class="sources"><span class="src">{esc(it["source"])}</span></div></div>'''
+        hot_cards += f'''<div class="hot" data-link="{detail_url(e)}"><span class="rank">TOP {n}</span><span class="heat">{e["heat"]} 热度</span>
+        <h3><a href="{detail_url(e)}">{esc(e["zh_title"])}</a></h3>
+        <div class="sources">{sources_html(e)}</div></div>'''
 
-    # 时间轴按日分组
+    # ── 时间轴 ──
     days = defaultdict(list)
-    for it in items:
-        days[day_key(it["published"])].append(it)
+    for e in events:
+        days[day_key(e["published"])].append(e)
     timeline = ""
     for d in sorted(days, reverse=True):
         head = f'{d.month}月{d.day}日'
-        info = f'星期{WEEK_CN[d.weekday()]} · {len(days[d])} 条'
+        info = f'星期{WEEK_CN[d.weekday()]} · {len(days[d])} 个事件'
         timeline += f'<div class="day"><div class="day-head"><span class="date">{head}</span><span class="info">{info}</span></div>'
-        timeline += "\n".join(render_item(it) for it in days[d])
+        timeline += "\n".join(render_card(e) for e in days[d])
         timeline += "</div>"
 
-    # 厂商热榜（近7天条目计数）
+    # ── 厂商热榜 ──
     vendor_count = defaultdict(int)
-    for it in items:
-        for v in it.get("vendors", []):
+    for e in events:
+        for v in e.get("vendors", []):
             vendor_count[v] += 1
     vrows = "".join(
         f'<div class="vendor-row"><span class="n">{n}</span>{esc(v)}<span class="count">{c} 条</span></div>'
@@ -80,13 +171,14 @@ def main():
     bad = [s["name"] for s in payload["sources"] if not s["ok"]]
     bad_txt = "、".join(bad) if bad else "0 ✅"
 
-    css = open(ROOT / "ui-mockup" / "index.html").read()
-    css = css.split("<style>", 1)[1].split("</style>", 1)[0]
-
     page = f'''<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DataHot · 数据领域 AI 热榜</title>
+<meta name="description" content="监控 Data Agent、AI 数据平台、BI、数据产品四个领域的资讯热榜，多信源聚簇 + AI 中文摘要与推荐理由，每 6 小时更新。">
+<meta property="og:title" content="DataHot · 数据领域 AI 热榜">
+<meta property="og:description" content="Data Agent / AI 数据平台 / BI / 数据产品的每日热点，每 6 小时自动更新。">
+<meta property="og:type" content="website">
 <style>{css}
 .item a:hover{{color:var(--accent)}}
 .hot a:hover{{color:var(--accent)}}
@@ -104,7 +196,7 @@ def main():
 </div></header>
 
 <div class="wrap"><div class="layout"><main>
-  <div class="section-title"><h2>🔥 本期热点</h2><span>按热度排序 · 聚簇功能 V1.1 上线</span></div>
+  <div class="section-title"><h2>🔥 本期热点</h2><span>多信源聚簇 · 按热度排序</span></div>
   <div class="hotlist">{hot_cards}</div>
   <div class="section-title"><h2>📅 时间轴</h2><span>近 7 天 · 按日分组</span></div>
   {timeline}
@@ -120,13 +212,13 @@ def main():
   </div></div>
   <div class="card"><h4>🕐 更新状态</h4><div class="status">
     最后更新：<b>{gen.strftime("%Y-%m-%d %H:%M")}</b><br>
-    信源正常：<b>{ok}/{len(payload["sources"])}</b> · 当前条目 <b>{len(items)} 条</b><br>
+    信源正常：<b>{ok}/{len(payload["sources"])}</b> · 在站事件 <b>{len(events)} 个</b><br>
     信源异常：{esc(bad_txt)}
   </div></div>
 </aside>
 </div></div>
 
-<footer>DataHot · 数据领域 AI 资讯热榜 · 仅聚合摘要与链接，版权归原作者 · 由 update 管道自动生成</footer>
+<footer>DataHot · 数据领域 AI 资讯热榜 · 仅聚合摘要与链接，版权归原作者 · 每 6 小时自动更新</footer>
 
 <script>
 const tabs=document.querySelectorAll('#tabs .tab');
@@ -143,12 +235,12 @@ document.getElementById('q').addEventListener('input',e=>{{
     el.style.display=el.textContent.toLowerCase().includes(q)?'':'none';
   }});
 }});
-// 整卡可点：点击卡片任意位置打开原文（点击标题/标签等真实链接时除外）
+// 整卡可点：进入站内详情页
 document.querySelectorAll('.item,.hot').forEach(el=>{{
   el.addEventListener('click',e=>{{
     if(e.target.closest('a')) return;
     const url=el.dataset.link;
-    if(url) window.open(url,'_blank','noopener');
+    if(url) location.href=url;
   }});
 }});
 </script>
@@ -156,7 +248,7 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
 
     out = SITE / "index.html"
     out.write_text(page, encoding="utf-8")
-    print(f"[render] {out}  ({len(page)//1024} KB, {len(items)} 条)")
+    print(f"[render] 首页 ({len(page)//1024} KB) + 详情页 {len(valid_ids)} 个")
 
 if __name__ == "__main__":
     main()

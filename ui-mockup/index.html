@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DataHot · 数据领域 AI 热榜（UI 设计原型）</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#ffffff; --ink:#1a1d23; --sub:#6b7280; --line:#e5e7eb;
+    --accent:#d94f2b; --accent-soft:#fdf0ec;
+    --blue:#2563eb; --green:#0f9d6c; --purple:#7c3aed; --amber:#b45309;
+    --radius:14px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 20px}
+
+  /* ── 顶部导航 ── */
+  header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;gap:28px;height:58px}
+  .logo{font-size:20px;font-weight:800;letter-spacing:-.5px}
+  .logo em{font-style:normal;color:var(--accent)}
+  .logo .tag{font-size:11px;font-weight:500;color:var(--sub);margin-left:8px;border:1px solid var(--line);border-radius:99px;padding:2px 8px;vertical-align:middle}
+  .tabs{display:flex;gap:4px;flex:1}
+  .tab{padding:6px 14px;border-radius:99px;font-size:14px;color:var(--sub);cursor:pointer;white-space:nowrap}
+  .tab:hover{background:#f0f1f3}
+  .tab.on{background:var(--ink);color:#fff;font-weight:600}
+  .search{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:6px 14px;font-size:13px;color:var(--sub);min-width:180px;cursor:pointer}
+  .btn-sub{background:var(--accent);color:#fff;border-radius:99px;padding:7px 16px;font-size:13px;font-weight:600;white-space:nowrap}
+
+  .layout{display:grid;grid-template-columns:1fr 320px;gap:24px;padding:24px 0 60px}
+  @media(max-width:960px){.layout{grid-template-columns:1fr}}
+
+  /* ── 每日简报 ── */
+  .brief{background:linear-gradient(135deg,#1a1d23 0%,#2b2418 60%,#3d2412 100%);color:#fff;border-radius:var(--radius);padding:22px 26px;margin-bottom:22px;position:relative;overflow:hidden}
+  .brief .label{font-size:12px;letter-spacing:2px;color:#f5b48a;font-weight:700;margin-bottom:8px}
+  .brief p{font-size:15px;line-height:1.8;color:#f3f4f6}
+  .brief .meta{margin-top:10px;font-size:12px;color:#9ca3af}
+  .brief::after{content:"⚡";position:absolute;right:18px;top:14px;font-size:42px;opacity:.25}
+
+  /* ── 热点榜 ── */
+  .section-title{display:flex;align-items:baseline;gap:10px;margin:6px 0 14px}
+  .section-title h2{font-size:19px;font-weight:800}
+  .section-title span{font-size:12px;color:var(--sub)}
+  .hotlist{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:30px}
+  @media(max-width:960px){.hotlist{grid-template-columns:1fr}}
+  .hot{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;position:relative;transition:.15s;cursor:pointer}
+  .hot:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+  .hot .rank{position:absolute;top:-1px;left:16px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:0 0 8px 8px}
+  .hot .heat{position:absolute;top:12px;right:16px;font-size:12px;color:var(--accent);font-weight:700}
+  .hot h3{font-size:15px;font-weight:700;margin:14px 0 8px;line-height:1.5}
+  .hot .sources{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
+  .src{font-size:11px;background:#f3f4f6;color:var(--sub);border-radius:6px;padding:2px 8px}
+  .src.more{background:var(--accent-soft);color:var(--accent)}
+
+  /* ── 时间轴 ── */
+  .day{margin-bottom:8px}
+  .day-head{display:flex;align-items:center;gap:12px;margin:22px 0 12px}
+  .day-head .date{font-size:17px;font-weight:800}
+  .day-head .info{font-size:12px;color:var(--sub)}
+  .day-head::after{content:"";flex:1;height:1px;background:var(--line)}
+  .item{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin-bottom:12px;transition:.15s;cursor:pointer}
+  .item:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+  .item .top{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub);flex-wrap:wrap}
+  .badge{font-weight:600;border-radius:6px;padding:1px 8px;font-size:11px}
+  .b-agent{background:#eef2ff;color:var(--blue)}
+  .b-platform{background:#ecfdf5;color:var(--green)}
+  .b-bi{background:#f5f3ff;color:var(--purple)}
+  .b-product{background:#fef7e8;color:var(--amber)}
+  .star{color:var(--accent);font-weight:700}
+  .item .heatnum{margin-left:auto;font-weight:800;color:var(--accent);font-size:13px}
+  .item h3{font-size:16px;font-weight:700;margin:8px 0 6px;line-height:1.55}
+  .item .sum{font-size:13.5px;color:#4b5563;line-height:1.75}
+  .item .also{margin-top:10px;font-size:12px;color:var(--sub)}
+  .item .also b{color:var(--ink)}
+  .why{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px;font-size:13px;color:#374151;display:flex;gap:8px}
+  .why .w{color:var(--accent);font-weight:700;white-space:nowrap}
+  .vendors{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
+  .vtag{font-size:11px;border:1px solid var(--line);color:var(--sub);border-radius:99px;padding:1px 10px}
+  .vtag:hover{border-color:var(--accent);color:var(--accent)}
+
+  /* ── 侧栏 ── */
+  aside .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
+  aside h4{font-size:14px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+  .vendor-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f3f4f6;font-size:13px;cursor:pointer}
+  .vendor-row:last-child{border-bottom:none}
+  .vendor-row .n{width:16px;color:var(--sub);font-size:12px}
+  .vendor-row .count{margin-left:auto;font-size:12px;color:var(--accent);font-weight:700}
+  .up{transform:scale(.8)}
+  .sub-box input{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:8px;outline:none}
+  .sub-box button{width:100%;background:var(--ink);color:#fff;border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer}
+  .status{font-size:12.5px;color:var(--sub);line-height:2}
+  .status b{color:var(--green)}
+  .legend{display:flex;flex-direction:column;gap:6px;font-size:12.5px}
+  .legend .row{display:flex;align-items:center;gap:8px;color:var(--sub)}
+
+  footer{border-top:1px solid var(--line);padding:26px 0;text-align:center;font-size:12px;color:var(--sub)}
+  .mock-banner{background:#1a1d23;color:#fff;text-align:center;font-size:12px;padding:7px;letter-spacing:1px}
+  .mock-banner b{color:#f5b48a}
+</style>
+</head>
+<body>
+
+<div class="mock-banner">UI 设计原型 · 数据均为模拟 · <b>DataHot v0.1</b></div>
+
+<header>
+  <div class="wrap nav">
+    <div class="logo">Data<em>Hot</em><span class="tag">每 6 小时更新</span></div>
+    <nav class="tabs">
+      <span class="tab on">🔥 全部</span>
+      <span class="tab">🤖 Data Agent</span>
+      <span class="tab">🏗️ AI 数据平台</span>
+      <span class="tab">📊 BI 与可视化</span>
+      <span class="tab">🧩 数据产品</span>
+    </nav>
+    <div class="search">🔍 搜索标题 / 厂商…</div>
+    <a class="btn-sub">📮 订阅日报</a>
+  </div>
+</header>
+
+<div class="wrap">
+<div class="layout">
+<main>
+
+  <!-- 每日简报 -->
+  <div class="brief">
+    <div class="label">🤖 今日数据简报 · AI 生成</div>
+    <p>今天数据领域的主线：ChatBI 进入"准确率竞赛"阶段——Snowflake Cortex Analyst 与 Power BI Copilot 同日刷新 Text-to-SQL 基准；另一边，dbt 语义层正式开放第三方 Agent 接入，"语义层 + Agent"的组合正在取代传统 BI 的前端入口。国内侧，帆软与观远先后发布 AI 分析助手，定价策略明显下探，中小企业的对话式 BI 落地门槛正在消失。</p>
+    <div class="meta">基于今日 23 条资讯 · 2026-08-09 08:00 生成 · 查看依据 →</div>
+  </div>
+
+  <!-- 热点榜 -->
+  <div class="section-title"><h2>🔥 今日热点</h2><span>多信源聚簇 · 按热度排序</span></div>
+  <div class="hotlist">
+    <div class="hot">
+      <span class="rank">TOP 1</span><span class="heat">86 热度</span>
+      <h3>Snowflake 发布 Cortex Analyst 2.0：Text-to-SQL 准确率提升 31%</h3>
+      <div class="sources">
+        <span class="src">Snowflake Blog</span><span class="src">Hacker News</span><span class="src">Datanami</span><span class="src">X: @snowflake</span><span class="src more">另有 4 家信源</span>
+      </div>
+    </div>
+    <div class="hot">
+      <span class="rank">TOP 2</span><span class="heat">72 热度</span>
+      <h3>dbt 语义层开放 Agent API：第三方 AI Agent 可直接查询指标</h3>
+      <div class="sources">
+        <span class="src">dbt Blog</span><span class="src">X: @TristanHandy</span><span class="src">InfoQ</span><span class="src more">另有 2 家信源</span>
+      </div>
+    </div>
+    <div class="hot">
+      <span class="rank">TOP 3</span><span class="heat">65 热度</span>
+      <h3>ThoughtSpot 收购 Mode 后续：产品线合并路线图曝光</h3>
+      <div class="sources">
+        <span class="src">TechCrunch</span><span class="src">X: @bennstancil</span><span class="src">36氪</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 时间轴 -->
+  <div class="section-title"><h2>📅 时间轴</h2><span>按日分组 · 全部信源</span></div>
+
+  <div class="day">
+    <div class="day-head"><span class="date">8月9日</span><span class="info">星期日 · 4 条</span></div>
+
+    <div class="item">
+      <div class="top">
+        <span>07:40</span><span>Snowflake Blog</span><span class="badge b-agent">Data Agent</span><span class="star">精选</span>
+        <span class="heatnum">🔥 86</span>
+      </div>
+      <h3>Snowflake 发布 Cortex Analyst 2.0：Text-to-SQL 准确率提升 31%，支持多轮追问</h3>
+      <p class="sum">Snowflake 宣布 Cortex Analyst 2.0 正式 GA，在内部基准 BIRD-SQL 变体上准确率从 61% 提升至 92%（相对提升 31%），新增多轮对话追问与自动语义纠错，可直接挂载企业现有语义模型。定价按查询量计费，前 1000 次/月免费。</p>
+      <div class="also">另有 <b>4 家信源</b>报道：Hacker News · Datanami · X: @snowflake · BigDATAwire</div>
+      <div class="why"><span class="w">推荐理由</span><span>ChatBI 的准确率第一次摸到生产可用的门槛，做对话式取数的团队需要重新评估"自研 vs 直接用平台能力"的账。</span></div>
+      <div class="vendors"><span class="vtag">Snowflake</span><span class="vtag">Text-to-SQL</span><span class="vtag">ChatBI</span></div>
+    </div>
+
+    <div class="item">
+      <div class="top">
+        <span>06:15</span><span>dbt Blog</span><span class="badge b-platform">AI 数据平台</span><span class="star">精选</span>
+        <span class="heatnum">🔥 72</span>
+      </div>
+      <h3>dbt 语义层开放 Agent API：任何 AI Agent 可直接查询治理后的指标</h3>
+      <p class="sum">dbt Labs 宣布 Semantic Layer 新增 Agent API，第三方 AI Agent 可通过标准接口查询经过治理的指标定义，避免 Agent 直连数仓造成的口径混乱。首批接入方包括 LangChain 与 Hex。</p>
+      <div class="also">另有 <b>2 家信源</b>报道：X: @TristanHandy · InfoQ</div>
+      <div class="why"><span class="w">推荐理由</span><span>"语义层成为 Agent 的数据入口"从口号变成标准接口，做 Data Agent 的团队要回答一个问题：你的口径治理在哪一层？</span></div>
+      <div class="vendors"><span class="vtag">dbt Labs</span><span class="vtag">语义层</span><span class="vtag">LangChain</span></div>
+    </div>
+
+    <div class="item">
+      <div class="top">
+        <span>02:30</span><span>Microsoft Power BI Blog</span><span class="badge b-bi">BI 与可视化</span>
+        <span class="heatnum">🔥 58</span>
+      </div>
+      <h3>Power BI Copilot 支持"一键生成完整报表页"，并开放语义模型自动调优</h3>
+      <p class="sum">微软更新 Power BI Copilot：新增从一句需求描述生成完整多图表报表页的能力，同时推出语义模型自动性能调优（预览）。企业版用户下月可用。</p>
+      <div class="why"><span class="w">推荐理由</span><span>BI 的交互范式从"拖拽"转向"描述需求"，报表工程师的工作内容将从制作转向审核与口径把关。</span></div>
+      <div class="vendors"><span class="vtag">Microsoft</span><span class="vtag">Power BI</span></div>
+    </div>
+  </div>
+
+  <div class="day">
+    <div class="day-head"><span class="date">8月8日</span><span class="info">星期六 · 5 条</span></div>
+
+    <div class="item">
+      <div class="top">
+        <span>21:05</span><span>TechCrunch</span><span class="badge b-product">数据产品</span><span class="star">精选</span>
+        <span class="heatnum">🔥 65</span>
+      </div>
+      <h3>ThoughtSpot 收购 Mode 后续：产品线合并路线图曝光，Mode 品牌将保留 18 个月</h3>
+      <p class="sum">据 TechCrunch 获得的内部路线图，ThoughtSpot 计划在 18 个月内将 Mode 的 SQL 笔记本能力并入主产品线，Mode 品牌过渡保留。Benn Stancil 将负责合并后的分析师产品线。</p>
+      <div class="also">另有 <b>2 家信源</b>报道：X: @bennstancil · 36氪</div>
+      <div class="why"><span class="w">推荐理由</span><span>BI 赛道整合加速的信号：独立分析工具要么成为平台能力，要么被平台收编。正在选型的团队需要把"厂商存续风险"纳入评估。</span></div>
+      <div class="vendors"><span class="vtag">ThoughtSpot</span><span class="vtag">Mode</span><span class="vtag">并购</span></div>
+    </div>
+
+    <div class="item">
+      <div class="top">
+        <span>18:20</span><span>观远数据官方</span><span class="badge b-bi">BI 与可视化</span>
+        <span class="heatnum">🔥 54</span>
+      </div>
+      <h3>观远发布"观远 ChatBI 2.0"：按席位收费改为按问答量计费，起步价下探 90%</h3>
+      <p class="sum">观远数据发布 ChatBI 2.0，计费模式从按席位改为按问答量，入门包 999 元/月，主打中小企业市场。内置零售、快消行业指标模板。</p>
+      <div class="why"><span class="w">推荐理由</span><span>国内 ChatBI 开始打价格战，按量计费模式会直接冲击传统 BI 的席位授权模式，值得所有 BI 产品经理关注定价设计。</span></div>
+      <div class="vendors"><span class="vtag">观远数据</span><span class="vtag">ChatBI</span><span class="vtag">定价</span></div>
+    </div>
+
+    <div class="item">
+      <div class="top">
+        <span>14:00</span><span>Hacker News（中文译）</span><span class="badge b-agent">Data Agent</span>
+        <span class="heatnum">🔥 49</span>
+      </div>
+      <h3>Show HN：开源 Data Agent「DataPilot」—— 用自然语言跑通"取数→分析→图表"全流程</h3>
+      <p class="sum">开源项目 DataPilot 登上 HN 首页（462 赞）：支持自然语言驱动的完整分析流程，自动生成 SQL、执行并输出可视化与结论，兼容 DuckDB/Postgres/BigQuery，MIT 协议。</p>
+      <div class="also">另有 <b>1 家信源</b>报道：Reddit r/dataengineering</div>
+      <div class="why"><span class="w">推荐理由</span><span>HN 上少有的"全流程"开源实现而非 demo 玩具，其 SQL 自我纠错链路设计值得做同类产品的团队参考。</span></div>
+      <div class="vendors"><span class="vtag">开源项目</span><span class="vtag">DuckDB</span></div>
+    </div>
+
+    <div class="item">
+      <div class="top">
+        <span>09:30</span><span>Gartner（新闻稿）</span><span class="badge b-product">数据产品</span>
+        <span class="heatnum">🔥 47</span>
+      </div>
+      <h3>Gartner 2026 分析与 BI 平台魔力象限发布：首次将"Agentic Analytics"纳入核心评估维度</h3>
+      <p class="sum">Gartner 发布 2026 年度 ABI 平台魔力象限，评估标准首次加入"Agentic Analytics 成熟度"。Microsoft、Salesforce（Tableau）保持领导者象限，ThoughtSpot 进入挑战者象限。</p>
+      <div class="why"><span class="w">推荐理由</span><span>评估维度的变化就是采购清单的变化：明年企业 BI 选型的 RFP 里大概率会出现 Agent 能力条款。</span></div>
+      <div class="vendors"><span class="vtag">Gartner</span><span class="vtag">魔力象限</span></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- 侧栏 -->
+<aside>
+  <div class="card sub-box">
+    <h4>📮 每日数据日报</h4>
+    <input placeholder="输入邮箱，每天 8:00 收到简报">
+    <button>订阅</button>
+  </div>
+
+  <div class="card">
+    <h4>🏢 厂商热榜 <span style="font-size:11px;color:var(--sub);font-weight:400">近7天</span></h4>
+    <div class="vendor-row"><span class="n">1</span>Snowflake<span class="count">▲ 9 条</span></div>
+    <div class="vendor-row"><span class="n">2</span>dbt Labs<span class="count">▲ 7 条</span></div>
+    <div class="vendor-row"><span class="n">3</span>Microsoft Power BI<span class="count">6 条</span></div>
+    <div class="vendor-row"><span class="n">4</span>Databricks<span class="count">▼ 5 条</span></div>
+    <div class="vendor-row"><span class="n">5</span>帆软 FineBI<span class="count">▲ 4 条</span></div>
+    <div class="vendor-row"><span class="n">6</span>ThoughtSpot<span class="count">4 条</span></div>
+  </div>
+
+  <div class="card">
+    <h4>🏷️ 栏目说明</h4>
+    <div class="legend">
+      <div class="row"><span class="badge b-agent">Data Agent</span>ChatBI · NL2SQL · 分析 Agent</div>
+      <div class="row"><span class="badge b-platform">AI 数据平台</span>湖仓 · 语义层 · 数据治理</div>
+      <div class="row"><span class="badge b-bi">BI 与可视化</span>BI 厂商 · 报表 · 可视化</div>
+      <div class="row"><span class="badge b-product">数据产品</span>方法论 · 融资并购 · 报告</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h4>🕐 更新状态</h4>
+    <div class="status">
+      最后更新：<b>2026-08-09 08:02</b><br>
+      更新频率：每 6 小时（02/08/14/20 点）<br>
+      监控信源：<b>23 个</b> · 今日入选 <b>23 条</b><br>
+      信源异常：<b>0</b> ✅
+    </div>
+  </div>
+</aside>
+
+</div>
+</div>
+
+<footer>DataHot · 数据领域 AI 资讯热榜 · 仅聚合摘要与链接，版权归原作者 · UI 设计原型 v0.1</footer>
+
+</body>
+</html>

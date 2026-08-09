@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-08-09T21:06:12.527940+08:00",
+ "generated_at": "2026-08-09T21:18:29.034429+08:00",
  "events": [
   {
    "event_id": "55d25a6e466b",
@@ -41,7 +41,7 @@
    "vendors": [
     "dbt"
    ],
-   "heat": 70,
+   "heat": 69,
    "star": false,
    "importance": 70,
    "signal": 86,
@@ -693,7 +693,7 @@
    "vendors": [
     "ClickHouse"
    ],
-   "heat": 33,
+   "heat": 35,
    "star": false,
    "published": "2026-08-06T08:00:00+08:00",
    "items": [
@@ -703,11 +703,20 @@
      "link": "https://clickhouse.com/blog/managed-postgres-notifications-observability-backups",
      "published": "2026-08-06T08:00:00+08:00",
      "title": "What's new in ClickHouse Managed Postgres: Customer notifications, better observability, faster backups, extensions, and more"
+    },
+    {
+     "id": "e8b8a1edf33a",
+     "source": "ClickHouse Blog",
+     "link": "https://clickhouse.com/blog/wal-backpressure-clickhouse-managed-postgres",
+     "published": "2026-08-05T08:00:00+08:00",
+     "title": "What is WAL backpressure, and why does ClickHouse Managed Postgres need it?"
     }
    ],
    "topics": [
     "实时分析"
-   ]
+   ],
+   "importance": 50,
+   "signal": 0
   },
   {
    "event_id": "f24d7f17e186",
@@ -787,31 +796,6 @@
    "topics": [
     "实时分析"
    ]
-  },
-  {
-   "event_id": "e8b8a1edf33a",
-   "zh_title": "ClickHouse托管Postgres的WAL背压机制解析",
-   "zh_summary": "ClickHouse Managed Postgres通过WAL感知背压机制限制客户端写入，以保护磁盘空间并让归档进程恢复。当写入快于归档时，WAL堆积直至磁盘满，Postgres会将其视为PANIC并宕机。系统每15秒统计待处理段，通过cgroup v2 I/O控制器分级限制写入带宽，例如在500 MB/s磁盘上，100个待处理段时限制为400 MB/s，500个时250 MB/s，1000个时100 MB/s。该机制运行在数据平面，即使控制平面不可用，数据库也能自我保护。",
-   "reason": "数据从业者应关注托管数据库如何处理WAL堆积与背压，避免磁盘满导致宕机，这是数据平台可靠性的关键实践。",
-   "full_zh": "在ClickHouse Managed Postgres中，所有对Postgres的更改在写入表之前都会先进入预写日志（WAL）。为了支持时间点恢复，系统会将每个已完成的WAL段上传到对象存储。Postgres在段上传成功前不会删除该段，因此当工作负载写入速度快于归档器传输速度时，WAL会不断堆积，直到磁盘耗尽。而Postgres将WAL磁盘写满视为PANIC状态，导致整个实例宕机。\n\nClickHouse Managed Postgres的应对方案是背压机制。一个systemd计时器每15秒统计一次待处理的WAL段数量，并通过cgroup v2 I/O控制器来限制Postgres的写入带宽。这个限制是磁盘预配吞吐量的百分比，且随积压深度增加而收紧：当待处理段为100个时，写入上限为基线带宽的80%（在500 MB/s磁盘上即400 MB/s）；当达到500个时，降至50%（250 MB/s）；当达到1,000个时，仅保留20%（100 MB/s）。\n\n更慢的写入意味着每秒产生的WAL更少，归档器得以追赶进度。整个过程完全在数据平面上执行，即使控制平面不可用或无法访问，数据库依然能够自我守护，不会因为控制面失联而失去保护能力。\n\n设计者特别强调“不要限制解药”。如果对整个服务统一限流，同样会限制归档器排空队列、检查点进程删除旧WAL，以及归档器写入所用的日志器。因此，限流机制将cgroup一分为二：每个Postgres进程都会在进程标题中声明自己的角色，使得排空路径被单独划分，避免与普通写入流量一同被抑制，从而保证恢复通道始终畅通。\n\n这项WAL感知背压机制是托管数据库可靠性设计中的一个范例：当归档滞后时，系统自动降速而非崩溃，同时确保恢复路径不被误伤。对于使用ClickHouse Managed Postgres或类似托管数据库的团队来说，理解这一机制有助于更好地规划写入负载和容量，避免因瞬时写入高峰触发PANIC导致服务中断。",
-   "category": "platform",
-   "category_label": "AI 数据平台",
-   "vendors": [
-    "ClickHouse"
-   ],
-   "heat": 31,
-   "star": false,
-   "published": "2026-08-05T08:00:00+08:00",
-   "items": [
-    {
-     "id": "e8b8a1edf33a",
-     "source": "ClickHouse Blog",
-     "link": "https://clickhouse.com/blog/wal-backpressure-clickhouse-managed-postgres",
-     "published": "2026-08-05T08:00:00+08:00",
-     "title": "What is WAL backpressure, and why does ClickHouse Managed Postgres need it?"
-    }
-   ],
-   "topics": []
   },
   {
    "event_id": "97b2715c1169",
@@ -1332,8 +1316,8 @@
   }
  ],
  "top": [
-  "3f8cf5140961",
   "55d25a6e466b",
+  "3f8cf5140961",
   "b66e4f9b44c9"
  ],
  "sources": [
@@ -1400,7 +1384,7 @@
   {
    "name": "Bluesky 数据社区",
    "ok": true,
-   "new": 10
+   "new": 11
   },
   {
    "name": "Snowflake Engineering（Medium）",

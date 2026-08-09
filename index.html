@@ -150,8 +150,14 @@
   .mock-banner b{color:#f5b48a}
 
 
+body{overflow-x:clip}
+main,.layout>*,.hotlist>*{min-width:0}
+.d-only{display:inline-block}
+@media(max-width:960px){.d-only{display:none}}
 .chip{display:inline-block;font-size:11px;background:#eef2ff;color:var(--blue);border-radius:99px;padding:1px 10px;text-decoration:none}
 .chip:hover{background:#dbe4ff}
+.tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
+.tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
 .chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px}
 .chiprow::-webkit-scrollbar{display:none}
 .chiprow .fchip{flex-shrink:0;font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
@@ -181,22 +187,21 @@
 <div id="ptr"><span>下拉刷新</span></div>
 <header><div class="wrap nav">
   <div class="logo">Data<em>Hot</em><span class="tag">每 6 小时更新</span></div>
-  <nav class="tabs">
-    <a class="tab" href="topics.html" style="text-decoration:none">🗺️ 主题</a>
-  </nav>
-  <div class="search" onclick="document.getElementById('q').focus()">🔍 <input id="q" placeholder="搜索标题 / 主题…" style="border:none;outline:none;background:transparent;font-size:13px;width:110px"></div>
+  <a class="tab d-only" href="topics.html" style="text-decoration:none">🗺️ 主题</a>
 </div></header>
 
 <div class="wrap"><div class="layout"><main>
   <div class="section-title"><h2>🔥 本期热点</h2><span>多信源聚簇 · 按热度排序</span></div>
-  <div class="hotlist"><div class="hot" data-link="e/3f8cf5140961.html"><span class="rank">TOP 1</span><span class="heat">70 热度</span>
-        <h3><a href="e/3f8cf5140961.html">Bluesky热帖推荐dbt好文</a></h3>
-        <div class="sources"><span class="src">Bluesky 数据社区</span></div></div><div class="hot" data-link="e/55d25a6e466b.html"><span class="rank">TOP 2</span><span class="heat">69 热度</span>
+  <div class="hotlist"><div class="hot" data-link="e/55d25a6e466b.html"><span class="rank">TOP 1</span><span class="heat">69 热度</span>
         <h3><a href="e/55d25a6e466b.html">热帖：为什么说dbt其实很好</a></h3>
+        <div class="sources"><span class="src">Bluesky 数据社区</span></div></div><div class="hot" data-link="e/3f8cf5140961.html"><span class="rank">TOP 2</span><span class="heat">69 热度</span>
+        <h3><a href="e/3f8cf5140961.html">Bluesky热帖推荐dbt好文</a></h3>
         <div class="sources"><span class="src">Bluesky 数据社区</span></div></div><div class="hot" data-link="e/b66e4f9b44c9.html"><span class="rank">TOP 3</span><span class="heat">40 热度</span>
         <h3><a href="e/b66e4f9b44c9.html">Power Platform 2026年7/8月功能更新：数据网格控件正式发布</a></h3>
         <div class="sources"><span class="src">Microsoft Power BI（Power Platform Blog）</span></div></div></div>
-  <div class="section-title"><h2>📅 时间轴</h2><span>近 7 天 · 按日分组</span></div>
+  <div class="section-title" style="align-items:center"><h2>📅 时间轴</h2><span>近 7 天</span>
+    <input id="q" class="tlsearch" placeholder="🔍 搜索">
+  </div>
   <div class="chiprow" id="chiprow">
     <span class="fchip on" data-topic="all">全部</span>
     <span class="fchip" data-topic="ChatBI">ChatBI</span><span class="fchip" data-topic="Data Agent">Data Agent</span><span class="fchip" data-topic="语义层">语义层</span><span class="fchip" data-topic="平台AI化">平台AI化</span><span class="fchip" data-topic="BI变局">BI变局</span><span class="fchip" data-topic="湖仓">湖仓</span><span class="fchip" data-topic="实时分析">实时分析</span><span class="fchip" data-topic="数据人">数据人</span>
@@ -211,7 +216,7 @@
 <div class="item" data-cat="platform" data-topics="" data-link="e/3f8cf5140961.html">
       <div class="top"><span>20:02</span><span>Bluesky 数据社区</span>
       <span class="badge b-platform">AI 数据平台</span>
-      <span class="heatnum">🔥 70</span></div>
+      <span class="heatnum">🔥 69</span></div>
       <h3><a href="e/3f8cf5140961.html">Bluesky热帖推荐dbt好文</a></h3>
       <p class="sum">Bluesky上一则热帖推荐了flaminghydra.com今日通讯中Kate Wagner关于dbt的文章，获得86个赞。帖文以口语化方式引发关注，反映了数据社区对dbt内容的需求。目前文章全文尚未公开，但dbt作为数据转换工具的重要性不容忽视。</p><div class="why"><span class="w">推荐理由</span><span>dbt是现代数据栈中的核心工具，这条来自数据社区的热帖推荐能够帮助从业者发现高质量实践内容，值得关注。</span></div><div class="vendors"><span class="vtag">dbt</span></div>
     </div>
@@ -376,9 +381,9 @@
 <div class="item" data-cat="platform" data-topics="实时分析" data-link="e/fda342751ac4.html">
       <div class="top"><span>08:00</span><span>ClickHouse Blog</span>
       <span class="badge b-platform">AI 数据平台</span>
-      <span class="heatnum">🔥 33</span></div>
+      <span class="heatnum">🔥 35</span></div>
       <h3><a href="e/fda342751ac4.html">ClickHouse托管Postgres更新：通知、可观测性、备份等</a></h3>
-      <p class="sum">ClickHouse宣布其托管Postgres服务自Beta发布以来的多项新特性，包括更简化的入门体验、客户通知、更丰富的可观测性、更快的备份以及扩展的插件支持。该服务旨在统一OLTP与OLAP数据栈，让用户通过PostgreSQL接口同时查询Postgres与ClickHouse数据。</p><div class="why"><span class="w">推荐理由</span><span>ClickHouse扩展托管Postgres能力，体现数据平台融合OLTP/OLAP趋势，数据架构师应关注。</span></div><div class="vendors"><a class="chip" href="topics/realtime.html">实时分析</a><span class="vtag">ClickHouse</span></div>
+      <p class="sum">ClickHouse宣布其托管Postgres服务自Beta发布以来的多项新特性，包括更简化的入门体验、客户通知、更丰富的可观测性、更快的备份以及扩展的插件支持。该服务旨在统一OLTP与OLAP数据栈，让用户通过PostgreSQL接口同时查询Postgres与ClickHouse数据。</p><div class="also">另有 <b>1 家信源</b>报道：ClickHouse Blog</div><div class="why"><span class="w">推荐理由</span><span>ClickHouse扩展托管Postgres能力，体现数据平台融合OLTP/OLAP趋势，数据架构师应关注。</span></div><div class="vendors"><a class="chip" href="topics/realtime.html">实时分析</a><span class="vtag">ClickHouse</span></div>
     </div>
 <div class="item" data-cat="platform" data-topics="实时分析" data-link="e/f24d7f17e186.html">
       <div class="top"><span>08:00</span><span>ClickHouse Blog</span>
@@ -393,19 +398,12 @@
       <span class="heatnum">🔥 32</span></div>
       <h3><a href="e/04a9eab02673.html">掌握Snowflake RBAC：可扩展安全访问控制实战指南</a></h3>
       <p class="sum">Snowflake中的RBAC设计往往始于简单授权，但一年后可能面临权限混乱、管道因孤立权限中断、ACCOUNTADMIN被用于日常任务等困境。Snowflake官方推荐采用3层角色架构来应对访问控制失控。本文提供了一套从核心原则到基础设施的RBAC构建、管理与加固框架，帮助数据团队实现可扩展且安全可控的访问权限。</p><div class="why"><span class="w">推荐理由</span><span>数据从业者应关注如何系统化设计RBAC，避免权限膨胀与敏感数据暴露，确保数据平台的安全合规与可运维性。</span></div><div class="vendors"><span class="vtag">Snowflake</span></div>
-    </div></div><div class="day"><div class="day-head"><span class="date">8月5日</span><span class="info">星期三 · 7 个事件</span></div><div class="item" data-cat="platform" data-topics="实时分析" data-link="e/6cb1f7adcf49.html">
+    </div></div><div class="day"><div class="day-head"><span class="date">8月5日</span><span class="info">星期三 · 6 个事件</span></div><div class="item" data-cat="platform" data-topics="实时分析" data-link="e/6cb1f7adcf49.html">
       <div class="top"><span>22:01</span><span>Snowflake Engineering（Medium）</span>
       <span class="badge b-platform">AI 数据平台</span><span class="star">精选</span>
       <span class="heatnum">🔥 32</span></div>
       <h3><a href="e/6cb1f7adcf49.html">Snowflake在线特征存储与推理服务实现实时ML</a></h3>
       <p class="sum">Snowflake推出在线特征存储与推理服务，旨在解决训练-服务偏差（training-serving skew）问题。该偏差源于训练与推理时特征计算路径不一致，导致模型上线后预测质量逐渐下降。Snowflake通过统一特征管理，帮助团队保持训练与服务特征的一致性和实时性。</p><div class="why"><span class="w">推荐理由</span><span>数据从业者需关注特征平台如何消除实时推理中的训练-服务偏差，这是ML系统稳定性的关键环节。</span></div><div class="vendors"><a class="chip" href="topics/realtime.html">实时分析</a><span class="vtag">Snowflake</span></div>
-    </div>
-<div class="item" data-cat="platform" data-topics="" data-link="e/e8b8a1edf33a.html">
-      <div class="top"><span>08:00</span><span>ClickHouse Blog</span>
-      <span class="badge b-platform">AI 数据平台</span>
-      <span class="heatnum">🔥 31</span></div>
-      <h3><a href="e/e8b8a1edf33a.html">ClickHouse托管Postgres的WAL背压机制解析</a></h3>
-      <p class="sum">ClickHouse Managed Postgres通过WAL感知背压机制限制客户端写入，以保护磁盘空间并让归档进程恢复。当写入快于归档时，WAL堆积直至磁盘满，Postgres会将其视为PANIC并宕机。系统每15秒统计待处理段，通过cgroup v2 I/O控制器分级限制写入带宽，例如在500 MB/s磁盘上，100个待处理段时限制为400 MB/s，500个时250 MB/s，1000个时100 MB/s。该机制运行在数据平面，即使控制平面不可用，数据库也能自我保护。</p><div class="why"><span class="w">推荐理由</span><span>数据从业者应关注托管数据库如何处理WAL堆积与背压，避免磁盘满导致宕机，这是数据平台可靠性的关键实践。</span></div><div class="vendors"><span class="vtag">ClickHouse</span></div>
     </div>
 <div class="item" data-cat="agent" data-topics="Data Agent|BI变局" data-link="e/97b2715c1169.html">
       <div class="top"><span>06:38</span><span>ThoughtSpot Blog</span>
@@ -541,7 +539,7 @@
 </main>
 
 <aside>
-  <div class="card"><h4>🏢 厂商热榜 <span style="font-size:11px;color:var(--sub);font-weight:400">近7天</span></h4><div class="vendor-row"><span class="n">1</span>Snowflake<span class="count">11 条</span></div><div class="vendor-row"><span class="n">2</span>Databricks<span class="count">11 条</span></div><div class="vendor-row"><span class="n">3</span>AWS<span class="count">8 条</span></div><div class="vendor-row"><span class="n">4</span>ClickHouse<span class="count">8 条</span></div><div class="vendor-row"><span class="n">5</span>dbt Labs<span class="count">3 条</span></div><div class="vendor-row"><span class="n">6</span>Amazon OpenSearch Service<span class="count">2 条</span></div><div class="vendor-row"><span class="n">7</span>Fivetran<span class="count">2 条</span></div><div class="vendor-row"><span class="n">8</span>Microsoft<span class="count">2 条</span></div></div>
+  <div class="card"><h4>🏢 厂商热榜 <span style="font-size:11px;color:var(--sub);font-weight:400">近7天</span></h4><div class="vendor-row"><span class="n">1</span>Snowflake<span class="count">11 条</span></div><div class="vendor-row"><span class="n">2</span>Databricks<span class="count">11 条</span></div><div class="vendor-row"><span class="n">3</span>AWS<span class="count">8 条</span></div><div class="vendor-row"><span class="n">4</span>ClickHouse<span class="count">7 条</span></div><div class="vendor-row"><span class="n">5</span>dbt Labs<span class="count">3 条</span></div><div class="vendor-row"><span class="n">6</span>Amazon OpenSearch Service<span class="count">2 条</span></div><div class="vendor-row"><span class="n">7</span>Fivetran<span class="count">2 条</span></div><div class="vendor-row"><span class="n">8</span>Microsoft<span class="count">2 条</span></div></div>
   <div class="card"><h4>🏷️ 栏目说明</h4><div class="legend">
     <div class="row"><span class="badge b-agent">Data Agent</span>ChatBI · NL2SQL · 分析 Agent</div>
     <div class="row"><span class="badge b-platform">AI 数据平台</span>湖仓 · 语义层 · 数据治理</div>
@@ -549,8 +547,8 @@
     <div class="row"><span class="badge b-product">数据产品</span>方法论 · 融资并购 · 报告</div>
   </div></div>
   <div class="card"><h4>🕐 更新状态</h4><div class="status">
-    最后更新：<b>2026-08-09 21:06</b><br>
-    信源正常：<b>15/15</b> · 在站事件 <b>49 个</b><br>
+    最后更新：<b>2026-08-09 21:18</b><br>
+    信源正常：<b>15/15</b> · 在站事件 <b>48 个</b><br>
     信源异常：0 ✅
   </div></div>
 </aside>

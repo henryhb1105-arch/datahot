@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>DataHot 分享功能 · 交互设计稿</title>
+<style>
+  :root{--bg:#f6f7f9;--card:#fff;--ink:#1a1d23;--sub:#6b7280;--line:#e5e7eb;--accent:#d94f2b;--blue:#2563eb;--radius:14px}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+  .demo-banner{background:var(--ink);color:#fff;text-align:center;font-size:12px;padding:8px;letter-spacing:1px}
+  .demo-banner b{color:#f5b48a}
+
+  /* ═══ 场景一：详情页分享区 ═══ */
+  .scene{max-width:430px;margin:26px auto;padding:0 16px}
+  .scene-label{font-size:12px;color:var(--sub);margin-bottom:8px;letter-spacing:1px}
+  .page{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 18px;position:relative;overflow:hidden}
+  .page h1{font-size:19px;font-weight:800;line-height:1.5;margin-bottom:10px}
+  .page .body{font-size:13.5px;color:#4b5563;line-height:1.8;margin-bottom:14px}
+  .page .sk{height:10px;background:#f0f1f3;border-radius:5px;margin:8px 0}
+  .page .sk.w60{width:60%}.page .sk.w85{width:85%}
+
+  /* 分享区 UI */
+  .share-zone{margin-top:18px;border-top:1px dashed var(--line);padding-top:16px;display:flex;align-items:center;gap:10px}
+  .share-zone .hint{font-size:12px;color:var(--sub)}
+  .btn-share{display:inline-flex;align-items:center;gap:6px;background:var(--ink);color:#fff;border:none;border-radius:99px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer}
+  .btn-poster{display:inline-flex;align-items:center;gap:6px;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:99px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer}
+  .btn-share:active,.btn-poster:active{transform:scale(.96)}
+
+  /* ═══ 场景二：底部 Action Sheet ═══ */
+  .mask{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.25s;z-index:80}
+  .mask.show{opacity:1;pointer-events:auto}
+  .sheet{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(110%);transition:transform .3s cubic-bezier(.32,.72,.35,1);padding:0 10px calc(10px + env(safe-area-inset-bottom))}
+  .sheet.show{transform:translateY(0)}
+  .sheet .panel{max-width:430px;margin:0 auto}
+  .sheet .group{background:rgba(255,255,255,.97);backdrop-filter:blur(20px);border-radius:16px;overflow:hidden;margin-bottom:8px}
+  .sheet .title{font-size:12px;color:var(--sub);text-align:center;padding:12px;border-bottom:.5px solid var(--line)}
+  .sheet .opt{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px;font-size:16px;font-weight:500;border-bottom:.5px solid var(--line);cursor:pointer;background:none;width:100%;border-top:none;border-left:none;border-right:none;color:var(--ink)}
+  .sheet .opt:last-child{border-bottom:none}
+  .sheet .opt:active{background:#f0f1f3}
+  .sheet .opt .ic{font-size:18px}
+  .sheet .cancel{background:rgba(255,255,255,.97);border-radius:16px;padding:15px;text-align:center;font-size:16px;font-weight:600;color:var(--blue);cursor:pointer;width:100%;border:none}
+
+  /* ═══ 场景三：海报弹层 ═══ */
+  .poster-modal{position:fixed;inset:0;z-index:95;background:rgba(15,17,20,.9);display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+  .poster-modal.show{display:flex}
+  .poster-wrap{width:min(340px,86vw);border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  /* —— 海报本体（1080×1440 等比缩小）—— */
+  .poster{background:linear-gradient(160deg,#1a1d23 0%,#231d17 55%,#33200f 100%);color:#fff;padding:26px 24px 20px;font-family:inherit}
+  .poster .p-top{display:flex;align-items:center;gap:8px;margin-bottom:18px}
+  .poster .p-logo{width:26px;height:26px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px}
+  .poster .p-name{font-weight:800;font-size:15px;letter-spacing:.5px}
+  .poster .p-topic{margin-left:auto;font-size:10px;border:1px solid rgba(255,255,255,.35);border-radius:99px;padding:2px 9px;color:#f5b48a}
+  .poster .p-title{font-size:21px;font-weight:800;line-height:1.45;margin-bottom:12px}
+  .poster .p-sum{font-size:12px;color:#c9cdd4;line-height:1.75;margin-bottom:14px}
+  .poster .p-reason{border-left:3px solid var(--accent);padding:6px 12px;background:rgba(217,79,43,.12);border-radius:0 8px 8px 0;font-size:11.5px;color:#f0d9cf;line-height:1.7;margin-bottom:18px}
+  .poster .p-reason b{color:#f5b48a}
+  .poster .p-meta{display:flex;gap:10px;font-size:10px;color:#8b919b;margin-bottom:16px}
+  .poster .p-bottom{border-top:1px dashed rgba(255,255,255,.18);padding-top:14px;display:flex;align-items:center;gap:12px}
+  .poster .p-qr{width:56px;height:56px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#666;text-align:center;line-height:1.2}
+  .poster .p-cta{font-size:11px;color:#c9cdd4;line-height:1.7}
+  .poster .p-cta b{color:#fff;font-size:12px}
+  .poster-actions{margin-top:18px;display:flex;gap:10px}
+  .poster-actions button{border:none;border-radius:99px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer}
+  .btn-save{background:var(--accent);color:#fff}
+  .btn-close{background:rgba(255,255,255,.15);color:#fff}
+  .poster-tip{margin-top:10px;font-size:11px;color:#8b919b}
+
+  /* toast */
+  .toast{position:fixed;top:18%;left:50%;transform:translateX(-50%) scale(.9);background:rgba(26,29,35,.92);color:#fff;font-size:13px;padding:10px 20px;border-radius:99px;opacity:0;transition:.25s;z-index:99;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) scale(1)}
+</style>
+</head>
+<body>
+<div class="demo-banner">交互设计稿 · 可直接点击体验 · <b>分享功能 v1</b></div>
+
+<!-- 场景一：详情页 + 分享区 -->
+<div class="scene">
+  <div class="scene-label">场景 ① · 详情页文末分享区（点按钮试试）</div>
+  <div class="page">
+    <h1>Snowflake 发布 Cortex Analyst 2.0：Text-to-SQL 准确率提升 31%</h1>
+    <div class="body">Snowflake 宣布 Cortex Analyst 2.0 正式 GA，在内部基准上准确率从 61% 提升至 92%，新增多轮对话追问与自动语义纠错……</div>
+    <div class="sk w85"></div><div class="sk"></div><div class="sk w60"></div>
+    <div class="share-zone">
+      <button class="btn-share" onclick="openSheet()">↗ 分享</button>
+      <button class="btn-poster" onclick="openPoster()">🖼 海报</button>
+      <span class="hint">分享给数据圈的朋友</span>
+    </div>
+  </div>
+</div>
+
+<!-- 场景二说明 -->
+<div class="scene">
+  <div class="scene-label">场景 ② · 点「分享」→ 底部 Action Sheet（iOS 原生风格）</div>
+</div>
+<div class="scene">
+  <div class="scene-label">场景 ③ · 点「海报」→ 生成分享海报（长按保存）</div>
+</div>
+
+<!-- Action Sheet -->
+<div class="mask" id="mask" onclick="closeAll()"></div>
+<div class="sheet" id="sheet">
+  <div class="panel">
+    <div class="group">
+      <div class="title">分享这条资讯</div>
+      <button class="opt" onclick="copyLink()"><span class="ic">🔗</span>复制链接</button>
+      <button class="opt" onclick="closeAll();openPoster()"><span class="ic">🖼</span>分享海报</button>
+      <button class="opt" onclick="sysShare()"><span class="ic">📲</span>系统分享…</button>
+    </div>
+    <button class="cancel" onclick="closeAll()">取消</button>
+  </div>
+</div>
+
+<!-- 海报弹层 -->
+<div class="poster-modal" id="posterModal">
+  <div class="poster-wrap">
+    <div class="poster">
+      <div class="p-top">
+        <div class="p-logo">D</div><div class="p-name">DataHot</div>
+        <div class="p-topic">ChatBI</div>
+      </div>
+      <div class="p-title">Snowflake 发布 Cortex Analyst 2.0：Text-to-SQL 准确率提升 31%</div>
+      <div class="p-sum">Snowflake 宣布 Cortex Analyst 2.0 正式 GA，内部基准准确率从 61% 提升至 92%，新增多轮对话追问与自动语义纠错，可直接挂载企业现有语义模型。</div>
+      <div class="p-reason"><b>为什么值得看</b><br>ChatBI 的准确率第一次摸到生产可用门槛，做对话式取数的团队要重新评估"自研 vs 平台"的账。</div>
+      <div class="p-meta"><span>🔥 86 热度</span><span>Snowflake Blog</span><span>08-09</span></div>
+      <div class="p-bottom">
+        <div class="p-qr">二维码<br>（实现时生成）</div>
+        <div class="p-cta"><b>扫码阅读全文编译</b><br>DataHot · 数据领域 AI 热榜<br>henryhb1105-arch.github.io/datahot</div>
+      </div>
+    </div>
+  </div>
+  <div class="poster-actions">
+    <button class="btn-save" onclick="toast('已保存到相册（示意）')">保存图片</button>
+    <button class="btn-close" onclick="closeAll()">关闭</button>
+  </div>
+  <div class="poster-tip">iOS 也可以直接长按图片保存</div>
+</div>
+
+<div class="toast" id="toastEl">链接已复制</div>
+
+<script>
+const mask=document.getElementById('mask'), sheet=document.getElementById('sheet'),
+      modal=document.getElementById('posterModal'), toastEl=document.getElementById('toastEl');
+function openSheet(){ mask.classList.add('show'); sheet.classList.add('show'); }
+function openPoster(){ modal.classList.add('show'); }
+function closeAll(){ mask.classList.remove('show'); sheet.classList.remove('show'); modal.classList.remove('show'); }
+function toast(t){ toastEl.textContent=t; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'),1600); }
+function copyLink(){
+  closeAll();
+  const url='https://henryhb1105-arch.github.io/datahot/e/xxxx.html';
+  if(navigator.clipboard){ navigator.clipboard.writeText(url).then(()=>toast('链接已复制，去粘贴吧')); }
+  else{ toast('链接已复制'); }
+}
+function sysShare(){
+  closeAll();
+  if(navigator.share){
+    navigator.share({title:'Snowflake 发布 Cortex Analyst 2.0', text:'ChatBI 的准确率第一次摸到生产可用门槛 | DataHot', url:location.href}).catch(()=>{});
+  }else{ copyLink(); }
+}
+</script>
+</body>
+</html>

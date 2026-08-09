@@ -31,6 +31,7 @@ ICONS = {
  "file": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg>',
  "list": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>',
  "rss": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>',
+ "bookmark": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg>',
 }
 def ic(name, size=15):
     return ICONS[name].replace("<svg ", '<svg width="{}" height="{}" style="vertical-align:-2px" aria-hidden="true" '.format(size, size))
@@ -78,6 +79,12 @@ main,.layout>*,.hotlist>*{min-width:0}
 .act summary{padding:2px 0;list-style:none}
 .act-body{font-size:13px;color:var(--txt2);line-height:1.8;margin:10px 0}
 .tpl{background:var(--soft);border-radius:8px;padding:10px 14px;font-size:12.5px;white-space:pre-line;margin-bottom:10px;color:var(--txt3)}
+.crow{display:flex;align-items:baseline;gap:8px;padding:9px 0;border-bottom:1px solid var(--soft);text-decoration:none;color:var(--ink)}
+.crow:last-child{border-bottom:none}
+.crow:hover .ctitle{color:var(--accent)}
+.cpin{width:18px;flex-shrink:0;font-size:12px}
+.ctitle{font-size:13.5px;font-weight:600;line-height:1.55;flex:1}
+.cmeta{font-size:11px;color:var(--sub);white-space:nowrap}
 .tabbar{display:none}
 @media(max-width:960px){
   body{padding-bottom:64px}
@@ -97,7 +104,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 """
 
 def tabbar(active, prefix=""):
-    items = [("热榜", ic("flame",20), "index.html", "home"), ("主题", ic("map",20), "topics.html", "topics"), ("信源", ic("rss",20), "sources.html", "sources")]
+    items = [("热榜", ic("flame",20), "index.html", "home"), ("主题", ic("map",20), "topics.html", "topics"), ("典藏", ic("bookmark",20), "classics.html", "classics"), ("信源", ic("rss",20), "sources.html", "sources")]
     return ('<nav class="tabbar">' + "".join(
         f'<a href="{prefix}{u}" class="{"on" if k == active else ""}"><span class="ico">{i}</span>{n}</a>'
         for n, i, u, k in items) + "</nav>")
@@ -503,6 +510,15 @@ def render_topic_page(t, events, css):
     evs = [e for e in events if t["name"] in e.get("topics", [])]
     vendors = sorted({v for e in evs for v in e.get("vendors", [])})
     vtags = "".join(f'<span class="vtag">{esc(v)}</span>' for v in vendors)
+    must = sorted((e for e in evs if e.get("shelf") == "evergreen"),
+                  key=lambda e: (not e.get("pinned"), -e.get("importance", 50)))
+    must_html = ""
+    if must:
+        rows = "".join(
+            f'<a class="crow" href="../e/{e["event_id"]}.html"><span class="cpin">{"📌" if e.get("pinned") else ""}</span>'
+            f'<span class="ctitle">{esc(e["zh_title"])}</span><span class="cmeta">{e["published"][:10]}</span></a>'
+            for e in must)
+        must_html = f'<div class="scard" style="margin-bottom:18px"><h4 style="margin-bottom:6px">{ic("bookmark",14)} 本主题必读</h4>{rows}</div>'
     days = defaultdict(list)
     for e in evs:
         days[day_key(e["published"])].append(e)
@@ -518,6 +534,7 @@ def render_topic_page(t, events, css):
   <p style="font-size:14px;color:var(--sub);margin-bottom:8px">{esc(t["desc"])}</p>
   <p style="font-size:12.5px;color:var(--sub);margin-bottom:18px">近 7 天收录 {len(evs)} 个事件 · 每 6 小时更新</p>
   {f'<div class="vendors" style="margin-bottom:18px">{vtags}</div>' if vtags else ""}
+  {must_html}
   {timeline}
 </div>'''
     return page_shell(f"{t['name']} · DataHot 主题", t["desc"], css, body, tabbar("topics", "../"), prefix="../")
@@ -644,11 +661,54 @@ function copyTpl(){{
     return page_shell("信源与更新状态 · DataHot", "DataHot 的信源清单、健康状态与更新机制", css, body,
                       tabbar("sources"), prefix="")
 
+def render_classics_page(events, css):
+    """典藏页：evergreen 内容按主题分组沉淀，人工置顶优先，按重要性排序"""
+    classics = [e for e in events if e.get("shelf") == "evergreen"]
+    classics.sort(key=lambda e: (not e.get("pinned"), -e.get("importance", 50)))
+    groups = ""
+    used = set()
+    for t in TOPICS_META:
+        evs = [e for e in classics if t["name"] in e.get("topics", [])]
+        if not evs:
+            continue
+        used.update(e["event_id"] for e in evs)
+        rows = "".join(
+            f'''<a class="crow" href="e/{e["event_id"]}.html">
+  <span class="cpin">{"📌" if e.get("pinned") else ""}</span>
+  <span class="ctitle">{esc(e["zh_title"])}</span>
+  <span class="cmeta">{esc(e["items"][0]["source"])} · {e["published"][:10]}</span>
+</a>''' for e in evs)
+        groups += f'<div class="scard"><h4 style="margin-bottom:6px">{ic("bookmark",14)} {esc(t["name"])} <span style="font-size:11px;color:var(--sub);font-weight:400">{len(evs)} 篇</span></h4>{rows}</div>'
+    other = [e for e in classics if e["event_id"] not in used]
+    if other:
+        rows = "".join(
+            f'''<a class="crow" href="e/{e["event_id"]}.html">
+  <span class="cpin">{"📌" if e.get("pinned") else ""}</span>
+  <span class="ctitle">{esc(e["zh_title"])}</span>
+  <span class="cmeta">{esc(e["items"][0]["source"])} · {e["published"][:10]}</span>
+</a>''' for e in other)
+        groups += f'<div class="scard"><h4 style="margin-bottom:6px">{ic("bookmark",14)} 综合 <span style="font-size:11px;color:var(--sub);font-weight:400">{len(other)} 篇</span></h4>{rows}</div>'
+    if not classics:
+        groups = '<div class="scard" style="color:var(--sub);font-size:13px">典藏池正在积累中——AI 会识别方法论/框架/深度实践类内容自动沉淀，主编也可人工置顶。</div>'
+    body = f'''
+<div class="wrap" style="padding:28px 20px 60px;max-width:900px">
+  <div class="section-title"><h2>{ic("bookmark",18)} 典藏</h2><span>穿越时间的内容 · 方法论 / 框架 / 深度实践</span></div>
+  <div class="scard" style="font-size:13px;color:var(--txt2);line-height:1.8">
+    这里收录<b>不随时间贬值</b>的内容：经典方法论、框架指南、深度实践。AI 初筛 + 主编人工策展，永久沉淀，按主题分组。共 {len(classics)} 篇。
+  </div>
+  {groups}
+</div>'''
+    return page_shell("典藏 · DataHot", "数据领域穿越时间的内容：方法论、框架与深度实践", css, body,
+                      tabbar("classics"), prefix="")
+
 def main():
     payload = json.load(open(SITE / "data" / "latest.json"))
-    events = payload["events"]
+    all_events = payload["events"]
     gen = datetime.fromisoformat(payload["generated_at"])
     css = load_css()
+    # 首页只展示 7 天窗口内的新鲜事件；evergreen 老内容沉淀在典藏/主题页
+    window = timedelta(days=7)
+    events = [e for e in all_events if gen - datetime.fromisoformat(e["published"]) <= window]
 
     # ── 详情页 ──
     DETAIL_DIR.mkdir(parents=True, exist_ok=True)
@@ -663,12 +723,12 @@ def main():
 
     # ── 主题地图 + 主题页 ──
     TOPIC_DIR.mkdir(parents=True, exist_ok=True)
-    (SITE / "topics.html").write_text(render_topics_map(events, css), encoding="utf-8")
+    (SITE / "topics.html").write_text(render_topics_map(all_events, css), encoding="utf-8")
     valid_topic_slugs = set()
     for t in TOPICS_META:
-        if any(t["name"] in e.get("topics", []) for e in events):
+        if any(t["name"] in e.get("topics", []) for e in all_events):
             valid_topic_slugs.add(t["slug"] + ".html")
-            (TOPIC_DIR / (t["slug"] + ".html")).write_text(render_topic_page(t, events, css), encoding="utf-8")
+            (TOPIC_DIR / (t["slug"] + ".html")).write_text(render_topic_page(t, all_events, css), encoding="utf-8")
     for f in TOPIC_DIR.glob("*.html"):
         if f.name not in valid_topic_slugs:
             f.unlink()
@@ -744,6 +804,7 @@ def main():
   <div class="logo">Data<em>Hot</em><span class="tag">每 6 小时更新</span></div>
   <span class="upd-time">{ic("clock",12)} {gen.strftime("%m-%d %H:%M")} 更新</span>
   <a class="tab d-only" href="topics.html" style="text-decoration:none">{ic("map",14)} 主题</a>
+  <a class="tab d-only" href="classics.html" style="text-decoration:none">{ic("bookmark",14)} 典藏</a>
   <a class="tab d-only" href="sources.html" style="text-decoration:none">{ic("rss",14)} 信源</a>
 </div></header>
 
@@ -838,7 +899,8 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
 </script>
 </body></html>'''
 
-    (SITE / "sources.html").write_text(render_sources_page(events, payload, css), encoding="utf-8")
+    (SITE / "sources.html").write_text(render_sources_page(all_events, payload, css), encoding="utf-8")
+    (SITE / "classics.html").write_text(render_classics_page(all_events, css), encoding="utf-8")
 
     out = SITE / "index.html"
     out.write_text(page, encoding="utf-8")

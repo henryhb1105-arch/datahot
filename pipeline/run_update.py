@@ -37,6 +37,7 @@ VENDOR_TAGS = {
     "Fivetran Blog": ["Fivetran"], "StarRocks Blog": ["StarRocks"],
     "Snowflake Engineering（Medium）": ["Snowflake"], "帆软": ["帆软", "FineBI"],
     "Aloudata 动态": ["Aloudata"], "Aloudata 博客": ["Aloudata"],
+    "Snowflake Release Notes": ["Snowflake"],
     "Microsoft Power BI（Power Platform Blog）": ["Microsoft", "Power BI"],
     "Tableau Engineering（Medium）": ["Tableau"],
 }
@@ -201,7 +202,7 @@ ENRICH_RULES = """你是一个数据领域垂直资讯站的编辑。本站只�
 标题 "Airbnb 测试 AI 搜索功能" → {"relevant": false}
 
 输出 JSON（不要输出多余内容）：
-{"relevant": true或false, "zh_title": "中文标题(≤40字)", "zh_summary": "中文摘要3-4句，保留产品名与数字，不得编造原文没有的信息", "reason": "推荐理由：为什么数据从业者应关注，1-2句", "full_zh": "基于原文的完整中文编译稿，4-8个自然段、500-800字，保留所有关键信息（产品名、公司名、数字、时间、人名），段落之间用两个换行符分隔；严格忠于原文，不得编造原文没有的内容；若提供的原文信息不足，则在摘要基础上适度展开但总量不少于300字", "category": "agent|platform|bi|product", "topics": ["从主题词表选0-2个：ChatBI/Data Agent/语义层/平台AI化/BI变局/湖仓/实时分析/数据人，没有合适的就空数组，宁缺毋滥"], "vendors": ["提到的数据厂商，如Snowflake/Databricks/PowerBI/帆软等，没有则空数组"], "importance": 1-100整数}"""
+{"relevant": true或false, "zh_title": "中文标题(≤40字)", "zh_summary": "中文摘要3-4句，保留产品名与数字，不得编造原文没有的信息", "reason": "推荐理由：为什么数据从业者应关注，1-2句", "full_zh": "基于原文的完整中文编译稿，4-8个自然段、500-800字，保留所有关键信息（产品名、公司名、数字、时间、人名），段落之间用两个换行符分隔；严格忠于原文，不得编造原文没有的内容；若提供的原文信息不足，则在摘要基础上适度展开但总量不少于300字", "category": "agent|platform|bi|product", "shelf": "news 或 evergreen（方法论/框架/深度实践/报告解读等半年后仍值得读的标 evergreen，发布/融资/版本更新等时效内容标 news）", "topics": ["从主题词表选0-2个：ChatBI/Data Agent/语义层/平台AI化/BI变局/湖仓/实时分析/数据人，没有合适的就空数组，宁缺毋滥"], "vendors": ["提到的数据厂商，如Snowflake/Databricks/PowerBI/帆软等，没有则空数组"], "importance": 1-100整数}"""
 
 def llm_enrich(items, cfg):
     key, base, model = cfg
@@ -227,6 +228,7 @@ def llm_enrich(items, cfg):
         llm_vendors = [v for v in (out.get("vendors") or []) if isinstance(v, str) and v.strip()]
         it["vendors"] = list(dict.fromkeys(it.get("vendors", []) + llm_vendors))[:5]
         it["topics"] = [t for t in (out.get("topics") or []) if t in TOPIC_NAMES][:2]
+        it["shelf"] = out.get("shelf") if out.get("shelf") in ("news", "evergreen") else "news"
         it["importance"] = int(out.get("importance", 50))
         it["heat"] = calc_heat(it["importance"], it.get("_pub_dt"), it.get("signal", 0))
         return it
@@ -346,7 +348,8 @@ def make_event(it):
         "category": it["category"], "category_label": it["category_label"],
         "vendors": it.get("vendors", []), "heat": it["heat"], "star": it.get("star", False),
         "importance": it.get("importance", 50), "signal": it.get("signal", 0),
-        "topics": it.get("topics", []),
+        "topics": it.get("topics", []), "shelf": it.get("shelf", "news"),
+        "pinned": it.get("pinned", False),
         "published": it["published"],
         "items": [{"id": it["id"], "source": it["source"], "link": it["link"],
                    "published": it["published"], "title": it["title"]}],
@@ -370,6 +373,8 @@ def merge_into(e, it):
         e["full_zh"] = it["full_zh"]
     e["vendors"] = list(dict.fromkeys(e.get("vendors", []) + it.get("vendors", [])))[:5]
     e["topics"] = [t for t in dict.fromkeys(e.get("topics", []) + it.get("topics", []))][:3]
+    if it.get("shelf") == "evergreen":
+        e["shelf"] = "evergreen"
 
 # ── HN 信源 ───────────────────────────────────────────────
 def fetch_hn_algolia(source):
@@ -452,6 +457,22 @@ def fetch_bluesky(source):
             seen_links.add(e["link"]); out.append(e)
     return out
 
+def fetch_snowflake_rn(source):
+    """Snowflake 文档站 Release Notes：索引页提取周更版本页链接，新版本页出现即为一个事件"""
+    html_txt = fetch_url(source["url"], timeout=20).decode("utf-8", errors="ignore")
+    links = sorted(set(re.findall(r'/en/release-notes/\d{4}/\d+_\d+', html_txt)))
+    entries = []
+    for path in links:
+        ver = path.rsplit("/", 1)[-1].replace("_", ".")
+        entries.append({
+            "title": f"Snowflake Release Notes v{ver}",
+            "link": "https://docs.snowflake.com" + path,
+            "published": None,  # 页面出现时间即抓取时间
+            "summary": "Snowflake 每周版本发布说明",
+            "_slug_title": True,  # 抓正文时用页面 <title> 细化
+        })
+    return entries
+
 def fetch_sitemap(source):
     """sitemap 信源：无 RSS 的官网，用 sitemap 的 URL+lastmod 作为更新流（标题由抓正文阶段从 <title> 补全）"""
     ns = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
@@ -500,6 +521,8 @@ def main():
                 entries = fetch_bluesky(s)
             elif s.get("kind") == "sitemap":
                 entries = fetch_sitemap(s)
+            elif s.get("kind") == "snowflake_rn":
+                entries = fetch_snowflake_rn(s)
             else:
                 entries = parse_feed(fetch_feed(s["url"]), s)
             kept = 0
@@ -575,8 +598,19 @@ def main():
         ss[st["name"]] = rec
     json.dump(ss, open(ss_path, "w"), ensure_ascii=False, indent=1)
 
-    # 清理过期
-    events = [e for e in events if datetime.fromisoformat(e["published"]) > cutoff]
+    # 人工策展：classics.json 的 pin（强制典藏）/ drop（撤下）
+    cur_path = ROOT / "pipeline" / "classics.json"
+    if cur_path.exists():
+        cur = json.load(open(cur_path))
+        for e in events:
+            if e["event_id"] in cur.get("pin", []):
+                e["shelf"], e["pinned"] = "evergreen", True
+            if e["event_id"] in cur.get("drop", []):
+                e["shelf"], e["pinned"] = "news", False
+
+    # 清理过期：news 7 天淘汰；evergreen 永久沉淀（典藏池）
+    events = [e for e in events
+              if datetime.fromisoformat(e["published"]) > cutoff or e.get("shelf") == "evergreen"]
 
     # 热度分 2.0：全量重算（新鲜度随时间衰减，分数每天自然"降温"）
     for e in events:

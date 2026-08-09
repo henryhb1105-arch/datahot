@@ -443,12 +443,22 @@ def fetch_bluesky(source):
                 continue
             handle = p.get("author", {}).get("handle", "")
             rkey = p.get("uri", "").rstrip("/").split("/")[-1]
-            link = f"https://bsky.app/profile/{handle}/post/{rkey}" if handle and rkey else p.get("uri", "")
+            post_link = f"https://bsky.app/profile/{handle}/post/{rkey}" if handle and rkey else p.get("uri", "")
+            # 原文解析：帖子引用的外部链接才是内容本体（解决"引用重合而原文未收录"）
+            ext = (rec.get("embed") or {}).get("external", {}).get("uri")
+            if not ext:
+                for fac in rec.get("facets", []):
+                    for feat in fac.get("features", []):
+                        if feat.get("$type", "").endswith("#link") and str(feat.get("uri", "")).startswith("http"):
+                            ext = feat["uri"]; break
+                    if ext:
+                        break
+            link = ext or post_link
             entries.append({
                 "title": text[:100],
                 "link": link,
                 "published": parse_date(rec.get("createdAt", "")),
-                "summary": f"Bluesky 热帖 · @{handle} · {likes} 赞 · {text[:300]}",
+                "summary": f"Bluesky 热帖 · @{handle} · {likes} 赞 · {text[:300]}" + (f" · 原帖 {post_link}" if ext else ""),
                 "signal": likes,
             })
     seen_links, out = set(), []
@@ -517,6 +527,11 @@ def main():
                 events.append(make_event(i))
     seen = {sub["id"] for e in events for sub in e["items"]}
     seen_urls = {norm_url(sub["link"]) for e in events for sub in e["items"]}
+    url_to_event = {}
+    for e in events:
+        for sub in e["items"]:
+            url_to_event[norm_url(sub["link"])] = e
+    new_by_url = {}  # 本轮新增条目的 url 索引（同文多帖信号叠加）
 
     new_items, source_status = [], []
     for s in sources:
@@ -536,9 +551,25 @@ def main():
                 if e["published"] and e["published"] < cutoff:
                     continue
                 iid = hashlib.md5(e["link"].encode()).hexdigest()[:12]
-                if iid in seen or norm_url(e["link"]) in seen_urls:
+                if iid in seen:
                     continue
-                seen.add(iid); seen_urls.add(norm_url(e["link"]))
+                nurl = norm_url(e["link"])
+                if nurl in seen_urls:
+                    # 同文合流：已收录的老事件 → 追加信源；本轮新条目 → 叠加社区信号
+                    tgt = url_to_event.get(nurl)
+                    if tgt is not None:
+                        pub0 = e["published"].astimezone(TZ) if e["published"] else now.astimezone(TZ)
+                        tgt["items"].append({"id": iid, "source": s["name"], "link": e["link"],
+                                             "published": pub0.isoformat(), "title": e["title"]})
+                        tgt["signal"] = max(tgt.get("signal", 0), e.get("signal", 0))
+                        tgt["published"] = max(tgt["published"], pub0.isoformat())
+                        recalc_event_heat(tgt)
+                        print(f"[merge-src] {s['name']} 的同文报道并入: {tgt['zh_title'][:30]}")
+                    elif nurl in new_by_url:
+                        prev = new_by_url[nurl]
+                        prev["signal"] = prev.get("signal", 0) + e.get("signal", 0)
+                    continue
+                seen.add(iid); seen_urls.add(nurl)
                 pub = e["published"].astimezone(TZ) if e["published"] else now.astimezone(TZ)
                 pub_dt = e["published"] or now
                 new_items.append({
@@ -556,6 +587,7 @@ def main():
                     "star": s["type"] == "vendor" and s["weight"] >= 3,
                     "article_text": "",
                 })
+                new_by_url[nurl] = new_items[-1]
                 kept += 1
             source_status.append({"name": s["name"], "ok": True, "new": kept})
             print(f"[fetch] {s['name']:28s} 新增 {kept} 条")

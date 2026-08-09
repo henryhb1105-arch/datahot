@@ -210,9 +210,22 @@ main,.layout>*,.hotlist>*{min-width:0}
 .cpin{width:18px;flex-shrink:0;font-size:12px}
 .ctitle{font-size:13.5px;font-weight:600;line-height:1.55;flex:1}
 .cmeta{font-size:11px;color:var(--sub);white-space:nowrap}
+.favbtn{border:none;background:none;color:var(--sub);cursor:pointer;padding:2px;display:inline-flex;align-items:center}
+.favbtn.on{color:var(--accent)}
+.favbtn.on svg{fill:currentColor}
+.favbtn svg{pointer-events:none}
+.fav-entry{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--sub);white-space:nowrap;text-decoration:none}
+.fav-entry:hover{color:var(--accent)}
+.hrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--soft);text-decoration:none;color:var(--ink)}
+.hrow:last-child{border-bottom:none}
+.hrow .rk{font-size:15px;font-weight:800;color:var(--accent);width:26px;flex-shrink:0;text-align:center}
+.hrow .ht{flex:1;font-size:14px;font-weight:600;line-height:1.5}
+.hrow:hover .ht{color:var(--accent)}
+.hrow .hm{font-size:11px;color:var(--sub);white-space:nowrap}
 .tabbar{display:none}
 @media(max-width:960px){
   body{padding-bottom:64px}
+  footer{padding-bottom:96px}
   .tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--tabbar-bg);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:70;padding-bottom:env(safe-area-inset-bottom)}
   .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0 6px;font-size:11px;color:var(--sub);text-decoration:none;gap:2px}
   .tabbar a .ico{font-size:19px}
@@ -249,6 +262,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="topbar">
     <a class="back" href="../index.html" style="margin-bottom:0">← 返回热榜</a>
     <span class="sharebtns">
+      <button class="sbtn ghost favbtn" data-fav="eab6c1219598" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
       <a class="sbtn ghost" href="https://clickhouse.com/blog/andy-pavlo-founding-clickhouse-labs" target="_blank" rel="noopener"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 原文</a>
       <button class="sbtn ghost" onclick="openPoster()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
       <button class="sbtn" onclick="openSheet()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
@@ -271,7 +285,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（2 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://clickhouse.com/blog/andy-pavlo-founding-clickhouse-labs" target="_blank" rel="noopener">ClickHouse Blog（英文）</a><span class="src more">首发</span><span class="count">2026-08-03 08:00</span></div><div class="vendor-row"><span class="n">↗</span><a href="https://clickhouse.com/blog/andy-pavlo-joins-clickhouse" target="_blank" rel="noopener">ClickHouse Blog（英文）</a><span class="count">2026-08-03 08:00</span></div></div>
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/448beb58807f.html"><span class="n">›</span>ClickHouse Cloud重构自动扩缩容：从固定周期到秒级响应<span class="count">29</span></a><a class="vendor-row" href="../e/f24d7f17e186.html"><span class="n">›</span>ClickHouse 26.7发布：性能大幅优化，新增多项查询能力<span class="count">33</span></a><a class="vendor-row" href="../e/fda342751ac4.html"><span class="n">›</span>ClickHouse托管Postgres更新：通知、可观测性、备份等<span class="count">35</span></a></div>
 </div>
-<footer>DataHot · 数据领域 AI 资讯热榜 · 仅聚合摘要与编译内容，版权归原作者</footer>
+<footer>DataHot，数据领域AI资讯分享</footer>
 <nav class="tabbar"><a href="../index.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span>热榜</a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span>主题</a><a href="../classics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></span>典藏</a><a href="../sources.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span>信源</a></nav>
 
 <div class="sh-mask" id="shMask" onclick="shClose()"></div>
@@ -331,6 +345,19 @@ main,.layout>*,.hotlist>*{min-width:0}
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
+function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}catch(e){return[]}}
+(function(){
+  var favs=dhFavs();
+  document.querySelectorAll('[data-fav]').forEach(function(b){
+    if(favs.indexOf(b.dataset.fav)>=0) b.classList.add('on');
+    b.addEventListener('click',function(ev){
+      ev.stopPropagation();
+      var f=dhFavs(),id=b.dataset.fav,i=f.indexOf(id);
+      if(i>=0){f.splice(i,1);b.classList.remove('on');}else{f.push(id);b.classList.add('on');}
+      localStorage.setItem('dh_favs',JSON.stringify(f));
+    });
+  });
+})();
 var SH_EV = {"title": "ClickHouse成立Labs研究实验室，Andy Pavlo出任数据库研究副总裁", "summary": "ClickHouse宣布成立新的研究团队ClickHouse Labs，由知名数据库研究者、卡内基梅隆大学教授Andy Pavlo担任数据库研究副总裁。Pavlo将组建团队，致力于推进数据库系统基础技术，并将研究成果公开分享给社区。ClickHouse CTO Alexey Milovidov表示，公司希望探索创新的数据处理方式、高效的数据结构与算法，并推动硬件性能极限。", "reason": "数据库内核与架构研究直接影响数据平台技术演进，ClickHouse Labs的设立标志着头部OLAP数据库厂商加码长期基础研究，值得数据从业者关注。", "topic": "", "heat": 29, "source": "ClickHouse Blog", "date": "2026-08-03", "url": "https://henryhb1105-arch.github.io/datahot/e/eab6c1219598.html"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
@@ -427,7 +454,7 @@ function drawPoster(qrImg,dark){
     y=ry+180;
   }
   x.fillStyle=P.meta;x.font='400 26px -apple-system,sans-serif';
-  x.fillText('热度 '+SH_EV.heat · '+SH_EV.source+' · '+SH_EV.date,64,Math.max(y,H-320));
+  x.fillText('热度 '+SH_EV.heat+' · '+SH_EV.source+' · '+SH_EV.date,64,Math.max(y,H-320));
   x.strokeStyle=P.dash;x.setLineDash([8,8]);x.lineWidth=2;
   x.beginPath();x.moveTo(64,H-240);x.lineTo(W-64,H-240);x.stroke();x.setLineDash([]);
   x.fillStyle=P.qrBox;x.beginPath();x.roundRect(64,H-200,150,150,14);x.fill();

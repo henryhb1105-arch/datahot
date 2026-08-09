@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Bluesky热帖推荐dbt好文 · DataHot</title>
+<title>为什么说 dbt 其实很好（Bluesky 热帖） · DataHot</title>
 <meta name="description" content="Bluesky上一则热帖推荐了flaminghydra.com今日通讯中Kate Wagner关于dbt的文章，获得86个赞。帖文以口语化方式引发关注，反映了数据社区对dbt内容的需求。目前文章全文尚未公开，但dbt作为数据转换工具的重要性不容忽视。">
 <link rel="canonical" href="https://henryhb1105-arch.github.io/datahot/e/3f8cf5140961.html">
-<meta property="og:title" content="Bluesky热帖推荐dbt好文">
+<meta property="og:title" content="为什么说 dbt 其实很好（Bluesky 热帖）">
 <meta property="og:description" content="Bluesky上一则热帖推荐了flaminghydra.com今日通讯中Kate Wagner关于dbt的文章，获得86个赞。帖文以口语化方式引发关注，反映了数据社区对dbt内容的需求。目前文章全文尚未公开，但dbt作为数据转换工具的重要性不容忽视。">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://henryhb1105-arch.github.io/datahot/e/3f8cf5140961.html">
@@ -13,7 +13,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 <meta name="theme-color" content="#1a1d23">
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "NewsArticle", "headline": "Bluesky热帖推荐dbt好文", "description": "Bluesky上一则热帖推荐了flaminghydra.com今日通讯中Kate Wagner关于dbt的文章，获得86个赞。帖文以口语化方式引发关注，反映了数据社区对dbt内容的需求。目前文章全文尚未公开，但dbt作为数据转换工具的重要性不容忽视。", "datePublished": "2026-08-09T20:02:50.885546+08:00", "inLanguage": "zh-CN", "isBasedOn": "https://bsky.app/profile/supremenothing.myatproto.social/post/3ms7f4qgxhc2c", "publisher": {"@type": "Organization", "name": "DataHot"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "NewsArticle", "headline": "为什么说 dbt 其实很好（Bluesky 热帖）", "description": "Bluesky上一则热帖推荐了flaminghydra.com今日通讯中Kate Wagner关于dbt的文章，获得86个赞。帖文以口语化方式引发关注，反映了数据社区对dbt内容的需求。目前文章全文尚未公开，但dbt作为数据转换工具的重要性不容忽视。", "datePublished": "2026-08-09T20:06:32.034053+08:00", "inLanguage": "zh-CN", "isBasedOn": "https://bsky.app/profile/supremenothing.myatproto.social/post/3ms7f4qgxhc2c", "publisher": {"@type": "Organization", "name": "DataHot"}}</script>
 <style>
   :root{
     color-scheme: light dark;
@@ -210,9 +210,22 @@ main,.layout>*,.hotlist>*{min-width:0}
 .cpin{width:18px;flex-shrink:0;font-size:12px}
 .ctitle{font-size:13.5px;font-weight:600;line-height:1.55;flex:1}
 .cmeta{font-size:11px;color:var(--sub);white-space:nowrap}
+.favbtn{border:none;background:none;color:var(--sub);cursor:pointer;padding:2px;display:inline-flex;align-items:center}
+.favbtn.on{color:var(--accent)}
+.favbtn.on svg{fill:currentColor}
+.favbtn svg{pointer-events:none}
+.fav-entry{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--sub);white-space:nowrap;text-decoration:none}
+.fav-entry:hover{color:var(--accent)}
+.hrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--soft);text-decoration:none;color:var(--ink)}
+.hrow:last-child{border-bottom:none}
+.hrow .rk{font-size:15px;font-weight:800;color:var(--accent);width:26px;flex-shrink:0;text-align:center}
+.hrow .ht{flex:1;font-size:14px;font-weight:600;line-height:1.5}
+.hrow:hover .ht{color:var(--accent)}
+.hrow .hm{font-size:11px;color:var(--sub);white-space:nowrap}
 .tabbar{display:none}
 @media(max-width:960px){
   body{padding-bottom:64px}
+  footer{padding-bottom:96px}
   .tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--tabbar-bg);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:70;padding-bottom:env(safe-area-inset-bottom)}
   .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0 6px;font-size:11px;color:var(--sub);text-decoration:none;gap:2px}
   .tabbar a .ico{font-size:19px}
@@ -249,6 +262,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="topbar">
     <a class="back" href="../index.html" style="margin-bottom:0">← 返回热榜</a>
     <span class="sharebtns">
+      <button class="sbtn ghost favbtn" data-fav="3f8cf5140961" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
       <a class="sbtn ghost" href="https://bsky.app/profile/supremenothing.myatproto.social/post/3ms7f4qgxhc2c" target="_blank" rel="noopener"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 原文</a>
       <button class="sbtn ghost" onclick="openPoster()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
       <button class="sbtn" onclick="openSheet()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
@@ -257,10 +271,10 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="meta">
     <span class="badge b-platform">AI 数据平台</span>
     
-    <span title="2026-08-09 20:02">4 小时前</span>
-    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 69</span>
+    <span title="2026-08-09 20:06">5 小时前</span>
+    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 76</span>
   </div>
-  <h1>Bluesky热帖推荐dbt好文</h1>
+  <h1>为什么说 dbt 其实很好（Bluesky 热帖）</h1>
   <div class="body">Bluesky上一则热帖推荐了flaminghydra.com今日通讯中Kate Wagner关于dbt的文章，获得86个赞。帖文以口语化方式引发关注，反映了数据社区对dbt内容的需求。目前文章全文尚未公开，但dbt作为数据转换工具的重要性不容忽视。</div>
   <div class="why" style="border-top:1px dashed var(--line);padding-top:14px;margin-top:18px;font-size:14px"><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由</span><span>dbt是现代数据栈中的核心工具，这条来自数据社区的热帖推荐能够帮助从业者发现高质量实践内容，值得关注。</span></div>
   <div class="vendors" style="margin-top:14px"><span class="vtag">dbt</span></div>
@@ -268,10 +282,10 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="fulltext"><p>近日，Bluesky 社交平台上的一则热帖引发了数据圈人士的关注。该帖发自用户 @supremenothing.myatproto.social，截至目前已获得86个赞。帖文内容简单直接：“have u heard the news（from today’s @flaminghydra.com missive, which features a great piece on dbt by the homie @katewagner.wehwalt.net）”，意在推荐 flaminghydra.com 今日通讯中一篇由 Kate Wagner 撰写、关于 dbt 的佳作。</p><p>虽然帖子没有展开说明文章的具体观点，但这一推荐行为本身已经传递出信号：dbt 依然是数据基础设施领域的热门话题。dbt（data build tool）是当下现代数据栈中用于数据转换的一环，它让数据团队可以用类似软件工程的方式管理 SQL 代码，从而更高效地完成数据建模、测试、文档化等工作。</p><p>flaminghydra.com 的每日通讯长期关注数据、技术与社会交叉议题，Kate Wagner 的加入使得这篇关于 dbt 的内容更加值得期待。帖文中“the homie”的称呼也暗示了作者与社区之间的紧密联系，这种来自实践者的视角往往比官方文档更有启发。</p><p>对于数据从业者而言，这类来自社区的深度内容能够帮助大家跳出工具文档，看到 dbt 在实际业务场景中的真实价值。无论是数据工程师、分析师还是数据平台负责人，都可能从中获得新的思考角度。</p><p>目前，我们尚未看到该文章的全文，但仅凭这条热帖的传播度，已经能看出社区对高质量 dbt 内容的强烈需求。这也提醒我们，在快速演进的AI数据平台领域，传统的数据建模与转换工具依然有着不可替代的位置。</p><p>我们也会持续关注 flaminghydra.com 的后续内容，一旦文章正式开放获取，将第一时间为读者带来更详细的编译报道。在此之前，建议感兴趣的读者可以前往 Bluesky 搜索原帖，关注相关作者，以便及时获取最新信息。</p></div>
   <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://bsky.app/profile/supremenothing.myatproto.social/post/3ms7f4qgxhc2c" target="_blank" rel="noopener">查看原文 ↗</a></div>
 </div>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://bsky.app/profile/supremenothing.myatproto.social/post/3ms7f4qgxhc2c" target="_blank" rel="noopener">Bluesky 数据社区（英文）</a><span class="src more">首发</span><span class="count">2026-08-09 20:02</span></div></div>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/55d25a6e466b.html"><span class="n">›</span>热帖：为什么说dbt其实很好<span class="count">69</span></a><a class="vendor-row" href="../e/8fbb5d899aa9.html"><span class="n">›</span>Ingest semi-structured data faster and more efficiently with Variant - Now Generally Available<span class="count">28</span></a><a class="vendor-row" href="../e/fda342751ac4.html"><span class="n">›</span>ClickHouse托管Postgres更新：通知、可观测性、备份等<span class="count">35</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（2 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://bsky.app/profile/supremenothing.myatproto.social/post/3ms7f4qgxhc2c" target="_blank" rel="noopener">Bluesky 数据社区（英文）</a><span class="src more">首发</span><span class="count">2026-08-09 20:02</span></div><div class="vendor-row"><span class="n">↗</span><a href="https://bsky.app/profile/katewagner.wehwalt.net/post/3ms7bzkuo5k2f" target="_blank" rel="noopener">Bluesky 数据社区（英文）</a><span class="count">2026-08-09 20:06</span></div></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/8fbb5d899aa9.html"><span class="n">›</span>Ingest semi-structured data faster and more efficiently with Variant - Now Generally Available<span class="count">28</span></a><a class="vendor-row" href="../e/fda342751ac4.html"><span class="n">›</span>ClickHouse托管Postgres更新：通知、可观测性、备份等<span class="count">35</span></a><a class="vendor-row" href="../e/e829f02ca0ca.html"><span class="n">›</span>Amazon EMR on EKS 推出 Apache Spark 故障排查 Agent<span class="count">28</span></a></div>
 </div>
-<footer>DataHot · 数据领域 AI 资讯热榜 · 仅聚合摘要与编译内容，版权归原作者</footer>
+<footer>DataHot，数据领域AI资讯分享</footer>
 <nav class="tabbar"><a href="../index.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span>热榜</a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span>主题</a><a href="../classics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></span>典藏</a><a href="../sources.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span>信源</a></nav>
 
 <div class="sh-mask" id="shMask" onclick="shClose()"></div>
@@ -331,7 +345,20 @@ main,.layout>*,.hotlist>*{min-width:0}
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title": "Bluesky热帖推荐dbt好文", "summary": "Bluesky上一则热帖推荐了flaminghydra.com今日通讯中Kate Wagner关于dbt的文章，获得86个赞。帖文以口语化方式引发关注，反映了数据社区对dbt内容的需求。目前文章全文尚未公开，但dbt作为数据转换工具的重要性不容忽视。", "reason": "dbt是现代数据栈中的核心工具，这条来自数据社区的热帖推荐能够帮助从业者发现高质量实践内容，值得关注。", "topic": "", "heat": 69, "source": "Bluesky 数据社区", "date": "2026-08-09", "url": "https://henryhb1105-arch.github.io/datahot/e/3f8cf5140961.html"};
+function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}catch(e){return[]}}
+(function(){
+  var favs=dhFavs();
+  document.querySelectorAll('[data-fav]').forEach(function(b){
+    if(favs.indexOf(b.dataset.fav)>=0) b.classList.add('on');
+    b.addEventListener('click',function(ev){
+      ev.stopPropagation();
+      var f=dhFavs(),id=b.dataset.fav,i=f.indexOf(id);
+      if(i>=0){f.splice(i,1);b.classList.remove('on');}else{f.push(id);b.classList.add('on');}
+      localStorage.setItem('dh_favs',JSON.stringify(f));
+    });
+  });
+})();
+var SH_EV = {"title": "为什么说 dbt 其实很好（Bluesky 热帖）", "summary": "Bluesky上一则热帖推荐了flaminghydra.com今日通讯中Kate Wagner关于dbt的文章，获得86个赞。帖文以口语化方式引发关注，反映了数据社区对dbt内容的需求。目前文章全文尚未公开，但dbt作为数据转换工具的重要性不容忽视。", "reason": "dbt是现代数据栈中的核心工具，这条来自数据社区的热帖推荐能够帮助从业者发现高质量实践内容，值得关注。", "topic": "", "heat": 76, "source": "Bluesky 数据社区", "date": "2026-08-09", "url": "https://henryhb1105-arch.github.io/datahot/e/3f8cf5140961.html"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');
@@ -427,7 +454,7 @@ function drawPoster(qrImg,dark){
     y=ry+180;
   }
   x.fillStyle=P.meta;x.font='400 26px -apple-system,sans-serif';
-  x.fillText('热度 '+SH_EV.heat · '+SH_EV.source+' · '+SH_EV.date,64,Math.max(y,H-320));
+  x.fillText('热度 '+SH_EV.heat+' · '+SH_EV.source+' · '+SH_EV.date,64,Math.max(y,H-320));
   x.strokeStyle=P.dash;x.setLineDash([8,8]);x.lineWidth=2;
   x.beginPath();x.moveTo(64,H-240);x.lineTo(W-64,H-240);x.stroke();x.setLineDash([]);
   x.fillStyle=P.qrBox;x.beginPath();x.roundRect(64,H-200,150,150,14);x.fill();

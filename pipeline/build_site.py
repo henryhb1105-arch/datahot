@@ -31,6 +31,7 @@ ICONS = {
  "file": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg>',
  "list": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>',
  "rss": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>',
+ "star": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>',
  "bookmark": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg>',
 }
 def ic(name, size=15):
@@ -85,9 +86,22 @@ main,.layout>*,.hotlist>*{min-width:0}
 .cpin{width:18px;flex-shrink:0;font-size:12px}
 .ctitle{font-size:13.5px;font-weight:600;line-height:1.55;flex:1}
 .cmeta{font-size:11px;color:var(--sub);white-space:nowrap}
+.favbtn{border:none;background:none;color:var(--sub);cursor:pointer;padding:2px;display:inline-flex;align-items:center}
+.favbtn.on{color:var(--accent)}
+.favbtn.on svg{fill:currentColor}
+.favbtn svg{pointer-events:none}
+.fav-entry{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--sub);white-space:nowrap;text-decoration:none}
+.fav-entry:hover{color:var(--accent)}
+.hrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--soft);text-decoration:none;color:var(--ink)}
+.hrow:last-child{border-bottom:none}
+.hrow .rk{font-size:15px;font-weight:800;color:var(--accent);width:26px;flex-shrink:0;text-align:center}
+.hrow .ht{flex:1;font-size:14px;font-weight:600;line-height:1.5}
+.hrow:hover .ht{color:var(--accent)}
+.hrow .hm{font-size:11px;color:var(--sub);white-space:nowrap}
 .tabbar{display:none}
 @media(max-width:960px){
   body{padding-bottom:64px}
+  footer{padding-bottom:96px}
   .tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--tabbar-bg);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:70;padding-bottom:env(safe-area-inset-bottom)}
   .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0 6px;font-size:11px;color:var(--sub);text-decoration:none;gap:2px}
   .tabbar a .ico{font-size:19px}
@@ -156,6 +170,7 @@ def render_card(e, prefix=""):
     return f'''<div class="item" data-cat="{e["category"]}" data-topics="{esc("|".join(e.get("topics", [])))}" data-link="{url}">
       <div class="top"><span>{fmt_time(e["published"])}</span><span>{esc(e["items"][0]["source"])}</span>
       <span class="badge {CAT_BADGE[e["category"]]}">{CAT_LABEL[e["category"]]}</span>{star}
+      <button class="favbtn" data-fav="{e["event_id"]}" title="收藏">{ic("star",15)}</button>
       <span class="heatnum">{ic("flame",13)} {e["heat"]}</span></div>
       <h3><a href="{url}">{esc(e["zh_title"])}</a></h3>
       <p class="sum">{esc(e["zh_summary"])}</p>{also}{reason}{vbox}
@@ -263,6 +278,7 @@ def render_detail(e, all_events, css):
   <div class="topbar">
     <a class="back" href="../index.html" style="margin-bottom:0">← 返回热榜</a>
     <span class="sharebtns">
+      <button class="sbtn ghost favbtn" data-fav="{e["event_id"]}" title="收藏">{ic("star",13)}</button>
       <a class="sbtn ghost" href="{main_link}" target="_blank" rel="noopener">{ic("arrow",13)} 原文</a>
       <button class="sbtn ghost" onclick="openPoster()">{ic("image",13)} 海报</button>
       <button class="sbtn" onclick="openSheet()">{ic("share",13)} 分享</button>
@@ -282,7 +298,7 @@ def render_detail(e, all_events, css):
   <div class="card"><h4>{ic("link")} 信源（{len(e["items"])} 家报道 · 按时间排序）</h4>{srcs}</div>
   <div class="card"><h4>{ic("list")} 相关事件</h4>{rel_html}</div>
 </div>
-<footer>DataHot · 数据领域 AI 资讯热榜 · 仅聚合摘要与编译内容，版权归原作者</footer>
+<footer>DataHot，数据领域AI资讯分享</footer>
 {tabbar("home", "../")}
 </body></html>'''
     return page.replace("</body></html>", share_ui(e, page_url) + "</body></html>")
@@ -353,6 +369,19 @@ def share_ui(e, page_url):
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
+function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}catch(e){return[]}}
+(function(){
+  var favs=dhFavs();
+  document.querySelectorAll('[data-fav]').forEach(function(b){
+    if(favs.indexOf(b.dataset.fav)>=0) b.classList.add('on');
+    b.addEventListener('click',function(ev){
+      ev.stopPropagation();
+      var f=dhFavs(),id=b.dataset.fav,i=f.indexOf(id);
+      if(i>=0){f.splice(i,1);b.classList.remove('on');}else{f.push(id);b.classList.add('on');}
+      localStorage.setItem('dh_favs',JSON.stringify(f));
+    });
+  });
+})();
 var SH_EV = __EV_JSON__;
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
@@ -449,7 +478,7 @@ function drawPoster(qrImg,dark){
     y=ry+180;
   }
   x.fillStyle=P.meta;x.font='400 26px -apple-system,sans-serif';
-  x.fillText('热度 '+SH_EV.heat · '+SH_EV.source+' · '+SH_EV.date,64,Math.max(y,H-320));
+  x.fillText('热度 '+SH_EV.heat+' · '+SH_EV.source+' · '+SH_EV.date,64,Math.max(y,H-320));
   x.strokeStyle=P.dash;x.setLineDash([8,8]);x.lineWidth=2;
   x.beginPath();x.moveTo(64,H-240);x.lineTo(W-64,H-240);x.stroke();x.setLineDash([]);
   x.fillStyle=P.qrBox;x.beginPath();x.roundRect(64,H-200,150,150,14);x.fill();
@@ -555,7 +584,7 @@ def page_shell(title, desc, css, body, tabbar_html, prefix=""):
   <div class="logo"><a href="{prefix}index.html" style="text-decoration:none">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
 {body}
-<footer>DataHot · 数据领域 AI 资讯热榜 · 仅聚合摘要与链接，版权归原作者</footer>
+<footer>DataHot，数据领域AI资讯分享</footer>
 {tabbar_html}
 </body></html>'''
 
@@ -661,6 +690,23 @@ function copyTpl(){{
     return page_shell("信源与更新状态 · DataHot", "DataHot 的信源清单、健康状态与更新机制", css, body,
                       tabbar("sources"), prefix="")
 
+def render_hot_page(events, css):
+    """完整榜单：热度 TOP 9"""
+    top = sorted(events, key=lambda e: -e["heat"])[:9]
+    rows = "".join(f'''<a class="hrow" href="e/{e["event_id"]}.html">
+  <span class="rk">{i}</span>
+  <span class="ht">{esc(e["zh_title"])}</span>
+  <span class="hm">{ic("flame",12)} {e["heat"]} · {esc(e["items"][0]["source"])}{extra}</span>
+</a>''' for i, e in enumerate(top, 1)
+        for extra in [f' · 另有{len(e["items"])-1}家' if len(e["items"]) > 1 else ""])
+    body = f"""
+<div class="wrap" style="padding:28px 20px 60px;max-width:900px">
+  <div class="section-title"><h2>{ic("flame",18)} 完整榜单</h2><span>近 7 天 · 热度 TOP 9 · 多信源聚簇</span></div>
+  <div class="scard" style="padding:6px 18px">{rows}</div>
+  <div style="font-size:12px;color:var(--sub);margin-top:8px">热度 = AI重要性×40% + 新鲜度×20% + 社区信号×30% + 多信源×10%</div>
+</div>"""
+    return page_shell("完整榜单 · DataHot", "数据领域近 7 天热度 TOP 9", css, body, tabbar("home"), prefix="")
+
 def render_classics_page(events, css):
     """典藏页：evergreen 内容按主题分组沉淀，人工置顶优先，按重要性排序"""
     classics = [e for e in events if e.get("shelf") == "evergreen"]
@@ -700,6 +746,41 @@ def render_classics_page(events, css):
 </div>'''
     return page_shell("典藏 · DataHot", "数据领域穿越时间的内容：方法论、框架与深度实践", css, body,
                       tabbar("classics"), prefix="")
+
+def render_favorites_page(css):
+    """收藏页：客户端从 localStorage 读取收藏，拉 latest.json 渲染"""
+    body = """
+<div class="wrap" style="padding:28px 20px 60px;max-width:900px">
+  <div class="section-title"><h2>★ 我的收藏</h2><span>保存在本机浏览器 · 不上传</span></div>
+  <div class="scard" style="padding:6px 18px" id="favList"><div style="padding:14px 0;color:var(--sub);font-size:13px">加载中…</div></div>
+</div>
+<script>
+(function(){
+  var list=document.getElementById('favList');
+  var favs=[];
+  try{favs=JSON.parse(localStorage.getItem('dh_favs')||'[]')}catch(e){}
+  if(!favs.length){
+    list.innerHTML='<div style="padding:20px 0;color:var(--sub);font-size:13px;line-height:1.8">还没有收藏。<br>在时间轴卡片或详情页点 ☆ 星标，内容会出现在这里。</div>';
+    return;
+  }
+  fetch('data/latest.json').then(function(r){return r.json();}).then(function(d){
+    var map={};
+    d.events.forEach(function(e){map[e.event_id]=e;});
+    var html='';
+    favs.forEach(function(id){
+      var e=map[id];
+      if(!e) return;
+      html+='<a class="hrow" href="e/'+e.event_id+'.html">'
+        +'<span class="ht">'+e.zh_title.replace(/</g,'&lt;')+'</span>'
+        +'<span class="hm">'+(e.items[0]?e.items[0].source:'')+' · '+e.published.slice(0,10)+'</span></a>';
+    });
+    list.innerHTML=html||'<div style="padding:20px 0;color:var(--sub);font-size:13px">收藏的内容已过期（超过 7 天的新闻会出池，典藏内容永久保留）。</div>';
+  }).catch(function(){
+    list.innerHTML='<div style="padding:20px 0;color:var(--sub);font-size:13px">加载失败，请稍后再试。</div>';
+  });
+})();
+</script>"""
+    return page_shell("我的收藏 · DataHot", "你收藏的数据领域资讯", css, body, tabbar(""), prefix="")
 
 def main():
     payload = json.load(open(SITE / "data" / "latest.json"))
@@ -802,6 +883,7 @@ def main():
 <div id="ptr"><span>下拉刷新</span></div>
 <header><div class="wrap nav">
   <div class="logo">Data<em>Hot</em><span class="tag">每 6 小时更新</span></div>
+  <a class="fav-entry" href="favorites.html">{ic("star",12)} 收藏</a>
   <span class="upd-time">{ic("clock",12)} {gen.strftime("%m-%d %H:%M")} 更新</span>
   <a class="tab d-only" href="topics.html" style="text-decoration:none">{ic("map",14)} 主题</a>
   <a class="tab d-only" href="classics.html" style="text-decoration:none">{ic("bookmark",14)} 典藏</a>
@@ -809,7 +891,7 @@ def main():
 </div></header>
 
 <div class="wrap"><div class="layout"><main>
-  <div class="section-title"><h2>{ic("flame",18)} 本期热点</h2><span>多信源聚簇 · 按热度排序</span></div>
+  <div class="section-title"><h2>{ic("flame",18)} 本期热点</h2><span>多信源聚簇 · 按热度排序</span><a href="hot.html" style="margin-left:auto;font-size:12.5px;color:var(--accent);font-weight:600">完整榜单 →</a></div>
   <div class="hotlist">{hot_cards}</div>
   <div class="section-title" style="align-items:center"><h2>{ic("calendar",18)} 时间轴</h2><span>近 7 天</span>
     <input id="q" class="tlsearch" placeholder="搜索">
@@ -837,10 +919,25 @@ def main():
 </aside>
 </div></div>
 
-<footer>DataHot · 数据领域 AI 资讯热榜 · 仅聚合摘要与链接，版权归原作者 · 每 6 小时自动更新</footer>
+<footer>DataHot，数据领域AI资讯分享</footer>
 {tabbar("home")}
 
 <script>
+// 收藏（localStorage）
+function dhFavs(){{try{{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}}catch(e){{return[]}}}}
+function dhInitFav(){{
+  const favs=dhFavs();
+  document.querySelectorAll('[data-fav]').forEach(b=>{{
+    if(favs.includes(b.dataset.fav)) b.classList.add('on');
+    b.addEventListener('click',ev=>{{
+      ev.stopPropagation();
+      let f=dhFavs();const id=b.dataset.fav;const i=f.indexOf(id);
+      if(i>=0){{f.splice(i,1);b.classList.remove('on');}}else{{f.push(id);b.classList.add('on');}}
+      localStorage.setItem('dh_favs',JSON.stringify(f));
+    }});
+  }});
+}}
+dhInitFav();
 // 主题筛选条
 document.querySelectorAll('#chiprow .fchip').forEach(c=>c.addEventListener('click',()=>{{
   document.querySelectorAll('#chiprow .fchip').forEach(x=>x.classList.remove('on'));
@@ -863,7 +960,7 @@ document.getElementById('q').addEventListener('input',e=>{{
 // 整卡可点：进入站内详情页
 document.querySelectorAll('.item,.hot').forEach(el=>{{
   el.addEventListener('click',e=>{{
-    if(e.target.closest('a')) return;
+    if(e.target.closest('a')||e.target.closest('button')) return;
     const url=el.dataset.link;
     if(url) location.href=url;
   }});
@@ -901,6 +998,8 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
 
     (SITE / "sources.html").write_text(render_sources_page(all_events, payload, css), encoding="utf-8")
     (SITE / "classics.html").write_text(render_classics_page(all_events, css), encoding="utf-8")
+    (SITE / "hot.html").write_text(render_hot_page(events, css), encoding="utf-8")
+    (SITE / "favorites.html").write_text(render_favorites_page(css), encoding="utf-8")
 
     out = SITE / "index.html"
     out.write_text(page, encoding="utf-8")

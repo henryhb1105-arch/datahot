@@ -164,7 +164,7 @@ def render_detail(e, all_events, css):
     }, ensure_ascii=False)
     return f'''<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>{esc(e["zh_title"])} · DataHot</title>
 <meta name="description" content="{desc}">
 <link rel="canonical" href="{page_url}">
@@ -264,7 +264,7 @@ def render_topic_page(t, events, css):
 def page_shell(title, desc, css, body, tabbar_html, prefix=""):
     return f'''<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(desc)}">
 <link rel="icon" href="{prefix}favicon.ico" sizes="any">
@@ -355,7 +355,7 @@ def main():
 
     page = f'''<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>DataHot · 数据领域 AI 热榜</title>
 <meta name="description" content="监控 Data Agent、AI 数据平台、BI、数据产品四个领域的资讯热榜，多信源聚簇 + AI 中文摘要与推荐理由，每 6 小时更新。">
 <meta property="og:title" content="DataHot · 数据领域 AI 热榜">
@@ -379,12 +379,7 @@ def main():
 <div id="ptr"><span>下拉刷新</span></div>
 <header><div class="wrap nav">
   <div class="logo">Data<em>Hot</em><span class="tag">每 6 小时更新</span></div>
-  <nav class="tabs" id="tabs">
-    <span class="tab on" data-cat="all">🔥 全部</span>
-    <span class="tab" data-cat="agent">🤖 Data Agent</span>
-    <span class="tab" data-cat="platform">🏗️ AI 数据平台</span>
-    <span class="tab" data-cat="bi">📊 BI 与可视化</span>
-    <span class="tab" data-cat="product">🧩 数据产品</span>
+  <nav class="tabs">
     <a class="tab" href="topics.html" style="text-decoration:none">🗺️ 主题</a>
   </nav>
   <div class="search" onclick="document.getElementById('q').focus()">🔍 <input id="q" placeholder="搜索标题 / 主题…" style="border:none;outline:none;background:transparent;font-size:13px;width:110px"></div>
@@ -421,14 +416,6 @@ def main():
 {tabbar("home")}
 
 <script>
-const tabs=document.querySelectorAll('#tabs .tab[data-cat]');
-tabs.forEach(t=>t.addEventListener('click',()=>{{
-  tabs.forEach(x=>x.classList.remove('on'));t.classList.add('on');
-  const c=t.dataset.cat;
-  document.querySelectorAll('.item').forEach(el=>{{
-    el.style.display=(c==='all'||el.dataset.cat===c)?'':'none';
-  }});
-}}));
 // 主题筛选条
 document.querySelectorAll('#chiprow .fchip').forEach(c=>c.addEventListener('click',()=>{{
   document.querySelectorAll('#chiprow .fchip').forEach(x=>x.classList.remove('on'));

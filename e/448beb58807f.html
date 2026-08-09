@@ -177,6 +177,12 @@ main,.layout>*,.hotlist>*{min-width:0}
 .chiprow::-webkit-scrollbar{display:none}
 .chiprow .fchip{flex-shrink:0;font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
 .chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
+@media (prefers-color-scheme: dark){
+  .chip{background:rgba(110,168,255,.16);color:#6ea8ff}
+  .chip:hover{background:rgba(110,168,255,.26)}
+  .chiprow .fchip.on{background:var(--ink);color:#121417;border-color:var(--ink)}
+  .chiprow .fchip{background:var(--card);color:var(--sub);border-color:var(--line)}
+}
 .tabbar{display:none}
 @media(max-width:960px){
   body{padding-bottom:64px}
@@ -216,6 +222,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="topbar">
     <a class="back" href="../index.html" style="margin-bottom:0">← 返回热榜</a>
     <span class="sharebtns">
+      <a class="sbtn ghost" href="https://clickhouse.com/blog/making-clickhouse-cloud-autoscaling-more-reactive" target="_blank" rel="noopener">原文 ↗</a>
       <button class="sbtn ghost" onclick="openPoster()">🖼 海报</button>
       <button class="sbtn" onclick="openSheet()">↗ 分享</button>
     </span>
@@ -228,7 +235,6 @@ main,.layout>*,.hotlist>*{min-width:0}
   </div>
   <h1>ClickHouse Cloud重构自动扩缩容：从固定周期到秒级响应</h1>
   <div class="body">ClickHouse Cloud通过重构自动扩缩容编排层，基于Kubernetes的controller-runtime构建，并以ClickHouse自身支撑信号表，新增了反应式快速路径。该机制能在数秒内完成服务扩容，无需等待下一个调度周期。文章介绍了原有固定调度模式的局限，以及新架构在响应性、去重、退避和并发控制上的改进。</div>
-  <a class="cta" href="https://clickhouse.com/blog/making-clickhouse-cloud-autoscaling-more-reactive" target="_blank" rel="noopener">阅读原文 · ClickHouse Blog ↗</a>
   <div class="why" style="border-top:1px dashed var(--line);padding-top:14px;margin-top:18px;font-size:14px"><span class="w">推荐理由</span><span>数据平台从业者可了解ClickHouse Cloud如何在真实生产环境中用Kubernetes生态组件重构核心调度逻辑，以及如何用自身数据仓库处理实时信号，对云原生数据基础设施设计有直接参考价值。</span></div>
   <div class="vendors" style="margin-top:14px"><span class="vtag">ClickHouse</span></div>
   <div class="card"><h4>📄 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>

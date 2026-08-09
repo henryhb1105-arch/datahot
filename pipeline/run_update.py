@@ -348,15 +348,38 @@ def fetch_hn_algolia(source):
     return out
 
 # ── Bluesky 信源 ──────────────────────────────────────────
+def bsky_session():
+    """如配置了 BSKY_HANDLE / BSKY_APP_PASSWORD（环境变量或 config.json），创建认证会话"""
+    handle = os.getenv("BSKY_HANDLE", "")
+    passwd = os.getenv("BSKY_APP_PASSWORD", "")
+    cfg_path = Path(__file__).resolve().parent / "config.json"
+    if (not handle or not passwd) and cfg_path.exists():
+        cfg = json.load(open(cfg_path))
+        handle = handle or cfg.get("BSKY_HANDLE", "")
+        passwd = passwd or cfg.get("BSKY_APP_PASSWORD", "")
+    if not (handle and passwd):
+        return None
+    req = urllib.request.Request(
+        "https://bsky.social/xrpc/com.atproto.server.createSession",
+        data=json.dumps({"identifier": handle, "password": passwd}).encode(),
+        headers={"Content-Type": "application/json"}, method="POST")
+    with urllib.request.urlopen(req, timeout=20) as r:
+        return json.loads(r.read())["accessJwt"]
+
 def fetch_bluesky(source):
-    """Bluesky 公共搜索 API：按关键词搜热门帖（数据社区一手信号）"""
+    """Bluesky 搜索热门帖（数据社区一手信号）。搜索接口需要认证会话。"""
+    token = bsky_session()
+    if not token:
+        raise RuntimeError("未配置 BSKY_HANDLE/BSKY_APP_PASSWORD（ Bluesky 免费 App Password 即可）")
     entries = []
     min_likes = source.get("min_likes", 10)
     since = (datetime.now(timezone.utc) - timedelta(days=KEEP_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
     for q in source.get("queries", []):
         url = ("https://bsky.social/xrpc/app.bsky.feed.searchPosts?sort=top&limit=15"
                f"&since={since}&q=" + urllib.parse.quote(q))
-        data = json.loads(fetch_url(url))
+        req = urllib.request.Request(url, headers={**UA, "Authorization": f"Bearer {token}"})
+        with urllib.request.urlopen(req, timeout=20) as r:
+            data = json.loads(r.read())
         for p in data.get("posts", []):
             likes = p.get("likeCount", 0)
             if likes < min_likes:

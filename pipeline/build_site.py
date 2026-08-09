@@ -93,13 +93,14 @@ def render_detail(e, all_events, css):
         f'<span class="n">›</span>{esc(x["zh_title"])}<span class="count">🔥 {x["heat"]}</span></a>'
         for x in related) or '<div style="font-size:12.5px;color:var(--sub)">暂无相关事件</div>'
     sorted_items = sorted(e["items"], key=lambda s: s["published"])
-    srcs = "".join(
-        f'<div class="vendor-row"><span class="n">↗</span>'
-        f'<a href="{esc(s["link"])}" target="_blank" rel="noopener">{esc(s["source"])}'
-        f'{"（英文）" if s["source"] not in ("InfoQ（AI/数据工程）",) else ""}</a>'
-        f'{"<span class=\'src more\'>首发</span>" if i == 0 else ""}'
-        f'<span class="count">{fmt_date(s["published"])}</span></div>'
-        for i, s in enumerate(sorted_items))
+    srcs = ""
+    for i, s in enumerate(sorted_items):
+        first_badge = '<span class="src more">首发</span>' if i == 0 else ""
+        en_note = "（英文）" if s["source"] != "InfoQ（AI/数据工程）" else ""
+        srcs += (f'<div class="vendor-row"><span class="n">↗</span>'
+                 f'<a href="{esc(s["link"])}" target="_blank" rel="noopener">{esc(s["source"])}{en_note}</a>'
+                 f'{first_badge}'
+                 f'<span class="count">{fmt_date(s["published"])}</span></div>')
     vtags = "".join(f'<span class="vtag">{esc(v)}</span>' for v in e.get("vendors", []))
     desc = esc(e["zh_summary"][:150])
     main_link = esc(sorted_items[0]["link"])

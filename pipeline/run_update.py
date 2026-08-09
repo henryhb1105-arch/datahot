@@ -119,7 +119,7 @@ def heat_score(source_weight, published):
 def fetch_article_text(url, max_chars=2000):
     """粗提取网页正文：去脚本/样式/标签，取前 max_chars 字符"""
     try:
-        raw = fetch_url(url, timeout=15)
+        raw = fetch_url(url, timeout=10)
         try:
             text = raw.decode("utf-8", errors="ignore")
         except Exception:
@@ -165,7 +165,7 @@ ENRICH_RULES = """你是一个数据领域垂直资讯站的编辑。本站只�
 标题 "Airbnb 测试 AI 搜索功能" → {"relevant": false}
 
 输出 JSON（不要输出多余内容）：
-{"relevant": true或false, "zh_title": "中文标题(≤40字)", "zh_summary": "中文摘要3-4句，保留产品名与数字，不得编造原文没有的信息", "reason": "推荐理由：为什么数据从业者应关注，1-2句", "category": "agent|platform|bi|product", "vendors": ["提到的数据厂商，如Snowflake/Databricks/PowerBI/帆软等，没有则空数组"], "importance": 1-100整数}"""
+{"relevant": true或false, "zh_title": "中文标题(≤40字)", "zh_summary": "中文摘要3-4句，保留产品名与数字，不得编造原文没有的信息", "reason": "推荐理由：为什么数据从业者应关注，1-2句", "full_zh": "基于原文的完整中文编译稿，4-8个自然段、500-800字，保留所有关键信息（产品名、公司名、数字、时间、人名），段落之间用两个换行符分隔；严格忠于原文，不得编造原文没有的内容；若提供的原文信息不足，则在摘要基础上适度展开但总量不少于300字", "category": "agent|platform|bi|product", "vendors": ["提到的数据厂商，如Snowflake/Databricks/PowerBI/帆软等，没有则空数组"], "importance": 1-100整数}"""
 
 def llm_enrich(items, cfg):
     key, base, model = cfg
@@ -176,7 +176,7 @@ def llm_enrich(items, cfg):
     def enrich_one(it):
         content = f"标题：{it['title']}\n摘要：{it['summary'][:800]}"
         if it.get("article_text"):
-            content += f"\n原文节选：{it['article_text'][:1500]}"
+            content += f"\n原文：{it['article_text'][:2200]}"
         note = "\n（注：该条目来自数据领域厂商官方博客，默认相关，除非明显是招聘/活动/公关软文）" if it.get("vendor_default") else ""
         out = llm_chat(base, key, model, ENRICH_RULES + "\n\n" + content + note)
         if out.get("relevant") is False:
@@ -184,6 +184,7 @@ def llm_enrich(items, cfg):
         it["zh_title"] = out.get("zh_title") or it["title"]
         it["zh_summary"] = out.get("zh_summary") or it["summary"][:300]
         it["reason"] = out.get("reason", "")
+        it["full_zh"] = out.get("full_zh", "")
         cat = out.get("category")
         if cat in CATEGORIES_LABEL:
             it["category"], it["category_label"] = cat, CATEGORIES_LABEL[cat]
@@ -193,7 +194,7 @@ def llm_enrich(items, cfg):
         return it
 
     kept = []
-    with ThreadPoolExecutor(max_workers=6) as pool:
+    with ThreadPoolExecutor(max_workers=12) as pool:
         futures = {pool.submit(enrich_one, it): it for it in items}
         for fut, it in futures.items():
             try:
@@ -226,12 +227,13 @@ def llm_same_event(pairs, cfg):
         try:
             out = llm_chat(base, key, model,
                 "判断以下两条资讯是否报道同一事件/同一产品发布（同一事件的不同媒体报道算同一事件）。"
+                "注意：月度汇总/盘点类文章与其中提到的单项功能发布不算同一事件，除非该功能就是这篇文章的主题。"
                 '只输出JSON {"same": true或false}。\n\n'
                 f"【A】{p[0][:400]}\n【B】{p[1][:400]}")
             return out.get("same") is True
         except Exception:
             return False
-    with ThreadPoolExecutor(max_workers=6) as pool:
+    with ThreadPoolExecutor(max_workers=12) as pool:
         return list(pool.map(judge, pairs))
 
 def event_titles(e):
@@ -300,6 +302,7 @@ def make_event(it):
     return {
         "event_id": eid,
         "zh_title": it["zh_title"], "zh_summary": it["zh_summary"], "reason": it.get("reason", ""),
+        "full_zh": it.get("full_zh", ""),
         "category": it["category"], "category_label": it["category_label"],
         "vendors": it.get("vendors", []), "heat": it["heat"], "star": it.get("star", False),
         "published": it["published"],
@@ -314,6 +317,8 @@ def merge_into(e, it):
     e["published"] = max(e["published"], it["published"])
     if len(it.get("zh_summary", "")) > len(e.get("zh_summary", "")):
         e["zh_summary"], e["reason"] = it["zh_summary"], it.get("reason", e["reason"])
+    if len(it.get("full_zh", "")) > len(e.get("full_zh", "")):
+        e["full_zh"] = it["full_zh"]
     e["vendors"] = list(dict.fromkeys(e.get("vendors", []) + it.get("vendors", [])))[:5]
 
 # ── HN 信源 ───────────────────────────────────────────────
@@ -395,12 +400,14 @@ def main():
             source_status.append({"name": s["name"], "ok": False, "error": str(e)})
             print(f"[fetch] {s['name']:28s} 失败: {e}")
 
-    # F5：HN 条目抓正文
-    for it in new_items:
-        if it["source_type"] == "community" and not it["link"].startswith("https://news.ycombinator.com"):
-            it["article_text"] = fetch_article_text(it["link"])
-            if it["article_text"]:
-                print(f"[article] 抓到正文 {len(it['article_text'])} 字符: {it['title'][:40]}")
+    # F5+：全部新条目抓原文正文（用于摘要质量 + AI 全文编译），并发执行
+    def grab(it):
+        it["article_text"] = fetch_article_text(it["link"])
+        return it
+    with ThreadPoolExecutor(max_workers=12) as pool:
+        list(pool.map(grab, new_items))
+    got = sum(1 for it in new_items if it["article_text"])
+    print(f"[article] 正文抓取成功 {got}/{len(new_items)}")
 
     # F4：LLM 加工
     new_items = llm_enrich(new_items, cfg)

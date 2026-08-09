@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """V1.1：读取 latest.json（事件结构），生成首页 + 每个事件的站内详情页（带 OG meta）"""
-import json, html
+import json, html, re
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
@@ -63,29 +63,76 @@ def render_card(e):
       <p class="sum">{esc(e["zh_summary"])}</p>{also}{reason}{vbox}
     </div>'''
 
+SITE_BASE = "https://henryhb1105-arch.github.io/datahot"
+
+def title_bigrams(t):
+    t = re.sub(r"[^\w一-鿿]+", "", (t or "").lower())
+    return {t[i:i+2] for i in range(len(t) - 1)} if len(t) > 1 else {t} if t else set()
+
+def sim(a, b):
+    if not a or not b:
+        return 0.0
+    return len(a & b) / len(a | b)
+
+def human_time(iso):
+    dt = datetime.fromisoformat(iso).astimezone(TZ)
+    delta = datetime.now(TZ) - dt
+    if delta.days >= 1:
+        return f"{delta.days} 天前"
+    h = delta.seconds // 3600
+    return f"{h} 小时前" if h >= 1 else "刚刚"
+
 def render_detail(e, all_events, css):
-    related = [x for x in all_events
-               if x["category"] == e["category"] and x["event_id"] != e["event_id"]][:3]
+    ebg = title_bigrams(e["zh_title"])
+    related = sorted(
+        (x for x in all_events if x["event_id"] != e["event_id"]),
+        key=lambda x: (x["category"] == e["category"], sim(ebg, title_bigrams(x["zh_title"]))),
+        reverse=True)[:3]
     rel_html = "".join(
-        f'<div class="vendor-row" data-link="{esc("../" + detail_url(x))}" onclick="location.href=\'../{detail_url(x)}\'">'
-        f'<span class="n">›</span>{esc(x["zh_title"])}<span class="count">🔥 {x["heat"]}</span></div>'
+        f'<a class="vendor-row" href="../{detail_url(x)}">'
+        f'<span class="n">›</span>{esc(x["zh_title"])}<span class="count">🔥 {x["heat"]}</span></a>'
         for x in related) or '<div style="font-size:12.5px;color:var(--sub)">暂无相关事件</div>'
+    sorted_items = sorted(e["items"], key=lambda s: s["published"])
     srcs = "".join(
         f'<div class="vendor-row"><span class="n">↗</span>'
-        f'<a href="{esc(s["link"])}" target="_blank" rel="noopener">{esc(s["source"])}</a>'
+        f'<a href="{esc(s["link"])}" target="_blank" rel="noopener">{esc(s["source"])}'
+        f'{"（英文）" if s["source"] not in ("InfoQ（AI/数据工程）",) else ""}</a>'
+        f'{"<span class=\'src more\'>首发</span>" if i == 0 else ""}'
         f'<span class="count">{fmt_date(s["published"])}</span></div>'
-        for s in e["items"])
+        for i, s in enumerate(sorted_items))
     vtags = "".join(f'<span class="vtag">{esc(v)}</span>' for v in e.get("vendors", []))
     desc = esc(e["zh_summary"][:150])
+    main_link = esc(sorted_items[0]["link"])
+    main_src = esc(sorted_items[0]["source"])
+    # 全文编译段落
+    full_paras = "".join(
+        f"<p>{esc(p)}</p>" for p in re.split(r"\n\s*\n|\n", e.get("full_zh", "")) if p.strip())
+    full_block = ""
+    if full_paras:
+        full_block = f'''<div class="card"><h4>📄 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
+  <div class="fulltext">{full_paras}</div>
+  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="{main_link}" target="_blank" rel="noopener">查看原文 ↗</a></div>
+</div>'''
+    page_url = f"{SITE_BASE}/e/{e['event_id']}.html"
+    jsonld = json.dumps({
+        "@context": "https://schema.org", "@type": "NewsArticle",
+        "headline": e["zh_title"], "description": e["zh_summary"][:150],
+        "datePublished": e["published"], "inLanguage": "zh-CN",
+        "isBasedOn": sorted_items[0]["link"],
+        "publisher": {"@type": "Organization", "name": "DataHot"},
+    }, ensure_ascii=False)
     return f'''<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{esc(e["zh_title"])} · DataHot</title>
 <meta name="description" content="{desc}">
+<link rel="canonical" href="{page_url}">
 <meta property="og:title" content="{esc(e["zh_title"])}">
 <meta property="og:description" content="{desc}">
 <meta property="og:type" content="article">
+<meta property="og:url" content="{page_url}">
 <meta property="og:site_name" content="DataHot · 数据领域 AI 热榜">
+<script type="application/ld+json">{jsonld}</script>
 <style>{css}
 .article{{max-width:760px;margin:0 auto;padding:32px 20px 60px}}
 .article .back{{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}}
@@ -95,6 +142,12 @@ def render_detail(e, all_events, css):
 .article .body{{font-size:15.5px;line-height:1.9;color:#374151;margin:20px 0}}
 .article .card{{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}}
 .article h4{{font-size:14px;font-weight:800;margin-bottom:10px}}
+.article .vendor-row{{text-decoration:none}}
+.cta{{display:inline-block;background:var(--accent);color:#fff;font-size:14px;font-weight:700;border-radius:10px;padding:11px 26px;margin:6px 0 4px}}
+.cta:hover{{opacity:.9}}
+.fulltext p{{font-size:15px;line-height:1.95;color:#374151;margin:0 0 14px}}
+.disclaimer{{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}}
+.disclaimer a{{color:var(--accent)}}
 </style></head><body>
 <header><div class="wrap nav">
   <div class="logo"><a href="../index.html">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
@@ -104,17 +157,19 @@ def render_detail(e, all_events, css):
   <div class="meta">
     <span class="badge {CAT_BADGE[e["category"]]}">{CAT_LABEL[e["category"]]}</span>
     {'<span class="star">精选</span>' if e.get("star") else ''}
-    <span>{fmt_date(e["published"])}</span>
+    <span title="{fmt_date(e["published"])}">{human_time(e["published"])}</span>
     <span style="margin-left:auto" class="heatnum">🔥 {e["heat"]} 热度</span>
   </div>
   <h1>{esc(e["zh_title"])}</h1>
   <div class="body">{esc(e["zh_summary"])}</div>
-  {f'<div class="why" style="border-top:1px dashed var(--line);padding-top:14px;font-size:14px"><span class="w">推荐理由</span><span>{esc(e["reason"])}</span></div>' if e.get("reason") else ""}
+  <a class="cta" href="{main_link}" target="_blank" rel="noopener">阅读原文 · {main_src} ↗</a>
+  {f'<div class="why" style="border-top:1px dashed var(--line);padding-top:14px;margin-top:18px;font-size:14px"><span class="w">推荐理由</span><span>{esc(e["reason"])}</span></div>' if e.get("reason") else ""}
   {f'<div class="vendors" style="margin-top:14px">{vtags}</div>' if vtags else ""}
-  <div class="card"><h4>🔗 信源（{len(e["items"])} 家报道）</h4>{srcs}</div>
+  {full_block}
+  <div class="card"><h4>🔗 信源（{len(e["items"])} 家报道 · 按时间排序）</h4>{srcs}</div>
   <div class="card"><h4>📌 相关事件</h4>{rel_html}</div>
 </div>
-<footer>DataHot · 数据领域 AI 资讯热榜 · 仅聚合摘要与链接，版权归原作者</footer>
+<footer>DataHot · 数据领域 AI 资讯热榜 · 仅聚合摘要与编译内容，版权归原作者</footer>
 </body></html>'''
 
 def main():

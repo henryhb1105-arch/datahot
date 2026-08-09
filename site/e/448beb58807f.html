@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ClickHouse Cloud自动扩缩容重构：响应时间从定时任务缩短至秒级 · DataHot</title>
-<meta name="description" content="ClickHouse Cloud 团队基于 Kubernetes 的 controller-runtime 和 ClickHouse 信号表重建了自动扩缩容编排，引入响应式快路径，使服务扩容时间从等待下一轮定时调度变为数秒内完成。新架构提高了扩缩容的灵敏度和资源利用率，降低了延迟风险。">
-<meta property="og:title" content="ClickHouse Cloud自动扩缩容重构：响应时间从定时任务缩短至秒级">
-<meta property="og:description" content="ClickHouse Cloud 团队基于 Kubernetes 的 controller-runtime 和 ClickHouse 信号表重建了自动扩缩容编排，引入响应式快路径，使服务扩容时间从等待下一轮定时调度变为数秒内完成。新架构提高了扩缩容的灵敏度和资源利用率，降低了延迟风险。">
+<title>ClickHouse Cloud重构自动扩缩容：从固定周期到秒级响应 · DataHot</title>
+<meta name="description" content="ClickHouse Cloud通过重构自动扩缩容编排层，基于Kubernetes的controller-runtime构建，并以ClickHouse自身支撑信号表，新增了反应式快速路径。该机制能在数秒内完成服务扩容，无需等待下一个调度周期。文章介绍了原有固定调度模式的局限，以及新架构在响应性、去重">
+<link rel="canonical" href="https://henryhb1105-arch.github.io/datahot/e/448beb58807f.html">
+<meta property="og:title" content="ClickHouse Cloud重构自动扩缩容：从固定周期到秒级响应">
+<meta property="og:description" content="ClickHouse Cloud通过重构自动扩缩容编排层，基于Kubernetes的controller-runtime构建，并以ClickHouse自身支撑信号表，新增了反应式快速路径。该机制能在数秒内完成服务扩容，无需等待下一个调度周期。文章介绍了原有固定调度模式的局限，以及新架构在响应性、去重">
 <meta property="og:type" content="article">
+<meta property="og:url" content="https://henryhb1105-arch.github.io/datahot/e/448beb58807f.html">
 <meta property="og:site_name" content="DataHot · 数据领域 AI 热榜">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "NewsArticle", "headline": "ClickHouse Cloud重构自动扩缩容：从固定周期到秒级响应", "description": "ClickHouse Cloud通过重构自动扩缩容编排层，基于Kubernetes的controller-runtime构建，并以ClickHouse自身支撑信号表，新增了反应式快速路径。该机制能在数秒内完成服务扩容，无需等待下一个调度周期。文章介绍了原有固定调度模式的局限，以及新架构在响应性、去重", "datePublished": "2026-08-04T08:00:00+08:00", "inLanguage": "zh-CN", "isBasedOn": "https://clickhouse.com/blog/making-clickhouse-cloud-autoscaling-more-reactive", "publisher": {"@type": "Organization", "name": "DataHot"}}</script>
 <style>
   :root{
     --bg:#f6f7f9; --card:#ffffff; --ink:#1a1d23; --sub:#6b7280; --line:#e5e7eb;
@@ -110,6 +113,12 @@
 .article .body{font-size:15.5px;line-height:1.9;color:#374151;margin:20px 0}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
+.article .vendor-row{text-decoration:none}
+.cta{display:inline-block;background:var(--accent);color:#fff;font-size:14px;font-weight:700;border-radius:10px;padding:11px 26px;margin:6px 0 4px}
+.cta:hover{opacity:.9}
+.fulltext p{font-size:15px;line-height:1.95;color:#374151;margin:0 0 14px}
+.disclaimer{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}
+.disclaimer a{color:var(--accent)}
 </style></head><body>
 <header><div class="wrap nav">
   <div class="logo"><a href="../index.html">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
@@ -119,15 +128,20 @@
   <div class="meta">
     <span class="badge b-platform">AI 数据平台</span>
     
-    <span>2026-08-04 08:00</span>
-    <span style="margin-left:auto" class="heatnum">🔥 44 热度</span>
+    <span title="2026-08-04 08:00">5 天前</span>
+    <span style="margin-left:auto" class="heatnum">🔥 40 热度</span>
   </div>
-  <h1>ClickHouse Cloud自动扩缩容重构：响应时间从定时任务缩短至秒级</h1>
-  <div class="body">ClickHouse Cloud 团队基于 Kubernetes 的 controller-runtime 和 ClickHouse 信号表重建了自动扩缩容编排，引入响应式快路径，使服务扩容时间从等待下一轮定时调度变为数秒内完成。新架构提高了扩缩容的灵敏度和资源利用率，降低了延迟风险。</div>
-  <div class="why" style="border-top:1px dashed var(--line);padding-top:14px;font-size:14px"><span class="w">推荐理由</span><span>数据从业者关注云数据库弹性能力，该案例展示了基于Kubernetes原生的实时扩缩容方案，对数据平台架构优化有直接参考价值。</span></div>
+  <h1>ClickHouse Cloud重构自动扩缩容：从固定周期到秒级响应</h1>
+  <div class="body">ClickHouse Cloud通过重构自动扩缩容编排层，基于Kubernetes的controller-runtime构建，并以ClickHouse自身支撑信号表，新增了反应式快速路径。该机制能在数秒内完成服务扩容，无需等待下一个调度周期。文章介绍了原有固定调度模式的局限，以及新架构在响应性、去重、退避和并发控制上的改进。</div>
+  <a class="cta" href="https://clickhouse.com/blog/making-clickhouse-cloud-autoscaling-more-reactive" target="_blank" rel="noopener">阅读原文 · ClickHouse Blog ↗</a>
+  <div class="why" style="border-top:1px dashed var(--line);padding-top:14px;margin-top:18px;font-size:14px"><span class="w">推荐理由</span><span>数据平台从业者可了解ClickHouse Cloud如何在真实生产环境中用Kubernetes生态组件重构核心调度逻辑，以及如何用自身数据仓库处理实时信号，对云原生数据基础设施设计有直接参考价值。</span></div>
   <div class="vendors" style="margin-top:14px"><span class="vtag">ClickHouse</span></div>
-  <div class="card"><h4>🔗 信源（1 家报道）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://clickhouse.com/blog/making-clickhouse-cloud-autoscaling-more-reactive" target="_blank" rel="noopener">ClickHouse Blog</a><span class="count">2026-08-04 08:00</span></div></div>
-  <div class="card"><h4>📌 相关事件</h4><div class="vendor-row" data-link="../e/63b7989f4b33.html" onclick="location.href='../e/63b7989f4b33.html'"><span class="n">›</span>Stripe用图搜索与状态机自动化数据库修复<span class="count">🔥 46</span></div><div class="vendor-row" data-link="../e/fbbccffba47d.html" onclick="location.href='../e/fbbccffba47d.html'"><span class="n">›</span>Amazon OpenSearch Service延长版本生命周期支持期限<span class="count">🔥 46</span></div><div class="vendor-row" data-link="../e/460d5283bb04.html" onclick="location.href='../e/460d5283bb04.html'"><span class="n">›</span>Fivetran：开放数据基础设施需上下文工程统一用例<span class="count">🔥 46</span></div></div>
+  <div class="card"><h4>📄 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
+  <div class="fulltext"><p>ClickHouse Cloud 会自动对服务进行垂直扩缩容。在背后，一个推荐服务会观察每个服务的行为，并决定它应该获得多少 CPU 和内存。当工作负载增长时，它会扩容；当工作负载下降时，它会缩容，避免用户为不再使用的容量付费。这些决策由 ClickHouse 的 two-window recommender（双窗口推荐器）驱动。</p><p>在很长一段时间里，这个推荐服务都按照固定计划运行。它会在定时器触发时醒来，扫描所有服务（在时间窗口内对服务列表进行分片处理），生成推荐，然后继续休眠直到下一个周期。这种设计简单且可预测，但固定计划意味着无法在服务需要时立即进行扩容。</p><p>例如，一个服务在整点开始时突然遭遇大量查询负载，它需要更多内存，但推荐服务已经在几分钟前运行过，并且短期内不会再次运行。在下一个周期到来之前，该服务将一直处于容量不足的状态。这种延迟对于需要快速响应的场景显然不够理想。</p><p>为了解决这个问题，ClickHouse 团队在 controller-runtime 之上重建了编排层。controller-runtime 是一个经过生产验证的库，通常与 Kubernetes 控制器开发紧密关联。借助这个库，团队在没有自行实现的情况下获得了响应性（reactivity）、去重（deduplication）、退避（backoff）和并发控制（concurrency control）等能力。这些能力对于可靠且高效的扩缩容编排至关重要。</p><p>在为这套机制提供近实时信号时，团队选择了最自然的方案：使用 ClickHouse 本身。他们构建了一个由 ClickHouse 支撑的信号表，用于存储和查询扩缩容所需的实时指标。这不仅验证了产品自身的实时分析能力，也让扩缩容决策能够基于更及时的数据。</p><p>这次重构将扩缩容的触发方式从固定周期改为了事件驱动，关键改进是增加了一条反应式快速路径（reactive fast path），能够将扩容操作缩短到秒级完成，而不必等待下一个调度周期。对于运行在 ClickHouse Cloud 上的用户而言，这意味着工作负载突发时，服务容量能够更快地跟上需求，减少因资源不足而导致的性能影响。原文由 Marvin Beckers 发布于 2026 年 8 月 4 日，属于 ClickHouse 工程博客系列。</p></div>
+  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://clickhouse.com/blog/making-clickhouse-cloud-autoscaling-more-reactive" target="_blank" rel="noopener">查看原文 ↗</a></div>
 </div>
-<footer>DataHot · 数据领域 AI 资讯热榜 · 仅聚合摘要与链接，版权归原作者</footer>
+  <div class="card"><h4>🔗 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://clickhouse.com/blog/making-clickhouse-cloud-autoscaling-more-reactive" target="_blank" rel="noopener">ClickHouse Blog（英文）</a><span class='src more'>首发</span><span class="count">2026-08-04 08:00</span></div></div>
+  <div class="card"><h4>📌 相关事件</h4><a class="vendor-row" href="../e/e37fa4fab9fd.html"><span class="n">›</span>Mercado Libre基于ClickHouse Cloud重构可观测性平台，查询提速50倍<span class="count">🔥 47</span></a><a class="vendor-row" href="../e/f24d7f17e186.html"><span class="n">›</span>ClickHouse 26.7发布：性能大幅优化，新增多项查询能力<span class="count">🔥 46</span></a><a class="vendor-row" href="../e/e8b8a1edf33a.html"><span class="n">›</span>ClickHouse托管Postgres的WAL背压机制解析<span class="count">🔥 36</span></a></div>
+</div>
+<footer>DataHot · 数据领域 AI 资讯热榜 · 仅聚合摘要与编译内容，版权归原作者</footer>
 </body></html>

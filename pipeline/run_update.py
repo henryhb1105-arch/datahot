@@ -33,7 +33,8 @@ VENDOR_TAGS = {
     "ClickHouse Blog": ["ClickHouse"], "AWS Big Data Blog": ["AWS"],
     "Fivetran Blog": ["Fivetran"], "StarRocks Blog": ["StarRocks"],
     "Snowflake Engineering（Medium）": ["Snowflake"],
-    "Microsoft Power BI Blog": ["Microsoft", "Power BI"], "Tableau Blog": ["Tableau"],
+    "Microsoft Power BI（Power Platform Blog）": ["Microsoft", "Power BI"],
+    "Tableau Engineering（Medium）": ["Tableau"],
 }
 
 # ── 基础工具 ──────────────────────────────────────────────
@@ -353,7 +354,7 @@ def fetch_bluesky(source):
     min_likes = source.get("min_likes", 10)
     since = (datetime.now(timezone.utc) - timedelta(days=KEEP_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
     for q in source.get("queries", []):
-        url = ("https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts?sort=top&limit=15"
+        url = ("https://bsky.social/xrpc/app.bsky.feed.searchPosts?sort=top&limit=15"
                f"&since={since}&q=" + urllib.parse.quote(q))
         data = json.loads(fetch_url(url))
         for p in data.get("posts", []):

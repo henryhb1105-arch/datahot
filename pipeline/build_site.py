@@ -9,10 +9,44 @@ from collections import defaultdict
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 DETAIL_DIR = SITE / "e"
+TOPIC_DIR = SITE / "topics"
 TZ = timezone(timedelta(hours=8))
 CAT_BADGE = {"agent": "b-agent", "platform": "b-platform", "bi": "b-bi", "product": "b-product"}
 CAT_LABEL = {"agent": "Data Agent", "platform": "AI 数据平台", "bi": "BI 与可视化", "product": "数据产品"}
 WEEK_CN = "一二三四五六日"
+TOPICS_META = json.load(open(ROOT / "pipeline" / "topics.json"))
+TOPIC_SLUG = {t["name"]: t["slug"] for t in TOPICS_META}
+
+SHARED_CSS = """
+.chip{display:inline-block;font-size:11px;background:#eef2ff;color:var(--blue);border-radius:99px;padding:1px 10px;text-decoration:none}
+.chip:hover{background:#dbe4ff}
+.chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px}
+.chiprow::-webkit-scrollbar{display:none}
+.chiprow .fchip{flex-shrink:0;font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
+.chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
+.tabbar{display:none}
+@media(max-width:960px){
+  body{padding-bottom:64px}
+  .tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:70;padding-bottom:env(safe-area-inset-bottom)}
+  .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0 6px;font-size:11px;color:var(--sub);text-decoration:none;gap:2px}
+  .tabbar a .ico{font-size:19px}
+  .tabbar a.on{color:var(--accent);font-weight:600}
+}
+.tgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+@media(max-width:960px){.tgrid{grid-template-columns:1fr}}
+.tcard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;text-decoration:none;display:block;transition:.15s}
+.tcard:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+.tcard h3{font-size:17px;font-weight:800;margin-bottom:6px}
+.tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:10px}
+.tcard .tn{font-size:12px;color:var(--accent);font-weight:700}
+.tcard .tt{font-size:12.5px;color:#4b5563;margin-top:8px;line-height:1.7}
+"""
+
+def tabbar(active, prefix=""):
+    items = [("热榜", "🔥", "index.html", "home"), ("主题", "🗺️", "topics.html", "topics")]
+    return ('<nav class="tabbar">' + "".join(
+        f'<a href="{prefix}{u}" class="{"on" if k == active else ""}"><span class="ico">{i}</span>{n}</a>'
+        for n, i, u, k in items) + "</nav>")
 
 def esc(s):
     return html.escape(s or "", quote=True)
@@ -44,7 +78,7 @@ def sources_html(e, link=False):
             parts.append(f'<span class="src">{esc(sub["source"])}</span>')
     return "".join(parts)
 
-def render_card(e):
+def render_card(e, prefix=""):
     star = '<span class="star">精选</span>' if e.get("star") else ""
     n = len(e["items"])
     also = ""
@@ -52,10 +86,13 @@ def render_card(e):
         names = " · ".join(esc(s["source"]) for s in e["items"][1:])
         also = f'<div class="also">另有 <b>{n-1} 家信源</b>报道：{names}</div>'
     reason = f'<div class="why"><span class="w">推荐理由</span><span>{esc(e["reason"])}</span></div>' if e.get("reason") else ""
+    tchips = "".join(
+        f'<a class="chip" href="{prefix}topics/{TOPIC_SLUG[t]}.html">{esc(t)}</a>'
+        for t in e.get("topics", []) if t in TOPIC_SLUG)
     vtags = "".join(f'<span class="vtag">{esc(v)}</span>' for v in e.get("vendors", []))
-    vbox = f'<div class="vendors">{vtags}</div>' if vtags else ""
-    url = detail_url(e)
-    return f'''<div class="item" data-cat="{e["category"]}" data-link="{url}">
+    vbox = f'<div class="vendors">{tchips}{vtags}</div>' if (tchips or vtags) else ""
+    url = prefix + detail_url(e)
+    return f'''<div class="item" data-cat="{e["category"]}" data-topics="{esc("|".join(e.get("topics", [])))}" data-link="{url}">
       <div class="top"><span>{fmt_time(e["published"])}</span><span>{esc(e["items"][0]["source"])}</span>
       <span class="badge {CAT_BADGE[e["category"]]}">{CAT_LABEL[e["category"]]}</span>{star}
       <span class="heatnum">🔥 {e["heat"]}</span></div>
@@ -101,7 +138,10 @@ def render_detail(e, all_events, css):
                  f'<a href="{esc(s["link"])}" target="_blank" rel="noopener">{esc(s["source"])}{en_note}</a>'
                  f'{first_badge}'
                  f'<span class="count">{fmt_date(s["published"])}</span></div>')
-    vtags = "".join(f'<span class="vtag">{esc(v)}</span>' for v in e.get("vendors", []))
+    tchips = "".join(
+        f'<a class="chip" href="../topics/{TOPIC_SLUG[t]}.html">{esc(t)}</a>'
+        for t in e.get("topics", []) if t in TOPIC_SLUG)
+    vtags = tchips + "".join(f'<span class="vtag">{esc(v)}</span>' for v in e.get("vendors", []))
     desc = esc(e["zh_summary"][:150])
     main_link = esc(sorted_items[0]["link"])
     main_src = esc(sorted_items[0]["source"])
@@ -175,6 +215,70 @@ def render_detail(e, all_events, css):
   <div class="card"><h4>📌 相关事件</h4>{rel_html}</div>
 </div>
 <footer>DataHot · 数据领域 AI 资讯热榜 · 仅聚合摘要与编译内容，版权归原作者</footer>
+{tabbar("home", "../")}
+</body></html>'''
+
+def render_topics_map(events, css):
+    """主题地图页：8 个主题的卡片墙"""
+    cards = ""
+    for t in TOPICS_META:
+        evs = [e for e in events if t["name"] in e.get("topics", [])]
+        if not evs:
+            continue
+        latest = "".join(f'<div class="tt">· {esc(e["zh_title"][:36])}</div>' for e in evs[:3])
+        cards += f'''<a class="tcard" href="topics/{t["slug"]}.html">
+  <h3>{esc(t["name"])}</h3>
+  <div class="td">{esc(t["desc"])}</div>
+  <div class="tn">{len(evs)} 个事件 →</div>{latest}
+</a>'''
+    return page_shell("主题地图 · DataHot", "按主题看数据领域：8 条持续演进的叙事线", css, f'''
+<div class="wrap" style="padding:28px 20px 60px;max-width:900px">
+  <div class="section-title"><h2>🗺️ 主题地图</h2><span>按议题看数据领域 · 持续更新</span></div>
+  <div class="tgrid">{cards}</div>
+</div>''', tabbar("topics"))
+
+def render_topic_page(t, events, css):
+    """单个主题页：导语 + 该主题事件时间轴"""
+    evs = [e for e in events if t["name"] in e.get("topics", [])]
+    vendors = sorted({v for e in evs for v in e.get("vendors", [])})
+    vtags = "".join(f'<span class="vtag">{esc(v)}</span>' for v in vendors)
+    days = defaultdict(list)
+    for e in evs:
+        days[day_key(e["published"])].append(e)
+    timeline = ""
+    for d in sorted(days, reverse=True):
+        timeline += f'<div class="day"><div class="day-head"><span class="date">{d.month}月{d.day}日</span><span class="info">{len(days[d])} 个事件</span></div>'
+        timeline += "\n".join(render_card(e, prefix="../") for e in days[d])
+        timeline += "</div>"
+    body = f'''
+<div class="wrap" style="padding:28px 20px 60px;max-width:900px">
+  <a class="back" href="../topics.html" style="font-size:13px;color:var(--sub)">← 主题地图</a>
+  <h1 style="font-size:26px;font-weight:800;margin:14px 0 6px">{esc(t["name"])}</h1>
+  <p style="font-size:14px;color:var(--sub);margin-bottom:8px">{esc(t["desc"])}</p>
+  <p style="font-size:12.5px;color:var(--sub);margin-bottom:18px">近 7 天收录 {len(evs)} 个事件 · 每 6 小时更新</p>
+  {f'<div class="vendors" style="margin-bottom:18px">{vtags}</div>' if vtags else ""}
+  {timeline}
+</div>'''
+    return page_shell(f"{t['name']} · DataHot 主题", t["desc"], css, body, tabbar("topics", "../"), prefix="../")
+
+def page_shell(title, desc, css, body, tabbar_html, prefix=""):
+    return f'''<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{esc(title)}</title>
+<meta name="description" content="{esc(desc)}">
+<link rel="icon" href="{prefix}favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="{prefix}icons/apple-touch-icon.png">
+<meta name="theme-color" content="#1a1d23">
+<style>{css}
+{SHARED_CSS}
+</style></head><body>
+<header><div class="wrap nav">
+  <div class="logo"><a href="{prefix}index.html" style="text-decoration:none">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
+</div></header>
+{body}
+<footer>DataHot · 数据领域 AI 资讯热榜 · 仅聚合摘要与链接，版权归原作者</footer>
+{tabbar_html}
 </body></html>'''
 
 def main():
@@ -192,6 +296,18 @@ def main():
     # 清理过期详情页
     for f in DETAIL_DIR.glob("*.html"):
         if f.name not in valid_ids:
+            f.unlink()
+
+    # ── 主题地图 + 主题页 ──
+    TOPIC_DIR.mkdir(parents=True, exist_ok=True)
+    (SITE / "topics.html").write_text(render_topics_map(events, css), encoding="utf-8")
+    valid_topic_slugs = set()
+    for t in TOPICS_META:
+        if any(t["name"] in e.get("topics", []) for e in events):
+            valid_topic_slugs.add(t["slug"] + ".html")
+            (TOPIC_DIR / (t["slug"] + ".html")).write_text(render_topic_page(t, events, css), encoding="utf-8")
+    for f in TOPIC_DIR.glob("*.html"):
+        if f.name not in valid_topic_slugs:
             f.unlink()
 
     # ── 热点榜 ──
@@ -231,6 +347,12 @@ def main():
     bad = [s["name"] for s in payload["sources"] if not s["ok"]]
     bad_txt = "、".join(bad) if bad else "0 ✅"
 
+    # 主题筛选条：只显示当前有事件的主题
+    active_topics = {t for e in events for t in e.get("topics", [])}
+    topic_fchips = "".join(
+        f'<span class="fchip" data-topic="{esc(t["name"])}">{esc(t["name"])}</span>'
+        for t in TOPICS_META if t["name"] in active_topics)
+
     page = f'''<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -248,9 +370,13 @@ def main():
 <meta name="apple-mobile-web-app-title" content="DataHot">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>{css}
+{SHARED_CSS}
 .item a:hover{{color:var(--accent)}}
 .hot a:hover{{color:var(--accent)}}
+#ptr{{position:fixed;top:0;left:0;right:0;height:0;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;background:var(--bg);z-index:60;transition:height .12s ease-out}}
+#ptr span{{font-size:12.5px;color:var(--sub);padding-bottom:8px}}
 </style></head><body>
+<div id="ptr"><span>下拉刷新</span></div>
 <header><div class="wrap nav">
   <div class="logo">Data<em>Hot</em><span class="tag">每 6 小时更新</span></div>
   <nav class="tabs" id="tabs">
@@ -259,14 +385,19 @@ def main():
     <span class="tab" data-cat="platform">🏗️ AI 数据平台</span>
     <span class="tab" data-cat="bi">📊 BI 与可视化</span>
     <span class="tab" data-cat="product">🧩 数据产品</span>
+    <a class="tab" href="topics.html" style="text-decoration:none">🗺️ 主题</a>
   </nav>
-  <div class="search" onclick="document.getElementById('q').focus()">🔍 <input id="q" placeholder="搜索标题…" style="border:none;outline:none;background:transparent;font-size:13px;width:110px"></div>
+  <div class="search" onclick="document.getElementById('q').focus()">🔍 <input id="q" placeholder="搜索标题 / 主题…" style="border:none;outline:none;background:transparent;font-size:13px;width:110px"></div>
 </div></header>
 
 <div class="wrap"><div class="layout"><main>
   <div class="section-title"><h2>🔥 本期热点</h2><span>多信源聚簇 · 按热度排序</span></div>
   <div class="hotlist">{hot_cards}</div>
   <div class="section-title"><h2>📅 时间轴</h2><span>近 7 天 · 按日分组</span></div>
+  <div class="chiprow" id="chiprow">
+    <span class="fchip on" data-topic="all">全部</span>
+    {topic_fchips}
+  </div>
   {timeline}
 </main>
 
@@ -287,14 +418,28 @@ def main():
 </div></div>
 
 <footer>DataHot · 数据领域 AI 资讯热榜 · 仅聚合摘要与链接，版权归原作者 · 每 6 小时自动更新</footer>
+{tabbar("home")}
 
 <script>
-const tabs=document.querySelectorAll('#tabs .tab');
+const tabs=document.querySelectorAll('#tabs .tab[data-cat]');
 tabs.forEach(t=>t.addEventListener('click',()=>{{
   tabs.forEach(x=>x.classList.remove('on'));t.classList.add('on');
   const c=t.dataset.cat;
   document.querySelectorAll('.item').forEach(el=>{{
     el.style.display=(c==='all'||el.dataset.cat===c)?'':'none';
+  }});
+}}));
+// 主题筛选条
+document.querySelectorAll('#chiprow .fchip').forEach(c=>c.addEventListener('click',()=>{{
+  document.querySelectorAll('#chiprow .fchip').forEach(x=>x.classList.remove('on'));
+  c.classList.add('on');
+  const t=c.dataset.topic;
+  document.querySelectorAll('.item').forEach(el=>{{
+    el.style.display=(t==='all'||(el.dataset.topics||'').split('|').includes(t))?'':'none';
+  }});
+  document.querySelectorAll('.day').forEach(d=>{{
+    const any=Array.from(d.querySelectorAll('.item')).some(el=>el.style.display!=='none');
+    d.style.display=any?'':'none';
   }});
 }}));
 document.getElementById('q').addEventListener('input',e=>{{
@@ -311,6 +456,34 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
     if(url) location.href=url;
   }});
 }});
+// 移动端下拉刷新
+(function(){{
+  const ind=document.getElementById('ptr');
+  let startY=null,dy=0;
+  const THRESH=72;
+  window.addEventListener('touchstart',e=>{{
+    startY=(window.scrollY<=0)?e.touches[0].clientY:null;
+    dy=0;
+  }},{{passive:true}});
+  window.addEventListener('touchmove',e=>{{
+    if(startY===null) return;
+    dy=e.touches[0].clientY-startY;
+    if(dy<=0||window.scrollY>0){{ind.style.height='0px';return;}}
+    if(dy>8&&e.cancelable) e.preventDefault();
+    const h=Math.min(dy*0.5,THRESH+20);
+    ind.style.height=h+'px';
+    ind.firstElementChild.textContent=dy>THRESH?'松开刷新':'下拉刷新';
+  }},{{passive:false}});
+  window.addEventListener('touchend',()=>{{
+    if(dy>THRESH){{
+      ind.firstElementChild.textContent='刷新中…';
+      location.reload();
+    }}else{{
+      ind.style.height='0px';
+    }}
+    startY=null;dy=0;
+  }},{{passive:true}});
+}})();
 </script>
 </body></html>'''
 

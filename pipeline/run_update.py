@@ -27,6 +27,9 @@ socket.setdefaulttimeout(20)
 
 CATEGORIES_LABEL = dict(agent="Data Agent", platform="AI 数据平台", bi="BI 与可视化", product="数据产品")
 
+TOPICS_META = json.load(open(Path(__file__).resolve().parent / "topics.json"))
+TOPIC_NAMES = [t["name"] for t in TOPICS_META]
+
 VENDOR_TAGS = {
     "Databricks Blog": ["Databricks"], "dbt Blog": ["dbt Labs"],
     "ThoughtSpot Blog": ["ThoughtSpot"], "Metabase Blog": ["Metabase"],
@@ -182,7 +185,7 @@ ENRICH_RULES = """你是一个数据领域垂直资讯站的编辑。本站只�
 标题 "Airbnb 测试 AI 搜索功能" → {"relevant": false}
 
 输出 JSON（不要输出多余内容）：
-{"relevant": true或false, "zh_title": "中文标题(≤40字)", "zh_summary": "中文摘要3-4句，保留产品名与数字，不得编造原文没有的信息", "reason": "推荐理由：为什么数据从业者应关注，1-2句", "full_zh": "基于原文的完整中文编译稿，4-8个自然段、500-800字，保留所有关键信息（产品名、公司名、数字、时间、人名），段落之间用两个换行符分隔；严格忠于原文，不得编造原文没有的内容；若提供的原文信息不足，则在摘要基础上适度展开但总量不少于300字", "category": "agent|platform|bi|product", "vendors": ["提到的数据厂商，如Snowflake/Databricks/PowerBI/帆软等，没有则空数组"], "importance": 1-100整数}"""
+{"relevant": true或false, "zh_title": "中文标题(≤40字)", "zh_summary": "中文摘要3-4句，保留产品名与数字，不得编造原文没有的信息", "reason": "推荐理由：为什么数据从业者应关注，1-2句", "full_zh": "基于原文的完整中文编译稿，4-8个自然段、500-800字，保留所有关键信息（产品名、公司名、数字、时间、人名），段落之间用两个换行符分隔；严格忠于原文，不得编造原文没有的内容；若提供的原文信息不足，则在摘要基础上适度展开但总量不少于300字", "category": "agent|platform|bi|product", "topics": ["从主题词表选0-2个：ChatBI/Data Agent/语义层/平台AI化/BI变局/湖仓/实时分析/数据人，没有合适的就空数组，宁缺毋滥"], "vendors": ["提到的数据厂商，如Snowflake/Databricks/PowerBI/帆软等，没有则空数组"], "importance": 1-100整数}"""
 
 def llm_enrich(items, cfg):
     key, base, model = cfg
@@ -207,6 +210,7 @@ def llm_enrich(items, cfg):
             it["category"], it["category_label"] = cat, CATEGORIES_LABEL[cat]
         llm_vendors = [v for v in (out.get("vendors") or []) if isinstance(v, str) and v.strip()]
         it["vendors"] = list(dict.fromkeys(it.get("vendors", []) + llm_vendors))[:5]
+        it["topics"] = [t for t in (out.get("topics") or []) if t in TOPIC_NAMES][:2]
         it["importance"] = int(out.get("importance", 50))
         it["heat"] = calc_heat(it["importance"], it.get("_pub_dt"), it.get("signal", 0))
         return it
@@ -326,6 +330,7 @@ def make_event(it):
         "category": it["category"], "category_label": it["category_label"],
         "vendors": it.get("vendors", []), "heat": it["heat"], "star": it.get("star", False),
         "importance": it.get("importance", 50), "signal": it.get("signal", 0),
+        "topics": it.get("topics", []),
         "published": it["published"],
         "items": [{"id": it["id"], "source": it["source"], "link": it["link"],
                    "published": it["published"], "title": it["title"]}],
@@ -348,6 +353,7 @@ def merge_into(e, it):
     if len(it.get("full_zh", "")) > len(e.get("full_zh", "")):
         e["full_zh"] = it["full_zh"]
     e["vendors"] = list(dict.fromkeys(e.get("vendors", []) + it.get("vendors", [])))[:5]
+    e["topics"] = [t for t in dict.fromkeys(e.get("topics", []) + it.get("topics", []))][:3]
 
 # ── HN 信源 ───────────────────────────────────────────────
 def fetch_hn_algolia(source):
@@ -478,7 +484,7 @@ def main():
                     "vendors": VENDOR_TAGS.get(s["name"], []),
                     "vendor_default": s["type"] == "vendor",
                     "published": pub.isoformat(), "_pub_dt": pub_dt,
-                    "signal": e.get("signal", 0), "importance": 50,
+                    "signal": e.get("signal", 0), "importance": 50, "topics": [],
                     "heat": calc_heat(50, pub_dt, e.get("signal", 0)),
                     "star": s["type"] == "vendor" and s["weight"] >= 3,
                     "article_text": "",

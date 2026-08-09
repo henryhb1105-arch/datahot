@@ -8,10 +8,28 @@
 <meta name="theme-color" content="#1a1d23">
 <style>
   :root{
+    color-scheme: light dark;
     --bg:#f6f7f9; --card:#ffffff; --ink:#1a1d23; --sub:#6b7280; --line:#e5e7eb;
     --accent:#d94f2b; --accent-soft:#fdf0ec;
     --blue:#2563eb; --green:#0f9d6c; --purple:#7c3aed; --amber:#b45309;
+    --txt2:#4b5563; --txt3:#374151; --soft:#f3f4f6; --hover:#f0f1f3;
     --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#121417; --card:#1e2126; --ink:#e9ebef; --sub:#9aa1ab; --line:#2e323a;
+      --accent:#e5603c; --accent-soft:rgba(229,96,60,.16);
+      --blue:#6ea8ff; --green:#34c98e; --purple:#a78bfa; --amber:#e0a455;
+      --txt2:#b6bcc6; --txt3:#cdd2da; --soft:#2a2e35; --hover:#2a2e35;
+    }
+    .tab.on,.fchip.on{background:var(--ink);color:#121417}
+    .sh-group,.sh-cancel{background:rgba(30,33,38,.97)}
+    .sh-opt{color:var(--ink);border-bottom-color:var(--line)}
+    .sh-title{border-bottom-color:var(--line)}
+    .sbtn{color:#121417}
+    .sbtn.ghost{background:var(--card);color:var(--ink);border-color:var(--line)}
+    .sub-box input,.tlsearch{color:var(--ink)}
+    .mock-banner{background:#000}
   }
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
@@ -26,7 +44,7 @@
   .logo .tag{font-size:11px;font-weight:500;color:var(--sub);margin-left:8px;border:1px solid var(--line);border-radius:99px;padding:2px 8px;vertical-align:middle}
   .tabs{display:flex;gap:4px;flex:1}
   .tab{padding:6px 14px;border-radius:99px;font-size:14px;color:var(--sub);cursor:pointer;white-space:nowrap}
-  .tab:hover{background:#f0f1f3}
+  .tab:hover{background:var(--hover)}
   .tab.on{background:var(--ink);color:#fff;font-weight:600}
   .search{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:6px 14px;font-size:13px;color:var(--sub);min-width:180px;cursor:pointer}
   .btn-sub{background:var(--accent);color:#fff;border-radius:99px;padding:7px 16px;font-size:13px;font-weight:600;white-space:nowrap}
@@ -93,7 +111,7 @@
   .hot .heat{position:absolute;top:12px;right:16px;font-size:12px;color:var(--accent);font-weight:700}
   .hot h3{font-size:15px;font-weight:700;margin:14px 0 8px;line-height:1.5}
   .hot .sources{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
-  .src{font-size:11px;background:#f3f4f6;color:var(--sub);border-radius:6px;padding:2px 8px}
+  .src{font-size:11px;background:var(--soft);color:var(--sub);border-radius:6px;padding:2px 8px}
   .src.more{background:var(--accent-soft);color:var(--accent)}
 
   /* ── 时间轴 ── */
@@ -113,10 +131,10 @@
   .star{color:var(--accent);font-weight:700}
   .item .heatnum{margin-left:auto;font-weight:800;color:var(--accent);font-size:13px}
   .item h3{font-size:16px;font-weight:700;margin:8px 0 6px;line-height:1.55}
-  .item .sum{font-size:13.5px;color:#4b5563;line-height:1.75}
+  .item .sum{font-size:13.5px;color:var(--txt2);line-height:1.75}
   .item .also{margin-top:10px;font-size:12px;color:var(--sub)}
   .item .also b{color:var(--ink)}
-  .why{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px;font-size:13px;color:#374151;display:flex;gap:8px}
+  .why{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px;font-size:13px;color:var(--txt3);display:flex;gap:8px}
   .why .w{color:var(--accent);font-weight:700;white-space:nowrap}
   .vendors{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
   .vtag{font-size:11px;border:1px solid var(--line);color:var(--sub);border-radius:99px;padding:1px 10px}
@@ -125,13 +143,13 @@
   /* ── 侧栏 ── */
   aside .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
   aside h4{font-size:14px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:6px}
-  .vendor-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f3f4f6;font-size:13px;cursor:pointer}
+  .vendor-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--soft);font-size:13px;cursor:pointer}
   .vendor-row:last-child{border-bottom:none}
   .vendor-row .n{width:16px;color:var(--sub);font-size:12px}
   .vendor-row .count{margin-left:auto;font-size:12px;color:var(--accent);font-weight:700}
   .up{transform:scale(.8)}
-  .sub-box input{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:8px;outline:none}
-  .sub-box button{width:100%;background:var(--ink);color:#fff;border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer}
+  .sub-box input{width:100%;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:8px;outline:none}
+  .sub-box button{width:100%;background:var(--ink);color:var(--bg);border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer}
   .status{font-size:12.5px;color:var(--sub);line-height:2}
   .status b{color:var(--green)}
   .legend{display:flex;flex-direction:column;gap:6px;font-size:12.5px}
@@ -169,7 +187,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .tcard h3{font-size:17px;font-weight:800;margin-bottom:6px}
 .tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:10px}
 .tcard .tn{font-size:12px;color:var(--accent);font-weight:700}
-.tcard .tt{font-size:12.5px;color:#4b5563;margin-top:8px;line-height:1.7}
+.tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7}
 
 </style></head><body>
 <header><div class="wrap nav">

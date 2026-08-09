@@ -45,7 +45,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .tcard h3{font-size:17px;font-weight:800;margin-bottom:6px}
 .tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:10px}
 .tcard .tn{font-size:12px;color:var(--accent);font-weight:700}
-.tcard .tt{font-size:12.5px;color:#4b5563;margin-top:8px;line-height:1.7}
+.tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7}
 """
 
 def tabbar(active, prefix=""):
@@ -191,13 +191,13 @@ def render_detail(e, all_events, css):
 .article .back:hover{{color:var(--accent)}}
 .article h1{{font-size:24px;font-weight:800;line-height:1.5;margin:12px 0 16px}}
 .article .meta{{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}}
-.article .body{{font-size:15.5px;line-height:1.9;color:#374151;margin:20px 0}}
+.article .body{{font-size:15.5px;line-height:1.9;color:var(--txt3);margin:20px 0}}
 .article .card{{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}}
 .article h4{{font-size:14px;font-weight:800;margin-bottom:10px}}
 .article .vendor-row{{text-decoration:none}}
 .cta{{display:inline-block;background:var(--accent);color:#fff;font-size:14px;font-weight:700;border-radius:10px;padding:11px 26px;margin:6px 0 4px}}
 .cta:hover{{opacity:.9}}
-.fulltext p{{font-size:15px;line-height:1.95;color:#374151;margin:0 0 14px}}
+.fulltext p{{font-size:15px;line-height:1.95;color:var(--txt3);margin:0 0 14px}}
 .disclaimer{{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}}
 .disclaimer a{{color:var(--accent)}}
 </style></head><body>
@@ -254,7 +254,7 @@ def share_ui(e, page_url):
 <div class="sh-poster-modal" id="shPoster">
   <div class="sh-poster-wrap"><img id="shPosterImg" alt="分享海报"></div>
   <div class="sh-poster-actions">
-    <a class="sh-save" id="shSave" download="datahot-share.png">保存图片</a>
+    <a class="sh-save" id="shSave" href="#" onclick="shSaveClick(event)">保存图片</a>
     <button class="sh-close" onclick="shClose()">关闭</button>
   </div>
   <div class="sh-poster-tip">iOS 也可以长按图片保存</div>
@@ -312,6 +312,14 @@ function shCopy(){
   function done(){shToast('链接已复制，去粘贴吧');}
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(SH_EV.url).then(done,done);}
   else{var i=document.createElement('input');i.value=SH_EV.url;document.body.appendChild(i);i.select();try{document.execCommand('copy');}catch(e){} i.remove();done();}
+}
+function shSaveClick(ev){
+  ev.preventDefault();
+  if(!posterURL){return;}
+  var bu=URL.createObjectURL(dataToBlob(posterURL));
+  var w=window.open(bu,'_blank');
+  if(!w){shToast('请长按图片保存到相册');}
+  else{shToast('已在新页面打开，长按图片保存');}
 }
 function shNative(){
   shClose();
@@ -389,9 +397,15 @@ function openPoster(){
   qr.onerror=function(){posterURL=drawPoster(null);showPoster();};
   qr.src='https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=0&data='+encodeURIComponent(SH_EV.url);
 }
+function dataToBlob(d){
+  var p=d.split(','),m=p[0].match(/:(.*?);/)[1],b=atob(p[1]),a=new Uint8Array(b.length);
+  for(var i=0;i<b.length;i++){a[i]=b.charCodeAt(i);}
+  return new Blob([a],{type:m});
+}
 function showPoster(){
   document.getElementById('shPosterImg').src=posterURL;
-  document.getElementById('shSave').href=posterURL;
+  var a=document.getElementById('shSave');
+  a.href=URL.createObjectURL(dataToBlob(posterURL)); a.target='_blank';
 }
 </script>""".replace("__EV_JSON__", ev_json)
 

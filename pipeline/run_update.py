@@ -76,7 +76,12 @@ def fetch_url(url, timeout=20):
 
 def fetch_feed(url):
     raw = fetch_url(url)
+    # 修复裸 & 和未声明的 HTML 实体（如 &nbsp;），否则 XML 解析失败
     raw = re.sub(rb'&(?!amp;|lt;|gt;|quot;|apos;|#)', b'&amp;', raw)
+    for ent, ch in [(b"&amp;nbsp;", " "), (b"&amp;mdash;", "—"), (b"&amp;ndash;", "–"),
+                    (b"&amp;hellip;", "…"), (b"&amp;lsquo;", "'"), (b"&amp;rsquo;", "'"),
+                    (b"&amp;ldquo;", """), (b"&amp;rdquo;", """), (b"&amp;middot;", "·")]:
+        raw = raw.replace(ent, ch.encode("utf-8"))
     return ET.fromstring(raw)
 
 def text_of(el, *names):

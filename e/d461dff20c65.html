@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>从分析工程师到上下文工程师的转型 · DataHot</title>
-<meta name="description" content="本文是一系列关于数据建模范式转变文章的首篇，探讨了从为仪表盘建模数据到为智能体建模上下文的转变。作者以Gong公司的实际数据为例，阐述了这一转型的具体实践。文章强调数据从业者需要适应为AI代理准备上下文数据的新角色。">
-<meta property="og:title" content="从分析工程师到上下文工程师的转型">
-<meta property="og:description" content="本文是一系列关于数据建模范式转变文章的首篇，探讨了从为仪表盘建模数据到为智能体建模上下文的转变。作者以Gong公司的实际数据为例，阐述了这一转型的具体实践。文章强调数据从业者需要适应为AI代理准备上下文数据的新角色。">
+<title>从分析工程师到上下文工程师 · DataHot</title>
+<meta name="description" content="dbt Labs 发文探讨企业 AI 部署从“为仪表盘建模数据”转向“为 Agent 建模上下文”。文章以自身为例，起初直接使用供应商 MCP 连接 Gong 等数据源，导致单次通话分析消耗高达 5 万 Token（约 0.25 美元），总数据量超 5 亿 Token。他们随后将原始数据摄入数仓并通">
+<link rel="canonical" href="https://henryhb1105-arch.github.io/datahot/e/d461dff20c65.html">
+<meta property="og:title" content="从分析工程师到上下文工程师">
+<meta property="og:description" content="dbt Labs 发文探讨企业 AI 部署从“为仪表盘建模数据”转向“为 Agent 建模上下文”。文章以自身为例，起初直接使用供应商 MCP 连接 Gong 等数据源，导致单次通话分析消耗高达 5 万 Token（约 0.25 美元），总数据量超 5 亿 Token。他们随后将原始数据摄入数仓并通">
 <meta property="og:type" content="article">
+<meta property="og:url" content="https://henryhb1105-arch.github.io/datahot/e/d461dff20c65.html">
 <meta property="og:site_name" content="DataHot · 数据领域 AI 热榜">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "NewsArticle", "headline": "从分析工程师到上下文工程师", "description": "dbt Labs 发文探讨企业 AI 部署从“为仪表盘建模数据”转向“为 Agent 建模上下文”。文章以自身为例，起初直接使用供应商 MCP 连接 Gong 等数据源，导致单次通话分析消耗高达 5 万 Token（约 0.25 美元），总数据量超 5 亿 Token。他们随后将原始数据摄入数仓并通", "datePublished": "2026-08-06T21:00:00+08:00", "inLanguage": "zh-CN", "isBasedOn": "https://www.getdbt.com/blog/from-analytics-engineer-to-context-engineer", "publisher": {"@type": "Organization", "name": "DataHot"}}</script>
 <style>
   :root{
     --bg:#f6f7f9; --card:#ffffff; --ink:#1a1d23; --sub:#6b7280; --line:#e5e7eb;
@@ -110,6 +113,12 @@
 .article .body{font-size:15.5px;line-height:1.9;color:#374151;margin:20px 0}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
+.article .vendor-row{text-decoration:none}
+.cta{display:inline-block;background:var(--accent);color:#fff;font-size:14px;font-weight:700;border-radius:10px;padding:11px 26px;margin:6px 0 4px}
+.cta:hover{opacity:.9}
+.fulltext p{font-size:15px;line-height:1.95;color:#374151;margin:0 0 14px}
+.disclaimer{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}
+.disclaimer a{color:var(--accent)}
 </style></head><body>
 <header><div class="wrap nav">
   <div class="logo"><a href="../index.html">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
@@ -119,15 +128,20 @@
   <div class="meta">
     <span class="badge b-agent">Data Agent</span>
     <span class="star">精选</span>
-    <span>2026-08-06 21:00</span>
-    <span style="margin-left:auto" class="heatnum">🔥 54 热度</span>
+    <span title="2026-08-06 21:00">2 天前</span>
+    <span style="margin-left:auto" class="heatnum">🔥 48 热度</span>
   </div>
-  <h1>从分析工程师到上下文工程师的转型</h1>
-  <div class="body">本文是一系列关于数据建模范式转变文章的首篇，探讨了从为仪表盘建模数据到为智能体建模上下文的转变。作者以Gong公司的实际数据为例，阐述了这一转型的具体实践。文章强调数据从业者需要适应为AI代理准备上下文数据的新角色。</div>
-  <div class="why" style="border-top:1px dashed var(--line);padding-top:14px;font-size:14px"><span class="w">推荐理由</span><span>数据从业者需关注AI代理时代数据建模范式的变革，此文提供了从BI仪表盘建模到Agent上下文建模的转型案例，具有前瞻性。</span></div>
-  <div class="vendors" style="margin-top:14px"><span class="vtag">dbt Labs</span></div>
-  <div class="card"><h4>🔗 信源（1 家报道）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://www.getdbt.com/blog/from-analytics-engineer-to-context-engineer" target="_blank" rel="noopener">dbt Blog</a><span class="count">2026-08-06 21:00</span></div></div>
-  <div class="card"><h4>📌 相关事件</h4><div class="vendor-row" data-link="../e/88180736a8a8.html" onclick="location.href='../e/88180736a8a8.html'"><span class="n">›</span>保持ChatGPT快速：AI开发加速下的性能优化<span class="count">🔥 49</span></div><div class="vendor-row" data-link="../e/6cfd73970ab9.html" onclick="location.href='../e/6cfd73970ab9.html'"><span class="n">›</span>Cloudflare Precursor通过持续行为分析检测机器人与AI代理<span class="count">🔥 49</span></div><div class="vendor-row" data-link="../e/80b68dbe888e.html" onclick="location.href='../e/80b68dbe888e.html'"><span class="n">›</span>Cloudflare推出面向AI代理的持久化有状态类计算机环境<span class="count">🔥 48</span></div></div>
+  <h1>从分析工程师到上下文工程师</h1>
+  <div class="body">dbt Labs 发文探讨企业 AI 部署从“为仪表盘建模数据”转向“为 Agent 建模上下文”。文章以自身为例，起初直接使用供应商 MCP 连接 Gong 等数据源，导致单次通话分析消耗高达 5 万 Token（约 0.25 美元），总数据量超 5 亿 Token。他们随后将原始数据摄入数仓并通过建模总结，以降低成本和掌控上下文层。</div>
+  <a class="cta" href="https://www.getdbt.com/blog/from-analytics-engineer-to-context-engineer" target="_blank" rel="noopener">阅读原文 · dbt Blog ↗</a>
+  <div class="why" style="border-top:1px dashed var(--line);padding-top:14px;margin-top:18px;font-size:14px"><span class="w">推荐理由</span><span>数据从业者应关注这一从 analytics engineering 到 context engineering 的范式转变，它直接关系到 AI Agent 如何高效、可控地连接企业数据资产。</span></div>
+  <div class="vendors" style="margin-top:14px"><span class="vtag">dbt Labs</span><span class="vtag">Gong</span><span class="vtag">Salesforce</span></div>
+  <div class="card"><h4>📄 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
+  <div class="fulltext"><p>dbt Labs 近日发文指出，大多数企业在企业级 AI 部署中正在走捷径，并陷入数据团队早已熟悉的经典陷阱。所谓“捷径”，就是将 AI 直接接入供应商提供的 MCP（模型上下文协议），再连到源数据提供方。这种方式正在让企业付出高昂的 token 消耗、供应商 API 费用，并导致数据所有权和可移植性的缺失。</p><p>dbt Labs 自己最初也不例外。他们使用了供应商 MCP，直到发现这些隐性成本远超预期。他们意识到，将 AI 连接到数据的最高效、可扩展的方式，其实正是他们一直倡导的路线：将数据集中到数据仓库中，直接在数仓内工程化上下文。这让他们有机会掌控 AI 的上下文层，并扩展数据团队的职责边界。</p><p>故事始于 Claude 在组织内部推广。销售团队成为最高频的用户群之一，他们连接 Gong、Salesforce 等丰富上下文来源来剖析交易。当 GTM 团队提出客户洞察需求，希望防止流失并识别高价值客户时，dbt Labs 起初同意了，并允许他们通过原生 MCP 将 AI Agent 直接连接到 Gong 数据进行分析。</p><p>成本很快失控。数百名销售人员每天多次使用这些数据，分析单个通话最多消耗 50,000 个 token，相当于 AI 读取一次通话记录就要花费 0.25 美元。而他们可调用的 Gong 通话转录数据总量超过 5 亿 token。大量销售人员在一天中运行多次 Claude 会话，AI 总支出在规模效应下显著上升。</p><p>于是 dbt Labs 决定采取新方法：将原始 Gong 数据摄入数据仓库，并通过数据建模来总结每一通通话。这种方法把 AI 读取的原始内容转化为结构化、精炼的上下文，从而大幅降低 token 消耗，同时让数据团队重新掌握对数据资产的控制权。</p><p>这一转变标志着数据团队的角色正在从“为仪表盘建模”演进为“为 Agent 建模上下文”。dbt Labs 称其为从 analytics engineer 到 context engineer 的转变，并计划以此为开篇，系列探讨企业如何构建可扩展、可拥有的 AI 上下文层。</p></div>
+  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://www.getdbt.com/blog/from-analytics-engineer-to-context-engineer" target="_blank" rel="noopener">查看原文 ↗</a></div>
 </div>
-<footer>DataHot · 数据领域 AI 资讯热榜 · 仅聚合摘要与链接，版权归原作者</footer>
+  <div class="card"><h4>🔗 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://www.getdbt.com/blog/from-analytics-engineer-to-context-engineer" target="_blank" rel="noopener">dbt Blog（英文）</a><span class="src more">首发</span><span class="count">2026-08-06 21:00</span></div></div>
+  <div class="card"><h4>📌 相关事件</h4><a class="vendor-row" href="../e/5155dc60a496.html"><span class="n">›</span>为MCP上的Agent会话提供产品分析与评测工具<span class="count">🔥 38</span></a><a class="vendor-row" href="../e/9f1a279db0dc.html"><span class="n">›</span>Databricks解读AI助手：从SQL生成到数据治理<span class="count">🔥 48</span></a><a class="vendor-row" href="../e/08162567f084.html"><span class="n">›</span>什么是Agentic Workflows？Databricks解读智能代理工作流<span class="count">🔥 54</span></a></div>
+</div>
+<footer>DataHot · 数据领域 AI 资讯热榜 · 仅聚合摘要与编译内容，版权归原作者</footer>
 </body></html>

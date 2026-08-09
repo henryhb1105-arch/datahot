@@ -1,6 +1,187 @@
 {
- "generated_at": "2026-08-10T00:31:47.899024+08:00",
+ "generated_at": "2026-08-10T01:04:09.418108+08:00",
  "events": [
+  {
+   "event_id": "bb635a23106c",
+   "zh_title": "Snowflake 发布动态表 CREATE OR ALTER 命令 GA",
+   "zh_summary": "Snowflake 在2026年8月2日至6日的版本说明中宣布，CREATE OR ALTER DYNAMIC TABLE 命令正式全面可用（GA）。该命令合并了 CREATE DYNAMIC TABLE 和 ALTER DYNAMIC TABLE 的功能，若表不存在则创建，若存在则按定义修改，若已匹配则不执行操作。该功能于8月3日加入文档，8月6日发布最终版本。",
+   "reason": "Snowflake 数据管道核心能力更新，动态表管理简化，数据工程师可直接关注。",
+   "full_zh": "Snowflake 于2026年8月2日至8月6日期间发布了10.27版本说明，其中最值得关注的更新是数据管道领域：CREATE OR ALTER DYNAMIC TABLE 命令正式全面可用（GA）。\n\n这一命令将原本分离的 CREATE DYNAMIC TABLE 和 ALTER DYNAMIC TABLE 合并为一个原子操作。用户不再需要先判断动态表是否存在，再决定执行创建或修改语句。Snowflake 会在运行时自动判断：如果目标动态表不存在，则按 CREATE 语义执行；如果已存在，则按 ALTER 语义将表结构更新为语句中的定义，并尽可能保留已有数据；如果现有定义与语句完全匹配，则该命令不产生任何实际变更，相当于空操作。\n\n动态表是 Snowflake 数据管道中用于声明式流式处理的表对象，能够自动维护基于源表转换后的结果。此前用户需要通过两条独立命令分别完成创建和修改，而新命令简化了自动化脚本和基础设施即代码（IaC）的编写逻辑，减少条件判断分支，降低出错概率。\n\n根据版本说明的时间线，该功能最初以预览形式纳入文档，8月3日被正式添加到 Data pipeline updates 部分，随后8月6日发布最终版本说明。Snowflake 同时提醒用户，若需了解预告版与最终版之间的差异，可参考 Release notes change log。\n\n此外，该页面还提供了面向 AI 代理的文档索引地址 /llms.txt，方便自动化工具抓取所有 Snowflake 文档页面，并提供了 Markdown 格式版本链接。这一细节表明 Snowflake 正在优化文档对 AI 代理的友好性，但本次发布的核心仍是动态表管理能力的增强。\n\n对于使用 Snowflake 做数据管道管理的团队来说，CREATE OR ALTER DYNAMIC TABLE 的 GA 意味着更简洁的部署流程和更稳定的状态管理，尤其适合大规模自动化调度场景。",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [
+    "Snowflake"
+   ],
+   "heat": 45,
+   "star": true,
+   "importance": 62,
+   "signal": 0,
+   "topics": [],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-08-10T01:04:09.418108+08:00",
+   "items": [
+    {
+     "id": "bb635a23106c",
+     "source": "Snowflake Release Notes",
+     "link": "https://docs.snowflake.com/en/release-notes/2026/10_27",
+     "published": "2026-08-10T01:04:09.418108+08:00",
+     "title": "10.27 Release Notes: Aug 2, 2026 - Aug 6, 2026 | Snowflake Documentation"
+    }
+   ]
+  },
+  {
+   "event_id": "973421af8576",
+   "zh_title": "Snowflake发布10.26版更新：成本异常通知集成",
+   "zh_summary": "Snowflake发布2026年7月24日至31日的10.26版本发布说明，包含行为变更包及SQL更新。新功能支持通过通知集成将成本异常告警发送至Slack、短信或Webhook，新增了SNOWFLAKE.LOCAL.ANOMALY_INSIGHTS类方法。该版本于7月31日完成最终发布。",
+   "reason": "数据平台管理者可及时了解Snowflake成本监控与告警能力的最新变化，优化云成本治理流程。",
+   "full_zh": "Snowflake于2026年7月31日正式发布10.26版本发布说明，覆盖2026年7月24日至31日期间的更新。该版本包含多个行为变更包及SQL更新，其中最重要的功能是成本异常警报的通知集成正式全面可用（GA）。\n\n本次发布包含三个行为变更包：2026_06包为本版本新引入，默认禁用，管理员可启用测试；2026_05包已从默认禁用转为默认启用，管理员可选择退出；2026_04包已全面启用，管理员无法再手动调整。每个行为变更包的状态会在后续版本中继续演进，用户可参考官方行为变更文档了解对账户的具体影响。\n\nSQL更新方面，用户现在可以通过注册通知集成，将成本异常通知发送到Slack、短信（SMS）或Webhook端点。SNOWFLAKE.LOCAL.ANOMALY_INSIGHTS类新增了若干方法，支持添加、列出和移除账户级及组织级成本异常的通知集成。这一能力帮助企业更及时地掌握云成本异常波动，无需额外开发自定义集成。\n\n发布说明的时间线显示，预览版于7月22日发布，通知集成功能在7月30日被补充到SQL更新中，最终版于7月31日定稿。Snowflake同时提供了面向AI代理的文档索引路径/llms.txt，便于自动化工具发现所有文档页面，以及Markdown格式的说明页面。\n\n对于使用Snowflake的企业数据团队和平台管理员来说，本次更新强化了成本可观测性和告警响应能力，有助于在多账户环境中建立更主动的FinOps机制。",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [
+    "Snowflake"
+   ],
+   "heat": 46,
+   "star": true,
+   "importance": 65,
+   "signal": 0,
+   "topics": [
+    "平台AI化"
+   ],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-08-10T01:04:09.418108+08:00",
+   "items": [
+    {
+     "id": "973421af8576",
+     "source": "Snowflake Release Notes",
+     "link": "https://docs.snowflake.com/en/release-notes/2026/10_26",
+     "published": "2026-08-10T01:04:09.418108+08:00",
+     "title": "10.26 Release Notes (with behavior changes): Jul 24, 2026 - Jul 31, 2026 | Snowflake Documentation"
+    }
+   ]
+  },
+  {
+   "event_id": "eaca584690ea",
+   "zh_title": "Snowflake发布10.25版本更新：变量与对象定义上限提升",
+   "zh_summary": "Snowflake发布2026年7月17日至22日的10.25版本更新，将字符串和二进制会话变量上限从256字节提升至16KB，对象定义大小上限从95KB提升至1MB。同时新增FORMAT_STRING_TEMPLATE函数，并支持在VARIANT和结构化类型中存储UUID及DECFLOAT值。此外，Apache Iceberg表开始支持UNKNOWN数据类型（预览）。",
+   "reason": "Snowflake作为头部数据云平台，其版本更新直接影响数仓与数据平台实践，值得数据从业者关注。",
+   "full_zh": "Snowflake于2026年7月17日至22日期间发布了10.25版本更新。本次更新主要围绕SQL能力增强、数据湖集成与类型系统扩展，涉及会话变量、对象定义、VARIANT类型、字符串格式化函数以及Apache Iceberg支持等方面。\n\n在SQL更新方面，Snowflake将字符串和二进制会话变量的最大大小从256字节提升至16KB。此前，用户需要依赖分块或临时表等变通手段来存储较大的字符串值，现在可以直接在会话变量中保存更大规模的数据，简化了开发流程。同时，对象定义的最大大小也从95KB提升至1MB，适用范围包括表、视图、UDF和存储过程。这一调整使得更复杂的数据库对象可以被直接定义，减少了因定义超限而被迫重构的情况。\n\n类型系统方面，Snowflake现支持在VARIANT半结构化数据以及ARRAY、OBJECT、MAP等结构化类型中存储UUID和DECFLOAT值。用户还可以通过TO_VARIANT、TO_UUID和TO_DECFLOAT函数在这些类型之间进行显式转换。不过，在Apache Iceberg™ VARIANT（v3）列中存储UUID和DECFLOAT值仍不受支持。该能力扩展了Snowflake对现代数据类型和半结构化数据的兼容性。\n\n此外，Snowflake新增了FORMAT_STRING_TEMPLATE函数。该函数通过将占位符替换为实际值来格式化字符串，提供类型感知的字符串插值。占位符使用花括号{}，并支持数字精度、填充和对齐等可选格式规范。该函数可帮助用户更灵活地生成动态SQL或格式化输出。\n\n在数据湖方面，Snowflake开始支持Apache Iceberg™定义的UNKNOWN原始数据类型，目前处于预览阶段。这一支持进一步增强了Snowflake与Iceberg生态的互操作性。需要注意的是，本次版本更新说明已经标记为完成，若想了解提前版与最终版的差异，可查阅发布说明变更日志。对于AI代理开发者，Snowflake文档提供了/llms.txt索引，便于自动化获取所有文档页面。",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [
+    "Snowflake"
+   ],
+   "heat": 44,
+   "star": true,
+   "importance": 60,
+   "signal": 0,
+   "topics": [],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-08-10T01:04:09.418108+08:00",
+   "items": [
+    {
+     "id": "eaca584690ea",
+     "source": "Snowflake Release Notes",
+     "link": "https://docs.snowflake.com/en/release-notes/2026/10_25",
+     "published": "2026-08-10T01:04:09.418108+08:00",
+     "title": "10.25 Release Notes: Jul 17, 2026 - Jul 22, 2026 | Snowflake Documentation"
+    }
+   ]
+  },
+  {
+   "event_id": "334f406bd4ea",
+   "zh_title": "Snowflake 10.24版本更新：新增按用户配额与语义视图物化",
+   "zh_summary": "Snowflake发布2026年7月9日至15日的10.24版本更新，新增两项功能。按用户配额（预览）可为单个用户设置AI功能（AI functions、Cortex Agents、Snowflake CoWork、Snowflake CoCo）的月度与每日信用上限，超限自动阻止并支持通知与监控。语义视图物化（公开预览）允许对常用维度和指标进行预聚合以提升查询性能，基于MAX_STALENESS属性自动刷新，并支持加法指标的增量刷新。",
+   "reason": "数据从业者应关注Snowflake在AI成本治理与语义层性能优化上的最新进展，这有助于在多用户环境中控制AI使用成本并加速BI与分析查询。",
+   "full_zh": "Snowflake于2026年7月15日发布了10.24版本更新，覆盖2026年7月9日至7月15日的功能变更。本次更新包含两项重要新特性：按用户配额（预览）和语义视图物化（公开预览）。\n\n第一项新特性是按用户配额，目前处于预览阶段。该功能允许管理员以单个用户为粒度强制执行消费限额，防止个别用户在使用AI相关功能时产生不必要的成本。受管理的AI能力包括AI functions（AI函数）、Cortex Agents、Snowflake CoWork和Snowflake CoCo。管理员可以定义每个用户的月度与每日信用额度，当用户达到限额时系统会自动阻止其继续使用，同时可配置通知机制。此外，管理员还可以通过SQL、Snowsight界面以及Snowflake CoCo中的Cost Intelligence skill来监控每个用户的消费情况。\n\n第二项新特性是语义视图物化，现已进入公开预览。借助该功能，用户可以将语义视图中频繁查询的维度（dimensions）和指标（metrics）进行物化，从而对数据进行预聚合，显著提升查询性能。物化结果会根据MAX_STALENESS属性自动刷新，确保数据在可容忍的滞后范围内保持最新。对于可加性指标（additive metrics），系统还支持增量刷新，避免每次重新计算全部数据，从而降低刷新开销。\n\n这两项功能分别从成本治理和查询性能两个角度强化了Snowflake的平台能力。按用户配额直接回应了企业采用生成式AI功能时普遍关心的成本失控问题，而语义视图物化则有助于减轻高频BI查询对底层计算资源的压力。对于依赖Snowflake构建数据平台和语义层的团队来说，这两项更新都值得在实际环境中进行评估。\n\n需要注意的是，本次发布说明最初于2026年7月10日发布预览版本，后经过补充，按用户配额和语义视图物化两项新特性均于7月15日加入说明并最终定稿。Snowflake每周发布版本说明，建议用户持续关注官方文档以获取最新进展。",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [
+    "Snowflake"
+   ],
+   "heat": 49,
+   "star": true,
+   "importance": 72,
+   "signal": 0,
+   "topics": [
+    "语义层",
+    "平台AI化"
+   ],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-08-10T01:04:09.418108+08:00",
+   "items": [
+    {
+     "id": "334f406bd4ea",
+     "source": "Snowflake Release Notes",
+     "link": "https://docs.snowflake.com/en/release-notes/2026/10_24",
+     "published": "2026-08-10T01:04:09.418108+08:00",
+     "title": "10.24 Release Notes: Jul 9, 2026 - Jul 15, 2026 | Snowflake Documentation"
+    }
+   ]
+  },
+  {
+   "event_id": "160014e6f8b8",
+   "zh_title": "Snowflake发布10.23版周更说明：无重大功能",
+   "zh_summary": "Snowflake官方发布2026年6月26日至7月1日的10.23版本发布说明，该版本无重大功能、更新或增强。变更日志显示，关于Snowflake管理的Apache Iceberg表排序规则支持曾被列入又移除。最终版本说明于7月1日定稿。",
+   "reason": "Snowflake是主流数据云平台，其版本发布节奏和变更细节对数据平台工程师及使用Snowflake的团队有直接参考价值。",
+   "full_zh": "Snowflake 于近日发布了 10.23 版本发布说明，覆盖时间为 2026 年 6 月 26 日至 7 月 1 日。根据官方文档，该版本已经完成，且与预览版相比没有其他补充说明。值得注意的是，本次发布说明明确标示“no announcements”，即没有需要特别宣布的重大特性、更新或增强。\n\n在发布说明的变更日志中，唯一出现的变化涉及 Snowflake 管理的 Apache Iceberg 表。该变更最初被列入 SQL 更新中，标题为“Collation support on Snowflake-managed Apache Iceberg™ tables”，但随后又在 6 月 30 日从 SQL 更新中移除。这一过程表明，相关功能可能正在测试或调整，最终版本中并未包含该更新。\n\nSnowflake 每周都会发布类似的版本说明，以跟踪文档、SQL 行为、功能改进等方面的变化。对于使用 Snowflake 的数据团队而言，定期查阅发布说明是了解平台演进的重要途径。即使某周没有重大功能，变更日志中的细节也可能预示着未来功能的走向。\n\n此外，Snowflake 在文档页面中提供了面向 AI 代理的索引文件 /llms.txt，方便自动化工具抓取所有文档页面。该页面也有 Markdown 版本，便于开发者直接引用。这表明 Snowflake 正在为 AI 驱动的文档检索场景提供更友好的接口。\n\n本次发布说明的最终版本于 7 月 1 日定稿，而预览版发布于 6 月 26 日。Snowflake 提醒用户注意预览版与最终版之间的差异，并提供了变更日志链接供用户对比。整体来看，本周的更新以文档和流程性调整为主，不涉及用户可见的功能变化。\n\n对于数据平台团队来说，这类周更说明是监控平台稳定性和兼容性的基础资料。虽然没有激动人心的新功能，但 Iceberg 相关变更的反复，暗示 Snowflake 正在持续改进其数据湖仓能力。建议用户在后续版本中关注 Apache Iceberg 表的排序规则支持是否会正式落地。",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [
+    "Snowflake"
+   ],
+   "heat": 32,
+   "star": true,
+   "importance": 30,
+   "signal": 0,
+   "topics": [],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-08-10T01:04:09.418108+08:00",
+   "items": [
+    {
+     "id": "160014e6f8b8",
+     "source": "Snowflake Release Notes",
+     "link": "https://docs.snowflake.com/en/release-notes/2026/10_23",
+     "published": "2026-08-10T01:04:09.418108+08:00",
+     "title": "10.23 Release Notes (no announcements): Jun 26, 2026 - Jul 1, 2026 | Snowflake Documentation"
+    }
+   ]
+  },
+  {
+   "event_id": "6ac5918a27e5",
+   "zh_title": "Snowflake 10.22版更新：动态表与流正式支持Delta Direct表",
+   "zh_summary": "Snowflake发布6月20日至25日版本说明，宣布Dynamic Tables正式支持Delta Direct表，同时Insert-only streams也正式支持Delta Direct表。这两项新功能均为通用可用（GA），进一步扩展了Snowflake对Delta Lake生态的集成能力。",
+   "reason": "数据从业者应关注此更新，因为它增强了Snowflake与Delta Lake的互操作性，使跨平台数据管道和实时分析更加灵活。",
+   "full_zh": "Snowflake于2026年6月20日发布了10.22版本说明的初步预览版，并于6月25日发布最终版本。本次版本更新主要围绕Delta Direct表引入了两项新特性，均达到通用可用（GA）状态。\n\n第一项新特性是Dynamic Tables正式支持Delta Direct表。Dynamic Tables是Snowflake中一种自动刷新、声明式的数据集定义方式，能够简化数据管道构建。此前该能力仅支持Snowflake原生表及其他部分数据源，如今扩展到Delta Direct表后，用户可以直接基于Delta Lake存储的数据创建动态表，实现自动增量更新，减少了复杂ETL的维护成本。\n\n第二项新特性是Insert-only streams正式支持Delta Direct表。Streams是Snowflake用于捕获表变更并支持下游消费的机制，Insert-only流专注于新增行，适用于日志、事件等追加写入场景。该功能覆盖Delta Direct表后，用户可以在Delta湖表上启用变更数据捕获，进一步打通实时分析链路。\n\nDelta Direct表是Snowflake与Delta Lake深度集成的一部分，允许Snowflake直接查询和操作存储于云对象存储中的Delta表，无需额外同步。本次更新让用户在使用Dynamic Tables和Streams时，能够更自然地利用Delta Lake的开放格式，同时保留Snowflake的托管计算和管理能力。\n\n需要注意的是，本次发布说明还提到该版本已完成，且提供了与最终版本差异的变更日志。对于已经在生产环境中使用Delta Direct表的团队，升级后即可评估这些新特性；而尚未采用Delta Lake的用户，也可借此机会重新审视跨平台数据架构的可行性。\n\n整体来看，Snowflake此次更新强化了其对开放湖仓格式的支持，有助于降低多云环境下数据孤岛的风险。随着两个核心功能进入GA，企业可以更放心地将Delta Lake作为统一数据底座，并利用Snowflake完成流批一体的数据处理。",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [
+    "Snowflake"
+   ],
+   "heat": 46,
+   "star": true,
+   "importance": 65,
+   "signal": 0,
+   "topics": [
+    "湖仓"
+   ],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-08-10T01:04:09.418108+08:00",
+   "items": [
+    {
+     "id": "6ac5918a27e5",
+     "source": "Snowflake Release Notes",
+     "link": "https://docs.snowflake.com/en/release-notes/2026/10_22",
+     "published": "2026-08-10T01:04:09.418108+08:00",
+     "title": "10.22 Release Notes: June 20, 2026-June 25, 2026 | Snowflake Documentation"
+    }
+   ]
+  },
   {
    "event_id": "55d25a6e466b",
    "zh_title": "热帖：为什么说dbt其实很好",
@@ -28,7 +209,8 @@
    ],
    "topics": [
     "数据人"
-   ]
+   ],
+   "shelf": "news"
   },
   {
    "event_id": "3f8cf5140961",
@@ -55,7 +237,8 @@
      "title": "have u heard the news (from today’s @flaminghydra.com missive, which features a great piece on dbt b"
     }
    ],
-   "topics": []
+   "topics": [],
+   "shelf": "news"
   },
   {
    "event_id": "63b7989f4b33",
@@ -80,7 +263,8 @@
    ],
    "topics": [
     "Data Agent"
-   ]
+   ],
+   "shelf": "evergreen"
   },
   {
    "event_id": "ed8330108532",
@@ -107,7 +291,8 @@
      "published": "2026-08-08T18:00:00+08:00",
      "title": "金融监管领域的 Harness 实践：让知识与数据驱动 Agent 稳定运行｜AICon深圳"
     }
-   ]
+   ],
+   "shelf": "evergreen"
   },
   {
    "event_id": "f4962a2fa921",
@@ -138,7 +323,8 @@
      "published": "2026-08-08T15:37:30+08:00",
      "title": "AI 能秒级出报表，为什么业务还是来不及？"
     }
-   ]
+   ],
+   "shelf": "evergreen"
   },
   {
    "event_id": "fbbccffba47d",
@@ -164,7 +350,8 @@
      "title": "Amazon OpenSearch Service extends version lifecycle support timelines"
     }
    ],
-   "topics": []
+   "topics": [],
+   "shelf": "news"
   },
   {
    "event_id": "460d5283bb04",
@@ -193,7 +380,8 @@
    "topics": [
     "语义层",
     "湖仓"
-   ]
+   ],
+   "shelf": "evergreen"
   },
   {
    "event_id": "bb3ea04ba6c0",
@@ -218,7 +406,8 @@
      "published": "2026-08-07T22:22:49+08:00",
      "title": "Airbnb says AI is helping it ship features faster as it tests a new search function"
     }
-   ]
+   ],
+   "shelf": "news"
   },
   {
    "event_id": "1126df123262",
@@ -243,7 +432,8 @@
      "title": "Run Snowflake CoCo Anywhere: Secure Remote Access with Server Mode"
     }
    ],
-   "topics": []
+   "topics": [],
+   "shelf": "news"
   },
   {
    "event_id": "05b5c328b16d",
@@ -270,7 +460,8 @@
    ],
    "topics": [
     "平台AI化"
-   ]
+   ],
+   "shelf": "evergreen"
   },
   {
    "event_id": "9f1a279db0dc",
@@ -298,6 +489,39 @@
    "topics": [
     "ChatBI",
     "Data Agent"
+   ],
+   "shelf": "evergreen"
+  },
+  {
+   "event_id": "cf0a8f7b6f35",
+   "zh_title": "HBM不够用，AI SSD爆发前夜",
+   "zh_summary": "大模型推理面临容量墙和I/O墙，SSD开始进入实时数据路径。月之暗面Mooncake、英伟达CMX等架构已将SSD用于KV Cache存储。英韧科技推出洞庭N3X系列，华为有OceanDisk LC 560。传统SSD在延迟和寿命上尚不适配推理负载，业界正探索两条技术路线。",
+   "reason": "AI SSD作为数据基础设施的新方向，直接影响大模型推理的存储架构与数据调度，数据从业者需关注其技术演进。",
+   "full_zh": "大语言模型推理正在同时撞上两堵墙：一堵是容量墙，另一堵是I/O墙。模型参数持续扩大，长上下文、多轮对话和智能体任务又让KV Cache快速膨胀；MoE模型虽然降低了单次计算的激活参数量，却需要保存远大于显存或内存容量的专家权重。在云侧算力中心，昂贵的HBM被模型权重和KV Cache长期占用，GPU有效利用率受制于数据搬运；在边缘侧和端侧，有限的DRAM或统一内存则直接限制了本地可运行模型的规模。\n\n当显存和内存越来越难以独自承接推理负载，SSD开始从模型文件的静态存放设备进入大模型推理的实时数据路径，成为HBM、VRAM和DRAM之后的一层正式存储层级。这一变化最早在推理基础设施和集群架构中得到清晰体现。月之暗面的Mooncake采用以KV Cache为中心的分离式推理架构，将GPU集群中原本未被充分利用的CPU、DRAM和SSD组织为分布式缓存资源；Mooncake Store进一步支持由DRAM与SSD/NVMe构成的多级缓存，使冷数据能够在容量更大、成本更低的闪存层长期保留。\n\n2026年，英伟达推出CMX上下文内存存储平台，在Vera Rubin基础设施中增加一个面向KV Cache优化、通过以太网连接的闪存层级，由BlueField-4负责NVMe SSD管理、数据保护和网络传输。英伟达将其定义为介于GPU内存与共享存储之间的pod级上下文层。产业信号已经很明确：SSD正在成为推理系统需要直接调度的资源，而不再只是模型加载前后的外围设备。\n\n问题是，推理系统开始调用SSD，并不等于传统SSD已经适合承担常驻推理任务。传统SSD面向文件和块数据存储设计，性能指标主要围绕顺序带宽、随机IOPS、数据可靠性与单位容量成本展开；LLM推理需要的却是具有严格时序约束的数据供应。KV Cache会在prefill阶段集中生成并持续写入，在后续请求中按会话、模型层和Token位置反复读取；MoE推理则需要根据路由结果，在每一层计算前及时取得特定专家权重。一次读取未能赶上计算窗口，就可能让GPU、NPU或CPU进入等待状态，而SSD在高队列深度下取得的峰值IOPS，并不等同于低队列深度、细粒度访问时的稳定延迟。\n\n这种矛盾还延伸至SSD内部。NAND Flash以页为单位读取、以块为单位擦除，FTL需要执行地址映射、垃圾回收和磨损均衡，容易产生写放大与尾延迟；持续写入KV Cache还会对闪存寿命提出远高于普通消费负载的要求。传统LBA排布并不了解模型层、MoE专家、KV块及其访问顺序之间的语义关系，相互关联的数据可能被分散到不同物理位置，难以形成可预测的并行读取。文件系统、块设备和NVMe软件栈中的排队、中断、数据复制与页缓存，也会增加端到端延迟。如果缺少面向模型执行顺序的地址布局、缓存划分、优先级调度、异步预取和寿命管理，SSD虽然拥有TB级容量，却仍难以像DRAM或VRAM一样稳定参与每一个Token的生成。\n\n于是，市场上出现了多种被称为“AI SSD”的产品。但到目前为止，“AI SSD”仍没有统一的技术定义，主流方案大致可以分为两类。第一类可以称为“AI负载强化型企业级SSD”，这类产品仍以块存储设备为基本形态，但其设计指标开始围绕AI集群的数据路径重新排序。英韧科技的洞庭N3X系列是这一方向的代表之一，该系列针对训练、微调和推理中的高频缓存数据访问，采用XL-Flash。另一类则试图让SSD更直接地参与推理调度，目前仍在探索中。传统SSD厂商与新兴存储方案正在争夺这一增量市场，而HBM短缺带来的窗口期，正推动AI SSD从概念走向规模落地。",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [
+    "英伟达",
+    "月之暗面",
+    "英韧科技",
+    "华为"
+   ],
+   "heat": 40,
+   "star": false,
+   "importance": 62,
+   "signal": 0,
+   "topics": [],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-08-07T18:38:28+08:00",
+   "items": [
+    {
+     "id": "5b26b7250d77",
+     "source": "InfoQ 中文",
+     "link": "https://www.infoq.cn/article/sQW5F63ZP4QMyhlWAzQi?utm_source=rss&utm_medium=article",
+     "published": "2026-08-07T18:38:28+08:00",
+     "title": "HBM 不够用了，AI SSD 迎来爆发前夜"
+    }
    ]
   },
   {
@@ -325,7 +549,8 @@
    ],
    "topics": [
     "Data Agent"
-   ]
+   ],
+   "shelf": "evergreen"
   },
   {
    "event_id": "d42105556279",
@@ -352,7 +577,8 @@
    ],
    "topics": [
     "Data Agent"
-   ]
+   ],
+   "shelf": "evergreen"
   },
   {
    "event_id": "84c52b21b73d",
@@ -379,7 +605,8 @@
    ],
    "topics": [
     "湖仓"
-   ]
+   ],
+   "shelf": "news"
   },
   {
    "event_id": "caa8145425d1",
@@ -406,7 +633,8 @@
    ],
    "topics": [
     "平台AI化"
-   ]
+   ],
+   "shelf": "news"
   },
   {
    "event_id": "a64173b0e40c",
@@ -433,7 +661,8 @@
    ],
    "topics": [
     "湖仓"
-   ]
+   ],
+   "shelf": "evergreen"
   },
   {
    "event_id": "017baad77d72",
@@ -459,7 +688,8 @@
      "title": "Event-driven pipeline orchestration with Amazon MWAA and Airflow 3.0"
     }
    ],
-   "topics": []
+   "topics": [],
+   "shelf": "evergreen"
   },
   {
    "event_id": "aa409ff1c354",
@@ -496,7 +726,8 @@
    ],
    "topics": [
     "湖仓"
-   ]
+   ],
+   "shelf": "news"
   },
   {
    "event_id": "7b5dd4cae0ec",
@@ -523,7 +754,8 @@
    ],
    "topics": [
     "Data Agent"
-   ]
+   ],
+   "shelf": "news"
   },
   {
    "event_id": "04e2fe73b6ac",
@@ -550,7 +782,8 @@
    ],
    "topics": [
     "平台AI化"
-   ]
+   ],
+   "shelf": "news"
   },
   {
    "event_id": "ae39e628c113",
@@ -577,7 +810,8 @@
    ],
    "topics": [
     "Data Agent"
-   ]
+   ],
+   "shelf": "evergreen"
   },
   {
    "event_id": "b66e4f9b44c9",
@@ -605,7 +839,8 @@
      "title": "What’s new in Power Platform: July/August 2026 feature update"
     }
    ],
-   "topics": []
+   "topics": [],
+   "shelf": "news"
   },
   {
    "event_id": "4c7b850da51e",
@@ -632,7 +867,8 @@
    ],
    "topics": [
     "Data Agent"
-   ]
+   ],
+   "shelf": "news"
   },
   {
    "event_id": "215aa56342f9",
@@ -660,7 +896,8 @@
    ],
    "topics": [
     "Data Agent"
-   ]
+   ],
+   "shelf": "news"
   },
   {
    "event_id": "d461dff20c65",
@@ -690,7 +927,8 @@
    "topics": [
     "Data Agent",
     "语义层"
-   ]
+   ],
+   "shelf": "evergreen"
   },
   {
    "event_id": "4c9db581d5c6",
@@ -713,7 +951,8 @@
      "title": "Presentation: From ms to µs: OSS Valkey Architecture Patterns for Modern AI"
     }
    ],
-   "topics": []
+   "topics": [],
+   "shelf": "evergreen"
   },
   {
    "event_id": "26c7d5691708",
@@ -740,7 +979,8 @@
      "published": "2026-08-06T17:00:00+08:00",
      "title": "Article: Runtime-Agnostic AI Workflows: A Pattern for Production Durability and Fast Eval Iteration"
     }
-   ]
+   ],
+   "shelf": "evergreen"
   },
   {
    "event_id": "203a40c0d09f",
@@ -825,7 +1065,8 @@
      "title": "Security update available for Metabase - Please upgrade now"
     }
    ],
-   "topics": []
+   "topics": [],
+   "shelf": "news"
   },
   {
    "event_id": "6539aeeb4002",
@@ -850,7 +1091,8 @@
      "title": "How Physical Intelligence unified its robotics data stack with Postgres managed by ClickHouse"
     }
    ],
-   "topics": []
+   "topics": [],
+   "shelf": "news"
   },
   {
    "event_id": "fda342751ac4",
@@ -886,7 +1128,8 @@
     "实时分析"
    ],
    "importance": 50,
-   "signal": 0
+   "signal": 0,
+   "shelf": "news"
   },
   {
    "event_id": "f24d7f17e186",
@@ -913,7 +1156,8 @@
    ],
    "topics": [
     "实时分析"
-   ]
+   ],
+   "shelf": "news"
   },
   {
    "event_id": "1913cbcdb569",
@@ -938,7 +1182,8 @@
      "published": "2026-08-06T05:21:28+08:00",
      "title": "Meta launches Muse Code, an AI agent for large code bases"
     }
-   ]
+   ],
+   "shelf": "news"
   },
   {
    "event_id": "04a9eab02673",
@@ -963,7 +1208,8 @@
      "title": "Mastering Snowflake RBAC: A Practical Guide to Scalable, Secure Access Control"
     }
    ],
-   "topics": []
+   "topics": [],
+   "shelf": "evergreen"
   },
   {
    "event_id": "6cb1f7adcf49",
@@ -990,7 +1236,8 @@
    ],
    "topics": [
     "实时分析"
-   ]
+   ],
+   "shelf": "news"
   },
   {
    "event_id": "ded49e4ed330",
@@ -1066,7 +1313,7 @@
    "vendors": [
     "ThoughtSpot"
    ],
-   "heat": 31,
+   "heat": 30,
    "star": true,
    "published": "2026-08-05T06:38:59+08:00",
    "items": [
@@ -1081,7 +1328,8 @@
    "topics": [
     "Data Agent",
     "BI变局"
-   ]
+   ],
+   "shelf": "news"
   },
   {
    "event_id": "536580b9305a",
@@ -1108,7 +1356,8 @@
    ],
    "topics": [
     "Data Agent"
-   ]
+   ],
+   "shelf": "news"
   },
   {
    "event_id": "5ce50d8a33b1",
@@ -1136,7 +1385,8 @@
    "topics": [
     "Data Agent",
     "语义层"
-   ]
+   ],
+   "shelf": "evergreen"
   },
   {
    "event_id": "5a003e60d050",
@@ -1161,7 +1411,8 @@
      "title": "A Three-Level Observability Maturity Framework for Snowflake"
     }
    ],
-   "topics": []
+   "topics": [],
+   "shelf": "evergreen"
   },
   {
    "event_id": "ac2ceffec2ca",
@@ -1188,7 +1439,8 @@
    ],
    "topics": [
     "平台AI化"
-   ]
+   ],
+   "shelf": "news"
   },
   {
    "event_id": "663664951a62",
@@ -1214,7 +1466,8 @@
      "title": "Transforming search at Delivery Hero: A migration journey to OpenSearch Service with radial search"
     }
    ],
-   "topics": []
+   "topics": [],
+   "shelf": "evergreen"
   },
   {
    "event_id": "248c3854ae12",
@@ -1239,7 +1492,8 @@
      "title": "Agentic Network Operations Center on Snowflake: A Technical Blueprint for the Autonomous Telco"
     }
    ],
-   "topics": []
+   "topics": [],
+   "shelf": "news"
   },
   {
    "event_id": "058d72e9b2d3",
@@ -1268,7 +1522,8 @@
    ],
    "topics": [
     "湖仓"
-   ]
+   ],
+   "shelf": "news"
   },
   {
    "event_id": "e37fa4fab9fd",
@@ -1295,7 +1550,8 @@
    ],
    "topics": [
     "实时分析"
-   ]
+   ],
+   "shelf": "news"
   },
   {
    "event_id": "448beb58807f",
@@ -1320,7 +1576,8 @@
      "title": "Fixed cadence to seconds: making ClickHouse Cloud autoscaling more reactive"
     }
    ],
-   "topics": []
+   "topics": [],
+   "shelf": "news"
   },
   {
    "event_id": "5f584be1ab5d",
@@ -1346,7 +1603,8 @@
      "title": "Amazon Redshift multi-Region disaster recovery"
     }
    ],
-   "topics": []
+   "topics": [],
+   "shelf": "evergreen"
   },
   {
    "event_id": "ee751ae4a41f",
@@ -1375,7 +1633,8 @@
    ],
    "topics": [
     "Data Agent"
-   ]
+   ],
+   "shelf": "news"
   },
   {
    "event_id": "5155dc60a496",
@@ -1402,7 +1661,8 @@
    ],
    "topics": [
     "Data Agent"
-   ]
+   ],
+   "shelf": "news"
   },
   {
    "event_id": "e829f02ca0ca",
@@ -1429,7 +1689,8 @@
    ],
    "topics": [
     "Data Agent"
-   ]
+   ],
+   "shelf": "news"
   },
   {
    "event_id": "a6705e0f3427",
@@ -1458,7 +1719,8 @@
    "topics": [
     "湖仓",
     "实时分析"
-   ]
+   ],
+   "shelf": "news"
   },
   {
    "event_id": "3ccaab1a49d8",
@@ -1486,7 +1748,8 @@
    "topics": [
     "湖仓",
     "平台AI化"
-   ]
+   ],
+   "shelf": "news"
   },
   {
    "event_id": "8fbb5d899aa9",
@@ -1513,7 +1776,8 @@
    ],
    "topics": [
     "湖仓"
-   ]
+   ],
+   "shelf": "news"
   },
   {
    "event_id": "eab6c1219598",
@@ -1545,7 +1809,8 @@
      "title": "Andy Pavlo joins ClickHouse to establish ClickHouse Labs"
     }
    ],
-   "topics": []
+   "topics": [],
+   "shelf": "news"
   },
   {
    "event_id": "653b017eb26f",
@@ -1570,24 +1835,30 @@
      "title": "I created a playground for 110 database systems"
     }
    ],
-   "topics": []
+   "topics": [],
+   "shelf": "news"
   }
  ],
  "top": [
   "55d25a6e466b",
   "3f8cf5140961",
-  "0a9fba89dad6"
+  "334f406bd4ea"
  ],
  "sources": [
   {
+   "name": "Snowflake Release Notes",
+   "ok": true,
+   "new": 6
+  },
+  {
    "name": "Aloudata 博客",
    "ok": true,
-   "new": 3
+   "new": 0
   },
   {
    "name": "Aloudata 动态",
    "ok": true,
-   "new": 1
+   "new": 0
   },
   {
    "name": "Databricks Blog",
@@ -1636,8 +1907,8 @@
   },
   {
    "name": "帆软",
-   "ok": true,
-   "new": 0
+   "ok": false,
+   "error": "The read operation timed out"
   },
   {
    "name": "InfoQ 中文",
@@ -1682,7 +1953,7 @@
   {
    "name": "Bluesky 数据社区",
    "ok": true,
-   "new": 11
+   "new": 10
   },
   {
    "name": "Snowflake Engineering（Medium）",

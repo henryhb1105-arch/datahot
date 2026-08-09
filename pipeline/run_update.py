@@ -32,6 +32,8 @@ VENDOR_TAGS = {
     "ThoughtSpot Blog": ["ThoughtSpot"], "Metabase Blog": ["Metabase"],
     "ClickHouse Blog": ["ClickHouse"], "AWS Big Data Blog": ["AWS"],
     "Fivetran Blog": ["Fivetran"], "StarRocks Blog": ["StarRocks"],
+    "Snowflake Engineering（Medium）": ["Snowflake"],
+    "Microsoft Power BI Blog": ["Microsoft", "Power BI"], "Tableau Blog": ["Tableau"],
 }
 
 # ── 基础工具 ──────────────────────────────────────────────
@@ -344,6 +346,39 @@ def fetch_hn_algolia(source):
             seen_links.add(e["link"]); out.append(e)
     return out
 
+# ── Bluesky 信源 ──────────────────────────────────────────
+def fetch_bluesky(source):
+    """Bluesky 公共搜索 API：按关键词搜热门帖（数据社区一手信号）"""
+    entries = []
+    min_likes = source.get("min_likes", 10)
+    since = (datetime.now(timezone.utc) - timedelta(days=KEEP_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    for q in source.get("queries", []):
+        url = ("https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts?sort=top&limit=15"
+               f"&since={since}&q=" + urllib.parse.quote(q))
+        data = json.loads(fetch_url(url))
+        for p in data.get("posts", []):
+            likes = p.get("likeCount", 0)
+            if likes < min_likes:
+                continue
+            rec = p.get("record", {})
+            text = (rec.get("text") or "").strip()
+            if not text:
+                continue
+            handle = p.get("author", {}).get("handle", "")
+            rkey = p.get("uri", "").rstrip("/").split("/")[-1]
+            link = f"https://bsky.app/profile/{handle}/post/{rkey}" if handle and rkey else p.get("uri", "")
+            entries.append({
+                "title": text[:100],
+                "link": link,
+                "published": parse_date(rec.get("createdAt", "")),
+                "summary": f"Bluesky 热帖 · @{handle} · {likes} 赞 · {text[:300]}",
+            })
+    seen_links, out = set(), []
+    for e in entries:
+        if e["link"] not in seen_links:
+            seen_links.add(e["link"]); out.append(e)
+    return out
+
 # ── 主流程 ────────────────────────────────────────────────
 def main():
     sources = [s for s in json.load(open(ROOT / "pipeline" / "sources.json")) if s.get("enabled")]
@@ -369,6 +404,8 @@ def main():
         try:
             if s.get("kind") == "hn_algolia":
                 entries = fetch_hn_algolia(s)
+            elif s.get("kind") == "bluesky":
+                entries = fetch_bluesky(s)
             else:
                 entries = parse_feed(fetch_feed(s["url"]), s)
             kept = 0

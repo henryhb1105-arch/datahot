@@ -33,7 +33,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .tabbar{display:none}
 @media(max-width:960px){
   body{padding-bottom:64px}
-  .tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:70;padding-bottom:env(safe-area-inset-bottom)}
+  .tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--tabbar-bg);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:70;padding-bottom:env(safe-area-inset-bottom)}
   .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0 6px;font-size:11px;color:var(--sub);text-decoration:none;gap:2px}
   .tabbar a .ico{font-size:19px}
   .tabbar a.on{color:var(--accent);font-weight:600}
@@ -263,9 +263,14 @@ def share_ui(e, page_url):
 <style>
 .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .sharebtns{display:flex;gap:8px}
-.sbtn{border:none;background:var(--ink);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
-.sbtn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.sbtn{border:none;background:var(--ink);color:var(--bg);border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
+.sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .sbtn:active{transform:scale(.95)}
+@media (prefers-color-scheme: dark){
+.sh-group,.sh-cancel{background:rgba(30,33,38,.97)}
+.sh-opt{color:var(--ink);border-bottom-color:var(--line)}
+.sh-title{border-bottom-color:var(--line)}
+}
 .sh-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.25s;z-index:80}
 .sh-mask.show{opacity:1;pointer-events:auto}
 .sh-sheet{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(110%);transition:transform .3s cubic-bezier(.32,.72,.35,1);padding:0 10px calc(10px + env(safe-area-inset-bottom))}
@@ -343,58 +348,75 @@ function wrapText(ctx,text,x,y,maxW,lineH,maxLines){
   if(line){ctx.fillText(line,x,y);y+=lineH;}
   return y;
 }
-function drawPoster(qrImg){
+function posterPalette(dark){
+  return dark ? {
+    bg:['#1a1d23','#231d17','#33200f'], title:'#ffffff', sum:'#c9cdd4',
+    reasonBg:'rgba(217,79,43,.14)', reasonHd:'#f5b48a', reasonTxt:'#f0d9cf',
+    meta:'#8b919b', dash:'rgba(255,255,255,.18)', name:'#ffffff', foot:'#c9cdd4',
+    qrBox:'#ffffff', qrBorder:null, topic:'#f5b48a', topicBd:'rgba(245,180,138,.7)'
+  } : {
+    bg:['#ffffff','#fdf8f4','#fdf0e9'], title:'#1a1d23', sum:'#4b5563',
+    reasonBg:'rgba(217,79,43,.07)', reasonHd:'#d94f2b', reasonTxt:'#7c3a24',
+    meta:'#6b7280', dash:'rgba(0,0,0,.15)', name:'#1a1d23', foot:'#6b7280',
+    qrBox:'#ffffff', qrBorder:'rgba(0,0,0,.12)', topic:'#d94f2b', topicBd:'rgba(217,79,43,.5)'
+  };
+}
+function drawPoster(qrImg,dark){
+  var P=posterPalette(dark);
   var W=1080,H=1440,c=document.createElement('canvas');c.width=W;c.height=H;
   var x=c.getContext('2d');
   var g=x.createLinearGradient(0,0,W,H);
-  g.addColorStop(0,'#1a1d23');g.addColorStop(.55,'#231d17');g.addColorStop(1,'#33200f');
+  g.addColorStop(0,P.bg[0]);g.addColorStop(.55,P.bg[1]);g.addColorStop(1,P.bg[2]);
   x.fillStyle=g;x.fillRect(0,0,W,H);
   x.fillStyle='#d94f2b';x.beginPath();x.roundRect(64,60,72,72,18);x.fill();
   x.fillStyle='#fff';x.font='800 44px -apple-system,sans-serif';x.textBaseline='middle';
   x.fillText('D',88,98);
-  x.font='800 38px -apple-system,sans-serif';x.fillText('DataHot',152,100);
+  x.fillStyle=P.name;x.font='800 38px -apple-system,sans-serif';x.fillText('DataHot',152,100);
   if(SH_EV.topic){
     x.font='500 26px -apple-system,PingFang SC,sans-serif';
     var tw=x.measureText(SH_EV.topic).width;
-    x.strokeStyle='rgba(245,180,138,.7)';x.lineWidth=2;
+    x.strokeStyle=P.topicBd;x.lineWidth=2;
     x.beginPath();x.roundRect(W-64-tw-48,66,tw+48,56,28);x.stroke();
-    x.fillStyle='#f5b48a';x.fillText(SH_EV.topic,W-64-tw-24,96);
+    x.fillStyle=P.topic;x.fillText(SH_EV.topic,W-64-tw-24,96);
   }
-  var y=210;x.fillStyle='#fff';x.font='800 58px -apple-system,PingFang SC,sans-serif';x.textBaseline='top';
+  var y=210;x.fillStyle=P.title;x.font='800 58px -apple-system,PingFang SC,sans-serif';x.textBaseline='top';
   y=wrapText(x,SH_EV.title,64,y,W-128,84,3)+16;
-  x.fillStyle='#c9cdd4';x.font='400 32px -apple-system,PingFang SC,sans-serif';
+  x.fillStyle=P.sum;x.font='400 32px -apple-system,PingFang SC,sans-serif';
   y=wrapText(x,SH_EV.summary,64,y,W-128,52,5)+20;
   if(SH_EV.reason){
     var ry=y+8;
-    x.fillStyle='rgba(217,79,43,.14)';x.fillRect(64,ry,W-128,150);
+    x.fillStyle=P.reasonBg;x.fillRect(64,ry,W-128,150);
     x.fillStyle='#d94f2b';x.fillRect(64,ry,8,150);
-    x.fillStyle='#f5b48a';x.font='700 28px -apple-system,PingFang SC,sans-serif';
+    x.fillStyle=P.reasonHd;x.font='700 28px -apple-system,PingFang SC,sans-serif';
     x.fillText('为什么值得看',92,ry+26);
-    x.fillStyle='#f0d9cf';x.font='400 28px -apple-system,PingFang SC,sans-serif';
+    x.fillStyle=P.reasonTxt;x.font='400 28px -apple-system,PingFang SC,sans-serif';
     wrapText(x,SH_EV.reason,92,ry+66,W-176,44,2);
     y=ry+180;
   }
-  x.fillStyle='#8b919b';x.font='400 26px -apple-system,sans-serif';
+  x.fillStyle=P.meta;x.font='400 26px -apple-system,sans-serif';
   x.fillText('🔥 '+SH_EV.heat+' 热度 · '+SH_EV.source+' · '+SH_EV.date,64,Math.max(y,H-320));
-  x.strokeStyle='rgba(255,255,255,.18)';x.setLineDash([8,8]);x.lineWidth=2;
+  x.strokeStyle=P.dash;x.setLineDash([8,8]);x.lineWidth=2;
   x.beginPath();x.moveTo(64,H-240);x.lineTo(W-64,H-240);x.stroke();x.setLineDash([]);
-  x.fillStyle='#fff';x.beginPath();x.roundRect(64,H-200,150,150,14);x.fill();
+  x.fillStyle=P.qrBox;x.beginPath();x.roundRect(64,H-200,150,150,14);x.fill();
+  if(P.qrBorder){x.strokeStyle=P.qrBorder;x.lineWidth=2;x.beginPath();x.roundRect(64,H-200,150,150,14);x.stroke();}
   if(qrImg){x.drawImage(qrImg,74,H-190,130,130);}
   else{x.fillStyle='#666';x.font='400 22px sans-serif';x.fillText('扫码访问',88,H-118);}
-  x.fillStyle='#fff';x.font='700 30px -apple-system,PingFang SC,sans-serif';
+  x.fillStyle=P.name;x.font='700 30px -apple-system,PingFang SC,sans-serif';
   x.fillText('扫码阅读全文编译',240,H-176);
-  x.fillStyle='#c9cdd4';x.font='400 24px -apple-system,PingFang SC,sans-serif';
+  x.fillStyle=P.foot;x.font='400 24px -apple-system,PingFang SC,sans-serif';
   x.fillText('DataHot · 数据领域 AI 热榜',240,H-126);
   x.fillText('henryhb1105-arch.github.io/datahot',240,H-86);
   return c.toDataURL('image/png');
 }
-var posterURL=null;
+var posterURL=null,posterDark=null;
 function openPoster(){
   document.getElementById('shPoster').classList.add('show');
-  if(posterURL){return;}
+  var dark=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches;
+  if(posterURL&&posterDark===dark){return;}
+  posterDark=dark;
   var qr=new Image();qr.crossOrigin='anonymous';
-  qr.onload=function(){posterURL=drawPoster(qr);showPoster();};
-  qr.onerror=function(){posterURL=drawPoster(null);showPoster();};
+  qr.onload=function(){posterURL=drawPoster(qr,dark);showPoster();};
+  qr.onerror=function(){posterURL=drawPoster(null,dark);showPoster();};
   qr.src='https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=0&data='+encodeURIComponent(SH_EV.url);
 }
 function dataToBlob(d){

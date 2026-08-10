@@ -174,6 +174,25 @@ def tabbar(active, prefix=""):
 def esc(s):
     return html.escape(s or "", quote=True)
 
+def md(iso):
+    """MM-DD 格式"""
+    d = datetime.fromisoformat(iso).astimezone(TZ)
+    return f"{d.month:02d}-{d.day:02d}"
+
+def card_time(e):
+    """卡片时间：发布时间为主，发布与收录相差>2天双显；无发布时间则显示收录时间"""
+    pub, fs = e.get("published"), e.get("first_seen")
+    if pub:
+        pub_d = datetime.fromisoformat(pub).astimezone(TZ)
+        now_d = datetime.now(TZ)
+        t = pub_d.strftime("%H:%M") if pub_d.date() == now_d.date() else md(pub)
+        if fs:
+            delta = (datetime.fromisoformat(fs).astimezone(TZ) - pub_d).days
+            if delta > 2:
+                return f"发布 {md(pub)} · 收录 {md(fs)}"
+        return t
+    return f"收录 {md(fs)}" if fs else ""
+
 def fmt_time(iso):
     return datetime.fromisoformat(iso).astimezone(TZ).strftime("%H:%M")
 
@@ -220,7 +239,7 @@ def render_card(e, prefix=""):
     vbox = f'<div class="vendors">{tchips}{vtags}</div>' if (tchips or vtags) else ""
     url = prefix + detail_url(e)
     return f'''<div class="item" data-cat="{e["category"]}" data-topics="{esc("|".join(e.get("topics", [])))}" data-link="{url}">
-      <div class="top"><span class="srcbadge">{src_badge(e["items"][0]["source"])}</span><span style="font-weight:600;color:var(--txt3)">{esc(e["items"][0]["source"])}</span><span>{fmt_time(e["published"])}</span>{star}
+      <div class="top"><span class="srcbadge">{src_badge(e["items"][0]["source"])}</span><span style="font-weight:600;color:var(--txt3)">{esc(e["items"][0]["source"])}</span><span>{card_time(e)}</span>{star}
       <button class="favbtn" data-fav="{e["event_id"]}" title="收藏">{ic("star",15)}</button>
       <span class="heatnum">{ic("flame",13)} {e["heat"]}</span></div>
       <h3><a href="{url}">{esc(e["zh_title"])}</a></h3>
@@ -350,7 +369,7 @@ def render_detail(e, all_events, css):
     <span class="srcbadge">{src_badge(e["items"][0]["source"])}</span>
     <span style="font-weight:600;color:var(--txt3)">{esc(e["items"][0]["source"])}</span>
     {'<span class="star">精选</span>' if e.get("star") else ''}
-    <span title="{fmt_date(e["published"])}">{human_time(e["published"])}</span>
+    <span title="发布 {fmt_date(e["published"]) if e.get("published") else '未知'} · 收录 {fmt_date(e.get("first_seen") or e["published"])}">{("发布 " + md(e["published"]) + " · " if e.get("published") and md(e["published"]) != md(e.get("first_seen") or e["published"]) else "") + "收录 " + md(e.get("first_seen") or e["published"])}</span>
     <span style="margin-left:auto" class="heatnum">{ic("flame",13)} {e["heat"]}</span>
   </div>
   <h1>{esc(e["zh_title"])}</h1>
@@ -642,7 +661,7 @@ def render_topic_page(t, events, css):
         must_html = f'<div class="scard" style="margin-bottom:18px"><h4 style="margin-bottom:6px">{ic("bookmark",14)} 本主题必读</h4>{rows}</div>'
     days = defaultdict(list)
     for e in evs:
-        days[day_key(e["published"])].append(e)
+        days[day_key(e.get("first_seen") or e["published"])].append(e)
     timeline = ""
     for d in sorted(days, reverse=True):
         timeline += f'<div class="day"><div class="day-head"><span class="date">{d.month}月{d.day}日</span><span class="info">{len(days[d])} 个事件</span></div>'
@@ -882,7 +901,7 @@ def main():
     css = load_css()
     # 首页只展示 7 天窗口内的新鲜事件；evergreen 老内容沉淀在典藏/主题页
     window = timedelta(days=7)
-    events = [e for e in all_events if gen - datetime.fromisoformat(e["published"]) <= window]
+    events = [e for e in all_events if gen - datetime.fromisoformat(e.get("first_seen") or e["published"]) <= window]
 
     # ── 详情页 ──
     DETAIL_DIR.mkdir(parents=True, exist_ok=True)
@@ -920,7 +939,7 @@ def main():
     # ── 时间轴 ──
     days = defaultdict(list)
     for e in events:
-        days[day_key(e["published"])].append(e)
+        days[day_key(e.get("first_seen") or e["published"])].append(e)
     timeline = ""
     for d in sorted(days, reverse=True):
         head = f'{d.month}月{d.day}日'

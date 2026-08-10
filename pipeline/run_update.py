@@ -415,19 +415,24 @@ def make_event(it):
         "topics": it.get("topics", []), "shelf": it.get("shelf", "news"),
         "pinned": it.get("pinned", False),
         "published": it["published"],
+        "first_seen": it.get("ingested_at") or it["published"],
         "items": [{"id": it["id"], "source": it["source"], "link": it["link"],
-                   "published": it["published"], "title": it["title"]}],
+                   "published": it["published"], "ingested_at": it.get("ingested_at"), "title": it["title"]}],
     }
 
 def recalc_event_heat(e):
-    """事件热度 = calc_heat(最高重要性, 最新发布时间, 最强社区信号, 信源数-1)"""
-    pub = datetime.fromisoformat(e["published"])
+    """事件热度 = calc_heat(最高重要性, 收录时间(新鲜度), 最强社区信号, 信源数-1)"""
+    pub = datetime.fromisoformat(e.get("first_seen") or e["published"])
     e["heat"] = calc_heat(e.get("importance", 50), pub, e.get("signal", 0), len(e["items"]) - 1)
 
 def merge_into(e, it):
     e["items"].append({"id": it["id"], "source": it["source"], "link": it["link"],
-                       "published": it["published"], "title": it["title"]})
-    e["published"] = max(e["published"], it["published"])
+                       "published": it["published"], "ingested_at": it.get("ingested_at"), "title": it["title"]})
+    if it["published"] and (not e["published"] or it["published"] < e["published"]):
+        e["published"] = it["published"]
+    fs_new = it.get("ingested_at") or it.get("published")
+    if fs_new and (not e.get("first_seen") or fs_new < e["first_seen"]):
+        e["first_seen"] = fs_new
     e["importance"] = max(e.get("importance", 50), it.get("importance", 50))
     e["signal"] = max(e.get("signal", 0), it.get("signal", 0))
     recalc_event_heat(e)
@@ -637,7 +642,7 @@ def main():
                         prev["signal"] = prev.get("signal", 0) + e.get("signal", 0)
                     continue
                 seen.add(iid); seen_urls.add(nurl)
-                pub = e["published"].astimezone(TZ) if e["published"] else now.astimezone(TZ)
+                pub_iso = e["published"].astimezone(TZ).isoformat() if e["published"] else None
                 pub_dt = e["published"] or now
                 new_items.append({
                     "id": iid, "title": e["title"], "zh_title": e["title"],
@@ -647,7 +652,7 @@ def main():
                     "category": "platform", "category_label": "AI 数据平台",
                     "vendors": VENDOR_TAGS.get(s["name"], []),
                     "vendor_default": s["type"] == "vendor",
-                    "published": pub.isoformat(), "_pub_dt": pub_dt,
+                    "published": pub_iso, "ingested_at": now.astimezone(TZ).isoformat(), "_pub_dt": pub_dt,
                     "signal": e.get("signal", 0), "importance": 50, "topics": [],
                     "_slug_title": e.get("_slug_title", False),
                     "heat": calc_heat(50, pub_dt, e.get("signal", 0)),
@@ -715,14 +720,14 @@ def main():
 
     # 清理过期：news 7 天淘汰；evergreen 永久沉淀（典藏池）
     events = [e for e in events
-              if datetime.fromisoformat(e["published"]) > cutoff or e.get("shelf") == "evergreen"]
+              if datetime.fromisoformat(e.get("first_seen") or e["published"]) > cutoff or e.get("shelf") == "evergreen"]
 
     # 热度分 2.0：全量重算（新鲜度随时间衰减，分数每天自然"降温"）
     for e in events:
         recalc_event_heat(e)
 
     top = [e["event_id"] for e in sorted(events, key=lambda e: -e["heat"])[:3]]
-    events.sort(key=lambda e: e["published"], reverse=True)
+    events.sort(key=lambda e: (e.get("first_seen") or e["published"] or ""), reverse=True)
 
     payload = {
         "generated_at": now.astimezone(TZ).isoformat(),

@@ -1,6 +1,104 @@
 {
- "generated_at": "2026-08-10T23:28:43.350882+08:00",
+ "generated_at": "2026-08-11T01:38:20.381714+08:00",
  "events": [
+  {
+   "event_id": "d8009f6c6475",
+   "zh_title": "ClickStack 6-7月更新：追踪导航与Prometheus集成",
+   "zh_summary": "ClickStack 发布六月至七月合并更新，重点改进追踪功能，包括按服务着色瀑布图、迷你地图和OpenTelemetry span链接。指标方面新增指数直方图分位数支持，并支持连接外部Prometheus兼容端点。仪表盘筛选支持分面搜索，过滤值获取改用ClickHouse文本索引以提升性能。",
+   "reason": "ClickStack 作为 ClickHouse 生态的可观测性平台，其追踪与指标能力更新对数据平台工程师和可观测性实践者有直接参考价值。",
+   "full_zh": "## ClickStack 6-7月更新：追踪导航与Prometheus集成\n\nThe ClickStack Team 发布于 2026年8月10日 · 22分钟阅读\n\n欢迎来到 What's New in ClickStack 的六月至七月版。我们将两个版本合并进一次更新，因此要介绍的内容比平时稍多。过去两个月的大部分工作集中在追踪（traces）上，并且直接来自用户反馈。瀑布视图现在为每个服务使用单独的颜色。一个新的缩略图（minimap）让你在检查其中一部分时，仍能保持整个追踪的形状可见。OpenTelemetry span 链接出现在 span 详情面板中，让你可以轻松地在追踪之间移动。对于指标，我们增加了对指数直方图的分位数支持，引入了更精简的默认 schema，并支持连接外部 Prometheus 兼容端点。这使 ClickStack 超越了单一来源的可观测性体验，并为评估 TimeSeries Engine 和迁移现有 Prometheus 工作负载带来了新的可能性，我们将在下面探讨。\n\n仪表盘过滤器现在可以互相缩小范围，类似于分面搜索。事件模式（Event patterns）现在可以用作仪表盘磁贴类型，信息亭模式（kiosk mode）可以将仪表盘锁定为只读视图，用于墙面展示。我们还更改了过滤器值的获取方式。自动补全和过滤器下拉框现在在可用时使用 ClickHouse 文本索引，而不是扫描源表。\n\n## 新贡献者\n\n感谢我们的开源贡献者，以及那些用反馈塑造了这些功能的用户。Aryan Inguz、Marco Frömbgen、heyparth、kumburovicbranko682-boop、Rachit Mittal、Matt Kaye、zoov-xavier、tsushanth、Saksham Goyal、Prince Rawat、Shuvam Kumar、Minh Vu、Niladri Adhikary、xob0t。\n\n贡献不一定意味着编写代码。文档修复、想法、功能请求、bug 报告和一般反馈都可以通过仓库提交。小的贡献同样重要，每一项都会为更广泛的社区改进 ClickStack。\n\n## 追踪瀑布视图改进\n\n追踪视图是 ClickStack 用户花费时间最多的地方，从 Jaeger 迁移过来的团队往往会仔细审视这一工作流。我们在 6 月和 7 月对此进行了大量投入，重新设计了视图并支持了 span 链接。\n\n### 重新设计的追踪瀑布视图\n\n上个月，我们将 span 详情移入一个拆分窗格，这样在检查 span 时瀑布视图仍然可见。这个月，我们专注于瀑布视图本身。每个服务现在都有一个稳定的颜色，显示在操作和服务标签旁边的垂直条中。此前，颜色显示为 span 栏内文本后面的填充背景。绿色仍保留用于关联的日志行，红色用于错误 span，因此两者都不会被误认为服务颜色。span 持续时间现在以弱化文本显示在栏外。悬停时，span 主体会显示在光标一侧空间更大的位置。我们还修复了非常短的 span 在缩放时的行为。此前，其最小宽度被定义为瀑布区面积的一个百分比，而该百分比会随缩放而增加。这可能导致非常短的 span 看起来与持续数秒的 span 一样宽。\n\n## 固定最小宽度与折叠控件\n\n最小宽度现在是一个固定的像素宽度，使跨度在所有缩放级别下都保持比例，同时确保亚像素跨度仍然可以点击。深层追踪的导航也变得更简单了。展开和折叠控件现在可以作用于单个层级或整个追踪，并且仅在存在可折叠节点时出现。\n\n## 长追踪的迷你地图\n\n尽管追踪视图的上述改进有助于导航大型追踪，但大型追踪仍然不一定能完整显示在一屏内。当放大到某个区域后，仍可能难以判断该区域在整个追踪中的位置。此前若要返回完整视图，需要滚动缩小或完全重置。为了解决这个问题，现在瀑布图上方有一个迷你地图。它以时间轴的形式显示完整的追踪范围，每个跨度对应一条条带。一个带边框的矩形标记当前视口，同时一个变暗的遮罩将其与追踪的其余部分区分开。您可以在地图上刷动以缩放，拖动视口以平移，或拖动任一边缘以调整大小。\n\n## 追踪查看器中的 Span 链接\n\nSpan 链接是 OpenTelemetry 用来将某个跨度连接到不同追踪中的另一个跨度的方式。它覆盖了以下场景：生产者将工作交给消费者、批处理作业引用其源记录、或者重试的请求启动新追踪。这些跨度虽然不共享追踪 ID，但存在因果关系。ClickStack 一直将 Span 链接摄取到标准的 Links 列中，但并没有显示出来。因此，在扇出（fan-out）和批处理工作流中，相关跨度会表现为孤立节点，与导致它们的工作没有可见的连接。现在，当所选跨度包含链接时，跨度详情面板会包含一个 Span Links 区域。每个链接显示为一行紧凑的记录，追踪状态和链接属性以标签（chips）形式展示。悬停时可看到完整的追踪和跨度 ID。点击 Open trace 操作会在原位跳转到关联的追踪。\n\n## 连接外部 Prometheus 数据存储\n\n上个月，我们发布了基于 ClickHouse TimeSeries Engine 的实验性 PromQL 支持。它允许使用许多工程师已经熟悉的语言来查询存储在 ClickHouse 中的 Prometheus 风格指标。然而，许多团队已经在运行 Prometheus 或与 Prometheus 兼容的系统。现在，您可以通过 ClickStack UI 将其中一个系统配置为指标源。PromQL 查询会被代理到配置的端点，并且同一个图表编辑器也可以与任一后端配合使用。因此，现有 Prometheus 指标可以与日志和追踪一起绘制图表，而无需先迁移底层数据。这使 ClickStack 超越了单一来源的可观测性体验。随着我们对原生指标支持的成熟，团队可以使用现有的 Prometheus 部署来评估 ClickStack，并跨系统迁移仪表板，而无需立即进行完整迁移。它还支持混合方法。团队可以将高基数工作负载从 Prometheus 迁移到 ClickHouse TimeSeries Engine，逐步迁移，继续使用现有仪表板，并比较两个系统之间的结果。这样可以更容易地验证两个后端在完成迁移前是否产生等效结果。全面迁移并非每个人的目标。\n\n对现有 Prometheus 兼容部署感到满意的团队，可以保留该部署，并使用 ClickStack 将这些指标与日志和 Trace 关联起来。\n\n## 更快的筛选值与自动补全\n\n自动补全和筛选器下拉框需要回答一个代价高昂的问题：这一列包含哪些值？在数据量很大的源上，扫描表会让原本即时的下拉框变成漫长的等待。ClickStack 使用元数据物化视图来降低这一成本已有一段时间，但选择查询对象的逻辑已经演变成多条重叠路径。我们重构了决定过滤器生成策略的逻辑，使其按成本从低到高依次尝试每个可用选项。首选是 ClickHouse 文本索引，通过 mergeTreeTextIndex() 表函数读取。它列出索引中已存储的术语，无需读取底层数据部分。它适用于 map 上的文本索引，也适用于 TraceId 等原生列。当没有合适的文本索引时，路由器回退到元数据汇总物化视图。只有当两个选项都不可用时，才直接查询源表。自动补全现在使用同一路径，让建议和筛选值共享同一实现。mergeTreeTextIndex() 路径需要 ClickHouse 26.3 或更高版本。对更早版本，路由器会跳过该路径并使用元数据汇总，因此筛选功能在两种情况下都能工作。\n\n## 级联仪表盘筛选器\n\n过去几个月，仪表盘筛选能力有了显著改进：先是能够限制筛选器中显示的值，随后在 5 月支持了源作用域筛选器。然而，此前每个下拉框仍然会列出其列中的每个值，而不考虑已经应用的筛选器。在 Kubernetes 仪表盘上，选择一个集群后，命名空间下拉框仍满是来自其他集群的命名空间，其中大部分会返回空结果。仪表盘筛选栏和 Kubernetes 视图现在包含一个“Link filters”开关。启用后，每个下拉框只提供与当前选择同时出现的值。例如，选择集群后，命名空间列表会缩小到该集群中存在的命名空间。Kubernetes 筛选栏上的自由文本搜索也会促成同样的缩小。\n\n由于查询成本，链接默认关闭。缩小后的值取决于当前选择，不能来自普通下拉框使用的廉价逐键汇总。随着源的增长，这些查询会变得昂贵得多。为了限制这种成本，缩小后的值只在下拉框打开时才获取。这为仪表盘可触发的额外查询数量设置了一个上限。\n\n## 连续窗口告警\n\n一个嘈杂的评估窗口就足以让告警在凌晨三点呼叫某人，而问题其实是短暂的且已经过去。短暂的延迟尖峰、一批重试，或一次临时抬高错误率的部署，都可能越过阈值、触发告警，然后在任何人读完通知之前就已经恢复。告警现在支持在触发前，等待某个条件连续多个窗口都成立。如果一条告警要求连续三个一分钟窗口，那么只有当阈值被连续突破三次后，它才会发送通知。这可以在不提高阈值、不降低告警对持续问题的敏感性的情况下，滤除短暂尖峰。\n\n## ClickStack 6-7月更新：追踪导航与Prometheus集成\n\n## PENDING 状态\n\n当警报正在累积所需的时间窗口时，它会报告一个新的 PENDING 状态。这可以把可能即将触发的警报与当前没有活动条件的警报区分开来。numConsecutiveWindows 设置在警报编辑器和外部 API 中均可用，因此以代码方式管理的警报也可以使用该设置。\n\n## 指数直方图指标\n\n指数直方图是 OpenTelemetry 两种直方图类型中更为紧凑的一种。它不需要预先定义固定的桶边界，而是使用一个缩放因子和一个索引来表示每个桶。这样一来，单个指标就能以高分辨率覆盖很宽的值域，而埋点作者也无需事先预测有用的延迟边界可能落在哪里。对指数直方图的支持一直是我们在指标支持方面收到的最常见请求之一。\n\n查询构建器现在支持对指数直方图指标进行分位数（quantile）和总和（sum）聚合。这些指标也会与其他指标类型一起出现在指标名称选择器中。\n\n计算分位数比固定桶直方图更复杂。缩放因子可能因序列而异，也可能在同一序列的不同数据点之间变化。在进行任何聚合之前，ClickStack 会将计数归一化为当前存在的最小缩放因子。这会把较细的桶合并为较粗的桶，同时保持它们的偏移对齐。偏移也可能在不同数据点之间移动。为了将累计计数转换为增量计数，ClickStack 会在减去计数之前，将每个桶索引与同一序列中的前一个数据点对齐。对齐之后，再按每个时间桶内的序列对各桶计数求和。ClickStack 使用累计计数定位包含所请求分位数的桶，然后在该桶内使用对数线性插值估算分位数值。这与 Prometheus 的行为一致。\n\n## 分类条形图\n\nClickStack 长期以来一直支持条形图，但只能作为时间序列使用，即沿着时间轴每个时间桶一个条。要回答“今天哪十个端点产生的错误最多？”这类问题，过去只能使用饼图，而要比较的值很多时，饼图会变得难以阅读。现在，分类条形图在图表资源管理器、仪表盘、MCP 服务器和外部仪表盘 API 中拥有了自己的显示类型。每个条代表一个分组，而不是一个时间桶，排名比较因此变得容易阅读得多。\n\n新的条形图和现有饼图也支持时间序列图表中已有的系列数量限制。不过，分类图表的实现有所不同：该限制会变成查询中的 ORDER BY 和 LIMIT，而时间序列图表则需要 CTE 才能计算每个时间桶内的 Top 序列。排序方式也是可配置的。分类图表以前固定为按值降序排列，现在你可以提供任意 SQL 表达式作为排序依据，默认仍为值降序。\n\n## 事件模式作为仪表盘图块\n\n事件模式会将相似的消息归并为一小组具有代表性的模式。这通常是理解某个服务正在输出什么的最快方式。以前，事件模式仅限于搜索页面使用。你可以在调查过程中使用它们，但无法将结果保存到仪表盘上，与它帮助解释的图表放在一起。现在，事件模式已经可以作为仪表盘图块类型使用。\n\n## Tile 编辑器中的模式挖掘\n\nTile 编辑器有一个专门区域，用于指定要分析的列表达式（日志默认使用 Body，trace 数据源默认使用 SpanName），还可以提供可选过滤器，过滤器可使用 Lucene 或 SQL 编写——这对于将模式挖掘限制在数据子集内很有用。该功能覆盖 UI、MCP server 和外部 API，因此代理（agent）也可以使用 displayType: \"event_patterns\" 创建模式磁贴（pattern tile）。\n\n## 只读 Kiosk 模式\n\n很多团队会在办公室的屏幕上展示一个仪表盘。在此之前，这意味着要保留一个可编辑的仪表盘并保持打开状态，同时希望没有人拿着鼠标路过。创作界面也占用了本不该被交互的显示空间。现在仪表盘有了 kiosk 模式，可从溢出菜单（overflow menu）进入。该模式将界面缩减为仪表盘名称、实时只读指示器，以及磁贴本身。所有编辑控件都被禁用，自动刷新始终保持开启，包括 trace 磁贴和搜索磁贴的实时行为。\n\nKiosk 模式通过 URL 中的 kiosk=true 存储。壁挂显示屏可以直接打开该 URL，并在重启后回到 kiosk 模式，而无需任何人重新配置。\n\n## 外部 API 中的保存的搜索与 Webhook\n\n我们一直在持续补全 External API v2，让 ClickStack 资源可以以代码形式管理，而不是靠手动点击配置。告警（alerts）和仪表盘此前\n\n## 指标表默认 Schema 变更\n\n这会改变 Collector 创建的默认 schema，因此仅适用于新建的指标表。现有部署会保留当前的排序键（sorting key），因为主键无法就地修改。如何迁移到新的主键，请参见我们现有的指南。\n\n## OpenTelemetry Collector 的 Datadog Receiver\n\nClickStack 发行的 OpenTelemetry Collector 现在包含一个可选的 Datadog receiver。现有的 Datadog Agent 可以直接向 ClickStack 发送追踪（traces）、指标（metrics）和日志（logs），无需立即更改任何埋点。设置 ENABLE_DATADOG_RECEIVER 后，OpAMP 控制器会将 contrib datadogreceiver（监听 0.0.0.0:8126）添加到 traces、metrics 和 logs 三条流水线中。启用 Collector 认证后，该 receiver 会对照团队 API 密钥校验 DD-API-KEY 请求头。\n\n这大大降低了用现有工作负载评估 ClickStack 的门槛，也提供了一条渐进式迁移路径。团队可以立即开始向 ClickStack 发送数据，然后逐步将埋点迁移到 OpenTelemetry SDK 和 Collector，而不必一次性全部替换。并行运行两套系统是另一种选择。团队可以把日志或追踪迁到 ClickStack，同时把指标留在 Datadog，无需替换每个信号背后的埋点。这样，各个工作负载可以在运维或成本收益合适的时候单独迁移。我们在专门的一篇博客中详细介绍了这条迁移路径，包括 receiver 能转换和不能转换的内容。\n\n## MCP 服务器改进\n\n自从在 Open House 上发布 ClickStack MCP 服务器以来，我们一直在扩展 agent 可以借它完成的工作。我们自己的评估框架显示，当 agent 获得可观测性原语时，其表现明显优于被要求用原始 SQL 重建调查工作流时的表现。本月有两项改进尤为突出。\n\n### 指标作为一等数据源\n\nMCP 服务器现在具备一整套发现和查询 OpenTelemetry 指标的工作流。两个新工具负责指标发现。clickstack_list_metrics 返回分页的指标名称目录，支持按指标类型（metric kind）、名称模式和时间窗口过滤。clickstack_describe_metric 返回所选指标的单位、描述、属性键和采样值。clickstack_describe_source 也具备指标感知能力：它会根据指标类型选择一个有代表性的表，并运行与其他数据源类型相同的列发现与值采样流程。clickstack_timeseries 和 clickstack_table 工具现在接受 metricType 和 metricName 参数，从而支持对指标进行查询。\n\n### 数据源与 Webhook 管理\n\n几位用户提出，希望让 agent 参与 ClickStack 的初始设置过程，而不只是等数据流入后再用 agent 做调查。此前，这隐含了一个前提：在 agent 介入之前，数据源和 webhook 已经配置完成。现在，MCP 服务器可以创建、更新和删除数据源与 webhook。agent 可以从初始化阶段开始，创建数据源，将采集器（shipper）指向 ClickStack，然后开始摄取数据。之后，它就可以基于同一份数据构建搜索、仪表盘和告警。支撑这一工作流的工具包括 clickstack_save_source、clickstack_delete_source、clickstack_save_webhook 和 clickstack_delete_webhook。",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [
+    "ClickHouse"
+   ],
+   "heat": 50,
+   "star": false,
+   "importance": 60,
+   "signal": 0,
+   "topics": [],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-08-10T08:00:00+08:00",
+   "first_seen": "2026-08-11T01:38:20.381714+08:00",
+   "items": [
+    {
+     "id": "d8009f6c6475",
+     "source": "ClickHouse Blog",
+     "link": "https://clickhouse.com/blog/whats-new-in-clickstack-june-2026",
+     "published": "2026-08-10T08:00:00+08:00",
+     "ingested_at": "2026-08-11T01:38:20.381714+08:00",
+     "title": "Whats new in ClickStack - June + July"
+    }
+   ]
+  },
+  {
+   "event_id": "852499f0cb49",
+   "zh_title": "Epic Games如何调优OpenSearch支撑Fortnite分析",
+   "zh_summary": "Epic Games与AWS合作，对其Amazon OpenSearch Service集群进行优化，用于Fortnite游戏遥测数据的存储与分析。团队通过调整实例规格、重新平衡分片、优化索引映射以及升级引擎和Graviton版本，在降低运营成本的同时显著提升了查询延迟和吞吐量。该实践支撑了数十亿级遥测事件的处理，帮助Epic识别玩法趋势并辅助实时运营决策。",
+   "reason": "聚焦游戏数据分析场景下的OpenSearch调优实践，涉及大规模遥测处理、查询性能与成本优化，对数据平台从业者有直接参考价值。",
+   "full_zh": "## Epic Games 如何调优 OpenSearch 支撑 Fortnite 分析\n\n自 2017 年 Fortnite 上线以来，Epic Games 已覆盖全球数亿玩家。Fortnite 运行在 Amazon Web Services（AWS）上，并利用 Amazon OpenSearch Service 等服务支撑部分内部分析工作，在大规模场景下辅助决策。Amazon OpenSearch Service 在理解游戏生态系统方面发挥了重要作用。\n\nOpenSearch Service 支撑两类用例：搜索工作负载与分析工作负载。Epic Games 的一个团队有一个用例，需要存储并分析滑动窗口内的游戏事件数据。这涉及支持复杂查询和多层聚合，并将分析结果馈入其他内部系统，从而帮助驱动不断演进的玩家体验。在 Fortnite 这样拥有庞大玩家基础的游戏规模下，这些查询需要处理海量的传入数据。\n\n这些洞察有助于识别新兴的游戏玩法趋势，理解玩家如何与新内容互动，并揭示更多关于 Fortnite 生态系统的信息。它们为实时运营决策提供依据，并基于社区整体聚合行为，向玩家呈现相关内容。\n\n随着 Epic Games 的基础设施处理数十亿级别的遥测事件，该团队发现了优化其 OpenSearch Service 集群以提升性能和成本效率的机会。本文介绍了 Epic Games 如何与 AWS 合作，对其 OpenSearch Service 部署进行改造，在显著改善查询延迟和资源利用率的同时降低了运营成本。\n\n## 挑战\n\nEpic Games 运行着一个 OpenSearch Service 域，需要处理持续的高容量写入，以及 CPU 密集型的批量聚合作业。理想情况下，这些聚合作业应该更频繁地运行，以保持分析结果的新鲜度。更短的作业间隔意味着更新的数据，从而能更快地识别游戏玩法趋势、检测异常，并为实时运营决策提供信息。但现有的配置无法在不将域扩展到超出工作负载合理需求的情况下支持这一点，否则会推高成本。\n\nEpic Games 与 AWS 合作，确定了可以改进的方面，重点关注硬件利用率、分片策略、索引映射和查询行为等领域。\n\n## 观测结果\n\n该集群运行在 r7g 内存优化型数据节点上，每个节点拥有 48 个 vCPU 和 384 GiB 内存。在每台节点的可用内存中，只有一小部分（32 GiB）分配给了 Java 虚拟机（JVM）堆，该值设置为压缩普通对象指针（compressed oops）所支持的最大推荐值。其余内存（堆外内存）用于文件系统缓存和操作系统。各数据节点的系统内存并未得到充分利用（图 1）。\n\n图 1：各数据节点的系统内存利用率\n\n如上图所示，在整个观测期间，利用率始终远低于 100%，证实分配给这些节点的大量堆外内存并未被使用。这部分过剩容量可以被安全地置换为额外的计算资源。JVM 内存压力如图 2 所示，相关联的垃圾收集指标（包括次数和时间）如图 3 所示。\n\n## 观察结果\n\n图 2：JVM 内存压力\n\n图 3：JVM 垃圾回收指标，次数（上）与耗时（下）\n\n这些图表显示，JVM 内存压力保持在临界阈值以下，垃圾回收次数与耗时均处于低位且稳定，表明整个域的 JVM 利用率处于健康状态。\n\n虽然集群级 CPU 指标乍看之下表现正常（图 4），但放大到节点级指标后，清晰暴露出了节点热点。节点热点的根本原因在于集群的分片策略。\n\n图 4：集群级 CPU 利用率\n\n该集群的数据节点分布在多个可用区（Availability Zones）。每个索引使用固定数量的主分片并配置副本，分片达到一定大小后执行滚动（rollover）。乍看之下，该配置似乎相当均衡：分片副本分布在各个可用区，每个节点持有可控份额的数据。\n\n然而，主分片数量低于数据节点总数。这意味着，针对最新数据的搜索——这是最常见的访问模式——只会在一部分可用节点上执行。结果，部分节点持续出现 CPU 热点，而其余节点处于低利用率状态（图 5）。\n\n图 5：节点级 CPU 利用率，显示热点节点\n\n如上图所示，部分节点的 CPU 利用率高达 90%，而其他多个节点低于 20%，凸显了查询执行在集群中分布不均的问题。\n\n## 建议与实施\n\n基于上述观察，AWS 与 Epic Games 合作实施了一系列针对性优化，涵盖硬件选型、分片策略、索引映射和查询行为。以下各节详细说明每项建议及其落地方式。\n\n## 合理调整集群规格\n\n由于聚合查询天然属于 CPU 密集型，且集群的 JVM 内存压力远在可接受范围内，AWS 建议从内存优化型 r7g 实例迁移至计算优化型 c7g 实例。c7g 系列提供更高的 vCPU 与内存配比，更适合处理能力而非内存容量构成瓶颈的工作负载。\n\n所提议的架构要求使用比现有 r7g 数量更多的 c7g 节点。这一迁移使集群总 CPU 容量提升约 33%，同时内存仅为原来的三分之二。净效果是成本显著降低约 10%——通过让实例配置与实际工作负载特性对齐，以更低成本获得更强的处理能力（表 1）。\n\n表 1：实例迁移对比，r7g 与 c7g\n\n| 项目 | r7g（迁移前） | c7g（迁移后） | 净影响 |\n|------|--------------|--------------|--------|\n| 实例家族 | 内存优化 | 计算优化 | CPU 与内存配比更适合聚合工作负载 |\n| 每节点 vCPU | 相同 | 相同 | 每节点 CPU 相同；节点更多 = 总 CPU 更高 |\n| 每节点内存 | 更高 | 更低 | 减少未使用的内存；JVM 堆保持不变 |\n| 总 CPU | 基线 | 总 vCPU 增加 33% | 在更多节点上分布更均匀 |\n| 成本 | 基线 | 降低约 10% | 每美元获得更高性能 |\n\n## 分片策略\n\n为配合新的集群规格，Epic Games 团队更改了分片策略，使主分片数量与数据节点数量保持一致，并配置 1 个副本。这样可将写入密集负载和批量聚合搜索查询负载均匀分布到所有可用数据节点上。\n\n## 分片优化\n\n团队采用 ISM（索引状态管理）策略，通过滚动（rollover）机制管理分片大小，利用 `min_primary_shard_size` 将分片大小控制在建议范围内。这使分片数量保持有界且可预测，并提供了一条清晰的扩展模式：先调整节点数量，再相应更新 ISM 策略。实施后，节点级 CPU 利用率呈现出更加均匀的分布（图 6）。\n\n图 6：分片优化后的节点级 CPU 利用率\n\n如图 6 所示，域内所有节点的 CPU 利用率水平相近，证实数据和流量在集群中分布良好，不存在节点热点。\n\n## 映射优化\n\n索引映射中许多字段同时启用了 text 和 keyword 字段类型，尽管访问模式显示这些字段仅用于聚合、排序或过滤场景，从未用于全文匹配查询。移除冗余的 text 字段类型降低了存储开销，并通过消除索引时不必要的分析（analysis）提升了查询性能。\n\n对于高基数字符串字段，murmur3 字段类型为基数聚合提供了一种“计算一次并存储”的优化：murmur3 不是在查询时对 keyword 值进行哈希，而是在索引时计算一次哈希并将其存储为数值型 doc_value，从而让聚合跳过查询时昂贵的字符串哈希步骤（基数估算本身仍在查询时计算）。以下示例说明了映射变更：\n\n**变更前：**\n\n```json\n\"some_field\": {\n  \"type\": \"text\",\n  \"fields\": {\n    \"keyword\": {\n      \"ignore_above\": 256,\n      \"type\": \"keyword\"\n    }\n  }\n},\n\"another_field\": {\n  \"type\": \"text\",\n  \"fields\": {\n    \"keyword\": {\n      \"ignore_above\": 256,\n      \"type\": \"keyword\"\n    }\n  }\n},\n\"cardinality_field\": {\n  \"type\": \"text\",\n  \"fields\": {\n    \"keyword\": {\n      \"ignore_above\": 256,\n      \"type\": \"keyword\"\n    }\n  }\n}\n```\n\n**变更后：**\n\n```json\n\"some_field\": {\n  \"type\": \"keyword\"\n},\n\"another_field\": {\n  \"type\": \"keyword\"\n},\n\"cardinality_field\": {\n  \"type\": \"keyword\",\n  \"fields\": {\n    \"hash\": {\n      \"type\": \"murmur3\"\n    }\n  }\n}\n```\n\n这些映射变更降低了总体存储量，减少了分片数量（从而降低了 CPU 需求），并缩减了集群管理节点（cluster manager node）的状态大小。\n\n## 索引优化\n\n还应用了额外的索引级优化来提升查询性能并减少开销。索引排序被配置为默认使用主日期字段，通过将物理数据布局与最常见的查询顺序对齐，改善了基于时间的访问模式的性能。ISM 策略被更新为在滚动后将索引强制合并（force merge）为 1 个段，减少了只读索引上的段开销。最后，调整了刷新间隔（refresh interval），以在索引吞吐量与搜索新鲜度之间取得平衡。\n\n## 从 OpenSearch Service 2.17 升级到 3.1\n\n该域从 OpenSearch Service 2.17 升级到 3.1，降低了错误计数并提升了 Amazon OpenSearch Ingestion 管道层面的吞吐量。性能提升显著：仅升级后，sum 聚合的 p99 延迟就下降了 40%–50%，大型 96 小时基数聚合的 p95 下降了超过 40%。所有查询类型的总体查询性能均有所提升，线程池压力显著降低，429 错误大幅减少（图 7）。\n\n图 7：OpenSearch Service 3.1 升级前后的查询性能\n\n## 从 Graviton 3 升级到 Graviton 4\n\n实例类型从 c7g（Graviton 3）升级到 c8g（Graviton 4）。\n\n性能提升立竿见影：所有查询的 p99 从 380 ms 降至 250 ms；所有查询的 p95 从 245 ms 降至 230 ms；所有查询的 p90 从 225 ms 降至 200 ms；所有查询的 p50 从 100 ms 降至 70 ms。日期窗口基数查询的 p99 从 220 ms 减半至 98 ms，基于 sum 的聚合也获得了类似的提升。整体吞吐量提升了 16%。\n\n## 分层缓存（Tiered caching）\n\n升级到 OpenSearch Service 3.1 后，团队启用了分层缓存。分层缓存用基于磁盘的层级扩展了默认的堆内请求缓存。当条目从堆内缓存中逐出时，它们会溢出到节点本地 SSD 上更大的磁盘缓存中，而不是被丢弃。这使集群能够在不增加 JVM 堆使用量的情况下，为更大量的查询保留缓存结果。\n\nEpic Games 工作负载中的批量聚合任务会在重叠的时间窗口上重复发出查询。仅靠堆内缓存太小，无法在连续的任务运行之间保留结果，因此昂贵的聚合每次都要重新计算。启用磁盘层级后，较长时间窗口聚合（例如 96 小时基数查询）的结果可以在两次运行之间保留。这使得一些较大的聚合查询（尤其是那些跨越较长时间窗口的查询）获得了更一致、更快速的结果。\n\n## 结果汇总\n\n下表总结了各项优化的影响。\n\n| 优化策略 | 影响 |\n|---|---|\n| 实例规格调整（r7g 到 c7g） | CPU 增加 33%，成本降低 10% |\n| 分片再平衡 | 消除了各节点上的 CPU 热点 |\n| 映射优化 | 减少了存储、分片数量和集群状态大小 |\n| OpenSearch Service 2.17 升级到 3.1 | p99 sum 聚合降低 40-50%，429 错误减少 |\n| Graviton 3 升级到 Graviton 4 | p99 从 380 ms 降至 250 ms，吞吐量提升 16% |\n| 分层缓存 | 大型聚合查询的结果更一致 |\n\n表 2：结果汇总\n\n## 结论\n\n通过对 OpenSearch Service 部署进行优化，Epic Games 的一个团队将 p99 查询延迟从 380 ms 降至 250 ms，吞吐量提升了 16%，成本降低了 10%。这些收益来自使实例类型、分片策略、映射和引擎版本与实际工作负载需求保持一致。",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [
+    "AWS"
+   ],
+   "heat": 59,
+   "star": true,
+   "importance": 78,
+   "signal": 0,
+   "topics": [
+    "实时分析",
+    "数据人"
+   ],
+   "shelf": "evergreen",
+   "pinned": false,
+   "published": "2026-08-11T00:26:32+08:00",
+   "first_seen": "2026-08-11T01:38:20.381714+08:00",
+   "items": [
+    {
+     "id": "00dc2b3ca118",
+     "source": "AWS Big Data Blog",
+     "link": "https://aws.amazon.com/blogs/big-data/how-a-team-at-epic-games-tuned-amazon-opensearch-service-for-fortnite-analytics/",
+     "published": "2026-08-11T00:26:32+08:00",
+     "ingested_at": "2026-08-11T01:38:20.381714+08:00",
+     "title": "How a team at Epic Games tuned Amazon OpenSearch Service for Fortnite analytics"
+    }
+   ]
+  },
+  {
+   "event_id": "97bebf774eeb",
+   "zh_title": "AWS推出Kinesis数据流AI成本优化Agent",
+   "zh_summary": "AWS博客介绍如何部署一个基于Amazon Bedrock的开源AI代理，自动分析账户内每个Kinesis Data Streams流，对比Provisioned、On-demand Standard和On-demand Advantage三种容量模式的成本，并推荐最优模式。该代理可按日或周调度运行，无需人工干预，帮助节省超过60%的流处理成本。",
+   "reason": "展示AI Agent在数据流成本优化中的实际应用，对使用Kinesis的团队有直接降本价值。",
+   "full_zh": "Amazon S3 —— 生成按数据流（per-stream）建议和账户级 Advantage 评估，然后将最终 HTML 和 JSON 报告存储于其中。Amazon Bedrock AgentCore harness 对分析结果进行汇总，并将其返回给调用方。整个技术栈通过 AWS Cloud Development Kit（AWS CDK）部署，只需一条 `cdk deploy` 命令即可完成。\n\n## 前提条件\n\n开始之前，请确认你已具备以下条件：\n\n- AWS CDK —— `npm install -g aws-cdk`。\n- Python 3.12+。\n- `aws-cdk-lib >= 2.251.0` —— 用于 AgentCore L2 构造（L2 constructs）。\n- AWS Command Line Interface（AWS CLI），并配置了具有部署所需资源权限的凭证。\n- Amazon Bedrock 模型访问权限 —— 确认你在目标区域可以访问 Claude Sonnet 4.5（或你选择的模型）。可在 Amazon Bedrock 控制台的 Model access（模型访问）下查看。\n\n## 操作指南\n\n在以下各节中，你将部署 Kinesis Data Streams Mode Optimizer Agent，并针对你的 Kinesis 数据流进行测试。\n\n### 第 1 步：克隆代码仓库\n\n```\ngit clone https://github.com/aws-samples/sample-kinesis-optimizer-agent.git\ncd sample-kinesis-optimizer-agent\n```\n\n### 第 2 步：安装 CDK 依赖\n\n```\ncd infra\npip install -r requirements.txt\n```\n\n### 第 3 步：设置目标区域\n\n该技术栈将部署到 `AWS_DEFAULT_REGION` 中设置的区域。请在运行任何 CDK 命令之前完成设置：\n\n```\n# Linux/macOS\nexport AWS_DEFAULT_REGION=us-east-1\n\n# Windows PowerShell\n$env:AWS_DEFAULT_REGION=\"us-east-1\"\n```\n\n### 第 4 步：引导 CDK（每个账户/区域首次执行）\n\n```\ncdk bootstrap aws://<ACCOUNT_ID>/<REGION>\n```\n\n### 第 5 步：部署\n\n```\ncdk deploy\n```\n\n可选：自定义调度计划和存储桶名称。\n\n```\n# 改为每周执行而非每天\ncdk deploy --parameters ReportSchedule=\"rate(7 days)\"\n\n# 自定义存储桶名称\ncdk deploy --parameters ReportBucketName=amzn-s3-demo-bucket\n```\n\n### 第 6 步：测试 Agent\n\n你可以使用 AWS CLI 测试该 Agent：\n\n```\naws bedrock-agentcore invoke-harness \\\n  --harness-arn <HARNESS_ARN> \\\n  --runtime-session-id $(uuidgen) \\\n  --messages '[{\"role\":\"user\",\"content\":[{\"text\":\"Generate an optimization report\"}]}]' \\\n  --region us-east-1\n```\n\n### 第 7 步：查看报告\n\n报告存储在 Amazon S3 中，路径为：\n\n```\ns3://amzn-s3-demo-bucket/kinesis-optimization-reports/YYYY/MM/DD/HHMMSS-<report-id>.html\ns3://amzn-s3-demo-bucket/kinesis-optimization-reports/YYYY/MM/DD/HHMMSS-<report-id>.json\n```\n\nHTML 报告包含带优先级标识的按数据流操作表（per-stream action table）、详细的成本拆分，以及账户级 Advantage 建议。\n\n图 2：示例 HTML 报告，含按数据流操作表\n\n图 3：示例报告输出中的账户级按需（On-demand）Advantage 建议\n\n## 多区域部署\n\n该 Agent 是区域性的。部署到某个区域时，它只分析该区域内的数据流。要覆盖多个区域，请更改环境变量并重复部署：\n\n```\nexport AWS_DEFAULT_REGION=eu-west-1\ncdk bootstrap aws://<ACCOUNT_ID>/eu-west-1\ncdk deploy\n```\n\n每次部署都是独立的，拥有各自的 Agent、Amazon S3 存储桶和调度计划。\n\n## 清理\n\n要从某个区域移除该技术栈：\n\n```\ncd infra\ncdk destroy\n```\n\n注意：Amazon S3 存储桶设置了 `RemovalPolicy.RETAIN`，不会随技术栈一并删除。如果不再需要报告，请手动删除该存储桶。\n\n## 结语\n\n在本文中，你部署了一个由 AI 驱动的 Agent，它可以自主分析你的 Amazon Kinesis Data Streams，并为每条数据流推荐最优容量模式。\n\n## AWS推出Kinesis数据流AI成本优化Agent\n\n该Agent减轻了手动审查数十或数百个流的CloudWatch指标的工作，并按周期性计划生成可操作的、成本感知的建议。通过从手动容量审查转变为自主的、按计划优化，您获得三个关键收益。首先，您可以通过识别应切换模式的流来降低流式传输成本。其次，您可以通过在配置不足的流影响性能之前捕获它们来缓解节流风险。第三，您将团队从重复性运营工作中解放出来。所有这些都可以通过一次`cdk deploy`实现。要开始使用，请克隆`sample-kinesis-optimizer-agent`仓库并立即部署到您的账户。",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [
+    "AWS"
+   ],
+   "heat": 56,
+   "star": true,
+   "importance": 72,
+   "signal": 0,
+   "topics": [
+    "Data Agent"
+   ],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-08-11T00:21:55+08:00",
+   "first_seen": "2026-08-11T01:38:20.381714+08:00",
+   "items": [
+    {
+     "id": "0fbcac1211ca",
+     "source": "AWS Big Data Blog",
+     "link": "https://aws.amazon.com/blogs/big-data/ai-powered-cost-optimization-agent-for-amazon-kinesis-data-streams/",
+     "published": "2026-08-11T00:21:55+08:00",
+     "ingested_at": "2026-08-11T01:38:20.381714+08:00",
+     "title": "AI-powered cost optimization agent for Amazon Kinesis Data Streams"
+    }
+   ]
+  },
   {
    "event_id": "8f797762a332",
    "zh_title": "华为重定义存储：推AI数据中心五层架构",
@@ -1183,7 +1281,7 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 41,
+   "heat": 40,
    "star": true,
    "importance": 45,
    "signal": 0,
@@ -1250,7 +1348,7 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 31,
+   "heat": 30,
    "star": true,
    "importance": 25,
    "signal": 0,
@@ -1421,7 +1519,7 @@
    "vendors": [
     "阿里云"
    ],
-   "heat": 61,
+   "heat": 60,
    "star": false,
    "importance": 85,
    "signal": 0,
@@ -1546,7 +1644,7 @@
    "category": "agent",
    "category_label": "Data Agent",
    "vendors": [],
-   "heat": 47,
+   "heat": 46,
    "star": false,
    "importance": 62,
    "signal": 0,
@@ -1850,7 +1948,7 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 39,
+   "heat": 38,
    "star": true,
    "published": "2026-08-07T19:44:24+08:00",
    "items": [
@@ -1884,7 +1982,7 @@
     "英韧科技",
     "华为"
    ],
-   "heat": 50,
+   "heat": 49,
    "star": false,
    "importance": 72,
    "signal": 0,
@@ -2063,7 +2161,7 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 54,
+   "heat": 53,
    "star": true,
    "published": "2026-08-07T03:01:01+08:00",
    "items": [
@@ -2810,7 +2908,7 @@
    "vendors": [
     "ThoughtSpot"
    ],
-   "heat": 34,
+   "heat": 33,
    "star": true,
    "published": "2026-08-05T06:38:59+08:00",
    "items": [
@@ -2841,7 +2939,7 @@
    "vendors": [
     "ThoughtSpot"
    ],
-   "heat": 34,
+   "heat": 33,
    "star": true,
    "published": "2026-08-05T06:35:11+08:00",
    "items": [
@@ -3165,130 +3263,6 @@
    "topics": [],
    "shelf": "evergreen",
    "first_seen": "2026-08-04T00:22:56+08:00"
-  },
-  {
-   "event_id": "ee751ae4a41f",
-   "zh_title": "Amazon MSK推出Agent Skills助力Kafka集群运维与迁移",
-   "zh_summary": "AWS宣布为Amazon MSK推出Agent Skills，包含managing-amazon-msk和migrate-to-msk两项技能，可在开发环境中提供AI辅助的Kafka运维与迁移指导。该技能基于AWS最佳实践，支持诊断性能问题、按成本拆分进行集群容量规划，以及规划从自管理Kafka到Amazon MSK的迁移。文章演示了安装流程及关键能力，包括发现、兼容性评估和目标容量规划。",
-   "reason": "数据从业者经常运维Kafka集群，Agent Skills将领域知识编码到AI辅助工具中，能降低运维门槛、提升迁移效率，是数据平台智能化的重要实践。",
-   "full_zh": "Amazon Managed Streaming for Apache Kafka（Amazon MSK）负责Apache Kafka的核心运维任务，包括集群配置、补丁、高可用性等。但在大规模运行Kafka集群时，仍有许多决策需要深厚的领域知识。例如，从哪里开始排查应用延迟问题？如何合理调整集群规模以平衡性能与成本？如何分析应用、集群配置和其他需求，以支持从自管理Kafka平滑迁移到Amazon MSK？\n\n针对这些痛点，AWS推出了新的Agent Skills for Amazon MSK，让用户可以直接在开发环境中获取AI辅助的运维与迁移规划指导。该功能包含两项互补的技能：managing-amazon-msk和migrate-to-msk。它们将AWS最佳实践、结构化故障排查工作流以及程序化容量规划和兼容性分析编码为可执行的领域知识。\n\n文章详细演示了如何安装这两项技能，并展示了它们的核心能力：诊断性能问题、提供带成本拆分的集群容量规划，以及从自管理Kafka迁移到Amazon MSK的完整规划流程，包括发现、兼容性评估和目标容量规划。\n\nAgent Skills增强文档的方式值得关注。基线大语言模型从训练数据中编码知识，但随着服务演进，训练数据可能过时，且往往缺乏任务所需的特定上下文细节。因此，通用助手可能产生听起来合理但事实错误的结果（即幻觉）。例如，Amazon MSK Provisioned集群有两种代理类型：Standard和Express，这两种代理类型在性能和成本方面各有不同的考量。Agent Skills通过注入最新的最佳实践和结构化流程，有效减少了这类风险。\n\n这一发布体现了云厂商将AI能力嵌入数据基础设施运维的趋势。对于使用Kafka的数据团队而言，Agent Skills可以将专家经验转化为可交互的运维助手，帮助缩短故障排查时间，优化集群资源配置，并为迁移项目提供可复用的方法论。目前该功能主要面向Amazon MSK用户，需要在开发环境中配置相应技能后使用。",
-   "category": "platform",
-   "category_label": "AI 数据平台",
-   "vendors": [
-    "AWS",
-    "Amazon MSK",
-    "Apache Kafka"
-   ],
-   "heat": 31,
-   "star": true,
-   "published": "2026-08-04T00:19:05+08:00",
-   "items": [
-    {
-     "id": "a6e2591debd6",
-     "source": "AWS Big Data Blog",
-     "link": "https://aws.amazon.com/blogs/big-data/streamline-apache-kafka-cluster-operations-and-migrations-with-agent-skills-for-amazon-msk/",
-     "published": "2026-08-04T00:19:05+08:00",
-     "title": "Streamline Apache Kafka cluster operations and migrations with Agent Skills for Amazon MSK",
-     "ingested_at": "2026-08-04T00:19:05+08:00"
-    }
-   ],
-   "topics": [
-    "Data Agent"
-   ],
-   "shelf": "news",
-   "first_seen": "2026-08-04T00:19:05+08:00"
-  },
-  {
-   "event_id": "5155dc60a496",
-   "zh_title": "为MCP上的Agent会话提供产品分析与评测工具",
-   "zh_summary": "Armature 是一款面向 MCP 的 Agent 会话产品分析与评测工具，在 Hacker News 上获得 42 赞、8 条评论。它把分散的工具调用日志重建为可分析的会话，捕获用户意图与 Agent 思考过程，并为会话打分（示例中成功任务得分 92）。它能按用况聚类并排名，例如创建/发送发票 38%、对账 22%、批量退款暂不支持 14%、导出营收报告 9%；还能定位循环、死胡同等问题根因，支持会话回放。",
-   "reason": "数据从业者应关注：Agent 会话的可观测性与评测是 Data Agent 落地中的关键环节，Armature 展示了面向 MCP 的会话分析、用况聚类与失败根因排查的产品化实践。",
-   "full_zh": "Armature 是一款面向 MCP 的 Agent 会话产品分析与评测工具，正在 Hacker News 上以 Show HN 形式展示，获得 42 赞和 8 条评论。它的核心定位是：用户与产品的交互发生在 Claude、ChatGPT、Claude Code 等 AI 客户端内部，而不是你的 UI 中；Armature 能展示用户用你的产品做了什么，并通过评测（evals）确保产品持续可用。\n\n该工具提供 MCP Analytics 和 MCP & CLI Evals 两类能力：前者查看用户行为，后者对用户工作流运行评测。在 Armature 之前，开发者只有零散的工具调用日志；接入后，会话被重建，用户意图、Agent 思考过程被捕捉，会话得到评估。示例会话显示：用户意图是“为 ACME 设置付费方案并给他们开票”，Agent 思考“发票需要结算联系人——用所有者邮箱重试”，最终成功完成，得分 92。\n\n在用例分析上，Armature 的模型会读取每个会话，识别用户想完成的任务，按事件量和成功率分组排序，包括尚未支持的用况。示例数据中：创建并发送发票占 38%，对账占 22%，批量退款尚未支持占 14%，导出营收报告占 9%。\n\n在问题发现上，模型会扫描每个会话中的失败、循环和死胡同，按根因分组，并按遇到问题的用户数排序，即使所有 API 响应都是 200 OK 也能发现异常。示例问题包括：127 次 Agent 因缺少 auth scope 而循环（本周增加 43 次）、64 次搜索未命中“refund”措辞、31 次导出被分页截断、12 次批量更新触发限流。\n\n会话回放功能为每个会话评估用户是否达成了目标。开发者可以打开任意会话，回放完整轨迹：用户的请求、Agent 的思考和工具调用。这有助于产品团队理解用户的实际使用模式，优先修复高频失败，并规划对尚未支持用况的支持。",
-   "category": "agent",
-   "category_label": "Data Agent",
-   "vendors": [
-    "Armature"
-   ],
-   "heat": 31,
-   "star": false,
-   "published": "2026-08-04T00:17:59+08:00",
-   "items": [
-    {
-     "id": "fad7648cfcfd",
-     "source": "Hacker News（数据关键词）",
-     "link": "https://armature.tech/",
-     "published": "2026-08-04T00:17:59+08:00",
-     "title": "Show HN: Product analytics (and evals) for agent sessions on your MCP",
-     "ingested_at": "2026-08-04T00:17:59+08:00"
-    }
-   ],
-   "topics": [
-    "Data Agent"
-   ],
-   "shelf": "news",
-   "first_seen": "2026-08-04T00:17:59+08:00"
-  },
-  {
-   "event_id": "e829f02ca0ca",
-   "zh_title": "Amazon EMR on EKS 推出 Apache Spark 故障排查 Agent",
-   "zh_summary": "AWS 宣布将 Apache Spark 故障排查 Agent 扩展至 Amazon EMR on EKS，帮助数据工程师用自然语言诊断 Spark 作业失败。该 Agent 自动从 S3 或 CloudWatch 拉取日志及 Spark History Server 事件日志，定位根因并给出修复建议。它可显著缩短平均故障恢复时间（MTTR），从数天降至几分钟，且对 EMR on EKS 客户免费。",
-   "reason": "数据平台工程师可借此快速定位 Spark 作业故障，降低跨系统排查复杂度，值得关注。",
-   "full_zh": "在 Amazon EMR on EKS 上调试失败的 Apache Spark 应用，通常需要同时关联多个信号源，包括 Spark driver 和 executor 的 Pod 日志、Spark event logs、以及以 Pod 退出码形式出现的容器终止信号。例如，一次简单的内存溢出可能表现为 Kubernetes 退出码 137，而且很难直接关联到导致问题的代码行或配置。这种跨系统排查可能让单次事件的 MTTR 延长到数天，并且要求工程师具备很深的 Spark 和 Kubernetes 知识。\n\nAWS 近日宣布，Amazon EMR on EKS 现已支持 Apache Spark 故障排查 Agent，将原本适用于 Amazon EMR on EC2、Amazon EMR Serverless 和 AWS Glue 的智能诊断能力扩展到 EKS 环境。该 Agent 此前已帮助数据工程师通过自然语言提示诊断 Spark 故障，现在你可以在失败的 EMR on EKS 作业上使用相同的工作流。\n\n使用过程中，你只需输入一个自然语言提示，Agent 就会自动从 Amazon S3 或 Amazon CloudWatch（根据作业日志配置）拉取 Spark 日志，同时结合 Spark History Server 的事件日志数据，识别故障根因；如果故障与代码相关，它还会推荐修复方案。这一过程能将故障平均恢复时间从数天缩短到分钟级。\n\n对 Amazon EMR on EKS 客户来说，该 Agent 无需额外付费，你只需为现有的 EMR on EKS 资源买单。AWS 官方博客演示了如何为 EMR on EKS 配置该 Agent，并完整走查一个失败作业的排查流程，同时展示了从 Amazon EMR 控制台和某个支持 Model Context Protocol（MCP）的 AI 助手中操作该 Agent 的两种方式。MCP 是一个开放标准，用于将 AI 助手连接到外部工具和数据。\n\n该功能尤其适合那些同时使用 Spark 和 Kubernetes、但缺乏专门运维团队的组织。通过把日志采集、事件关联和根因分析自动化，工程师可以更快恢复正常业务，并把精力集中在代码和配置优化上。",
-   "category": "platform",
-   "category_label": "AI 数据平台",
-   "vendors": [
-    "AWS"
-   ],
-   "heat": 31,
-   "star": true,
-   "published": "2026-08-04T00:12:00+08:00",
-   "items": [
-    {
-     "id": "80c672ab9194",
-     "source": "AWS Big Data Blog",
-     "link": "https://aws.amazon.com/blogs/big-data/introducing-apache-spark-troubleshooting-agent-for-amazon-emr-on-eks/",
-     "published": "2026-08-04T00:12:00+08:00",
-     "title": "Introducing Apache Spark troubleshooting agent for Amazon EMR on EKS",
-     "ingested_at": "2026-08-04T00:12:00+08:00"
-    }
-   ],
-   "topics": [
-    "Data Agent"
-   ],
-   "shelf": "news",
-   "first_seen": "2026-08-04T00:12:00+08:00"
-  },
-  {
-   "event_id": "a6705e0f3427",
-   "zh_title": "升级Amazon Redshift DC2至RG实例，解锁托管存储与零ETL",
-   "zh_summary": "AWS宣布Amazon Redshift DC2集群可升级至基于Graviton的RG实例。升级后将获得托管存储、数据共享、零ETL集成、流式摄入、更快查询编译，以及跨可用区迁移和写入并发扩展等能力。RG还内置数据湖引擎，可直接查询Iceberg和Parquet表。本文还提供节点映射、升级方法和Test Drive验证建议。",
-   "reason": "数据从业者关注Redshift集群升级路径，可理解新一代RG实例在性能、成本和架构上的关键变化，对数据平台选型与迁移有直接参考价值。",
-   "full_zh": "AWS大数据博客发布文章，介绍如何将Amazon Redshift DC2（Dense Compute）集群升级至基于AWS Graviton处理器的RG实例。升级后，用户可以获得DC2上从未提供的能力，包括托管存储、数据共享、零ETL集成、流式摄入，以及更快的查询编译。此外，RG实例还支持跨可用区集群迁移用于灾备，以及针对写入操作的并发扩展。\n\nRG实例另一项重要特性是内置数据湖引擎，用户可以直接在集群节点上查询Apache Iceberg和Parquet表，无需额外创建外部服务。这意味着数据仓库与数据湖之间的边界进一步模糊，统一分析能力得到增强。对于正在运行DC2集群的用户，升级路径和架构收益是本次文章的核心内容。\n\n文章解释了为什么要从DC2升级到RG。随着数据量增长，DC2用户面临两难：要么增加计算节点以获取更多存储，要么将数据迁移到其他地方。DC2每个节点的本地SSD容量固定，且没有托管存储层来吸收增长。RA3和RG实例则通过Amazon Redshift Managed Storage解决这一问题，将存储与计算分离。用户可以独立于节点数扩展数据量，仅按使用的存储付费，且没有每节点固定上限，因此无需为应对数据增长而过度配置计算资源。\n\nRG相比RA3是更推荐的升级路径。RG实例运行在AWS Graviton处理器上，相较于RA3，能够为数据仓库和数据湖工作负载提供更高吞吐量，且每vCPU价格更低。由于RA3和RG共享相同的托管存储架构和功能集，RG在更低成本下提供更高性能。具体定价可参考Amazon Redshift定价页面。\n\n在升级实践方面，文章涵盖了新功能概览、用于新集群规模规划的节点映射指南、可用的升级方法，以及如何使用Amazon Redshift Test Drive验证目标配置。这些内容帮助用户在实际迁移前评估容量、选择升级方式，并确认集群行为是否符合预期。\n\n总体而言，DC2到RG的升级不仅是硬件换代，更是架构能力的跃升。托管存储、数据共享、零ETL和数据湖引擎等特性，使Redshift更适应当代数据平台对弹性、实时性和多源集成的要求。对于希望降低存储成本、提升查询性能并简化数据管道的团队，这条升级路径值得重点关注。",
-   "category": "platform",
-   "category_label": "AI 数据平台",
-   "vendors": [
-    "AWS",
-    "Amazon Redshift"
-   ],
-   "heat": 31,
-   "star": true,
-   "published": "2026-08-04T00:09:37+08:00",
-   "items": [
-    {
-     "id": "543f27930d81",
-     "source": "AWS Big Data Blog",
-     "link": "https://aws.amazon.com/blogs/big-data/upgrade-amazon-redshift-dc2-clusters-to-the-new-amazon-redshift-rg/",
-     "published": "2026-08-04T00:09:37+08:00",
-     "title": "Upgrade Amazon Redshift DC2 clusters to the new Amazon Redshift RG",
-     "ingested_at": "2026-08-04T00:09:37+08:00"
-    }
-   ],
-   "topics": [
-    "湖仓",
-    "实时分析"
-   ],
-   "shelf": "news",
-   "first_seen": "2026-08-04T00:09:37+08:00"
   }
  ],
  "top": [
@@ -3300,12 +3274,12 @@
   {
    "name": "OpenAI News",
    "ok": true,
-   "new": 9
+   "new": 12
   },
   {
    "name": "Claude 官方博客",
    "ok": true,
-   "new": 183
+   "new": 186
   },
   {
    "name": "Snowflake Release Notes",
@@ -3345,12 +3319,12 @@
   {
    "name": "ClickHouse Blog",
    "ok": true,
-   "new": 0
+   "new": 1
   },
   {
    "name": "AWS Big Data Blog",
    "ok": true,
-   "new": 0
+   "new": 2
   },
   {
    "name": "Fivetran Blog",
@@ -3410,7 +3384,7 @@
   {
    "name": "Hacker News（数据关键词）",
    "ok": true,
-   "new": 3
+   "new": 4
   },
   {
    "name": "Bluesky 数据社区",

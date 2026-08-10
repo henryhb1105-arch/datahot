@@ -192,9 +192,13 @@ def load_css():
     return css.split("<style>", 1)[1].split("</style>", 1)[0]
 
 def sources_html(e, link=False):
-    """信源列表：首页纯展示，详情页带链接"""
+    """信源列表：首页纯展示，详情页带链接（按名称去重，多家同名合并）"""
     parts = []
+    seen_src = set()
     for sub in e["items"]:
+        if sub["source"] in seen_src:
+            continue
+        seen_src.add(sub["source"])
         if link:
             parts.append(f'<a class="src" href="{esc(sub["link"])}" target="_blank" rel="noopener">{esc(sub["source"])} ↗</a>')
         else:

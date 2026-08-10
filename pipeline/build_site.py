@@ -38,6 +38,27 @@ def ic(name, size=15):
     return ICONS[name].replace("<svg ", '<svg width="{}" height="{}" style="vertical-align:-2px" aria-hidden="true" '.format(size, size))
 
 TOPICS_META = json.load(open(ROOT / "pipeline" / "topics.json"))
+SOURCES_META = {x["name"]: x for x in json.load(open(ROOT / "pipeline" / "sources.json"))}
+
+def src_badge(source_name):
+    """信源类型标识：公众号/RSS/官网/HN/Bluesky/收录（参考 AI HOT 的信源标注）"""
+    if source_name.startswith("公众号"):
+        return "公众号"
+    if source_name == "主编收录":
+        return "收录"
+    meta = SOURCES_META.get(source_name, {})
+    kind, stype = meta.get("kind", ""), meta.get("type", "")
+    if kind == "bluesky":
+        return "Bluesky"
+    if kind == "hn_algolia":
+        return "HN"
+    if kind in ("sitemap", "snowflake_rn"):
+        return "官网"
+    if stype == "vendor":
+        return "官网·RSS"
+    if stype == "community":
+        return "社区"
+    return "RSS"
 TOPIC_SLUG = {t["name"]: t["slug"] for t in TOPICS_META}
 
 SHARED_CSS = """
@@ -98,6 +119,19 @@ main,.layout>*,.hotlist>*{min-width:0}
 .hrow .ht{flex:1;font-size:14px;font-weight:600;line-height:1.5}
 .hrow:hover .ht{color:var(--accent)}
 .hrow .hm{font-size:11px;color:var(--sub);white-space:nowrap}
+.srcbadge{font-size:10px;border:1px solid var(--line);border-radius:5px;padding:0 5px;color:var(--sub);flex-shrink:0;line-height:1.6}
+.sidebar{display:none}
+@media(min-width:961px){
+  body.has-sb{padding-left:224px}
+  body.has-sb>header{display:none}
+  .sidebar{display:flex;position:fixed;left:0;top:0;bottom:0;width:224px;flex-direction:column;background:var(--card);border-right:1px solid var(--line);padding:22px 16px;z-index:40}
+  .sidebar .slogo{font-size:20px;font-weight:800;margin-bottom:26px}
+  .sidebar .slogo em{font-style:normal;color:var(--accent)}
+  .sidebar a.mi{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:14px;color:var(--sub);text-decoration:none;margin-bottom:2px}
+  .sidebar a.mi:hover{background:var(--hover);color:var(--ink)}
+  .sidebar a.mi.on{background:var(--ink);color:var(--bg);font-weight:600}
+  .sidebar .sfoot{margin-top:auto;font-size:11.5px;color:var(--sub);line-height:1.8}
+}
 .tabbar{display:none}
 @media(max-width:960px){
   body{padding-bottom:64px}
@@ -116,6 +150,20 @@ main,.layout>*,.hotlist>*{min-width:0}
 .tcard .tn{font-size:12px;color:var(--accent);font-weight:700}
 .tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7}
 """
+
+def sidebar(active, gen=None):
+    """桌面端左侧菜单栏（≥961px 显示，移动端隐藏，由底部 Tab 承担导航）"""
+    items = [("热榜", "flame", "index.html", "home"), ("主题", "map", "topics.html", "topics"),
+             ("典藏", "bookmark", "classics.html", "classics"), ("完整榜单", "list", "hot.html", "hot"),
+             ("我的收藏", "star", "favorites.html", "favorites"), ("信源状态", "rss", "sources.html", "sources")]
+    menu = "".join(
+        f'<a class="mi{" on" if k == active else ""}" href="{u}">{ic(i,16)}{n}</a>'
+        for n, i, u, k in items)
+    foot = f'更新 {gen.strftime("%m-%d %H:%M")}<br>' if gen else ""
+    return ('<aside class="sidebar">'
+            '<div class="slogo"><a href="index.html" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div>'
+            + menu +
+            f'<div class="sfoot">{foot}每 6 小时自动更新<br>数据领域 AI 资讯分享</div></aside>')
 
 def tabbar(active, prefix=""):
     items = [("热榜", ic("flame",20), "index.html", "home"), ("主题", ic("map",20), "topics.html", "topics"), ("典藏", ic("bookmark",20), "classics.html", "classics"), ("信源", ic("rss",20), "sources.html", "sources")]
@@ -168,8 +216,7 @@ def render_card(e, prefix=""):
     vbox = f'<div class="vendors">{tchips}{vtags}</div>' if (tchips or vtags) else ""
     url = prefix + detail_url(e)
     return f'''<div class="item" data-cat="{e["category"]}" data-topics="{esc("|".join(e.get("topics", [])))}" data-link="{url}">
-      <div class="top"><span>{fmt_time(e["published"])}</span><span>{esc(e["items"][0]["source"])}</span>
-      <span class="badge {CAT_BADGE[e["category"]]}">{CAT_LABEL[e["category"]]}</span>{star}
+      <div class="top"><span class="srcbadge">{src_badge(e["items"][0]["source"])}</span><span style="font-weight:600;color:var(--txt3)">{esc(e["items"][0]["source"])}</span><span>{fmt_time(e["published"])}</span>{star}
       <button class="favbtn" data-fav="{e["event_id"]}" title="收藏">{ic("star",15)}</button>
       <span class="heatnum">{ic("flame",13)} {e["heat"]}</span></div>
       <h3><a href="{url}">{esc(e["zh_title"])}</a></h3>
@@ -285,7 +332,8 @@ def render_detail(e, all_events, css):
     </span>
   </div>
   <div class="meta">
-    <span class="badge {CAT_BADGE[e["category"]]}">{CAT_LABEL[e["category"]]}</span>
+    <span class="srcbadge">{src_badge(e["items"][0]["source"])}</span>
+    <span style="font-weight:600;color:var(--txt3)">{esc(e["items"][0]["source"])}</span>
     {'<span class="star">精选</span>' if e.get("star") else ''}
     <span title="{fmt_date(e["published"])}">{human_time(e["published"])}</span>
     <span style="margin-left:auto" class="heatnum">{ic("flame",13)} {e["heat"]}</span>
@@ -549,7 +597,7 @@ def render_topics_map(events, css):
 <div class="wrap" style="padding:28px 20px 60px;max-width:900px">
   <div class="section-title"><h2>{ic("map",18)} 主题地图</h2><span>按议题看数据领域 · 持续更新</span></div>
   <div class="tgrid">{cards}</div>
-</div>''', tabbar("topics"))
+</div>''', tabbar("topics"), active="topics")
 
 def render_topic_page(t, events, css):
     """单个主题页：导语 + 该主题事件时间轴"""
@@ -583,9 +631,9 @@ def render_topic_page(t, events, css):
   {must_html}
   {timeline}
 </div>'''
-    return page_shell(f"{t['name']} · DataHot 主题", t["desc"], css, body, tabbar("topics", "../"), prefix="../")
+    return page_shell(f"{t['name']} · DataHot 主题", t["desc"], css, body, tabbar("topics", "../"), prefix="../", active="topics")
 
-def page_shell(title, desc, css, body, tabbar_html, prefix=""):
+def page_shell(title, desc, css, body, tabbar_html, prefix="", active=""):
     return f'''<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -596,7 +644,8 @@ def page_shell(title, desc, css, body, tabbar_html, prefix=""):
 <meta name="theme-color" content="#1a1d23">
 <style>{css}
 {SHARED_CSS}
-</style></head><body>
+</style></head><body class="has-sb">
+{sidebar(active)}
 <header><div class="wrap nav">
   <div class="logo"><a href="{prefix}index.html" style="text-decoration:none">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
@@ -705,7 +754,7 @@ function copyTpl(){{
 }}
 </script>'''
     return page_shell("信源与更新状态 · DataHot", "DataHot 的信源清单、健康状态与更新机制", css, body,
-                      tabbar("sources"), prefix="")
+                      tabbar("sources"), prefix="", active="sources")
 
 def render_hot_page(events, css):
     """完整榜单：热度 TOP 9"""
@@ -722,7 +771,7 @@ def render_hot_page(events, css):
   <div class="scard" style="padding:6px 18px">{rows}</div>
   <div style="font-size:12px;color:var(--sub);margin-top:8px">热度 = AI重要性×40% + 新鲜度×20% + 社区信号×30% + 多信源×10%</div>
 </div>"""
-    return page_shell("完整榜单 · DataHot", "数据领域近 7 天热度 TOP 9", css, body, tabbar("home"), prefix="")
+    return page_shell("完整榜单 · DataHot", "数据领域近 7 天热度 TOP 9", css, body, tabbar("home"), prefix="", active="hot")
 
 def render_classics_page(events, css):
     """典藏页：evergreen 内容按主题分组沉淀，人工置顶优先，按重要性排序"""
@@ -762,7 +811,7 @@ def render_classics_page(events, css):
   {groups}
 </div>'''
     return page_shell("典藏 · DataHot", "数据领域穿越时间的内容：方法论、框架与深度实践", css, body,
-                      tabbar("classics"), prefix="")
+                      tabbar("classics"), prefix="", active="classics")
 
 def render_favorites_page(css):
     """收藏页：客户端从 localStorage 读取收藏，拉 latest.json 渲染"""
@@ -797,7 +846,7 @@ def render_favorites_page(css):
   });
 })();
 </script>"""
-    return page_shell("我的收藏 · DataHot", "你收藏的数据领域资讯", css, body, tabbar(""), prefix="")
+    return page_shell("我的收藏 · DataHot", "你收藏的数据领域资讯", css, body, tabbar(""), prefix="", active="favorites")
 
 def main():
     payload = json.load(open(SITE / "data" / "latest.json"))
@@ -896,7 +945,8 @@ def main():
 .hot a:hover{{color:var(--accent)}}
 #ptr{{position:fixed;top:0;left:0;right:0;height:0;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;background:var(--bg);z-index:60;transition:height .12s ease-out}}
 #ptr span{{font-size:12.5px;color:var(--sub);padding-bottom:8px}}
-</style></head><body>
+</style></head><body class="has-sb">
+{sidebar("home", gen)}
 <div id="ptr"><span>下拉刷新</span></div>
 <header><div class="wrap nav">
   <div class="logo">Data<em>Hot</em><span class="tag">每 6 小时更新</span></div>

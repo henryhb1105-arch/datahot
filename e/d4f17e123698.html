@@ -285,7 +285,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="srcbadge">收录</span>
     <span style="font-weight:600;color:var(--txt3)">主编收录</span>
     
-    <span title="2026-08-10 01:31">9 小时前</span>
+    <span title="2026-08-10 01:31">10 小时前</span>
     <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 56</span>
   </div>
   <h1>构建高效AI代理：Anthropic的实用指南</h1>
@@ -395,7 +395,19 @@ function shCopy(){
 function shSaveClick(ev){
   ev.preventDefault();
   if(!posterURL){return;}
-  var bu=URL.createObjectURL(dataToBlob(posterURL));
+  var blob=dataToBlob(posterURL);
+  // iOS 相册直存：Web Share API 文件分享 → 原生面板选「存储图像」
+  try{
+    var file=new File([blob],'datahot-'+SH_EV.title.slice(0,20)+'.png',{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      navigator.share({files:[file],title:SH_EV.title}).then(function(){
+        shToast('已调起系统分享，选择"存储图像"即可存入相册');
+      }).catch(function(){});
+      return;
+    }
+  }catch(e){}
+  // 降级：新标签页打开，长按保存
+  var bu=URL.createObjectURL(blob);
   var w=window.open(bu,'_blank');
   if(!w){shToast('请长按图片保存到相册');}
   else{shToast('已在新页面打开，长按图片保存');}

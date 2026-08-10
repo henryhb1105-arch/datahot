@@ -392,7 +392,19 @@ function shCopy(){
 function shSaveClick(ev){
   ev.preventDefault();
   if(!posterURL){return;}
-  var bu=URL.createObjectURL(dataToBlob(posterURL));
+  var blob=dataToBlob(posterURL);
+  // iOS 相册直存：Web Share API 文件分享 → 原生面板选「存储图像」
+  try{
+    var file=new File([blob],'datahot-'+SH_EV.title.slice(0,20)+'.png',{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      navigator.share({files:[file],title:SH_EV.title}).then(function(){
+        shToast('已调起系统分享，选择"存储图像"即可存入相册');
+      }).catch(function(){});
+      return;
+    }
+  }catch(e){}
+  // 降级：新标签页打开，长按保存
+  var bu=URL.createObjectURL(blob);
   var w=window.open(bu,'_blank');
   if(!w){shToast('请长按图片保存到相册');}
   else{shToast('已在新页面打开，长按图片保存');}

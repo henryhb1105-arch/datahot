@@ -1005,7 +1005,6 @@ def main():
 <div id="ptr"><span>下拉刷新</span></div>
 <header><div class="wrap nav">
   <div class="logo">Data<em>Hot</em><span class="tag">每 6 小时更新</span></div>
-  <a class="fav-entry" href="favorites.html">{ic("star",12)} 收藏</a>
   <span class="upd-time">{ic("clock",12)} {gen.strftime("%m-%d %H:%M")} 更新</span>
   <a class="tab d-only" href="topics.html" style="text-decoration:none">{ic("map",14)} 主题</a>
   <a class="tab d-only" href="classics.html" style="text-decoration:none">{ic("bookmark",14)} 典藏</a>

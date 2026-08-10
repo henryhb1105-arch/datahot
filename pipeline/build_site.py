@@ -268,9 +268,18 @@ def render_detail(e, all_events, css):
     desc = esc(e["zh_summary"][:150])
     main_link = esc(sorted_items[0]["link"])
     main_src = esc(sorted_items[0]["source"])
-    # 全文编译段落
-    full_paras = "".join(
-        f"<p>{esc(p)}</p>" for p in re.split(r"\n\s*\n|\n", e.get("full_zh", "")) if p.strip())
+    # 全文编译段落：「## 」小标题 / 【缺失标注】/ 正文段
+    full_paras = ""
+    for para in re.split(r"\n\s*\n", e.get("full_zh", "")):
+        para = para.strip()
+        if not para:
+            continue
+        if para.startswith("## "):
+            full_paras += f'<h5 class="fh">{esc(para[3:])}</h5>'
+        elif para.startswith("【"):
+            full_paras += f'<p class="fwarn">{esc(para)}</p>'
+        else:
+            full_paras += "".join(f"<p>{esc(x)}</p>" for x in para.split("\n") if x.strip())
     full_block = ""
     if full_paras:
         full_block = f'''<div class="card"><h4>{ic("file")} 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
@@ -314,6 +323,8 @@ def render_detail(e, all_events, css):
 .article .vendor-row{{text-decoration:none}}
 .cta{{display:inline-block;background:var(--accent);color:#fff;font-size:14px;font-weight:700;border-radius:10px;padding:11px 26px;margin:6px 0 4px}}
 .cta:hover{{opacity:.9}}
+.fulltext h5.fh{{font-size:15px;font-weight:800;color:var(--ink);margin:20px 0 8px;padding-left:10px;border-left:3px solid var(--accent)}}
+.fulltext p.fwarn{{font-size:12.5px;color:var(--amber);background:var(--accent-soft);border-radius:8px;padding:8px 12px}}
 .fulltext p{{font-size:15px;line-height:1.95;color:var(--txt3);margin:0 0 14px}}
 .disclaimer{{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}}
 .disclaimer a{{color:var(--accent)}}

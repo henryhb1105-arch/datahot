@@ -148,7 +148,7 @@ def calc_heat(importance=50, published=None, signal=0, extra_sources=0):
         + 0.3 * community_score(signal) + 0.1 * multi))
 
 # ── F5：HN 条目抓原文 ──────────────────────────────────────
-def fetch_article_text(url, max_chars=2000):
+def fetch_article_text(url, max_chars=24000):
     """粗提取网页正文：去脚本/样式/标签，取前 max_chars 字符；同时返回 <title>"""
     try:
         raw = fetch_url(url, timeout=10)
@@ -178,15 +178,75 @@ def load_llm_config():
         model = model or cfg.get("LLM_MODEL", "")
     return key, base, model
 
-def llm_chat(base, key, model, prompt, timeout=120):
+def llm_chat(base, key, model, prompt, timeout=120, max_tokens=None):
+    payload = {"model": model, "messages": [{"role": "user", "content": prompt}]}
+    if max_tokens:
+        payload["max_tokens"] = max_tokens
     req = urllib.request.Request(
         base.rstrip("/") + "/chat/completions",
-        data=json.dumps({"model": model, "messages": [{"role": "user", "content": prompt}]}).encode(),
+        data=json.dumps(payload).encode(),
         headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}, method="POST")
     with urllib.request.urlopen(req, timeout=timeout) as r:
         content = json.loads(r.read())["choices"][0]["message"]["content"]
     m = re.search(r"\{.*\}", content, re.S)
     return json.loads(m.group(0), strict=False) if m else {}  # strict=False 容忍编译稿中的原始换行
+
+# ── 全文编译引擎（忠实编译，非摘要）─────────────────────────
+COMPILE_RULES = """你是数据领域垂直资讯站的专业编译。把下面的原文编译为面向数据从业者的中文全文编译稿。要求：
+1. 完整保留原文的信息、论证过程、关键事实、案例、数据、步骤与结论；不随意省略关键段落、数字、人物、公司、产品与技术细节。
+2. 保留原文的结构与逻辑顺序，用「## 」开头的小标题和自然段呈现（小标题据原文标题直译或概括）。
+3. 这是全文编译，不是摘要：目标长度约为原文的 40%-70%，宁可长也不可漏。
+4. 严格忠于原文，不得编造、补写或评论。若某处原文无法读取或不完整，用【此处原文未能完整读取】标注，不得自行补写。
+5. 原文中的导航、订阅框、相关阅读推荐等网页杂质，直接忽略。
+只输出编译稿正文（纯文本，段落间两个换行，小标题以「## 」开头）。"""
+
+def compile_fulltext(title, source_text, cfg):
+    """忠实编译：短文单遍，长文按段落分块编译后拼接"""
+    key, base, model = cfg
+    if not (key and base and model and source_text):
+        return ""
+    src = source_text[:22000]
+    if len(src) <= 6000:
+        return llm_chat_text(base, key, model,
+            COMPILE_RULES + "\n\n【原文标题】" + title + "\n\n" + src, max_tokens=6000)
+    # 按句子边界切块（抓取文本无换行，按句号边界切 ≤3500 字符/块，最多 6 块）
+    sents = re.split(r"(?<=[。！？.!?])\s+", src)
+    chunks, cur = [], ""
+    for sent in sents:
+        if len(cur) + len(sent) > 3500 and cur:
+            chunks.append(cur)
+            if len(chunks) >= 6:
+                break
+            cur = sent
+        else:
+            cur = (cur + " " + sent) if cur else sent
+    if cur and len(chunks) < 6:
+        chunks.append(cur)
+    def compile_chunk(i_ch):
+        i, ch = i_ch
+        for attempt in range(2):  # 空输出（推理预算耗尽）时重试一次
+            part = llm_chat_text(base, key, model,
+            COMPILE_RULES + f"\n\n注意：这是文章的第 {i}/{len(chunks)} 部分，只编译本部分的可见内容；若开头或结尾句子被切断，编译可见部分即可，不得补写上下文。\n\n【原文标题】" + title + "\n\n" + ch,
+            max_tokens=8000)
+            if part.strip():
+                return part.strip()
+        return ""
+    from concurrent.futures import ThreadPoolExecutor as _TPE
+    with _TPE(max_workers=4) as pool:
+        parts = list(pool.map(compile_chunk, enumerate(chunks, 1)))
+    if len(cur) > len(chunks[-1] if chunks else "") and len(chunks) >= 6:
+        parts.append("【此处原文未能完整读取：文章过长，仅编译前 6 部分】")
+    return "\n\n".join(p for p in parts if p)
+
+def llm_chat_text(base, key, model, prompt, max_tokens=4096):
+    """纯文本版 LLM 调用（编译稿不走 JSON 解析）"""
+    req = urllib.request.Request(
+        base.rstrip("/") + "/chat/completions",
+        data=json.dumps({"model": model, "messages": [{"role": "user", "content": prompt}],
+                         "max_tokens": max_tokens}).encode(),
+        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}, method="POST")
+    with urllib.request.urlopen(req, timeout=180) as r:
+        return json.loads(r.read())["choices"][0]["message"]["content"].strip()
 
 # ── F4：加固的相关性过滤 + AI 加工 ─────────────────────────
 ENRICH_RULES = """你是一个数据领域垂直资讯站的编辑。本站只覆盖四个领域：Data Agent（ChatBI/Text-to-SQL/分析Agent）、AI数据平台（数仓/湖仓/语义层/数据集成治理）、BI与可视化（BI工具/报表）、数据产品（方法论/融资并购/行业报告）。
@@ -203,7 +263,7 @@ ENRICH_RULES = """你是一个数据领域垂直资讯站的编辑。本站只�
 标题 "Airbnb 测试 AI 搜索功能" → {"relevant": false}
 
 输出 JSON（不要输出多余内容）：
-{"relevant": true或false, "zh_title": "中文标题(≤40字)", "zh_summary": "中文摘要3-4句，保留产品名与数字，不得编造原文没有的信息", "reason": "推荐理由：为什么数据从业者应关注，1-2句", "full_zh": "基于原文的完整中文编译稿，4-8个自然段、500-800字，保留所有关键信息（产品名、公司名、数字、时间、人名），段落之间用两个换行符分隔；严格忠于原文，不得编造原文没有的内容；若提供的原文信息不足，则在摘要基础上适度展开但总量不少于300字", "category": "agent|platform|bi|product", "shelf": "news 或 evergreen（方法论/框架/深度实践/报告解读等半年后仍值得读的标 evergreen，发布/融资/版本更新等时效内容标 news）", "topics": ["从主题词表选0-2个：ChatBI/Data Agent/语义层/平台AI化/BI变局/湖仓/实时分析/数据人，没有合适的就空数组，宁缺毋滥"], "vendors": ["提到的数据厂商，如Snowflake/Databricks/PowerBI/帆软等，没有则空数组"], "importance": 1-100整数}"""
+{"relevant": true或false, "zh_title": "中文标题(≤40字)", "zh_summary": "中文摘要3-4句，保留产品名与数字，不得编造原文没有的信息", "reason": "推荐理由：为什么数据从业者应关注，1-2句", "category": "agent|platform|bi|product", "shelf": "news 或 evergreen（方法论/框架/深度实践/报告解读等半年后仍值得读的标 evergreen，发布/融资/版本更新等时效内容标 news）", "topics": ["从主题词表选0-2个：ChatBI/Data Agent/语义层/平台AI化/BI变局/湖仓/实时分析/数据人，没有合适的就空数组，宁缺毋滥"], "vendors": ["提到的数据厂商，如Snowflake/Databricks/PowerBI/帆软等，没有则空数组"], "importance": 1-100整数}"""
 
 def llm_enrich(items, cfg):
     key, base, model = cfg
@@ -222,7 +282,7 @@ def llm_enrich(items, cfg):
         it["zh_title"] = out.get("zh_title") or it["title"]
         it["zh_summary"] = out.get("zh_summary") or it["summary"][:300]
         it["reason"] = out.get("reason", "")
-        it["full_zh"] = out.get("full_zh", "")
+        it["full_zh"] = compile_fulltext(it["zh_title"], it.get("article_text") or it.get("summary", ""), cfg)
         cat = out.get("category")
         if cat in CATEGORIES_LABEL:
             it["category"], it["category_label"] = cat, CATEGORIES_LABEL[cat]

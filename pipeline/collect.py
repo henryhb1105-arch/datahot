@@ -7,7 +7,7 @@ import sys, json, hashlib, re, html as H
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from run_update import (fetch_article_text, make_event, load_llm_config, llm_chat,
+from run_update import (fetch_article_text, make_event, load_llm_config, llm_chat, compile_fulltext,
                         norm_url, fetch_url, strip_html, calc_heat, TOPIC_NAMES,
                         CATEGORIES_LABEL, TZ)
 
@@ -87,14 +87,14 @@ def main():
         out = llm_chat(base, key, model,
             "你是数据领域垂直资讯站的编辑，为以下内容生成中文加工稿。输出 JSON："
             '{"zh_title": "中文标题(≤40字，不要带网站后缀)", "zh_summary": "中文摘要3-4句", '
-            '"reason": "推荐理由1-2句", "full_zh": "完整中文编译稿4-8段、500-800字、段间两个换行、忠于原文", '
+            '"reason": "推荐理由1-2句", '
             '"category": "agent|platform|bi|product", '
             '"topics": ["从主题词表选0-2个：' + topics_str + '，没有就空数组"], '
             '"vendors": ["提到的厂商"], "importance": 1-100整数}\n\n' + content)
         it["zh_title"] = (out.get("zh_title") or it["title"]).strip()
         it["zh_summary"] = out.get("zh_summary") or it["summary"][:300]
         it["reason"] = out.get("reason", "")
-        it["full_zh"] = out.get("full_zh", "")
+        it["full_zh"] = compile_fulltext(it["zh_title"], it.get("article_text") or it.get("summary", ""), cfg)
         cat = out.get("category")
         if cat in CATEGORIES_LABEL:
             it["category"], it["category_label"] = cat, CATEGORIES_LABEL[cat]

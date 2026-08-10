@@ -33,6 +33,7 @@
       --header-bg:rgba(18,20,23,.92); --tabbar-bg:rgba(30,33,38,.95);
     }
     .tab.on,.fchip.on{background:var(--ink);color:#121417}
+    .sidebar a.mi.on{background:rgba(229,96,60,.14);color:var(--accent)}
     .sub-box input,.tlsearch{color:var(--ink)}
     .mock-banner{background:#000}
   }
@@ -88,7 +89,9 @@
     .chiprow{gap:6px}
     .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:32px;display:inline-flex;align-items:center}
     .tab,.fchip,.chip{touch-action:manipulation}
-    aside .card{padding:14px 16px}
+    aside{align-self:start;position:sticky;top:20px}
+@media(min-width:1280px){.wrap{max-width:1320px}}
+aside .card{padding:14px 16px}
     .article{padding:20px 14px 48px}
     .article h1{font-size:20px}
     .article .body{font-size:14.5px}
@@ -139,11 +142,11 @@
   .item .sum{font-size:13.5px;color:var(--txt2);line-height:1.75}
   .item .also{margin-top:10px;font-size:12px;color:var(--sub)}
   .item .also b{color:var(--ink)}
-  .why{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px;font-size:13px;color:var(--txt3);display:flex;gap:8px}
+  .why{margin-top:12px;padding:10px 14px;font-size:13px;color:var(--txt3);display:flex;gap:8px;background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:0 10px 10px 0}
   .why .w{color:var(--accent);font-weight:700;white-space:nowrap}
   .vendors{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
-  .vtag{font-size:11px;border:1px solid var(--line);color:var(--sub);border-radius:99px;padding:1px 10px}
-  .vtag:hover{border-color:var(--accent);color:var(--accent)}
+  .vtag{font-size:11px;border:1px dashed var(--line);color:var(--sub);border-radius:99px;padding:1px 10px;cursor:default}
+  
 
   /* ── 侧栏 ── */
   aside .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
@@ -174,7 +177,8 @@ main,.layout>*,.hotlist>*{min-width:0}
 .upd-time{margin-left:auto;font-size:11.5px;color:var(--sub);white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
 .tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
 .tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
-.chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px}
+.chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px;position:relative}
+.chiprow::after{content:"";position:sticky;right:0;flex-shrink:0;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
 .chiprow::-webkit-scrollbar{display:none}
 .chiprow .fchip{flex-shrink:0;font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
 .chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
@@ -253,7 +257,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .tcard h3{font-size:17px;font-weight:800;margin-bottom:6px}
 .tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:10px}
 .tcard .tn{font-size:12px;color:var(--accent);font-weight:700}
-.tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7}
+.tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 .article{max-width:760px;margin:0 auto;padding:36px 20px 60px}
 .article .back{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}
@@ -287,7 +291,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   </div>
   <div class="meta">
     <span class="srcbadge">官网·RSS</span>
-    <span style="font-weight:600;color:var(--txt3)">Snowflake Engineering（Medium）</span>
+    <span style="font-weight:600;color:var(--txt3)">Snowflake Engineering (Medium)</span>
     <span class="star">精选</span>
     <span title="发布 2026-08-07 03:01 · 收录 2026-08-07 03:01">收录 08-07</span>
     <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 54</span>
@@ -300,7 +304,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="fulltext"><p>企业数据迁移长期以来被视为大型转型项目中最容易失败的环节。无数组织在迁移过程中陷入困境：数年的规划周期、不断超支的预算、工程师团队逐行手动重写SQL，以及在系统切换时对关键业务中断的持续担忧。对于大多数企业而言，这种风险带来的结果是决策瘫痪——团队明知需要现代化升级，却无法承担实际迁移的代价。</p><p>Snowflake近期推出的AI辅助迁移与交付平台（AIM）正是针对这一痛点而设计。该平台旨在将传统上以年为单位的数据迁移周期缩短至数周，从而从根本上改变CTO对迁移项目的预期与决策逻辑。Snowflake AIM并非简单地提供一组迁移工具，而是将AI能力嵌入迁移与交付的全流程，以降低人工成本和出错概率。</p><p>在传统迁移场景中，SQL脚本重写是最耗时且最容易引入错误的环节之一。迁移团队往往需要逐条理解原有数据库的语法、逻辑和业务含义，再手工转换为目标平台的等价实现。Snowflake AIM通过AI辅助的方式，试图自动化这一过程，使迁移工作从劳动密集型转变为智能辅助型，进而释放工程师的生产力。</p><p>对于CTO而言，Snowflake AIM的意义不只是一项厂商功能，而是一种战略性的差异化手段。过去，迁移的高风险常常迫使企业维持老旧系统，错过了云原生分析、弹性扩展和统一数据治理带来的业务价值。而当迁移的周期和成本大幅下降后，企业可以更主动地进行技术栈更新，将资源投入到数据应用和创新上，而非消耗在基础设施搬迁中。</p><p>从平台架构角度看，Snowflake AIM与Snowflake自身的云数据平台深度集成，这意味着迁移后的数据对象、权限模型和查询性能能够更自然地适配目标环境。同时，AI能力在元数据映射、数据校验和异常检测等方面的应用，有助于减少迁移过程中的不确定性，提升交付质量。</p><p>当然，Snowflake AIM并非万能方案。企业数据环境的复杂性、历史遗留系统的异质性以及业务对可用性的严苛要求，仍然需要专业团队的参与。但AI辅助迁移的核心理念——以智能化降低风险、以自动化缩短周期——已经为行业提供了一条新的路径。</p><p>对于数据从业者来说，关注Snowflake AIM所代表的趋势比关注单一产品更为重要：数据平台正在从“提供存储和计算”转向“提供智能化的数据工程能力”。迁移只是其中一个环节，类似的AI辅助模式正在向建模、治理、运维等方向延伸。这种转变将重新定义数据团队的工作方式与技能要求。</p><p>总的来说，Snowflake AIM为长期困扰企业的数据迁移难题提供了新的解法。它是否能在大规模生产环境中持续兑现承诺，尚需更多实践检验，但其方向已经清晰：让数据迁移从“数年”走向“数周”，让企业敢于迈出现代化的关键一步。对于正在评估数据平台升级或迁移路线的CTO和技术决策者而言，这无疑是一个值得重点评估的选项。</p></div>
   <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://medium.com/snowflake/from-years-to-weeks-why-ctos-are-betting-on-snowflake-aim-35b4bed73fcb?source=rss----34b6daafc07---4" target="_blank" rel="noopener">查看原文 ↗</a></div>
 </div>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（2 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://medium.com/snowflake/from-years-to-weeks-why-ctos-are-betting-on-snowflake-aim-35b4bed73fcb?source=rss----34b6daafc07---4" target="_blank" rel="noopener">Snowflake Engineering（Medium）（英文）</a><span class="src more">首发</span><span class="count">2026-08-07 03:01</span></div><div class="vendor-row"><span class="n">↗</span><a href="https://medium.com/snowflake/the-future-of-data-engineering-is-autonomous-meet-snowflake-aim-9d3f048faee3?source=rss----34b6daafc07---4" target="_blank" rel="noopener">Snowflake Engineering（Medium）（英文）</a><span class="count">2026-08-10 22:01</span></div></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（2 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://medium.com/snowflake/from-years-to-weeks-why-ctos-are-betting-on-snowflake-aim-35b4bed73fcb?source=rss----34b6daafc07---4" target="_blank" rel="noopener">Snowflake Engineering (Medium)（英文）</a><span class="src more">首发</span><span class="src">×2</span><span class="count">2026-08-07 03:01</span></div></div>
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/973421af8576.html"><span class="n">›</span>Snowflake 发布 10.26 版本更新说明<span class="count">48</span></a><a class="vendor-row" href="../e/5a003e60d050.html"><span class="n">›</span>Snowflake可观测性成熟度三级框架解析<span class="count">33</span></a><a class="vendor-row" href="../e/f3556b3f8eff.html"><span class="n">›</span>33%增速、126%留存：Snowflake财报展现AI落地故事<span class="count">62</span></a></div>
 </div>
 <footer>DataHot，数据领域AI资讯分享</footer>
@@ -376,7 +380,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title": "Snowflake AIM：将数据迁移从数年缩短至数周", "summary": "Snowflake 推出 AIM，提出数据工程的未来是自主化。文章指出数据仓库迁移的真正难点不在于 SQL 复杂，而在于流程冗长、环节众多，且依赖人工维护清单和记忆。传统方式用 Excel 跟踪迁移进度，有人要反复手动运行 SQL Server 导出脚本，几周后清单就会过期并造成混乱。AIM 针对这一场景，试图让迁移过程更自主可控。", "reason": "数据从业者应关注 Snowflake 如何将自主化引入数据仓库迁移，这类工具可能重塑上云迁移的项目交付方式。", "topic": "平台AI化", "heat": 54, "source": "Snowflake Engineering（Medium）", "date": "2026-08-07", "url": "https://henryhb1105-arch.github.io/datahot/e/caa8145425d1.html"};
+var SH_EV = {"title": "Snowflake AIM：将数据迁移从数年缩短至数周", "summary": "Snowflake 推出 AIM，提出数据工程的未来是自主化。文章指出数据仓库迁移的真正难点不在于 SQL 复杂，而在于流程冗长、环节众多，且依赖人工维护清单和记忆。传统方式用 Excel 跟踪迁移进度，有人要反复手动运行 SQL Server 导出脚本，几周后清单就会过期并造成混乱。AIM 针对这一场景，试图让迁移过程更自主可控。", "reason": "数据从业者应关注 Snowflake 如何将自主化引入数据仓库迁移，这类工具可能重塑上云迁移的项目交付方式。", "topic": "平台AI化", "heat": 54, "source": "Snowflake Engineering (Medium)", "date": "2026-08-07", "url": "https://henryhb1105-arch.github.io/datahot/e/caa8145425d1.html"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

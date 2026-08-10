@@ -13,7 +13,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 <meta name="theme-color" content="#1a1d23">
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "NewsArticle", "headline": "Anthropic用Claude自动化95%数据分析查询", "description": "传统自助业务分析面临视图混乱和仪表板膨胀等难题。Anthropic通过Claude实现了95%业务分析查询的自动化，总体准确率约95%。这一实践的关键是避免让AI“裸奔”于数仓之上，而是连接基础设施、文档与专家知识。数据团队得以从重复工作中解放，专注于战略任务。", "datePublished": "2026-08-10T09:10:55.713518+08:00", "inLanguage": "zh-CN", "isBasedOn": "https://claude.com/blog/how-anthropic-enables-self-service-data-analytics-with-claude", "publisher": {"@type": "Organization", "name": "DataHot"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "NewsArticle", "headline": "Anthropic用Claude自动化95%数据分析查询", "description": "传统自助业务分析面临视图混乱和仪表板膨胀等难题。Anthropic通过Claude实现了95%业务分析查询的自动化，总体准确率约95%。这一实践的关键是避免让AI“裸奔”于数仓之上，而是连接基础设施、文档与专家知识。数据团队得以从重复工作中解放，专注于战略任务。", "datePublished": "2026-06-03T00:00:00+08:00", "inLanguage": "zh-CN", "isBasedOn": "https://claude.com/blog/how-anthropic-enables-self-service-data-analytics-with-claude", "publisher": {"@type": "Organization", "name": "DataHot"}}</script>
 <style>
   :root{
     color-scheme: light dark;
@@ -33,6 +33,7 @@
       --header-bg:rgba(18,20,23,.92); --tabbar-bg:rgba(30,33,38,.95);
     }
     .tab.on,.fchip.on{background:var(--ink);color:#121417}
+    .sidebar a.mi.on{background:rgba(229,96,60,.14);color:var(--accent)}
     .sub-box input,.tlsearch{color:var(--ink)}
     .mock-banner{background:#000}
   }
@@ -88,7 +89,9 @@
     .chiprow{gap:6px}
     .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:32px;display:inline-flex;align-items:center}
     .tab,.fchip,.chip{touch-action:manipulation}
-    aside .card{padding:14px 16px}
+    aside{align-self:start;position:sticky;top:20px}
+@media(min-width:1280px){.wrap{max-width:1320px}}
+aside .card{padding:14px 16px}
     .article{padding:20px 14px 48px}
     .article h1{font-size:20px}
     .article .body{font-size:14.5px}
@@ -139,11 +142,11 @@
   .item .sum{font-size:13.5px;color:var(--txt2);line-height:1.75}
   .item .also{margin-top:10px;font-size:12px;color:var(--sub)}
   .item .also b{color:var(--ink)}
-  .why{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px;font-size:13px;color:var(--txt3);display:flex;gap:8px}
+  .why{margin-top:12px;padding:10px 14px;font-size:13px;color:var(--txt3);display:flex;gap:8px;background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:0 10px 10px 0}
   .why .w{color:var(--accent);font-weight:700;white-space:nowrap}
   .vendors{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
-  .vtag{font-size:11px;border:1px solid var(--line);color:var(--sub);border-radius:99px;padding:1px 10px}
-  .vtag:hover{border-color:var(--accent);color:var(--accent)}
+  .vtag{font-size:11px;border:1px dashed var(--line);color:var(--sub);border-radius:99px;padding:1px 10px;cursor:default}
+  
 
   /* ── 侧栏 ── */
   aside .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
@@ -174,7 +177,8 @@ main,.layout>*,.hotlist>*{min-width:0}
 .upd-time{margin-left:auto;font-size:11.5px;color:var(--sub);white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
 .tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
 .tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
-.chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px}
+.chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px;position:relative}
+.chiprow::after{content:"";position:sticky;right:0;flex-shrink:0;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
 .chiprow::-webkit-scrollbar{display:none}
 .chiprow .fchip{flex-shrink:0;font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
 .chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
@@ -253,7 +257,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .tcard h3{font-size:17px;font-weight:800;margin-bottom:6px}
 .tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:10px}
 .tcard .tn{font-size:12px;color:var(--accent);font-weight:700}
-.tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7}
+.tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 .article{max-width:760px;margin:0 auto;padding:36px 20px 60px}
 .article .back{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}
@@ -287,9 +291,9 @@ main,.layout>*,.hotlist>*{min-width:0}
   </div>
   <div class="meta">
     <span class="srcbadge">收录</span>
-    <span style="font-weight:600;color:var(--txt3)">主编收录</span>
+    <span style="font-weight:600;color:var(--txt3)">DataHot 精选</span>
     
-    <span title="发布 2026-08-10 09:10 · 收录 2026-08-10 09:10">收录 08-10</span>
+    <span title="发布 2026-06-03 00:00 · 收录 2026-08-10 09:10">发布 06-03 · 收录 08-10</span>
     <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 59</span>
   </div>
   <h1>Anthropic用Claude自动化95%数据分析查询</h1>
@@ -300,7 +304,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="fulltext"><p>自服务业务分析一直是数据团队的痛点。为了向不太懂技术的同事开放数据，团队通常会建立宽表、做反规范化处理，但随着业务扩展，这些视图往往定义不一致，甚至互相重叠；而建立隔离的查询环境，又难以覆盖长尾业务问题，最终导致指标和仪表板泛滥，团队各自为政。</p><p>大语言模型（LLM）的兴起提供了另一条路径。但直接把Claude指向数据仓库并让其执行查询，可能会产生“精确的错觉”。当利益相关者不再接触底层基础设施、文档和专业知识时，他们很容易被看似精准的结果误导，而这些结果背后是缺乏对数据血缘、指标定义的理解。</p><p>Anthropic在内部实践了另一种方法。目前，Claude已经自动化了公司95%的业务分析查询，总体准确率约95%。通过将这些往往是重复、机械的分析工作交给Claude，数据科学团队得以腾出精力，专注于更具战略性的工作。</p><p>这一成果的关键在于，Anthropic并没有让Claude“裸奔”在数仓之上。相反，他们确保Claude在运行时能够利用已有的基础设施、文档和专家知识，将LLM与精心管理的数据环境结合，从而避免生成不可靠的结果。</p><p>事实上，95%的自动化率并不意味着数据团队无事可做。相反，团队可以投入更多时间改进数据模型、构建新数据产品、支持复杂的深度分析，以及监督和优化自动分析管道的质量。这正好解决了传统自助分析中“放权”与“管控”的矛盾。</p><p>Anthropic的实践表明，LLM驱动的自助分析并非一句空话。只要与基础设施、文档和专业知识恰当地结合，Claude这样的AI助手就能成为数据团队真正可依赖的成员，而非一个“看起来聪明”的黑盒。</p></div>
   <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://claude.com/blog/how-anthropic-enables-self-service-data-analytics-with-claude" target="_blank" rel="noopener">查看原文 ↗</a></div>
 </div>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://claude.com/blog/how-anthropic-enables-self-service-data-analytics-with-claude" target="_blank" rel="noopener">主编收录（英文）</a><span class="src more">首发</span><span class="count">2026-08-10 09:10</span></div></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://claude.com/blog/how-anthropic-enables-self-service-data-analytics-with-claude" target="_blank" rel="noopener">DataHot 精选</a><span class="src more">首发</span><span class="count">2026-06-03 00:00</span></div></div>
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/11bd570decd5.html"><span class="n">›</span>银行目标部门分析筛选：乙方视角的部门墙拆解<span class="count">50</span></a><a class="vendor-row" href="../e/f4962a2fa921.html"><span class="n">›</span>AI秒级出报表，为何业务仍来不及？<span class="count">51</span></a><a class="vendor-row" href="../e/4d1764cb4a3d.html"><span class="n">›</span>Rippling推AI支出控制台，追踪员工AI投入产出<span class="count">46</span></a></div>
 </div>
 <footer>DataHot，数据领域AI资讯分享</footer>
@@ -376,7 +380,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title": "Anthropic用Claude自动化95%数据分析查询", "summary": "传统自助业务分析面临视图混乱和仪表板膨胀等难题。Anthropic通过Claude实现了95%业务分析查询的自动化，总体准确率约95%。这一实践的关键是避免让AI“裸奔”于数仓之上，而是连接基础设施、文档与专家知识。数据团队得以从重复工作中解放，专注于战略任务。", "reason": "Anthropic官方透露其内部数据分析自动化率与准确率数据，对LLM驱动的自助分析落地有直接参考价值。", "topic": "ChatBI", "heat": 59, "source": "主编收录", "date": "2026-08-10", "url": "https://henryhb1105-arch.github.io/datahot/e/c93bfa7909b8.html"};
+var SH_EV = {"title": "Anthropic用Claude自动化95%数据分析查询", "summary": "传统自助业务分析面临视图混乱和仪表板膨胀等难题。Anthropic通过Claude实现了95%业务分析查询的自动化，总体准确率约95%。这一实践的关键是避免让AI“裸奔”于数仓之上，而是连接基础设施、文档与专家知识。数据团队得以从重复工作中解放，专注于战略任务。", "reason": "Anthropic官方透露其内部数据分析自动化率与准确率数据，对LLM驱动的自助分析落地有直接参考价值。", "topic": "ChatBI", "heat": 59, "source": "DataHot 精选", "date": "2026-06-03", "url": "https://henryhb1105-arch.github.io/datahot/e/c93bfa7909b8.html"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

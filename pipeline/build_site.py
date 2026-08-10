@@ -40,6 +40,12 @@ def ic(name, size=15):
 TOPICS_META = json.load(open(ROOT / "pipeline" / "topics.json"))
 SOURCES_META = {x["name"]: x for x in json.load(open(ROOT / "pipeline" / "sources.json"))}
 
+def src_display(name):
+    """信源显示名：站内术语转外部可读 + 英文语境半角括号"""
+    if name == "主编收录":
+        return "DataHot 精选"
+    return re.sub(r"（(?=[A-Za-z])", " (", name).replace("）", ")")
+
 def src_badge(source_name):
     """信源类型标识：公众号/RSS/官网/HN/Bluesky/收录（参考 AI HOT 的信源标注）"""
     if source_name.startswith("公众号"):
@@ -71,7 +77,8 @@ main,.layout>*,.hotlist>*{min-width:0}
 .upd-time{margin-left:auto;font-size:11.5px;color:var(--sub);white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
 .tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
 .tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
-.chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px}
+.chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px;position:relative}
+.chiprow::after{content:"";position:sticky;right:0;flex-shrink:0;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
 .chiprow::-webkit-scrollbar{display:none}
 .chiprow .fchip{flex-shrink:0;font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
 .chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
@@ -150,7 +157,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .tcard h3{font-size:17px;font-weight:800;margin-bottom:6px}
 .tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:10px}
 .tcard .tn{font-size:12px;color:var(--accent);font-weight:700}
-.tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7}
+.tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 """
 
 def sidebar(active, gen=None):
@@ -184,16 +191,22 @@ def md(iso):
     return f"{d.month:02d}-{d.day:02d}"
 
 def card_time(e):
-    """卡片时间：发布时间为主，发布与收录相差>2天双显；无发布时间则显示收录时间"""
+    """统一时间格式：<24h→x小时前 / <7天→周几 HH:mm / 更早→MM-DD；发布与收录差>2天双显"""
     pub, fs = e.get("published"), e.get("first_seen")
+    now_d = datetime.now(TZ)
     if pub:
-        pub_d = datetime.fromisoformat(pub).astimezone(TZ)
-        now_d = datetime.now(TZ)
-        t = pub_d.strftime("%H:%M") if pub_d.date() == now_d.date() else md(pub)
-        if fs:
-            delta = (datetime.fromisoformat(fs).astimezone(TZ) - pub_d).days
-            if delta > 2:
-                return f"发布 {md(pub)} · 收录 {md(fs)}"
+        dt = datetime.fromisoformat(pub).astimezone(TZ)
+        hrs = (now_d - dt).total_seconds() / 3600
+        if hrs < 1:
+            t = "刚刚"
+        elif hrs < 24:
+            t = f"{int(hrs)} 小时前"
+        elif hrs < 24 * 7:
+            t = f"周{WEEK_CN[dt.weekday()]} {dt.strftime('%H:%M')}"
+        else:
+            t = md(pub)
+        if fs and (datetime.fromisoformat(fs).astimezone(TZ) - dt).days > 2:
+            t += f" · 收录 {md(fs)}"
         return t
     return f"收录 {md(fs)}" if fs else ""
 
@@ -232,8 +245,18 @@ def sources_html(e, link=False):
             parts.append(f'<span class="src">{esc(sub["source"])}</span>')
     return "".join(parts)
 
+def is_classic_review(e):
+    """发布超过 30 天的 evergreen 内容 → 打「经典回顾」而非新闻"""
+    pub = e.get("published")
+    if not pub or e.get("shelf") != "evergreen":
+        return False
+    return (datetime.now(TZ) - datetime.fromisoformat(pub).astimezone(TZ)).days > 30
+
 def render_card(e, prefix=""):
     star = '<span class="star">精选</span>' if e.get("star") else ""
+    if is_classic_review(e):
+        star += '<span class="star" style="color:var(--purple)">经典回顾</span>'
+    star += f'<span title="热度分=AI重要性50%+新鲜度20%+社区信号15%+多信源15%，满分100">{""}</span>' 
     n = len(e["items"])
     also = ""
     if n > 1:
@@ -247,9 +270,9 @@ def render_card(e, prefix=""):
     vbox = f'<div class="vendors">{tchips}{vtags}</div>' if (tchips or vtags) else ""
     url = prefix + detail_url(e)
     return f'''<div class="item" data-cat="{e["category"]}" data-topics="{esc("|".join(e.get("topics", [])))}" data-link="{url}">
-      <div class="top"><span class="srcbadge">{src_badge(e["items"][0]["source"])}</span><span style="font-weight:600;color:var(--txt3)">{esc(e["items"][0]["source"])}</span><span>{card_time(e)}</span>{star}
+      <div class="top"><span class="srcbadge">{src_badge(e["items"][0]["source"])}</span><span style="font-weight:600;color:var(--txt3)">{esc(src_display(e["items"][0]["source"]))}</span><span>{card_time(e)}</span>{star}
       <button class="favbtn" data-fav="{e["event_id"]}" title="收藏">{ic("star",15)}</button>
-      <span class="heatnum">{ic("flame",13)} {e["heat"]}</span></div>
+      <span class="heatnum" title="热度分：AI重要性50% + 新鲜度20% + 社区信号15%(封顶) + 多信源15%">{ic("flame",13)} {e["heat"]}</span></div>
       <h3><a href="{url}">{esc(e["zh_title"])}</a></h3>
       <p class="sum">{esc(e["zh_summary"])}</p>{also}{reason}{vbox}
     </div>'''
@@ -285,13 +308,20 @@ def render_detail(e, all_events, css):
         for x in related) or '<div style="font-size:12.5px;color:var(--sub)">暂无相关事件</div>'
     sorted_items = sorted(e["items"], key=lambda s: s["published"])
     srcs = ""
-    for i, s in enumerate(sorted_items):
+    merged_src = {}
+    for s in sorted_items:
+        merged_src.setdefault(s["source"], []).append(s)
+    i = 0
+    for src_name, subs in merged_src.items():
         first_badge = '<span class="src more">首发</span>' if i == 0 else ""
-        en_note = "（英文）" if s["source"] != "InfoQ（AI/数据工程）" else ""
+        n_badge = f'<span class="src">×{len(subs)}</span>' if len(subs) > 1 else ""
+        en_note = "（英文）" if src_name not in ("InfoQ（AI/数据工程）", "主编收录") else ""
+        s0 = subs[0]
         srcs += (f'<div class="vendor-row"><span class="n">↗</span>'
-                 f'<a href="{esc(s["link"])}" target="_blank" rel="noopener">{esc(s["source"])}{en_note}</a>'
-                 f'{first_badge}'
-                 f'<span class="count">{fmt_date(s["published"])}</span></div>')
+                 f'<a href="{esc(s0["link"])}" target="_blank" rel="noopener">{esc(src_display(src_name))}{en_note}</a>'
+                 f'{first_badge}{n_badge}'
+                 f'<span class="count">{fmt_date(s0["published"])}</span></div>')
+        i += 1
     tchips = "".join(
         f'<a class="chip" href="../topics/{TOPIC_SLUG[t]}.html">{esc(t)}</a>'
         for t in e.get("topics", []) if t in TOPIC_SLUG)
@@ -301,10 +331,12 @@ def render_detail(e, all_events, css):
     main_src = esc(sorted_items[0]["source"])
     # 全文编译段落：「## 」小标题 / 【缺失标注】/ 正文段
     full_paras = ""
-    for para in re.split(r"\n\s*\n", e.get("full_zh", "")):
-        para = para.strip()
-        if not para:
-            continue
+    paras_all = [pp.strip() for pp in re.split(r"\n\s*\n", e.get("full_zh", "")) if pp.strip()]
+    if paras_all and paras_all[0].startswith("## "):
+        import difflib as _dl
+        if _dl.SequenceMatcher(None, paras_all[0][3:], e["zh_title"]).ratio() > 0.6:
+            paras_all = paras_all[1:]
+    for para in paras_all:
         if para.startswith("## "):
             full_paras += f'<h5 class="fh">{esc(para[3:])}</h5>'
         elif para.startswith("【"):
@@ -375,7 +407,7 @@ def render_detail(e, all_events, css):
   </div>
   <div class="meta">
     <span class="srcbadge">{src_badge(e["items"][0]["source"])}</span>
-    <span style="font-weight:600;color:var(--txt3)">{esc(e["items"][0]["source"])}</span>
+    <span style="font-weight:600;color:var(--txt3)">{esc(src_display(e["items"][0]["source"]))}</span>
     {'<span class="star">精选</span>' if e.get("star") else ''}
     <span title="发布 {fmt_date(e["published"]) if e.get("published") else '未知'} · 收录 {fmt_date(e.get("first_seen") or e["published"])}">{("发布 " + md(e["published"]) + " · " if e.get("published") and md(e["published"]) != md(e.get("first_seen") or e["published"]) else "") + "收录 " + md(e.get("first_seen") or e["published"])}</span>
     <span style="margin-left:auto" class="heatnum">{ic("flame",13)} {e["heat"]}</span>
@@ -398,7 +430,7 @@ def share_ui(e, page_url):
     ev_json = json.dumps({
         "title": e["zh_title"], "summary": e.get("zh_summary", ""),
         "reason": e.get("reason", ""), "topic": (e.get("topics") or [""])[0],
-        "heat": e["heat"], "source": e["items"][0]["source"],
+        "heat": e["heat"], "source": src_display(e["items"][0]["source"]),
         "date": (e.get("published") or e.get("first_seen") or "")[:10], "url": page_url,
     }, ensure_ascii=False)
     return """
@@ -812,7 +844,7 @@ function copyTpl(){{
 
 def render_hot_page(events, css):
     """完整榜单：热度 TOP 9"""
-    top = sorted(events, key=lambda e: -e["heat"])[:9]
+    top = sorted((e for e in events if e.get("published") and (datetime.now(TZ) - datetime.fromisoformat(e["published"]).astimezone(TZ)).days <= 14), key=lambda e: -e["heat"])[:9]
     rows = "".join(f'''<a class="hrow" href="e/{e["event_id"]}.html">
   <span class="rk">{i}</span>
   <span class="ht">{esc(e["zh_title"])}</span>
@@ -935,8 +967,17 @@ def main():
             f.unlink()
 
     # ── 热点榜 ──
+    def hot_eligible(e):
+        """热榜准入：发布时间在 14 天内（旧经典归典藏，不占新闻热榜）"""
+        pub = e.get("published")
+        if not pub:
+            return False
+        return (gen - datetime.fromisoformat(pub).astimezone(TZ)).days <= 14
+
     hot_cards = ""
-    for n, eid in enumerate(payload.get("top", [])[:3], 1):
+    top_ids = [e["event_id"] for e in sorted((e for e in events if hot_eligible(e)), key=lambda e: -e["heat"])][:3]
+    payload["top"] = top_ids
+    for n, eid in enumerate(top_ids, 1):
         e = next((x for x in events if x["event_id"] == eid), None)
         if not e:
             continue
@@ -1015,7 +1056,7 @@ def main():
   <div class="section-title"><h2>{ic("flame",18)} 本期热点</h2><span>多信源聚簇 · 按热度排序</span><a href="hot.html" style="margin-left:auto;font-size:12.5px;color:var(--accent);font-weight:600">完整榜单 →</a></div>
   <div class="hotlist">{hot_cards}</div>
   <div class="section-title" style="align-items:center"><h2>{ic("calendar",18)} 时间轴</h2><span>近 7 天</span>
-    <input id="q" class="tlsearch" placeholder="搜索">
+    <input id="q" class="tlsearch" placeholder="搜索近 7 天事件" title="搜索范围：近 7 天时间轴的标题、摘要与标签"><span id="qClear" style="display:none;cursor:pointer;color:var(--sub);margin-left:6px" title="清除搜索">✕</span><span style="font-size:11px;color:var(--sub)">（<span id="rCount"></span>）</span>
   </div>
   <div class="chiprow" id="chiprow">
     <span class="fchip on" data-topic="all">全部</span>
@@ -1046,6 +1087,11 @@ def main():
 <script>
 // 收藏（localStorage）
 function dhFavs(){{try{{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}}catch(e){{return[]}}}}
+function showFavTp(t){{
+  let tp=document.getElementById('favtp');
+  if(!tp){{tp=document.createElement('div');tp.id='favtp';tp.style.cssText='position:fixed;top:16%;left:50%;transform:translateX(-50%);background:rgba(26,29,35,.92);color:#fff;font-size:13px;padding:9px 20px;border-radius:99px;z-index:99;transition:opacity .3s';document.body.appendChild(tp);}}
+  tp.textContent=t;tp.style.opacity='1';clearTimeout(tp._t);tp._t=setTimeout(()=>{{tp.style.opacity='0';}},1400);
+}}
 function dhInitFav(){{
   const favs=dhFavs();
   document.querySelectorAll('[data-fav]').forEach(b=>{{
@@ -1053,31 +1099,51 @@ function dhInitFav(){{
     b.addEventListener('click',ev=>{{
       ev.stopPropagation();
       let f=dhFavs();const id=b.dataset.fav;const i=f.indexOf(id);
-      if(i>=0){{f.splice(i,1);b.classList.remove('on');}}else{{f.push(id);b.classList.add('on');}}
+      if(i>=0){{f.splice(i,1);b.classList.remove('on');showFavTp('已取消收藏');}}else{{f.push(id);b.classList.add('on');showFavTp('已收藏 · 底部「收藏」Tab 可见');}}
       localStorage.setItem('dh_favs',JSON.stringify(f));
     }});
   }});
 }}
 dhInitFav();
-// 主题筛选条
-document.querySelectorAll('#chiprow .fchip').forEach(c=>c.addEventListener('click',()=>{{
-  document.querySelectorAll('#chiprow .fchip').forEach(x=>x.classList.remove('on'));
-  c.classList.add('on');
-  const t=c.dataset.topic;
+function applyFilter(pred){{
+  let total=0;
   document.querySelectorAll('.item').forEach(el=>{{
-    el.style.display=(t==='all'||(el.dataset.topics||'').split('|').includes(t))?'':'none';
+    const show=pred(el);el.style.display=show?'':'none';if(show)total++;
   }});
   document.querySelectorAll('.day').forEach(d=>{{
-    const any=Array.from(d.querySelectorAll('.item')).some(el=>el.style.display!=='none');
-    d.style.display=any?'':'none';
+    const all=d.querySelectorAll('.item');
+    const vis=Array.from(all).filter(el=>el.style.display!=='none');
+    d.style.display=vis.length?'':'none';
+    const info=d.querySelector('.info');
+    if(info){{
+      if(!info.dataset.base)info.dataset.base=info.textContent;
+      info.textContent=(vis.length<all.length)?info.dataset.base+' · 筛选后 '+vis.length:info.dataset.base;
+    }}
   }});
+  const rc=document.getElementById('rCount');
+  if(rc)rc.textContent=total;
+}}
+// 主题筛选条（支持再点取消）
+document.querySelectorAll('#chiprow .fchip').forEach(c=>c.addEventListener('click',()=>{{
+  const wasOn=c.classList.contains('on');
+  document.querySelectorAll('#chiprow .fchip').forEach(x=>x.classList.remove('on'));
+  if(!wasOn&&c.dataset.topic!=='all'){{
+    c.classList.add('on');
+    const t=c.dataset.topic;
+    applyFilter(el=>(el.dataset.topics||'').split('|').includes(t));
+  }}else{{
+    document.querySelector('[data-topic="all"]').classList.add('on');
+    applyFilter(()=>true);
+  }}
 }}));
-document.getElementById('q').addEventListener('input',e=>{{
-  const q=e.target.value.toLowerCase();
-  document.querySelectorAll('.item').forEach(el=>{{
-    el.style.display=el.textContent.toLowerCase().includes(q)?'':'none';
-  }});
-}});
+const qEl=document.getElementById('q'),qClear=document.getElementById('qClear');
+function doSearch(){{
+  const q=qEl.value.toLowerCase();
+  if(qClear)qClear.style.display=q?'':'none';
+  applyFilter(el=>el.textContent.toLowerCase().includes(q));
+}}
+qEl.addEventListener('input',doSearch);
+if(qClear)qClear.addEventListener('click',()=>{{qEl.value='';doSearch();}});
 // 整卡可点：进入站内详情页
 document.querySelectorAll('.item,.hot').forEach(el=>{{
   el.addEventListener('click',e=>{{

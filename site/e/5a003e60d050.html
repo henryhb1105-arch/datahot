@@ -33,6 +33,7 @@
       --header-bg:rgba(18,20,23,.92); --tabbar-bg:rgba(30,33,38,.95);
     }
     .tab.on,.fchip.on{background:var(--ink);color:#121417}
+    .sidebar a.mi.on{background:rgba(229,96,60,.14);color:var(--accent)}
     .sub-box input,.tlsearch{color:var(--ink)}
     .mock-banner{background:#000}
   }
@@ -88,7 +89,9 @@
     .chiprow{gap:6px}
     .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:32px;display:inline-flex;align-items:center}
     .tab,.fchip,.chip{touch-action:manipulation}
-    aside .card{padding:14px 16px}
+    aside{align-self:start;position:sticky;top:20px}
+@media(min-width:1280px){.wrap{max-width:1320px}}
+aside .card{padding:14px 16px}
     .article{padding:20px 14px 48px}
     .article h1{font-size:20px}
     .article .body{font-size:14.5px}
@@ -139,11 +142,11 @@
   .item .sum{font-size:13.5px;color:var(--txt2);line-height:1.75}
   .item .also{margin-top:10px;font-size:12px;color:var(--sub)}
   .item .also b{color:var(--ink)}
-  .why{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px;font-size:13px;color:var(--txt3);display:flex;gap:8px}
+  .why{margin-top:12px;padding:10px 14px;font-size:13px;color:var(--txt3);display:flex;gap:8px;background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:0 10px 10px 0}
   .why .w{color:var(--accent);font-weight:700;white-space:nowrap}
   .vendors{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
-  .vtag{font-size:11px;border:1px solid var(--line);color:var(--sub);border-radius:99px;padding:1px 10px}
-  .vtag:hover{border-color:var(--accent);color:var(--accent)}
+  .vtag{font-size:11px;border:1px dashed var(--line);color:var(--sub);border-radius:99px;padding:1px 10px;cursor:default}
+  
 
   /* ── 侧栏 ── */
   aside .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
@@ -174,7 +177,8 @@ main,.layout>*,.hotlist>*{min-width:0}
 .upd-time{margin-left:auto;font-size:11.5px;color:var(--sub);white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
 .tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
 .tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
-.chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px}
+.chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px;position:relative}
+.chiprow::after{content:"";position:sticky;right:0;flex-shrink:0;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
 .chiprow::-webkit-scrollbar{display:none}
 .chiprow .fchip{flex-shrink:0;font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
 .chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
@@ -253,7 +257,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .tcard h3{font-size:17px;font-weight:800;margin-bottom:6px}
 .tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:10px}
 .tcard .tn{font-size:12px;color:var(--accent);font-weight:700}
-.tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7}
+.tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 .article{max-width:760px;margin:0 auto;padding:36px 20px 60px}
 .article .back{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}
@@ -287,7 +291,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   </div>
   <div class="meta">
     <span class="srcbadge">官网·RSS</span>
-    <span style="font-weight:600;color:var(--txt3)">Snowflake Engineering（Medium）</span>
+    <span style="font-weight:600;color:var(--txt3)">Snowflake Engineering (Medium)</span>
     <span class="star">精选</span>
     <span title="发布 2026-08-05 03:01 · 收录 2026-08-05 03:01">收录 08-05</span>
     <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 33</span>
@@ -300,7 +304,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="fulltext"><p>数据平台的可观测性已不再是简单的“任务是否运行成功”。Snowflake在最新技术文章中提出了一套三级可观测性成熟度框架，帮助团队将视野从作业状态监控，扩展到数据与AI的全链路追踪。该框架完全基于Snowflake原生能力构建，但作者指出，大多数团队尚未充分利用这些内置的解决方案。</p><p>框架的提出背景是数据管道正在被AI能力重塑。随着AI驱动的数据管道进入生产环境，数据团队面临的不再仅是调度失败或延迟问题，而是一组复杂的约束矩阵：数据新鲜度SLA、数据质量SLA、跨业务单元的成本分摊与管控，以及模型决策的可追溯性。在某些受监管行业，法规还要求组织能够解释模型行为所依赖的数据输入与处理逻辑。</p><p>第一级可观测性通常聚焦于“作业是否运行成功”，例如任务是否按时完成、失败后是否告警。这是大多数团队当前所处阶段，但仅能回答最浅层的问题。第二级开始引入数据质量与成本维度的监控，例如表级质量分数、消费者侧的SLA达成情况，以及不同部门查询和管道消耗的算力成本。第三级则是全链路可追溯性：每条数据从源头到模型输出的完整血缘，模型每一次决策所依赖的数据版本、特征计算逻辑以及对应的人类审批记录都被记录在案。</p><p>Snowflake的可观测性栈实际上已经覆盖了从查询历史、任务历史、数据质量到成本计量的丰富功能，但文章指出，大量团队仍然停留在第一级，仅使用少量监控视图。作者认为，这并非产品能力缺失，而是组织尚未将可观测性视为数据平台架构的有机组成部分，而非附加工具。</p><p>对于数据团队而言，该框架提供了一个路线图：先明确当前成熟度等级，再根据合规、成本或AI治理的核心痛点逐级建设。特别是当AI模型开始依赖数据管道产出时，模型的可解释性与数据可追溯性会直接挂钩。若不能回答“模型为何得出这个结论”，企业将难以在严格监管的行业中落地AI应用。</p><p>文章最后强调，Snowflake的价值不在于提供更多功能，而在于将这些功能整合到数据平台的工作流中。团队应当重新审视现有Snowflake环境的可观测性配置，从已拥有的能力开始，逐步向更高级别的成熟度演进，最终建立起支撑数据和AI业务的可信基础。</p></div>
   <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://medium.com/snowflake/a-three-level-observability-maturity-framework-for-snowflake-808e49b79e65?source=rss----34b6daafc07---4" target="_blank" rel="noopener">查看原文 ↗</a></div>
 </div>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://medium.com/snowflake/a-three-level-observability-maturity-framework-for-snowflake-808e49b79e65?source=rss----34b6daafc07---4" target="_blank" rel="noopener">Snowflake Engineering（Medium）（英文）</a><span class="src more">首发</span><span class="count">2026-08-05 03:01</span></div></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://medium.com/snowflake/a-three-level-observability-maturity-framework-for-snowflake-808e49b79e65?source=rss----34b6daafc07---4" target="_blank" rel="noopener">Snowflake Engineering (Medium)（英文）</a><span class="src more">首发</span><span class="count">2026-08-05 03:01</span></div></div>
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/973421af8576.html"><span class="n">›</span>Snowflake 发布 10.26 版本更新说明<span class="count">48</span></a><a class="vendor-row" href="../e/160014e6f8b8.html"><span class="n">›</span>Snowflake发布2026年6月末版本说明<span class="count">31</span></a><a class="vendor-row" href="../e/caa8145425d1.html"><span class="n">›</span>Snowflake AIM：将数据迁移从数年缩短至数周<span class="count">54</span></a></div>
 </div>
 <footer>DataHot，数据领域AI资讯分享</footer>
@@ -376,7 +380,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title": "Snowflake可观测性成熟度三级框架解析", "summary": "Snowflake提出三级可观测性成熟度框架，帮助数据团队从“作业是否跑通”迈向数据和AI全链路可追溯。框架覆盖 freshness SLA、质量SLA、跨业务单元成本管理以及模型决策追踪，并强调Snowflake原生可观测性能力尚未被多数团队充分利用。适用于AI驱动的数据管道与行业合规场景。", "reason": "数据从业者可借此审视自身可观测性建设阶段，理解Snowflake原生能力如何支撑AI管道治理与合规追溯。", "topic": "", "heat": 33, "source": "Snowflake Engineering（Medium）", "date": "2026-08-05", "url": "https://henryhb1105-arch.github.io/datahot/e/5a003e60d050.html"};
+var SH_EV = {"title": "Snowflake可观测性成熟度三级框架解析", "summary": "Snowflake提出三级可观测性成熟度框架，帮助数据团队从“作业是否跑通”迈向数据和AI全链路可追溯。框架覆盖 freshness SLA、质量SLA、跨业务单元成本管理以及模型决策追踪，并强调Snowflake原生可观测性能力尚未被多数团队充分利用。适用于AI驱动的数据管道与行业合规场景。", "reason": "数据从业者可借此审视自身可观测性建设阶段，理解Snowflake原生能力如何支撑AI管道治理与合规追溯。", "topic": "", "heat": 33, "source": "Snowflake Engineering (Medium)", "date": "2026-08-05", "url": "https://henryhb1105-arch.github.io/datahot/e/5a003e60d050.html"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

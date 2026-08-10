@@ -33,6 +33,7 @@
       --header-bg:rgba(18,20,23,.92); --tabbar-bg:rgba(30,33,38,.95);
     }
     .tab.on,.fchip.on{background:var(--ink);color:#121417}
+    .sidebar a.mi.on{background:rgba(229,96,60,.14);color:var(--accent)}
     .sub-box input,.tlsearch{color:var(--ink)}
     .mock-banner{background:#000}
   }
@@ -88,7 +89,9 @@
     .chiprow{gap:6px}
     .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:32px;display:inline-flex;align-items:center}
     .tab,.fchip,.chip{touch-action:manipulation}
-    aside .card{padding:14px 16px}
+    aside{align-self:start;position:sticky;top:20px}
+@media(min-width:1280px){.wrap{max-width:1320px}}
+aside .card{padding:14px 16px}
     .article{padding:20px 14px 48px}
     .article h1{font-size:20px}
     .article .body{font-size:14.5px}
@@ -139,11 +142,11 @@
   .item .sum{font-size:13.5px;color:var(--txt2);line-height:1.75}
   .item .also{margin-top:10px;font-size:12px;color:var(--sub)}
   .item .also b{color:var(--ink)}
-  .why{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px;font-size:13px;color:var(--txt3);display:flex;gap:8px}
+  .why{margin-top:12px;padding:10px 14px;font-size:13px;color:var(--txt3);display:flex;gap:8px;background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:0 10px 10px 0}
   .why .w{color:var(--accent);font-weight:700;white-space:nowrap}
   .vendors{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
-  .vtag{font-size:11px;border:1px solid var(--line);color:var(--sub);border-radius:99px;padding:1px 10px}
-  .vtag:hover{border-color:var(--accent);color:var(--accent)}
+  .vtag{font-size:11px;border:1px dashed var(--line);color:var(--sub);border-radius:99px;padding:1px 10px;cursor:default}
+  
 
   /* ── 侧栏 ── */
   aside .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
@@ -174,7 +177,8 @@ main,.layout>*,.hotlist>*{min-width:0}
 .upd-time{margin-left:auto;font-size:11.5px;color:var(--sub);white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
 .tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
 .tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
-.chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px}
+.chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px;position:relative}
+.chiprow::after{content:"";position:sticky;right:0;flex-shrink:0;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
 .chiprow::-webkit-scrollbar{display:none}
 .chiprow .fchip{flex-shrink:0;font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
 .chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
@@ -253,7 +257,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .tcard h3{font-size:17px;font-weight:800;margin-bottom:6px}
 .tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:10px}
 .tcard .tn{font-size:12px;color:var(--accent);font-weight:700}
-.tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7}
+.tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 .article{max-width:760px;margin:0 auto;padding:36px 20px 60px}
 .article .back{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}
@@ -287,10 +291,10 @@ main,.layout>*,.hotlist>*{min-width:0}
   </div>
   <div class="meta">
     <span class="srcbadge">RSS</span>
-    <span style="font-weight:600;color:var(--txt3)">InfoQ（AI/数据工程）</span>
+    <span style="font-weight:600;color:var(--txt3)">InfoQ (AI/数据工程)</span>
     
     <span title="发布 2026-08-06 17:00 · 收录 2026-08-06 17:00">收录 08-06</span>
-    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 42</span>
+    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 41</span>
   </div>
   <h1>运行时无关的AI工作流：兼顾生产持久性与快速评估</h1>
   <div class="body">本文提出一种运行时无关的AI工作流模式，用于解决生产环境持久性与评估迭代速度之间的矛盾。通过将业务逻辑与运行环境解耦，同一套代码可以在生产与评估中运行，避免版本漂移。作者认为正确架构应让默认路径即最优路径。</div>
@@ -300,7 +304,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="fulltext"><p>生产环境中的AI工作流常常面临两难：一方面，需要持久化并分发每一个步骤，以保证在崩溃、部署和重启时依然可靠运行；另一方面，这些机制会让每次执行变得过于笨重，无法支撑快速、可废弃的评估循环——恰恰是检查大模型输出质量所需的方式。</p><p>这种矛盾并非偶然。为持久性付出的每一步设计，都会拖慢迭代速度；而追求评估速度时，又容易牺牲生产稳定性。在许多团队中，生产与评估两套流程往往各搞一套，最终导致评估结果无法代表真实发布效果。</p><p>本文提出一种“运行时无关”的AI工作流模式：把工作流编写为纯业务逻辑，它不感知自己运行在哪个运行时上；然后在具体场景中插入对应的运行时。这样一来，完全相同的逻辑可以在生产环境和评估环境中运行，无需任何修改。</p><p>这种设计的核心价值在于“单一版本”：当只有一份逻辑时，经过评估的版本与最终上线的版本严格一致。这从根源上消除了由于不同版本逻辑随时间漂移而引发的一整类缺陷。许多AI系统故障并非源于算法本身，而是源于评估与部署之间逻辑不一致。</p><p>然而，实现运行时无关不能只依赖开发者的自律。如果架构没有提供引导，开发者在急迫时很容易绕过抽象层，写出与环境耦合的代码。因此，架构必须让“正确的方式”成为“最容易的方式”。只要这样，团队才能长期保持逻辑纯净。</p><p>该模式由Mateus Moury发表于InfoQ，由Anthony Alford审校。对于构建ChatBI或Text-to-SQL等Data Agent的团队而言，这种设计权衡和模式具有直接的参考意义。</p></div>
   <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://www.infoq.com/articles/ai-workflow-pattern/?utm_campaign=infoq_content&amp;utm_source=infoq&amp;utm_medium=feed&amp;utm_term=AI%2C+ML+%26+Data+Engineering" target="_blank" rel="noopener">查看原文 ↗</a></div>
 </div>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://www.infoq.com/articles/ai-workflow-pattern/?utm_campaign=infoq_content&amp;utm_source=infoq&amp;utm_medium=feed&amp;utm_term=AI%2C+ML+%26+Data+Engineering" target="_blank" rel="noopener">InfoQ（AI/数据工程）</a><span class="src more">首发</span><span class="count">2026-08-06 17:00</span></div></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://www.infoq.com/articles/ai-workflow-pattern/?utm_campaign=infoq_content&amp;utm_source=infoq&amp;utm_medium=feed&amp;utm_term=AI%2C+ML+%26+Data+Engineering" target="_blank" rel="noopener">InfoQ (AI/数据工程)</a><span class="src more">首发</span><span class="count">2026-08-06 17:00</span></div></div>
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/d17e13a7ceb3.html"><span class="n">›</span>用MCP构建可达生产系统的Agent<span class="count">54</span></a><a class="vendor-row" href="../e/5d10f430faa8.html"><span class="n">›</span>Claude Cowork推出金融插件，打通Excel与PowerPoint工作流<span class="count">50</span></a><a class="vendor-row" href="../e/08162567f084.html"><span class="n">›</span>什么是Agentic Workflows？Databricks解读智能代理工作流<span class="count">38</span></a></div>
 </div>
 <footer>DataHot，数据领域AI资讯分享</footer>
@@ -376,7 +380,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title": "运行时无关的AI工作流：兼顾生产持久性与快速评估", "summary": "本文提出一种运行时无关的AI工作流模式，用于解决生产环境持久性与评估迭代速度之间的矛盾。通过将业务逻辑与运行环境解耦，同一套代码可以在生产与评估中运行，避免版本漂移。作者认为正确架构应让默认路径即最优路径。", "reason": "该模式直接适用于Data Agent类应用的工程实现，帮助数据从业者构建既可靠又能快速迭代的AI分析工作流。", "topic": "Data Agent", "heat": 42, "source": "InfoQ（AI/数据工程）", "date": "2026-08-06", "url": "https://henryhb1105-arch.github.io/datahot/e/26c7d5691708.html"};
+var SH_EV = {"title": "运行时无关的AI工作流：兼顾生产持久性与快速评估", "summary": "本文提出一种运行时无关的AI工作流模式，用于解决生产环境持久性与评估迭代速度之间的矛盾。通过将业务逻辑与运行环境解耦，同一套代码可以在生产与评估中运行，避免版本漂移。作者认为正确架构应让默认路径即最优路径。", "reason": "该模式直接适用于Data Agent类应用的工程实现，帮助数据从业者构建既可靠又能快速迭代的AI分析工作流。", "topic": "Data Agent", "heat": 41, "source": "InfoQ (AI/数据工程)", "date": "2026-08-06", "url": "https://henryhb1105-arch.github.io/datahot/e/26c7d5691708.html"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

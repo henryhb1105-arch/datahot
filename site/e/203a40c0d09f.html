@@ -33,6 +33,7 @@
       --header-bg:rgba(18,20,23,.92); --tabbar-bg:rgba(30,33,38,.95);
     }
     .tab.on,.fchip.on{background:var(--ink);color:#121417}
+    .sidebar a.mi.on{background:rgba(229,96,60,.14);color:var(--accent)}
     .sub-box input,.tlsearch{color:var(--ink)}
     .mock-banner{background:#000}
   }
@@ -88,7 +89,9 @@
     .chiprow{gap:6px}
     .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:32px;display:inline-flex;align-items:center}
     .tab,.fchip,.chip{touch-action:manipulation}
-    aside .card{padding:14px 16px}
+    aside{align-self:start;position:sticky;top:20px}
+@media(min-width:1280px){.wrap{max-width:1320px}}
+aside .card{padding:14px 16px}
     .article{padding:20px 14px 48px}
     .article h1{font-size:20px}
     .article .body{font-size:14.5px}
@@ -139,11 +142,11 @@
   .item .sum{font-size:13.5px;color:var(--txt2);line-height:1.75}
   .item .also{margin-top:10px;font-size:12px;color:var(--sub)}
   .item .also b{color:var(--ink)}
-  .why{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px;font-size:13px;color:var(--txt3);display:flex;gap:8px}
+  .why{margin-top:12px;padding:10px 14px;font-size:13px;color:var(--txt3);display:flex;gap:8px;background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:0 10px 10px 0}
   .why .w{color:var(--accent);font-weight:700;white-space:nowrap}
   .vendors{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
-  .vtag{font-size:11px;border:1px solid var(--line);color:var(--sub);border-radius:99px;padding:1px 10px}
-  .vtag:hover{border-color:var(--accent);color:var(--accent)}
+  .vtag{font-size:11px;border:1px dashed var(--line);color:var(--sub);border-radius:99px;padding:1px 10px;cursor:default}
+  
 
   /* ── 侧栏 ── */
   aside .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
@@ -174,7 +177,8 @@ main,.layout>*,.hotlist>*{min-width:0}
 .upd-time{margin-left:auto;font-size:11.5px;color:var(--sub);white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
 .tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
 .tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
-.chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px}
+.chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px;position:relative}
+.chiprow::after{content:"";position:sticky;right:0;flex-shrink:0;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
 .chiprow::-webkit-scrollbar{display:none}
 .chiprow .fchip{flex-shrink:0;font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
 .chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
@@ -253,7 +257,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .tcard h3{font-size:17px;font-weight:800;margin-bottom:6px}
 .tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:10px}
 .tcard .tn{font-size:12px;color:var(--accent);font-weight:700}
-.tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7}
+.tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 .article{max-width:760px;margin:0 auto;padding:36px 20px 60px}
 .article .back{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}
@@ -300,7 +304,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="fulltext"><p>Aloudata 官方博客于 2026 年 6 月 24 日发布文章，以一场会员唤醒活动为例，详细拆解 Aloudata Agent 如何交付一次完整的分析。活动背景是：运营圈选了两万名超过 90 天未消费的沉睡会员，分三档发优惠券，活动持续 14 天，周会前需要复盘效果。由于人群、周期、券都是临时配置，BI 中没有现成报表能直接回答这个问题。</p><p>传统路径有三条：向数据团队提需求、等排期；自己从通用报表导数用 Excel 拼；或用问数工具问几个孤立数字。Aloudata Agent 的核心命题则是“像人类分析师一样工作”，将取数、归因、预测、报告串成一条完整链路。</p><p>在敏捷取数环节，Aloudata Agent 同时调度四类信息源：标准指标走可信语义层，并在确认口径后全程沿用；临时文件如运营拖入的圈选名单 CSV 写入会话临时表，仅作为本次人群范围，不污染标准语义资产；业务库数据由明细查询承接，支持行级下钻并显式标注口径关系；知识库提供业务定义和方法论，不作为数据事实。边界清晰的多源融合让临时活动在几分钟内得到可复核的结果视图。</p><p>深度分析环节以归因问题为例：若发现回流会员客单价远低于历史均值，Agent 会启动归因分析 Skill，按分析师思路分步推进。它先调取归因知识，将客单价拆为件单价乘连带率；再计算发现件单价下滑是主因；随后维度下钻发现消费集中在低价引流品类，高毛利品类渗透率低；最后通过明细查询交叉验证，发现优惠券核销集中在最低档“99 减 30”。结论是：活动把人拉回来了，但券门槛偏低，把消费锚定在低价区间。这四步由 Agentic Harness 框架编排，串联标准指标查询、文件临时表、明细 SQL 和 Python 贡献度计算。</p><p>人机协作方面，人负责业务判断，如确认口径、提供名单、决定哪些线索值得深挖；Agent 负责拆解、取数、计算、验证并全程留痕。用户可在查询卡片中直接加排除条件就地重查，低成本纠错。</p><p>前瞻推演环节支持 What-if 模拟，例如“把券门槛从 99 提到 129，销售净额怎么变”。Agent 基于历史订单金额分布给出区间测算，并列出全部前提假设，虽为数学推算，但为“下次怎么办”提供了可检验的起点。</p><p>最终成果交付从周五下午的一句提问，到周一早上的上会报告，全过程无需提需求单。这篇文章展示了 Aloudata Agent 在临时活动复盘场景中，如何将标准口径与临时口径协同、多步归因、人机协作和前瞻模拟整合为可用的分析交付物。</p></div>
   <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://aloudata.com/blogs/aloudata-agent-upgrade-from-ai-query-to-trusted-analytics-workflow" target="_blank" rel="noopener">查看原文 ↗</a></div>
 </div>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（2 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://aloudata.com/blogs/aloudata-agent-upgrade-from-ai-query-to-trusted-analytics-workflow" target="_blank" rel="noopener">Aloudata 博客（英文）</a><span class="src more">首发</span><span class="count">2026-08-06 15:16</span></div><div class="vendor-row"><span class="n">↗</span><a href="https://aloudata.com/blogs/aloudata-agent-analysis-skills-from-question-to-insight" target="_blank" rel="noopener">Aloudata 博客（英文）</a><span class="count">2026-08-06 15:18</span></div></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（2 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://aloudata.com/blogs/aloudata-agent-upgrade-from-ai-query-to-trusted-analytics-workflow" target="_blank" rel="noopener">Aloudata 博客（英文）</a><span class="src more">首发</span><span class="src">×2</span><span class="count">2026-08-06 15:16</span></div></div>
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/ac7c75fedd0b.html"><span class="n">›</span>一招教你鉴定真假Data Agent<span class="count">54</span></a><a class="vendor-row" href="../e/3bb9e34e59c3.html"><span class="n">›</span>构建企业级数据分析助手：Data Agent开发实践<span class="count">61</span></a><a class="vendor-row" href="../e/1526c962704f.html"><span class="n">›</span>Data Agent：超越BI与AI的边界<span class="count">58</span></a></div>
 </div>
 <footer>DataHot，数据领域AI资讯分享</footer>

@@ -283,7 +283,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://aloudata.com/news/aloudata-2026-data-ai-vendor-landscape-report" target="_blank" rel="noopener">查看原文 ↗</a></div>
 </div>
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://aloudata.com/news/aloudata-2026-data-ai-vendor-landscape-report" target="_blank" rel="noopener">Aloudata 动态（英文）</a><span class="src more">首发</span><span class="count">2026-08-05 16:11</span></div></div>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/05b5c328b16d.html"><span class="n">›</span>Databricks谈大规模AI编码成本管理<span class="count">36</span></a><a class="vendor-row" href="../e/ac2ceffec2ca.html"><span class="n">›</span>Databricks Unity AI Gateway正式全面可用<span class="count">30</span></a><a class="vendor-row" href="../e/058d72e9b2d3.html"><span class="n">›</span>Databricks加入开放安全AI联盟，推进AI安全与数据治理<span class="count">30</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/05b5c328b16d.html"><span class="n">›</span>Databricks谈大规模AI编码成本管理<span class="count">35</span></a><a class="vendor-row" href="../e/ac2ceffec2ca.html"><span class="n">›</span>Databricks Unity AI Gateway正式全面可用<span class="count">30</span></a><a class="vendor-row" href="../e/058d72e9b2d3.html"><span class="n">›</span>Databricks加入开放安全AI联盟，推进AI安全与数据治理<span class="count">30</span></a></div>
 </div>
 <footer>DataHot，数据领域AI资讯分享</footer>
 <nav class="tabbar"><a href="../index.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span>热榜</a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span>主题</a><a href="../classics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></span>典藏</a><a href="../sources.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span>信源</a></nav>
@@ -442,14 +442,23 @@ function posterLayout(x,W,P,qrImg){
   x.fillStyle=P.sum;x.font='400 32px -apple-system,PingFang SC,sans-serif';
   y=wrapText(x,SH_EV.summary,64,y,W-128,52,5)+20;
   if(SH_EV.reason){
+    // 先测量推荐理由行数，动态确定色块高度（不再截断在中间）
+    var reasonLines=1,rl='',lineW=W-176;
+    x.font='400 28px -apple-system,PingFang SC,sans-serif';
+    for(var ri=0;ri<SH_EV.reason.length;ri++){
+      var rt=rl+SH_EV.reason[ri];
+      if(x.measureText(rt).width>lineW&&rl){reasonLines++;rl=SH_EV.reason[ri];}else{rl=rt;}
+    }
+    reasonLines=Math.min(reasonLines,3);
+    var boxH=56+reasonLines*44+22;
     var ry=y+8;
-    x.fillStyle=P.reasonBg;x.fillRect(64,ry,W-128,150);
-    x.fillStyle='#d94f2b';x.fillRect(64,ry,8,150);
+    x.fillStyle=P.reasonBg;x.fillRect(64,ry,W-128,boxH);
+    x.fillStyle='#d94f2b';x.fillRect(64,ry,8,boxH);
     x.fillStyle=P.reasonHd;x.font='700 28px -apple-system,PingFang SC,sans-serif';
     x.fillText('推荐理由',92,ry+26);
     x.fillStyle=P.reasonTxt;x.font='400 28px -apple-system,PingFang SC,sans-serif';
-    wrapText(x,SH_EV.reason,92,ry+66,W-176,44,2);
-    y=ry+180;
+    wrapText(x,SH_EV.reason,92,ry+66,W-176,44,3);
+    y=ry+boxH+30;
   }
   x.fillStyle=P.meta;x.font='400 26px -apple-system,sans-serif';
   x.fillText('热度 '+SH_EV.heat+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);

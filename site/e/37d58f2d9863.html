@@ -272,7 +272,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="badge b-bi">BI 与可视化</span>
     
     <span title="2026-08-06 08:00">4 天前</span>
-    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 33</span>
+    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 32</span>
   </div>
   <h1>Metabase发布安全更新，请立即升级</h1>
   <div class="body">Metabase披露其云服务曾遭利用0-day漏洞的攻击，影响1.58及以上版本。官方已封堵攻击端点并完成修补，云客户实例已自动升级；自托管实例仍可能脆弱，攻击者可通过SQL注入获取管理员权限，窃取数据库凭据与数据。官方建议用户立即升级至最新补丁版本，并检查会话、API密钥及管理员账户。</div>
@@ -358,7 +358,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title": "Metabase发布安全更新，请立即升级", "summary": "Metabase披露其云服务曾遭利用0-day漏洞的攻击，影响1.58及以上版本。官方已封堵攻击端点并完成修补，云客户实例已自动升级；自托管实例仍可能脆弱，攻击者可通过SQL注入获取管理员权限，窃取数据库凭据与数据。官方建议用户立即升级至最新补丁版本，并检查会话、API密钥及管理员账户。", "reason": "BI工具Metabase是数据从业者常用的可视化分析平台，此安全公告涉及数据库凭据与数据泄露风险，直接影响企业数据安全，需及时跟进修复。", "topic": "", "heat": 33, "source": "Metabase Blog", "date": "2026-08-06", "url": "https://henryhb1105-arch.github.io/datahot/e/37d58f2d9863.html"};
+var SH_EV = {"title": "Metabase发布安全更新，请立即升级", "summary": "Metabase披露其云服务曾遭利用0-day漏洞的攻击，影响1.58及以上版本。官方已封堵攻击端点并完成修补，云客户实例已自动升级；自托管实例仍可能脆弱，攻击者可通过SQL注入获取管理员权限，窃取数据库凭据与数据。官方建议用户立即升级至最新补丁版本，并检查会话、API密钥及管理员账户。", "reason": "BI工具Metabase是数据从业者常用的可视化分析平台，此安全公告涉及数据库凭据与数据泄露风险，直接影响企业数据安全，需及时跟进修复。", "topic": "", "heat": 32, "source": "Metabase Blog", "date": "2026-08-06", "url": "https://henryhb1105-arch.github.io/datahot/e/37d58f2d9863.html"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');
@@ -442,14 +442,23 @@ function posterLayout(x,W,P,qrImg){
   x.fillStyle=P.sum;x.font='400 32px -apple-system,PingFang SC,sans-serif';
   y=wrapText(x,SH_EV.summary,64,y,W-128,52,5)+20;
   if(SH_EV.reason){
+    // 先测量推荐理由行数，动态确定色块高度（不再截断在中间）
+    var reasonLines=1,rl='',lineW=W-176;
+    x.font='400 28px -apple-system,PingFang SC,sans-serif';
+    for(var ri=0;ri<SH_EV.reason.length;ri++){
+      var rt=rl+SH_EV.reason[ri];
+      if(x.measureText(rt).width>lineW&&rl){reasonLines++;rl=SH_EV.reason[ri];}else{rl=rt;}
+    }
+    reasonLines=Math.min(reasonLines,3);
+    var boxH=56+reasonLines*44+22;
     var ry=y+8;
-    x.fillStyle=P.reasonBg;x.fillRect(64,ry,W-128,150);
-    x.fillStyle='#d94f2b';x.fillRect(64,ry,8,150);
+    x.fillStyle=P.reasonBg;x.fillRect(64,ry,W-128,boxH);
+    x.fillStyle='#d94f2b';x.fillRect(64,ry,8,boxH);
     x.fillStyle=P.reasonHd;x.font='700 28px -apple-system,PingFang SC,sans-serif';
     x.fillText('推荐理由',92,ry+26);
     x.fillStyle=P.reasonTxt;x.font='400 28px -apple-system,PingFang SC,sans-serif';
-    wrapText(x,SH_EV.reason,92,ry+66,W-176,44,2);
-    y=ry+180;
+    wrapText(x,SH_EV.reason,92,ry+66,W-176,44,3);
+    y=ry+boxH+30;
   }
   x.fillStyle=P.meta;x.font='400 26px -apple-system,sans-serif';
   x.fillText('热度 '+SH_EV.heat+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);

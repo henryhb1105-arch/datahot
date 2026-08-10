@@ -442,14 +442,23 @@ function posterLayout(x,W,P,qrImg){
   x.fillStyle=P.sum;x.font='400 32px -apple-system,PingFang SC,sans-serif';
   y=wrapText(x,SH_EV.summary,64,y,W-128,52,5)+20;
   if(SH_EV.reason){
+    // 先测量推荐理由行数，动态确定色块高度（不再截断在中间）
+    var reasonLines=1,rl='',lineW=W-176;
+    x.font='400 28px -apple-system,PingFang SC,sans-serif';
+    for(var ri=0;ri<SH_EV.reason.length;ri++){
+      var rt=rl+SH_EV.reason[ri];
+      if(x.measureText(rt).width>lineW&&rl){reasonLines++;rl=SH_EV.reason[ri];}else{rl=rt;}
+    }
+    reasonLines=Math.min(reasonLines,3);
+    var boxH=56+reasonLines*44+22;
     var ry=y+8;
-    x.fillStyle=P.reasonBg;x.fillRect(64,ry,W-128,150);
-    x.fillStyle='#d94f2b';x.fillRect(64,ry,8,150);
+    x.fillStyle=P.reasonBg;x.fillRect(64,ry,W-128,boxH);
+    x.fillStyle='#d94f2b';x.fillRect(64,ry,8,boxH);
     x.fillStyle=P.reasonHd;x.font='700 28px -apple-system,PingFang SC,sans-serif';
     x.fillText('推荐理由',92,ry+26);
     x.fillStyle=P.reasonTxt;x.font='400 28px -apple-system,PingFang SC,sans-serif';
-    wrapText(x,SH_EV.reason,92,ry+66,W-176,44,2);
-    y=ry+180;
+    wrapText(x,SH_EV.reason,92,ry+66,W-176,44,3);
+    y=ry+boxH+30;
   }
   x.fillStyle=P.meta;x.font='400 26px -apple-system,sans-serif';
   x.fillText('热度 '+SH_EV.heat+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);

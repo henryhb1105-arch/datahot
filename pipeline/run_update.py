@@ -37,7 +37,8 @@ VENDOR_TAGS = {
     "Fivetran Blog": ["Fivetran"], "StarRocks Blog": ["StarRocks"],
     "Snowflake Engineering（Medium）": ["Snowflake"], "帆软": ["帆软", "FineBI"],
     "Aloudata 动态": ["Aloudata"], "Aloudata 博客": ["Aloudata"],
-    "Snowflake Release Notes": ["Snowflake"],
+    "Snowflake Release Notes": ["Snowflake"], "OpenAI News": ["OpenAI"],
+    "Claude 官方博客": ["Anthropic", "Claude"],
     "Microsoft Power BI（Power Platform Blog）": ["Microsoft", "Power BI"],
     "Tableau Engineering（Medium）": ["Tableau"],
 }
@@ -493,11 +494,14 @@ def fetch_sitemap(source):
     """sitemap 信源：无 RSS 的官网，用 sitemap 的 URL+lastmod 作为更新流（标题由抓正文阶段从 <title> 补全）"""
     ns = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
     entries = []
+    include = source.get("url_include", "")
     for u in source.get("urls", []):
         root = fetch_feed(u)
         for url_el in root.iter(ns + "url"):
             loc_el = url_el.find(ns + "loc")
             if loc_el is None or not loc_el.text:
+                continue
+            if include and include not in loc_el.text:
                 continue
             lm = url_el.find(ns + "lastmod")
             slug = loc_el.text.rstrip("/").split("/")[-1].replace("-", " ")

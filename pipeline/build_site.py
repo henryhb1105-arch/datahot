@@ -399,7 +399,7 @@ def share_ui(e, page_url):
         "title": e["zh_title"], "summary": e.get("zh_summary", ""),
         "reason": e.get("reason", ""), "topic": (e.get("topics") or [""])[0],
         "heat": e["heat"], "source": e["items"][0]["source"],
-        "date": e["published"][:10], "url": page_url,
+        "date": (e.get("published") or e.get("first_seen") or "")[:10], "url": page_url,
     }, ensure_ascii=False)
     return """
 <div class="sh-mask" id="shMask" onclick="shClose()"></div>
@@ -664,7 +664,7 @@ def render_topic_page(t, events, css):
     if must:
         rows = "".join(
             f'<a class="crow" href="../e/{e["event_id"]}.html"><span class="cpin">{"📌" if e.get("pinned") else ""}</span>'
-            f'<span class="ctitle">{esc(e["zh_title"])}</span><span class="cmeta">{e["published"][:10]}</span></a>'
+            f'<span class="ctitle">{esc(e["zh_title"])}</span><span class="cmeta">{(e.get("published") or e.get("first_seen") or "")[:10]}</span></a>'
             for e in must)
         must_html = f'<div class="scard" style="margin-bottom:18px"><h4 style="margin-bottom:6px">{ic("bookmark",14)} 本主题必读</h4>{rows}</div>'
     days = defaultdict(list)
@@ -842,7 +842,7 @@ def render_classics_page(events, css):
             f'''<a class="crow" href="e/{e["event_id"]}.html">
   <span class="cpin">{"📌" if e.get("pinned") else ""}</span>
   <span class="ctitle">{esc(e["zh_title"])}</span>
-  <span class="cmeta">{esc(e["items"][0]["source"])} · {e["published"][:10]}</span>
+  <span class="cmeta">{esc(e["items"][0]["source"])} · {(e.get("published") or e.get("first_seen") or "")[:10]}</span>
 </a>''' for e in evs)
         groups += f'<div class="scard"><h4 style="margin-bottom:6px">{ic("bookmark",14)} {esc(t["name"])} <span style="font-size:11px;color:var(--sub);font-weight:400">{len(evs)} 篇</span></h4>{rows}</div>'
     other = [e for e in classics if e["event_id"] not in used]
@@ -851,7 +851,7 @@ def render_classics_page(events, css):
             f'''<a class="crow" href="e/{e["event_id"]}.html">
   <span class="cpin">{"📌" if e.get("pinned") else ""}</span>
   <span class="ctitle">{esc(e["zh_title"])}</span>
-  <span class="cmeta">{esc(e["items"][0]["source"])} · {e["published"][:10]}</span>
+  <span class="cmeta">{esc(e["items"][0]["source"])} · {(e.get("published") or e.get("first_seen") or "")[:10]}</span>
 </a>''' for e in other)
         groups += f'<div class="scard"><h4 style="margin-bottom:6px">{ic("bookmark",14)} 综合 <span style="font-size:11px;color:var(--sub);font-weight:400">{len(other)} 篇</span></h4>{rows}</div>'
     if not classics:

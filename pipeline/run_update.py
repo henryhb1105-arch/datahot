@@ -135,17 +135,19 @@ def freshness(published):
     return max(0.3, 1 - age_h / (KEEP_DAYS * 24) * 0.7)
 
 def community_score(signal):
-    """社区信号（HN 赞数 / Bluesky 赞数）对数归一到 0-100，500 赞 ≈ 满分"""
+    """社区信号（HN 赞数 / Bluesky 赞数）对数归一到 0-100，1000 赞 ≈ 满分"""
     if not signal or signal <= 0:
         return 0
-    return min(100, round(math.log1p(signal) / math.log1p(500) * 100))
+    return min(100, round(math.log1p(signal) / math.log1p(1000) * 100))
 
 def calc_heat(importance=50, published=None, signal=0, extra_sources=0):
-    """热度分 2.0：LLM重要性×0.4 + 新鲜度×0.2 + 社区信号×0.3 + 多信源加成×0.1，归一 0-100"""
+    """热度分 2.1：LLM重要性×0.5 + 新鲜度×0.2 + 社区信号×0.15(封顶12分) + 多信源×0.15，归一 0-100。
+    设计原则：社区信号只做加分项不做主驾驶；多信源交叉验证比点赞数更可信。"""
     multi = min(100, 25 * extra_sources)
+    comm = min(12, 0.15 * community_score(signal))
     return round(min(100,
-        0.4 * importance + 0.2 * freshness(published) * 100
-        + 0.3 * community_score(signal) + 0.1 * multi))
+        0.5 * importance + 0.2 * freshness(published) * 100
+        + comm + 0.15 * multi))
 
 # ── F5：HN 条目抓原文 ──────────────────────────────────────
 def fetch_article_text(url, max_chars=24000):

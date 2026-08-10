@@ -33,6 +33,7 @@
       --header-bg:rgba(18,20,23,.92); --tabbar-bg:rgba(30,33,38,.95);
     }
     .tab.on,.fchip.on{background:var(--ink);color:#121417}
+    .sidebar a.mi.on{background:rgba(229,96,60,.14);color:var(--accent)}
     .sub-box input,.tlsearch{color:var(--ink)}
     .mock-banner{background:#000}
   }
@@ -88,7 +89,9 @@
     .chiprow{gap:6px}
     .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:32px;display:inline-flex;align-items:center}
     .tab,.fchip,.chip{touch-action:manipulation}
-    aside .card{padding:14px 16px}
+    aside{align-self:start;position:sticky;top:20px}
+@media(min-width:1280px){.wrap{max-width:1320px}}
+aside .card{padding:14px 16px}
     .article{padding:20px 14px 48px}
     .article h1{font-size:20px}
     .article .body{font-size:14.5px}
@@ -139,11 +142,11 @@
   .item .sum{font-size:13.5px;color:var(--txt2);line-height:1.75}
   .item .also{margin-top:10px;font-size:12px;color:var(--sub)}
   .item .also b{color:var(--ink)}
-  .why{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px;font-size:13px;color:var(--txt3);display:flex;gap:8px}
+  .why{margin-top:12px;padding:10px 14px;font-size:13px;color:var(--txt3);display:flex;gap:8px;background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:0 10px 10px 0}
   .why .w{color:var(--accent);font-weight:700;white-space:nowrap}
   .vendors{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
-  .vtag{font-size:11px;border:1px solid var(--line);color:var(--sub);border-radius:99px;padding:1px 10px}
-  .vtag:hover{border-color:var(--accent);color:var(--accent)}
+  .vtag{font-size:11px;border:1px dashed var(--line);color:var(--sub);border-radius:99px;padding:1px 10px;cursor:default}
+  
 
   /* ── 侧栏 ── */
   aside .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
@@ -174,7 +177,8 @@ main,.layout>*,.hotlist>*{min-width:0}
 .upd-time{margin-left:auto;font-size:11.5px;color:var(--sub);white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
 .tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
 .tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
-.chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px}
+.chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px;position:relative}
+.chiprow::after{content:"";position:sticky;right:0;flex-shrink:0;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
 .chiprow::-webkit-scrollbar{display:none}
 .chiprow .fchip{flex-shrink:0;font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
 .chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
@@ -253,7 +257,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .tcard h3{font-size:17px;font-weight:800;margin-bottom:6px}
 .tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:10px}
 .tcard .tn{font-size:12px;color:var(--accent);font-weight:700}
-.tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7}
+.tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 .article{max-width:760px;margin:0 auto;padding:36px 20px 60px}
 .article .back{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}
@@ -287,7 +291,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   </div>
   <div class="meta">
     <span class="srcbadge">官网·RSS</span>
-    <span style="font-weight:600;color:var(--txt3)">Snowflake Engineering（Medium）</span>
+    <span style="font-weight:600;color:var(--txt3)">Snowflake Engineering (Medium)</span>
     <span class="star">精选</span>
     <span title="发布 2026-08-07 05:15 · 收录 2026-08-07 05:15">收录 08-07</span>
     <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 37</span>
@@ -300,8 +304,8 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="fulltext"><p>Snowflake Horizon Catalog正在向企业非结构化数据资产扩展。官方博客明确了这一方向，其核心理念是“元数据优先，内容按需获取”。这意味着Snowflake希望将统一目录能力延伸至文件和对象存储领域，弥补企业数据资产中最后一块未被充分覆盖的部分。</p><p>Horizon Catalog的愿景是构建一个单一目录，让每个数据和AI资产都可被发现、可治理，并准备好产生可信答案。这包括表、应用、模型、列表，甚至外部目录中的数据。如今，非结构化数据成为这一愿景需要攻克的新边界。</p><p>大约80%的企业数据以文件和对象形式存在，其中大部分位于本地部署环境。这些数据涵盖媒体素材、芯片设计文件、医学影像、合同、传感器数据等，广泛分布在NAS、对象存储和归档层中，来自多家存储供应商。长期以来，这些非结构化数据与结构化数据割裂，难以统一治理和利用，也给AI应用获取可信数据带来障碍。</p><p>Snowflake的策略是“元数据优先，内容按需”。也就是说，首先通过统一目录捕获和管理文件的元数据，使数据可发现、可治理，而在实际使用时再按需获取内容。这种方式避免了对非结构化数据的大规模复制和迁移，降低了成本和复杂度，同时让企业和AI应用能够通过统一入口访问这些数据。</p><p>对于数据从业者而言，这一举措意味着数据平台正逐步将非结构化数据纳入统一治理体系。随着AI应用对多种数据类型的需求增加，企业需要确保数据资产不仅包括表格，还包括文件、图像、视频等。Snowflake Horizon Catalog的扩展有助于打通结构化与非结构化数据之间的壁垒，为可信AI答案提供更完整的数据基础。</p><p>此外，该扩展也反映了数据目录在数据平台中的核心地位。无论是数据湖、数据仓库还是外部数据源，统一目录已成为实现数据发现、治理和访问控制的关键。未来，企业有望通过一个目录管理所有数据资产，无论其存储在何处、格式如何。</p><p>总体来看，Snowflake此举聚焦于企业非结构化数据这一庞大而未被充分利用的领域。通过元数据优先的策略，它正在为解决企业数据资产难以发现和治理的痛点提供新路径，也为数据驱动的AI应用铺平道路。数据团队应关注这一趋势，并思考如何在自己的架构中采纳类似能力。</p></div>
   <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://medium.com/snowflake/extending-snowflake-horizon-catalog-to-the-enterprise-unstructured-data-estate-metadata-first-1349161dcca7?source=rss----34b6daafc07---4" target="_blank" rel="noopener">查看原文 ↗</a></div>
 </div>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://medium.com/snowflake/extending-snowflake-horizon-catalog-to-the-enterprise-unstructured-data-estate-metadata-first-1349161dcca7?source=rss----34b6daafc07---4" target="_blank" rel="noopener">Snowflake Engineering（Medium）（英文）</a><span class="src more">首发</span><span class="count">2026-08-07 05:15</span></div></div>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/bb635a23106c.html"><span class="n">›</span>Snowflake发布10.27版本更新：动态表支持CREATE OR ALTER<span class="count">48</span></a><a class="vendor-row" href="../e/caa8145425d1.html"><span class="n">›</span>Snowflake AIM：将数据迁移从数年缩短至数周<span class="count">54</span></a><a class="vendor-row" href="../e/973421af8576.html"><span class="n">›</span>Snowflake 发布 10.26 版本更新说明<span class="count">48</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://medium.com/snowflake/extending-snowflake-horizon-catalog-to-the-enterprise-unstructured-data-estate-metadata-first-1349161dcca7?source=rss----34b6daafc07---4" target="_blank" rel="noopener">Snowflake Engineering (Medium)（英文）</a><span class="src more">首发</span><span class="count">2026-08-07 05:15</span></div></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/bb635a23106c.html"><span class="n">›</span>Snowflake发布10.27版本更新：动态表支持CREATE OR ALTER<span class="count">48</span></a><a class="vendor-row" href="../e/caa8145425d1.html"><span class="n">›</span>Snowflake AIM：将数据迁移从数年缩短至数周<span class="count">53</span></a><a class="vendor-row" href="../e/973421af8576.html"><span class="n">›</span>Snowflake 发布 10.26 版本更新说明<span class="count">48</span></a></div>
 </div>
 <footer>DataHot，数据领域AI资讯分享</footer>
 <nav class="tabbar"><a href="../index.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span>热榜</a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span>主题</a><a href="../classics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></span>典藏</a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span>收藏</a><a href="../sources.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span>信源</a></nav>
@@ -376,7 +380,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title": "Snowflake Horizon Catalog扩展至企业非结构化数据", "summary": "Snowflake Horizon Catalog目标是为所有数据和AI资产提供统一目录，实现可发现、可治理并产生可信答案。现在它将扩展到非结构化数据领域。约80%企业数据以文件和对象形式存在，且大多位于本地，包括媒体素材、芯片设计、医学影像、合同和传感器数据等。Snowflake采用元数据优先、内容按需获取的策略，覆盖NAS、对象存储和归档层。", "reason": "非结构化数据治理是数据平台的关键边界，Snowflake的目录扩展将影响企业数据架构与AI就绪数据策略。", "topic": "湖仓", "heat": 37, "source": "Snowflake Engineering（Medium）", "date": "2026-08-07", "url": "https://henryhb1105-arch.github.io/datahot/e/84c52b21b73d.html"};
+var SH_EV = {"title": "Snowflake Horizon Catalog扩展至企业非结构化数据", "summary": "Snowflake Horizon Catalog目标是为所有数据和AI资产提供统一目录，实现可发现、可治理并产生可信答案。现在它将扩展到非结构化数据领域。约80%企业数据以文件和对象形式存在，且大多位于本地，包括媒体素材、芯片设计、医学影像、合同和传感器数据等。Snowflake采用元数据优先、内容按需获取的策略，覆盖NAS、对象存储和归档层。", "reason": "非结构化数据治理是数据平台的关键边界，Snowflake的目录扩展将影响企业数据架构与AI就绪数据策略。", "topic": "湖仓", "heat": 37, "source": "Snowflake Engineering (Medium)", "date": "2026-08-07", "url": "https://henryhb1105-arch.github.io/datahot/e/84c52b21b73d.html"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

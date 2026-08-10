@@ -33,6 +33,7 @@
       --header-bg:rgba(18,20,23,.92); --tabbar-bg:rgba(30,33,38,.95);
     }
     .tab.on,.fchip.on{background:var(--ink);color:#121417}
+    .sidebar a.mi.on{background:rgba(229,96,60,.14);color:var(--accent)}
     .sub-box input,.tlsearch{color:var(--ink)}
     .mock-banner{background:#000}
   }
@@ -88,7 +89,9 @@
     .chiprow{gap:6px}
     .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:32px;display:inline-flex;align-items:center}
     .tab,.fchip,.chip{touch-action:manipulation}
-    aside .card{padding:14px 16px}
+    aside{align-self:start;position:sticky;top:20px}
+@media(min-width:1280px){.wrap{max-width:1320px}}
+aside .card{padding:14px 16px}
     .article{padding:20px 14px 48px}
     .article h1{font-size:20px}
     .article .body{font-size:14.5px}
@@ -139,11 +142,11 @@
   .item .sum{font-size:13.5px;color:var(--txt2);line-height:1.75}
   .item .also{margin-top:10px;font-size:12px;color:var(--sub)}
   .item .also b{color:var(--ink)}
-  .why{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px;font-size:13px;color:var(--txt3);display:flex;gap:8px}
+  .why{margin-top:12px;padding:10px 14px;font-size:13px;color:var(--txt3);display:flex;gap:8px;background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:0 10px 10px 0}
   .why .w{color:var(--accent);font-weight:700;white-space:nowrap}
   .vendors{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
-  .vtag{font-size:11px;border:1px solid var(--line);color:var(--sub);border-radius:99px;padding:1px 10px}
-  .vtag:hover{border-color:var(--accent);color:var(--accent)}
+  .vtag{font-size:11px;border:1px dashed var(--line);color:var(--sub);border-radius:99px;padding:1px 10px;cursor:default}
+  
 
   /* ── 侧栏 ── */
   aside .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
@@ -174,7 +177,8 @@ main,.layout>*,.hotlist>*{min-width:0}
 .upd-time{margin-left:auto;font-size:11.5px;color:var(--sub);white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
 .tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
 .tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
-.chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px}
+.chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px;position:relative}
+.chiprow::after{content:"";position:sticky;right:0;flex-shrink:0;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
 .chiprow::-webkit-scrollbar{display:none}
 .chiprow .fchip{flex-shrink:0;font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
 .chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
@@ -253,7 +257,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .tcard h3{font-size:17px;font-weight:800;margin-bottom:6px}
 .tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:10px}
 .tcard .tn{font-size:12px;color:var(--accent);font-weight:700}
-.tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7}
+.tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 .article{max-width:760px;margin:0 auto;padding:36px 20px 60px}
 .article .back{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}
@@ -297,7 +301,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="why" style="border-top:1px dashed var(--line);padding-top:14px;margin-top:18px;font-size:14px"><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由</span><span>面向数据产品厂商的银行客户销售方法论，帮助数据从业者理解客户决策链条与预算入口，精准切入金融科技项目。</span></div>
   <div class="vendors" style="margin-top:14px"><a class="chip" href="../topics/data-people.html">数据人</a></div>
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
-  <div class="fulltext"><h5 class="fh">银行目标部门分析筛选：乙方视角的部门墙拆解</h5><p>银行内部部门墙高耸，产品再好送不到对口部门也是白搭。本文从层级与部门双维度切入，拆解公司业务部、风险管控部、科技子公司等典型组织的职能、KPI与预算逻辑，教你用六维框架精准定位目标部门，让产品方案直击客户痛点，突破关系门槛。</p><p>上一篇从六个维度拆解了银行客户的宏观画像——背景、层级、对标、年报、招标、部门。了解了一个银行的定位和现状痛点，但银行是个庞大的组织，每个条线、每个部门关注的内容都不同。你的产品再好，送不到对口的部门手里，也只是一张废纸。不同部门之间有着无形的部门墙，资源共享渠道并不算通畅。这一篇，我们就来展开说说：银行归口部门分析要怎么做，产品怎么精准匹配进去。</p><h5 class="fh">两个维度：层级与部门</h5><p>先区分两个概念：层级是纵向的权力分配，部门是横向的职能划分。只有两个维度交叉，你才知道“找谁决策”和“找谁买单”。</p><h5 class="fh">银行层级结构</h5><p>银行体系呈树状。层级结构上，有总行、分行、支行、网点：</p><p>总行：战略制定、标准输出、集中采购（集采）、重大决策。</p><p>（省）分行：政策执行、区域拓展、本地化需求落地——场景金融往往就在分行层级落地。</p><p>支行和网点：一线业务执行与服务、产品使用反馈与优化。</p><p>部门划分越往下越不清晰，有的支行“网金”只有一个人，直接挂在科技部下。推一个产品也经常需要总分联动：在分行推的，总行也要知晓，做出标杆项目后总行可能会要求全国推广；总行中标的，分行也要了解清楚、落地使用。反之，该在分行试点的产品，总行往往会先观望，不会立刻推动；总行确定招标的产品，分行也通常等招标结果再做采购。</p><h5 class="fh">部门维度：前台、中台、后台与延伸组织</h5><p>再来看部门维度。各银行根据规模、</p></div>
+  <div class="fulltext"><p>银行内部部门墙高耸，产品再好送不到对口部门也是白搭。本文从层级与部门双维度切入，拆解公司业务部、风险管控部、科技子公司等典型组织的职能、KPI与预算逻辑，教你用六维框架精准定位目标部门，让产品方案直击客户痛点，突破关系门槛。</p><p>上一篇从六个维度拆解了银行客户的宏观画像——背景、层级、对标、年报、招标、部门。了解了一个银行的定位和现状痛点，但银行是个庞大的组织，每个条线、每个部门关注的内容都不同。你的产品再好，送不到对口的部门手里，也只是一张废纸。不同部门之间有着无形的部门墙，资源共享渠道并不算通畅。这一篇，我们就来展开说说：银行归口部门分析要怎么做，产品怎么精准匹配进去。</p><h5 class="fh">两个维度：层级与部门</h5><p>先区分两个概念：层级是纵向的权力分配，部门是横向的职能划分。只有两个维度交叉，你才知道“找谁决策”和“找谁买单”。</p><h5 class="fh">银行层级结构</h5><p>银行体系呈树状。层级结构上，有总行、分行、支行、网点：</p><p>总行：战略制定、标准输出、集中采购（集采）、重大决策。</p><p>（省）分行：政策执行、区域拓展、本地化需求落地——场景金融往往就在分行层级落地。</p><p>支行和网点：一线业务执行与服务、产品使用反馈与优化。</p><p>部门划分越往下越不清晰，有的支行“网金”只有一个人，直接挂在科技部下。推一个产品也经常需要总分联动：在分行推的，总行也要知晓，做出标杆项目后总行可能会要求全国推广；总行中标的，分行也要了解清楚、落地使用。反之，该在分行试点的产品，总行往往会先观望，不会立刻推动；总行确定招标的产品，分行也通常等招标结果再做采购。</p><h5 class="fh">部门维度：前台、中台、后台与延伸组织</h5><p>再来看部门维度。各银行根据规模、</p></div>
   <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://www.woshipm.com/share/6436415.html" target="_blank" rel="noopener">查看原文 ↗</a></div>
 </div>
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://www.woshipm.com/share/6436415.html" target="_blank" rel="noopener">人人都是产品经理（英文）</a><span class="src more">首发</span><span class="count">2026-08-10 15:14</span></div></div>

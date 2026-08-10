@@ -132,6 +132,8 @@ main,.layout>*,.hotlist>*{min-width:0}
   .sidebar a.mi.on{background:var(--ink);color:var(--bg);font-weight:600}
   .sidebar .sfoot{margin-top:auto;font-size:11.5px;color:var(--sub);line-height:1.8}
 }
+.hot .hsum{font-size:12.5px;color:var(--txt2);line-height:1.65;margin:6px 0 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hot .htime{margin-left:auto;font-size:11px;color:var(--sub)}
 .tabbar{display:none}
 @media(max-width:960px){
   body{padding-bottom:64px}
@@ -938,9 +940,10 @@ def main():
         e = next((x for x in events if x["event_id"] == eid), None)
         if not e:
             continue
-        hot_cards += f'''<div class="hot" data-link="{detail_url(e)}"><span class="rank">TOP {n}</span><span class="heat">{e["heat"]} 热度</span>
+        hot_cards += f'''<div class="hot" data-link="{detail_url(e)}"><span class="rank">TOP {n}</span><span class="heat">{ic("flame",12)} {e["heat"]}</span>
         <h3><a href="{detail_url(e)}">{esc(e["zh_title"])}</a></h3>
-        <div class="sources">{sources_html(e)}</div></div>'''
+        <p class="hsum">{esc(e["zh_summary"])}</p>
+        <div class="sources"><span class="srcbadge">{src_badge(e["items"][0]["source"])}</span>{sources_html(e)}<span class="htime">{card_time(e)}</span></div></div>'''
 
     # ── 时间轴 ──
     days = defaultdict(list)

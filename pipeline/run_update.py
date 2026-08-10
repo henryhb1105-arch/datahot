@@ -254,7 +254,8 @@ def llm_chat_text(base, key, model, prompt, max_tokens=4096):
 ENRICH_RULES = """你是一个数据领域垂直资讯站的编辑。本站只覆盖四个领域：Data Agent（ChatBI/Text-to-SQL/分析Agent）、AI数据平台（数仓/湖仓/语义层/数据集成治理）、BI与可视化（BI工具/报表）、数据产品（方法论/融资并购/行业报告）。
 
 【相关性硬规则】
-- 注意：dbt 指数据工具 dbt Labs；心理疗法 DBT（辩证行为疗法）等无关内容一律 false
+- 注意：dbt 仅指数据工具 dbt Labs/getdbt；心理疗法 DBT（辩证行为疗法、skills-based treatment 等语境）一律 false
+- 反例：推荐 flaminghydra.com 上 Kate Wagner 关于 dbt 的文章——那是心理疗法内容，relevant=false
 - 仅当内容直接涉及上述领域时 relevant=true
 - 泛AI新闻一律 false：AI消费应用、AI硬件、AI政策八卦、模型发布（与数据场景无关）、AI音乐/绘画/社交等
 - 数据分析/数据库/数据基础设施的融资并购、产品发布、技术实践 → true

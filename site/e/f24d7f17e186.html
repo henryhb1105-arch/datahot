@@ -271,7 +271,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="meta">
     <span class="badge b-platform">AI 数据平台</span>
     
-    <span title="2026-08-06 08:00">3 天前</span>
+    <span title="2026-08-06 08:00">4 天前</span>
     <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 33</span>
   </div>
   <h1>ClickHouse 26.7发布：性能大幅优化，新增多项查询能力</h1>
@@ -421,13 +421,11 @@ function posterPalette(dark){
     qrBox:'#ffffff', qrBorder:'rgba(0,0,0,.12)', topic:'#d94f2b', topicBd:'rgba(217,79,43,.5)'
   };
 }
-function drawPoster(qrImg,dark){
-  var P=posterPalette(dark);
-  var W=1080,H=1440,c=document.createElement('canvas');c.width=W;c.height=H;
-  var x=c.getContext('2d');
-  var g=x.createLinearGradient(0,0,W,H);
+function posterLayout(x,W,P,qrImg){
+  // 绘制一遍并返回内容结束 y（用于动态高度）
+  var g=x.createLinearGradient(0,0,W,2000);
   g.addColorStop(0,P.bg[0]);g.addColorStop(.55,P.bg[1]);g.addColorStop(1,P.bg[2]);
-  x.fillStyle=g;x.fillRect(0,0,W,H);
+  x.fillStyle=g;x.fillRect(0,0,W,2000);
   x.fillStyle='#d94f2b';x.beginPath();x.roundRect(64,60,72,72,18);x.fill();
   x.fillStyle='#fff';x.font='800 44px -apple-system,sans-serif';x.textBaseline='middle';
   x.fillText('D',88,98);
@@ -454,18 +452,28 @@ function drawPoster(qrImg,dark){
     y=ry+180;
   }
   x.fillStyle=P.meta;x.font='400 26px -apple-system,sans-serif';
-  x.fillText('热度 '+SH_EV.heat+' · '+SH_EV.source+' · '+SH_EV.date,64,Math.min(y+4,H-280));
+  x.fillText('热度 '+SH_EV.heat+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);
+  y=y+4+56;
+  // 分隔线 + 二维码区（紧跟内容，不再锚底）
   x.strokeStyle=P.dash;x.setLineDash([8,8]);x.lineWidth=2;
-  x.beginPath();x.moveTo(64,H-240);x.lineTo(W-64,H-240);x.stroke();x.setLineDash([]);
-  x.fillStyle=P.qrBox;x.beginPath();x.roundRect(64,H-200,150,150,14);x.fill();
-  if(P.qrBorder){x.strokeStyle=P.qrBorder;x.lineWidth=2;x.beginPath();x.roundRect(64,H-200,150,150,14);x.stroke();}
-  if(qrImg){x.drawImage(qrImg,74,H-190,130,130);}
-  else{x.fillStyle='#666';x.font='400 22px sans-serif';x.fillText('扫码访问',88,H-118);}
+  x.beginPath();x.moveTo(64,y);x.lineTo(W-64,y);x.stroke();x.setLineDash([]);
+  x.fillStyle=P.qrBox;x.beginPath();x.roundRect(64,y+36,150,150,14);x.fill();
+  if(P.qrBorder){x.strokeStyle=P.qrBorder;x.lineWidth=2;x.beginPath();x.roundRect(64,y+36,150,150,14);x.stroke();}
+  if(qrImg){x.drawImage(qrImg,74,y+46,130,130);}
+  else{x.fillStyle='#666';x.font='400 22px sans-serif';x.fillText('扫码访问',88,y+118);}
   x.fillStyle=P.name;x.font='700 30px -apple-system,PingFang SC,sans-serif';
-  x.fillText('扫码阅读全文编译',240,H-176);
+  x.fillText('扫码阅读全文编译',240,y+60);
   x.fillStyle=P.foot;x.font='400 24px -apple-system,PingFang SC,sans-serif';
-  x.fillText('DataHot · 数据领域 AI 热榜',240,H-126);
-  x.fillText('henryhb1105-arch.github.io/datahot',240,H-86);
+  x.fillText('DataHot · 数据领域 AI 热榜',240,y+110);
+  x.fillText('henryhb1105-arch.github.io/datahot',240,y+150);
+  return y+186+56; // 二维码块底 + 下边距
+}
+function drawPoster(qrImg,dark){
+  var P=posterPalette(dark),W=1080;
+  var m=document.createElement('canvas');m.width=W;m.height=2000;
+  var H=posterLayout(m.getContext('2d'),W,P,qrImg);
+  var c=document.createElement('canvas');c.width=W;c.height=H;
+  posterLayout(c.getContext('2d'),W,P,qrImg);
   return c.toDataURL('image/png');
 }
 var posterURL=null,posterDark=null;

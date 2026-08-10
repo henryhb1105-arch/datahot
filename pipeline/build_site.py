@@ -176,6 +176,8 @@ def esc(s):
 
 def md(iso):
     """MM-DD 格式"""
+    if not iso:
+        return "未知"
     d = datetime.fromisoformat(iso).astimezone(TZ)
     return f"{d.month:02d}-{d.day:02d}"
 
@@ -194,9 +196,13 @@ def card_time(e):
     return f"收录 {md(fs)}" if fs else ""
 
 def fmt_time(iso):
+    if not iso:
+        return ""
     return datetime.fromisoformat(iso).astimezone(TZ).strftime("%H:%M")
 
 def fmt_date(iso):
+    if not iso:
+        return "未知"
     d = datetime.fromisoformat(iso).astimezone(TZ)
     return d.strftime("%Y-%m-%d %H:%M")
 

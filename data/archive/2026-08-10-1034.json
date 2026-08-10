@@ -1,6 +1,176 @@
 {
- "generated_at": "2026-08-10T09:48:06.984083+08:00",
+ "generated_at": "2026-08-10T10:34:20.934560+08:00",
  "events": [
+  {
+   "event_id": "07887457a24c",
+   "zh_title": "多智能体协调五种模式及选用时机",
+   "zh_summary": "Anthropic 发布博客文章，介绍多智能体协调的五种模式：生成器-验证器、编排者-子智能体、智能体团队、消息总线、共享状态。文章强调从最简单模式开始，根据问题演进。适合已决定使用多智能体系统的团队参考。",
+   "reason": "多智能体协调是 Data Agent 领域的核心工程问题，本文提供了可操作的模式选择框架，帮助数据从业者设计分析 Agent 的协作架构。",
+   "full_zh": "Anthropic 于 2026 年 4 月 10 日发表博客文章，讨论多智能体协调的五种模式及其权衡。文章指出，在前一篇内容中已探讨了多智能体系统何时有价值，而本文面向那些已决定使用多智能体、但需要选择合适协调模式的团队。\n\n作者观察到，许多团队根据听起来是否高级来选择模式，而不是根据实际问题。文章建议，先从最简单可行的模式开始，观察其失效点，然后逐步演进。文中详细分析了五种模式：生成器-验证器（Generator-verifier）、编排者-子智能体（Orchestrator-subagent）、智能体团队（Agent teams）、消息总线（Message bus）、共享状态（Shared-state）。\n\n生成器-验证器是最简单的多智能体模式，也是部署最广泛的模式之一。它适用于有明确评估标准、对输出质量要求高的场景。在该模式中，一个智能体负责生成结果，另一个智能体负责验证，从而提升整体质量。上一篇博客中称之为验证子智能体模式，本文采用更广的生成器-验证器框架，因为生成者不一定需要由编排者驱动。\n\n编排者-子智能体模式适用于任务分解清晰、子任务边界有界的情况。一个中央编排者负责任务拆分、分配和汇总，子智能体专注执行独立子任务。消息总线模式则适用于事件驱动、智能体生态不断增长的环境，各智能体通过总线异步通信，降低耦合。共享状态模式适合需要多个智能体基于彼此发现进行协作的场景。\n\n文章强调，没有万能模式，团队应理解每种模式的机制与局限，并结合自身问题的复杂度、并行需求、演进路径来决策。该文属于方法论型内容，对构建企业级 Data Agent（如 ChatBI、文本转 SQL 分析助手）的架构师具有直接参考价值。",
+   "category": "agent",
+   "category_label": "Data Agent",
+   "vendors": [
+    "Anthropic",
+    "Claude"
+   ],
+   "heat": 52,
+   "star": true,
+   "importance": 75,
+   "signal": 0,
+   "topics": [
+    "Data Agent"
+   ],
+   "shelf": "evergreen",
+   "pinned": false,
+   "published": "2026-08-10T10:34:20.934560+08:00",
+   "items": [
+    {
+     "id": "07887457a24c",
+     "source": "Claude 官方博客",
+     "link": "https://claude.com/blog/multi-agent-coordination-patterns",
+     "published": "2026-08-10T09:48:06.984083+08:00",
+     "title": "Multi-agent coordination patterns: Five approaches and when to use them | Claude by Anthropic"
+    },
+    {
+     "id": "cfb3d4de1cda",
+     "source": "Claude 官方博客",
+     "link": "https://claude.com/blog/building-multi-agent-systems-when-and-how-to-use-them",
+     "published": "2026-08-10T10:34:20.934560+08:00",
+     "title": "When to use multi-agent systems (and when not to) | Claude by Anthropic"
+    }
+   ]
+  },
+  {
+   "event_id": "d0a588fdea15",
+   "zh_title": "MCP 2026-07-28规范发布：Stateless核心，登陆Claude",
+   "zh_summary": "Anthropic发布MCP第五版规范MCP 2026-07-28，协议核心改为无状态请求/响应模型，支持serverless与边缘部署。扩展框架标准化，授权对齐OAuth 2.0/OIDC，便于接入企业身份系统。支持正逐步推广到Claude全线产品。MCP月SDK下载量已超4亿次，今年实现4倍增长。",
+   "reason": "MCP是连接AI代理与数据工具的关键协议，其无状态化与授权强化直接影响Data Agent的部署和安全性，数据从业者需关注。",
+   "full_zh": "Anthropic今日发布模型上下文协议（MCP）第五版规范——MCP 2026-07-28，并宣布支持将逐步推广到Claude全线产品。作为连接AI代理与应用程序的行业标准，MCP月SDK下载量已超过4亿次，较年初增长4倍。此次更新被视为该协议迄今最重要的版本之一。\n\n新规范将MCP从双向有状态协议迁移到请求/响应模型。这意味着服务器现在可以部署在serverless和边缘基础设施上，开发者构建Claude的MCP服务器以及随着采用增长进行扩展的体验将大大简化。对数据代理类应用而言，这一变化降低了运维门槛，使按需弹性扩展成为可能。\n\n规范还推出了标准化扩展框架。MCP Apps和Tasks现已在带版本管理的扩展框架下发布，为开发者提供正式途径，在不修改核心协议的前提下增加交互式UI、长时间运行任务等能力。这有助于生态中各类数据工具在MCP上构建更丰富的交互体验。\n\n授权机制同步强化。新规范使授权与生产环境中的OAuth 2.0和OIDC部署对齐，MCP服务器可直接连接Entra、Okta等企业身份系统，无需变通方案。这对于企业级数据平台接入身份治理体系尤为重要。\n\n生态内多家公司自测试版以来便与MCP社区一同基于新规范构建。文章援引相关观点称：“更多构建者正在使用我们的MCP……”显示出社区对新版本的接纳正在加速。\n\n对于数据从业者，MCP的演进直接影响ChatBI、Text-to-SQL等Data Agent如何安全、高效地访问数据基础设施。无状态核心让agent的数据访问逻辑更易于在云原生环境运行，标准化的授权则让企业合规成为默认能力。",
+   "category": "agent",
+   "category_label": "Data Agent",
+   "vendors": [
+    "Anthropic",
+    "Claude"
+   ],
+   "heat": 49,
+   "star": true,
+   "importance": 72,
+   "signal": 0,
+   "topics": [
+    "Data Agent"
+   ],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-08-10T10:34:20.934560+08:00",
+   "items": [
+    {
+     "id": "d0a588fdea15",
+     "source": "Claude 官方博客",
+     "link": "https://claude.com/blog/bringing-mcp-2026-07-28-to-claude",
+     "published": "2026-08-10T10:34:20.934560+08:00",
+     "title": "MCP 2026-07-28 spec: stateless core, coming to Claude | Claude by Anthropic"
+    }
+   ]
+  },
+  {
+   "event_id": "4743ed63baad",
+   "zh_title": "Claude推出MCP Apps交互式连接器",
+   "zh_summary": "Anthropic宣布在Claude中引入MCP Apps，用户可直接在对话中打开并操作Asana、Slack、Figma等工具。该功能支持实时协作，例如在Amplitude中构建分析图表并调整参数，或在Box中预览文档并提取洞察。MCP Apps将工具变成交互式连接器，无需切换标签页即可完成项目管理和可视化任务。",
+   "reason": "数据从业者可通过Claude的交互式连接器直接操作分析工具，提升数据探索与协作效率，是Data Agent与平台AI化的重要实践。",
+   "full_zh": "Anthropic于2026年1月26日宣布，为Claude带来交互式连接器MCP Apps。用户现在可以在Claude的对话界面中直接打开并操作常用工具，无需切换标签页即可完成多项工作。例如，在Asana中构建和更新项目时间线，在Slack中起草、编辑并发送带格式预览的消息，在Figma中将想法可视化为图表。\n\nClaude此前已能够连接用户工具并代表用户执行操作。而MCP Apps的推出，让这些工具以交互式连接器的形式直接出现在对话流中，用户可以实时看到正在发生的变化并协同工作。Anthropic表示，这标志着从“AI替你做事”到“AI与你一起做事”的体验升级。\n\n具体功能场景包括：在Amplitude中构建分析图表，探索趋势并交互式调整参数以发现隐藏洞察；在Asana中将聊天转化为团队可见可执行的项目、任务和时间线；在Box中搜索文件、内联预览文档，然后提取关键信息并提问；在Canva中创建演示文稿大纲，并实时定制品牌和设计以生成客户可用的成品；在Clay中研究公司、查找带邮箱和电话的联系人、获取公司规模与融资数据，并直接在对话中起草个性化外联内容；在Figma中通过提示词将文本和图像转换为流程图、甘特图等。\n\nMCP Apps基于Anthropic的Model Context Protocol（MCP）构建，使外部工具能够以标准化方式接入Claude。这一机制让第三方应用可以暴露可交互的界面组件，而不仅仅是文本输出，从而支持更丰富的双向协作。目前，首批接入的包括Amplitude、Asana、Box、Canva、Clay、Figma、Slack等主流SaaS工具。\n\nAnthropic计划持续扩展MCP Apps的生态，并鼓励更多开发者通过MCP协议构建交互式连接器。对于数据团队而言，这意味着未来可直接在Claude中操作BI工具、数据目录或分析平台，减少上下文切换，加速从数据到决策的闭环。",
+   "category": "agent",
+   "category_label": "Data Agent",
+   "vendors": [
+    "Anthropic",
+    "Claude",
+    "Amplitude"
+   ],
+   "heat": 47,
+   "star": true,
+   "importance": 68,
+   "signal": 0,
+   "topics": [
+    "Data Agent",
+    "平台AI化"
+   ],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-08-10T10:34:20.934560+08:00",
+   "items": [
+    {
+     "id": "4743ed63baad",
+     "source": "Claude 官方博客",
+     "link": "https://claude.com/blog/interactive-tools-in-claude",
+     "published": "2026-08-10T10:34:20.934560+08:00",
+     "title": "Interactive connectors and MCP Apps | Claude by Anthropic"
+    }
+   ]
+  },
+  {
+   "event_id": "2e943aff41b7",
+   "zh_title": "Anthropic与Millennium共推数字风险分析师",
+   "zh_summary": "Anthropic正与全球大型另类投资管理公司Millennium合作，共同开发基于Claude的数字风险分析师。该AI智能体将在人类风险经理监督下工作，用于揭示新风险洞察并评估各类资产的风险敞口。Claude和Claude Code已在Millennium的交易、工程及核心业务部门广泛使用，此次合作将进一步扩展其应用。",
+   "reason": "这是分析Agent在金融风险场景中的前沿实践，为数据从业者展示了Claude在专业数据工作流中的落地方式。",
+   "full_zh": "Anthropic在官方博客宣布，正与Millennium——全球最大的另类投资管理公司之一——合作共同开发一款数字风险分析师。这是一个AI队友，将在该公司风险经理的监督下工作，旨在揭示新的风险洞察，并围绕各类资产类别的风险敞口形成观点。\n\nMillennium目前在交易台、工程部门以及核心业务职能中已广泛应用Claude和Claude Code。数字风险分析师项目是这一应用的自然延伸，它的目标不是取代人类专家，而是帮助风险经理加快并深化对风险头寸的分析。\n\n据介绍，投资公司过去几十年一直在利用技术改进风险度量方式，从传统评估逐步转向更复杂的实时情景分析。Millennium的数字风险分析师正是为应对此类关键工作流而设计，其能力由Millennium的专有数据和Claude的前沿智能共同驱动。\n\n这个AI系统能够随时间保留和调用信息，并应用新的推理能力来帮助解释每日风险变化。这些分析结果随后会交给Millennium的人力风险经理进行验证和丰富，从而确保AI输出与人类专业判断相结合。\n\nAnthropic在公告中强调，这一合作展现了企业AI代理在复杂分析场景中的潜力。对于数据领域从业者而言，这意味着Claude不再只是通用对话模型，而是可以作为分析Agent融入机构级数据工作流——从数据接入、语义理解到风险推理形成闭环。\n\n该博客发布于2026年8月6日，属于Anthropic企业AI代理产品动态。尽管Anthropic并非传统数据平台厂商，但这一案例为数据分析Agent在金融垂直领域的落地提供了参考样本。",
+   "category": "agent",
+   "category_label": "Data Agent",
+   "vendors": [
+    "Anthropic",
+    "Claude"
+   ],
+   "heat": 48,
+   "star": true,
+   "importance": 70,
+   "signal": 0,
+   "topics": [
+    "Data Agent"
+   ],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-08-10T10:34:20.934560+08:00",
+   "items": [
+    {
+     "id": "2e943aff41b7",
+     "source": "Claude 官方博客",
+     "link": "https://claude.com/blog/millennium-and-anthropic-are-building-a-digital-risk-analyst-with-claude",
+     "published": "2026-08-10T10:34:20.934560+08:00",
+     "title": "Millennium and Anthropic are building a digital risk analyst with Claude | Claude by Anthropic"
+    }
+   ]
+  },
+  {
+   "event_id": "b07c642afcbe",
+   "zh_title": "Hebbia如何用Claude打造滴水不漏的金融尽职调查AI",
+   "zh_summary": "Hebbia为金融机构构建AI尽职调查软件，客户覆盖Top50资产管理公司中超过三分之一及顶级投行和律所。其meta-prompting技术将自然语言请求转化为提示，由Claude逐步执行。在最新测试中，Claude Fable 5取得了研究团队记录的最大准确率提升，并能追踪此前模型遗漏的复杂查询。创始产品经理Divya Mehta约一半时间用于服务核心客户。",
+   "reason": "金融尽职调查涉及海量文档与多步推理，Hebbia的meta-prompting实践展示了如何利用大模型降低漏查风险，对构建分析型Data Agent有直接参考价值。",
+   "full_zh": "Anthropic Claude官方博客于2026年7月13日发布文章，介绍了AI平台Hebbia如何为机构金融场景构建“不漏掉任何细节”的尽职调查软件。Hebbia服务着Top50资产管理公司中超过三分之一的客户，以及顶级投资银行和律师事务所。创始产品经理Divya Mehta大约一半的时间都花在其最大的投资银行、私募股权和信贷客户上。\n\n对于这些客户而言，决策通常要基于数千份密集文档的分析。无论是评估机会的银行家还是投资者，都必须处理所有可能影响决策的数据，包括公司的公开文件、信贷协议、内部文档，以及来自CRM等系统的结构化数据。这些场景中，一个错误的数字就可能改变整个交易的结果。\n\n为了在如此严格的环境下保证准确性，Hebbia开发了meta-prompting技术。该技术将用户的普通语言请求转化为结构化的提示，然后由Claude模型逐步执行每一个推理环节。这种方式使得复杂的多步查询可以被拆分成可追踪、可核对的步骤，从而减少遗漏。\n\nHebbia持续用金融评估基准来测试每一个新模型，这些评估与专家结果挂钩。在最新测试中，Claude Fable 5展示了其研究团队记录的最大准确率提升，并且能够跟踪此前模型反复丢失的复杂查询。对于金融尽职调查来说，这意味着AI在处理长文档和嵌套逻辑时的可靠性出现了显著进步。\n\n文章还强调了产品经理在其中的角色。Divya Mehta与客户保持紧密接触，理解实际决策中的痛点，再将需求反馈到模型评估和产品迭代中。这种从专家结果出发的评估方式，帮助Hebbia在严谨性与实用性之间取得平衡。\n\nHebbia与Claude的合作是前沿大模型在垂直数据场景落地的典型样本。通过将先进模型与领域知识结合，AI有望在金融分析、风险核查等高要求任务中承担更重的责任。该案例也为其他面向专业用户的数据Agent产品提供了参考。",
+   "category": "agent",
+   "category_label": "Data Agent",
+   "vendors": [
+    "Anthropic",
+    "Claude",
+    "Hebbia"
+   ],
+   "heat": 48,
+   "star": true,
+   "importance": 70,
+   "signal": 0,
+   "topics": [
+    "Data Agent"
+   ],
+   "shelf": "evergreen",
+   "pinned": false,
+   "published": "2026-08-10T10:34:20.934560+08:00",
+   "items": [
+    {
+     "id": "b07c642afcbe",
+     "source": "Claude 官方博客",
+     "link": "https://claude.com/blog/working-at-the-frontier-how-hebbia-builds-ai-for-financial-diligence-that-cant-miss-a-detail",
+     "published": "2026-08-10T10:34:20.934560+08:00",
+     "title": "Working at the frontier: How Hebbia builds AI for financial diligence that can't miss a detail | Claude by Anthropic"
+    }
+   ]
+  },
   {
    "event_id": "d145e4d3307d",
    "zh_title": "Anthropic API新增四项Agent构建能力",
@@ -124,38 +294,6 @@
      "link": "https://claude.com/blog/fix-software-bugs-faster-with-claude",
      "published": "2026-08-10T09:48:06.984083+08:00",
      "title": "Fix software bugs faster with Claude | Claude by Anthropic"
-    }
-   ]
-  },
-  {
-   "event_id": "07887457a24c",
-   "zh_title": "多智能体协调五种模式及选用时机",
-   "zh_summary": "Anthropic 发布博客文章，介绍多智能体协调的五种模式：生成器-验证器、编排者-子智能体、智能体团队、消息总线、共享状态。文章强调从最简单模式开始，根据问题演进。适合已决定使用多智能体系统的团队参考。",
-   "reason": "多智能体协调是 Data Agent 领域的核心工程问题，本文提供了可操作的模式选择框架，帮助数据从业者设计分析 Agent 的协作架构。",
-   "full_zh": "Anthropic 于 2026 年 4 月 10 日发表博客文章，讨论多智能体协调的五种模式及其权衡。文章指出，在前一篇内容中已探讨了多智能体系统何时有价值，而本文面向那些已决定使用多智能体、但需要选择合适协调模式的团队。\n\n作者观察到，许多团队根据听起来是否高级来选择模式，而不是根据实际问题。文章建议，先从最简单可行的模式开始，观察其失效点，然后逐步演进。文中详细分析了五种模式：生成器-验证器（Generator-verifier）、编排者-子智能体（Orchestrator-subagent）、智能体团队（Agent teams）、消息总线（Message bus）、共享状态（Shared-state）。\n\n生成器-验证器是最简单的多智能体模式，也是部署最广泛的模式之一。它适用于有明确评估标准、对输出质量要求高的场景。在该模式中，一个智能体负责生成结果，另一个智能体负责验证，从而提升整体质量。上一篇博客中称之为验证子智能体模式，本文采用更广的生成器-验证器框架，因为生成者不一定需要由编排者驱动。\n\n编排者-子智能体模式适用于任务分解清晰、子任务边界有界的情况。一个中央编排者负责任务拆分、分配和汇总，子智能体专注执行独立子任务。消息总线模式则适用于事件驱动、智能体生态不断增长的环境，各智能体通过总线异步通信，降低耦合。共享状态模式适合需要多个智能体基于彼此发现进行协作的场景。\n\n文章强调，没有万能模式，团队应理解每种模式的机制与局限，并结合自身问题的复杂度、并行需求、演进路径来决策。该文属于方法论型内容，对构建企业级 Data Agent（如 ChatBI、文本转 SQL 分析助手）的架构师具有直接参考价值。",
-   "category": "agent",
-   "category_label": "Data Agent",
-   "vendors": [
-    "Anthropic",
-    "Claude"
-   ],
-   "heat": 48,
-   "star": true,
-   "importance": 70,
-   "signal": 0,
-   "topics": [
-    "Data Agent"
-   ],
-   "shelf": "evergreen",
-   "pinned": false,
-   "published": "2026-08-10T09:48:06.984083+08:00",
-   "items": [
-    {
-     "id": "07887457a24c",
-     "source": "Claude 官方博客",
-     "link": "https://claude.com/blog/multi-agent-coordination-patterns",
-     "published": "2026-08-10T09:48:06.984083+08:00",
-     "title": "Multi-agent coordination patterns: Five approaches and when to use them | Claude by Anthropic"
     }
    ]
   },
@@ -1133,6 +1271,33 @@
    "shelf": "news"
   },
   {
+   "event_id": "73bb87904106",
+   "zh_title": "AI Is Transforming Incident Response - But the Hardest Problems May Still Belong to Humans",
+   "zh_summary": "Artificial intelligence is rapidly changing how engineering teams respond to production incidents, offering the ability to summarize incident channels, analyze unfamiliar code, suggest remediation steps, generate pull requests, and increasingly assist with diagnosis. By Craig Risi",
+   "reason": "",
+   "full_zh": "",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [],
+   "heat": 35,
+   "star": false,
+   "importance": 50,
+   "signal": 0,
+   "topics": [],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-08-07T20:00:00+08:00",
+   "items": [
+    {
+     "id": "87dcb6f1b7c4",
+     "source": "InfoQ（AI/数据工程）",
+     "link": "https://www.infoq.com/news/2026/08/ai-incident-response/?utm_campaign=infoq_content&utm_source=infoq&utm_medium=feed&utm_term=AI%2C+ML+%26+Data+Engineering",
+     "published": "2026-08-07T20:00:00+08:00",
+     "title": "AI Is Transforming Incident Response - But the Hardest Problems May Still Belong to Humans"
+    }
+   ]
+  },
+  {
    "event_id": "05b5c328b16d",
    "zh_title": "Databricks谈大规模AI编码成本管理",
    "zh_summary": "Databricks博客指出，AI编码工具虽能带来数量级效率提升，但成本指数增长不可持续。为兼顾广泛访问与成本可控，他们与Stripe、Coinbase、Uber、Ramp等企业交流，总结出多项成本管理技术，并开源了Omnigent和Unity AI Gateway等关键组件。",
@@ -1203,7 +1368,7 @@
     "英韧科技",
     "华为"
    ],
-   "heat": 44,
+   "heat": 43,
    "star": false,
    "importance": 72,
    "signal": 0,
@@ -1218,6 +1383,33 @@
      "link": "https://www.infoq.cn/article/sQW5F63ZP4QMyhlWAzQi?utm_source=rss&utm_medium=article",
      "published": "2026-08-07T18:38:28+08:00",
      "title": "HBM 不够用了，AI SSD 迎来爆发前夜"
+    }
+   ]
+  },
+  {
+   "event_id": "3fe17f601f7f",
+   "zh_title": "Azure API Management Adds Dedicated AI Gateway Tier, Governing Models and MCP Tools",
+   "zh_summary": "Microsoft released a dedicated AI Gateway tier of Azure API Management in public preview, with a control plane built around models, MCP servers and tools rather than APIs. It fronts Foundry, Bedrock, Vertex AI and OpenAI behind one endpoint, with policy cards instead of XML. Architects welcomed the ",
+   "reason": "",
+   "full_zh": "",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [],
+   "heat": 34,
+   "star": false,
+   "importance": 50,
+   "signal": 0,
+   "topics": [],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-08-07T14:35:00+08:00",
+   "items": [
+    {
+     "id": "67366363da8e",
+     "source": "InfoQ（AI/数据工程）",
+     "link": "https://www.infoq.com/news/2026/08/azure-apim-ai-gateway-tier/?utm_campaign=infoq_content&utm_source=infoq&utm_medium=feed&utm_term=AI%2C+ML+%26+Data+Engineering",
+     "published": "2026-08-07T14:35:00+08:00",
+     "title": "Azure API Management Adds Dedicated AI Gateway Tier, Governing Models and MCP Tools"
     }
    ]
   },
@@ -1744,6 +1936,33 @@
    ]
   },
   {
+   "event_id": "0519b78a9dc5",
+   "zh_title": "Pods as Workers, Not Agents: Rethinking the Deployment Unit for AI Agents on Kubernetes",
+   "zh_summary": "Running AI agents on Kubernetes raises a key question: should each agent get its own Pod? The kagent project argues no—agents are bursty, short-lived, can spawn subagents, and may wait for human approval, making one Pod per agent wasteful. Agent-substrate adds a control plane to schedule logical “Ac",
+   "reason": "",
+   "full_zh": "",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [],
+   "heat": 32,
+   "star": false,
+   "importance": 50,
+   "signal": 0,
+   "topics": [],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-08-06T14:00:00+08:00",
+   "items": [
+    {
+     "id": "0ee560b6f86c",
+     "source": "InfoQ（AI/数据工程）",
+     "link": "https://www.infoq.com/news/2026/08/pod-deployment-unit-ai-agents/?utm_campaign=infoq_content&utm_source=infoq&utm_medium=feed&utm_term=AI%2C+ML+%26+Data+Engineering",
+     "published": "2026-08-06T14:00:00+08:00",
+     "title": "Pods as Workers, Not Agents: Rethinking the Deployment Unit for AI Agents on Kubernetes"
+    }
+   ]
+  },
+  {
    "event_id": "37d58f2d9863",
    "zh_title": "Metabase发布安全更新，请立即升级",
    "zh_summary": "Metabase披露其云服务曾遭利用0-day漏洞的攻击，影响1.58及以上版本。官方已封堵攻击端点并完成修补，云客户实例已自动升级；自托管实例仍可能脆弱，攻击者可通过SQL注入获取管理员权限，窃取数据库凭据与数据。官方建议用户立即升级至最新补丁版本，并检查会话、API密钥及管理员账户。",
@@ -1952,7 +2171,7 @@
     "Aloudata",
     "Cube"
    ],
-   "heat": 41,
+   "heat": 40,
    "star": true,
    "importance": 75,
    "signal": 0,
@@ -2495,7 +2714,7 @@
   {
    "name": "Claude 官方博客",
    "ok": true,
-   "new": 198
+   "new": 191
   },
   {
    "name": "Snowflake Release Notes",
@@ -2555,12 +2774,12 @@
   {
    "name": "人人都是产品经理",
    "ok": true,
-   "new": 13
+   "new": 14
   },
   {
    "name": "帆软",
-   "ok": true,
-   "new": 0
+   "ok": false,
+   "error": "The read operation timed out"
   },
   {
    "name": "InfoQ 中文",
@@ -2570,7 +2789,7 @@
   {
    "name": "雷锋网",
    "ok": true,
-   "new": 20
+   "new": 19
   },
   {
    "name": "极客公园",
@@ -2605,7 +2824,7 @@
   {
    "name": "Bluesky 数据社区",
    "ok": true,
-   "new": 10
+   "new": 11
   },
   {
    "name": "Snowflake Engineering（Medium）",

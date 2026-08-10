@@ -312,7 +312,7 @@ def render_detail(e, all_events, css):
 <script type="application/ld+json">{jsonld}</script>
 <style>{css}
 {SHARED_CSS}
-.article{{max-width:760px;margin:0 auto;padding:32px 20px 60px}}
+.article{{max-width:760px;margin:0 auto;padding:36px 20px 60px}}
 .article .back{{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}}
 .article .back:hover{{color:var(--accent)}}
 .article h1{{font-size:24px;font-weight:800;line-height:1.5;margin:12px 0 16px}}

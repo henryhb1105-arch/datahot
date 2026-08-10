@@ -157,7 +157,7 @@ def sidebar(active, gen=None):
     """桌面端左侧菜单栏（≥961px 显示，移动端隐藏，由底部 Tab 承担导航）"""
     items = [("热榜", "flame", "index.html", "home"), ("主题", "map", "topics.html", "topics"),
              ("典藏", "bookmark", "classics.html", "classics"), ("完整榜单", "list", "hot.html", "hot"),
-             ("我的收藏", "star", "favorites.html", "favorites"), ("信源状态", "rss", "sources.html", "sources")]
+             ("我的收藏", "star", "favorites.html", "favorites"), ("信源", "rss", "sources.html", "sources")]
     menu = "".join(
         f'<a class="mi{" on" if k == active else ""}" href="{u}">{ic(i,16)}{n}</a>'
         for n, i, u, k in items)
@@ -168,7 +168,7 @@ def sidebar(active, gen=None):
             f'<div class="sfoot">{foot}每 6 小时自动更新<br>数据领域 AI 资讯分享</div></aside>')
 
 def tabbar(active, prefix=""):
-    items = [("热榜", ic("flame",20), "index.html", "home"), ("主题", ic("map",20), "topics.html", "topics"), ("典藏", ic("bookmark",20), "classics.html", "classics"), ("信源", ic("rss",20), "sources.html", "sources")]
+    items = [("热榜", ic("flame",20), "index.html", "home"), ("主题", ic("map",20), "topics.html", "topics"), ("典藏", ic("bookmark",20), "classics.html", "classics"), ("收藏", ic("star",20), "favorites.html", "favorites"), ("信源", ic("rss",20), "sources.html", "sources")]
     return ('<nav class="tabbar">' + "".join(
         f'<a href="{prefix}{u}" class="{"on" if k == active else ""}"><span class="ico">{i}</span>{n}</a>'
         for n, i, u, k in items) + "</nav>")

@@ -170,5 +170,15 @@ class TTSDetailRenderingTests(unittest.TestCase):
         self.assertIn(".sharebtns::-webkit-scrollbar{display:none}", page)
 
 
+class TTSWorkflowTests(unittest.TestCase):
+    def test_generated_audio_retries_push_and_calls_reusable_publish(self):
+        tts_workflow = (ROOT / ".github" / "workflows" / "tts.yml").read_text()
+        deploy_workflow = (ROOT / ".github" / "workflows" / "deploy.yml").read_text()
+        self.assertIn("for attempt in 1 2 3", tts_workflow)
+        self.assertIn('echo "changed=true" >> "$GITHUB_OUTPUT"', tts_workflow)
+        self.assertIn("uses: ./.github/workflows/deploy.yml", tts_workflow)
+        self.assertIn("workflow_call:", deploy_workflow)
+
+
 if __name__ == "__main__":
     unittest.main()

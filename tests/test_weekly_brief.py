@@ -14,7 +14,8 @@ import build_site  # noqa: E402
 from check_weekly_brief import inspect_weekly_brief  # noqa: E402
 import run_update  # noqa: E402
 from weekly_brief import (  # noqa: E402
-    BASELINE_WEEKS, PROMPT_VERSION, _personal_prose_length, _stable_items,
+    BASELINE_WEEKS, PROMPT_VERSION, _personal_prompt, _personal_prose_length,
+    _stable_items,
     brief_cache_key, brief_input_hash, completed_week, generate_weekly_brief,
     select_weekly_events, select_weekly_evidence, validate_personal_response,
     validate_signal_response, valid_brief,
@@ -308,6 +309,28 @@ class WeeklySignalValidationTests(unittest.TestCase):
             "甲" * 81, {"type": "string", "maxLength": 80}, "$.bottom_line",
         )
         self.assertEqual(errors, ["$.bottom_line: string is too long (81>80)"])
+
+    def test_personal_prompt_has_theme_count_dependent_length_budgets(self):
+        events = [event(i) for i in range(4)]
+        _rows, evidence_map = evidence_context(events)
+        signals = public_response(events)
+        signal_doc = {
+            "week_id": "2026-W32",
+            "period_start": "2026-08-03",
+            "period_end": "2026-08-09",
+            "weekly_judgement": signals["weekly_judgement"],
+            "signals": signals["signals"],
+            "signals_not_promoted": signals["signals_not_promoted"],
+            "uncertainty": signals["uncertainty"],
+            "next_week_question": signals["next_week_question"],
+        }
+
+        prompt = _personal_prompt(signal_doc, evidence_map)
+
+        self.assertIn("1个主题时，insight 230至260字", prompt)
+        self.assertIn("2个主题时，每项依次130至160字", prompt)
+        self.assertIn("3个主题时，每项依次90至120字", prompt)
+        self.assertIn("title 12至24字", prompt)
 
     def test_schema_rejects_extra_text_fields(self):
         response = public_response([event(i) for i in range(4)])

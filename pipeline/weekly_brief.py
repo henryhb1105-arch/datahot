@@ -21,7 +21,7 @@ TZ = timezone(timedelta(hours=8))
 SCHEMA_VERSION = 3
 SIGNAL_SCHEMA_VERSION = 1
 INPUT_SCHEMA_VERSION = 1
-PROMPT_VERSION = "weekly-personal-v1"
+PROMPT_VERSION = "weekly-personal-v2"
 SIGNAL_PROMPT_VERSION = "weekly-signals-v1"
 MIN_ITEMS = 10
 MAX_ITEMS = 15
@@ -487,7 +487,7 @@ def _personal_prompt(signal_doc, evidence_map):
         "读者关注 AI 产品落地、Agent 工作流、数据基础设施，以及成本、可靠性和可维护性。"
         "他希望快速知道什么真正发生了变化、与自己有什么关系、是否需要行动，不需要重新浏览新闻。\n\n"
         "写作要求：\n"
-        "1. 正文目标800至1200个汉字，3分钟内读完。\n"
+        "1. 正文必须达到800至1200个汉字，3分钟内读完；中文、字母、数字和标点均按1个字符计算。\n"
         "2. 先给结论，再解释机制，最后给行动或观察建议。\n"
         "3. 最多3个主题，允许0至2个，不得凑满。\n"
         "4. 每个主题必须通过signal_id引用输入信号，并说明这对你意味着什么。\n"
@@ -498,7 +498,12 @@ def _personal_prompt(signal_doc, evidence_map):
         "9. early_signal或unknown不得改写为已经进入、转向或成为主流。\n"
         "10. 不得修改信号的change_type、confidence、anchor或evidence_ids。\n"
         "11. 不使用加速发展、持续演进、值得关注、赋能、闭环等空泛表述。\n"
-        "12. 只输出一个JSON对象，不得使用Markdown代码围栏，不得在对象前后写说明。\n\n"
+        "12. 只输出一个JSON对象，不得使用Markdown代码围栏，不得在对象前后写说明。\n"
+        "13. 按最终保留主题数控制各字段长度，不得用重复结论凑字数：1个主题时，insight 230至260字、"
+        "why_it_matters 210至240字、action 170至200字；2个主题时，每项依次130至160字、"
+        "110至140字、80至110字；3个主题时，每项依次90至120字、70至100字、50至80字。\n"
+        "14. title 12至24字，bottom_line 30至60字，what_not_to_overread和uncertainty各60至100字，"
+        "next_week_question 30至60字。\n\n"
         "输出JSON字段固定为title、bottom_line、for_you、what_not_to_overread、uncertainty、"
         "next_week_question、evidence_index。for_you每项字段固定为signal_id、priority、insight、"
         "why_it_matters、action。evidence_index每项只含event_id和原始title。\n输入："

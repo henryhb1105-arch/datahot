@@ -11,6 +11,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
+from llm_usage import LLMBudgetExceeded, LLMUsageTracker
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
@@ -19,6 +20,7 @@ ARCHIVE = DATA / "archive"
 KEEP_DAYS = 7
 PER_SOURCE_MAX = 20
 TZ = timezone(timedelta(hours=8))
+LLM_USAGE = LLMUsageTracker(DATA / "llm_usage.json")
 
 UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/126.0 Safari/537.36",
       "Accept": "application/rss+xml,application/xml,text/xml,*/*"}
@@ -195,7 +197,8 @@ def load_llm_config():
         model = model or cfg.get("LLM_MODEL", "")
     return key, base, model
 
-def llm_chat(base, key, model, prompt, timeout=120, max_tokens=None):
+def llm_chat(base, key, model, prompt, timeout=120, max_tokens=None,
+             purpose="other", source="", item_id=""):
     payload = {"model": model, "messages": [{"role": "user", "content": prompt}]}
     if max_tokens:
         payload["max_tokens"] = max_tokens
@@ -203,10 +206,31 @@ def llm_chat(base, key, model, prompt, timeout=120, max_tokens=None):
         base.rstrip("/") + "/chat/completions",
         data=json.dumps(payload).encode(),
         headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}, method="POST")
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        content = json.loads(r.read())["choices"][0]["message"]["content"]
-    m = re.search(r"\{.*\}", content, re.S)
-    return json.loads(m.group(0), strict=False) if m else {}  # strict=False 容忍编译稿中的原始换行
+    estimated_tokens = max(512, len(prompt) // 3 + int(max_tokens or 2048))
+    reservation = LLM_USAGE.before_call(
+        purpose=purpose, item_id=item_id, estimated_tokens=estimated_tokens,
+    )
+    response, content = {}, ""
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            response = json.loads(r.read())
+        content = response["choices"][0]["message"]["content"]
+        m = re.search(r"\{.*\}", content, re.S)
+        result = json.loads(m.group(0), strict=False) if m else {}
+        LLM_USAGE.record(
+            model=model, purpose=purpose, source=source, item_id=item_id,
+            prompt_chars=len(prompt), response_chars=len(content), max_tokens=max_tokens,
+            usage=response.get("usage"), success=True, reserved_tokens=reservation,
+        )
+        return result  # strict=False 容忍编译稿中的原始换行
+    except Exception as exc:
+        LLM_USAGE.record(
+            model=model, purpose=purpose, source=source, item_id=item_id,
+            prompt_chars=len(prompt), response_chars=len(content), max_tokens=max_tokens,
+            usage=response.get("usage"), success=False, error_type=type(exc).__name__,
+            reserved_tokens=reservation,
+        )
+        raise
 
 # ── 全文编译引擎（忠实编译，非摘要）─────────────────────────
 COMPILE_RULES = """你是数据领域垂直资讯站的专业编译。把下面的原文编译为面向数据从业者的中文全文编译稿。要求：
@@ -217,15 +241,26 @@ COMPILE_RULES = """你是数据领域垂直资讯站的专业编译。把下面�
 5. 原文中的导航、订阅框、相关阅读推荐等网页杂质，直接忽略。
 只输出编译稿正文（纯文本，段落间两个换行，小标题以「## 」开头）。"""
 
-def compile_fulltext(title, source_text, cfg):
+def compile_fulltext(title, source_text, cfg, *, context=None):
     """忠实编译：短文单遍，长文按段落分块编译后拼接"""
     key, base, model = cfg
     if not (key and base and model and source_text):
         return ""
+    context = context or {}
+    call_context = {
+        "purpose": "compile",
+        "source": context.get("source", ""),
+        "item_id": context.get("item_id", ""),
+    }
     src = source_text[:22000]
     if len(src) <= 6000:
-        return llm_chat_text(base, key, model,
-            COMPILE_RULES + "\n\n【原文标题】" + title + "\n\n" + src, max_tokens=6000)
+        try:
+            return llm_chat_text(base, key, model,
+                COMPILE_RULES + "\n\n【原文标题】" + title + "\n\n" + src,
+                max_tokens=6000, **call_context)
+        except LLMBudgetExceeded as exc:
+            print(f"[budget] 跳过全文编译: {title[:40]} | {exc}")
+            return ""
     # 按句子边界切块（抓取文本无换行，按句号边界切 ≤3500 字符/块，最多 6 块）
     sents = re.split(r"(?<=[。！？.!?])\s+", src)
     chunks, cur = [], ""
@@ -242,9 +277,13 @@ def compile_fulltext(title, source_text, cfg):
     def compile_chunk(i_ch):
         i, ch = i_ch
         for attempt in range(2):  # 空输出（推理预算耗尽）时重试一次
-            part = llm_chat_text(base, key, model,
-            COMPILE_RULES + f"\n\n注意：这是文章的第 {i}/{len(chunks)} 部分，只编译本部分的可见内容；若开头或结尾句子被切断，编译可见部分即可，不得补写上下文。\n\n【原文标题】" + title + "\n\n" + ch,
-            max_tokens=8000)
+            try:
+                part = llm_chat_text(base, key, model,
+                COMPILE_RULES + f"\n\n注意：这是文章的第 {i}/{len(chunks)} 部分，只编译本部分的可见内容；若开头或结尾句子被切断，编译可见部分即可，不得补写上下文。\n\n【原文标题】" + title + "\n\n" + ch,
+                max_tokens=8000, **call_context)
+            except LLMBudgetExceeded as exc:
+                print(f"[budget] 跳过全文分块 {i}/{len(chunks)}: {title[:30]} | {exc}")
+                return ""
             if part.strip():
                 return part.strip()
         return ""
@@ -255,15 +294,37 @@ def compile_fulltext(title, source_text, cfg):
         parts.append("【此处原文未能完整读取：文章过长，仅编译前 6 部分】")
     return "\n\n".join(p for p in parts if p)
 
-def llm_chat_text(base, key, model, prompt, max_tokens=4096):
+def llm_chat_text(base, key, model, prompt, max_tokens=4096,
+                  purpose="other", source="", item_id=""):
     """纯文本版 LLM 调用（编译稿不走 JSON 解析）"""
     req = urllib.request.Request(
         base.rstrip("/") + "/chat/completions",
         data=json.dumps({"model": model, "messages": [{"role": "user", "content": prompt}],
                          "max_tokens": max_tokens}).encode(),
         headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}, method="POST")
-    with urllib.request.urlopen(req, timeout=180) as r:
-        return json.loads(r.read())["choices"][0]["message"]["content"].strip()
+    estimated_tokens = max(512, len(prompt) // 3 + int(max_tokens or 4096))
+    reservation = LLM_USAGE.before_call(
+        purpose=purpose, item_id=item_id, estimated_tokens=estimated_tokens,
+    )
+    response, content = {}, ""
+    try:
+        with urllib.request.urlopen(req, timeout=180) as r:
+            response = json.loads(r.read())
+        content = response["choices"][0]["message"]["content"].strip()
+        LLM_USAGE.record(
+            model=model, purpose=purpose, source=source, item_id=item_id,
+            prompt_chars=len(prompt), response_chars=len(content), max_tokens=max_tokens,
+            usage=response.get("usage"), success=True, reserved_tokens=reservation,
+        )
+        return content
+    except Exception as exc:
+        LLM_USAGE.record(
+            model=model, purpose=purpose, source=source, item_id=item_id,
+            prompt_chars=len(prompt), response_chars=len(content), max_tokens=max_tokens,
+            usage=response.get("usage"), success=False, error_type=type(exc).__name__,
+            reserved_tokens=reservation,
+        )
+        raise
 
 # ── F4：加固的相关性过滤 + AI 加工 ─────────────────────────
 ENRICH_RULES = """你是一个数据领域垂直资讯站的编辑。本站只覆盖四个领域：Data Agent（ChatBI/Text-to-SQL/分析Agent）、AI数据平台（数仓/湖仓/语义层/数据集成治理）、BI与可视化（BI工具/报表）、数据产品（方法论/融资并购/行业报告）。
@@ -294,13 +355,19 @@ def llm_enrich(items, cfg):
         if it.get("article_text"):
             content += f"\n原文：{it['article_text'][:2200]}"
         note = "\n（注：该条目来自数据领域厂商官方博客，默认相关，除非明显是招聘/活动/公关软文）" if it.get("vendor_default") else ""
-        out = llm_chat(base, key, model, ENRICH_RULES + "\n\n" + content + note)
+        out = llm_chat(
+            base, key, model, ENRICH_RULES + "\n\n" + content + note,
+            purpose="enrich", source=it.get("source", ""), item_id=it.get("id", ""),
+        )
         if out.get("relevant") is False:
             return None
         it["zh_title"] = out.get("zh_title") or it["title"]
         it["zh_summary"] = out.get("zh_summary") or it["summary"][:300]
         it["reason"] = out.get("reason", "")
-        it["full_zh"] = compile_fulltext(it["zh_title"], it.get("article_text") or it.get("summary", ""), cfg)
+        it["full_zh"] = compile_fulltext(
+            it["zh_title"], it.get("article_text") or it.get("summary", ""), cfg,
+            context={"source": it.get("source", ""), "item_id": it.get("id", "")},
+        )
         cat = out.get("category")
         if cat in CATEGORIES_LABEL:
             it["category"], it["category_label"] = cat, CATEGORIES_LABEL[cat]
@@ -344,11 +411,13 @@ def llm_same_event(pairs, cfg):
         return [False] * len(pairs)
     def judge(p):
         try:
+            pair_id = hashlib.md5((p[0] + "\0" + p[1]).encode()).hexdigest()[:12]
             out = llm_chat(base, key, model,
                 "判断以下两条资讯是否报道同一事件/同一产品发布（同一事件的不同媒体报道算同一事件）。"
                 "注意：月度汇总/盘点类文章与其中提到的单项功能发布不算同一事件，除非该功能就是这篇文章的主题。"
                 '只输出JSON {"same": true或false}。\n\n'
-                f"【A】{p[0][:400]}\n【B】{p[1][:400]}")
+                f"【A】{p[0][:400]}\n【B】{p[1][:400]}",
+                purpose="cluster", source="event-cluster", item_id=pair_id)
             return out.get("same") is True
         except Exception:
             return False
@@ -763,4 +832,8 @@ def main():
     print(f"[done] 事件 {len(events)} 个（含条目 {n_sub} 条），本次新增 {len(new_items)} 条")
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    finally:
+        LLM_USAGE.finalize()
+        print(LLM_USAGE.one_line_summary())

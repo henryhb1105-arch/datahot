@@ -262,6 +262,13 @@ def parse_llm_json_content(content, *, strict_object=False):
 def llm_chat(base, key, model, prompt, timeout=120, max_tokens=None,
              purpose="other", source="", item_id="", strict_object=False):
     payload = {"model": model, "messages": [{"role": "user", "content": prompt}]}
+    if strict_object:
+        # DeepSeek V4 defaults to thinking mode, whose reasoning tokens can
+        # exhaust max_tokens before ``message.content`` is emitted. Weekly
+        # stages need a compact machine-readable result, so request the
+        # provider's native JSON mode and explicitly disable thinking.
+        payload["response_format"] = {"type": "json_object"}
+        payload["thinking"] = {"type": "disabled"}
     if max_tokens:
         payload["max_tokens"] = max_tokens
     req = urllib.request.Request(

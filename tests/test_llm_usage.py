@@ -153,6 +153,27 @@ class LLMCallInstrumentationTests(unittest.TestCase):
         self.assertEqual(snap["by_purpose"]["enrich"]["calls"], 1)
         self.assertNotIn("secret prompt", json.dumps(snap))
 
+    def test_strict_json_call_uses_provider_json_mode_without_thinking(self):
+        provider_payload = {
+            "choices": [{"message": {"content": '{"signals": []}'}}],
+            "usage": {"prompt_tokens": 20, "completion_tokens": 5, "total_tokens": 25},
+        }
+        captured = {}
+
+        def fake_urlopen(request, timeout):
+            captured.update(json.loads(request.data))
+            return FakeResponse(provider_payload)
+
+        with patch.object(run_update.urllib.request, "urlopen", side_effect=fake_urlopen):
+            result = run_update.llm_chat(
+                "https://api.deepseek.com", "key", "deepseek-v4-flash", "JSON only",
+                strict_object=True, purpose="weekly_brief", item_id="2026-W32:signals",
+            )
+
+        self.assertEqual(result, {"signals": []})
+        self.assertEqual(captured["response_format"], {"type": "json_object"})
+        self.assertEqual(captured["thinking"], {"type": "disabled"})
+
     def test_failed_call_is_recorded_separately(self):
         with patch.object(run_update.urllib.request, "urlopen", side_effect=TimeoutError("slow")):
             with self.assertRaises(TimeoutError):

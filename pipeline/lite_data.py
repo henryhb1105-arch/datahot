@@ -49,7 +49,7 @@ def event_timestamp(event):
 def is_list_eligible(event):
     """Fail closed for unfinished or untranslated items on public lists.
 
-    Detail pages remain addressable, but homepage, hot-list and daily-brief
+    Detail pages remain addressable, but homepage, hot-list and weekly-brief
     surfaces only promote entries that completed the Chinese editorial pass.
     """
     title = " ".join(str(event.get("zh_title") or "").split())

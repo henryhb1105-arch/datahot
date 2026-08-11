@@ -29,7 +29,7 @@
 | `favorite_toggle` | 添加/取消收藏 | 同事件和动作 750 ms 内一次 |
 | `search` | 搜索输入停止 600 ms | 同长度区间 3 秒内一次 |
 | `filter` | 点击主题筛选 | 同筛选 750 ms 内一次 |
-| `daily_brief_click` | 点击标有 `data-analytics="daily_brief"` 的简报入口 | 同入口 750 ms 内一次 |
+| `weekly_brief_click` | 点击标有 `data-analytics="weekly_brief"` 的周报入口 | 同入口 750 ms 内一次 |
 
 字段白名单在 `pipeline/analytics_schema.py`。上下文只包含：页面类型、事件 ID、分类、来源、随机 `session_id/device_id`、序号、宽度区间和来源类型区间。设备 ID 由第一方 localStorage 随机生成并每 30 天轮换，不读取 Cookie 或浏览器指纹。
 

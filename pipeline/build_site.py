@@ -19,6 +19,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 DETAIL_DIR = SITE / "e"
 TOPIC_DIR = SITE / "topics"
+WEEKLY_DIR = SITE / "weekly"
 ANALYTICS_ASSET = ROOT / "pipeline" / "assets" / "analytics.js"
 HOME_ASSET = ROOT / "pipeline" / "assets" / "home.js"
 TZ = timezone(timedelta(hours=8))
@@ -138,27 +139,30 @@ main,.layout>*,.hotlist>*{min-width:0}
 .load-more{display:block;margin:18px auto 4px;border:1px solid var(--line);background:var(--card);color:var(--txt2);border-radius:99px;padding:9px 22px;font-size:12.5px;font-weight:650;cursor:pointer}
 .load-more:hover{border-color:var(--accent);color:var(--accent)}
 .load-more[disabled]{opacity:.65;cursor:default}
-.daily-teaser{display:block;background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border-radius:var(--radius);padding:18px 22px;margin-bottom:22px;text-decoration:none;position:relative;overflow:hidden}
-.daily-teaser:hover{transform:translateY(-1px)}
-.daily-teaser .daily-kicker{font-size:11px;letter-spacing:1.5px;color:#f5b48a;font-weight:750;margin-bottom:6px}
-.daily-teaser h2{font-size:19px;line-height:1.45;margin:0 0 5px}
-.daily-teaser p{font-size:12.5px;line-height:1.7;color:#e5e7eb;margin:0;max-width:720px}
-.daily-teaser .daily-meta{font-size:11px;color:#aeb4be;margin-top:8px}
-.daily-waiting{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:10px 14px;margin-bottom:18px;color:var(--txt2);font-size:12.5px;text-decoration:none}
-.daily-waiting:hover{border-color:var(--accent);color:var(--accent)}
-.daily-waiting b{color:var(--ink);font-size:13px}
-.daily-waiting span:last-child{margin-left:auto;color:var(--sub);font-size:11.5px}
-.daily-summary{background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border:0}
-.daily-summary h1{font-size:25px;line-height:1.4;margin:4px 0 8px}
-.daily-summary p{font-size:14px;line-height:1.85;color:#e5e7eb}
-.daily-change{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.12);font-size:13px;line-height:1.7;color:#f3f4f6}
-.daily-change:last-child{border-bottom:0}
-.daily-row{display:block;text-decoration:none;color:var(--ink);padding:15px 0;border-bottom:1px solid var(--soft)}
-.daily-row:last-child{border-bottom:0}
-.daily-row:hover .daily-title{color:var(--accent)}
-.daily-title{font-size:15px;font-weight:750;line-height:1.55}
-.daily-row p{font-size:12.5px;line-height:1.7;color:var(--txt2);margin:5px 0}
-.daily-row .daily-row-meta{font-size:11px;color:var(--sub)}
+.weekly-teaser{display:block;background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border-radius:var(--radius);padding:18px 22px;margin-bottom:22px;text-decoration:none;position:relative;overflow:hidden}
+.weekly-teaser:hover{transform:translateY(-1px)}
+.weekly-teaser .weekly-kicker{font-size:11px;letter-spacing:1.5px;color:#f5b48a;font-weight:750;margin-bottom:6px}
+.weekly-teaser h2{font-size:19px;line-height:1.45;margin:0 0 5px}
+.weekly-teaser p{font-size:12.5px;line-height:1.7;color:#e5e7eb;margin:0;max-width:720px}
+.weekly-teaser .weekly-meta{font-size:11px;color:#aeb4be;margin-top:8px}
+.weekly-waiting{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:10px 14px;margin-bottom:18px;color:var(--txt2);font-size:12.5px;text-decoration:none}
+.weekly-waiting:hover{border-color:var(--accent);color:var(--accent)}
+.weekly-waiting b{color:var(--ink);font-size:13px}
+.weekly-waiting span:last-child{margin-left:auto;color:var(--sub);font-size:11.5px}
+.weekly-summary{background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border:0}
+.weekly-summary h1{font-size:25px;line-height:1.4;margin:4px 0 8px}
+.weekly-summary p{font-size:14px;line-height:1.85;color:#e5e7eb}
+.weekly-change{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.12);font-size:13px;line-height:1.7;color:#f3f4f6}
+.weekly-change:last-child{border-bottom:0}
+.weekly-row{display:block;text-decoration:none;color:var(--ink);padding:15px 0;border-bottom:1px solid var(--soft)}
+.weekly-row:last-child{border-bottom:0}
+.weekly-row:hover .weekly-title{color:var(--accent)}
+.weekly-title{font-size:15px;font-weight:750;line-height:1.55}
+.weekly-row p{font-size:12.5px;line-height:1.7;color:var(--txt2);margin:5px 0}
+.weekly-row .weekly-row-meta{font-size:11px;color:var(--sub)}
+.weekly-archive{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 22px}
+.weekly-archive a{font-size:12px;color:var(--sub);border:1px solid var(--line);border-radius:99px;padding:5px 10px;text-decoration:none}
+.weekly-archive a:hover,.weekly-archive a.on{border-color:var(--accent);color:var(--accent)}
 .hrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--soft);text-decoration:none;color:var(--ink)}
 .hrow:last-child{border-bottom:none}
 .hrow .rk{font-size:15px;font-weight:800;color:var(--accent);width:26px;flex-shrink:0;text-align:center}
@@ -202,8 +206,8 @@ main,.layout>*,.hotlist>*{min-width:0}
 def sidebar(active, gen=None, prefix=""):
     """桌面端左侧菜单栏（≥961px 显示，移动端隐藏，由底部 Tab 承担导航）"""
     items = [("热榜", "flame", "index.html", "home")]
-    if daily_brief_enabled():
-        items.append(("每日简报", "calendar", "daily.html", "daily"))
+    if weekly_brief_enabled():
+        items.append(("每周简报", "calendar", "weekly.html", "weekly"))
     items += [("主题", "map", "topics.html", "topics"),
              ("典藏", "bookmark", "classics.html", "classics"), ("完整榜单", "list", "hot.html", "hot"),
              ("我的收藏", "star", "favorites.html", "favorites"), ("信源", "rss", "sources.html", "sources")]
@@ -251,13 +255,14 @@ def feed_discovery():
     return f'<link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="{SITE_BASE}/feed.xml">'
 
 
-def daily_brief_enabled():
-    return os.getenv("DAILY_BRIEF_ENABLED", "true").strip().lower() in {"1", "true", "yes", "on"}
+def weekly_brief_enabled():
+    value = os.getenv("WEEKLY_BRIEF_ENABLED", os.getenv("DAILY_BRIEF_ENABLED", "true"))
+    return value.strip().lower() in {"1", "true", "yes", "on"}
 
 def tabbar(active, prefix=""):
     items = [("热榜", ic("flame",20), "index.html", "home")]
-    if daily_brief_enabled():
-        items.append(("简报", ic("calendar",20), "daily.html", "daily"))
+    if weekly_brief_enabled():
+        items.append(("周报", ic("calendar",20), "weekly.html", "weekly"))
     items += [("主题", ic("map",20), "topics.html", "topics"), ("典藏", ic("bookmark",20), "classics.html", "classics"), ("收藏", ic("star",20), "favorites.html", "favorites"), ("信源", ic("rss",20), "sources.html", "sources")]
     return ('<nav class="tabbar">' + "".join(
         f'<a href="{prefix}{u}" class="{"on" if k == active else ""}"><span class="ico">{i}</span>{n}</a>'
@@ -1114,50 +1119,85 @@ def render_favorites_page(css, data_url="data/latest-lite.json"):
     return page_shell("我的收藏 · DataHot", "你收藏的数据领域资讯", css, body, tabbar(""), prefix="", active="favorites")
 
 
-def load_daily_brief(events, path=None):
-    path = Path(path) if path is not None else SITE / "data" / "daily_brief.json"
+def load_weekly_brief(path=None):
+    path = Path(path) if path is not None else SITE / "data" / "weekly_brief.json"
     try:
         brief = json.loads(path.read_text(encoding="utf-8"))
     except (FileNotFoundError, json.JSONDecodeError, OSError):
         return None
-    if not isinstance(brief, dict):
+    if not isinstance(brief, dict) or brief.get("schema_version") != 2 or brief.get("kind") != "weekly":
         return None
-    valid_ids = {event.get("event_id") for event in events}
     items = brief.get("items")
     if (
-        brief.get("schema_version") != 1 or not isinstance(items, list)
-        or not 8 <= len(items) <= 10
-        or any(item.get("event_id") not in valid_ids for item in items if isinstance(item, dict))
+        not isinstance(items, list) or not 10 <= len(items) <= 15
         or not all(isinstance(item, dict) for item in items)
+        or not all(len(str(item.get("event_id") or "")) == 12 for item in items)
     ):
         return None
     return brief
 
 
-def render_daily_brief_teaser(brief):
+def load_weekly_archive(path=None):
+    path = Path(path) if path is not None else SITE / "data" / "weekly"
+    briefs = []
+    if not path.exists():
+        return briefs
+    for item in path.glob("*.json"):
+        brief = load_weekly_brief(item)
+        if brief:
+            briefs.append(brief)
+    return sorted(briefs, key=lambda brief: str(brief.get("week_id") or ""), reverse=True)
+
+
+def render_weekly_brief_teaser(brief):
     if not brief:
-        return '''<a class="daily-waiting" href="daily.html" data-analytics="daily_brief">
-  <b>今日简报整理中</b>
-  <span>热榜可正常浏览 →</span>
+        return '''<a class="weekly-waiting" href="weekly.html" data-analytics="weekly_brief">
+  <b>每周简报整理中</b>
+  <span>首页与热榜可正常浏览 →</span>
 </a>'''
     mode = "AI 整理" if brief.get("ai_assisted") else "规则整理"
     generated = fmt_date(brief.get("generated_at"))
-    return f'''<a class="daily-teaser" href="daily.html" data-analytics="daily_brief">
-  <div class="daily-kicker">DAILY BRIEF · {esc(mode)}</div>
+    return f'''<a class="weekly-teaser" href="weekly.html" data-analytics="weekly_brief">
+  <div class="weekly-kicker">WEEKLY BRIEF · {esc(mode)}</div>
   <h2>{esc(brief.get("headline"))}</h2>
   <p>{esc(brief.get("overview"))}</p>
-  <div class="daily-meta">{esc(brief.get("date"))} · {generated} 生成 · {len(brief.get("items", []))} 条重点 →</div>
+  <div class="weekly-meta">{esc(brief.get("period_start"))} 至 {esc(brief.get("period_end"))} · {generated} 生成 · {len(brief.get("items", []))} 条重点 →</div>
 </a>'''
 
 
-def render_daily_brief_page(brief, events, css):
+def _weekly_archive_nav(archives, current_week_id, *, archive_prefix):
+    if not archives:
+        return ""
+    links = []
+    for archive in archives:
+        week_id = str(archive.get("week_id") or "")
+        if not re.fullmatch(r"\d{4}-W\d{2}", week_id):
+            continue
+        links.append(
+            f'<a class="{"on" if week_id == current_week_id else ""}" '
+            f'href="{archive_prefix}{week_id}.html">{esc(week_id)}</a>'
+        )
+    return f'<div class="weekly-archive"><span style="font-size:12px;color:var(--sub);padding:6px 2px">历史周报</span>{"".join(links)}</div>'
+
+
+def _safe_source_url(value):
+    parsed = urlparse(str(value or ""))
+    return str(value) if parsed.scheme in {"http", "https"} and parsed.netloc else ""
+
+
+def render_weekly_brief_page(
+    brief, events, css, *, prefix="", archives=None, archive_prefix="weekly/",
+):
     if not brief:
         body = '''
 <div class="wrap" style="padding:28px 20px 60px;max-width:860px">
-  <div class="section-title"><h2>每日简报</h2><span>每天生成一次</span></div>
-  <div class="scard" style="font-size:13.5px;color:var(--txt2);line-height:1.8">今日简报正在整理中。当日积累至少 8 条高价值事件后会自动发布；简报不可用不影响热榜和详情页。</div>
+  <div class="section-title"><h2>每周简报</h2><span>每周一发布</span></div>
+  <div class="scard" style="font-size:13.5px;color:var(--txt2);line-height:1.8">首期周报正在整理中。系统会从上一个完整自然周选取至少 10 条高价值事件；周报不可用不影响首页、热榜和详情页。</div>
 </div>'''
-        return page_shell("每日简报 · DataHot", "DataHot 每日数据领域高价值事件简报", css, body, tabbar("daily"), active="daily")
+        return page_shell(
+            "每周简报 · DataHot", "DataHot 每周数据 AI 高价值事件简报", css, body,
+            tabbar("weekly", prefix), prefix=prefix, active="weekly",
+        )
 
     event_map = {event["event_id"]: event for event in events}
     mode = "AI 整理" if brief.get("ai_assisted") else "规则整理（AI 不可用或预算受限）"
@@ -1166,37 +1206,70 @@ def render_daily_brief_page(brief, events, css):
         for row in brief.get("category_overview", []) if isinstance(row, dict)
     )
     changes = "".join(
-        f'<div class="daily-change">{esc(change)}</div>'
+        f'<div class="weekly-change">{esc(change)}</div>'
         for change in brief.get("key_changes", [])
     )
-    rows = []
+    grouped_rows = defaultdict(list)
     for item in brief.get("items", []):
-        event = event_map[item["event_id"]]
-        source = item.get("source") or ((event.get("items") or [{}])[0].get("source") or "")
-        category = item.get("category") if item.get("category") in CAT_LABEL else event.get("category", "platform")
-        rows.append(f'''<a class="daily-row" href="e/{event["event_id"]}.html" data-analytics-list="1" data-event-id="{event["event_id"]}" data-category="{esc(category)}" data-source="{esc(source)}">
-  <div class="daily-title">{esc(item.get("title") or event.get("zh_title"))}</div>
+        event_id = str(item.get("event_id") or "")
+        event = event_map.get(event_id)
+        source = item.get("source") or (((event or {}).get("items") or [{}])[0].get("source") or "")
+        category = item.get("category") if item.get("category") in CAT_LABEL else (event or {}).get("category", "platform")
+        if event is not None:
+            href = f'{prefix}e/{event_id}.html'
+            outbound = ""
+        else:
+            href = _safe_source_url(item.get("source_url")) or f"{prefix}weekly.html"
+            outbound = ' target="_blank" rel="noopener" data-analytics="outbound"' if href.startswith("http") else ""
+        grouped_rows[category].append(f'''<a class="weekly-row" href="{esc(href)}"{outbound} data-analytics-list="1" data-event-id="{esc(event_id)}" data-category="{esc(category)}" data-source="{esc(source)}">
+  <div class="weekly-title">{esc(item.get("title") or (event or {}).get("zh_title"))}</div>
   {f'<p>{esc(item.get("summary"))}</p>' if item.get("summary") else ''}
-  <div class="daily-row-meta"><span class="badge {CAT_BADGE.get(category, 'b-platform')}">{esc(CAT_LABEL.get(category, 'AI 数据平台'))}</span> · {esc(source)} · 热度 {int(item.get("heat") or 0)}</div>
+  <div class="weekly-row-meta"><span class="badge {CAT_BADGE.get(category, 'b-platform')}">{esc(CAT_LABEL.get(category, 'AI 数据平台'))}</span> · {esc(source)} · 热度 {int(item.get("heat") or 0)}{' · 原始信源 ↗' if event is None else ''}</div>
 </a>''')
+    sections = "".join(
+        f'<div class="section-title"><h2>{esc(CAT_LABEL[category])}</h2><span>{len(grouped_rows[category])} 条</span></div>'
+        f'<div class="scard">{"".join(grouped_rows[category])}</div>'
+        for category in CAT_LABEL if grouped_rows.get(category)
+    )
+    watch = "".join(
+        f'<div class="weekly-change" style="color:var(--txt2);border-color:var(--soft)">{esc(item)}</div>'
+        for item in brief.get("next_watch", [])
+    )
+    archive_nav = _weekly_archive_nav(
+        archives or [], str(brief.get("week_id") or ""), archive_prefix=archive_prefix,
+    )
     body = f'''
 <div class="wrap" style="padding:28px 20px 60px;max-width:860px">
-  <div class="section-title"><h2>{ic("calendar",18)} 每日简报</h2><span>{esc(brief.get("date"))} · 每天一次</span></div>
-  <div class="scard daily-summary">
-    <div class="daily-kicker">{esc(mode)}</div>
+  <div class="section-title"><h2>{ic("calendar",18)} 每周简报</h2><span>{esc(brief.get("period_start"))} 至 {esc(brief.get("period_end"))} · 每周一次</span></div>
+  {archive_nav}
+  <div class="scard weekly-summary">
+    <div class="weekly-kicker">{esc(brief.get("week_id"))} · {esc(mode)}</div>
     <h1>{esc(brief.get("headline"))}</h1>
     <p>{esc(brief.get("overview"))}</p>
     <div style="margin:12px 0">{categories}</div>
     <div>{changes}</div>
-    <div class="daily-meta" style="margin-top:12px;color:#aeb4be;font-size:11px">{fmt_date(brief.get("generated_at"))} 生成 · 输入哈希缓存 · 提示词 {esc(brief.get("prompt_version"))}</div>
+    <div class="weekly-meta" style="margin-top:12px;color:#aeb4be;font-size:11px">{fmt_date(brief.get("generated_at"))} 生成 · 周级不可变缓存 · 提示词 {esc(brief.get("prompt_version"))}</div>
   </div>
-  <div class="section-title"><h2>今日重点</h2><span>{len(rows)} 条 · 点击查看详情与原始信源</span></div>
-  <div class="scard">{''.join(rows)}</div>
+  <div class="section-title"><h2>本周趋势判断</h2><span>只归纳本期已收录事件</span></div>
+  <div class="scard" style="font-size:13.5px;color:var(--txt2);line-height:1.85">{esc(brief.get("trend"))}</div>
+  {sections}
+  <div class="section-title"><h2>下周继续关注</h2><span>跟踪方向，不做事实预测</span></div>
+  <div class="scard">{watch}</div>
 </div>'''
     return page_shell(
-        f"{brief.get('date')} 每日简报 · DataHot", brief.get("overview") or "DataHot 每日简报",
-        css, body, tabbar("daily"), active="daily",
+        f"{brief.get('week_id')} 每周简报 · DataHot", brief.get("overview") or "DataHot 每周简报",
+        css, body, tabbar("weekly", prefix), prefix=prefix, active="weekly",
     )
+
+
+def render_legacy_daily_redirect():
+    return '''<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="refresh" content="0; url=weekly.html">
+<link rel="canonical" href="weekly.html">
+<title>简报已升级 · DataHot</title></head>
+<body><p>每日简报已升级为每周简报。<a href="weekly.html">前往最新周报 →</a></p></body></html>'''
 
 
 def render_privacy_page(css):
@@ -1245,8 +1318,13 @@ def main():
     payload = json.load(open(SITE / "data" / "latest.json"))
     all_events = payload["events"]
     qualified_events = [event for event in all_events if is_list_eligible(event)]
-    daily_enabled = daily_brief_enabled()
-    daily_brief = load_daily_brief(all_events) if daily_enabled else None
+    weekly_enabled = weekly_brief_enabled()
+    weekly_brief = load_weekly_brief() if weekly_enabled else None
+    weekly_archives = load_weekly_archive() if weekly_enabled else []
+    if weekly_brief and all(
+        item.get("week_id") != weekly_brief.get("week_id") for item in weekly_archives
+    ):
+        weekly_archives.insert(0, weekly_brief)
     gen = datetime.fromisoformat(payload["generated_at"])
     css = load_css()
     # 首页以发布时间为准；缺少发布时间才使用收录时间，旧文补录不冒充当天新闻。
@@ -1357,8 +1435,8 @@ def main():
     topic_fchips = "".join(
         f'<span class="fchip" data-topic="{esc(t["name"])}">{esc(t["name"])}</span>'
         for t in TOPICS_META if t["name"] in active_topics)
-    daily_teaser = render_daily_brief_teaser(daily_brief) if daily_enabled else ""
-    daily_header_link = f'<a class="tab d-only" href="daily.html" style="text-decoration:none">{ic("calendar",14)} 简报</a>' if daily_enabled else ""
+    weekly_teaser = render_weekly_brief_teaser(weekly_brief) if weekly_enabled else ""
+    weekly_header_link = f'<a class="tab d-only" href="weekly.html" style="text-decoration:none">{ic("calendar",14)} 周报</a>' if weekly_enabled else ""
     home_config = (
         f'<meta id="homeDataConfig" data-lite-url="data/latest-lite.json" '
         f'data-page-size="{DEFAULT_PAGE_SIZE}" data-total="{len(events)}">'
@@ -1405,14 +1483,14 @@ def main():
 <header><div class="wrap nav">
   <div class="logo">Data<em>Hot</em><span class="tag">每 6 小时更新</span></div>
   <span class="upd-time">{ic("clock",12)} {gen.strftime("%m-%d %H:%M")} 更新</span>
-  {daily_header_link}
+  {weekly_header_link}
   <a class="tab d-only" href="topics.html" style="text-decoration:none">{ic("map",14)} 主题</a>
   <a class="tab d-only" href="classics.html" style="text-decoration:none">{ic("bookmark",14)} 典藏</a>
   <a class="tab d-only" href="sources.html" style="text-decoration:none">{ic("rss",14)} 信源</a>
 </div></header>
 
 <div class="wrap"><div class="layout"><main>
-  {daily_teaser}
+  {weekly_teaser}
   <div class="section-title"><h2>{ic("flame",18)} 本期热点</h2><span>多信源聚簇 · 按热度排序</span><a href="hot.html" style="margin-left:auto;font-size:12.5px;color:var(--accent);font-weight:600">完整榜单 →</a></div>
   <div class="hotlist">{hot_cards}</div>
   <div class="section-title" style="align-items:center"><h2>{ic("calendar",18)} 时间轴</h2><span>近 7 天</span>
@@ -1554,7 +1632,31 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
     (SITE / "hot.html").write_text(render_hot_page(events, css), encoding="utf-8")
     favorite_data_url = "data/latest-lite.json" if lite_enabled else "data/latest.json"
     (SITE / "favorites.html").write_text(render_favorites_page(css, favorite_data_url), encoding="utf-8")
-    (SITE / "daily.html").write_text(render_daily_brief_page(daily_brief, all_events, css), encoding="utf-8")
+    (SITE / "weekly.html").write_text(
+        render_weekly_brief_page(
+            weekly_brief, all_events, css, archives=weekly_archives,
+        ),
+        encoding="utf-8",
+    )
+    (SITE / "daily.html").write_text(render_legacy_daily_redirect(), encoding="utf-8")
+    WEEKLY_DIR.mkdir(parents=True, exist_ok=True)
+    valid_weekly_pages = set()
+    for archive_brief in weekly_archives:
+        week_id = str(archive_brief.get("week_id") or "")
+        if not re.fullmatch(r"\d{4}-W\d{2}", week_id):
+            continue
+        filename = f"{week_id}.html"
+        valid_weekly_pages.add(filename)
+        (WEEKLY_DIR / filename).write_text(
+            render_weekly_brief_page(
+                archive_brief, all_events, css, prefix="../",
+                archives=weekly_archives, archive_prefix="",
+            ),
+            encoding="utf-8",
+        )
+    for weekly_path in WEEKLY_DIR.glob("*.html"):
+        if weekly_path.name not in valid_weekly_pages:
+            weekly_path.unlink()
     (SITE / "privacy.html").write_text(render_privacy_page(css), encoding="utf-8")
 
     out = SITE / "index.html"

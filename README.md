@@ -85,9 +85,11 @@ GitHub Actions 每 6 小时自动运行（UTC 0/6/12/18 第 17 分），数据�
 
 首页默认只静态输出 20 条并使用不含正文的 `latest-lite.json` 完成加载更多、搜索和收藏；首屏厂商上限、栏目软阈值、当前体积基线和一键回滚见 [`PERFORMANCE.md`](PERFORMANCE.md)。
 
-### 每日简报
+### 每周简报
 
-每天从北京时间当天的高价值事件中固定选取 8–10 条，只发布一个不可变版本。缓存键包含日期、事件 ID/摘要输入哈希、提示词版本与模型版本；同日后续更新不会再次调用 DeepSeek。模型未配置、调用失败或预算耗尽时自动发布规则版，所有详情入口仍来自站内稳定事件 ID。调用以 `daily_brief` 用途计入 `llm_usage.json`。设置 `DAILY_BRIEF_ENABLED=false` 可停止生成并隐藏入口；`DAILY_BRIEF_FORCE=true` 只在手动触发工作流时生效，用于主动替换异常版本，不会让定时任务重复付费生成。
+每周一北京时间 08:17 从上一个完整自然周（周一至周日）选取 10–15 条高价值事件，只发布一个不可变版本。同一信源最多 2 条，并优先覆盖当周活跃的四个正式分类。缓存键包含 ISO 周、事件输入哈希、提示词版本与模型版本；同周后续更新不会再次调用 DeepSeek。周报固化标题、摘要、来源与原文链接，历史事件详情清理后仍可从 `weekly/<YYYY-Www>.html` 阅读并回到原始信源；旧 `daily.html` 自动转到最新周报。
+
+周报调用发生在其他付费加工之前，以 `weekly_brief` 用途计入 `llm_usage.json`。模型未配置、调用失败或预算耗尽时自动发布规则版。设置 `WEEKLY_BRIEF_ENABLED=false` 可停止生成并隐藏入口；`WEEKLY_BRIEF_FORCE=true` 只在手动触发工作流时生效。已有 `DAILY_BRIEF_ENABLED` / `DAILY_BRIEF_FORCE` 仓库变量继续作为迁移期后备值。
 
 ### Atom Feed
 

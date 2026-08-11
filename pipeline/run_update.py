@@ -19,7 +19,7 @@ from content_blocks import (
     sanitize_blocks, translation_nodes,
 )
 from media_cache import cache_event_media, prune_media_cache
-from daily_brief import generate_daily_brief
+from weekly_brief import generate_weekly_brief
 from source_controls import (
     accepted_categories_by_source, prefilter_entries, source_candidate_limit,
     source_control_snapshot, source_due,
@@ -30,6 +30,7 @@ SITE = ROOT / "site"
 DATA = SITE / "data"
 ARCHIVE = DATA / "archive"
 KEEP_DAYS = 7
+EVENT_RETENTION_DAYS = 8  # 保留完整上周，供周一 08:17 生成周报；首页仍只展示近 7 天。
 PER_SOURCE_MAX = 20
 TZ = timezone(timedelta(hours=8))
 LLM_USAGE = LLMUsageTracker(DATA / "llm_usage.json")
@@ -272,9 +273,14 @@ def llm_chat(base, key, model, prompt, timeout=120, max_tokens=None,
         raise
 
 
-def generate_daily_brief_for_events(events, cfg, now, *, cache_path=None, output_path=None):
-    """Generate today's one immutable brief and account its call separately."""
-    enabled = os.getenv("DAILY_BRIEF_ENABLED", "true").strip().lower() in {"1", "true", "yes", "on"}
+def generate_weekly_brief_for_events(
+    events, cfg, now, *, cache_path=None, output_path=None, archive_dir=None,
+):
+    """Generate the completed week's immutable brief before other paid work."""
+    enabled_value = os.getenv(
+        "WEEKLY_BRIEF_ENABLED", os.getenv("DAILY_BRIEF_ENABLED", "true"),
+    )
+    enabled = enabled_value.strip().lower() in {"1", "true", "yes", "on"}
     if not enabled:
         return None, "disabled"
     key, base, model = cfg
@@ -282,21 +288,25 @@ def generate_daily_brief_for_events(events, cfg, now, *, cache_path=None, output
 
     def call(prompt, *, item_id):
         return llm_chat(
-            base, key, model, prompt, max_tokens=900,
-            purpose="daily_brief", source="daily_brief", item_id=item_id,
+            base, key, model, prompt, max_tokens=1600,
+            purpose="weekly_brief", source="weekly_brief", item_id=item_id,
         )
 
-    force_requested = os.getenv("DAILY_BRIEF_FORCE", "false").strip().lower() in {"1", "true", "yes", "on"}
+    force_value = os.getenv(
+        "WEEKLY_BRIEF_FORCE", os.getenv("DAILY_BRIEF_FORCE", "false"),
+    )
+    force_requested = force_value.strip().lower() in {"1", "true", "yes", "on"}
     # A forgotten repository variable must not turn four scheduled runs into
     # four paid regenerations. Forced replacement is manual-dispatch only.
     force = force_requested and os.getenv("GITHUB_EVENT_NAME", "") == "workflow_dispatch"
-    return generate_daily_brief(
+    return generate_weekly_brief(
         events,
         now=now,
         model=configured_model,
         llm_generate=call if configured_model else None,
-        cache_path=cache_path or DATA / "daily_brief_cache.json",
-        output_path=output_path or DATA / "daily_brief.json",
+        cache_path=cache_path or DATA / "weekly_brief_cache.json",
+        output_path=output_path or DATA / "weekly_brief.json",
+        archive_dir=archive_dir or DATA / "weekly",
         force=force,
     )
 
@@ -1101,7 +1111,7 @@ def fetch_sitemap(source):
 def main():
     sources = [s for s in json.load(open(ROOT / "pipeline" / "sources.json")) if s.get("enabled")]
     now = datetime.now(timezone.utc)
-    cutoff = now - timedelta(days=KEEP_DAYS)
+    cutoff = now - timedelta(days=EVENT_RETENTION_DAYS)
     cfg = load_llm_config()
 
     DATA.mkdir(parents=True, exist_ok=True); ARCHIVE.mkdir(parents=True, exist_ok=True)
@@ -1116,6 +1126,10 @@ def main():
         else:  # 旧版 items 结构迁移
             for i in old.get("items", []):
                 events.append(make_event(i))
+    # 周报优先使用上轮已完成的一周数据并抢先占用极小预算，避免内容审核
+    # 与正文生成先耗尽单轮额度。周一 08:17 之前不会提前发布新一期。
+    _brief, brief_status = generate_weekly_brief_for_events(events, cfg, now)
+    print(f"[weekly-brief] {brief_status}")
     seen = {sub["id"] for e in events for sub in e["items"]}
     seen_urls = {norm_url(sub["link"]) for e in events for sub in e["items"]}
     url_to_event = {}
@@ -1429,9 +1443,6 @@ def main():
 
     top = [e["event_id"] for e in sorted(events, key=lambda e: -e["heat"])[:3]]
     events.sort(key=lambda e: (e.get("first_seen") or e["published"] or ""), reverse=True)
-
-    _brief, brief_status = generate_daily_brief_for_events(events, cfg, now)
-    print(f"[daily-brief] {brief_status}")
 
     payload = {
         "generated_at": now.astimezone(TZ).isoformat(),

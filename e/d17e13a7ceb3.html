@@ -142,7 +142,9 @@ aside .card{padding:14px 16px}
   .item .sum{font-size:13.5px;color:var(--txt2);line-height:1.75}
   .item .also{margin-top:10px;font-size:12px;color:var(--sub)}
   .item .also b{color:var(--ink)}
-  .why{margin-top:12px;padding:10px 14px;font-size:13px;color:var(--txt3);display:flex;gap:8px;background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:0 10px 10px 0}
+  .why{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;font-size:13px;color:var(--txt2);line-height:1.75;display:flex;gap:6px;align-items:baseline}
+.why .w{color:var(--accent);font-weight:700;white-space:nowrap;font-size:12px;letter-spacing:1px}
+.why .w svg{vertical-align:-2px}
   .why .w{color:var(--accent);font-weight:700;white-space:nowrap}
   .vendors{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
   .vtag{font-size:11px;border:1px dashed var(--line);color:var(--sub);border-radius:99px;padding:1px 10px;cursor:default}
@@ -299,7 +301,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   </div>
   <h1>用MCP构建可达生产系统的Agent</h1>
   <div class="body">Anthropic官方博客探讨如何让Agent连接外部生产系统，总结直接API调用、CLI与MCP三种主流路径。文章指出，直接API调用在集成数量增多后会面临M×N集成难题，而MCP作为通用协议层，能减少定制化成本，因此成为生产级Agent落地的关键方向。</div>
-  <div class="why" style="border-top:1px dashed var(--line);padding-top:14px;margin-top:18px;font-size:14px"><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由</span><span>MCP是Data Agent连接数据平台与外部系统的关键协议，数据从业者需要理解其技术选型与集成模式。</span></div>
+  <div class="why"><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由</span><span>MCP是Data Agent连接数据平台与外部系统的关键协议，数据从业者需要理解其技术选型与集成模式。</span></div>
   <div class="vendors" style="margin-top:14px"><a class="chip" href="../topics/data-agent.html">Data Agent</a><span class="vtag">Anthropic</span><span class="vtag">Claude</span></div>
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
   <div class="fulltext"><p>Anthropic 在 Claude 官方博客发布文章《Building agents that reach production systems with MCP》，发布于2026年4月22日，讨论如何让 AI Agent 真正触达企业生产系统。文章开篇提出一个核心观点：Agent 的价值取决于它能连接多少系统。团队在构建 Agent 时，通常会收敛到三种连接外部系统的方式——直接 API 调用、命令行工具（CLI）和 MCP（Model Context Protocol）。</p><p>直接 API 调用是最常见的起步方式。Agent 可以通过在代码执行沙箱中编写 HTTP 请求代码，或者通过通用的函数调用工具直接调用服务端 API。这种方式在“一个 Agent 对接一个服务”或少数几个集成场景下工作良好，也是大多数团队的起点。然而，随着集成规模扩大，问题逐渐显现：由于 Agent 与服务之间没有公共层，每一对组合都变成一次定制集成，需要单独处理认证、工具描述和各种边界情况。这正是典型的 M×N 集成问题，维护成本会随连接数量快速上升。</p><p>CLI 路径则让 Agent 在沙箱中直接运行命令行工具。这种方式保留了现有 CLI 工具的易用性和脚本化能力，适合那些已经具备成熟命令行接口的系统。不过，CLI 通常缺少标准化描述和自动发现机制，Agent 需要提前了解每个工具的参数和输出结构，因此在大规模跨平台复用上也存在局限。</p><p>MCP 提供了第三种路径：在 Agent 与服务之间引入一个公共协议层。通过统一的接口描述、认证和工具注册机制，MCP 让同一个 Agent 能够以标准方式接入多个外部系统，从而避免为每个服务编写独立的适配逻辑。文章强调，生产环境中的 Agent 之所以倾向于采用 MCP，是因为它能够显著降低集成复杂度，并让集成能力在不同 Agent 平台之间复用。</p><p>文章最后总结了构建有效 MCP 集成的主要模式。对于数据团队而言，MCP 的意义在于它为“数据 Agent”访问数据仓库、语义层和 BI 工具提供了标准化的连接方式，使得 ChatBI、Text-to-SQL 等场景可以更稳定地触达生产环境。这篇来自 Anthropic 的官方技术实践，值得所有关注 Data Agent 架构的工程师参考。</p></div>

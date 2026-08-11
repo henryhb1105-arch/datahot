@@ -142,7 +142,9 @@ aside .card{padding:14px 16px}
   .item .sum{font-size:13.5px;color:var(--txt2);line-height:1.75}
   .item .also{margin-top:10px;font-size:12px;color:var(--sub)}
   .item .also b{color:var(--ink)}
-  .why{margin-top:12px;padding:10px 14px;font-size:13px;color:var(--txt3);display:flex;gap:8px;background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:0 10px 10px 0}
+  .why{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;font-size:13px;color:var(--txt2);line-height:1.75;display:flex;gap:6px;align-items:baseline}
+.why .w{color:var(--accent);font-weight:700;white-space:nowrap;font-size:12px;letter-spacing:1px}
+.why .w svg{vertical-align:-2px}
   .why .w{color:var(--accent);font-weight:700;white-space:nowrap}
   .vendors{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
   .vtag{font-size:11px;border:1px dashed var(--line);color:var(--sub);border-radius:99px;padding:1px 10px;cursor:default}
@@ -299,7 +301,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   </div>
   <h1>Amazon MWAA与Airflow 3.0实现事件驱动跨账户编排</h1>
   <div class="body">AWS大数据博客介绍了如何在Amazon MWAA上使用Airflow 3.0构建事件驱动的跨账户管道编排。传统跨环境协调依赖轮询或传感器，存在延迟和可靠性问题。通过Airflow 3.0的基于资产的调度和Asset Watchers，结合Amazon SQS作为消息代理，可实现近实时触发，将编排延迟从分钟级降至秒级，并减少worker资源消耗。</div>
-  <div class="why" style="border-top:1px dashed var(--line);padding-top:14px;margin-top:18px;font-size:14px"><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由</span><span>数据工程师可了解如何在多账户MWAA环境中用Airflow 3.0和SQS替代轮询，提升管道响应效率与可靠性。</span></div>
+  <div class="why"><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由</span><span>数据工程师可了解如何在多账户MWAA环境中用Airflow 3.0和SQS替代轮询，提升管道响应效率与可靠性。</span></div>
   <div class="vendors" style="margin-top:14px"><span class="vtag">AWS</span><span class="vtag">Amazon</span></div>
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
   <div class="fulltext"><p>AWS大数据博客发布文章，介绍如何利用Amazon MWAA和Apache Airflow 3.0实现事件驱动的跨账户管道编排。在多个AWS账户中运行Apache Airflow的数据工程团队，长期面临跨环境工作流协调难题：每个团队或业务单元各自管理独立的Amazon Managed Workflows for Apache Airflow（Amazon MWAA）环境，但不同环境之间没有内置的协调机制。</p><p>传统上，跨环境编排依赖基于时间的轮询、复杂的自定义传感器或API触发方式，这些方法会引入延迟和可靠性问题。Apache Airflow的Datasets功能（自2.4版本引入）实现了单个MWAA环境内有数据感知的DAG调度，但跨多个账户运行Airflow的团队仍然无法在不同环境间协调工作流。</p><p>随着Airflow 3.0在Amazon MWAA 3.0上正式可用，用户获得了事件驱动的跨账户编排能力。该方案以Amazon Simple Queue Service（Amazon SQS）作为消息代理，使用Asset Watchers替代基于轮询的传感器，实现事件驱动的触发机制。当上游事件发生时，下游工作流能够立即响应，无需轮询开销，也无需紧密的环境耦合。</p><p>这一方法将编排延迟从分钟级降低到秒级，并释放了之前被轮询传感器占用的worker资源。同时，由于Amazon SQS能够在消费者环境暂时不可用时保留协调信号，消息可靠性也得到了提升。</p><p>文章详细介绍了如何设计并部署基于Airflow 3.0中asset-based scheduling与Amazon SQS集成的跨账户编排模式，包括Asset Watchers的使用方法、如何从生产者DAG发布资产事件，以及如何在上下游环境中触发依赖工作流。对于使用多账户Airflow架构的数据团队而言，这提供了一种更高效、可靠的工作流协调方案。</p></div>

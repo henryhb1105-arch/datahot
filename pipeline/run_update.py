@@ -1085,6 +1085,26 @@ def fetch_snowflake_rn(source):
         })
     return entries
 
+def fetch_html_list(source):
+    """通用 HTML 列表页采集器：无 RSS/sitemap 的站点，从列表页提取文章链接与标题。
+    发布日期由抓正文阶段的 meta 日期回填（extract_meta_date）。"""
+    html_txt = fetch_url(source["url"], timeout=15).decode("utf-8", errors="ignore")
+    link_re = source.get("link_re", r'href="(/[a-z0-9_/-]+\d{3,})"')
+    title_re = source.get("title_re", r"<strong[^>]*>(.*?)</strong>")
+    base = source.get("base", "")
+    entries, seen = [], set()
+    for m in re.finditer(r'<a\s+href="' + link_re + r'"[^>]*>(.*?)</a>', html_txt, re.S):
+        path, inner = m.group(1), m.group(2)
+        if path in seen:
+            continue
+        seen.add(path)
+        tm = re.search(title_re, inner, re.S)
+        title = strip_html(tm.group(1)) if tm else ""
+        if not title:
+            continue
+        entries.append({"title": title, "link": base + path, "published": None, "summary": "", "_slug_title": True})
+    return entries[:PER_SOURCE_MAX]
+
 def fetch_sitemap(source):
     """sitemap 信源：无 RSS 的官网，用 sitemap 的 URL+lastmod 作为更新流（标题由抓正文阶段从 <title> 补全）"""
     ns = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
@@ -1156,6 +1176,8 @@ def main():
                 entries = fetch_bluesky(s)
             elif s.get("kind") == "sitemap":
                 entries = fetch_sitemap(s)
+            elif s.get("kind") == "html_list":
+                entries = fetch_html_list(s)
             elif s.get("kind") == "snowflake_rn":
                 entries = fetch_snowflake_rn(s)
             else:

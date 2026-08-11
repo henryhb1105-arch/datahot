@@ -136,7 +136,8 @@ class WeeklyBriefGenerationTests(unittest.TestCase):
             self.assertEqual(status, "generated_ai")
             self.assertEqual(second_status, "weekly_cache_hit")
             self.assertEqual(len(calls), 1)
-            self.assertEqual(first["cache_key"], second["cache_key"])
+            self.assertEqual(first["content_fingerprint"], second["content_fingerprint"])
+            self.assertNotIn("cache_key", first)
             self.assertEqual(len(first["items"]), 15)
             self.assertTrue((archive / "2026-W32.json").exists())
 

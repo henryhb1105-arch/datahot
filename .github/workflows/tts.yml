@@ -20,6 +20,8 @@ jobs:
       (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
     runs-on: [self-hosted, macOS, ARM64, datahot-tts]
     timeout-minutes: 60
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -59,15 +61,40 @@ jobs:
           --device mps
 
       - name: 提交音频与 manifest
+        id: commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add site/audio site/data/tts-manifest.json
           if git diff --cached --quiet; then
             echo "没有新音频"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git commit -m "feat: update DataHot narration audio"
-          git fetch origin main
-          git rebase origin/main
-          git push origin HEAD:main
+          for attempt in 1 2 3; do
+            echo "推送尝试 ${attempt}/3"
+            if ! git fetch origin main; then
+              echo "第 ${attempt} 次 fetch 失败"
+            elif ! git rebase origin/main; then
+              git rebase --abort || true
+              echo "::error::TTS 音频与最新 main 发生冲突，需要人工处理"
+              exit 1
+            elif git push origin HEAD:main; then
+              echo "changed=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            else
+              echo "第 ${attempt} 次 push 失败"
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              sleep $((attempt * 10))
+            fi
+          done
+          echo "::error::TTS 音频已生成，但连续三次推送失败"
+          exit 1
+
+  publish:
+    name: 发布含语音的静态站
+    needs: generate
+    if: needs.generate.outputs.changed == 'true'
+    uses: ./.github/workflows/deploy.yml

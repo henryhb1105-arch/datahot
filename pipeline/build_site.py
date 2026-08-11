@@ -8,6 +8,7 @@ from collections import defaultdict
 from urllib.parse import urlparse
 from content_blocks import render_blocks_html, sanitize_blocks
 from check_links import check_site_links, format_broken_links
+from feed import build_atom_feed, validate_atom_feed
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
@@ -222,6 +223,16 @@ def analytics_head(prefix=""):
         f'<script defer src="{prefix}analytics.js"></script>'
     )
 
+def feed_enabled():
+    return os.getenv("FEED_ENABLED", "true").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def feed_discovery():
+    if not feed_enabled():
+        return ""
+    return f'<link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="{SITE_BASE}/feed.xml">'
+
+
 def daily_brief_enabled():
     return os.getenv("DAILY_BRIEF_ENABLED", "true").strip().lower() in {"1", "true", "yes", "on"}
 
@@ -431,6 +442,7 @@ def render_detail(e, all_events, css):
 <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 <meta name="theme-color" content="#1a1d23">
+{feed_discovery()}
 {analytics_head("../")}
 <script type="application/ld+json">{jsonld}</script>
 <style>{css}
@@ -817,6 +829,7 @@ def page_shell(title, desc, css, body, tabbar_html, prefix="", active=""):
 <link rel="icon" href="{prefix}favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="{prefix}icons/apple-touch-icon.png">
 <meta name="theme-color" content="#1a1d23">
+{feed_discovery()}
 {analytics_head(prefix)}
 <style>{css}
 {SHARED_CSS}
@@ -1193,6 +1206,18 @@ def main():
     # ── 详情页 ──
     valid_ids = write_detail_pages(all_events, css)
 
+    # ── Atom 1.0 Feed：只包含 DataHot 摘要与稳定站内详情链接 ──
+    feed_path = SITE / "feed.xml"
+    if feed_enabled():
+        feed_payload = build_atom_feed(all_events, payload["generated_at"], site_base=SITE_BASE)
+        feed_errors = validate_atom_feed(feed_payload, site_base=SITE_BASE, site_root=SITE)
+        if feed_errors:
+            raise RuntimeError(f"invalid Atom feed: {', '.join(feed_errors)}")
+        feed_path.write_bytes(feed_payload)
+        print(f"[feed] Atom 1.0 校验通过：{feed_payload.count(b'<entry>')} 条")
+    elif feed_path.exists():
+        feed_path.unlink()
+
     # ── 主题地图 + 主题页 ──
     TOPIC_DIR.mkdir(parents=True, exist_ok=True)
     (SITE / "topics.html").write_text(render_topics_map(all_events, css), encoding="utf-8")
@@ -1273,6 +1298,7 @@ def main():
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="icons/manifest.json">
 <meta name="theme-color" content="#1a1d23">
+{feed_discovery()}
 {analytics_head("")}
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="DataHot">

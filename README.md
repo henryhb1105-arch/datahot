@@ -85,6 +85,10 @@ GitHub Actions 每 6 小时自动运行（UTC 0/6/12/18 第 17 分），数据�
 
 每天从北京时间当天的高价值事件中固定选取 8–10 条，只发布一个不可变版本。缓存键包含日期、事件 ID/摘要输入哈希、提示词版本与模型版本；同日后续更新不会再次调用 DeepSeek。模型未配置、调用失败或预算耗尽时自动发布规则版，所有详情入口仍来自站内稳定事件 ID。调用以 `daily_brief` 用途计入 `llm_usage.json`。设置 `DAILY_BRIEF_ENABLED=false` 可停止生成并隐藏入口；`DAILY_BRIEF_FORCE=true` 只在手动触发工作流时生效，用于主动替换异常版本，不会让定时任务重复付费生成。
 
+### Atom Feed
+
+站点构建会生成 [`feed.xml`](https://henryhb1105-arch.github.io/datahot/feed.xml)，并在所有页面 `<head>` 声明 `application/atom+xml` 自动发现入口。每条 Feed 只包含 DataHot 标题、摘要、稳定详情链接、时间、分类和首要信源，不嵌入第三方全文、图片或任意 HTML。构建会校验 XML、HTTPS 绝对链接、稳定唯一 ID 和对应详情文件；设置 `FEED_ENABLED=false` 可停止生成并移除自动发现声明。
+
 ## 内容声明
 
 本站仅聚合各信源的摘要与原文链接，不转载全文，版权归原作者所有。

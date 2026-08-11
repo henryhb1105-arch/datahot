@@ -5,6 +5,7 @@ import json, html, re
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
+from content_blocks import render_blocks_html, sanitize_blocks
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
@@ -329,22 +330,25 @@ def render_detail(e, all_events, css):
         for t in e.get("topics", []) if t in TOPIC_SLUG)
     vtags = tchips + "".join(f'<span class="vtag">{esc(v)}</span>' for v in e.get("vendors", []))
     desc = esc(e["zh_summary"][:150])
-    main_link = esc(sorted_items[0]["link"])
+    main_url = sorted_items[0]["link"]
+    main_link = esc(main_url)
     main_src = esc(sorted_items[0]["source"])
-    # 全文编译段落：「## 」小标题 / 【缺失标注】/ 正文段
-    full_paras = ""
-    paras_all = [pp.strip() for pp in re.split(r"\n\s*\n", e.get("full_zh", "")) if pp.strip()]
-    if paras_all and paras_all[0].startswith("## "):
-        import difflib as _dl
-        if _dl.SequenceMatcher(None, paras_all[0][3:], e["zh_title"]).ratio() > 0.6:
-            paras_all = paras_all[1:]
-    for para in paras_all:
-        if para.startswith("## "):
-            full_paras += f'<h5 class="fh">{esc(para[3:])}</h5>'
-        elif para.startswith("【"):
-            full_paras += f'<p class="fwarn">{esc(para)}</p>'
-        else:
-            full_paras += "".join(f"<p>{esc(x)}</p>" for x in para.split("\n") if x.strip())
+    # blocks-v1 先经本地白名单清洗再渲染；异常或旧数据安全降级到 full_zh。
+    safe_blocks = sanitize_blocks(e.get("content_blocks", []), main_url)
+    full_paras = render_blocks_html(safe_blocks) if safe_blocks else ""
+    if not full_paras:
+        paras_all = [pp.strip() for pp in re.split(r"\n\s*\n", e.get("full_zh", "")) if pp.strip()]
+        if paras_all and paras_all[0].startswith("## "):
+            import difflib as _dl
+            if _dl.SequenceMatcher(None, paras_all[0][3:], e["zh_title"]).ratio() > 0.6:
+                paras_all = paras_all[1:]
+        for para in paras_all:
+            if para.startswith("## "):
+                full_paras += f'<h5 class="fh">{esc(para[3:])}</h5>'
+            elif para.startswith("【"):
+                full_paras += f'<p class="fwarn">{esc(para)}</p>'
+            else:
+                full_paras += "".join(f"<p>{esc(x)}</p>" for x in para.split("\n") if x.strip())
     full_block = ""
     if full_paras:
         full_block = f'''<div class="card"><h4>{ic("file")} 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
@@ -386,6 +390,24 @@ def render_detail(e, all_events, css):
 .article .card{{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}}
 .article h4{{font-size:14px;font-weight:800;margin-bottom:10px}}
 .article .vendor-row{{text-decoration:none}}
+.fulltext .cb-heading{{font-size:17px;line-height:1.55;margin:24px 0 10px;color:var(--ink)}}
+.fulltext p{{margin:0 0 14px}}
+.fulltext strong{{font-weight:750;color:var(--ink)}}
+.fulltext em{{font-style:italic}}
+.fulltext a{{color:var(--blue);text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere}}
+.fulltext ul,.fulltext ol{{padding-left:24px;margin:8px 0 18px}}
+.fulltext li{{margin:6px 0;padding-left:2px}}
+.fulltext blockquote{{margin:16px 0;padding:10px 16px;border-left:4px solid var(--accent);background:var(--soft);border-radius:0 8px 8px 0;color:var(--txt2)}}
+.fulltext code{{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:1px 5px}}
+.fulltext pre{{overflow:auto;background:#171a20;color:#e8ebf0;border-radius:10px;padding:14px 16px;margin:16px 0;line-height:1.65}}
+.fulltext pre code{{background:none;border:none;padding:0;color:inherit}}
+.cb-table{{overflow-x:auto;margin:16px 0;border:1px solid var(--line);border-radius:9px}}
+.cb-table table{{border-collapse:collapse;width:100%;min-width:480px;font-size:13px}}
+.cb-table th,.cb-table td{{padding:9px 12px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:left;vertical-align:top}}
+.cb-table th{{background:var(--soft);color:var(--ink);font-weight:700}}
+.cb-table tr:last-child td{{border-bottom:none}}
+.tone-accent{{color:var(--accent);font-weight:650}}.tone-warning{{color:var(--amber);font-weight:650}}
+.tone-positive{{color:var(--green);font-weight:650}}.tone-info{{color:var(--blue);font-weight:650}}.tone-emphasis{{color:var(--ink);font-weight:650}}
 .cta{{display:inline-block;background:var(--accent);color:#fff;font-size:14px;font-weight:700;border-radius:10px;padding:11px 26px;margin:6px 0 4px}}
 .cta:hover{{opacity:.9}}
 .fulltext h5.fh{{font-size:15px;font-weight:800;color:var(--ink);margin:20px 0 8px;padding-left:10px;border-left:3px solid var(--accent)}}

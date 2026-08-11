@@ -65,6 +65,12 @@ GitHub Actions 每 6 小时自动运行（UTC 0/6/12/18 第 17 分），数据�
 
 正文预算耗尽时直接降级为已有中文摘要，构建不中断。如需紧急回滚加工顺序，将 Actions Variable `PIPELINE_ORDER` 设为 `legacy`；候选、Token 和信源控制数据不会被删除。
 
+### 结构化正文安全模型
+
+正文优先保存为 `blocks-v1`，支持 `heading`、`paragraph`、`list`、`blockquote`、`code`、`table` 和 `figure`；文本节点支持 `strong`、`em`、`code`、`link` 和 DataHot 语义颜色 token。block 与文本节点都有稳定 ID。DeepSeek 只接收 `{id, text}` 列表并返回相同 ID，本地合并译文，因此不会让模型改写链接、marks 或块结构。
+
+抓取的第三方 HTML 不会直接入库或渲染：脚本、iframe、Canvas、事件属性和非 HTTP(S) 协议会被移除，颜色只映射到站点设计 token。渲染前会再次清洗；blocks 缺失或异常时继续使用已有 `full_zh` 安全纯文本兼容层。
+
 ## 内容声明
 
 本站仅聚合各信源的摘要与原文链接，不转载全文，版权归原作者所有。

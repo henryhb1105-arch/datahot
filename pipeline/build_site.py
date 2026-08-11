@@ -183,6 +183,10 @@ def tabbar(active, prefix=""):
 def esc(s):
     return html.escape(s or "", quote=True)
 
+def clean_reason(reason):
+    """统一由界面添加“推荐理由：”，避免历史数据中的前缀重复。"""
+    return re.sub(r"^\s*推荐理由\s*[:：]\s*", "", reason or "")
+
 def md(iso):
     """MM-DD 格式"""
     if not iso:
@@ -258,7 +262,8 @@ def render_card(e, prefix=""):
     if n > 1:
         names = " · ".join(esc(s["source"]) for s in e["items"][1:])
         also = f'<div class="also">另有 <b>{n-1} 家信源</b>报道：{names}</div>'
-    reason = f'<div class="why"><span class="w">{ic("sparkle",13)} 推荐理由</span><span>{esc(e["reason"])}</span></div>' if e.get("reason") else ""
+    reason = (f'<div class="why"><span><span class="w">{ic("sparkle",13)} 推荐理由：</span>'
+              f'{esc(clean_reason(e["reason"]))}</span></div>') if e.get("reason") else ""
     tchips = "".join(
         f'<a class="chip" href="{prefix}topics/{TOPIC_SLUG[t]}.html">{esc(t)}</a>'
         for t in e.get("topics", []) if t in TOPIC_SLUG)
@@ -411,7 +416,7 @@ def render_detail(e, all_events, css):
   </div>
   <h1>{esc(e["zh_title"])}</h1>
   <div class="body">{esc(e["zh_summary"])}</div>
-  {f'<div class="why"><span class="w">{ic("sparkle",13)} 推荐理由</span><span>{esc(e["reason"])}</span></div>' if e.get("reason") else ""}
+  {f'<div class="why"><span><span class="w">{ic("sparkle",13)} 推荐理由：</span>{esc(clean_reason(e["reason"]))}</span></div>' if e.get("reason") else ""}
   {f'<div class="vendors" style="margin-top:14px">{vtags}</div>' if vtags else ""}
   {full_block}
   <div class="card"><h4>{ic("link")} 信源（{len(e["items"])} 家报道 · 按时间排序）</h4>{srcs}</div>

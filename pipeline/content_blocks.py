@@ -15,11 +15,33 @@ from urllib.parse import urljoin, urlparse
 BLOCK_TYPES = {"heading", "paragraph", "list", "blockquote", "code", "table", "figure"}
 INLINE_MARKS = {"strong", "em", "code"}
 COLOR_TOKENS = {"accent", "warning", "positive", "info", "emphasis"}
-DANGEROUS_TAGS = {
-    "script", "style", "noscript", "iframe", "object", "embed", "form",
-    "button", "input", "select", "textarea", "canvas", "svg", "head",
-    "nav", "footer", "header", "aside",
+SKIP_CONTAINER_TAGS = {
+    "script", "style", "noscript", "iframe", "object", "form", "button",
+    "select", "textarea", "canvas", "svg", "head", "nav", "footer",
+    "header", "aside",
 }
+SKIP_VOID_TAGS = {"input", "embed"}
+DANGEROUS_TAGS = SKIP_CONTAINER_TAGS | SKIP_VOID_TAGS
+HTML_VOID_TAGS = {
+    "area", "base", "br", "col", "embed", "hr", "img", "input", "link",
+    "meta", "param", "source", "track", "wbr",
+}
+ARTICLE_CONTAINER_RE = re.compile(
+    r"(?:^|[\s_-])(?:article|post|entry|story|richtext|rich-text|markdown|prose)"
+    r"(?:[\s_-]*(?:body|content|text))?(?:$|[\s_-])|"
+    r"(?:^|[\s_-])(?:body|content)[\s_-]*(?:article|post|story)(?:$|[\s_-])",
+    re.I,
+)
+DECORATIVE_IMAGE_RE = re.compile(
+    r"(?:logo|avatar|icon|favicon|emoji|badge|author|profile|portrait|sponsor|"
+    r"advert|tracking|pixel|spacer|sprite)",
+    re.I,
+)
+EXPLANATORY_IMAGE_RE = re.compile(
+    r"(?:chart|diagram|architecture|workflow|benchmark|figure|graph|flow|"
+    r"架构|流程|图表|示意|对比)",
+    re.I,
+)
 BLOCK_ID_RE = re.compile(r"^b-[a-f0-9]{10,16}(?:-\d+)?$")
 TEXT_ID_RE = re.compile(r"^t-[a-f0-9]{10,16}(?:-\d+)?$")
 CACHED_MEDIA_RE = re.compile(
@@ -170,10 +192,19 @@ def sanitize_blocks(blocks, base_url=""):
                         base_url,
                     )
                     if children:
-                        cells.append({
+                        cell = {
                             "header": bool(raw_cell.get("header")) if isinstance(raw_cell, dict) else False,
                             "children": children,
-                        })
+                        }
+                        if isinstance(raw_cell, dict):
+                            for span_name in ("rowspan", "colspan"):
+                                try:
+                                    span = int(raw_cell.get(span_name, 1))
+                                except (TypeError, ValueError):
+                                    span = 1
+                                if 1 < span <= 20:
+                                    cell[span_name] = span
+                        cells.append(cell)
                 if cells:
                     rows.append({"cells": cells})
             block["rows"] = rows[:100]
@@ -259,6 +290,143 @@ def iter_text_nodes(value):
             yield from iter_text_nodes(child)
 
 
+TAG_TOKEN_RE = re.compile(
+    r"(?is)<!--.*?-->|<![^>]*>|<\s*(/?)\s*([a-zA-Z][\w:-]*)([^>]*)>"
+)
+
+
+def _container_regions(html_text):
+    """Return balanced article-like container slices without building a live DOM."""
+    stack, regions = [], []
+    for match in TAG_TOKEN_RE.finditer(str(html_text or "")):
+        tag = str(match.group(2) or "").casefold()
+        if not tag:
+            continue
+        closing = bool(match.group(1))
+        attrs = str(match.group(3) or "")
+        if closing:
+            index = next(
+                (i for i in range(len(stack) - 1, -1, -1) if stack[i]["tag"] == tag),
+                None,
+            )
+            if index is None:
+                continue
+            opened = stack[index]
+            del stack[index:]
+            if tag in {"article", "main", "div", "section"}:
+                regions.append({
+                    "tag": tag,
+                    "attrs": opened["attrs"],
+                    "html": str(html_text or "")[opened["start"]:match.end()],
+                })
+            continue
+        if tag not in HTML_VOID_TAGS and not attrs.rstrip().endswith("/"):
+            stack.append({"tag": tag, "attrs": attrs, "start": match.start()})
+    return regions
+
+
+def _jsonld_article_bodies(html_text):
+    bodies = []
+
+    def visit(value):
+        if isinstance(value, dict):
+            body = value.get("articleBody")
+            if isinstance(body, str) and body.strip():
+                bodies.append(body.strip())
+            for child in value.values():
+                visit(child)
+        elif isinstance(value, list):
+            for child in value:
+                visit(child)
+
+    pattern = re.compile(r"(?is)<script\b([^>]*)>(.*?)</script\s*>")
+    for attrs, payload in pattern.findall(str(html_text or "")):
+        if "ld+json" not in attrs.casefold():
+            continue
+        try:
+            visit(json.loads(html.unescape(payload).strip()))
+        except (json.JSONDecodeError, TypeError, ValueError):
+            continue
+    return bodies
+
+
+def _text_to_blocks(value):
+    paragraphs = [
+        re.sub(r"\s+", " ", part).strip()
+        for part in re.split(r"(?:\r?\n){2,}", str(value or ""))
+        if part.strip()
+    ]
+    if len(paragraphs) == 1 and len(paragraphs[0]) > 1600:
+        paragraphs = [
+            part.strip() for part in re.split(r"(?<=[。！？.!?])\s+", paragraphs[0])
+            if part.strip()
+        ]
+    return sanitize_blocks([
+        {"type": "paragraph", "children": [{"type": "text", "text": part, "marks": []}]}
+        for part in paragraphs
+    ])
+
+
+def _rough_text_length(fragment):
+    value = re.sub(
+        r"(?is)<(?:script|style|noscript|nav|footer|header|aside)\b[^>]*>.*?</(?:script|style|noscript|nav|footer|header|aside)\s*>",
+        " ", str(fragment or ""),
+    )
+    return len(re.sub(r"\s+", " ", re.sub(r"(?s)<[^>]+>", " ", value)).strip())
+
+
+def _block_counts(blocks):
+    return {
+        "blocks": len(blocks),
+        "text_chars": len(blocks_plain_text(blocks)),
+        "figures": sum(block.get("type") == "figure" for block in blocks),
+        "tables": sum(block.get("type") == "table" for block in blocks),
+    }
+
+
+def _meaningful_blocks(blocks):
+    counts = _block_counts(blocks)
+    return counts["text_chars"] >= 400 or (
+        counts["text_chars"] >= 120 and counts["figures"] + counts["tables"] > 0
+    )
+
+
+def select_article_media(blocks, maximum=3):
+    """Keep the most explanatory figures, while preserving their source order."""
+    safe = sanitize_blocks(blocks)
+    candidates, seen = [], set()
+    for index, block in enumerate(safe):
+        if block.get("type") != "figure":
+            continue
+        parsed = urlparse(block.get("src", ""))
+        identity = (parsed.netloc.casefold(), parsed.path.rstrip("/").casefold())
+        descriptor = " ".join((block.get("src", ""), block.get("alt", ""), block.get("caption", "")))
+        width, height = int(block.get("width", 0)), int(block.get("height", 0))
+        if identity in seen or DECORATIVE_IMAGE_RE.search(descriptor):
+            continue
+        if width and height and (width < 240 or height < 120):
+            continue
+        seen.add(identity)
+        score = 0
+        score += 5 if block.get("caption") else 0
+        score += 2 if block.get("alt") else 0
+        score += 3 if width >= 640 and height >= 240 else 0
+        score += 6 if EXPLANATORY_IMAGE_RE.search(descriptor) else 0
+        candidates.append((score, index))
+    selected = {
+        index for _score, index in sorted(candidates, key=lambda value: (-value[0], value[1]))[:maximum]
+    }
+    filtered = [
+        block for index, block in enumerate(safe)
+        if block.get("type") != "figure" or index in selected
+    ]
+    return sanitize_blocks(filtered), {
+        "figures_discovered": sum(block.get("type") == "figure" for block in safe),
+        "figures_selected": len(selected),
+        "figures_rejected": sum(block.get("type") == "figure" for block in safe) - len(selected),
+    }
+
+
 class ArticleBlockParser(HTMLParser):
     def __init__(self, base_url=""):
         super().__init__(convert_charrefs=True)
@@ -273,7 +441,7 @@ class ArticleBlockParser(HTMLParser):
         self.table_cell = None
         self.active_marks = []
         self.mark_frames = []
-        self.skip_depth = 0
+        self.skip_stack = []
         self.figure_block = None
         self.figure_caption = False
         self.figure_caption_parts = []
@@ -328,13 +496,15 @@ class ArticleBlockParser(HTMLParser):
     def handle_starttag(self, tag, attrs):
         tag = tag.lower()
         attrs = {str(key).lower(): value for key, value in attrs}
-        if self.skip_depth:
-            if tag in DANGEROUS_TAGS:
-                self.skip_depth += 1
+        if self.skip_stack:
+            if tag in SKIP_CONTAINER_TAGS:
+                self.skip_stack.append(tag)
             return
-        if tag in DANGEROUS_TAGS:
+        if tag in SKIP_VOID_TAGS:
+            return
+        if tag in SKIP_CONTAINER_TAGS:
             self._flush_current()
-            self.skip_depth = 1
+            self.skip_stack.append(tag)
             return
         if self.figure_caption:
             if tag == "br":
@@ -416,6 +586,13 @@ class ArticleBlockParser(HTMLParser):
             self.table_row = {"cells": []}
         elif tag in {"th", "td"} and self.table_row is not None:
             self.table_cell = {"header": tag == "th", "children": []}
+            for span_name in ("rowspan", "colspan"):
+                try:
+                    span = int(attrs.get(span_name, 1))
+                except (TypeError, ValueError):
+                    span = 1
+                if 1 < span <= 20:
+                    self.table_cell[span_name] = span
         elif tag == "br":
             self._append_text("\n")
         elif tag in {"strong", "b"}:
@@ -442,9 +619,12 @@ class ArticleBlockParser(HTMLParser):
 
     def handle_endtag(self, tag):
         tag = tag.lower()
-        if self.skip_depth:
-            if tag in DANGEROUS_TAGS:
-                self.skip_depth -= 1
+        if self.skip_stack:
+            if tag in self.skip_stack:
+                while self.skip_stack:
+                    opened = self.skip_stack.pop()
+                    if opened == tag:
+                        break
             return
         if tag == "figcaption" and self.figure_block is not None:
             self.figure_caption = False
@@ -498,7 +678,7 @@ class ArticleBlockParser(HTMLParser):
             self._flush_current()
 
     def handle_data(self, data):
-        if self.skip_depth:
+        if self.skip_stack:
             return
         if self.figure_caption:
             self.figure_caption_parts.append(data)
@@ -514,7 +694,7 @@ class ArticleBlockParser(HTMLParser):
         self.figure_block = None
 
 
-def parse_html_blocks(html_text, base_url=""):
+def _parse_html_blocks_raw(html_text, base_url=""):
     parser = ArticleBlockParser(base_url)
     try:
         parser.feed(str(html_text or ""))
@@ -524,10 +704,91 @@ def parse_html_blocks(html_text, base_url=""):
     return sanitize_blocks(parser.blocks, base_url)
 
 
+def parse_html_blocks_with_report(html_text, base_url="", maximum_figures=3):
+    """Extract the best article body and return auditable selection metadata."""
+    source = str(html_text or "")
+    regions = _container_regions(source)
+    strategies = [
+        ("article", [region for region in regions if region["tag"] == "article"]),
+        ("main", [region for region in regions if region["tag"] == "main"]),
+        (
+            "semantic_container",
+            [
+                region for region in regions
+                if region["tag"] in {"div", "section"}
+                and ARTICLE_CONTAINER_RE.search(region["attrs"])
+            ],
+        ),
+    ]
+    selected, strategy = [], ""
+    for name, candidates in strategies:
+        parsed = [_parse_html_blocks_raw(candidate["html"], base_url) for candidate in candidates]
+        parsed = [blocks for blocks in parsed if _meaningful_blocks(blocks)]
+        if parsed:
+            selected = max(parsed, key=lambda blocks: _block_counts(blocks)["text_chars"])
+            strategy = name
+            break
+
+    if not selected:
+        jsonld = [_text_to_blocks(body) for body in _jsonld_article_bodies(source)]
+        jsonld = [blocks for blocks in jsonld if _meaningful_blocks(blocks)]
+        if jsonld:
+            selected = max(jsonld, key=lambda blocks: _block_counts(blocks)["text_chars"])
+            strategy = "jsonld_article_body"
+
+    if not selected:
+        largest = sorted(
+            (
+                region for region in regions
+                if region["tag"] in {"div", "section"}
+                and _rough_text_length(region["html"]) >= 400
+            ),
+            key=lambda region: _rough_text_length(region["html"]),
+            reverse=True,
+        )[:12]
+        parsed = [_parse_html_blocks_raw(candidate["html"], base_url) for candidate in largest]
+        parsed = [blocks for blocks in parsed if _meaningful_blocks(blocks)]
+        if parsed:
+            selected = max(parsed, key=lambda blocks: _block_counts(blocks)["text_chars"])
+            strategy = "largest_content"
+
+    if not selected:
+        selected = _parse_html_blocks_raw(source, base_url)
+        strategy = "document_fallback"
+
+    selected, media_report = select_article_media(selected, maximum=maximum_figures)
+    counts = _block_counts(selected)
+    return selected, {"strategy": strategy, **counts, **media_report}
+
+
+def parse_html_blocks(html_text, base_url=""):
+    blocks, _report = parse_html_blocks_with_report(html_text, base_url)
+    return blocks
+
+
+def _figure_translation_id(block, field):
+    digest = hashlib.sha256(
+        f"{block.get('id','')}\0{field}\0{block.get(field,'')}".encode("utf-8")
+    ).hexdigest()[:12]
+    return f"t-{digest}"
+
+
+def _translation_targets(blocks):
+    for block in blocks:
+        if block.get("type") == "figure":
+            for field in ("caption", "alt"):
+                if str(block.get(field) or "").strip():
+                    yield _figure_translation_id(block, field), block, field
+        else:
+            for node in iter_text_nodes(block):
+                yield node["id"], node, "text"
+
+
 def translation_nodes(blocks, maximum_chars=16000):
     nodes, used = [], 0
-    for node in iter_text_nodes(blocks):
-        text = node.get("text", "")
+    safe = sanitize_blocks(blocks)
+    for node_id, target, field in _translation_targets(safe):
+        text = target.get(field, "")
         if not text.strip():
             continue
         if used + len(text) > maximum_chars:
@@ -535,14 +796,17 @@ def translation_nodes(blocks, maximum_chars=16000):
             if remaining <= 0:
                 break
             text = text[:remaining]
-        nodes.append({"id": node["id"], "text": text})
+        nodes.append({"id": node_id, "text": text})
         used += len(text)
     return nodes
 
 
 def apply_translations(blocks, translated_nodes):
     result = copy.deepcopy(sanitize_blocks(blocks))
-    existing = {node["id"]: node for node in iter_text_nodes(result)}
+    existing = {
+        node_id: (target, field)
+        for node_id, target, field in _translation_targets(result)
+    }
     applied, ignored = 0, 0
     seen = set()
     for translated in translated_nodes if isinstance(translated_nodes, list) else []:
@@ -552,7 +816,8 @@ def apply_translations(blocks, translated_nodes):
         node_id = str(translated.get("id") or "")
         text = _clean_text(translated.get("text"), 8000)
         if node_id in existing and node_id not in seen and text:
-            existing[node_id]["text"] = text
+            target, field = existing[node_id]
+            target[field] = text
             seen.add(node_id)
             applied += 1
         else:
@@ -573,9 +838,15 @@ def blocks_plain_text(blocks):
     return "\n\n".join(part for part in parts if part)
 
 
-def limit_blocks(blocks, maximum_chars):
-    result, used = [], 0
+def limit_blocks(blocks, maximum_chars, preserve_types=None):
+    preserve_types = set(preserve_types or ())
+    result, used, exhausted = [], 0, False
     for block in copy.deepcopy(sanitize_blocks(blocks)):
+        if block.get("type") in preserve_types:
+            result.append(block)
+            continue
+        if exhausted:
+            continue
         block_chars = sum(len(node.get("text", "")) for node in iter_text_nodes(block))
         if block.get("type") == "code":
             block_chars += len(block.get("text", ""))
@@ -587,19 +858,22 @@ def limit_blocks(blocks, maximum_chars):
             continue
         remaining = maximum_chars - used
         if remaining <= 0:
-            break
+            exhausted = True
+            continue
         if block.get("type") == "code":
             block["text"] = block.get("text", "")[:remaining]
             cleaned = sanitize_blocks([block])
             if cleaned:
                 result.extend(cleaned)
-            break
+            exhausted = True
+            continue
         if block.get("type") == "figure":
             block["caption"] = block.get("caption", "")[:remaining]
             cleaned = sanitize_blocks([block])
             if cleaned:
                 result.extend(cleaned)
-            break
+            exhausted = True
+            continue
         for node in iter_text_nodes(block):
             if remaining <= 0:
                 node["text"] = ""
@@ -609,7 +883,7 @@ def limit_blocks(blocks, maximum_chars):
         cleaned = sanitize_blocks([block])
         if cleaned:
             result.extend(cleaned)
-        break
+        exhausted = True
     return sanitize_blocks(result)
 
 
@@ -654,12 +928,19 @@ def render_blocks_html(blocks, render_media=True):
         elif kind == "table":
             rows = []
             for row in block["rows"]:
-                cells = "".join(
-                    f'<{"th" if cell.get("header") else "td"}>{_render_inlines(cell["children"])}</{"th" if cell.get("header") else "td"}>'
-                    for cell in row["cells"]
-                )
+                cells = ""
+                for cell in row["cells"]:
+                    tag = "th" if cell.get("header") else "td"
+                    spans = "".join(
+                        f' {name}="{cell[name]}"'
+                        for name in ("rowspan", "colspan") if cell.get(name)
+                    )
+                    cells += f'<{tag}{spans}>{_render_inlines(cell["children"])}</{tag}>'
                 rows.append(f"<tr>{cells}</tr>")
-            rendered.append(f'<div class="cb-table"><table>{"".join(rows)}</table></div>')
+            rendered.append(
+                f'<div class="cb-table" role="region" aria-label="原文表格" tabindex="0">'
+                f'<table>{"".join(rows)}</table></div>'
+            )
         elif kind == "figure":
             original_src = html.escape(block["src"], quote=True)
             source_url = html.escape(block.get("source_url") or block["src"], quote=True)

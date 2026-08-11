@@ -73,11 +73,15 @@ GitHub Actions 每 6 小时自动运行（UTC 0/6/12/18 第 17 分），数据�
 
 ### 结构化正文安全模型
 
-正文优先保存为 `blocks-v1`，支持 `heading`、`paragraph`、`list`、`blockquote`、`code`、`table` 和 `figure`；文本节点支持 `strong`、`em`、`code`、`link` 和 DataHot 语义颜色 token。block 与文本节点都有稳定 ID。DeepSeek 只接收 `{id, text}` 列表并返回相同 ID，本地合并译文，因此不会让模型改写链接、marks 或块结构。
+正文优先保存为 `blocks-v1`，支持 `heading`、`paragraph`、`list`、`blockquote`、`code`、`table` 和 `figure`；表格保留安全范围内的 `rowspan` / `colspan`，文本节点支持 `strong`、`em`、`code`、`link` 和 DataHot 语义颜色 token。block 与文本节点都有稳定 ID。DeepSeek 只接收正文、图注和替代文字的 `{id, text}` 列表并返回相同 ID，本地合并译文，因此不会让模型改写图片地址、链接、marks 或块结构。
+
+正文根节点按 `article` → `main` → 语义内容容器 → JSON-LD `articleBody` → 最大正文容器 → 全页兜底的顺序选择；每个结果会记录命中策略、正文块数、图片/表格数和回退原因。图片按原文流内位置保留，过滤 logo、头像、小尺寸装饰图和重复图，再按图注、替代文字、尺寸及 chart/diagram 等解释性信号选出最多 3 张。图片和表格不会因普通正文的 1200 字符预算被截掉。
 
 抓取的第三方 HTML 不会直接入库或渲染：脚本、iframe、Canvas、事件属性和非 HTTP(S) 协议会被移除，颜色只映射到站点设计 token。渲染前会再次清洗；blocks 缺失或异常时继续使用已有 `full_zh` 安全纯文本兼容层。
 
 图片与静态图表只在同站点来源、未声明 `noimageindex` 且通过公网 URL、MIME、文件大小和像素上限检查后缓存到 `site/media/<event_id>/`。位图通过 Pillow 重新编码以清除 EXIF 和任意元数据；SVG 只保留静态图形白名单，删除脚本、外部引用和危险属性。默认每事件最多 3 张、单文件 5 MB、总缓存 250 MB，过期事件目录随数据一起清理。缓存失败时不热链，只显示图注、来源和原图入口。设置 `MEDIA_BLOCKS_ENABLED=false` 可立即关闭图片渲染并保留这些可追溯信息。
+
+每轮还会限量检查近期高价值的旧事件，只对确实解析出图片或表格的文章补齐结构化正文；默认最多成功回填 2 篇、回看 30 天、尝试 12 篇，失败或无视觉内容后 7 天内不重试。可用 `CONTENT_BLOCKS_BACKFILL_LIMIT`、`CONTENT_BLOCKS_BACKFILL_DAYS` 和 `CONTENT_BLOCKS_BACKFILL_ATTEMPTS` 调整，设 `CONTENT_BLOCKS_BACKFILL_LIMIT=0` 可关闭。当前轮命中率、解析策略、回退原因、图片/表格与缓存数量写入 `latest.json` 的 `structured_content`、各信源的 `last_structured_content`，并显示在 GitHub Actions Summary。
 
 ### 隐私友好行为分析
 

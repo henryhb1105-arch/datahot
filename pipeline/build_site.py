@@ -646,7 +646,8 @@ def render_detail(e, all_events, css, tts_item=None):
 .fulltext code{{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:1px 5px}}
 .fulltext pre{{overflow:auto;background:#171a20;color:#e8ebf0;border-radius:10px;padding:14px 16px;margin:16px 0;line-height:1.65}}
 .fulltext pre code{{background:none;border:none;padding:0;color:inherit}}
-.cb-table{{overflow-x:auto;margin:16px 0;border:1px solid var(--line);border-radius:9px}}
+.cb-table{{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;margin:16px 0;border:1px solid var(--line);border-radius:9px}}
+.cb-table:focus-visible{{outline:2px solid var(--blue);outline-offset:2px}}
 .cb-table table{{border-collapse:collapse;width:100%;min-width:480px;font-size:13px}}
 .cb-table th,.cb-table td{{padding:9px 12px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:left;vertical-align:top}}
 .cb-table th{{background:var(--soft);color:var(--ink);font-weight:700}}
@@ -659,7 +660,7 @@ def render_detail(e, all_events, css, tts_item=None):
 .cb-media-meta a{{font-size:11.5px}}
 .cb-media-source{{margin-right:auto;overflow-wrap:anywhere}}
 .cb-media-placeholder{{min-height:150px;display:grid;place-items:center;padding:24px;text-align:center;color:var(--sub);background:linear-gradient(135deg,var(--soft),var(--card))}}
-@media(max-width:600px){{.cb-figure{{margin:16px -8px;border-radius:9px}}.cb-figure figcaption{{padding:9px 11px}}.cb-table{{max-width:100%}}}}
+@media(max-width:600px){{.cb-figure{{margin:16px -8px;border-radius:9px}}.cb-figure figcaption{{padding:9px 11px}}.cb-table{{max-width:100%;margin-left:0;margin-right:0}}}}
 @media (prefers-color-scheme: dark){{.cb-media-link{{background:#171a20}}}}
 .tone-accent{{color:var(--accent);font-weight:650}}.tone-warning{{color:var(--amber);font-weight:650}}
 .tone-positive{{color:var(--green);font-weight:650}}.tone-info{{color:var(--blue);font-weight:650}}.tone-emphasis{{color:var(--ink);font-weight:650}}

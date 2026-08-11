@@ -15,8 +15,8 @@ from llm_usage import LLMBudgetExceeded, LLMUsageTracker
 from candidate_cache import CandidateCache, candidate_content_hash
 from cluster_cache import ClusterDecisionCache, cluster_pair_key
 from content_blocks import (
-    apply_translations, blocks_plain_text, limit_blocks, parse_html_blocks,
-    sanitize_blocks, translation_nodes,
+    apply_translations, blocks_plain_text, limit_blocks,
+    parse_html_blocks_with_report, sanitize_blocks, translation_nodes,
 )
 from media_cache import cache_event_media, prune_media_cache
 from weekly_brief import generate_weekly_brief
@@ -188,21 +188,31 @@ def extract_meta_date(html_txt):
                 return dt
     return None
 
-def fetch_article_content(url, max_chars=24000):
-    """提取安全结构化 blocks，同时保留纯文本兼容输出。"""
+def fetch_article_content(url, max_chars=24000, *, include_report=False):
+    """提取安全结构化 blocks，同时保留纯文本兼容输出和可选诊断。"""
+    empty_report = {
+        "strategy": "fetch_failed", "blocks": 0, "text_chars": 0,
+        "figures": 0, "tables": 0, "figures_discovered": 0,
+        "figures_selected": 0, "figures_rejected": 0,
+    }
+
+    def result(text="", title="", pub_date=None, blocks=None, report=None):
+        base = (text, title, pub_date, blocks or [])
+        return (*base, report or dict(empty_report)) if include_report else base
+
     try:
         raw = fetch_url(url, timeout=10)
         try:
             html_txt = raw.decode("utf-8", errors="ignore")
         except Exception:
-            return "", "", None, []
+            return result()
         title = ""
         m = re.search(r"(?is)<title[^>]*>(.*?)</title>", html_txt)
         if m:
             title = strip_html(m.group(1))
             title = re.split(r"[|｜_-]{1,2}\s*(?:Aloudata|官网|博客).*$", title)[0].strip() or title
         pub_date = extract_meta_date(html_txt)
-        blocks = parse_html_blocks(html_txt, url)
+        blocks, parse_report = parse_html_blocks_with_report(html_txt, url)
         no_image_index = False
         for meta_tag in re.findall(r"(?is)<meta\b[^>]*>", html_txt):
             name_match = re.search(r"(?i)\bname\s*=\s*['\"]([^'\"]+)['\"]", meta_tag)
@@ -218,14 +228,21 @@ def fetch_article_content(url, max_chars=24000):
             for block in blocks:
                 if block.get("type") == "figure":
                     block["media_reason"] = "rights_restricted"
+            parse_report["noimageindex"] = True
         text = blocks_plain_text(blocks)
-        if len(text) <= 400:
+        structural = any(block.get("type") in {"figure", "table"} for block in blocks)
+        meaningful = len(text) > 400 or (len(text) >= 120 and structural)
+        if not meaningful:
             fallback = re.sub(r"(?is)<(script|style|noscript|nav|footer|header)[^>]*>.*?</\1>", " ", html_txt)
             text = strip_html(fallback)
             blocks = []
-        return (text[:max_chars] if len(text) > 400 else ""), title, pub_date, blocks
-    except Exception:
-        return "", "", None, []
+            parse_report["fallback_reason"] = "structured_body_too_short"
+        usable_text = text[:max_chars] if meaningful or len(text) > 400 else ""
+        return result(usable_text, title, pub_date, blocks, parse_report)
+    except Exception as exc:
+        report = dict(empty_report)
+        report["error"] = type(exc).__name__
+        return result(report=report)
 
 
 def fetch_article_text(url, max_chars=24000):
@@ -788,10 +805,13 @@ def deep_body_eligible(event, threshold=80):
     )
 
 
-def translate_article_blocks(blocks, cfg, *, source, item_id, deep=False):
+def translate_article_blocks(blocks, cfg, *, source, item_id, deep=False, purpose=""):
     """只把结构化文本节点交给 LLM，格式和 ID 由本地合并。"""
     key, base, model = cfg
-    source_blocks = limit_blocks(blocks, 16000 if deep else 5000)
+    preserved = {"figure", "table"}
+    source_blocks = limit_blocks(
+        blocks, 16000 if deep else 5000, preserve_types=preserved,
+    )
     nodes = translation_nodes(source_blocks, 16000 if deep else 5000)
     if not (key and base and model and nodes):
         return [], {"applied": 0, "ignored": 0, "missing": len(nodes)}
@@ -805,13 +825,46 @@ def translate_article_blocks(blocks, cfg, *, source, item_id, deep=False):
     out = llm_chat(
         base, key, model, prompt,
         max_tokens=8000 if deep else 3000,
-        purpose="body_blocks_deep" if deep else "body_blocks_standard",
+        purpose=purpose or ("body_blocks_deep" if deep else "body_blocks_standard"),
         source=source, item_id=item_id,
     )
     translated, stats = apply_translations(source_blocks, out.get("nodes", []))
     if not deep:
-        translated = limit_blocks(translated, 1200)
+        translated = limit_blocks(translated, 1200, preserve_types=preserved)
     return translated, stats
+
+
+def content_parse_record(report, *, status, source="", reason="", media_report=None):
+    """Build the small, persistent diagnostic contract used by Actions and latest.json."""
+    report = report if isinstance(report, dict) else {}
+    record = {
+        "run_id": LLM_USAGE.run_id,
+        "attempted_at": datetime.now(TZ).isoformat(),
+        "status": str(status or "unknown")[:40],
+        "source": str(source or "")[:120],
+        "strategy": str(report.get("strategy") or "unknown")[:60],
+    }
+    for key in (
+        "blocks", "text_chars", "figures", "tables", "figures_discovered",
+        "figures_selected", "figures_rejected",
+    ):
+        record[key] = max(0, int(report.get(key, 0) or 0))
+    if report.get("noimageindex"):
+        record["noimageindex"] = True
+    if reason:
+        record["reason"] = str(reason)[:120]
+    if isinstance(media_report, dict):
+        record["media"] = {
+            key: max(0, int(media_report.get(key, 0) or 0))
+            for key in ("figures", "cached", "link_only")
+        }
+        reasons = media_report.get("reasons")
+        if isinstance(reasons, dict) and reasons:
+            record["media"]["reasons"] = {
+                str(key)[:60]: max(0, int(value or 0))
+                for key, value in reasons.items()
+            }
+    return record
 
 
 def generate_event_body(event, primary, cfg, body_state):
@@ -823,6 +876,11 @@ def generate_event_body(event, primary, cfg, body_state):
     if not (key and base and model and source_text):
         event["full_zh"] = event.get("zh_summary", "")
         event["content_level"] = "summary"
+        if primary.get("article_blocks"):
+            event["content_parse"] = content_parse_record(
+                primary.get("_article_parse"), status="untranslated",
+                source=primary.get("source", ""), reason="llm_unavailable",
+            )
         return event["full_zh"]
     threshold = int(os.getenv("DEEP_IMPORTANCE_THRESHOLD", "80"))
     can_deep = (
@@ -832,6 +890,7 @@ def generate_event_body(event, primary, cfg, body_state):
     try:
         article_blocks = sanitize_blocks(primary.get("article_blocks", []), primary.get("link", ""))
         if article_blocks:
+            parse_report = primary.get("_article_parse") or {}
             if can_deep:
                 body_state["deep_used"] = body_state.get("deep_used", 0) + 1
             translated, translation_stats = translate_article_blocks(
@@ -842,7 +901,10 @@ def generate_event_body(event, primary, cfg, body_state):
                 print(f"[body] 结构化正文翻译失败，降级摘要: {event['zh_title'][:40]}")
                 translated = []
             body = blocks_plain_text(translated)
-            if not can_deep and len(body) < 600:
+            has_structural = any(
+                block.get("type") in {"figure", "table"} for block in translated
+            )
+            if not can_deep and len(body) < 600 and not (len(body) >= 120 and has_structural):
                 print(f"[body] 结构化普通正文过短，降级摘要: {event['zh_title'][:40]}")
                 body, translated = "", []
             if translated and translation_stats.get("applied", 0) > 0:
@@ -851,11 +913,20 @@ def generate_event_body(event, primary, cfg, body_state):
                 )
                 event["content_blocks"] = cached_blocks
                 event["content_format"] = "blocks-v1"
+                event["content_parse"] = content_parse_record(
+                    parse_report, status="ready", source=primary.get("source", ""),
+                    media_report=media_report,
+                )
                 if media_report["figures"]:
                     print(
                         f"[media] {event['zh_title'][:30]} | "
                         f"缓存 {media_report['cached']} / 链接 {media_report['link_only']}"
                     )
+            elif article_blocks:
+                event["content_parse"] = content_parse_record(
+                    parse_report, status="failed", source=primary.get("source", ""),
+                    reason="translation_failed_or_too_short",
+                )
             level = "deep" if can_deep else "standard"
         elif can_deep:
             body_state["deep_used"] = body_state.get("deep_used", 0) + 1
@@ -887,6 +958,181 @@ def generate_event_body(event, primary, cfg, body_state):
         event.pop("content_format", None)
     event["body_chars"] = len(event["full_zh"])
     return event["full_zh"]
+
+
+def _bounded_env_int(name, default, *, minimum=0, maximum=100):
+    try:
+        value = int(os.getenv(name, str(default)))
+    except (TypeError, ValueError):
+        value = default
+    return min(maximum, max(minimum, value))
+
+
+def _event_time(event):
+    value = parse_date(event.get("first_seen") or event.get("published"))
+    if value is None:
+        return datetime.min.replace(tzinfo=timezone.utc)
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
+def backfill_structured_content(events, cfg, *, now=None, limit=None, lookback_days=None):
+    """Boundedly upgrade recent high-value legacy events that contain a figure/table."""
+    now = now or datetime.now(timezone.utc)
+    now_utc = now.replace(tzinfo=timezone.utc) if now.tzinfo is None else now.astimezone(timezone.utc)
+    limit = (
+        _bounded_env_int("CONTENT_BLOCKS_BACKFILL_LIMIT", 2, maximum=8)
+        if limit is None else max(0, min(8, int(limit)))
+    )
+    lookback_days = (
+        _bounded_env_int("CONTENT_BLOCKS_BACKFILL_DAYS", 30, minimum=1, maximum=90)
+        if lookback_days is None else max(1, min(90, int(lookback_days)))
+    )
+    attempt_limit = _bounded_env_int(
+        "CONTENT_BLOCKS_BACKFILL_ATTEMPTS", max(12, limit * 4), maximum=24,
+    )
+    key, base, model = cfg
+    summary = {"limit": limit, "attempted": 0, "ready": 0, "skipped": 0, "failed": 0}
+    if not (limit and key and base and model):
+        summary["disabled_reason"] = "limit_or_llm_unavailable"
+        return summary
+
+    retry_cutoff = now_utc - timedelta(days=7)
+    eligible = []
+    for event in events:
+        if event.get("content_blocks") or _event_time(event) < now_utc - timedelta(days=lookback_days):
+            continue
+        previous = event.get("content_parse") if isinstance(event.get("content_parse"), dict) else {}
+        attempted_at = parse_date(previous.get("attempted_at"))
+        if attempted_at is not None:
+            if attempted_at.tzinfo is None:
+                attempted_at = attempted_at.replace(tzinfo=timezone.utc)
+            if attempted_at.astimezone(timezone.utc) >= retry_cutoff:
+                continue
+        if not event.get("items"):
+            continue
+        eligible.append(event)
+    eligible.sort(
+        key=lambda event: (
+            bool(event.get("pinned")), event.get("shelf") == "evergreen",
+            int(event.get("importance", 0) or 0), _event_time(event),
+        ),
+        reverse=True,
+    )
+
+    for event in eligible[:attempt_limit]:
+        if summary["ready"] >= limit:
+            break
+        primary = event["items"][0]
+        source = primary.get("source", "")
+        summary["attempted"] += 1
+        text, _title, _published, blocks, parse_report = fetch_article_content(
+            primary.get("link", ""), include_report=True,
+        )
+        visual_count = int(parse_report.get("figures", 0) or 0) + int(parse_report.get("tables", 0) or 0)
+        if not (text and blocks and visual_count):
+            event["content_parse"] = content_parse_record(
+                parse_report, status="skipped", source=source,
+                reason="no_usable_figure_or_table",
+            )
+            summary["skipped"] += 1
+            continue
+        try:
+            translated, translation_stats = translate_article_blocks(
+                blocks, cfg, source=source, item_id=event["event_id"], deep=False,
+                purpose="body_blocks_backfill",
+            )
+            body = blocks_plain_text(translated)
+            has_structural = any(
+                block.get("type") in {"figure", "table"} for block in translated
+            )
+            if translation_stats.get("applied", 0) <= 0 or not (len(body) >= 120 and has_structural):
+                raise ValueError("translation_failed_or_too_short")
+            cached_blocks, media_report = cache_event_media(
+                translated, event["event_id"], primary.get("link", ""), SITE,
+            )
+            event["content_blocks"] = cached_blocks
+            event["content_format"] = "blocks-v1"
+            event["full_zh"] = body
+            event["body_chars"] = len(body)
+            if event.get("content_level") not in {"deep", "standard"}:
+                event["content_level"] = "standard"
+            event["content_parse"] = content_parse_record(
+                parse_report, status="ready", source=source, media_report=media_report,
+            )
+            summary["ready"] += 1
+            print(
+                f"[backfill] {event.get('zh_title', '')[:36]} | "
+                f"{parse_report.get('strategy')} | 图 {parse_report.get('figures', 0)} "
+                f"表 {parse_report.get('tables', 0)}"
+            )
+        except Exception as exc:
+            event.pop("content_blocks", None)
+            event.pop("content_format", None)
+            event["content_parse"] = content_parse_record(
+                parse_report, status="failed", source=source, reason=str(exc),
+            )
+            summary["failed"] += 1
+            print(f"[backfill] 失败 {event.get('zh_title', '')[:36]} | {exc}")
+    return summary
+
+
+def structured_content_metrics(events, *, run_id=""):
+    """Summarize one run's parser/fallback/media outcomes for persistent observability."""
+    metrics = {
+        "run_id": run_id or LLM_USAGE.run_id,
+        "attempted": 0, "ready": 0, "figures": 0, "tables": 0,
+        "media_cached": 0, "media_link_only": 0,
+        "strategies": {}, "fallbacks": {}, "by_source": {},
+    }
+    for event in events:
+        record = event.get("content_parse")
+        if not isinstance(record, dict) or (run_id and record.get("run_id") != run_id):
+            continue
+        metrics["attempted"] += 1
+        status = str(record.get("status") or "unknown")
+        if status == "ready":
+            metrics["ready"] += 1
+        metrics["figures"] += int(record.get("figures", 0) or 0)
+        metrics["tables"] += int(record.get("tables", 0) or 0)
+        strategy = str(record.get("strategy") or "unknown")
+        metrics["strategies"][strategy] = metrics["strategies"].get(strategy, 0) + 1
+        if status != "ready":
+            reason = str(record.get("reason") or status)[:120]
+            metrics["fallbacks"][reason] = metrics["fallbacks"].get(reason, 0) + 1
+        media = record.get("media") if isinstance(record.get("media"), dict) else {}
+        metrics["media_cached"] += int(media.get("cached", 0) or 0)
+        metrics["media_link_only"] += int(media.get("link_only", 0) or 0)
+        source = str(record.get("source") or "unknown")
+        source_metrics = metrics["by_source"].setdefault(
+            source, {"attempted": 0, "ready": 0, "figures": 0, "tables": 0, "media_cached": 0},
+        )
+        source_metrics["attempted"] += 1
+        source_metrics["ready"] += int(status == "ready")
+        source_metrics["figures"] += int(record.get("figures", 0) or 0)
+        source_metrics["tables"] += int(record.get("tables", 0) or 0)
+        source_metrics["media_cached"] += int(media.get("cached", 0) or 0)
+    return metrics
+
+
+def write_structured_content_summary(metrics):
+    summary_path = str(os.getenv("GITHUB_STEP_SUMMARY", "")).strip()
+    if not summary_path:
+        return
+    strategy_rows = "\n".join(
+        f"| {name} | {count} |" for name, count in sorted(metrics.get("strategies", {}).items())
+    ) or "| 无 | 0 |"
+    text = (
+        "\n## Structured article content\n\n"
+        f"- Attempted: **{metrics.get('attempted', 0)}**；ready: **{metrics.get('ready', 0)}**\n"
+        f"- Figures: **{metrics.get('figures', 0)}**；tables: **{metrics.get('tables', 0)}**\n"
+        f"- Media cached: **{metrics.get('media_cached', 0)}**；link only: **{metrics.get('media_link_only', 0)}**\n\n"
+        "| Extraction strategy | Count |\n|---|---:|\n"
+        f"{strategy_rows}\n"
+    )
+    with open(summary_path, "a", encoding="utf-8") as handle:
+        handle.write(text)
 
 def _event_candidate_comparable(item, event, max_hours=72):
     if item.get("category") and item.get("category") == event.get("category"):
@@ -1289,9 +1535,12 @@ def main():
 
     # 事件主来源的正文抓取；新流程不再抓取每个重复报道。
     def grab(it):
-        text, page_title, meta_date, blocks = fetch_article_content(it["link"])
+        text, page_title, meta_date, blocks, parse_report = fetch_article_content(
+            it["link"], include_report=True,
+        )
         it["article_text"] = text
         it["article_blocks"] = blocks
+        it["_article_parse"] = parse_report
         if it.get("_slug_title") and page_title:
             it["title"] = page_title
             it["zh_title"] = page_title
@@ -1396,6 +1645,16 @@ def main():
             f"深度正文 {body_state['deep_used']}/{body_state['max_deep']} 个"
         )
 
+    backfill_summary = backfill_structured_content(events, cfg, now=now)
+    run_structured = structured_content_metrics(events, run_id=LLM_USAGE.run_id)
+    run_structured["backfill"] = backfill_summary
+    write_structured_content_summary(run_structured)
+    print(
+        f"[structured] ready {run_structured['ready']}/{run_structured['attempted']} | "
+        f"图 {run_structured['figures']} 表 {run_structured['tables']} | "
+        f"缓存 {run_structured['media_cached']}"
+    )
+
     # 信源状态持久化：连续失败计数 + 抓取/入选计数（入选率 = 信源质量记分牌）
     from collections import Counter as _Counter
     accepted = _Counter(it["source"] for it in new_items)
@@ -1410,6 +1669,10 @@ def main():
         rec["ok"] = st["ok"]
         rec["control"] = st.get("control", {})
         rec["last_schedule_reason"] = st.get("skip_reason") or st.get("schedule_reason", "")
+        rec["last_structured_content"] = run_structured.get("by_source", {}).get(
+            st["name"],
+            {"attempted": 0, "ready": 0, "figures": 0, "tables": 0, "media_cached": 0},
+        )
         if st.get("skipped"):
             rec["last_skipped"] = now_iso
             rec["last_new"] = 0
@@ -1498,6 +1761,7 @@ def main():
     payload = {
         "generated_at": now.astimezone(TZ).isoformat(),
         "events": events, "top": top, "sources": source_status,
+        "structured_content": run_structured,
     }
     json.dump(payload, open(latest_path, "w"), ensure_ascii=False, indent=1)
     json.dump(payload, open(ARCHIVE / (now.astimezone(TZ).strftime("%Y-%m-%d-%H%M") + ".json"), "w"),

@@ -15,9 +15,11 @@ from content_blocks import (  # noqa: E402
     iter_text_nodes,
     limit_blocks,
     parse_html_blocks,
+    parse_html_blocks_with_report,
     render_blocks_html,
     sanitize_blocks,
     sanitize_url,
+    select_article_media,
     translation_nodes,
 )
 import run_update  # noqa: E402
@@ -108,6 +110,83 @@ class ContentBlockParsingTests(unittest.TestCase):
         self.assertEqual(color_token("rgb(0, 87, 255)"), "info")
         self.assertEqual(color_token("#0a8f44"), "positive")
 
+    def test_void_input_does_not_swallow_article_media_or_table(self):
+        body = "这是经过验证的正文内容。" * 45
+        markup = f"""
+        <header><input type="search" placeholder="Search"></header>
+        <article><p>{body}</p>
+          <figure><img src="/chart.png" alt="性能趋势图" width="960" height="540">
+            <figcaption>吞吐量变化</figcaption></figure>
+          <table><tr><th rowspan="2">指标</th><th colspan="2">结果</th></tr>
+            <tr><td>延迟</td><td>20 ms</td></tr></table>
+        </article>
+        """
+        blocks, report = parse_html_blocks_with_report(markup, "https://example.com/post")
+        self.assertEqual(report["strategy"], "article")
+        self.assertIn("figure", [block["type"] for block in blocks])
+        self.assertIn("table", [block["type"] for block in blocks])
+        table = next(block for block in blocks if block["type"] == "table")
+        self.assertEqual(table["rows"][0]["cells"][0]["rowspan"], 2)
+        self.assertEqual(table["rows"][0]["cells"][1]["colspan"], 2)
+        rendered = render_blocks_html(blocks)
+        self.assertIn('rowspan="2"', rendered)
+        self.assertIn('colspan="2"', rendered)
+
+    def test_article_root_wins_over_unrelated_page_copy(self):
+        article_text = "正文机制说明和结果数据。" * 45
+        unrelated = "相关推荐和页脚噪声。" * 80
+        markup = (
+            f'<div class="related">{unrelated}</div>'
+            f'<article><h1>真正标题</h1><p>{article_text}</p></article>'
+        )
+        blocks, report = parse_html_blocks_with_report(markup, "https://example.com/post")
+        plain = blocks_plain_text(blocks)
+        self.assertEqual(report["strategy"], "article")
+        self.assertIn("正文机制说明", plain)
+        self.assertNotIn("相关推荐", plain)
+
+    def test_jsonld_article_body_is_used_when_dom_has_no_body_root(self):
+        article_body = "JSON-LD 中的可信文章正文。" * 45
+        markup = (
+            '<html><head><script type="application/ld+json">'
+            + json.dumps({"@type": "Article", "articleBody": article_body}, ensure_ascii=False)
+            + '</script></head><body><span>短页面</span></body></html>'
+        )
+        blocks, report = parse_html_blocks_with_report(markup, "https://example.com/post")
+        self.assertEqual(report["strategy"], "jsonld_article_body")
+        self.assertIn("可信文章正文", blocks_plain_text(blocks))
+
+    def test_largest_content_container_is_auditable_fallback(self):
+        markup = (
+            '<div class="promo">很短</div>'
+            + '<section class="content-shell"><p>'
+            + "主要内容容器中的机制、数字与结论。" * 40
+            + '</p></section>'
+        )
+        blocks, report = parse_html_blocks_with_report(markup, "https://example.com/post")
+        self.assertEqual(report["strategy"], "largest_content")
+        self.assertIn("主要内容容器", blocks_plain_text(blocks))
+
+    def test_media_selection_drops_decorations_and_keeps_best_three_in_flow(self):
+        blocks = sanitize_blocks([
+            {"type": "figure", "src": "https://example.com/logo.svg", "alt": "Company logo"},
+            {"type": "figure", "src": "https://example.com/first-chart.png", "alt": "latency chart", "width": 960, "height": 540},
+            {"type": "paragraph", "children": [{"type": "text", "text": "正文", "marks": []}]},
+            {"type": "figure", "src": "https://example.com/avatar.png", "alt": "author avatar", "width": 500, "height": 500},
+            {"type": "figure", "src": "https://example.com/second-diagram.png", "caption": "architecture diagram", "width": 1200, "height": 700},
+            {"type": "figure", "src": "https://example.com/third-graph.png", "alt": "cost graph", "width": 800, "height": 450},
+            {"type": "figure", "src": "https://example.com/fourth.png", "alt": "plain screenshot", "width": 300, "height": 200},
+        ])
+        selected, report = select_article_media(blocks, maximum=3)
+        urls = [block["src"] for block in selected if block["type"] == "figure"]
+        self.assertEqual(urls, [
+            "https://example.com/first-chart.png",
+            "https://example.com/second-diagram.png",
+            "https://example.com/third-graph.png",
+        ])
+        self.assertEqual(report["figures_selected"], 3)
+        self.assertEqual(report["figures_rejected"], 3)
+
 
 class ContentBlockTranslationTests(unittest.TestCase):
     def setUp(self):
@@ -149,6 +228,37 @@ class ContentBlockTranslationTests(unittest.TestCase):
         self.assertLessEqual(len(blocks_plain_text(limited)), 100)
         self.assertTrue(all(block["type"] in {"heading", "paragraph", "list", "blockquote", "code", "table", "figure"} for block in limited))
 
+    def test_figure_copy_is_translated_without_changing_media_address(self):
+        figure_blocks = parse_html_blocks(
+            '<article><p>' + "足够长的正文。" * 70 + '</p>'
+            '<figure><img src="https://example.com/chart.png" alt="Latency chart" '
+            'width="960" height="540"><figcaption>Benchmark result</figcaption></figure></article>',
+            "https://example.com/post",
+        )
+        nodes = translation_nodes(figure_blocks)
+        translated, stats = apply_translations(
+            figure_blocks,
+            [{"id": node["id"], "text": "中译：" + node["text"]} for node in nodes],
+        )
+        figure = next(block for block in translated if block["type"] == "figure")
+        self.assertEqual(figure["src"], "https://example.com/chart.png")
+        self.assertTrue(figure["caption"].startswith("中译："))
+        self.assertTrue(figure["alt"].startswith("中译："))
+        self.assertEqual(stats["applied"], len(nodes))
+
+    def test_limit_blocks_can_preserve_figures_and_tables_after_text_budget(self):
+        markup = (
+            '<article><p>' + "正文很长。" * 120 + '</p>'
+            '<figure><img src="https://example.com/chart.png" alt="chart" width="900" height="500"></figure>'
+            '<table><tr><th>Metric</th><td>20 ms</td></tr></table></article>'
+        )
+        blocks = parse_html_blocks(markup, "https://example.com/post")
+        limited = limit_blocks(blocks, 30, preserve_types={"figure", "table"})
+        self.assertEqual(
+            [block["type"] for block in limited if block["type"] in {"figure", "table"}],
+            ["figure", "table"],
+        )
+
     def test_pipeline_translation_sends_only_id_and_text_nodes(self):
         nodes = translation_nodes(limit_blocks(self.blocks, 5000))
         response = {"nodes": [{"id": node["id"], "text": "译:" + node["text"]} for node in nodes]}
@@ -164,6 +274,23 @@ class ContentBlockTranslationTests(unittest.TestCase):
         self.assertIn('"id":"t-', prompt)
         self.assertEqual(stats["applied"], len(nodes))
         self.assertTrue(blocks_plain_text(translated).startswith("译:"))
+
+    def test_fetch_article_content_returns_parser_diagnostics_on_request(self):
+        markup = (
+            '<html><head><title>Example</title></head><body><header><input></header>'
+            '<article><p>' + "已校验的文章正文。" * 55 + '</p>'
+            '<figure><img src="https://example.com/chart.png" alt="chart" '
+            'width="900" height="500"></figure></article></body></html>'
+        ).encode()
+        with patch.object(run_update, "fetch_url", return_value=markup):
+            text, title, _published, blocks, report = run_update.fetch_article_content(
+                "https://example.com/post", include_report=True,
+            )
+        self.assertEqual(title, "Example")
+        self.assertGreater(len(text), 400)
+        self.assertEqual(report["strategy"], "article")
+        self.assertEqual(report["figures"], 1)
+        self.assertTrue(any(block["type"] == "figure" for block in blocks))
 
     def test_event_body_degrades_when_no_translation_node_is_applied(self):
         primary = {
@@ -232,6 +359,8 @@ class ContentBlockRenderingTests(unittest.TestCase):
         self.assertNotIn("onclick=\"steal", page)
         self.assertIn(".tone-accent", page)
         self.assertIn("prefers-color-scheme: dark", page)
+        self.assertIn('aria-label="原文表格"', page)
+        self.assertIn("overscroll-behavior-inline:contain", page)
 
     def test_legacy_fulltext_still_renders_when_blocks_are_missing(self):
         article = self.base_event()

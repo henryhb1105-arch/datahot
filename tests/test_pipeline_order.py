@@ -259,6 +259,75 @@ class EventFirstPipelineTests(unittest.TestCase):
         self.assertEqual(len(result), 2)
         judge.assert_not_called()
 
+    def test_backfill_is_bounded_and_only_upgrades_visual_articles(self):
+        visual = event("visual", title="带图文章", importance=90)
+        plain = event("plain", title="纯文字文章", importance=80)
+        blocks = [
+            {
+                "type": "paragraph", "id": "b-p",
+                "children": [{"type": "text", "id": "t-p", "text": "正文" * 80, "marks": []}],
+            },
+            {
+                "type": "figure", "id": "b-f", "src": "https://example.com/chart.png",
+                "alt": "chart", "caption": "benchmark", "source_url": "https://example.com/visual",
+                "width": 900, "height": 500,
+            },
+        ]
+        visual_report = {
+            "strategy": "article", "blocks": 2, "text_chars": 164,
+            "figures": 1, "tables": 0, "figures_discovered": 1,
+            "figures_selected": 1, "figures_rejected": 0,
+        }
+        plain_report = {
+            "strategy": "article", "blocks": 1, "text_chars": 500,
+            "figures": 0, "tables": 0, "figures_discovered": 0,
+            "figures_selected": 0, "figures_rejected": 0,
+        }
+
+        def fetched(url, **_kwargs):
+            if url.endswith("/visual"):
+                return "正文" * 80, "", None, blocks, visual_report
+            return "纯文字" * 200, "", None, blocks[:1], plain_report
+
+        media_report = {"figures": 1, "cached": 1, "link_only": 0, "reasons": {}}
+        with patch.object(run_update, "fetch_article_content", side_effect=fetched), patch.object(
+            run_update, "translate_article_blocks", return_value=(blocks, {"applied": 3, "ignored": 0, "missing": 0})
+        ) as translate, patch.object(
+            run_update, "cache_event_media", return_value=(blocks, media_report)
+        ):
+            summary = run_update.backfill_structured_content(
+                [visual, plain], ("k", "base", "model"), now=NOW, limit=1, lookback_days=30,
+            )
+
+        self.assertEqual(summary["ready"], 1)
+        self.assertEqual(summary["attempted"], 1)
+        self.assertEqual(visual["content_format"], "blocks-v1")
+        self.assertEqual(visual["content_parse"]["status"], "ready")
+        self.assertEqual(visual["content_parse"]["media"]["cached"], 1)
+        self.assertNotIn("content_blocks", plain)
+        self.assertEqual(translate.call_args.kwargs["purpose"], "body_blocks_backfill")
+
+    def test_structured_metrics_are_scoped_to_the_current_run_and_source(self):
+        current = event("current")
+        current["content_parse"] = {
+            "run_id": "run-current", "status": "ready", "source": "Feed",
+            "strategy": "article", "figures": 2, "tables": 1,
+            "media": {"cached": 1, "link_only": 1},
+        }
+        old = event("old")
+        old["content_parse"] = {
+            "run_id": "run-old", "status": "failed", "source": "Feed",
+            "strategy": "document_fallback", "figures": 0, "tables": 0,
+            "reason": "too_short",
+        }
+        metrics = run_update.structured_content_metrics([current, old], run_id="run-current")
+        self.assertEqual(metrics["attempted"], 1)
+        self.assertEqual(metrics["ready"], 1)
+        self.assertEqual(metrics["figures"], 2)
+        self.assertEqual(metrics["tables"], 1)
+        self.assertEqual(metrics["media_cached"], 1)
+        self.assertEqual(metrics["by_source"]["Feed"]["ready"], 1)
+
 
 class ClusterCacheTests(unittest.TestCase):
     def test_pair_key_is_order_independent(self):

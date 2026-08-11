@@ -172,7 +172,7 @@ def sidebar(active, gen=None):
     return ('<aside class="sidebar">'
             '<div class="slogo"><a href="index.html" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div>'
             + menu +
-            f'<div class="sfoot">{foot}每 6 小时自动更新<br>数据领域 AI 资讯分享</div></aside>')
+            f'<div class="sfoot">{foot}每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>')
 
 def tabbar(active, prefix=""):
     items = [("热榜", ic("flame",20), "index.html", "home"), ("主题", ic("map",20), "topics.html", "topics"), ("典藏", ic("bookmark",20), "classics.html", "classics"), ("收藏", ic("star",20), "favorites.html", "favorites"), ("信源", ic("rss",20), "sources.html", "sources")]
@@ -422,7 +422,7 @@ def render_detail(e, all_events, css):
   <div class="card"><h4>{ic("link")} 信源（{len(e["items"])} 家报道 · 按时间排序）</h4>{srcs}</div>
   <div class="card"><h4>{ic("list")} 相关事件</h4>{rel_html}</div>
 </div>
-<footer>DataHot，数据领域AI资讯分享</footer>
+<footer>DataHot，数据领域AI资讯分享 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 {tabbar("home", "../")}
 </body></html>'''
     return page.replace("</body></html>", share_ui(e, page_url) + "</body></html>")
@@ -738,7 +738,7 @@ def page_shell(title, desc, css, body, tabbar_html, prefix="", active=""):
   <div class="logo"><a href="{prefix}index.html" style="text-decoration:none">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
 {body}
-<footer>DataHot，数据领域AI资讯分享</footer>
+<footer>DataHot，数据领域AI资讯分享 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 {tabbar_html}
 </body></html>'''
 
@@ -1083,7 +1083,7 @@ def main():
 </aside>
 </div></div>
 
-<footer>DataHot，数据领域AI资讯分享</footer>
+<footer>DataHot，数据领域AI资讯分享 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 {tabbar("home")}
 
 <script>

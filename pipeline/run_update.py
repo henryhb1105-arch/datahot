@@ -160,7 +160,7 @@ def extract_meta_date(html_txt):
         m = re.search(pat, html_txt)
         if m:
             dt = parse_date(m.group(1)[:30])
-            if dt:
+            if dt and 2005 <= dt.year <= 2100:
                 return dt
     return None
 
@@ -657,8 +657,11 @@ def main():
                         prev["signal"] = prev.get("signal", 0) + e.get("signal", 0)
                     continue
                 seen.add(iid); seen_urls.add(nurl)
-                pub_iso = e["published"].astimezone(TZ).isoformat() if e["published"] else None
                 pub_dt = e["published"] or now
+                if pub_dt > now + timedelta(hours=2):  # 信源排期导致的未来时间 → 钳到抓取时间
+                    print(f"[date] 未来发布时间钳制: {e['title'][:40]} ({pub_dt} → {now})")
+                    pub_dt = now
+                pub_iso = pub_dt.astimezone(TZ).isoformat() if e["published"] else None
                 new_items.append({
                     "id": iid, "title": e["title"], "zh_title": e["title"],
                     "summary": e["summary"][:600], "zh_summary": e["summary"][:300],
@@ -690,7 +693,7 @@ def main():
             it["title"] = page_title
             it["zh_title"] = page_title
         # 发布时间覆盖：无日期的条目用页面 meta 日期回填（优先于抓取时间）
-        if not it.get("published") and meta_date:
+        if not it.get("published") and meta_date and meta_date <= datetime.now(timezone.utc) + timedelta(days=1):
             it["published"] = meta_date.astimezone(TZ).isoformat()
             it["_pub_dt"] = meta_date
             print(f"[date] meta 回填发布时间: {meta_date.date()} | {it['title'][:30]}")

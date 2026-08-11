@@ -681,7 +681,8 @@ def validate_personal_response(response, signal_doc, evidence_map):
 def _repair_prompt(original_prompt, errors):
     return (
         original_prompt
-        + "\n\n上一次输出未通过校验。只修复下列问题，仍然只输出一个JSON对象：\n- "
+        + "\n\n上一次输出未通过校验。只修复下列问题，严格遵守错误中标出的长度上下限，"
+        + "中文、字母、数字和标点均按1个字符计算；仍然只输出一个JSON对象：\n- "
         + "\n- ".join(errors[:12])
     )
 

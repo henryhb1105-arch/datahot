@@ -770,6 +770,17 @@ class WeeklyBriefHealthTests(unittest.TestCase):
         self.assertIn("2 个信号", ready_message)
 
 
+class WeeklyWorkflowRoutingTests(unittest.TestCase):
+    def test_product_code_push_has_one_ai_capable_publish_workflow(self):
+        update = (ROOT / ".github/workflows/update.yml").read_text(encoding="utf-8")
+        deploy = (ROOT / ".github/workflows/deploy.yml").read_text(encoding="utf-8")
+        self.assertIn('- "pipeline/**"', update)
+        self.assertIn('- ".github/workflows/deploy.yml"', update)
+        self.assertNotIn('- "pipeline/**"', deploy)
+        self.assertNotIn('- "ui-mockup/**"', deploy)
+        self.assertIn('LLM_API_KEY: ${{ secrets.LLM_API_KEY }}', update)
+
+
 class StrictJsonTests(unittest.TestCase):
     def test_weekly_parser_rejects_text_outside_json(self):
         self.assertEqual(run_update.parse_llm_json_content('{"ok":true}', strict_object=True), {"ok": True})

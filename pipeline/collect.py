@@ -12,6 +12,7 @@ from run_update import (fetch_article_content, make_event, load_llm_config, llm_
                         norm_url, fetch_url, strip_html, calc_heat, TOPIC_NAMES,
                         CATEGORIES_LABEL, TZ, LLM_USAGE)
 from content_blocks import blocks_plain_text
+from media_cache import cache_event_media
 
 ROOT = Path(__file__).resolve().parent.parent
 LATEST = ROOT / "site" / "data" / "latest.json"
@@ -137,7 +138,14 @@ def main():
         for it in new_items:
             it["shelf"] = "evergreen"   # 收录一律进典藏
             it["pinned"] = True
-            events.append(make_event(it))
+            event = make_event(it)
+            if event.get("content_blocks"):
+                event["content_blocks"], media_report = cache_event_media(
+                    event["content_blocks"], event["event_id"], it["link"], ROOT / "site",
+                )
+                if media_report["figures"]:
+                    print(f"媒体：缓存 {media_report['cached']} / 仅链接 {media_report['link_only']}")
+            events.append(event)
             print(f"已入典藏: {it['zh_title'][:50]}")
         d["events"] = events
         json.dump(d, open(LATEST, "w"), ensure_ascii=False, indent=1)

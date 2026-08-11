@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """V1.1：读取 latest.json（事件结构），生成首页 + 每个事件的站内详情页（带 OG meta）"""
-import json, html, re
+import json, html, os, re
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
@@ -335,7 +335,8 @@ def render_detail(e, all_events, css):
     main_src = esc(sorted_items[0]["source"])
     # blocks-v1 先经本地白名单清洗再渲染；异常或旧数据安全降级到 full_zh。
     safe_blocks = sanitize_blocks(e.get("content_blocks", []), main_url)
-    full_paras = render_blocks_html(safe_blocks) if safe_blocks else ""
+    render_media = os.getenv("MEDIA_BLOCKS_ENABLED", "true").strip().lower() not in {"0", "false", "no", "off"}
+    full_paras = render_blocks_html(safe_blocks, render_media=render_media) if safe_blocks else ""
     if not full_paras:
         paras_all = [pp.strip() for pp in re.split(r"\n\s*\n", e.get("full_zh", "")) if pp.strip()]
         if paras_all and paras_all[0].startswith("## "):
@@ -406,6 +407,16 @@ def render_detail(e, all_events, css):
 .cb-table th,.cb-table td{{padding:9px 12px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:left;vertical-align:top}}
 .cb-table th{{background:var(--soft);color:var(--ink);font-weight:700}}
 .cb-table tr:last-child td{{border-bottom:none}}
+.cb-figure{{margin:20px 0;background:var(--soft);border:1px solid var(--line);border-radius:12px;overflow:hidden}}
+.cb-media-link{{display:block;background:#f5f7fa;text-decoration:none}}
+.cb-figure img{{display:block;width:100%;height:auto;max-height:72vh;object-fit:contain;margin:0 auto}}
+.cb-figure figcaption{{display:flex;flex-direction:column;gap:7px;padding:10px 13px;font-size:12px;line-height:1.6;color:var(--txt2)}}
+.cb-media-meta{{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:var(--sub)}}
+.cb-media-meta a{{font-size:11.5px}}
+.cb-media-source{{margin-right:auto;overflow-wrap:anywhere}}
+.cb-media-placeholder{{min-height:150px;display:grid;place-items:center;padding:24px;text-align:center;color:var(--sub);background:linear-gradient(135deg,var(--soft),var(--card))}}
+@media(max-width:600px){{.cb-figure{{margin:16px -8px;border-radius:9px}}.cb-figure figcaption{{padding:9px 11px}}.cb-table{{max-width:100%}}}}
+@media (prefers-color-scheme: dark){{.cb-media-link{{background:#171a20}}}}
 .tone-accent{{color:var(--accent);font-weight:650}}.tone-warning{{color:var(--amber);font-weight:650}}
 .tone-positive{{color:var(--green);font-weight:650}}.tone-info{{color:var(--blue);font-weight:650}}.tone-emphasis{{color:var(--ink);font-weight:650}}
 .cta{{display:inline-block;background:var(--accent);color:#fff;font-size:14px;font-weight:700;border-radius:10px;padding:11px 26px;margin:6px 0 4px}}

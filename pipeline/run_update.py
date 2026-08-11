@@ -18,6 +18,7 @@ from content_blocks import (
     apply_translations, blocks_plain_text, limit_blocks, parse_html_blocks,
     sanitize_blocks, translation_nodes,
 )
+from media_cache import cache_event_media, prune_media_cache
 from source_controls import (
     prefilter_entries, source_candidate_limit, source_control_snapshot, source_due,
 )
@@ -192,6 +193,21 @@ def fetch_article_content(url, max_chars=24000):
             title = re.split(r"[|｜_-]{1,2}\s*(?:Aloudata|官网|博客).*$", title)[0].strip() or title
         pub_date = extract_meta_date(html_txt)
         blocks = parse_html_blocks(html_txt, url)
+        no_image_index = False
+        for meta_tag in re.findall(r"(?is)<meta\b[^>]*>", html_txt):
+            name_match = re.search(r"(?i)\bname\s*=\s*['\"]([^'\"]+)['\"]", meta_tag)
+            content_match = re.search(r"(?i)\bcontent\s*=\s*['\"]([^'\"]+)['\"]", meta_tag)
+            if (
+                name_match and content_match
+                and name_match.group(1).strip().casefold() in {"robots", "googlebot"}
+                and "noimageindex" in content_match.group(1).casefold()
+            ):
+                no_image_index = True
+                break
+        if no_image_index:
+            for block in blocks:
+                if block.get("type") == "figure":
+                    block["media_reason"] = "rights_restricted"
         text = blocks_plain_text(blocks)
         if len(text) <= 400:
             fallback = re.sub(r"(?is)<(script|style|noscript|nav|footer|header)[^>]*>.*?</\1>", " ", html_txt)
@@ -749,8 +765,16 @@ def generate_event_body(event, primary, cfg, body_state):
                 print(f"[body] 结构化普通正文过短，降级摘要: {event['zh_title'][:40]}")
                 body, translated = "", []
             if translated and translation_stats.get("applied", 0) > 0:
-                event["content_blocks"] = translated
+                cached_blocks, media_report = cache_event_media(
+                    translated, event["event_id"], primary.get("link", ""), SITE,
+                )
+                event["content_blocks"] = cached_blocks
                 event["content_format"] = "blocks-v1"
+                if media_report["figures"]:
+                    print(
+                        f"[media] {event['zh_title'][:30]} | "
+                        f"缓存 {media_report['cached']} / 链接 {media_report['link_only']}"
+                    )
             level = "deep" if can_deep else "standard"
         elif can_deep:
             body_state["deep_used"] = body_state.get("deep_used", 0) + 1
@@ -1339,6 +1363,12 @@ def main():
     # 清理过期：news 7 天淘汰；evergreen 永久沉淀（典藏池）
     events = [e for e in events
               if datetime.fromisoformat(e.get("first_seen") or e["published"]) > cutoff or e.get("shelf") == "evergreen"]
+    media_prune = prune_media_cache((event["event_id"] for event in events), SITE)
+    if media_prune["removed_dirs"]:
+        print(
+            f"[media] 清理过期事件目录 {media_prune['removed_dirs']} 个 / "
+            f"{media_prune['removed_bytes']} bytes"
+        )
 
     # 热度分 2.0：全量重算（新鲜度随时间衰减，分数每天自然"降温"）
     for e in events:

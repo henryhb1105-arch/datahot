@@ -26,6 +26,9 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: 安装图片安全处理依赖
+        run: python3 -m pip install --require-hashes -r requirements.txt
+
       - name: 采集 → AI 加工 → 生成静态站
         env:
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
@@ -41,6 +44,11 @@ jobs:
           MAX_DEEP_EVENTS_PER_RUN: ${{ vars.MAX_DEEP_EVENTS_PER_RUN || '2' }}
           DEEP_IMPORTANCE_THRESHOLD: ${{ vars.DEEP_IMPORTANCE_THRESHOLD || '80' }}
           CLUSTER_CACHE_TTL_DAYS: ${{ vars.CLUSTER_CACHE_TTL_DAYS || '14' }}
+          MEDIA_BLOCKS_ENABLED: ${{ vars.MEDIA_BLOCKS_ENABLED || 'true' }}
+          MEDIA_MAX_BYTES: ${{ vars.MEDIA_MAX_BYTES || '5000000' }}
+          MEDIA_MAX_PIXELS: ${{ vars.MEDIA_MAX_PIXELS || '24000000' }}
+          MEDIA_MAX_PER_EVENT: ${{ vars.MEDIA_MAX_PER_EVENT || '3' }}
+          MEDIA_CACHE_MAX_BYTES: ${{ vars.MEDIA_CACHE_MAX_BYTES || '250000000' }}
           BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
           BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
         run: |
@@ -51,7 +59,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: 定时更新数据 [skip ci]"
-          file_pattern: "site/data/**"
+          file_pattern: "site/data/** site/media/**"
 
       - name: 发布到 GitHub Pages
         uses: peaceiris/actions-gh-pages@v4

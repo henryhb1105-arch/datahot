@@ -22,6 +22,9 @@ DANGEROUS_TAGS = {
 }
 BLOCK_ID_RE = re.compile(r"^b-[a-f0-9]{10,16}(?:-\d+)?$")
 TEXT_ID_RE = re.compile(r"^t-[a-f0-9]{10,16}(?:-\d+)?$")
+CACHED_MEDIA_RE = re.compile(
+    r"^\.\./media/[a-zA-Z0-9_-]{1,64}/[a-f0-9]{16,64}\.(?:jpg|png|webp|svg)$"
+)
 
 
 def sanitize_url(value, base_url=""):
@@ -33,6 +36,11 @@ def sanitize_url(value, base_url=""):
     if parsed.scheme.lower() not in {"http", "https"} or not parsed.netloc:
         return ""
     return absolute
+
+
+def sanitize_cached_media_path(value):
+    value = str(value or "").strip()
+    return value if CACHED_MEDIA_RE.fullmatch(value) else ""
 
 
 def color_token(value):
@@ -172,7 +180,7 @@ def sanitize_blocks(blocks, base_url=""):
             if not block["rows"]:
                 continue
         elif kind == "figure":
-            src = sanitize_url(raw.get("src"), base_url)
+            src = sanitize_url(raw.get("src") or raw.get("original_src"), base_url)
             if not src:
                 continue
             block.update({
@@ -183,6 +191,29 @@ def sanitize_blocks(blocks, base_url=""):
             source_url = sanitize_url(raw.get("source_url"), base_url)
             if source_url:
                 block["source_url"] = source_url
+            cached_src = sanitize_cached_media_path(raw.get("cached_src"))
+            if cached_src:
+                block["cached_src"] = cached_src
+            for dimension in ("width", "height"):
+                try:
+                    value = int(raw.get(dimension, 0))
+                except (TypeError, ValueError):
+                    value = 0
+                if 0 < value <= 10000:
+                    block[dimension] = value
+            if raw.get("mime") in {"image/jpeg", "image/png", "image/webp", "image/svg+xml"}:
+                block["mime"] = raw["mime"]
+            try:
+                size_bytes = int(raw.get("size_bytes", 0))
+            except (TypeError, ValueError):
+                size_bytes = 0
+            if 0 < size_bytes <= 10_000_000:
+                block["size_bytes"] = size_bytes
+            if raw.get("media_status") in {"cached", "link_only"}:
+                block["media_status"] = raw["media_status"]
+            reason = re.sub(r"[^a-z0-9_-]", "", str(raw.get("media_reason") or "").lower())[:40]
+            if reason:
+                block["media_reason"] = reason
         output.append(block)
     return assign_stable_ids(output)
 
@@ -243,6 +274,9 @@ class ArticleBlockParser(HTMLParser):
         self.active_marks = []
         self.mark_frames = []
         self.skip_depth = 0
+        self.figure_block = None
+        self.figure_caption = False
+        self.figure_caption_parts = []
 
     def _flush_current(self):
         if self.current and self.current.get("children"):
@@ -302,7 +336,56 @@ class ArticleBlockParser(HTMLParser):
             self._flush_current()
             self.skip_depth = 1
             return
-        if tag in {"h1", "h2", "h3", "h4", "h5", "h6"}:
+        if self.figure_caption:
+            if tag == "br":
+                self.figure_caption_parts.append("\n")
+            return
+        if tag == "figure":
+            self._flush_current()
+            self.figure_block = {
+                "type": "figure", "src": "", "alt": "", "caption": "",
+                "source_url": self.base_url,
+            }
+            self.figure_caption_parts = []
+        elif tag == "figcaption" and self.figure_block is not None:
+            self.figure_caption = True
+        elif tag == "img":
+            candidates = [
+                attrs.get("data-src"), attrs.get("data-original"),
+                attrs.get("data-lazy-src"), attrs.get("src"),
+            ]
+            srcset = attrs.get("srcset") or attrs.get("data-srcset") or ""
+            if srcset:
+                ranked = []
+                for index, candidate in enumerate(srcset.split(",")):
+                    parts = candidate.strip().split()
+                    if not parts:
+                        continue
+                    score = index
+                    if len(parts) > 1:
+                        match = re.match(r"([0-9.]+)(w|x)$", parts[-1])
+                        if match:
+                            score = float(match.group(1)) * (10000 if match.group(2) == "x" else 1)
+                    ranked.append((score, parts[0]))
+                if ranked:
+                    candidates.insert(0, max(ranked, key=lambda value: value[0])[1])
+            src = next((sanitize_url(value, self.base_url) for value in candidates if sanitize_url(value, self.base_url)), "")
+            if src:
+                figure = self.figure_block or {
+                    "type": "figure", "src": src, "alt": "", "caption": "",
+                    "source_url": self.base_url,
+                }
+                if not figure.get("src"):
+                    figure["src"] = src
+                figure["alt"] = _clean_text(attrs.get("alt"), 500)
+                for dimension in ("width", "height"):
+                    match = re.search(r"\d+", str(attrs.get(dimension) or ""))
+                    if match:
+                        figure[dimension] = int(match.group(0))
+                if self.figure_block is None:
+                    self._flush_current()
+                    self.blocks.append(figure)
+        elif tag in {"h1", "h2", "h3", "h4", "h5", "h6"}:
             self._flush_current()
             self.current = {"type": "heading", "level": min(4, max(2, int(tag[1]))), "children": []}
         elif tag == "p":
@@ -363,7 +446,20 @@ class ArticleBlockParser(HTMLParser):
             if tag in DANGEROUS_TAGS:
                 self.skip_depth -= 1
             return
-        if tag in {"strong", "b", "em", "i", "a", "span", "font", "mark"}:
+        if tag == "figcaption" and self.figure_block is not None:
+            self.figure_caption = False
+            self.figure_block["caption"] = re.sub(
+                r"\s+", " ", "".join(self.figure_caption_parts)
+            ).strip()
+            return
+        if self.figure_caption:
+            return
+        if tag == "figure" and self.figure_block is not None:
+            if self.figure_block.get("src"):
+                self.blocks.append(self.figure_block)
+            self.figure_block = None
+            self.figure_caption_parts = []
+        elif tag in {"strong", "b", "em", "i", "a", "span", "font", "mark"}:
             self._pop_mark(tag)
         elif tag == "code" and self.code_block is None:
             self._pop_mark(tag)
@@ -404,12 +500,18 @@ class ArticleBlockParser(HTMLParser):
     def handle_data(self, data):
         if self.skip_depth:
             return
+        if self.figure_caption:
+            self.figure_caption_parts.append(data)
+            return
         if data.strip() or self.current is not None or self.list_item is not None or self.table_cell is not None:
             self._append_text(data)
 
     def close(self):
         super().close()
         self._flush_current()
+        if self.figure_block and self.figure_block.get("src"):
+            self.blocks.append(self.figure_block)
+        self.figure_block = None
 
 
 def parse_html_blocks(html_text, base_url=""):
@@ -531,7 +633,7 @@ def _render_inlines(nodes):
     return "".join(rendered)
 
 
-def render_blocks_html(blocks):
+def render_blocks_html(blocks, render_media=True):
     rendered = []
     for block in sanitize_blocks(blocks):
         kind = block["type"]
@@ -559,8 +661,33 @@ def render_blocks_html(blocks):
                 rows.append(f"<tr>{cells}</tr>")
             rendered.append(f'<div class="cb-table"><table>{"".join(rows)}</table></div>')
         elif kind == "figure":
-            src = html.escape(block["src"], quote=True)
+            original_src = html.escape(block["src"], quote=True)
+            source_url = html.escape(block.get("source_url") or block["src"], quote=True)
+            cached_src = sanitize_cached_media_path(block.get("cached_src"))
             alt = html.escape(block.get("alt", ""), quote=True)
-            caption = html.escape(block.get("caption", ""))
-            rendered.append(f'<figure><img src="{src}" alt="{alt}" loading="lazy">{f"<figcaption>{caption}</figcaption>" if caption else ""}</figure>')
+            caption = html.escape(block.get("caption") or block.get("alt") or "")
+            dimensions = ""
+            if block.get("width") and block.get("height"):
+                dimensions = f' width="{block["width"]}" height="{block["height"]}"'
+            if render_media and cached_src:
+                visual = (
+                    f'<a class="cb-media-link" href="{original_src}" target="_blank" '
+                    f'rel="noopener noreferrer nofollow"><img src="{cached_src}" alt="{alt}" '
+                    f'loading="lazy" decoding="async"{dimensions}></a>'
+                )
+            elif render_media:
+                visual = '<div class="cb-media-placeholder" role="img" aria-label="图片未缓存">图片未缓存，可前往来源查看</div>'
+            else:
+                visual = ""
+            host = html.escape(urlparse(block.get("source_url") or block["src"]).netloc)
+            links = (
+                f'<span class="cb-media-source">来源：<a href="{source_url}" target="_blank" '
+                f'rel="noopener noreferrer nofollow">{host or "原文"}</a></span>'
+                f'<a href="{original_src}" target="_blank" rel="noopener noreferrer nofollow">查看原图 ↗</a>'
+            )
+            rendered.append(
+                f'<figure class="cb-figure">{visual}<figcaption>'
+                f'{f"<span>{caption}</span>" if caption else ""}<span class="cb-media-meta">{links}</span>'
+                f'</figcaption></figure>'
+            )
     return "".join(rendered)

@@ -191,23 +191,19 @@ def md(iso):
     return f"{d.month:02d}-{d.day:02d}"
 
 def card_time(e):
-    """统一时间格式：<24h→x小时前 / <7天→周几 HH:mm / 更早→MM-DD；发布与收录差>2天双显"""
+    """单时间显示：只展示发布时间（<24h→x小时前 / <7天→周几 HH:mm / 更早→MM-DD）；
+    无发布时间时用收录时间兜底并明确标注（参考 AI HOT：界面只有发布时间一个概念）"""
     pub, fs = e.get("published"), e.get("first_seen")
-    now_d = datetime.now(TZ)
     if pub:
         dt = datetime.fromisoformat(pub).astimezone(TZ)
-        hrs = (now_d - dt).total_seconds() / 3600
+        hrs = (datetime.now(TZ) - dt).total_seconds() / 3600
         if hrs < 1:
-            t = "刚刚"
-        elif hrs < 24:
-            t = f"{int(hrs)} 小时前"
-        elif hrs < 24 * 7:
-            t = f"周{WEEK_CN[dt.weekday()]} {dt.strftime('%H:%M')}"
-        else:
-            t = md(pub)
-        if fs and (datetime.fromisoformat(fs).astimezone(TZ) - dt).days > 2:
-            t += f" · 收录 {md(fs)}"
-        return t
+            return "刚刚"
+        if hrs < 24:
+            return f"{int(hrs)} 小时前"
+        if hrs < 24 * 7:
+            return f"周{WEEK_CN[dt.weekday()]} {dt.strftime('%H:%M')}"
+        return md(pub)
     return f"收录 {md(fs)}" if fs else ""
 
 def fmt_time(iso):
@@ -409,7 +405,8 @@ def render_detail(e, all_events, css):
     <span class="srcbadge">{src_badge(e["items"][0]["source"])}</span>
     <span style="font-weight:600;color:var(--txt3)">{esc(src_display(e["items"][0]["source"]))}</span>
     {'<span class="star">精选</span>' if e.get("star") else ''}
-    <span title="发布 {fmt_date(e["published"]) if e.get("published") else '未知'} · 收录 {fmt_date(e.get("first_seen") or e["published"])}">{("发布 " + md(e["published"]) + " · " if e.get("published") and md(e["published"]) != md(e.get("first_seen") or e["published"]) else "") + "收录 " + md(e.get("first_seen") or e["published"])}</span>
+    <span title="发布时间">{("发布 " + fmt_date(e["published"])) if e.get("published") else "收录 " + fmt_date(e.get("first_seen"))}</span>
+    {f'<span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 {md(e.get("first_seen"))}</span>' if e.get("published") and e.get("first_seen") and e["published"][:10] != e["first_seen"][:10] else ""}
     <span style="margin-left:auto" class="heatnum">{ic("flame",13)} {e["heat"]}</span>
   </div>
   <h1>{esc(e["zh_title"])}</h1>

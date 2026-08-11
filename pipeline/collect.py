@@ -60,10 +60,12 @@ def main():
             title = u.rsplit("/", 1)[-1].replace(".pdf", "").replace("-", " ")
             source = "主编收录"
         else:
-            text, title = fetch_article_text(u)
+            text, title, meta_dt = fetch_article_text(u)
             source = "主编收录"
         if not title:
             print(f"抓取失败: {u}"); continue
+        pub_dt = locals().get("meta_dt")
+        pub_iso = pub_dt.astimezone(TZ).isoformat() if pub_dt else None
         new_items.append({
             "id": hashlib.md5(u.encode()).hexdigest()[:12],
             "title": title, "zh_title": title,
@@ -71,7 +73,7 @@ def main():
             "link": u, "source": source, "source_type": "curated",
             "category": "platform", "category_label": "AI 数据平台",
             "vendors": [], "vendor_default": True, "topics": [],  # 主编收录：默认相关，不过滤
-            "published": now.isoformat(), "_pub_dt": now,
+            "published": pub_iso or now.isoformat(), "_pub_dt": pub_dt or now,
             "signal": 0, "importance": 50, "heat": 20,
             "star": False, "article_text": text, "shelf": "news",
         })

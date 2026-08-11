@@ -150,24 +150,39 @@ def calc_heat(importance=50, published=None, signal=0, extra_sources=0):
         + comm + 0.15 * multi))
 
 # ── F5：HN 条目抓原文 ──────────────────────────────────────
+def extract_meta_date(html_txt):
+    """从 HTML meta/JSON-LD/time 标签提取文章真实发布时间"""
+    for pat in (r'property="article:published_time" content="([^"]+)',
+                r'"datePublished"\s*:\s*"([^"]+)',
+                r'name="date" content="([^"]+)',
+                r'itemprop="datePublished"[^>]*content="([^"]+)',
+                r'<time[^>]*datetime="([^"]+)"'):
+        m = re.search(pat, html_txt)
+        if m:
+            dt = parse_date(m.group(1)[:30])
+            if dt:
+                return dt
+    return None
+
 def fetch_article_text(url, max_chars=24000):
-    """粗提取网页正文：去脚本/样式/标签，取前 max_chars 字符；同时返回 <title>"""
+    """粗提取网页正文：去脚本/样式/标签，取前 max_chars 字符；返回 (正文, 标题, meta发布日期)"""
     try:
         raw = fetch_url(url, timeout=10)
         try:
             html_txt = raw.decode("utf-8", errors="ignore")
         except Exception:
-            return "", ""
+            return "", "", None
         title = ""
         m = re.search(r"(?is)<title[^>]*>(.*?)</title>", html_txt)
         if m:
             title = strip_html(m.group(1))
             title = re.split(r"[|｜_-]{1,2}\s*(?:Aloudata|官网|博客).*$", title)[0].strip() or title
+        pub_date = extract_meta_date(html_txt)
         text = re.sub(r"(?is)<(script|style|noscript|nav|footer|header)[^>]*>.*?</\1>", " ", html_txt)
         text = strip_html(text)
-        return (text[:max_chars] if len(text) > 400 else ""), title
+        return (text[:max_chars] if len(text) > 400 else ""), title, pub_date
     except Exception:
-        return "", ""
+        return "", "", None
 
 # ── LLM 配置 ──────────────────────────────────────────────
 def load_llm_config():
@@ -669,11 +684,16 @@ def main():
 
     # F5+：全部新条目抓原文正文（用于摘要质量 + AI 全文编译），并发执行
     def grab(it):
-        text, page_title = fetch_article_text(it["link"])
+        text, page_title, meta_date = fetch_article_text(it["link"])
         it["article_text"] = text
         if it.get("_slug_title") and page_title:
             it["title"] = page_title
             it["zh_title"] = page_title
+        # 发布时间覆盖：无日期的条目用页面 meta 日期回填（优先于抓取时间）
+        if not it.get("published") and meta_date:
+            it["published"] = meta_date.astimezone(TZ).isoformat()
+            it["_pub_dt"] = meta_date
+            print(f"[date] meta 回填发布时间: {meta_date.date()} | {it['title'][:30]}")
         return it
     with ThreadPoolExecutor(max_workers=12) as pool:
         list(pool.map(grab, new_items))

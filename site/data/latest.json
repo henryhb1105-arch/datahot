@@ -1,6 +1,73 @@
 {
- "generated_at": "2026-08-11T03:16:26.868598+08:00",
+ "generated_at": "2026-08-11T08:31:56.608473+08:00",
  "events": [
+  {
+   "event_id": "c96797b511e6",
+   "zh_title": "如何在保留治理的同时将Genie Agents接地到结构化数据与文档",
+   "zh_summary": "Databricks介绍如何让Genie Agents同时基于结构化数据（如Managed Tables、Views、Metric Views等）和非结构化文件（Unity Catalog Volumes）进行分析与回答，而无需在系统间桥接数据。其治理核心在于Genie Agents以最终用户身份运行，Unity Catalog通过AIM、对象权限、ABAC、行过滤器和列掩码自动执行权限控制。这样单一Agent即使访问大量数据，也不会向错误的人泄露错误信息，且无需额外设置即可继承现有治理体系。",
+   "reason": "数据从业者应关注如何在构建Data Agent/ChatBI时同时支持多模态数据接入，并沿用统一目录的权限治理，避免Agent成为新的数据安全缺口。",
+   "full_zh": "## 如何在保留治理的同时，将 Genie Agents 接地（ground）到结构化数据与文档\n\n## 摘要\n\n- 将 Genie Agents 接地到结构化数据（托管表、外部表、外连表、视图、指标视图和物化视图）与非结构化文件（Unity Catalog Volumes）上，让同一个智能体能够跨所有这些数据回答问题。\n- 智能体的治理位于 Catalog 层，而非模型层。治理会随着智能体一同扩展，而不会失控。\n- 借助 Unity Catalog 中的自动身份管理（AIM）、对象权限、ABAC、行筛选器和列掩码，Genie Agents 以最终用户身份运行，每个答案都会按该用户的权限进行过滤。\n\n构建一个自动化完成简单业务任务的智能体可能很容易。但创建一个真正理解你的业务、并尊重你现有数据治理策略的智能体，要困难得多。\n\n过去很长一段时间，团队不得不使用相互孤立的系统来分别分析结构化数据和非结构化数据，常常要花数周时间才能将两者桥接起来。Genie Agents 通过直接对表和非结构化文件进行分析，简化了这一架构，让你可以用同一个智能体同时基于结构化数据和非结构化数据进行 grounding。\n\n当你整合这些数据时，一个关键问题随之出现：如果某个智能体可以访问一切，那么是什么阻止它把错误的信息告诉错误的人？\n\n好消息是，在 Databricks 中，答案已经存在于你现有的数据治理基础之中。你今天所依赖的那些 Unity Catalog 机制——身份同步、对象权限、ABAC、行筛选器和列掩码——会自动治理 Genie Agents，无需任何额外设置。这种无缝继承依赖于一个架构良好的治理策略，我们将在下文详细探讨。\n\n为了让这些概念更具体，我们将以 Brickstore（一家虚构的全球砖块零售商）为例，使用其中的示例来走查这些场景。\n\n## 治理契约：Genie Agents 以最终用户的凭据运行\n\n核心架构原则很简单：Genie Agents 以最终用户的凭据运行。Unity Catalog 默认强制执行治理，确保对表和卷的访问直接绑定到最终用户现有的身份与权限。\n\n这一点至关重要，因为许多自研系统会给智能体过宽的访问权限，并依赖提示工程在模型层过滤结果。这实际上就是把 LLM 当成你的安全边界——考虑到模型可能被操纵或绕过，这是一场危险的赌注。告诉审计师“我添加了指示，让它不要显示受限数据”，绝不是一种站得住脚的治理控制。\n\n在本文概述的治理框架下，安全边界仍然是 Unity Catalog，而不是模型；这与 Databricks 其他部分的做法一致。尽管 Genie 决定如何查询数据，但它无法返回最终用户无权查看的任何记录，因为每个答案都会在数据层经过过滤，然后才会离开 Lakehouse。\n\n## 第 0 步：从身份开始：自动身份管理（AIM）与即时（JIT）预配置\n\n这一架构的起点是确保你的企业身份既准确又保持最新。访问控制的可靠性，本质上取决于它所评估的身份的可靠性。\n\n如果 Databricks 中的组成员身份只是身份提供者中内容的陈旧、手工维护副本，那么“brickstore_apac 的成员只能查看 APAC 订单”这样的策略就毫无意义。针对 Microsoft Entra ID 和 Okta 的自动身份管理（Automatic Identity Management，AIM）弥合了这一差距。启用后，用户、组、组成员身份和服务主体会从这些身份提供者自动同步到 Databricks，无需 SCIM 应用。即时预配置（Just-in-time provisioning）始终开启，因此从未登录过 Databricks 的用户会在首次登录时被预配置，并且一到达就带着现有的组成员身份。流程如下：IdP 是事实来源。某人加入 APAC 销售组织；你的身份提供者将他们放入 brickstore_apac 组。AIM 将该信息同步到 Databricks——包括组成员身份。JIT 在用户首次打开 Genie One 时在 Databricks 上预配置该用户。Unity Catalog 策略以这些组为关键依据——对象权限、ABAC 策略、行过滤器和列掩码都在查询时评估组成员身份。用户向 Genie Agent 提问，答案恰好由其组权限所允许的范围决定，不多也不少。好处在于，治理是持续性的，而非一次性设置。当员工从 APAC 调往 AMER 时，IdP 会在组间移动他们，同步随之传播，他们向 Genie 提出的下一个问题就会返回 AMER 视图——无需任何人提交工单或修改 Genie Agent。当员工离开公司时，他们会从 IdP 中停用，对每个 Genie Agent 的访问也会立即被移除。\n\n## 第一步：将结构化数据接地并控制四层访问\n\n身份得到适当建立后，我们现在可以关注他们被允许看到什么。对于结构化数据，Genie Agent 可以访问任何 Unity Catalog 数据资产——表、视图、物化视图、指标视图、流式表，甚至是从外部系统联合的外部表。例如，Delta 表就是事实表和维度表。在 Brickstore 中，即 brickstore.sales.orders（每一笔订单，包含区域和 customer_email）和 brickstore.sales.products（砖块目录）。指标视图（Metric Views）是位于其上的受治理语义层——它们将业务指标的定义（例如“净收入”意味着什么、“已售砖块”如何计算、什么算作“最畅销砖块”）用 YAML 编码一次，因此每个消费者都以相同的方式计算它们。在这些资产之上，有四层访问控制，人们常常将它们混为一谈：\n\n- **对象权限（Object Privileges）**：谁对什么资源拥有什么级别的访问？机制：对目录/架构/表执行 GRANT SELECT。\n- **基于属性的访问控制（ABAC）**：哪条策略适用，适用于什么？机制：由治理标签驱动的策略，附着一次并传播（例如：任何带有“PII”标签的列只对某些组可用）。\n- **行过滤器（Row Filters）**：用户能访问哪些行？机制：SQL 用户定义函数（UDF），在查询时对每一行求值（函数返回 FALSE 的行会从查询结果中排除）。\n- **列掩码（Column Masks）**：哪些列应被掩码，如何掩码？机制：SQL UDF，将列值作为输入，返回原始值或掩码后的版本。\n\n对象权限是第一层访问控制：没有 SELECT，Genie 就无法代表最终用户查询表。但授予对表的访问权限并不意味着你需要授予全部权限。\n\n在这些授权之上，你再叠加行过滤器和列掩码。这样，区域经理可以查询订单表，但只能看到自己所在区域的行，且永远看不到原始的客户电子邮件。这些行和列的控制所依赖的，正是你的授权已经在使用的那些组——例如 `is_account_group_member('brickstore_apac')` 之类。接下来要讲的 ABAC 并不会取代这些机制；它只是用一种策略方式去附加同样的过滤器和掩码，而不是逐表附加。\n\n## ABAC：一次定义策略，让它自动传播\n\n以往实现行级和列级安全的方式是逐表进行：写一个行过滤器，挂到 `orders` 表上；再写一个列掩码，挂到另一张表上；如此反复。这种方式仍然适合一次性逻辑，但在数百张表面前，它会变成一种容易出现漏洞的配置。ABAC 策略与受管标签、自动数据分类一起，现已在 Unity Catalog 中正式发布（GA），它扭转了这种局面。你用受管标签（账户级、受访问控制的键值对，如 `pii:email`）为敏感数据打标签，然后写一条策略：“无论这个标签出现在哪里，都应用此保护。” 新表一旦被标记，就立刻继承保护，因此无需逐表操作。一条列掩码 + ABAC 策略，用一条语句保护目录中所有 email 列；再加一条行过滤器 + ABAC 策略，让每位经理只看到自己区域的订单，由组成员身份驱动。最终效果是：APAC 经理询问订单相关问题，Genie Agent 只返回 APAC 行，且 `customer_email` 被掩码；AMER 经理查询同一张表，得到的是 AMER 行。\n\n## 第 2 步：将同样的治理扩展到文档\n\n从历史上看，团队在处理非结构化数据时，治理策略一直更具挑战性。结构化数据可以安全地管理在数据仓库或数据库中，而文档则常常存放在隔离的存储系统中，由独立的 ACL 管理。解决办法是让文件与结构化数据处于同一个治理平面。你可以把它们放入 Unity Catalog Volumes，它们就会像其他对象一样成为可保护对象。你对应该看到这些卷的组和用户执行 `GRANT READ VOLUME`，Genie 就在同一个身份契约下对它们进行推理。在设计你的 Agent 之前，有一个行为值得理解：当你把一个卷附加到 Genie Agent 上时，它会成为必需来源。这意味着，Agent 在加载时会验证对每个附加来源的访问权限，因此，如果用户对某个已附加卷没有 `READ VOLUME` 权限，就根本无法使用该 Agent。换句话说，卷授权将文档作为使用 Agent 的前提条件来治理，所以请确保将每个 Agent 的文档来源限定在应该使用该 Agent 的受众范围内。如果两类受众需要不同的文档，你可能需要给他们不同的 Genie Agent（每个 Agent 只挂载该用户能读取的卷）。同时要记住，Unity Catalog Volume 是最小的可保护单元，因此权限应用于整个卷，而不是单个文件。你不能挑选具体的文件来共享；你必须授予对整个卷的访问权，或者一个都不授予。考虑到这些因素，卷可以直接作为知识源附加到 Genie Agent 上，方式与表或视图相同。Genie Agent 的读取范围远不止 PDF——支持的格式包括 PDF、图像文件（JPG、JPEG、PNG、TIFF、TIF）和 Office 文档（DOC、DOCX、PPT、PPTX），以及纯文本文档和 Markdown。\n\n## 配置 Volume 的最佳实践\n\n实际上，这意味着扫描的合同、幻灯片和规格表都在支持范围内，而不仅仅是干净的 PDF。（完整列表和当前限制请参阅 Genie Agents volumes 文档。）为确保准确的路由和最佳性能，请遵循以下配置卷的最佳实践：\n\n添加清晰描述：准确描述卷中包含的内容、组织方式以及 Agent 应如何使用它。不要使用通用占位符。例如，不要用“区域文件”，而要用“APAC 市场报告——APAC 区域的需求驱动因素、趋势和关注项”。Genie 依赖此描述来选择正确的卷。\n\n避免重复内容：附加多个包含重叠信息的卷会使 Agent 更难以检索相关文档。对于卷内的单个文件也是如此。\n\n避免无关文件：只包含与 Agent 领域相关的文件。无关文件会干扰 Agent。\n\n使用清晰的文件名：使用描述性文件名，以便 Agent 区分不同文件。\n\n## 第 3 步：生产环境中的 Genie Agents：相同问题，不同答案\n\n至此，Genie Agent 已完全具备真正的领域专家能力——可以同时访问结构化和非结构化数据。底层知识库仍然通过行过滤器、列掩码和基于每用户权限的卷授权得到彻底保护。我们通过让两个不同用户提出完全相同的问题来对实现进行基准测试，这应产生两个各自正确且不同的响应。\n\n考虑两个并发的 Genie Agent 会话，两者都基于相同的资产——orders 表、products 目录和 market_report 卷。一个请求者属于 brickstore_apac，另一个属于 brickstore_amer，但他们都提交了完全相同的查询：“本季度我们最畅销的产品是什么？是什么推动了这一需求？同时列出这些销售背后的主要客户及其电子邮件。”\n\nResponse 1 - for the APAC Manager  \nResponse 2 - for the AMER Manager\n\n【此处原文未能完整读取：两个 Response 的具体内容未显示】\n\n这里有三点值得指出：\n\n数字不同，但两者都正确。两位经理的“最畅销砖块”查询都从相同的表中拉取数据——差异仅仅是各自有权访问的行不同，而不是指标计算方式不同。\n\n这种差异不需要任何按用户提示工程。没有人写“如果用户是 APAC，就隐藏其他区域”。Agent 的指令是完全相同的。Unity Catalog 在查询时完成了过滤——既在行级别，也在被掩码的列上。注意，电子邮件列被掩码以保护 PII。\n\n结构化数据，经由非结构化知识而丰富。如果没有区域文档，Genie 也许能轻松识别“是什么”的问题，但很难想清楚哪些因素在推动需求。有了可用的非结构化数据，Genie 就拥有了完整的业务上下文。\n\n## 需要留意的模式\n\n在将本文的经验推向生产环境时，有几个模式值得留意：\n\n先打标签，再定策略。不要逐表掩码。直觉是保护你面前的这三张表，但请抵制这种直觉。定义受治理的标签和 ABAC 策略，以让数据治理面向未来。\n\n每个卷对应单一受众。由于卷是最小的可授权单位，请在卷的边界决定文档访问权限。如果两个文档需要不同的读者，它们就需要不同的卷和不同的 Genie Agents——请提前规划好布局。\n\n当通过 MCP 或 API 在外部暴露 Genie One 或 Genie Agents 时，必须小心处理身份。与通过 Databricks UI 运行不同，你并不总是有权使用最终用户的身份（例如，使用服务主体进行身份验证时）。有一些需要采用的特定模式；Databricks 在《Access Genie everywhere》中详述了 U2M、M2M 和 OBO 配置。\n\n用模拟（impersonation）来测试，而不是靠检查（inspection）。不要通过阅读策略并说服自己它是对的来验证治理——而是以每个组成员的身份提出同样的问题，并比较回答。把这一测试设为回归测试，并在策略或分组发生变化时运行。\n\n## 要点\n\n构建一个 agent 可能很容易，但治理它需要真正的设计工作。在 Databricks 中，企业身份从 IdP 同步，对象权限控制访问，ABAC 和治理标签在规模上应用保护，行过滤器和列掩码控制返回的内容，文档与数据保存在同一系统中。通过这种设置，Genie Agents 无需任何额外配置即可继承所有治理。\n\n要开始构建你的第一个受治理的 Genie Agent，请访问 Genie 文档和 ABAC 策略文档。",
+   "category": "agent",
+   "category_label": "Data Agent",
+   "vendors": [
+    "Databricks"
+   ],
+   "heat": 61,
+   "star": true,
+   "importance": 82,
+   "signal": 0,
+   "topics": [
+    "Data Agent"
+   ],
+   "shelf": "evergreen",
+   "pinned": false,
+   "published": "2026-08-11T07:08:50+08:00",
+   "first_seen": "2026-08-11T08:31:56.608473+08:00",
+   "items": [
+    {
+     "id": "c96797b511e6",
+     "source": "Databricks Blog",
+     "link": "https://www.databricks.com/blog/how-ground-genie-agents-both-structured-data-and-documents-without-losing-governance",
+     "published": "2026-08-11T07:08:50+08:00",
+     "ingested_at": "2026-08-11T08:31:56.608473+08:00",
+     "title": "How to ground Genie Agents in both structured data and documents without losing governance"
+    }
+   ]
+  },
+  {
+   "event_id": "45a1c0b8e428",
+   "zh_title": "dbt Summit 2026主题演讲与产品议程",
+   "zh_summary": "dbt Labs宣布dbt Summit 2026将于9月15-18日在拉斯维加斯Cosmopolitan举行，重点围绕AI时代的数据基础展开。峰会设有两个主旨演讲和四大支柱议题，包括升级引擎、为AI升级、用AI升级等方向。文章强调，许多组织的数据尚未达到可支撑AI代理的水平，而dbt正在帮助团队弥合这一差距。",
+   "reason": "dbt是数据工程与治理关键工具，其年度峰会内容反映了数据平台如何为AI代理时代重构，值得数据从业者关注。",
+   "full_zh": "## dbt Summit 2026：主题演讲与产品议程\n\n有一件事我们反复从数据团队那里听到。一家健康保险管理机构的首席数据官最近很好地概括了这一点。他有两名数据工程师，想让他们快速转向AI工作。他有高管支持，有预算，但仍然无法启动。“所有人都在AI上制造噪音。你能围绕AI做点什么吗？而我在想，‘但你的数据还没有达到可以把AI代理放在上面的水平。’”他已经知道大多数组织即将以艰难方式发现的事情。这正是今年dbt Summit内容要解决的差距。\n\ndbt Summit将于9月15日至18日在拉斯维加斯的The Cosmopolitan举行。\n\n## 你以前做过这件事\n\n十年前，dbt改变了作为数据专业人士的意义。分析工程师应运而生，他们拥有高速、规模化、生产级的数据管道，受治理的数据，以及对整个业务决策的真实影响力。人们很容易忘记当时那种感觉。那场转变令人迷失方向。很多人不确定自己将身处何处。结果，它成为这个领域职业生涯中最好的事情之一。\n\n我们又一次站在这样的时刻。AI正在重写数据的使用方式，并且正在提高未来18个月内每个数据决策的 stakes。数据的消费者正在从BI工具中的分析师，转变为以机器速度持续工作、无需人类逐条检查答案的代理。能够蓬勃发展的团队将是那些实现升级的团队，这就是为什么你今年需要参加dbt Summit。\n\n## 两场主题演讲，四大支柱\n\ndbt Summit主题演讲建立在四大支柱之上，它们与我们从数据团队那里直接听到的内容以及他们面临的挑战高度一致。\n\n- **升级引擎**：无论你在哪里运行dbt，都能获得更快的解析、更好的可扩展性和真正的成本控制。\n- **为AI升级，关注你的代理消费什么**：结构化、受治理的上下文，是连接你的数据仓库与一个你愿意依据其答案做决策的代理之间缺失的一环。\n- **利用AI升级，关注你通过dbt Wizard及其周围代理工作流消费什么**：让你在更快构建和交付的同时，保持对质量和成本的控制。\n- **升级技术栈**：拥有开放、灵活的基础设施。你的技术栈仍然是你的。\n\n周四的社区主题演讲由Grace Goheen和Jeremy Cohen带来。这是对dbt社区的庆祝，展示dbt Core和引擎如何在同一个框架下统一，以及工作如何在开放中继续。\n\n## 在产品会议中深入探讨\n\n主题演讲是头条。产品分论坛和圆桌讨论则是你从构建它们的产品经理那里，直接了解这一切如何运作的地方。\n\n### 使用dbt State优化你的运行：更低计算、更新数据、更快迭代\n\n大多数dbt项目每次运行都会重建相同的模型，无论是否有变化。dbt State会检查仓库元数据和模型SQL，判断结果是否真的会变化，然后构建、跳过、克隆或自动延迟至生产环境。平均计算节省达30%。Reuben McCreanor将介绍新鲜度SLA、从生产环境自动克隆，以及你可以淘汰的编排逻辑——无论你运行的是dbt Core、dbt平台还是介于两者之间的东西。\n\n### dbt Wizard：你的数据开发AI队友\n\ndbt Wizard是为数据而非软件构建的编码代理。\n\n## 三大模式：开发、分析与发现\n\nAni Venkateshwaran 和 Brandon Thomson 将带你了解 dbt 的三种模式——开发（develop）、分析（analyze）与发现（discover）——以及使其可扩展的 agent skills 框架，并现场演示 dbt 自家团队基于该框架构建的全自主分析工程工作流。\n\n## 在开放中重建 dbt Core：更快的运行时、适配器与文档 v2\n\n多年使用 dbt Core v1.x 让团队面对一个在大型项目上会变慢的 Python 运行时、碎片化的适配器，以及跟不上节奏的文档体验。Hope Watson 将拆解这次重建：基于 Rust 的 Apache 2 引擎、基于 ADBC 与 Arrow 生态的更干净的适配器模型，以及以 parquet 为后端的 artifacts。你将看到并排的解析速度演示，并获得一条从 v1.x 经 v1.12 parser on-ramp 的真实迁移路径。\n\n## 语义层已死。语义层万岁！\n\n语义层曾经是几年前为仪表板构建的\"已解决的问题\"。然后智能体（agents）出现了。Zach Mandell 将论证：你的语义层如今是 AI 战略中承重最强的部分；他会展示 MetricFlow 与 dbt Semantic Layer 的走向，并介绍 dbt MCP server 如何把受治理的指标转化为智能体可用的上下文。这个专场将直接回应幻觉（hallucination）问题。\n\n## 产品圆桌：开放数据基础设施实践\n\nJack Lowery 和 Anna Lee 主持一场关于用 Apache Iceberg 和网格（mesh）模式解锁 dbt 项目的工作对话。圆桌规模小、以讨论为先，请带着你实际卡住的问题来。\n\n## Apache Ossie：实现语义层可移植性\n\n在一个工具里定义指标，在下一个工具里重新定义，然后你的仪表板、笔记本和智能体最终会对\"活跃客户\"的含义各执一词。Apache Ossie——由 dbt Labs、Snowflake、Salesforce、BlackRock 和 RelationalAI 共同主导的厂商中立、开源语义交换规范——改变了这一契约。你将看到现已基于 Apache 2.0 开源的 MetricFlow 如何把受治理的指标编译成可移植格式，让 BI、对话式分析和 AI 智能体终于在同一业务逻辑上达成一致。\n\n## 数据基础设施的下一波浪潮在 Lake 中\n\n现代数据栈让你走到了今天，但它无法带你走到智能体需要运作的地方。Russell Christopher 和 Casey Karst 将阐述开放数据基础设施（Open Data Infrastructure）：将数据以 Iceberg 等开放格式落地到你掌控的存储中，然后为任何任务选择正确的计算引擎，无需重建管道即可替换工具。你将带走一套用 Fivetran + dbt 构建开放、可移植、AI-ready 基础设施的框架。\n\n## 我们说了\"我愿意\"。现在我们在 DAG 上合体\n\n这些数据从哪来？发生了什么？谁在用？Roxi Pourzand 展示 Fivetran 和 dbt 如何将摄取（ingestion）、转换（transformation）和消费（consumption）统一到单一 lineage 图——这张图来自实际执行工作的系统，而非事后拼接——从而解锁与使用情况挂钩的真实成本可见性、下游始终受治理的 PII，以及能够基于全貌推理的智能体。\n\n## 大上下文带来大自主：提升你的智能体上下文\n\n一个查询你数仓的智能体，不应该去猜测\"活跃\"是什么意思，或该信任哪张 revenue 表。Ben Moser 和 Kevin Kim 将演示 dbt structured context 和 Fivetran context layer 如何把原始元数据、受治理的语义模型和真实使用情况转化为支撑准确结果的 agent schema——以及当问题需要时，如何让智能体超越固定定义进行推理。\n\n## dbt Summit 2026 主题演讲与产品议程\n\n从现在到 9 月，更多议程场次将陆续上线。浏览完整议程，安排好你当周余下的日程。来发现你接下来可以构建什么。\n\n## AI 时代的数据基础\n\n在 AI 时代获胜的组织，不会是那些拥有最佳模型的组织，而是那些在关键时刻数据基础已经就绪的组织。这个基础已经有了名字，而它正是你亲手构建的。\n\n## 峰会信息与注册\n\ndbt Summit 2026 将于 2026 年 9 月 15 日至 18 日在拉斯维加斯的 The Cosmopolitan 举行。你的下一级台阶从这里开始。立即注册 dbt Summit。\n\n## 开始使用 dbt\n\n加入分析工程师的行列，构建真正可扩展的数据基础设施。立即开始使用 dbt。\n\n安装 dbt Wizard CLI。从一个专为分析工程打造的智能体开始——它知道该调用哪个工具、该提取哪些上下文，并在向你呈现任何内容之前先自行核验。安装 dbt Wizard CLI。",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [
+    "dbt Labs"
+   ],
+   "heat": 56,
+   "star": true,
+   "importance": 72,
+   "signal": 0,
+   "topics": [
+    "Data Agent",
+    "平台AI化"
+   ],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-08-11T03:03:00+08:00",
+   "first_seen": "2026-08-11T08:31:56.608473+08:00",
+   "items": [
+    {
+     "id": "45a1c0b8e428",
+     "source": "dbt Blog",
+     "link": "https://www.getdbt.com/blog/dbt-summit-2026-keynotes-product-sessions",
+     "published": "2026-08-11T03:03:00+08:00",
+     "ingested_at": "2026-08-11T08:31:56.608473+08:00",
+     "title": "dbt Summit 2026: the keynotes and product sessions"
+    }
+   ]
+  },
   {
    "event_id": "da6ceed94a3f",
    "zh_title": "利用Omnigent上下文策略阻断AI代理数据泄露三要素",
@@ -113,7 +180,7 @@
    "vendors": [
     "ClickHouse"
    ],
-   "heat": 50,
+   "heat": 49,
    "star": false,
    "importance": 60,
    "signal": 0,
@@ -144,7 +211,7 @@
    "vendors": [
     "AWS"
    ],
-   "heat": 59,
+   "heat": 58,
    "star": true,
    "importance": 78,
    "signal": 0,
@@ -178,7 +245,7 @@
    "vendors": [
     "AWS"
    ],
-   "heat": 56,
+   "heat": 55,
    "star": true,
    "importance": 72,
    "signal": 0,
@@ -313,7 +380,7 @@
    "vendors": [
     "Fivetran"
    ],
-   "heat": 50,
+   "heat": 49,
    "star": false,
    "importance": 60,
    "signal": 0,
@@ -344,7 +411,7 @@
    "category": "agent",
    "category_label": "Data Agent",
    "vendors": [],
-   "heat": 56,
+   "heat": 55,
    "star": false,
    "importance": 72,
    "signal": 0,
@@ -376,7 +443,7 @@
     "Fivetran",
     "phData"
    ],
-   "heat": 55,
+   "heat": 54,
    "star": false,
    "importance": 70,
    "signal": 0,
@@ -443,7 +510,7 @@
     "OpenAI",
     "Model ML"
    ],
-   "heat": 50,
+   "heat": 49,
    "star": true,
    "importance": 60,
    "signal": 0,
@@ -607,7 +674,7 @@
     "Carta Healthcare",
     "Amazon Bedrock"
    ],
-   "heat": 55,
+   "heat": 54,
    "star": true,
    "importance": 72,
    "signal": 0,
@@ -641,7 +708,7 @@
     "Anthropic",
     "Claude"
    ],
-   "heat": 50,
+   "heat": 49,
    "star": true,
    "importance": 62,
    "signal": 0,
@@ -675,7 +742,7 @@
     "Anthropic",
     "Claude"
    ],
-   "heat": 55,
+   "heat": 54,
    "star": true,
    "importance": 72,
    "signal": 0,
@@ -710,7 +777,7 @@
     "Claude",
     "Amplitude"
    ],
-   "heat": 53,
+   "heat": 52,
    "star": true,
    "importance": 68,
    "signal": 0,
@@ -745,7 +812,7 @@
     "Anthropic",
     "Claude"
    ],
-   "heat": 54,
+   "heat": 53,
    "star": true,
    "importance": 70,
    "signal": 0,
@@ -780,7 +847,7 @@
     "Claude",
     "Hebbia"
    ],
-   "heat": 54,
+   "heat": 53,
    "star": true,
    "importance": 70,
    "signal": 0,
@@ -814,7 +881,7 @@
     "Anthropic",
     "Claude"
    ],
-   "heat": 60,
+   "heat": 59,
    "star": true,
    "importance": 75,
    "signal": 0,
@@ -856,7 +923,7 @@
     "Anthropic",
     "Claude"
    ],
-   "heat": 55,
+   "heat": 54,
    "star": true,
    "importance": 72,
    "signal": 0,
@@ -890,7 +957,7 @@
     "Anthropic",
     "Claude"
    ],
-   "heat": 49,
+   "heat": 48,
    "star": true,
    "importance": 60,
    "signal": 0,
@@ -924,7 +991,7 @@
     "Anthropic",
     "Claude"
    ],
-   "heat": 54,
+   "heat": 53,
    "star": true,
    "importance": 70,
    "signal": 0,
@@ -958,7 +1025,7 @@
     "Anthropic",
     "Claude"
    ],
-   "heat": 44,
+   "heat": 43,
    "star": true,
    "importance": 50,
    "signal": 0,
@@ -990,7 +1057,7 @@
     "Anthropic",
     "Claude"
    ],
-   "heat": 44,
+   "heat": 43,
    "star": true,
    "importance": 50,
    "signal": 0,
@@ -1022,7 +1089,7 @@
     "Anthropic",
     "Claude"
    ],
-   "heat": 44,
+   "heat": 43,
    "star": true,
    "importance": 50,
    "signal": 0,
@@ -1287,7 +1354,7 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 43,
+   "heat": 42,
    "star": false,
    "importance": 35,
    "signal": 29,
@@ -1318,7 +1385,7 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 48,
+   "heat": 47,
    "star": true,
    "importance": 60,
    "signal": 0,
@@ -1351,7 +1418,7 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 48,
+   "heat": 47,
    "star": true,
    "importance": 60,
    "signal": 0,
@@ -1415,7 +1482,7 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 54,
+   "heat": 53,
    "star": true,
    "importance": 72,
    "signal": 0,
@@ -1480,7 +1547,7 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 53,
+   "heat": 52,
    "star": true,
    "importance": 70,
    "signal": 0,
@@ -1555,7 +1622,7 @@
    "vendors": [
     "Anthropic"
    ],
-   "heat": 57,
+   "heat": 56,
    "star": false,
    "importance": 78,
    "signal": 0,
@@ -1586,7 +1653,7 @@
    "category": "agent",
    "category_label": "Data Agent",
    "vendors": [],
-   "heat": 54,
+   "heat": 53,
    "star": false,
    "importance": 72,
    "signal": 0,
@@ -1654,7 +1721,7 @@
    "vendors": [
     "火山引擎"
    ],
-   "heat": 58,
+   "heat": 57,
    "star": false,
    "importance": 80,
    "signal": 0,
@@ -1686,7 +1753,7 @@
    "category": "agent",
    "category_label": "Data Agent",
    "vendors": [],
-   "heat": 40,
+   "heat": 39,
    "star": false,
    "importance": 45,
    "signal": 0,
@@ -1874,7 +1941,7 @@
     "AWS",
     "Amazon OpenSearch Service"
    ],
-   "heat": 39,
+   "heat": 38,
    "star": true,
    "published": "2026-08-08T00:13:44+08:00",
    "items": [
@@ -1903,7 +1970,7 @@
     "Fivetran",
     "dbt Labs"
    ],
-   "heat": 39,
+   "heat": 38,
    "star": false,
    "published": "2026-08-07T23:06:58+08:00",
    "items": [
@@ -1932,7 +1999,7 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 39,
+   "heat": 38,
    "star": false,
    "importance": 50,
    "signal": 0,
@@ -1962,7 +2029,7 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 39,
+   "heat": 38,
    "star": true,
    "published": "2026-08-07T22:01:05+08:00",
    "items": [
@@ -2112,7 +2179,7 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 38,
+   "heat": 37,
    "star": false,
    "importance": 50,
    "signal": 0,
@@ -2141,7 +2208,7 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 38,
+   "heat": 37,
    "star": false,
    "importance": 50,
    "signal": 0,
@@ -2302,7 +2369,7 @@
    "vendors": [
     "AWS"
    ],
-   "heat": 37,
+   "heat": 36,
    "star": true,
    "published": "2026-08-07T00:17:59+08:00",
    "items": [
@@ -2333,7 +2400,7 @@
     "AWS",
     "Amazon"
    ],
-   "heat": 37,
+   "heat": 36,
    "star": true,
    "published": "2026-08-07T00:16:39+08:00",
    "items": [
@@ -2361,7 +2428,7 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 37,
+   "heat": 36,
    "star": true,
    "published": "2026-08-07T00:00:00+08:00",
    "items": [
@@ -2391,7 +2458,7 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 37,
+   "heat": 36,
    "star": true,
    "published": "2026-08-06T23:50:57+08:00",
    "items": [
@@ -2421,7 +2488,7 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 37,
+   "heat": 36,
    "star": true,
    "published": "2026-08-06T23:29:35+08:00",
    "items": [
@@ -2482,7 +2549,7 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 37,
+   "heat": 36,
    "star": true,
    "published": "2026-08-06T22:01:05+08:00",
    "items": [
@@ -2513,7 +2580,7 @@
     "Microsoft",
     "Power BI"
    ],
-   "heat": 37,
+   "heat": 36,
    "star": true,
    "published": "2026-08-06T22:00:00+08:00",
    "items": [
@@ -2632,7 +2699,7 @@
    "vendors": [
     "Aloudata"
    ],
-   "heat": 59,
+   "heat": 58,
    "star": true,
    "importance": 88,
    "signal": 0,
@@ -2670,7 +2737,7 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 36,
+   "heat": 35,
    "star": false,
    "importance": 50,
    "signal": 0,
@@ -2699,7 +2766,7 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 36,
+   "heat": 35,
    "star": false,
    "importance": 50,
    "signal": 0,
@@ -2872,7 +2939,7 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 35,
+   "heat": 34,
    "star": true,
    "published": "2026-08-05T22:01:05+08:00",
    "items": [
@@ -2903,7 +2970,7 @@
     "Aloudata",
     "Cube"
    ],
-   "heat": 47,
+   "heat": 46,
    "star": true,
    "importance": 75,
    "signal": 0,
@@ -3104,7 +3171,7 @@
     "Google BigQuery",
     "Databricks"
    ],
-   "heat": 37,
+   "heat": 36,
    "star": false,
    "published": "2026-08-07T00:10:43+08:00",
    "items": [
@@ -3170,7 +3237,7 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": true,
    "published": "2026-08-05T00:10:09+08:00",
    "items": [
@@ -3201,7 +3268,7 @@
     "AWS",
     "Amazon OpenSearch Service"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": true,
    "published": "2026-08-04T23:55:01+08:00",
    "items": [
@@ -3229,7 +3296,7 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": true,
    "published": "2026-08-04T22:01:04+08:00",
    "items": [
@@ -3259,7 +3326,7 @@
     "NVIDIA",
     "Panther"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": true,
    "published": "2026-08-04T22:00:00+08:00",
    "items": [
@@ -3277,64 +3344,6 @@
    ],
    "shelf": "news",
    "first_seen": "2026-08-04T22:00:00+08:00"
-  },
-  {
-   "event_id": "e37fa4fab9fd",
-   "zh_title": "Mercado Libre基于ClickHouse Cloud重构可观测性平台，查询提速50倍",
-   "zh_summary": "Mercado Libre在ClickHouse Cloud上重建其可观测性平台O11y events，将追踪查询时间从超过5分钟缩短至约4秒（50倍提速），压缩率最高达89%，每分钟可摄入4亿个span。该平台帮助这家拉美电商与金融科技巨头将故障排查从数天缩短至数分钟，并支持按支付ID、用户ID等高基数维度进行过滤。目前其规模已从每分钟700万span扩展至4亿并持续增长。",
-   "reason": "数据从业者可借鉴ClickHouse Cloud在大规模可观测性数据场景下的性能与压缩实践，了解高基数追踪数据处理的实际落地效果。",
-   "full_zh": "Mercado Libre是拉丁美洲领先的电商与金融科技平台，业务覆盖18个国家，区域市场份额约35%，相比之下亚马逊约为4%。其技术环境极为复杂，涉及多种语言、技术栈、法规和物流体系。2026年第一季度，该平台服务了1.26亿独立买家，交付了27亿件商品，处理了870亿美元支付。如此庞大的业务规模，对可观测性平台提出了极高要求。\n\n为了回答细粒度的业务问题，例如“某笔支付为什么失败”，Mercado Libre构建了名为O11y events的可观测性平台。该平台旨在将故障排查时间从几天缩短到几分钟，提供完整的业务流可见性，并支持对支付ID、用户ID等高基数标识符进行过滤。这种能力使技术团队能够快速定位复杂业务链路中的问题，而不必在分散的日志和指标中手动排查。\n\n在迁移到ClickHouse Cloud之前，原有系统的追踪查询性能已无法满足规模增长的需要。Mercado Libre选择在AWS上基于ClickHouse Cloud重建可观测性平台，并取得了显著效果：查询性能提升50倍，具体表现为追踪查询时间从超过5分钟下降至约4秒；数据压缩率最高达到89%，有效降低了存储成本；同时，系统规模从每分钟处理700万span扩展至每分钟4亿span，且仍在持续增长。\n\n在2026年举行的Open House SF活动中，Mercado Libre的技术负责人Daniel Da Rosa和软件专家Francislei Reis分享了这一重构经验。他们详细介绍了如何利用ClickHouse Cloud应对海量高基数追踪数据，以及如何通过架构升级在性能、成本和可扩展性之间取得平衡。这一案例也展示了可观测性平台作为数据基础设施的重要组成部分，在大规模业务场景中的关键价值。",
-   "category": "platform",
-   "category_label": "AI 数据平台",
-   "vendors": [
-    "ClickHouse"
-   ],
-   "heat": 31,
-   "star": false,
-   "published": "2026-08-04T08:00:00+08:00",
-   "items": [
-    {
-     "id": "e37fa4fab9fd",
-     "source": "ClickHouse Blog",
-     "link": "https://clickhouse.com/blog/mercado-libre-observability-on-clickhouse-cloud",
-     "published": "2026-08-04T08:00:00+08:00",
-     "title": "How Mercado Libre rebuilt its observability platform on ClickHouse Cloud with 50x faster trace queries",
-     "ingested_at": "2026-08-04T08:00:00+08:00"
-    }
-   ],
-   "topics": [
-    "实时分析"
-   ],
-   "shelf": "news",
-   "first_seen": "2026-08-04T08:00:00+08:00"
-  },
-  {
-   "event_id": "448beb58807f",
-   "zh_title": "ClickHouse Cloud重构自动扩缩容：从固定周期到秒级响应",
-   "zh_summary": "ClickHouse Cloud通过重构自动扩缩容编排层，基于Kubernetes的controller-runtime构建，并以ClickHouse自身支撑信号表，新增了反应式快速路径。该机制能在数秒内完成服务扩容，无需等待下一个调度周期。文章介绍了原有固定调度模式的局限，以及新架构在响应性、去重、退避和并发控制上的改进。",
-   "reason": "数据平台从业者可了解ClickHouse Cloud如何在真实生产环境中用Kubernetes生态组件重构核心调度逻辑，以及如何用自身数据仓库处理实时信号，对云原生数据基础设施设计有直接参考价值。",
-   "full_zh": "ClickHouse Cloud 会自动对服务进行垂直扩缩容。在背后，一个推荐服务会观察每个服务的行为，并决定它应该获得多少 CPU 和内存。当工作负载增长时，它会扩容；当工作负载下降时，它会缩容，避免用户为不再使用的容量付费。这些决策由 ClickHouse 的 two-window recommender（双窗口推荐器）驱动。\n\n在很长一段时间里，这个推荐服务都按照固定计划运行。它会在定时器触发时醒来，扫描所有服务（在时间窗口内对服务列表进行分片处理），生成推荐，然后继续休眠直到下一个周期。这种设计简单且可预测，但固定计划意味着无法在服务需要时立即进行扩容。\n\n例如，一个服务在整点开始时突然遭遇大量查询负载，它需要更多内存，但推荐服务已经在几分钟前运行过，并且短期内不会再次运行。在下一个周期到来之前，该服务将一直处于容量不足的状态。这种延迟对于需要快速响应的场景显然不够理想。\n\n为了解决这个问题，ClickHouse 团队在 controller-runtime 之上重建了编排层。controller-runtime 是一个经过生产验证的库，通常与 Kubernetes 控制器开发紧密关联。借助这个库，团队在没有自行实现的情况下获得了响应性（reactivity）、去重（deduplication）、退避（backoff）和并发控制（concurrency control）等能力。这些能力对于可靠且高效的扩缩容编排至关重要。\n\n在为这套机制提供近实时信号时，团队选择了最自然的方案：使用 ClickHouse 本身。他们构建了一个由 ClickHouse 支撑的信号表，用于存储和查询扩缩容所需的实时指标。这不仅验证了产品自身的实时分析能力，也让扩缩容决策能够基于更及时的数据。\n\n这次重构将扩缩容的触发方式从固定周期改为了事件驱动，关键改进是增加了一条反应式快速路径（reactive fast path），能够将扩容操作缩短到秒级完成，而不必等待下一个调度周期。对于运行在 ClickHouse Cloud 上的用户而言，这意味着工作负载突发时，服务容量能够更快地跟上需求，减少因资源不足而导致的性能影响。原文由 Marvin Beckers 发布于 2026 年 8 月 4 日，属于 ClickHouse 工程博客系列。",
-   "category": "platform",
-   "category_label": "AI 数据平台",
-   "vendors": [
-    "ClickHouse"
-   ],
-   "heat": 31,
-   "star": false,
-   "published": "2026-08-04T08:00:00+08:00",
-   "items": [
-    {
-     "id": "448beb58807f",
-     "source": "ClickHouse Blog",
-     "link": "https://clickhouse.com/blog/making-clickhouse-cloud-autoscaling-more-reactive",
-     "published": "2026-08-04T08:00:00+08:00",
-     "title": "Fixed cadence to seconds: making ClickHouse Cloud autoscaling more reactive",
-     "ingested_at": "2026-08-04T08:00:00+08:00"
-    }
-   ],
-   "topics": [],
-   "shelf": "news",
-   "first_seen": "2026-08-04T08:00:00+08:00"
   },
   {
    "event_id": "5f584be1ab5d",
@@ -3405,12 +3414,12 @@
   {
    "name": "dbt Blog",
    "ok": true,
-   "new": 0
+   "new": 1
   },
   {
    "name": "ThoughtSpot Blog",
    "ok": true,
-   "new": 1
+   "new": 0
   },
   {
    "name": "Metabase Blog",
@@ -3444,8 +3453,8 @@
   },
   {
    "name": "帆软",
-   "ok": false,
-   "error": "<urlopen error _ssl.c:999: The handshake operation timed out>"
+   "ok": true,
+   "new": 0
   },
   {
    "name": "InfoQ 中文",
@@ -3485,17 +3494,17 @@
   {
    "name": "Hacker News（数据关键词）",
    "ok": true,
-   "new": 4
+   "new": 3
   },
   {
    "name": "Bluesky 数据社区",
    "ok": true,
-   "new": 8
+   "new": 9
   },
   {
    "name": "Snowflake Engineering（Medium）",
    "ok": true,
-   "new": 1
+   "new": 0
   },
   {
    "name": "Microsoft Power BI（Power Platform Blog）",

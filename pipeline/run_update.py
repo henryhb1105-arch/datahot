@@ -19,6 +19,7 @@ from content_blocks import (
     sanitize_blocks, translation_nodes,
 )
 from media_cache import cache_event_media, prune_media_cache
+from daily_brief import generate_daily_brief
 from source_controls import (
     prefilter_entries, source_candidate_limit, source_control_snapshot, source_due,
 )
@@ -268,6 +269,35 @@ def llm_chat(base, key, model, prompt, timeout=120, max_tokens=None,
             reserved_tokens=reservation,
         )
         raise
+
+
+def generate_daily_brief_for_events(events, cfg, now, *, cache_path=None, output_path=None):
+    """Generate today's one immutable brief and account its call separately."""
+    enabled = os.getenv("DAILY_BRIEF_ENABLED", "true").strip().lower() in {"1", "true", "yes", "on"}
+    if not enabled:
+        return None, "disabled"
+    key, base, model = cfg
+    configured_model = model if key and base and model else ""
+
+    def call(prompt, *, item_id):
+        return llm_chat(
+            base, key, model, prompt, max_tokens=900,
+            purpose="daily_brief", source="daily_brief", item_id=item_id,
+        )
+
+    force_requested = os.getenv("DAILY_BRIEF_FORCE", "false").strip().lower() in {"1", "true", "yes", "on"}
+    # A forgotten repository variable must not turn four scheduled runs into
+    # four paid regenerations. Forced replacement is manual-dispatch only.
+    force = force_requested and os.getenv("GITHUB_EVENT_NAME", "") == "workflow_dispatch"
+    return generate_daily_brief(
+        events,
+        now=now,
+        model=configured_model,
+        llm_generate=call if configured_model else None,
+        cache_path=cache_path or DATA / "daily_brief_cache.json",
+        output_path=output_path or DATA / "daily_brief.json",
+        force=force,
+    )
 
 # ── 全文编译引擎（忠实编译，非摘要）─────────────────────────
 COMPILE_RULES = """你是数据领域垂直资讯站的专业编译。把下面的原文编译为面向数据从业者的中文全文编译稿。要求：
@@ -1376,6 +1406,9 @@ def main():
 
     top = [e["event_id"] for e in sorted(events, key=lambda e: -e["heat"])[:3]]
     events.sort(key=lambda e: (e.get("first_seen") or e["published"] or ""), reverse=True)
+
+    _brief, brief_status = generate_daily_brief_for_events(events, cfg, now)
+    print(f"[daily-brief] {brief_status}")
 
     payload = {
         "generated_at": now.astimezone(TZ).isoformat(),

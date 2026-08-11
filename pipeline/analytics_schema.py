@@ -12,7 +12,7 @@ EVENT_NAMES = {
     "session_start", "list_exposure", "detail_click", "outbound_click",
     "favorite_toggle", "search", "filter", "daily_brief_click",
 }
-PAGES = {"home", "topics", "topic", "classics", "hot", "favorites", "sources", "detail", "privacy", "other"}
+PAGES = {"home", "daily", "topics", "topic", "classics", "hot", "favorites", "sources", "detail", "privacy", "other"}
 CATEGORIES = {"agent", "platform", "bi", "product", ""}
 VIEWPORTS = {"small", "medium", "large"}
 REFERRERS = {"direct", "internal", "search", "social", "other"}

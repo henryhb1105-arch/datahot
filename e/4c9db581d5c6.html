@@ -46,7 +46,7 @@
   .wrap{max-width:1160px;margin:0 auto;padding:0 20px}
 
   /* ── 顶部导航 ── */
-  header{position:sticky;top:0;z-index:50;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+  header{position:sticky;top:0;z-index:50;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
   .nav{display:flex;align-items:center;gap:18px;min-height:56px}
   .logo{font-size:20px;font-weight:800;letter-spacing:-.5px}
   .logo em{font-style:normal;color:var(--accent)}
@@ -311,13 +311,30 @@ main,.layout>*,.hotlist>*{min-width:0}
 .hot .hsum{font-size:12.5px;color:var(--txt2);line-height:1.65;margin:6px 0 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .hot .htime{margin-left:auto;font-size:11px;color:var(--sub)}
 .tabbar{display:none}
+.more-mask,.more-sheet{display:none}
 @media(max-width:960px){
   body{padding-bottom:64px}
   footer{padding-bottom:96px}
-  .tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--tabbar-bg);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:70;padding-bottom:env(safe-area-inset-bottom)}
-  .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0 6px;font-size:11px;color:var(--sub);text-decoration:none;gap:2px}
-  .tabbar a .ico{font-size:19px}
-  .tabbar a.on{color:var(--accent);font-weight:600}
+  body.mobile-section{padding-top:env(safe-area-inset-top)}
+  .section-brand-header,.detail-brand-header{display:none}
+  .tabbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));position:fixed;bottom:0;left:0;right:0;background:var(--tabbar-bg);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:70;padding:0 0 env(safe-area-inset-bottom)}
+  .tabbar a,.tabbar button{appearance:none;border:0;background:transparent;min-width:0;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 2px 5px;font:inherit;font-size:11px;color:var(--sub);text-decoration:none;gap:2px;cursor:pointer;touch-action:manipulation}
+  .tabbar .ico{display:grid;place-items:center;height:22px}
+  .tabbar a.on,.tabbar button.on{color:var(--accent);font-weight:650}
+  .more-mask{display:block;position:fixed;inset:0;background:rgba(0,0,0,.42);opacity:0;pointer-events:none;transition:opacity .22s ease;z-index:78}
+  .more-mask.show{opacity:1;pointer-events:auto}
+  .more-sheet{display:block;position:fixed;left:0;right:0;bottom:0;z-index:80;max-height:70vh;overflow:auto;background:var(--card);border-radius:18px 18px 0 0;padding:8px 16px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -14px 40px rgba(0,0,0,.18);transform:translateY(110%);transition:transform .28s cubic-bezier(.32,.72,.35,1)}
+  .more-sheet.show{transform:translateY(0)}
+  .more-handle{width:36px;height:4px;border-radius:99px;background:var(--line);margin:2px auto 12px}
+  .more-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .more-head h2{font-size:18px}
+  .more-close{appearance:none;border:0;background:var(--soft);color:var(--sub);width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer}
+  .more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .more-link{display:flex;align-items:center;gap:11px;min-height:58px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);text-decoration:none;color:var(--ink)}
+  .more-link .more-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent);flex:0 0 auto}
+  .more-link span:last-child{min-width:0;font-size:13px;font-weight:650}
+  .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  body.more-open{overflow:hidden}
 }
 .tgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
 @media(max-width:960px){.tgrid{grid-template-columns:1fr}}
@@ -384,12 +401,12 @@ main,.layout>*,.hotlist>*{min-width:0}
 @media(prefers-reduced-motion:reduce){.tts-player *{scroll-behavior:auto!important;transition:none!important}}
 .disclaimer{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}
 .disclaimer a{color:var(--accent)}
-</style></head><body data-page="detail" data-event-id="4c9db581d5c6" data-category="platform" data-source="InfoQ（AI/数据工程）">
-<header><div class="wrap nav">
+</style></head><body class="mobile-detail" data-page="detail" data-event-id="4c9db581d5c6" data-category="platform" data-source="InfoQ（AI/数据工程）">
+<header class="detail-brand-header"><div class="wrap nav">
   <div class="logo"><a href="../index.html">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
 <div class="article">
-  <div class="topbar">
+  <div class="topbar detail-context">
     <a class="back" href="../index.html" style="margin-bottom:0">← 返回热榜</a>
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="4c9db581d5c6" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
@@ -420,7 +437,37 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/8f797762a332.html"><span class="n">›</span>华为重定义存储：推AI数据中心五层架构<span class="count">55</span></a><a class="vendor-row" href="../e/ddcb4a5b6b52.html"><span class="n">›</span>开源数据层将赢得AI未来<span class="count">59</span></a><a class="vendor-row" href="../e/5c4d28e53f75.html"><span class="n">›</span>Agentic AI架构需要数据库而非仅向量库<span class="count">57</span></a></div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
-<nav class="tabbar"><a href="../index.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span>热榜</a><a href="../weekly.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>周报</a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span>主题</a><a href="../classics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></span>典藏</a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span>收藏</a><a href="../sources.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span>信源</a></nav>
+<nav class="tabbar" aria-label="移动端主导航">
+  <a href="../index.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../weekly.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span>周报</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a>
+  <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
+</nav>
+<div class="more-mask" data-more-mask></div>
+<section class="more-sheet" id="mobileMoreSheet" aria-label="更多导航" aria-hidden="true">
+  <div class="more-handle" aria-hidden="true"></div>
+  <div class="more-head"><h2>更多</h2><button class="more-close" type="button" data-more-close aria-label="关闭更多导航">×</button></div>
+  <div class="more-grid"><a class="more-link" href="../hot.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></span><span>完整榜单</span></a><a class="more-link" href="../classics.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></span><span>典藏</span></a><a class="more-link" href="../favorites.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>我的收藏</span></a><a class="more-link" href="../sources.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span><span>信源</span></a><a class="more-link" href="../privacy.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg></span><span>隐私说明</span></a></div>
+</section>
+<script>
+(function(){
+  var trigger=document.querySelector('[data-more-open]');
+  var sheet=document.getElementById('mobileMoreSheet');
+  var mask=document.querySelector('[data-more-mask]');
+  var closeBtn=document.querySelector('[data-more-close]');
+  if(!trigger||!sheet||!mask||!closeBtn) return;
+  function setMore(open){
+    trigger.setAttribute('aria-expanded',open?'true':'false');
+    sheet.setAttribute('aria-hidden',open?'false':'true');
+    sheet.classList.toggle('show',open);
+    mask.classList.toggle('show',open);
+    document.body.classList.toggle('more-open',open);
+    if(open) closeBtn.focus(); else trigger.focus();
+  }
+  trigger.addEventListener('click',function(){setMore(true)});
+  closeBtn.addEventListener('click',function(){setMore(false)});
+  mask.addEventListener('click',function(){setMore(false)});
+  document.addEventListener('keydown',function(event){if(event.key==='Escape'&&sheet.classList.contains('show')) setMore(false)});
+})();
+</script>
 
 
 <div class="sh-mask" id="shMask" onclick="shClose()"></div>
@@ -450,8 +497,13 @@ main,.layout>*,.hotlist>*{min-width:0}
 .sbtn svg{flex:0 0 auto}
 .sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .sbtn:active{transform:scale(.95)}
+@media(max-width:960px){
+.topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topbar.detail-context .back{font-size:14px;font-weight:650;color:var(--ink)}
+}
 @media(max-width:600px){
 .topbar{align-items:stretch;flex-direction:column;gap:10px}
+.topbar.detail-context{margin:-20px -14px 14px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
 .sharebtns{width:100%;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .sharebtns .sbtn{padding:7px 11px}
 .sharebtns::-webkit-scrollbar{display:none}

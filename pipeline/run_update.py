@@ -12,6 +12,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 from llm_usage import LLMBudgetExceeded, LLMUsageTracker
+from candidate_cache import CandidateCache, candidate_content_hash
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
@@ -21,6 +22,7 @@ KEEP_DAYS = 7
 PER_SOURCE_MAX = 20
 TZ = timezone(timedelta(hours=8))
 LLM_USAGE = LLMUsageTracker(DATA / "llm_usage.json")
+CANDIDATE_CACHE = CandidateCache(DATA / "candidate_cache.json")
 
 UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/126.0 Safari/537.36",
       "Accept": "application/rss+xml,application/xml,text/xml,*/*"}
@@ -344,6 +346,40 @@ ENRICH_RULES = """你是一个数据领域垂直资讯站的编辑。本站只�
 输出 JSON（不要输出多余内容）：
 {"relevant": true或false, "zh_title": "中文标题(≤40字)", "zh_summary": "中文摘要3-4句，保留产品名与数字，不得编造原文没有的信息", "reason": "推荐理由：为什么数据从业者应关注，1-2句", "category": "agent|platform|bi|product", "shelf": "news 或 evergreen（方法论/框架/深度实践/报告解读等半年后仍值得读的标 evergreen，发布/融资/版本更新等时效内容标 news）", "topics": ["从主题词表选0-2个：ChatBI/Data Agent/语义层/平台AI化/BI变局/湖仓/实时分析/数据人，没有合适的就空数组，宁缺毋滥"], "vendors": ["提到的数据厂商，如Snowflake/Databricks/PowerBI/帆软等，没有则空数组"], "importance": 1-100整数}"""
 
+ENRICH_RULE_VERSION = "enrich-v1"
+
+
+def _candidate_cache_context(it, model):
+    return {
+        "normalized_url": norm_url(it["link"]),
+        "source_id": it.get("source", "unknown"),
+        "content_hash": candidate_content_hash(it),
+        "model": model,
+        "rule_version": ENRICH_RULE_VERSION,
+    }
+
+
+def _cached_enrichment(it, cached):
+    enrichment = cached.get("enrichment") or {}
+    for key in (
+        "zh_title", "zh_summary", "reason", "category", "category_label",
+        "vendors", "topics", "shelf", "importance", "heat",
+    ):
+        if key in enrichment:
+            it[key] = enrichment[key]
+    return it
+
+
+def _cacheable_enrichment(it):
+    return {
+        key: it[key]
+        for key in (
+            "zh_title", "zh_summary", "reason", "category", "category_label",
+            "vendors", "topics", "shelf", "importance", "heat",
+        )
+        if key in it
+    }
+
 def llm_enrich(items, cfg):
     key, base, model = cfg
     if not (key and base and model):
@@ -379,19 +415,44 @@ def llm_enrich(items, cfg):
         it["heat"] = calc_heat(it["importance"], it.get("_pub_dt"), it.get("signal", 0))
         return it
 
-    kept = []
+    kept, pending = [], []
+    cache_contexts = {}
+    for it in items:
+        context = _candidate_cache_context(it, model)
+        cache_contexts[it["id"]] = context
+        cached = CANDIDATE_CACHE.lookup(**context)
+        if cached and cached.get("status") == "rejected":
+            print(f"[cache] 已拒绝候选，跳过: {it['title'][:50]}")
+            continue
+        if cached and cached.get("status") == "accepted":
+            kept.append(_cached_enrichment(it, cached))
+            print(f"[cache] 已接受候选，复用判定: {it['title'][:50]}")
+            continue
+        if cached and cached.get("status") == "error":
+            print(f"[cache] 错误退避中，本轮跳过: {it['title'][:50]}")
+            continue
+        pending.append(it)
+
     with ThreadPoolExecutor(max_workers=12) as pool:
-        futures = {pool.submit(enrich_one, it): it for it in items}
+        futures = {pool.submit(enrich_one, it): it for it in pending}
         for fut, it in futures.items():
+            context = cache_contexts[it["id"]]
             try:
                 res = fut.result()
                 if res is None:
                     print(f"[llm] 不相关，剔除: {it['title'][:50]}")
+                    CANDIDATE_CACHE.remember(**context, status="rejected")
                 else:
                     kept.append(res)
+                    CANDIDATE_CACHE.remember(
+                        **context, status="accepted", enrichment=_cacheable_enrichment(res),
+                    )
             except Exception as e:
                 print(f"[llm] 加工失败（保留原文）: {e} | {it['title'][:40]}")
                 kept.append(it)
+                CANDIDATE_CACHE.remember(
+                    **context, status="error", error_type=type(e).__name__,
+                )
     return kept
 
 # ── F1：事件聚簇 ──────────────────────────────────────────
@@ -835,5 +896,7 @@ if __name__ == "__main__":
     try:
         main()
     finally:
+        CANDIDATE_CACHE.finalize()
+        print(CANDIDATE_CACHE.one_line_summary())
         LLM_USAGE.finalize()
         print(LLM_USAGE.one_line_summary())

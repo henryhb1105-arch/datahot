@@ -43,8 +43,11 @@ GitHub Actions 每 6 小时自动运行（UTC 0/6/12/18 第 17 分），数据�
 - `MAX_LLM_TOKENS_PER_RUN`：单次更新的 Token 上限，默认 `160000`
 - `MAX_LLM_TOKENS_PER_DAY`：自然日 Token 上限，默认 `500000`
 - `MAX_COMPILE_EVENTS_PER_RUN`：每次最多生成全文编译稿的事件数，默认 `8`
+- `CANDIDATE_CACHE_ENABLED`：是否开启候选判定缓存，默认 `true`
+- `CANDIDATE_CACHE_TTL_DAYS`：accepted/rejected 判定保留天数，默认 `21`
+- `CANDIDATE_CACHE_ERROR_TTL_HOURS`：失败候选的重试退避时长，默认 `6`
 
-达到上限时会在 API 请求前停止新调用，不影响已采集原文的保留和静态站点构建。
+达到上限时会在 API 请求前停止新调用，不影响已采集原文的保留和静态站点构建。候选缓存会原子写入 `site/data/candidate_cache.json`；同 URL、同内容、同模型与规则版本在 TTL 内不会重复调用相关性模型。
 
 ## 内容声明
 

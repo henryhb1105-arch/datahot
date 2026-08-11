@@ -58,6 +58,13 @@ VENDOR_TAGS = {
     "Claude 官方博客": ["Anthropic", "Claude"],
     "Microsoft Power BI（Power Platform Blog）": ["Microsoft", "Power BI"],
     "Tableau Engineering（Medium）": ["Tableau"],
+    "Google BigQuery Release Notes": ["Google", "BigQuery"],
+    "Google Looker Release Notes": ["Google", "Looker"],
+    "Microsoft Fabric Blog": ["Microsoft", "Fabric", "Power BI"],
+    "DuckDB Engineering Blog": ["DuckDB"],
+    "Apache Iceberg Blog": ["Apache Iceberg"],
+    "TiDB Blog": ["PingCAP", "TiDB"],
+    "Apache Doris Blog": ["Apache Doris"],
 }
 
 # ── 基础工具 ──────────────────────────────────────────────

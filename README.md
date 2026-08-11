@@ -87,9 +87,13 @@ GitHub Actions 每 6 小时自动运行（UTC 0/6/12/18 第 17 分），数据�
 
 ### 每周简报
 
-每周一北京时间 08:17 从上一个完整自然周（周一至周日）选取 10–15 条高价值事件，只发布一个不可变版本。同一信源最多 2 条，并优先覆盖当周活跃的四个正式分类。缓存键包含 ISO 周、事件输入哈希、提示词版本与模型版本；同周后续更新不会再次调用 DeepSeek。周报固化标题、摘要、来源与原文链接，历史事件详情清理后仍可从 `weekly/<YYYY-Www>.html` 阅读并回到原始信源；旧 `daily.html` 自动转到最新周报。
+Issue [#33](https://github.com/henryhb1105-arch/datahot/issues/33) 将周报拆为三层：每日观察只提供候选信号；周度分析重新读取本周全部合格的规范化事件，并与过去 4 周可重放快照比较；个人编辑只引用已经通过校验的公共 `signal_id`，负责解释“这对 Henry 意味着什么”和行动建议。日报结论不能替代原始证据，事件校验通过也不代表跨事件趋势成立。
 
-周报调用发生在其他付费加工之前，以 `weekly_brief` 用途计入 `llm_usage.json`。模型未配置、调用失败或预算耗尽时自动发布规则版。设置 `WEEKLY_BRIEF_ENABLED=false` 可停止生成并隐藏入口；`WEEKLY_BRIEF_FORCE=true` 只在手动触发工作流时生效。已有 `DAILY_BRIEF_ENABLED` / `DAILY_BRIEF_FORCE` 仓库变量继续作为迁移期后备值。
+每周一北京时间 08:17 处理上一个完整自然周（周一至周日）。周度分析会规范化去重、按具体产品机制聚类、检查信源家族与证据独立性，并允许输出 0–3 个主题。没有历史基线时只能标记 `early_signal` 或 `unknown`；单一供应商或客户案例不能成为高置信趋势；异质事件不能因为都涉及 AI、成本或可靠性而强行合并。本周与过去 4 周的输入保存在 `site/data/weekly_inputs/`，公共信号写入 `weekly_signals.json` 及其历史目录，个人周报写入 `weekly_brief.json` 及 `weekly/`。
+
+两层模型输出都使用固定 JSON Schema、合法 `event_id`、证据标题和跨层引用校验；失败时仅重试一次。模型未配置、调用失败、预算耗尽或任一层校验失败时，周报保持“整理中”，不会发布规则叙事，下一次定时任务仍会重试。只有 AI 结果完整通过后才进入同周不可变缓存；缓存覆盖本周输入、4 周基线、两层 Prompt、Schema 和模型版本。页面只展示结论、具体锚点、个人影响和行动，资讯标题集中在默认折叠的证据索引中。
+
+两层调用均以 `weekly_brief` 用途计入 `llm_usage.json`，并分别标记 `weekly_signals` 与 `weekly_personal`。设置 `WEEKLY_BRIEF_ENABLED=false` 可停止生成并隐藏入口；`WEEKLY_BRIEF_FORCE=true` 只在手动触发工作流时生效。已有 `DAILY_BRIEF_ENABLED` / `DAILY_BRIEF_FORCE` 仓库变量继续作为迁移期后备值。
 
 ### Atom Feed
 

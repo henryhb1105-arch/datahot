@@ -1,6 +1,13 @@
 name: DataHot 定时更新
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/update.yml"
+      - "pipeline/**"
+      - "ui-mockup/**"
+      - "requirements.txt"
   schedule:
     # UTC 0/6/12/18 点的第 17 分 → 北京时间 08:17 / 14:17 / 20:17 / 02:17
     - cron: "17 0,6,12,18 * * *"
@@ -77,6 +84,10 @@ jobs:
           python3 pipeline/run_update.py
           python3 pipeline/build_site.py
           python3 pipeline/check_links.py site
+
+      - name: 周报 AI 生成状态（异常时告警，不阻塞资讯更新）
+        continue-on-error: true
+        run: python3 pipeline/check_weekly_brief.py site/data/weekly_brief.json --expect-ai
 
       - name: 数据回写仓库（跨次累积去重）
         uses: stefanzweifel/git-auto-commit-action@v5

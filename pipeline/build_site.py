@@ -14,6 +14,7 @@ from lite_data import (
     build_lite_payload, event_timestamp, find_forbidden_fields,
     is_list_eligible, rank_home_events, rank_hot_events, select_home_events,
 )
+from weekly_brief import valid_brief as valid_weekly_brief
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
@@ -152,20 +153,55 @@ main,.layout>*,.hotlist>*{min-width:0}
 .weekly-waiting:hover{border-color:var(--accent);color:var(--accent)}
 .weekly-waiting b{color:var(--ink);font-size:13px}
 .weekly-waiting span:last-child{margin-left:auto;color:var(--sub);font-size:11.5px}
-.weekly-summary{background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border:0}
+.weekly-summary{background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border:0;padding:20px 22px}
 .weekly-summary h1{font-size:25px;line-height:1.4;margin:4px 0 8px}
-.weekly-summary p{font-size:14px;line-height:1.85;color:#e5e7eb}
+.weekly-summary p{font-size:14px;line-height:1.75;color:#e5e7eb;margin:0}
 .weekly-change{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.12);font-size:13px;line-height:1.7;color:#f3f4f6}
 .weekly-change:last-child{border-bottom:0}
-.weekly-row{display:block;text-decoration:none;color:var(--ink);padding:15px 0;border-bottom:1px solid var(--soft)}
-.weekly-row:last-child{border-bottom:0}
-.weekly-row:hover .weekly-title{color:var(--accent)}
-.weekly-title{font-size:15px;font-weight:750;line-height:1.55}
-.weekly-row p{font-size:12.5px;line-height:1.7;color:var(--txt2);margin:5px 0}
-.weekly-row .weekly-row-meta{font-size:11px;color:var(--sub)}
+.weekly-themes{display:grid;gap:14px}
+.weekly-theme{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px}
+.weekly-theme h2{font-size:19px;line-height:1.5;margin:9px 0 12px}
+.weekly-theme p{font-size:13.5px;line-height:1.85;color:var(--txt2);margin:0 0 12px}
+.weekly-badges{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.weekly-pill{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:99px;padding:3px 8px;font-size:10.5px;color:var(--sub)}
+.weekly-pill.priority-now{border-color:#dc2626;color:#b91c1c;background:#fef2f2}
+.weekly-pill.priority-test{border-color:#d97706;color:#b45309;background:#fffbeb}
+.weekly-pill.priority-watch{border-color:#2563eb;color:#1d4ed8;background:#eff6ff}
+.weekly-pill.priority-ignore{color:var(--sub);background:var(--soft)}
+.weekly-anchor{background:var(--soft);border-left:3px solid var(--accent);padding:10px 12px;border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.75;color:var(--txt2);margin:0 0 14px}
+.weekly-anchor b,.weekly-why b{color:var(--ink)}
+.weekly-why{font-size:13px;line-height:1.8;color:var(--txt2);border-top:1px solid var(--soft);padding-top:12px}
+.weekly-action{margin-top:12px;background:#fff8ed;border:1px solid #f3d5aa;border-radius:9px;padding:11px 12px;font-size:13px;line-height:1.75;color:var(--txt2)}
+.weekly-action b{color:#9a4f08;margin-right:7px}
+.weekly-signal-meta{font-size:11px;color:var(--sub);margin-top:12px}
+.weekly-secondary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.weekly-secondary .scard{font-size:12.5px;line-height:1.75;color:var(--txt2)}
+.weekly-secondary b{display:block;color:var(--ink);font-size:12px;margin-bottom:6px}
+.weekly-evidence{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:0 18px}
+.weekly-evidence summary{cursor:pointer;padding:15px 0;font-size:13px;font-weight:700;color:var(--ink)}
+.weekly-evidence-row{display:flex;gap:12px;align-items:baseline;padding:11px 0;border-top:1px solid var(--soft);text-decoration:none;color:var(--ink)}
+.weekly-evidence-row:hover span:first-child{color:var(--accent)}
+.weekly-evidence-row span:first-child{font-size:13px;line-height:1.55;flex:1}
+.weekly-evidence-row span:last-child{font-size:10.5px;color:var(--sub);white-space:nowrap}
 .weekly-archive{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 22px}
 .weekly-archive a{font-size:12px;color:var(--sub);border:1px solid var(--line);border-radius:99px;padding:5px 10px;text-decoration:none}
 .weekly-archive a:hover,.weekly-archive a.on{border-color:var(--accent);color:var(--accent)}
+@media (prefers-color-scheme: dark){
+  .weekly-pill.priority-now{border-color:#ef7b7b;color:#ffaaaa;background:rgba(220,38,38,.14)}
+  .weekly-pill.priority-test{border-color:#d89a3d;color:#f2bd70;background:rgba(217,119,6,.14)}
+  .weekly-pill.priority-watch{border-color:#6ea8ff;color:#9cc3ff;background:rgba(37,99,235,.14)}
+  .weekly-action{background:rgba(217,119,6,.12);border-color:rgba(242,189,112,.38);color:var(--txt2)}
+  .weekly-action b{color:#f2bd70}
+}
+@media(max-width:700px){
+  .weekly-summary{padding:16px 20px}
+  .weekly-summary h1{font-size:23px}
+  .weekly-theme{padding:17px}
+  .weekly-theme h2{font-size:17px}
+  .weekly-secondary{grid-template-columns:1fr}
+  .weekly-evidence-row{align-items:flex-start;flex-direction:column;gap:4px}
+  .weekly-evidence-row span:last-child{white-space:normal}
+}
 .hrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--soft);text-decoration:none;color:var(--ink)}
 .hrow:last-child{border-bottom:none}
 .hrow .rk{font-size:15px;font-weight:800;color:var(--accent);width:26px;flex-shrink:0;text-align:center}
@@ -1198,16 +1234,7 @@ def load_weekly_brief(path=None):
         brief = json.loads(path.read_text(encoding="utf-8"))
     except (FileNotFoundError, json.JSONDecodeError, OSError):
         return None
-    if not isinstance(brief, dict) or brief.get("schema_version") != 2 or brief.get("kind") != "weekly":
-        return None
-    items = brief.get("items")
-    if (
-        not isinstance(items, list) or not 10 <= len(items) <= 15
-        or not all(isinstance(item, dict) for item in items)
-        or not all(len(str(item.get("event_id") or "")) == 12 for item in items)
-    ):
-        return None
-    return brief
+    return brief if valid_weekly_brief(brief) else None
 
 
 def load_weekly_archive(path=None):
@@ -1228,13 +1255,11 @@ def render_weekly_brief_teaser(brief):
   <b>每周简报整理中</b>
   <span>首页与热榜可正常浏览 →</span>
 </a>'''
-    mode = "AI 整理" if brief.get("ai_assisted") else "规则整理"
-    generated = fmt_date(brief.get("generated_at"))
     return f'''<a class="weekly-teaser" href="weekly.html" data-analytics="weekly_brief">
-  <div class="weekly-kicker">WEEKLY BRIEF · {esc(mode)}</div>
-  <h2>{esc(brief.get("headline"))}</h2>
-  <p>{esc(brief.get("overview"))}</p>
-  <div class="weekly-meta">{esc(brief.get("period_start"))} 至 {esc(brief.get("period_end"))} · {generated} 生成 · {len(brief.get("items", []))} 条重点 →</div>
+  <div class="weekly-kicker">WEEKLY BRIEF · 每周精选</div>
+  <h2>{esc(brief.get("title"))}</h2>
+  <p>{esc(brief.get("bottom_line"))}</p>
+  <div class="weekly-meta">{esc(brief.get("period_start"))} 至 {esc(brief.get("period_end"))} · {len(brief.get("for_you", []))} 个信号 · 约 3 分钟读完 →</div>
 </a>'''
 
 
@@ -1265,7 +1290,7 @@ def render_weekly_brief_page(
         body = '''
 <div class="wrap" style="padding:28px 20px 60px;max-width:860px">
   <div class="section-title"><h2>每周简报</h2><span>每周一发布</span></div>
-  <div class="scard" style="font-size:13.5px;color:var(--txt2);line-height:1.8">首期周报正在整理中。系统会从上一个完整自然周选取至少 10 条高价值事件；周报不可用不影响首页、热榜和详情页。</div>
+  <div class="scard" style="font-size:13.5px;color:var(--txt2);line-height:1.8">本期周报正在进行跨事件聚类、历史基线比较和证据校验。AI 或校验暂时不可用时不会发布规则摘要；首页、热榜和详情页仍可正常浏览。</div>
 </div>'''
         return page_shell(
             "每周简报 · DataHot", "DataHot 每周数据 AI 高价值事件简报", css, body,
@@ -1273,64 +1298,100 @@ def render_weekly_brief_page(
         )
 
     event_map = {event["event_id"]: event for event in events}
-    mode = "AI 整理" if brief.get("ai_assisted") else "规则整理（AI 不可用或预算受限）"
-    categories = "".join(
-        f'<span class="chip">{esc(row.get("label"))} {int(row.get("count") or 0)} 条</span> '
-        for row in brief.get("category_overview", []) if isinstance(row, dict)
-    )
-    changes = "".join(
-        f'<div class="weekly-change">{esc(change)}</div>'
-        for change in brief.get("key_changes", [])
-    )
-    grouped_rows = defaultdict(list)
-    for item in brief.get("items", []):
-        event_id = str(item.get("event_id") or "")
+    item_map = {
+        str(item.get("event_id") or ""): item
+        for item in brief.get("items", []) if isinstance(item, dict)
+    }
+    signal_map = {
+        str(signal.get("signal_id") or ""): signal
+        for signal in brief.get("signals", []) if isinstance(signal, dict)
+    }
+    change_labels = {
+        "early_signal": "早期信号", "new": "新出现", "strengthening": "明显增强",
+        "continuing": "延续", "cooling": "降温", "unknown": "暂无法判断",
+    }
+    confidence_labels = {"high": "高置信", "medium": "中等置信", "low": "低置信"}
+    priority_classes = {
+        "现在行动": "priority-now", "安排测试": "priority-test",
+        "继续观察": "priority-watch", "暂时忽略": "priority-ignore",
+    }
+
+    theme_rows = []
+    for item in brief.get("for_you", []):
+        signal = signal_map.get(str(item.get("signal_id") or ""))
+        if not signal:
+            continue
+        priority = str(item.get("priority") or "继续观察")
+        theme_rows.append(f'''<article class="weekly-theme">
+  <div class="weekly-badges">
+    <span class="weekly-pill {priority_classes.get(priority, 'priority-watch')}">{esc(priority)}</span>
+    <span class="weekly-pill">{esc(change_labels.get(signal.get("change_type"), signal.get("change_type")))}</span>
+    <span class="weekly-pill">{esc(confidence_labels.get(signal.get("confidence"), signal.get("confidence")))}</span>
+  </div>
+  <h2>{esc(signal.get("title"))}</h2>
+  <div class="weekly-anchor"><b>具体锚点</b>　{esc(signal.get("anchor"))}</div>
+  <p>{esc(item.get("insight"))}</p>
+  <div class="weekly-why"><b>这对你意味着什么</b>　{esc(item.get("why_it_matters"))}</div>
+  <div class="weekly-action"><b>{esc(priority)}</b>{esc(item.get("action"))}</div>
+  <div class="weekly-signal-meta">{esc(signal.get("baseline_comparison"))} · {esc(signal.get("confidence_reason"))}</div>
+</article>''')
+    themes = "".join(theme_rows) or '''<div class="scard" style="font-size:13.5px;color:var(--txt2);line-height:1.8">本周没有形成足以改变产品路线或投入判断的新信号。宁缺毋滥，本期不拼凑主题。</div>'''
+
+    evidence_rows = []
+    for index_item in brief.get("evidence_index", []):
+        event_id = str(index_item.get("event_id") or "")
+        stored = item_map.get(event_id, {})
         event = event_map.get(event_id)
-        source = item.get("source") or (((event or {}).get("items") or [{}])[0].get("source") or "")
-        category = item.get("category") if item.get("category") in CAT_LABEL else (event or {}).get("category", "platform")
+        source = stored.get("source") or (((event or {}).get("items") or [{}])[0].get("source") or "")
         if event is not None:
-            href = f'{prefix}e/{event_id}.html'
+            href = f"{prefix}e/{event_id}.html"
             outbound = ""
+            destination = "站内详情"
         else:
-            href = _safe_source_url(item.get("source_url")) or f"{prefix}weekly.html"
+            href = _safe_source_url(stored.get("source_url")) or f"{prefix}weekly.html"
             outbound = ' target="_blank" rel="noopener" data-analytics="outbound"' if href.startswith("http") else ""
-        grouped_rows[category].append(f'''<a class="weekly-row" href="{esc(href)}"{outbound} data-analytics-list="1" data-event-id="{esc(event_id)}" data-category="{esc(category)}" data-source="{esc(source)}">
-  <div class="weekly-title">{esc(item.get("title") or (event or {}).get("zh_title"))}</div>
-  {f'<p>{esc(item.get("summary"))}</p>' if item.get("summary") else ''}
-  <div class="weekly-row-meta"><span class="badge {CAT_BADGE.get(category, 'b-platform')}">{esc(CAT_LABEL.get(category, 'AI 数据平台'))}</span> · {esc(source)} · 热度 {int(item.get("heat") or 0)}{' · 原始信源 ↗' if event is None else ''}</div>
+            destination = "原始信源 ↗" if href.startswith("http") else "证据快照"
+        evidence_rows.append(f'''<a class="weekly-evidence-row" href="{esc(href)}"{outbound} data-analytics-list="1" data-event-id="{esc(event_id)}" data-source="{esc(source)}">
+  <span>{esc(index_item.get("title"))}</span>
+  <span>{esc(source)} · {destination}</span>
 </a>''')
-    sections = "".join(
-        f'<div class="section-title"><h2>{esc(CAT_LABEL[category])}</h2><span>{len(grouped_rows[category])} 条</span></div>'
-        f'<div class="scard">{"".join(grouped_rows[category])}</div>'
-        for category in CAT_LABEL if grouped_rows.get(category)
-    )
-    watch = "".join(
-        f'<div class="weekly-change" style="color:var(--txt2);border-color:var(--soft)">{esc(item)}</div>'
-        for item in brief.get("next_watch", [])
-    )
+    evidence = "".join(evidence_rows)
+    evidence_section = f'''<details class="weekly-evidence">
+  <summary>证据索引 · {len(evidence_rows)} 条（默认折叠）</summary>
+  {evidence}
+</details>''' if evidence_rows else ""
+
+    baseline = brief.get("baseline") or {}
+    baseline_text = {
+        "complete": "过去 4 周基线完整",
+        "partial": f"历史基线 {int(baseline.get('available_weeks') or 0)}/4 周",
+        "missing": "暂无历史基线，按早期信号处理",
+    }.get(baseline.get("coverage"), "历史基线待确认")
     archive_nav = _weekly_archive_nav(
         archives or [], str(brief.get("week_id") or ""), archive_prefix=archive_prefix,
     )
     body = f'''
 <div class="wrap" style="padding:28px 20px 60px;max-width:860px">
-  <div class="section-title"><h2>{ic("calendar",18)} 每周简报</h2><span>{esc(brief.get("period_start"))} 至 {esc(brief.get("period_end"))} · 每周一次</span></div>
+  <div class="section-title"><h2>{ic("calendar",18)} 每周情报</h2><span>{esc(brief.get("period_start"))} 至 {esc(brief.get("period_end"))} · 每周一次</span></div>
   {archive_nav}
   <div class="scard weekly-summary">
-    <div class="weekly-kicker">{esc(brief.get("week_id"))} · {esc(mode)}</div>
-    <h1>{esc(brief.get("headline"))}</h1>
-    <p>{esc(brief.get("overview"))}</p>
-    <div style="margin:12px 0">{categories}</div>
-    <div>{changes}</div>
-    <div class="weekly-meta" style="margin-top:12px;color:#aeb4be;font-size:11px">{fmt_date(brief.get("generated_at"))} 生成 · 周级不可变缓存 · 提示词 {esc(brief.get("prompt_version"))}</div>
+    <div class="weekly-kicker">DATAHOT WEEKLY · {esc(brief.get("period_start"))} 至 {esc(brief.get("period_end"))}</div>
+    <h1>{esc(brief.get("title"))}</h1>
+    <p>{esc(brief.get("bottom_line"))}</p>
+    <div class="weekly-meta" style="margin-top:10px;color:#aeb4be;font-size:11px">{len(theme_rows)} 个信号 · 约 3 分钟读完 · {esc(baseline_text)} · {fmt_date(brief.get("generated_at"))} 更新</div>
   </div>
-  <div class="section-title"><h2>本周趋势判断</h2><span>只归纳本期已收录事件</span></div>
-  <div class="scard" style="font-size:13.5px;color:var(--txt2);line-height:1.85">{esc(brief.get("trend"))}</div>
-  {sections}
-  <div class="section-title"><h2>下周继续关注</h2><span>跟踪方向，不做事实预测</span></div>
-  <div class="scard">{watch}</div>
+  <div class="section-title"><h2>本周与你有关</h2><span>最多 3 个，不凑数</span></div>
+  <div class="weekly-themes">{themes}</div>
+  <div class="section-title"><h2>判断边界</h2><span>反证、缺口与下周验证</span></div>
+  <div class="weekly-secondary">
+    <div class="scard"><b>不要过度解读</b>{esc(brief.get("what_not_to_overread"))}</div>
+    <div class="scard"><b>当前不确定性</b>{esc(brief.get("uncertainty"))}</div>
+    <div class="scard"><b>下周验证问题</b>{esc(brief.get("next_week_question"))}</div>
+  </div>
+  {f'<div class="section-title"><h2>证据</h2><span>标题仅在索引中出现</span></div>{evidence_section}' if evidence_section else ''}
 </div>'''
     return page_shell(
-        f"{brief.get('week_id')} 每周简报 · DataHot", brief.get("overview") or "DataHot 每周简报",
+        f"{brief.get('week_id')} 每周情报 · DataHot", brief.get("bottom_line") or "DataHot 每周情报",
         css, body, tabbar("weekly", prefix), prefix=prefix, active="weekly",
     )
 

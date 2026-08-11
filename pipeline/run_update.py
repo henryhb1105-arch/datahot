@@ -244,8 +244,23 @@ def load_llm_config():
         model = model or cfg.get("LLM_MODEL", "")
     return key, base, model
 
+def parse_llm_json_content(content, *, strict_object=False):
+    """Parse one model JSON response; weekly stages reject wrapper text."""
+    text = str(content or "").strip()
+    if strict_object:
+        if not text.startswith("{") or not text.endswith("}"):
+            raise ValueError("strict JSON response must contain one bare object")
+        value = json.loads(text, strict=False)
+    else:
+        match = re.search(r"\{.*\}", text, re.S)
+        value = json.loads(match.group(0), strict=False) if match else {}
+    if not isinstance(value, dict):
+        raise ValueError("LLM JSON response must be an object")
+    return value
+
+
 def llm_chat(base, key, model, prompt, timeout=120, max_tokens=None,
-             purpose="other", source="", item_id=""):
+             purpose="other", source="", item_id="", strict_object=False):
     payload = {"model": model, "messages": [{"role": "user", "content": prompt}]}
     if max_tokens:
         payload["max_tokens"] = max_tokens
@@ -262,8 +277,7 @@ def llm_chat(base, key, model, prompt, timeout=120, max_tokens=None,
         with urllib.request.urlopen(req, timeout=timeout) as r:
             response = json.loads(r.read())
         content = response["choices"][0]["message"]["content"]
-        m = re.search(r"\{.*\}", content, re.S)
-        result = json.loads(m.group(0), strict=False) if m else {}
+        result = parse_llm_json_content(content, strict_object=strict_object)
         LLM_USAGE.record(
             model=model, purpose=purpose, source=source, item_id=item_id,
             prompt_chars=len(prompt), response_chars=len(content), max_tokens=max_tokens,
@@ -294,9 +308,10 @@ def generate_weekly_brief_for_events(
     configured_model = model if key and base and model else ""
 
     def call(prompt, *, item_id):
+        source = "weekly_signals" if ":signals" in item_id else "weekly_personal"
         return llm_chat(
-            base, key, model, prompt, max_tokens=1600,
-            purpose="weekly_brief", source="weekly_brief", item_id=item_id,
+            base, key, model, prompt, max_tokens=3600, strict_object=True,
+            purpose="weekly_brief", source=source, item_id=item_id,
         )
 
     force_value = os.getenv(

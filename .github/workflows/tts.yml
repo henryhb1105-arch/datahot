@@ -1,0 +1,73 @@
+name: DataHot 本地语音生成
+
+on:
+  workflow_run:
+    workflows: ["DataHot 定时更新"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: datahot-tts
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    if: >-
+      vars.TTS_RUNNER_ENABLED == 'true' &&
+      (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+    runs-on: [self-hosted, macOS, ARM64, datahot-tts]
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: 同步最新正文数据
+        run: git pull --ff-only origin main
+
+      - name: 检查本地语音环境
+        env:
+          TTS_PYTHON: ${{ vars.TTS_PYTHON }}
+          TTS_MODEL_PATH: ${{ vars.TTS_MODEL_PATH }}
+          TTS_REFERENCE_AUDIO: ${{ vars.TTS_REFERENCE_AUDIO }}
+          TTS_REFERENCE_TEXT_FILE: ${{ vars.TTS_REFERENCE_TEXT_FILE }}
+        run: |
+          test -x "$TTS_PYTHON"
+          test -d "$TTS_MODEL_PATH"
+          test -f "$TTS_REFERENCE_AUDIO"
+          test -f "$TTS_REFERENCE_TEXT_FILE"
+
+      - name: 本地生成精华朗读
+        env:
+          PYTORCH_ENABLE_MPS_FALLBACK: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          HF_HUB_OFFLINE: "1"
+          TTS_MODEL_PATH: ${{ vars.TTS_MODEL_PATH }}
+          TTS_REFERENCE_AUDIO: ${{ vars.TTS_REFERENCE_AUDIO }}
+          TTS_REFERENCE_TEXT_FILE: ${{ vars.TTS_REFERENCE_TEXT_FILE }}
+          TTS_VOICE_VERSION: ${{ vars.TTS_VOICE_VERSION || 'datahot-anchor-v1' }}
+          TTS_MAX_EVENTS_PER_RUN: ${{ vars.TTS_MAX_EVENTS_PER_RUN || '8' }}
+          TTS_MAX_CHARACTERS: ${{ vars.TTS_MAX_CHARACTERS || '350' }}
+          TTS_RETENTION_DAYS: ${{ vars.TTS_RETENTION_DAYS || '30' }}
+          TTS_AUDIO_BITRATE: ${{ vars.TTS_AUDIO_BITRATE || '64k' }}
+        run: >-
+          "${{ vars.TTS_PYTHON }}" pipeline/tts_generate.py
+          --device mps
+
+      - name: 提交音频与 manifest
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/audio site/data/tts-manifest.json
+          if git diff --cached --quiet; then
+            echo "没有新音频"
+            exit 0
+          fi
+          git commit -m "feat: update DataHot narration audio"
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main

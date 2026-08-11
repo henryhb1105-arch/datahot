@@ -411,7 +411,7 @@ def render_detail(e, all_events, css):
   </div>
   <h1>{esc(e["zh_title"])}</h1>
   <div class="body">{esc(e["zh_summary"])}</div>
-  {f'<div class="why" style="border-top:1px dashed var(--line);padding-top:14px;margin-top:18px;font-size:14px"><span class="w">{ic("sparkle",13)} 推荐理由</span><span>{esc(e["reason"])}</span></div>' if e.get("reason") else ""}
+  {f'<div class="why"><span class="w">{ic("sparkle",13)} 推荐理由</span><span>{esc(e["reason"])}</span></div>' if e.get("reason") else ""}
   {f'<div class="vendors" style="margin-top:14px">{vtags}</div>' if vtags else ""}
   {full_block}
   <div class="card"><h4>{ic("link")} 信源（{len(e["items"])} 家报道 · 按时间排序）</h4>{srcs}</div>

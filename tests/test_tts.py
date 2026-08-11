@@ -178,6 +178,7 @@ class TTSWorkflowTests(unittest.TestCase):
         self.assertIn('echo "changed=true" >> "$GITHUB_OUTPUT"', tts_workflow)
         self.assertIn("uses: ./.github/workflows/deploy.yml", tts_workflow)
         self.assertIn("workflow_call:", deploy_workflow)
+        self.assertIn("ref: main", deploy_workflow)
 
 
 if __name__ == "__main__":

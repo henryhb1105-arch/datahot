@@ -13,6 +13,7 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 from llm_usage import LLMBudgetExceeded, LLMUsageTracker
 from candidate_cache import CandidateCache, candidate_content_hash
+from cluster_cache import ClusterDecisionCache, cluster_pair_key
 from source_controls import (
     prefilter_entries, source_candidate_limit, source_control_snapshot, source_due,
 )
@@ -26,6 +27,7 @@ PER_SOURCE_MAX = 20
 TZ = timezone(timedelta(hours=8))
 LLM_USAGE = LLMUsageTracker(DATA / "llm_usage.json")
 CANDIDATE_CACHE = CandidateCache(DATA / "candidate_cache.json")
+CLUSTER_CACHE = ClusterDecisionCache(DATA / "cluster_cache.json")
 
 UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/126.0 Safari/537.36",
       "Accept": "application/rss+xml,application/xml,text/xml,*/*"}
@@ -383,7 +385,61 @@ def _cacheable_enrichment(it):
         if key in it
     }
 
-def llm_enrich(items, cfg):
+RULE_POSITIVE_TERMS = (
+    "data", "database", "analytics", "warehouse", "lakehouse", "sql", "dashboard",
+    "business intelligence", "semantic layer", "etl", "elt", "dbt", "agent", "数据", "分析", "数仓", "湖仓", "可视化",
+    "语义层", "智能体", "数据产品", "报表",
+)
+RULE_NEGATIVE_TERMS = (
+    "smartphone", "gaming", "music generation", "image generation", "dating app",
+    "手机", "游戏", "音乐生成", "绘画", "社交应用", "智能音箱",
+)
+
+
+def precheck_candidate_cache(items, cfg):
+    """Apply persisted candidate decisions before deterministic rules or fetching."""
+    _key, _base, model = cfg
+    if not model:
+        return items
+    kept = []
+    for it in items:
+        context = _candidate_cache_context(it, model)
+        cached = CANDIDATE_CACHE.lookup(**context)
+        it["_cache_checked"] = True
+        it["_cache_context"] = context
+        if cached and cached.get("status") == "rejected":
+            print(f"[cache] 已拒绝候选，跳过: {it['title'][:50]}")
+            continue
+        if cached and cached.get("status") == "error":
+            print(f"[cache] 错误退避中，本轮跳过: {it['title'][:50]}")
+            continue
+        if cached and cached.get("status") == "accepted":
+            it["_cache_entry"] = cached
+        kept.append(it)
+    return kept
+
+
+def rule_prefilter_candidates(items):
+    """Cheap, reversible high-recall filter before clustering and LLM calls."""
+    kept = []
+    for it in items:
+        if it.get("_cache_entry") or it.get("vendor_default"):
+            kept.append(it)
+            continue
+        text = " ".join(
+            str(it.get(key) or "") for key in ("title", "summary", "link")
+        ).casefold()
+        if any(term in text for term in RULE_NEGATIVE_TERMS):
+            print(f"[rules] 确定性排除: {it['title'][:50]}")
+            continue
+        if any(term in text for term in RULE_POSITIVE_TERMS):
+            kept.append(it)
+        else:
+            print(f"[rules] 无数据领域信号: {it['title'][:50]}")
+    return kept
+
+
+def llm_enrich(items, cfg, *, generate_fulltext=True):
     key, base, model = cfg
     if not (key and base and model):
         print("[llm] 未配置 LLM，跳过 AI 加工")
@@ -403,10 +459,11 @@ def llm_enrich(items, cfg):
         it["zh_title"] = out.get("zh_title") or it["title"]
         it["zh_summary"] = out.get("zh_summary") or it["summary"][:300]
         it["reason"] = out.get("reason", "")
-        it["full_zh"] = compile_fulltext(
-            it["zh_title"], it.get("article_text") or it.get("summary", ""), cfg,
-            context={"source": it.get("source", ""), "item_id": it.get("id", "")},
-        )
+        if generate_fulltext:
+            it["full_zh"] = compile_fulltext(
+                it["zh_title"], it.get("article_text") or it.get("summary", ""), cfg,
+                context={"source": it.get("source", ""), "item_id": it.get("id", "")},
+            )
         cat = out.get("category")
         if cat in CATEGORIES_LABEL:
             it["category"], it["category_label"] = cat, CATEGORIES_LABEL[cat]
@@ -421,9 +478,11 @@ def llm_enrich(items, cfg):
     kept, pending = [], []
     cache_contexts = {}
     for it in items:
-        context = _candidate_cache_context(it, model)
+        context = it.get("_cache_context") or _candidate_cache_context(it, model)
         cache_contexts[it["id"]] = context
-        cached = CANDIDATE_CACHE.lookup(**context)
+        cached = it.get("_cache_entry")
+        if not it.get("_cache_checked"):
+            cached = CANDIDATE_CACHE.lookup(**context)
         if cached and cached.get("status") == "rejected":
             print(f"[cache] 已拒绝候选，跳过: {it['title'][:50]}")
             continue
@@ -452,6 +511,7 @@ def llm_enrich(items, cfg):
                     )
             except Exception as e:
                 print(f"[llm] 加工失败（保留原文）: {e} | {it['title'][:40]}")
+                it["_enrich_error"] = type(e).__name__
                 kept.append(it)
                 CANDIDATE_CACHE.remember(
                     **context, status="error", error_type=type(e).__name__,
@@ -468,6 +528,9 @@ def jaccard(a, b):
         return 0.0
     return len(a & b) / len(a | b)
 
+CLUSTER_RULE_VERSION = "cluster-v1"
+
+
 def llm_same_event(pairs, cfg):
     """pairs: [(a_desc, b_desc), ...] → [bool]"""
     key, base, model = cfg
@@ -475,14 +538,20 @@ def llm_same_event(pairs, cfg):
         return [False] * len(pairs)
     def judge(p):
         try:
-            pair_id = hashlib.md5((p[0] + "\0" + p[1]).encode()).hexdigest()[:12]
+            pair_key = cluster_pair_key(p[0], p[1])
+            cached = CLUSTER_CACHE.lookup(pair_key, CLUSTER_RULE_VERSION)
+            if cached is not None:
+                return cached
+            pair_id = pair_key[:12]
             out = llm_chat(base, key, model,
                 "判断以下两条资讯是否报道同一事件/同一产品发布（同一事件的不同媒体报道算同一事件）。"
                 "注意：月度汇总/盘点类文章与其中提到的单项功能发布不算同一事件，除非该功能就是这篇文章的主题。"
                 '只输出JSON {"same": true或false}。\n\n'
                 f"【A】{p[0][:400]}\n【B】{p[1][:400]}",
                 purpose="cluster", source="event-cluster", item_id=pair_id)
-            return out.get("same") is True
+            same = out.get("same") is True
+            CLUSTER_CACHE.remember(pair_key, CLUSTER_RULE_VERSION, same)
+            return same
         except Exception:
             return False
     with ThreadPoolExecutor(max_workers=12) as pool:
@@ -500,7 +569,172 @@ def max_sim(a_titles, b_titles):
             best = max(best, jaccard(ba, title_bigrams(tb)))
     return best
 
-def cluster_events(new_items, events, cfg):
+
+def _item_desc(it):
+    return f"标题:{it.get('zh_title') or it.get('title','')} 摘要:{(it.get('zh_summary') or it.get('summary',''))[:200]}"
+
+
+def _items_comparable(left, right, max_hours=72):
+    left_vendors = set(left.get("vendors") or [])
+    right_vendors = set(right.get("vendors") or [])
+    if left_vendors & right_vendors:
+        return True
+    left_dt, right_dt = left.get("_pub_dt"), right.get("_pub_dt")
+    if left_dt and right_dt:
+        return abs((left_dt - right_dt).total_seconds()) <= max_hours * 3600
+    return True
+
+
+def group_candidate_items(items, cfg):
+    """Cluster current-run metadata before article fetching or enrichment."""
+    groups = []
+    for item in items:
+        candidates = []
+        for group in groups:
+            representative = group[0]
+            if not _items_comparable(item, representative):
+                continue
+            similarity = max_sim(
+                [item.get("title", "")],
+                [member.get("title", "") for member in group],
+            )
+            if similarity > 0.3:
+                candidates.append(group)
+        if not candidates:
+            groups.append([item])
+            continue
+        verdicts = llm_same_event(
+            [(_item_desc(item), _item_desc(group[0])) for group in candidates], cfg
+        )
+        hit = next((group for group, same in zip(candidates, verdicts) if same), None)
+        if hit is None:
+            groups.append([item])
+        else:
+            hit.append(item)
+    return groups
+
+
+def select_primary_source(group, source_configs):
+    """Select one deterministic primary before fetching or LLM metadata work."""
+    tier_scores = {
+        "structured_high": 100,
+        "official_high": 80,
+        "community_targeted": 45,
+        "media_targeted": 40,
+        "low_precision": 25,
+        "media_low": 20,
+    }
+    def score(item):
+        config = source_configs.get(item.get("source", ""), {})
+        return (
+            tier_scores.get(config.get("tier", "default"), 30)
+            + int(config.get("weight", 0)) * 5
+            + (15 if item.get("vendor_default") else 0)
+            + min(20, int(item.get("signal", 0) or 0) // 10)
+            + min(10, len(item.get("summary", "")) // 100),
+            item.get("published") or "",
+            item.get("id") or "",
+        )
+    return max(group, key=score)
+
+
+def merge_group_sources(event, group, primary):
+    """Attach secondary reports without replacing the primary editorial output."""
+    existing_ids = {item.get("id") for item in event.get("items", [])}
+    for item in group:
+        if item is primary or item.get("id") in existing_ids:
+            continue
+        event["items"].append({
+            "id": item["id"], "source": item["source"], "link": item["link"],
+            "published": item.get("published"), "ingested_at": item.get("ingested_at"),
+            "title": item["title"],
+        })
+        existing_ids.add(item.get("id"))
+        event["signal"] = max(event.get("signal", 0), item.get("signal", 0))
+        event["vendors"] = list(dict.fromkeys(
+            event.get("vendors", []) + item.get("vendors", [])
+        ))[:5]
+    recalc_event_heat(event)
+
+
+STANDARD_BODY_RULES = """你是数据领域资讯站的编辑。根据可见原文写一篇 600–1200 个中文字符的新闻解读，固定包含「## 关键事实」「## 行业影响」「## 实践要点」三部分。保留产品名、数字、时间、公司和技术细节；严禁编造原文不存在的事实。只输出正文。"""
+
+
+def clamp_standard_body(text, maximum=1200):
+    text = re.sub(r"\n{3,}", "\n\n", (text or "").strip())
+    if len(text) <= maximum:
+        return text
+    cut = text[:maximum]
+    sentence_end = max(cut.rfind(mark) for mark in ("。", "！", "？", "\n"))
+    return cut[:sentence_end + 1].strip() if sentence_end >= 600 else cut.rstrip()
+
+
+def deep_body_eligible(event, threshold=80):
+    return bool(
+        event.get("pinned")
+        or event.get("shelf") == "evergreen"
+        or int(event.get("importance", 0)) >= threshold
+    )
+
+
+def generate_event_body(event, primary, cfg, body_state):
+    """Generate at most one standard/deep body for a clustered event."""
+    if event.get("full_zh"):
+        return event["full_zh"]
+    key, base, model = cfg
+    source_text = primary.get("article_text") or primary.get("summary", "")
+    if not (key and base and model and source_text):
+        event["full_zh"] = event.get("zh_summary", "")
+        event["content_level"] = "summary"
+        return event["full_zh"]
+    threshold = int(os.getenv("DEEP_IMPORTANCE_THRESHOLD", "80"))
+    can_deep = (
+        deep_body_eligible(event, threshold)
+        and body_state.get("deep_used", 0) < body_state.get("max_deep", 2)
+    )
+    try:
+        if can_deep:
+            body_state["deep_used"] = body_state.get("deep_used", 0) + 1
+            body = compile_fulltext(
+                event["zh_title"], source_text, cfg,
+                context={"source": primary.get("source", ""), "item_id": event["event_id"]},
+            )
+            level = "deep"
+        else:
+            body = llm_chat_text(
+                base, key, model,
+                STANDARD_BODY_RULES + "\n\n【标题】" + event["zh_title"] + "\n\n" + source_text[:9000],
+                max_tokens=2200, purpose="body_standard",
+                source=primary.get("source", ""), item_id=event["event_id"],
+            )
+            body = clamp_standard_body(body)
+            if len(body) < 600:
+                print(f"[body] 普通正文过短，降级摘要: {event['zh_title'][:40]}")
+                body, level = "", "summary"
+            else:
+                level = "standard"
+    except Exception as exc:
+        print(f"[body] 生成降级: {event['zh_title'][:40]} | {exc}")
+        body, level = "", "summary"
+    event["full_zh"] = body or event.get("zh_summary", "")
+    event["content_level"] = level if body else "summary"
+    event["body_chars"] = len(event["full_zh"])
+    return event["full_zh"]
+
+def _event_candidate_comparable(item, event, max_hours=72):
+    if item.get("category") and item.get("category") == event.get("category"):
+        return True
+    if set(item.get("vendors") or []) & set(event.get("vendors") or []):
+        return True
+    item_dt = item.get("_pub_dt") or parse_date(item.get("published"))
+    event_dt = parse_date(event.get("first_seen") or event.get("published"))
+    return bool(
+        item_dt and event_dt
+        and abs((item_dt - event_dt).total_seconds()) <= max_hours * 3600
+    )
+
+
+def cluster_events(new_items, events, cfg, *, late_merge=True):
     """把新条目分配进已有事件或新建事件。events: 既有事件列表（原地更新）"""
     def ev_desc(e):
         return f"标题:{e['zh_title']} 摘要:{e.get('zh_summary','')[:200]}"
@@ -512,6 +746,8 @@ def cluster_events(new_items, events, cfg):
         for e in events:
             if norm_url(e["items"][0]["link"]) == norm_url(it["link"]):
                 cand.append((e, 1.0)); continue
+            if not _event_candidate_comparable(it, e):
+                continue
             sim = max_sim(it_titles, event_titles(e))
             if sim > 0.3:
                 cand.append((e, sim))
@@ -528,7 +764,7 @@ def cluster_events(new_items, events, cfg):
             events.append(make_event(it))
 
     # 2) 既有事件之间的迟到合并（同事件分两批到达）
-    changed = True
+    changed = bool(late_merge)
     while changed:
         changed = False
         for i in range(len(events)):
@@ -852,7 +1088,7 @@ def main():
             })
             print(f"[fetch] {s['name']:28s} 失败: {e}")
 
-    # F5+：全部新条目抓原文正文（用于摘要质量 + AI 全文编译），并发执行
+    # 事件主来源的正文抓取；新流程不再抓取每个重复报道。
     def grab(it):
         text, page_title, meta_date = fetch_article_text(it["link"])
         it["article_text"] = text
@@ -865,16 +1101,100 @@ def main():
             it["_pub_dt"] = meta_date
             print(f"[date] meta 回填发布时间: {meta_date.date()} | {it['title'][:30]}")
         return it
-    with ThreadPoolExecutor(max_workers=12) as pool:
-        list(pool.map(grab, new_items))
-    got = sum(1 for it in new_items if it["article_text"])
-    print(f"[article] 正文抓取成功 {got}/{len(new_items)}")
 
-    # F4：LLM 加工
-    new_items = llm_enrich(new_items, cfg)
+    pipeline_order = os.getenv("PIPELINE_ORDER", "event_first").strip().lower()
+    if pipeline_order == "legacy":
+        with ThreadPoolExecutor(max_workers=12) as pool:
+            list(pool.map(grab, new_items))
+        got = sum(1 for it in new_items if it["article_text"])
+        print(f"[article] 旧流程正文抓取成功 {got}/{len(new_items)}")
+        new_items = llm_enrich(new_items, cfg, generate_fulltext=True)
+        events = cluster_events(new_items, events, cfg, late_merge=True)
+    else:
+        # 元数据 → 候选缓存 → 规则初筛 → 当轮聚簇 → 主来源 → 元数据加工 → 事件正文
+        new_items = precheck_candidate_cache(new_items, cfg)
+        new_items = rule_prefilter_candidates(new_items)
+        groups = group_candidate_items(new_items, cfg)
+        source_configs = {source["name"]: source for source in sources}
+        group_records = [
+            (group, select_primary_source(group, source_configs)) for group in groups
+        ]
+        primaries = [primary for _group, primary in group_records]
+        with ThreadPoolExecutor(max_workers=12) as pool:
+            list(pool.map(grab, primaries))
+        got = sum(1 for item in primaries if item.get("article_text"))
+        print(
+            f"[article] 事件主来源抓取成功 {got}/{len(primaries)} "
+            f"（候选 {len(new_items)} 条 / 事件组 {len(groups)} 个）"
+        )
+        enriched_primaries = llm_enrich(primaries, cfg, generate_fulltext=False)
+        enriched_by_id = {item["id"]: item for item in enriched_primaries}
+        accepted_items = []
+        accepted_records = []
+        model = cfg[2]
+        for group, primary in group_records:
+            enriched = enriched_by_id.get(primary["id"])
+            if enriched is None:
+                if model:
+                    for sibling in group:
+                        if sibling is primary:
+                            continue
+                        CANDIDATE_CACHE.remember(
+                            **_candidate_cache_context(sibling, model), status="rejected",
+                        )
+                continue
+            enrichment = _cacheable_enrichment(enriched)
+            if model and enriched.get("_enrich_error"):
+                for sibling in group:
+                    if sibling is primary:
+                        continue
+                    CANDIDATE_CACHE.remember(
+                        **_candidate_cache_context(sibling, model), status="error",
+                        error_type=enriched["_enrich_error"],
+                    )
+            elif model:
+                for sibling in group:
+                    if sibling is primary:
+                        continue
+                    CANDIDATE_CACHE.remember(
+                        **_candidate_cache_context(sibling, model), status="accepted",
+                        enrichment=enrichment,
+                    )
+            accepted_items.extend(group)
+            accepted_records.append((group, enriched))
 
-    # F1：聚簇
-    events = cluster_events(new_items, events, cfg)
+        events = cluster_events(enriched_primaries, events, cfg, late_merge=False)
+        # 正文分级前先应用人工策展，确保置顶事件获得深度资格。
+        cur_path = ROOT / "pipeline" / "classics.json"
+        if cur_path.exists():
+            cur = json.load(open(cur_path))
+            for event in events:
+                if event["event_id"] in cur.get("pin", []):
+                    event["shelf"], event["pinned"] = "evergreen", True
+                if event["event_id"] in cur.get("drop", []):
+                    event["shelf"], event["pinned"] = "news", False
+        try:
+            max_deep = max(0, int(os.getenv("MAX_DEEP_EVENTS_PER_RUN", "2")))
+        except ValueError:
+            max_deep = 2
+        body_state = {"deep_used": 0, "max_deep": max_deep}
+        for group, primary in accepted_records:
+            event = next(
+                (
+                    event for event in events
+                    if any(item.get("id") == primary["id"] for item in event.get("items", []))
+                ),
+                None,
+            )
+            if event is None:
+                continue
+            merge_group_sources(event, group, primary)
+            generate_event_body(event, primary, cfg, body_state)
+        new_items = accepted_items
+        print(
+            f"[pipeline] event_first 接受 {len(new_items)} 条，"
+            f"深度正文 {body_state['deep_used']}/{body_state['max_deep']} 个"
+        )
 
     # 信源状态持久化：连续失败计数 + 抓取/入选计数（入选率 = 信源质量记分牌）
     from collections import Counter as _Counter
@@ -973,6 +1293,8 @@ if __name__ == "__main__":
     try:
         main()
     finally:
+        CLUSTER_CACHE.finalize()
+        print(CLUSTER_CACHE.one_line_summary())
         CANDIDATE_CACHE.finalize()
         print(CANDIDATE_CACHE.one_line_summary())
         LLM_USAGE.finalize()

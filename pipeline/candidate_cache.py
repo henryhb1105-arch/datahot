@@ -32,11 +32,10 @@ def _enabled(value):
 
 
 def candidate_content_hash(item):
-    """Hash stable candidate content, ignoring inconsequential whitespace changes."""
+    """Hash stable feed metadata before expensive article fetching."""
     parts = [
         str(item.get("title") or ""),
         str(item.get("summary") or ""),
-        str(item.get("article_text") or ""),
     ]
     normalized = "\n".join(re.sub(r"\s+", " ", part).strip() for part in parts)
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()

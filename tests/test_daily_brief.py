@@ -57,6 +57,13 @@ class DailyBriefSelectionTests(unittest.TestCase):
         self.assertNotIn(f"{20:012x}", ids)
         self.assertEqual({item["category"] for item in selected}, {"agent", "platform", "bi", "product"})
 
+    def test_backfilled_old_article_does_not_enter_today_brief(self):
+        current = [event(i) for i in range(8)]
+        old = event(30, seen="2026-08-11T08:00:00+08:00", heat=100)
+        old["published"] = "2026-08-01T08:00:00+08:00"
+        selected = select_daily_events(current + [old], "2026-08-11")
+        self.assertNotIn(old["event_id"], {item["event_id"] for item in selected})
+
     def test_cache_key_covers_date_input_prompt_and_model(self):
         events = [event(i) for i in range(8)]
         original_hash = brief_input_hash(events)
@@ -205,6 +212,17 @@ class DailyBriefBuildTests(unittest.TestCase):
         for item in brief["items"]:
             self.assertIn(f'href="e/{item["event_id"]}.html"', page)
         self.assertIn('data-analytics-list="1"', page)
+
+    def test_empty_home_teaser_is_compact_and_not_promoted_as_hero(self):
+        teaser = build_site.render_daily_brief_teaser(None)
+        self.assertIn('class="daily-waiting"', teaser)
+        self.assertNotIn('class="daily-teaser"', teaser)
+        self.assertNotIn("<h2>", teaser)
+
+    def test_hot_page_uses_current_shared_heat_formula(self):
+        page = build_site.render_hot_page([event(1)], "")
+        self.assertIn(build_site.HEAT_FORMULA, page)
+        self.assertNotIn("AI重要性×40%", page)
 
     def test_feature_switch_removes_navigation_entry(self):
         with patch.dict(build_site.os.environ, {"DAILY_BRIEF_ENABLED": "false"}, clear=False):

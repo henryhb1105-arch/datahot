@@ -10,7 +10,9 @@ from content_blocks import render_blocks_html, sanitize_blocks
 from check_links import check_site_links, format_broken_links
 from feed import build_atom_feed, validate_atom_feed
 from lite_data import (
-    DEFAULT_PAGE_SIZE, build_lite_payload, find_forbidden_fields, rank_home_events,
+    DEFAULT_PAGE_SIZE, FIRST_PAGE_SOURCE_CAPS, HOME_WINDOW_DAYS,
+    build_lite_payload, event_timestamp, find_forbidden_fields,
+    is_list_eligible, rank_home_events, rank_hot_events, select_home_events,
 )
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -23,6 +25,7 @@ TZ = timezone(timedelta(hours=8))
 CAT_BADGE = {"agent": "b-agent", "platform": "b-platform", "bi": "b-bi", "product": "b-product"}
 CAT_LABEL = {"agent": "Data Agent", "platform": "AI 数据平台", "bi": "BI 与可视化", "product": "数据产品"}
 WEEK_CN = "一二三四五六日"
+HEAT_FORMULA = "AI重要性50% + 新鲜度20% + 社区信号15%(封顶) + 多信源15%"
 
 ICONS = {
  "flame": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>',
@@ -141,6 +144,10 @@ main,.layout>*,.hotlist>*{min-width:0}
 .daily-teaser h2{font-size:19px;line-height:1.45;margin:0 0 5px}
 .daily-teaser p{font-size:12.5px;line-height:1.7;color:#e5e7eb;margin:0;max-width:720px}
 .daily-teaser .daily-meta{font-size:11px;color:#aeb4be;margin-top:8px}
+.daily-waiting{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:10px 14px;margin-bottom:18px;color:var(--txt2);font-size:12.5px;text-decoration:none}
+.daily-waiting:hover{border-color:var(--accent);color:var(--accent)}
+.daily-waiting b{color:var(--ink);font-size:13px}
+.daily-waiting span:last-child{margin-left:auto;color:var(--sub);font-size:11.5px}
 .daily-summary{background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border:0}
 .daily-summary h1{font-size:25px;line-height:1.4;margin:4px 0 8px}
 .daily-summary p{font-size:14px;line-height:1.85;color:#e5e7eb}
@@ -332,7 +339,7 @@ def render_card(e, prefix=""):
     star = '<span class="star">精选</span>' if e.get("star") else ""
     if is_classic_review(e):
         star += '<span class="star" style="color:var(--purple)">经典回顾</span>'
-    star += f'<span title="热度分=AI重要性50%+新鲜度20%+社区信号15%+多信源15%，满分100">{""}</span>' 
+    star += f'<span title="热度分={HEAT_FORMULA}，满分100">{""}</span>'
     n = len(e["items"])
     also = ""
     if n > 1:
@@ -349,7 +356,7 @@ def render_card(e, prefix=""):
     return f'''<div class="item" data-cat="{e["category"]}" data-topics="{esc("|".join(e.get("topics", [])))}" data-link="{url}" data-analytics-list="1" data-event-id="{e["event_id"]}" data-category="{esc(e["category"])}" data-source="{esc(e["items"][0]["source"])}">
       <div class="top"><span class="srcbadge">{src_badge(e["items"][0]["source"])}</span><span style="font-weight:600;color:var(--txt3)">{esc(src_display(e["items"][0]["source"]))}</span><span>{card_time(e)}</span>{star}
       <button class="favbtn" data-fav="{e["event_id"]}" title="收藏">{ic("star",15)}</button>
-      <span class="heatnum" title="热度分：AI重要性50% + 新鲜度20% + 社区信号15%(封顶) + 多信源15%">{ic("flame",13)} {e["heat"]}</span></div>
+      <span class="heatnum" title="热度分：{HEAT_FORMULA}">{ic("flame",13)} {e["heat"]}</span></div>
       <h3><a href="{url}">{esc(e["zh_title"])}</a></h3>
       <p class="sum">{esc(e["zh_summary"])}</p>{also}{reason}{vbox}
     </div>'''
@@ -1014,7 +1021,7 @@ function copyTpl(){{
 
 def render_hot_page(events, css):
     """完整榜单：热度 TOP 9"""
-    top = sorted((e for e in events if e.get("published") and (datetime.now(TZ) - datetime.fromisoformat(e["published"]).astimezone(TZ)).days <= 14), key=lambda e: -e["heat"])[:9]
+    top = rank_hot_events(events, limit=9, source_cap=2)
     rows = "".join(f'''<a class="hrow" href="e/{e["event_id"]}.html">
   <span class="rk">{i}</span>
   <span class="ht">{esc(e["zh_title"])}</span>
@@ -1023,9 +1030,9 @@ def render_hot_page(events, css):
         for extra in [f' · 另有{len(e["items"])-1}家' if len(e["items"]) > 1 else ""])
     body = f"""
 <div class="wrap" style="padding:28px 20px 60px;max-width:900px">
-  <div class="section-title"><h2>{ic("flame",18)} 完整榜单</h2><span>近 7 天 · 热度 TOP 9 · 多信源聚簇</span></div>
+  <div class="section-title"><h2>{ic("flame",18)} 完整榜单</h2><span>近 7 天 · 热度 TOP 9 · 同源最多 2 条</span></div>
   <div class="scard" style="padding:6px 18px">{rows}</div>
-  <div style="font-size:12px;color:var(--sub);margin-top:8px">热度 = AI重要性×40% + 新鲜度×20% + 社区信号×30% + 多信源×10%</div>
+  <div style="font-size:12px;color:var(--sub);margin-top:8px">热度 = {HEAT_FORMULA}；相邻位置优先保持信源多样性</div>
 </div>"""
     return page_shell("完整榜单 · DataHot", "数据领域近 7 天热度 TOP 9", css, body, tabbar("home"), prefix="", active="hot")
 
@@ -1129,10 +1136,9 @@ def load_daily_brief(events, path=None):
 
 def render_daily_brief_teaser(brief):
     if not brief:
-        return '''<a class="daily-teaser" href="daily.html" data-analytics="daily_brief">
-  <div class="daily-kicker">DAILY BRIEF · 每天一次</div>
-  <h2>今日简报正在整理</h2>
-  <p>当天积累至少 8 条高价值事件后生成；DeepSeek 不可用时自动切换规则版。</p>
+        return '''<a class="daily-waiting" href="daily.html" data-analytics="daily_brief">
+  <b>今日简报整理中</b>
+  <span>热榜可正常浏览 →</span>
 </a>'''
     mode = "AI 整理" if brief.get("ai_assisted") else "规则整理"
     generated = fmt_date(brief.get("generated_at"))
@@ -1238,17 +1244,28 @@ def main():
     shutil.copyfile(HOME_ASSET, SITE / "home.js")
     payload = json.load(open(SITE / "data" / "latest.json"))
     all_events = payload["events"]
+    qualified_events = [event for event in all_events if is_list_eligible(event)]
     daily_enabled = daily_brief_enabled()
     daily_brief = load_daily_brief(all_events) if daily_enabled else None
     gen = datetime.fromisoformat(payload["generated_at"])
     css = load_css()
-    # 首页只展示 7 天窗口内的新鲜事件；evergreen 老内容沉淀在典藏/主题页
-    window = timedelta(days=7)
-    events = [e for e in all_events if gen - datetime.fromisoformat(e.get("first_seen") or e["published"]) <= window]
+    # 首页以发布时间为准；缺少发布时间才使用收录时间，旧文补录不冒充当天新闻。
+    window = timedelta(days=HOME_WINDOW_DAYS)
+    window_events = []
+    for event in all_events:
+        timestamp = event_timestamp(event)
+        if timestamp and gen - timestamp.astimezone(TZ) <= window:
+            window_events.append(event)
+    # 搜索和加载更多使用同一份合格池，避免被首屏隐藏的批量回填稍后重现。
+    events = select_home_events(window_events)
     lite_enabled = lite_home_enabled()
-    home_ranking = rank_home_events(events, page_size=DEFAULT_PAGE_SIZE)
+    home_ranking = rank_home_events(
+        events, page_size=DEFAULT_PAGE_SIZE,
+        source_caps=FIRST_PAGE_SOURCE_CAPS, prevent_adjacent_sources=True,
+    )
     home_first_page = rank_home_events(
         events, page_size=DEFAULT_PAGE_SIZE, first_page_only=True,
+        source_caps=FIRST_PAGE_SOURCE_CAPS, prevent_adjacent_sources=True,
     )
     lite_payload = build_lite_payload(
         all_events, payload["generated_at"], ranking=home_ranking, page_size=DEFAULT_PAGE_SIZE,
@@ -1271,7 +1288,7 @@ def main():
     # ── Atom 1.0 Feed：只包含 DataHot 摘要与稳定站内详情链接 ──
     feed_path = SITE / "feed.xml"
     if feed_enabled():
-        feed_payload = build_atom_feed(all_events, payload["generated_at"], site_base=SITE_BASE)
+        feed_payload = build_atom_feed(events, payload["generated_at"], site_base=SITE_BASE)
         feed_errors = validate_atom_feed(feed_payload, site_base=SITE_BASE, site_root=SITE)
         if feed_errors:
             raise RuntimeError(f"invalid Atom feed: {', '.join(feed_errors)}")
@@ -1282,26 +1299,19 @@ def main():
 
     # ── 主题地图 + 主题页 ──
     TOPIC_DIR.mkdir(parents=True, exist_ok=True)
-    (SITE / "topics.html").write_text(render_topics_map(all_events, css), encoding="utf-8")
+    (SITE / "topics.html").write_text(render_topics_map(qualified_events, css), encoding="utf-8")
     valid_topic_slugs = set()
     for t in TOPICS_META:
-        if any(t["name"] in e.get("topics", []) for e in all_events):
+        if any(t["name"] in e.get("topics", []) for e in qualified_events):
             valid_topic_slugs.add(t["slug"] + ".html")
-            (TOPIC_DIR / (t["slug"] + ".html")).write_text(render_topic_page(t, all_events, css), encoding="utf-8")
+            (TOPIC_DIR / (t["slug"] + ".html")).write_text(render_topic_page(t, qualified_events, css), encoding="utf-8")
     for f in TOPIC_DIR.glob("*.html"):
         if f.name not in valid_topic_slugs:
             f.unlink()
 
-    # ── 热点榜 ──
-    def hot_eligible(e):
-        """热榜准入：发布时间在 14 天内（旧经典归典藏，不占新闻热榜）"""
-        pub = e.get("published")
-        if not pub:
-            return False
-        return (gen - datetime.fromisoformat(pub).astimezone(TZ)).days <= 14
-
+    # ── 热点榜：与首页共享近 7 天合格池和来源上限 ──
     hot_cards = ""
-    top_ids = [e["event_id"] for e in sorted((e for e in events if hot_eligible(e)), key=lambda e: -e["heat"])][:3]
+    top_ids = [event["event_id"] for event in rank_hot_events(events, limit=3, source_cap=2)]
     payload["top"] = top_ids
     for n, eid in enumerate(top_ids, 1):
         e = next((x for x in events if x["event_id"] == eid), None)
@@ -1316,7 +1326,9 @@ def main():
     initial_events = home_first_page if lite_enabled else events
     days = defaultdict(list)
     for e in initial_events:
-        days[day_key(e.get("first_seen") or e["published"])].append(e)
+        timestamp = event_timestamp(e)
+        if timestamp:
+            days[timestamp.astimezone(TZ).date()].append(e)
     timeline = ""
     for d in sorted(days, reverse=True):
         head = f'{d.month}月{d.day}日'
@@ -1537,8 +1549,8 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
 </script>
 </body></html>'''
 
-    (SITE / "sources.html").write_text(render_sources_page(all_events, payload, css), encoding="utf-8")
-    (SITE / "classics.html").write_text(render_classics_page(all_events, css), encoding="utf-8")
+    (SITE / "sources.html").write_text(render_sources_page(events, payload, css), encoding="utf-8")
+    (SITE / "classics.html").write_text(render_classics_page(qualified_events, css), encoding="utf-8")
     (SITE / "hot.html").write_text(render_hot_page(events, css), encoding="utf-8")
     favorite_data_url = "data/latest-lite.json" if lite_enabled else "data/latest.json"
     (SITE / "favorites.html").write_text(render_favorites_page(css, favorite_data_url), encoding="utf-8")

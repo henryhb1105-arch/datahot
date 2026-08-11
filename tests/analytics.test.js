@@ -46,7 +46,9 @@ test("search values collapse to length buckets only", () => {
 test("page classifier never includes full URLs", () => {
   assert.equal(analytics.pageFromPath("/datahot/"), "home");
   assert.equal(analytics.pageFromPath("/datahot/index.html"), "home");
-  assert.equal(analytics.pageFromPath("/datahot/daily.html"), "daily");
+  assert.equal(analytics.pageFromPath("/datahot/weekly.html"), "weekly");
+  assert.equal(analytics.pageFromPath("/datahot/weekly/2026-W32.html"), "weekly");
+  assert.equal(analytics.pageFromPath("/datahot/daily.html"), "weekly");
   assert.equal(analytics.pageFromPath("/datahot/topics/data-agent.html"), "topic");
   assert.equal(analytics.pageFromPath("/datahot/e/0123456789ab.html"), "detail");
   assert.equal(analytics.pageFromPath("/unknown"), "other");
@@ -55,7 +57,7 @@ test("page classifier never includes full URLs", () => {
 test("minimum event model is explicitly enumerated", () => {
   for (const name of [
     "list_exposure", "detail_click", "outbound_click", "favorite_toggle",
-    "search", "filter", "daily_brief_click", "session_start",
+    "search", "filter", "weekly_brief_click", "daily_brief_click", "session_start",
   ]) assert.ok(analytics.eventNames.includes(name));
   assert.equal(typeof analytics.observeList, "function");
 });

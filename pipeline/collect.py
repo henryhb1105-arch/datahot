@@ -7,9 +7,11 @@ import sys, json, hashlib, re, html as H
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from run_update import (fetch_article_text, make_event, load_llm_config, llm_chat, compile_fulltext,
+from run_update import (fetch_article_content, make_event, load_llm_config, llm_chat, compile_fulltext,
+                        translate_article_blocks,
                         norm_url, fetch_url, strip_html, calc_heat, TOPIC_NAMES,
                         CATEGORIES_LABEL, TZ, LLM_USAGE)
+from content_blocks import blocks_plain_text
 
 ROOT = Path(__file__).resolve().parent.parent
 LATEST = ROOT / "site" / "data" / "latest.json"
@@ -48,6 +50,7 @@ def main():
 
     new_items, wx_accounts = [], []
     for u in urls:
+        meta_dt, blocks = None, []
         if norm_url(u) in seen_urls:
             print(f"跳过（已收录）: {u}"); continue
         if "mp.weixin.qq.com" in u:
@@ -60,11 +63,11 @@ def main():
             title = u.rsplit("/", 1)[-1].replace(".pdf", "").replace("-", " ")
             source = "主编收录"
         else:
-            text, title, meta_dt = fetch_article_text(u)
+            text, title, meta_dt, blocks = fetch_article_content(u)
             source = "主编收录"
         if not title:
             print(f"抓取失败: {u}"); continue
-        pub_dt = locals().get("meta_dt")
+        pub_dt = meta_dt
         pub_iso = pub_dt.astimezone(TZ).isoformat() if pub_dt else None
         new_items.append({
             "id": hashlib.md5(u.encode()).hexdigest()[:12],
@@ -75,7 +78,7 @@ def main():
             "vendors": [], "vendor_default": True, "topics": [],  # 主编收录：默认相关，不过滤
             "published": pub_iso or now.isoformat(), "_pub_dt": pub_dt or now,
             "signal": 0, "importance": 50, "heat": 20,
-            "star": False, "article_text": text, "shelf": "news",
+            "star": False, "article_text": text, "article_blocks": blocks, "shelf": "news",
         })
         print(f"抓到: [{source}] {title[:50]}")
 
@@ -99,10 +102,25 @@ def main():
         it["zh_title"] = (out.get("zh_title") or it["title"]).strip()
         it["zh_summary"] = out.get("zh_summary") or it["summary"][:300]
         it["reason"] = out.get("reason", "")
-        it["full_zh"] = compile_fulltext(
-            it["zh_title"], it.get("article_text") or it.get("summary", ""), cfg,
-            context={"source": it.get("source", ""), "item_id": it.get("id", "")},
-        )
+        if it.get("article_blocks"):
+            translated, stats = translate_article_blocks(
+                it["article_blocks"], cfg,
+                source=it.get("source", ""), item_id=it.get("id", ""), deep=True,
+            )
+            if translated and stats.get("applied", 0):
+                it["content_blocks"] = translated
+                it["content_format"] = "blocks-v1"
+                it["full_zh"] = blocks_plain_text(translated)
+            else:
+                it["full_zh"] = compile_fulltext(
+                    it["zh_title"], it.get("article_text") or it.get("summary", ""), cfg,
+                    context={"source": it.get("source", ""), "item_id": it.get("id", "")},
+                )
+        else:
+            it["full_zh"] = compile_fulltext(
+                it["zh_title"], it.get("article_text") or it.get("summary", ""), cfg,
+                context={"source": it.get("source", ""), "item_id": it.get("id", "")},
+            )
         cat = out.get("category")
         if cat in CATEGORIES_LABEL:
             it["category"], it["category_label"] = cat, CATEGORIES_LABEL[cat]

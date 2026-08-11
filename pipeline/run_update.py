@@ -14,6 +14,10 @@ from concurrent.futures import ThreadPoolExecutor
 from llm_usage import LLMBudgetExceeded, LLMUsageTracker
 from candidate_cache import CandidateCache, candidate_content_hash
 from cluster_cache import ClusterDecisionCache, cluster_pair_key
+from content_blocks import (
+    apply_translations, blocks_plain_text, limit_blocks, parse_html_blocks,
+    sanitize_blocks, translation_nodes,
+)
 from source_controls import (
     prefilter_entries, source_candidate_limit, source_control_snapshot, source_due,
 )
@@ -173,25 +177,35 @@ def extract_meta_date(html_txt):
                 return dt
     return None
 
-def fetch_article_text(url, max_chars=24000):
-    """粗提取网页正文：去脚本/样式/标签，取前 max_chars 字符；返回 (正文, 标题, meta发布日期)"""
+def fetch_article_content(url, max_chars=24000):
+    """提取安全结构化 blocks，同时保留纯文本兼容输出。"""
     try:
         raw = fetch_url(url, timeout=10)
         try:
             html_txt = raw.decode("utf-8", errors="ignore")
         except Exception:
-            return "", "", None
+            return "", "", None, []
         title = ""
         m = re.search(r"(?is)<title[^>]*>(.*?)</title>", html_txt)
         if m:
             title = strip_html(m.group(1))
             title = re.split(r"[|｜_-]{1,2}\s*(?:Aloudata|官网|博客).*$", title)[0].strip() or title
         pub_date = extract_meta_date(html_txt)
-        text = re.sub(r"(?is)<(script|style|noscript|nav|footer|header)[^>]*>.*?</\1>", " ", html_txt)
-        text = strip_html(text)
-        return (text[:max_chars] if len(text) > 400 else ""), title, pub_date
+        blocks = parse_html_blocks(html_txt, url)
+        text = blocks_plain_text(blocks)
+        if len(text) <= 400:
+            fallback = re.sub(r"(?is)<(script|style|noscript|nav|footer|header)[^>]*>.*?</\1>", " ", html_txt)
+            text = strip_html(fallback)
+            blocks = []
+        return (text[:max_chars] if len(text) > 400 else ""), title, pub_date, blocks
     except Exception:
-        return "", "", None
+        return "", "", None, []
+
+
+def fetch_article_text(url, max_chars=24000):
+    """兼容旧调用方：返回 (正文, 标题, meta 发布日期)。"""
+    text, title, pub_date, _blocks = fetch_article_content(url, max_chars=max_chars)
+    return text, title, pub_date
 
 # ── LLM 配置 ──────────────────────────────────────────────
 def load_llm_config():
@@ -677,6 +691,32 @@ def deep_body_eligible(event, threshold=80):
     )
 
 
+def translate_article_blocks(blocks, cfg, *, source, item_id, deep=False):
+    """只把结构化文本节点交给 LLM，格式和 ID 由本地合并。"""
+    key, base, model = cfg
+    source_blocks = limit_blocks(blocks, 16000 if deep else 5000)
+    nodes = translation_nodes(source_blocks, 16000 if deep else 5000)
+    if not (key and base and model and nodes):
+        return [], {"applied": 0, "ignored": 0, "missing": len(nodes)}
+    prompt = (
+        "你是数据领域中文编译。下面是文章的文本节点 JSON。"
+        "只翻译/忠实编译 text，不删除事实、数字、产品名、代码或链接文字；"
+        "不新增节点，不输出 HTML/Markdown，不改 id。"
+        '只输出 JSON：{"nodes":[{"id":"原id","text":"中文"}]}\n\n'
+        + json.dumps(nodes, ensure_ascii=False, separators=(",", ":"))
+    )
+    out = llm_chat(
+        base, key, model, prompt,
+        max_tokens=8000 if deep else 3000,
+        purpose="body_blocks_deep" if deep else "body_blocks_standard",
+        source=source, item_id=item_id,
+    )
+    translated, stats = apply_translations(source_blocks, out.get("nodes", []))
+    if not deep:
+        translated = limit_blocks(translated, 1200)
+    return translated, stats
+
+
 def generate_event_body(event, primary, cfg, body_state):
     """Generate at most one standard/deep body for a clustered event."""
     if event.get("full_zh"):
@@ -693,7 +733,26 @@ def generate_event_body(event, primary, cfg, body_state):
         and body_state.get("deep_used", 0) < body_state.get("max_deep", 2)
     )
     try:
-        if can_deep:
+        article_blocks = sanitize_blocks(primary.get("article_blocks", []), primary.get("link", ""))
+        if article_blocks:
+            if can_deep:
+                body_state["deep_used"] = body_state.get("deep_used", 0) + 1
+            translated, translation_stats = translate_article_blocks(
+                article_blocks, cfg,
+                source=primary.get("source", ""), item_id=event["event_id"], deep=can_deep,
+            )
+            if translation_stats.get("applied", 0) <= 0:
+                print(f"[body] 结构化正文翻译失败，降级摘要: {event['zh_title'][:40]}")
+                translated = []
+            body = blocks_plain_text(translated)
+            if not can_deep and len(body) < 600:
+                print(f"[body] 结构化普通正文过短，降级摘要: {event['zh_title'][:40]}")
+                body, translated = "", []
+            if translated and translation_stats.get("applied", 0) > 0:
+                event["content_blocks"] = translated
+                event["content_format"] = "blocks-v1"
+            level = "deep" if can_deep else "standard"
+        elif can_deep:
             body_state["deep_used"] = body_state.get("deep_used", 0) + 1
             body = compile_fulltext(
                 event["zh_title"], source_text, cfg,
@@ -718,6 +777,9 @@ def generate_event_body(event, primary, cfg, body_state):
         body, level = "", "summary"
     event["full_zh"] = body or event.get("zh_summary", "")
     event["content_level"] = level if body else "summary"
+    if not body:
+        event.pop("content_blocks", None)
+        event.pop("content_format", None)
     event["body_chars"] = len(event["full_zh"])
     return event["full_zh"]
 
@@ -793,6 +855,8 @@ def make_event(it):
         "event_id": eid,
         "zh_title": it["zh_title"], "zh_summary": it["zh_summary"], "reason": it.get("reason", ""),
         "full_zh": it.get("full_zh", ""),
+        "content_blocks": it.get("content_blocks", []),
+        "content_format": it.get("content_format", ""),
         "category": it["category"], "category_label": it["category_label"],
         "vendors": it.get("vendors", []), "heat": it["heat"], "star": it.get("star", False),
         "importance": it.get("importance", 50), "signal": it.get("signal", 0),
@@ -824,6 +888,9 @@ def merge_into(e, it):
         e["zh_summary"], e["reason"] = it["zh_summary"], it.get("reason", e["reason"])
     if len(it.get("full_zh", "")) > len(e.get("full_zh", "")):
         e["full_zh"] = it["full_zh"]
+        if it.get("content_blocks"):
+            e["content_blocks"] = it["content_blocks"]
+            e["content_format"] = it.get("content_format", "blocks-v1")
     e["vendors"] = list(dict.fromkeys(e.get("vendors", []) + it.get("vendors", [])))[:5]
     e["topics"] = [t for t in dict.fromkeys(e.get("topics", []) + it.get("topics", []))][:3]
     if it.get("shelf") == "evergreen":
@@ -1090,8 +1157,9 @@ def main():
 
     # 事件主来源的正文抓取；新流程不再抓取每个重复报道。
     def grab(it):
-        text, page_title, meta_date = fetch_article_text(it["link"])
+        text, page_title, meta_date, blocks = fetch_article_content(it["link"])
         it["article_text"] = text
+        it["article_blocks"] = blocks
         if it.get("_slug_title") and page_title:
             it["title"] = page_title
             it["zh_title"] = page_title

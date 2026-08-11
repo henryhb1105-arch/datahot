@@ -163,6 +163,42 @@ class EventFirstPipelineTests(unittest.TestCase):
         self.assertEqual(len(enriched), 1)
         compile_call.assert_not_called()
 
+    def test_low_precision_candidates_fail_closed_without_llm(self):
+        strict = item(
+            "community", "Analytics community post",
+            source_tier="community_targeted",
+        )
+        trusted = item(
+            "official", "Official data platform update",
+            source_tier="official_high",
+        )
+        enriched = run_update.llm_enrich([strict, trusted], ("", "", ""))
+        self.assertEqual([candidate["id"] for candidate in enriched], ["official"])
+
+    def test_low_precision_candidates_fail_closed_when_enrichment_errors(self):
+        original_cache = run_update.CANDIDATE_CACHE
+        with tempfile.TemporaryDirectory() as tmp:
+            run_update.CANDIDATE_CACHE = CandidateCache(
+                Path(tmp) / "candidate.json", environ={}, now_fn=lambda: NOW
+            )
+            strict = item(
+                "community", "Analytics community post",
+                source_tier="community_targeted",
+            )
+            trusted = item(
+                "official", "Official data platform update",
+                source_tier="official_high",
+            )
+            try:
+                with patch.object(run_update, "llm_chat", side_effect=TimeoutError("timeout")):
+                    enriched = run_update.llm_enrich(
+                        [strict, trusted], ("key", "base", "model"),
+                        generate_fulltext=False,
+                    )
+            finally:
+                run_update.CANDIDATE_CACHE = original_cache
+        self.assertEqual([candidate["id"] for candidate in enriched], ["official"])
+
     def test_body_generation_is_idempotent_and_standard_length_is_bounded(self):
         target = event("e1", title="数据平台发布")
         primary = item("p1", "Data platform launch")

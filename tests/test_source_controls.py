@@ -137,7 +137,8 @@ class SourcePrefilterTests(unittest.TestCase):
             self.assertFalse(source.get("include_keywords"))
         claude = by_name["Claude 官方博客"]
         self.assertEqual(claude["fetch_interval_hours"], 24)
-        self.assertEqual(claude["max_candidates_per_run"], 8)
+        self.assertEqual(claude["max_candidates_per_run"], 2)
+        self.assertEqual(claude["tier"], "low_precision")
         self.assertTrue(claude["require_published"])
         self.assertTrue(claude["include_keywords"])
         for name in ("Hex Blog", "Amplitude Blog", "Netflix Technology Blog"):

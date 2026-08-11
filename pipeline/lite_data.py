@@ -3,13 +3,21 @@
 
 from __future__ import annotations
 
+import re
 from collections import Counter
+from datetime import datetime, timezone
 
 
 LITE_SCHEMA_VERSION = 1
 DEFAULT_PAGE_SIZE = 20
 DEFAULT_VENDOR_CAP = 4
 DEFAULT_CATEGORY_SOFT_CAP = 12
+DEFAULT_WINDOW_SOURCE_CAP = 20
+HOME_WINDOW_DAYS = 7
+FIRST_PAGE_SOURCE_CAPS = {"Claude 官方博客": 2}
+WINDOW_SOURCE_CAPS = {"Claude 官方博客": 6}
+LIST_CATEGORIES = frozenset({"agent", "platform", "bi", "product"})
+HAN_RE = re.compile(r"[\u3400-\u9fff]")
 FORBIDDEN_FIELDS = {
     "full_zh", "content_blocks", "article_blocks", "article_text", "media",
     "summary", "fulltext", "body", "raw_html",
@@ -26,6 +34,71 @@ def _primary_vendor(event):
     return str(vendors[0]) if vendors else _primary_source(event)
 
 
+def event_timestamp(event):
+    """Return the editorial event time, preferring publication over ingestion."""
+    value = event.get("published") or event.get("first_seen")
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return None
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+
+
+def is_list_eligible(event):
+    """Fail closed for unfinished or untranslated items on public lists.
+
+    Detail pages remain addressable, but homepage, hot-list and daily-brief
+    surfaces only promote entries that completed the Chinese editorial pass.
+    """
+    title = " ".join(str(event.get("zh_title") or "").split())
+    summary = " ".join(str(event.get("zh_summary") or "").split())
+    if not title or not summary:
+        return False
+    if not HAN_RE.search(f"{title} {summary}"):
+        return False
+    if str(event.get("category") or "") not in LIST_CATEGORIES:
+        return False
+    try:
+        importance = int(event.get("importance") or 50)
+    except (TypeError, ValueError):
+        importance = 50
+    editorial_signal = bool(
+        str(event.get("reason") or "").strip()
+        or event.get("topics") or event.get("vendors") or event.get("pinned")
+        or importance != 50
+    )
+    if not editorial_signal:
+        return False
+    return bool(_primary_source(event) and event_timestamp(event))
+
+
+def select_home_events(
+    events, *, default_source_cap=DEFAULT_WINDOW_SOURCE_CAP, source_caps=None,
+):
+    """Return the qualified seven-day feed with bursty sources bounded.
+
+    This is deliberately separate from first-page ranking: the same curated
+    pool powers search and load-more, so hidden backlog cannot reappear later.
+    """
+    caps = dict(WINDOW_SOURCE_CAPS)
+    if source_caps:
+        caps.update(source_caps)
+    source_counts = Counter()
+    selected = []
+    for event in sorted(events, key=_sort_key, reverse=True):
+        if not is_list_eligible(event):
+            continue
+        source = _primary_source(event)
+        cap = max(0, int(caps.get(source, default_source_cap)))
+        if source_counts[source] >= cap:
+            continue
+        selected.append(event)
+        source_counts[source] += 1
+    return selected
+
+
 def _quality_gate(event):
     """Only meaningful signals may override the category soft cap."""
     return bool(
@@ -37,8 +110,9 @@ def _quality_gate(event):
 
 
 def _sort_key(event):
+    timestamp = event_timestamp(event)
     return (
-        str(event.get("first_seen") or event.get("published") or ""),
+        timestamp.isoformat() if timestamp else "",
         int(event.get("heat") or 0),
         int(event.get("importance") or 0),
         str(event.get("event_id") or ""),
@@ -48,7 +122,7 @@ def _sort_key(event):
 def rank_home_events(
     events, *, page_size=DEFAULT_PAGE_SIZE, vendor_cap=DEFAULT_VENDOR_CAP,
     category_soft_cap=DEFAULT_CATEGORY_SOFT_CAP, minimum_page_size=20,
-    first_page_only=False,
+    first_page_only=False, source_caps=None, prevent_adjacent_sources=False,
 ):
     """Return a stable order whose first page is diverse without quotas.
 
@@ -61,13 +135,26 @@ def rank_home_events(
     selected = []
     deferred = []
     vendor_counts = Counter()
+    source_counts = Counter()
     category_counts = Counter()
     selected_ids = set()
+    source_caps = dict(source_caps or {})
 
-    def can_add(event, *, allow_quality=False, relax_category=False):
+    def can_add(
+        event, *, allow_quality=False, relax_category=False,
+        relax_adjacency=False,
+    ):
         vendor = _primary_vendor(event)
+        source = _primary_source(event)
         category = str(event.get("category") or "")
         if vendor and vendor_counts[vendor] >= vendor_cap:
+            return False
+        if source in source_caps and source_counts[source] >= int(source_caps[source]):
+            return False
+        if (
+            prevent_adjacent_sources and not relax_adjacency and selected
+            and source and source == _primary_source(selected[-1])
+        ):
             return False
         return (
             relax_category
@@ -82,6 +169,7 @@ def rank_home_events(
         selected.append(event)
         selected_ids.add(event_id)
         vendor_counts[_primary_vendor(event)] += 1
+        source_counts[_primary_source(event)] += 1
         category_counts[str(event.get("category") or "")] += 1
 
     for event in ordered:
@@ -109,12 +197,49 @@ def rank_home_events(
         for event in deferred:
             if len(selected) >= floor:
                 break
-            if can_add(event, relax_category=True):
+            if can_add(event, relax_category=True, relax_adjacency=True):
                 add(event)
 
     if first_page_only:
         return selected
     return selected + [event for event in ordered if event.get("event_id") not in selected_ids]
+
+
+def rank_hot_events(events, *, limit=9, source_cap=2):
+    """Rank a trustworthy hot list while preventing one publisher takeover."""
+    counts = Counter()
+    selected = []
+    remaining = sorted(
+        (event for event in events if is_list_eligible(event)),
+        key=lambda event: (
+            int(event.get("heat") or 0),
+            int(event.get("importance") or 0),
+            (event_timestamp(event).isoformat() if event_timestamp(event) else ""),
+            str(event.get("event_id") or ""),
+        ),
+        reverse=True,
+    )
+    cap = max(1, int(source_cap))
+    target = max(0, int(limit))
+    while remaining and len(selected) < target:
+        last_source = _primary_source(selected[-1]) if selected else ""
+        candidate_index = next((
+            index for index, event in enumerate(remaining)
+            if counts[_primary_source(event)] < cap
+            and _primary_source(event) != last_source
+        ), None)
+        if candidate_index is None:
+            candidate_index = next((
+                index for index, event in enumerate(remaining)
+                if counts[_primary_source(event)] < cap
+            ), None)
+        if candidate_index is None:
+            break
+        event = remaining.pop(candidate_index)
+        source = _primary_source(event)
+        selected.append(event)
+        counts[source] += 1
+    return selected
 
 
 def lite_event(event):

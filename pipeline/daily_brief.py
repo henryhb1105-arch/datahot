@@ -10,12 +10,15 @@ from collections import Counter
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
+from lite_data import event_timestamp, is_list_eligible
+
 
 TZ = timezone(timedelta(hours=8))
 SCHEMA_VERSION = 1
 PROMPT_VERSION = "daily-brief-v1"
 MIN_ITEMS = 8
 MAX_ITEMS = 10
+DAILY_SOURCE_CAP = 2
 CATEGORY_LABELS = {
     "agent": "Data Agent",
     "platform": "AI 数据平台",
@@ -41,16 +44,8 @@ def _load_json(path, default):
 
 
 def _event_datetime(event):
-    value = event.get("first_seen") or event.get("published")
-    if not value:
-        return None
-    try:
-        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
-    except ValueError:
-        return None
-    if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
-    return parsed.astimezone(TZ)
+    parsed = event_timestamp(event)
+    return parsed.astimezone(TZ) if parsed else None
 
 
 def select_daily_events(events, target_date, limit=MAX_ITEMS):
@@ -61,7 +56,10 @@ def select_daily_events(events, target_date, limit=MAX_ITEMS):
     for event in events:
         seen_at = _event_datetime(event)
         event_id = str(event.get("event_id") or "")
-        if seen_at is None or seen_at.date() != target_date or len(event_id) != 12:
+        if (
+            seen_at is None or seen_at.date() != target_date or len(event_id) != 12
+            or not is_list_eligible(event)
+        ):
             continue
         candidates.append(event)
     candidates.sort(
@@ -77,18 +75,34 @@ def select_daily_events(events, target_date, limit=MAX_ITEMS):
 
     # Give each active category one seat, then fill by score. This avoids a
     # single high-volume feed turning a daily brief into ten near-identical rows.
-    selected, selected_ids = [], set()
+    selected, selected_ids, source_counts = [], set(), Counter()
+
+    def primary_source(event):
+        items = event.get("items") or []
+        return str(items[0].get("source") or "") if items else ""
+
+    def add(event):
+        source = primary_source(event)
+        if not source or source_counts[source] >= DAILY_SOURCE_CAP:
+            return False
+        selected.append(event)
+        selected_ids.add(event["event_id"])
+        source_counts[source] += 1
+        return True
+
     for category in CATEGORY_LABELS:
-        match = next((event for event in candidates if event.get("category") == category), None)
+        match = next((
+            event for event in candidates
+            if event.get("category") == category
+            and source_counts[primary_source(event)] < DAILY_SOURCE_CAP
+        ), None)
         if match is not None:
-            selected.append(match)
-            selected_ids.add(match["event_id"])
+            add(match)
     for event in candidates:
         if len(selected) >= max(MIN_ITEMS, min(MAX_ITEMS, int(limit or MAX_ITEMS))):
             break
         if event["event_id"] not in selected_ids:
-            selected.append(event)
-            selected_ids.add(event["event_id"])
+            add(event)
     selected.sort(
         key=lambda event: (
             int(event.get("heat") or 0), int(event.get("importance") or 0),

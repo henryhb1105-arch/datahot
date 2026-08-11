@@ -413,6 +413,12 @@ ENRICH_RULES = """你是一个数据领域垂直资讯站的编辑。本站只�
 {"relevant": true或false, "zh_title": "中文标题(≤40字)", "zh_summary": "中文摘要3-4句，保留产品名与数字，不得编造原文没有的信息", "reason": "推荐理由：为什么数据从业者应关注，1-2句", "category": "agent|platform|bi|product", "shelf": "news 或 evergreen（方法论/框架/深度实践/报告解读等半年后仍值得读的标 evergreen，发布/融资/版本更新等时效内容标 news）", "topics": ["从主题词表选0-2个：ChatBI/Data Agent/语义层/平台AI化/BI变局/湖仓/实时分析/数据人，没有合适的就空数组，宁缺毋滥"], "vendors": ["提到的数据厂商，如Snowflake/Databricks/PowerBI/帆软等，没有则空数组"], "importance": 1-100整数}"""
 
 ENRICH_RULE_VERSION = "enrich-v1"
+REVIEW_REQUIRED_TIERS = frozenset({"low_precision", "community_targeted", "media_low"})
+
+
+def requires_editorial_review(item):
+    """Low-precision/community candidates must pass enrichment to be public."""
+    return str(item.get("source_tier") or "") in REVIEW_REQUIRED_TIERS
 
 
 def _candidate_cache_context(it, model):
@@ -503,8 +509,10 @@ def rule_prefilter_candidates(items):
 def llm_enrich(items, cfg, *, generate_fulltext=True):
     key, base, model = cfg
     if not (key and base and model):
-        print("[llm] 未配置 LLM，跳过 AI 加工")
-        return items
+        safe = [item for item in items if not requires_editorial_review(item)]
+        dropped = len(items) - len(safe)
+        print(f"[llm] 未配置 LLM，跳过 AI 加工；低精度候选关闭 {dropped} 条")
+        return safe
 
     def enrich_one(it):
         content = f"标题：{it['title']}\n摘要：{it['summary'][:800]}"
@@ -571,9 +579,12 @@ def llm_enrich(items, cfg, *, generate_fulltext=True):
                         **context, status="accepted", enrichment=_cacheable_enrichment(res),
                     )
             except Exception as e:
-                print(f"[llm] 加工失败（保留原文）: {e} | {it['title'][:40]}")
+                fail_closed = requires_editorial_review(it)
+                action = "关闭候选" if fail_closed else "保留原文"
+                print(f"[llm] 加工失败（{action}）: {e} | {it['title'][:40]}")
                 it["_enrich_error"] = type(e).__name__
-                kept.append(it)
+                if not fail_closed:
+                    kept.append(it)
                 CANDIDATE_CACHE.remember(
                     **context, status="error", error_type=type(e).__name__,
                 )
@@ -1176,6 +1187,7 @@ def main():
                     "summary": e["summary"][:600], "zh_summary": e["summary"][:300],
                     "reason": "", "link": e["link"],
                     "source": s["name"], "source_type": s["type"],
+                    "source_tier": s.get("tier", "default"),
                     "category": "platform", "category_label": "AI 数据平台",
                     "vendors": VENDOR_TAGS.get(s["name"], []),
                     "vendor_default": s["type"] == "vendor",

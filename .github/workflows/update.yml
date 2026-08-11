@@ -26,8 +26,17 @@ jobs:
         with:
           python-version: "3.11"
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - name: 安装图片安全处理依赖
         run: python3 -m pip install --require-hashes -r requirements.txt
+
+      - name: 回归测试（Python + 浏览器事件客户端）
+        run: |
+          python3 -m unittest discover -s tests -v
+          node --test tests/analytics.test.js
 
       - name: 采集 → AI 加工 → 生成静态站
         env:
@@ -49,6 +58,11 @@ jobs:
           MEDIA_MAX_PIXELS: ${{ vars.MEDIA_MAX_PIXELS || '24000000' }}
           MEDIA_MAX_PER_EVENT: ${{ vars.MEDIA_MAX_PER_EVENT || '3' }}
           MEDIA_CACHE_MAX_BYTES: ${{ vars.MEDIA_CACHE_MAX_BYTES || '250000000' }}
+          ANALYTICS_ENABLED: ${{ vars.ANALYTICS_ENABLED || 'false' }}
+          ANALYTICS_ENDPOINT: ${{ vars.ANALYTICS_ENDPOINT }}
+          ANALYTICS_SITE_ID: ${{ vars.ANALYTICS_SITE_ID || 'datahot' }}
+          ANALYTICS_ENV: "production"
+          ANALYTICS_PRODUCTION_HOST: "henryhb1105-arch.github.io"
           BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
           BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
         run: |

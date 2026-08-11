@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """V1.1：读取 latest.json（事件结构），生成首页 + 每个事件的站内详情页（带 OG meta）"""
-import json, html, os, re
+import json, html, os, re, shutil
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
+from urllib.parse import urlparse
 from content_blocks import render_blocks_html, sanitize_blocks
 from check_links import check_site_links, format_broken_links
 
@@ -12,6 +13,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 DETAIL_DIR = SITE / "e"
 TOPIC_DIR = SITE / "topics"
+ANALYTICS_ASSET = ROOT / "pipeline" / "assets" / "analytics.js"
 TZ = timezone(timedelta(hours=8))
 CAT_BADGE = {"agent": "b-agent", "platform": "b-platform", "bi": "b-bi", "product": "b-product"}
 CAT_LABEL = {"agent": "Data Agent", "platform": "AI 数据平台", "bi": "BI 与可视化", "product": "数据产品"}
@@ -123,6 +125,8 @@ main,.layout>*,.hotlist>*{min-width:0}
 .favbtn svg{pointer-events:none}
 .fav-entry{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--sub);white-space:nowrap;text-decoration:none}
 .fav-entry:hover{color:var(--accent)}
+.privacy-btn{border:none;background:var(--accent);color:#fff;border-radius:99px;padding:9px 16px;font-size:12.5px;font-weight:650;cursor:pointer;margin:4px 6px 4px 0}
+.privacy-btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .hrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--soft);text-decoration:none;color:var(--ink)}
 .hrow:last-child{border-bottom:none}
 .hrow .rk{font-size:15px;font-weight:800;color:var(--accent);width:26px;flex-shrink:0;text-align:center}
@@ -176,6 +180,27 @@ def sidebar(active, gen=None, prefix=""):
             f'<div class="slogo"><a href="{prefix}index.html" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div>'
             + menu +
             f'<div class="sfoot">{foot}每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>')
+
+
+def analytics_head(prefix=""):
+    enabled_value = os.getenv("ANALYTICS_ENABLED", "false").strip().lower()
+    endpoint = os.getenv("ANALYTICS_ENDPOINT", "").strip()
+    environment = os.getenv("ANALYTICS_ENV", "production").strip().lower()
+    site_id = re.sub(r"[^a-z0-9_-]", "", os.getenv("ANALYTICS_SITE_ID", "datahot").lower())[:40] or "datahot"
+    production_host = os.getenv("ANALYTICS_PRODUCTION_HOST", "henryhb1105-arch.github.io").strip().lower()
+    production_host = production_host if re.fullmatch(r"[a-z0-9.-]+", production_host) else "henryhb1105-arch.github.io"
+    parsed = urlparse(endpoint)
+    endpoint_valid = bool(
+        parsed.scheme == "https" and parsed.netloc and not parsed.username and not parsed.password
+    )
+    enabled = enabled_value in {"1", "true", "yes", "on"} and environment == "production" and endpoint_valid
+    safe_endpoint = endpoint if endpoint_valid else ""
+    return (
+        f'<meta name="datahot-analytics" data-enabled="{str(enabled).lower()}" '
+        f'data-endpoint="{esc(safe_endpoint)}" data-site-id="{esc(site_id)}" '
+        f'data-environment="{esc(environment)}" data-production-host="{esc(production_host)}">\n'
+        f'<script defer src="{prefix}analytics.js"></script>'
+    )
 
 def tabbar(active, prefix=""):
     items = [("热榜", ic("flame",20), "index.html", "home"), ("主题", ic("map",20), "topics.html", "topics"), ("典藏", ic("bookmark",20), "classics.html", "classics"), ("收藏", ic("star",20), "favorites.html", "favorites"), ("信源", ic("rss",20), "sources.html", "sources")]
@@ -273,7 +298,7 @@ def render_card(e, prefix=""):
     vtags = "".join(f'<span class="vtag">{esc(v)}</span>' for v in e.get("vendors", []))
     vbox = f'<div class="vendors">{tchips}{vtags}</div>' if (tchips or vtags) else ""
     url = prefix + detail_url(e)
-    return f'''<div class="item" data-cat="{e["category"]}" data-topics="{esc("|".join(e.get("topics", [])))}" data-link="{url}">
+    return f'''<div class="item" data-cat="{e["category"]}" data-topics="{esc("|".join(e.get("topics", [])))}" data-link="{url}" data-analytics-list="1" data-event-id="{e["event_id"]}" data-category="{esc(e["category"])}" data-source="{esc(e["items"][0]["source"])}">
       <div class="top"><span class="srcbadge">{src_badge(e["items"][0]["source"])}</span><span style="font-weight:600;color:var(--txt3)">{esc(src_display(e["items"][0]["source"]))}</span><span>{card_time(e)}</span>{star}
       <button class="favbtn" data-fav="{e["event_id"]}" title="收藏">{ic("star",15)}</button>
       <span class="heatnum" title="热度分：AI重要性50% + 新鲜度20% + 社区信号15%(封顶) + 多信源15%">{ic("flame",13)} {e["heat"]}</span></div>
@@ -322,7 +347,7 @@ def render_detail(e, all_events, css):
         en_note = "（英文）" if src_name not in ("InfoQ（AI/数据工程）", "主编收录") else ""
         s0 = subs[0]
         srcs += (f'<div class="vendor-row"><span class="n">↗</span>'
-                 f'<a href="{esc(s0["link"])}" target="_blank" rel="noopener">{esc(src_display(src_name))}{en_note}</a>'
+                 f'<a href="{esc(s0["link"])}" target="_blank" rel="noopener" data-analytics="outbound" data-source="{esc(src_name)}">{esc(src_display(src_name))}{en_note}</a>'
                  f'{first_badge}{n_badge}'
                  f'<span class="count">{fmt_date(s0["published"])}</span></div>')
         i += 1
@@ -355,7 +380,7 @@ def render_detail(e, all_events, css):
     if full_paras:
         full_block = f'''<div class="card"><h4>{ic("file")} 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
   <div class="fulltext">{full_paras}</div>
-  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="{main_link}" target="_blank" rel="noopener">查看原文 ↗</a></div>
+  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="{main_link}" target="_blank" rel="noopener" data-analytics="outbound" data-source="{main_src}">查看原文 ↗</a></div>
 </div>'''
     page_url = f"{SITE_BASE}/e/{e['event_id']}.html"
     jsonld = json.dumps({
@@ -380,6 +405,7 @@ def render_detail(e, all_events, css):
 <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 <meta name="theme-color" content="#1a1d23">
+{analytics_head("../")}
 <script type="application/ld+json">{jsonld}</script>
 <style>{css}
 {SHARED_CSS}
@@ -427,7 +453,7 @@ def render_detail(e, all_events, css):
 .fulltext p{{font-size:15px;line-height:1.95;color:var(--txt3);margin:0 0 14px}}
 .disclaimer{{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}}
 .disclaimer a{{color:var(--accent)}}
-</style></head><body>
+</style></head><body data-page="detail" data-event-id="{e["event_id"]}" data-category="{esc(e["category"])}" data-source="{main_src}">
 <header><div class="wrap nav">
   <div class="logo"><a href="../index.html">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
@@ -436,7 +462,7 @@ def render_detail(e, all_events, css):
     <a class="back" href="../index.html" style="margin-bottom:0">← 返回热榜</a>
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="{e["event_id"]}" title="收藏">{ic("star",13)}</button>
-      <a class="sbtn ghost" href="{main_link}" target="_blank" rel="noopener">{ic("arrow",13)} 原文</a>
+      <a class="sbtn ghost" href="{main_link}" target="_blank" rel="noopener" data-analytics="outbound" data-source="{main_src}">{ic("arrow",13)} 原文</a>
       <button class="sbtn ghost" onclick="openPoster()">{ic("image",13)} 海报</button>
       <button class="sbtn" onclick="openSheet()">{ic("share",13)} 分享</button>
     </span>
@@ -457,7 +483,7 @@ def render_detail(e, all_events, css):
   <div class="card"><h4>{ic("link")} 信源（{len(e["items"])} 家报道 · 按时间排序）</h4>{srcs}</div>
   <div class="card"><h4>{ic("list")} 相关事件</h4>{rel_html}</div>
 </div>
-<footer>DataHot，数据领域AI资讯分享 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
+<footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 {tabbar("home", "../")}
 </body></html>'''
     return page.replace("</body></html>", share_ui(e, page_url) + "</body></html>")
@@ -765,6 +791,7 @@ def page_shell(title, desc, css, body, tabbar_html, prefix="", active=""):
 <link rel="icon" href="{prefix}favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="{prefix}icons/apple-touch-icon.png">
 <meta name="theme-color" content="#1a1d23">
+{analytics_head(prefix)}
 <style>{css}
 {SHARED_CSS}
 </style></head><body class="has-sb">
@@ -773,7 +800,7 @@ def page_shell(title, desc, css, body, tabbar_html, prefix="", active=""):
   <div class="logo"><a href="{prefix}index.html" style="text-decoration:none">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
 {body}
-<footer>DataHot，数据领域AI资讯分享 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
+<footer>DataHot，数据领域AI资讯分享 · <a href="{prefix}privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 {tabbar_html}
 </body></html>'''
 
@@ -998,6 +1025,27 @@ def render_favorites_page(css):
 </script>"""
     return page_shell("我的收藏 · DataHot", "你收藏的数据领域资讯", css, body, tabbar(""), prefix="", active="favorites")
 
+
+def render_privacy_page(css):
+    body = f'''
+<div class="wrap" style="padding:28px 20px 60px;max-width:760px">
+  <div class="section-title"><h2>{ic("file",18)} 隐私与匿名统计</h2><span>最小化 · 可关闭 · 不跨站</span></div>
+  <div class="scard" style="font-size:13.5px;color:var(--txt2);line-height:1.85">
+    <p>DataHot 的匿名行为统计默认关闭，只有站点配置了 HTTPS 第一方接收端后才会启用。启用时仅记录页面类型、事件 ID、分类、来源、匿名会话与 30 天轮换的随机设备 ID。</p>
+    <p style="margin-top:10px"><b>不会采集：</b>正文内容、完整搜索词、Cookie、姓名/邮箱、API Key、浏览器指纹、精确位置或跨站行为。浏览器的 Global Privacy Control / Do Not Track 会被自动尊重。</p>
+    <p style="margin-top:10px"><b>搜索：</b>只记录长度区间（1–3 / 4–8 / 9+）和结果数量，不发送输入文字。</p>
+  </div>
+  <div class="scard">
+    <div data-analytics-status style="font-size:13px;color:var(--txt2);margin-bottom:12px">读取状态中…</div>
+    <button class="privacy-btn" data-analytics-opt-out>关闭匿名统计并删除本机随机 ID</button>
+    <button class="privacy-btn ghost" data-analytics-opt-in>恢复匿名统计</button>
+  </div>
+</div>'''
+    return page_shell(
+        "隐私与匿名统计 · DataHot", "DataHot 的隐私友好匿名统计说明与关闭开关",
+        css, body, tabbar(""), prefix="", active="privacy",
+    )
+
 def write_detail_pages(all_events, css, detail_dir=None):
     """All events retained in latest.json keep a stable detail page."""
     detail_dir = Path(detail_dir) if detail_dir is not None else DETAIL_DIR
@@ -1016,6 +1064,10 @@ def write_detail_pages(all_events, css, detail_dir=None):
 
 
 def main():
+    SITE.mkdir(parents=True, exist_ok=True)
+    if not ANALYTICS_ASSET.exists():
+        raise FileNotFoundError(f"missing analytics asset: {ANALYTICS_ASSET}")
+    shutil.copyfile(ANALYTICS_ASSET, SITE / "analytics.js")
     payload = json.load(open(SITE / "data" / "latest.json"))
     all_events = payload["events"]
     gen = datetime.fromisoformat(payload["generated_at"])
@@ -1054,7 +1106,7 @@ def main():
         e = next((x for x in events if x["event_id"] == eid), None)
         if not e:
             continue
-        hot_cards += f'''<div class="hot" data-link="{detail_url(e)}"><span class="rank">TOP {n}</span><span class="heat">{ic("flame",12)} {e["heat"]}</span>
+        hot_cards += f'''<div class="hot" data-link="{detail_url(e)}" data-analytics-list="1" data-event-id="{e["event_id"]}" data-category="{esc(e["category"])}" data-source="{esc(e["items"][0]["source"])}"><span class="rank">TOP {n}</span><span class="heat">{ic("flame",12)} {e["heat"]}</span>
         <h3><a href="{detail_url(e)}">{esc(e["zh_title"])}</a></h3>
         <p class="hsum">{esc(e["zh_summary"])}</p>
         <div class="sources"><span class="srcbadge">{src_badge(e["items"][0]["source"])}</span>{sources_html(e)}<span class="htime">{card_time(e)}</span></div></div>'''
@@ -1105,6 +1157,7 @@ def main():
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="icons/manifest.json">
 <meta name="theme-color" content="#1a1d23">
+{analytics_head("")}
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="DataHot">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -1114,7 +1167,7 @@ def main():
 .hot a:hover{{color:var(--accent)}}
 #ptr{{position:fixed;top:0;left:0;right:0;height:0;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;background:var(--bg);z-index:60;transition:height .12s ease-out}}
 #ptr span{{font-size:12.5px;color:var(--sub);padding-bottom:8px}}
-</style></head><body class="has-sb">
+</style></head><body class="has-sb" data-page="home">
 {sidebar("home", gen)}
 <div id="ptr"><span>下拉刷新</span></div>
 <header><div class="wrap nav">
@@ -1154,7 +1207,7 @@ def main():
 </aside>
 </div></div>
 
-<footer>DataHot，数据领域AI资讯分享 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
+<footer>DataHot，数据领域AI资讯分享 · <a href="privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 {tabbar("home")}
 
 <script>
@@ -1260,6 +1313,7 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
     (SITE / "classics.html").write_text(render_classics_page(all_events, css), encoding="utf-8")
     (SITE / "hot.html").write_text(render_hot_page(events, css), encoding="utf-8")
     (SITE / "favorites.html").write_text(render_favorites_page(css), encoding="utf-8")
+    (SITE / "privacy.html").write_text(render_privacy_page(css), encoding="utf-8")
 
     out = SITE / "index.html"
     out.write_text(page, encoding="utf-8")

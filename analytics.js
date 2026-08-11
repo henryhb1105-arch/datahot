@@ -9,7 +9,7 @@
 
   var EVENT_NAMES = [
     "session_start", "list_exposure", "detail_click", "outbound_click",
-    "favorite_toggle", "search", "filter", "daily_brief_click"
+    "favorite_toggle", "search", "filter", "weekly_brief_click", "daily_brief_click"
   ];
   var ALLOWED_FIELDS = [
     "schema_version", "event_uuid", "name", "ts", "environment", "site_id",
@@ -17,7 +17,7 @@
     "sequence", "viewport", "referrer", "action", "filter", "query_bucket",
     "result_count"
   ];
-  var PAGES = ["home", "daily", "topics", "topic", "classics", "hot", "favorites", "sources", "detail", "privacy", "other"];
+  var PAGES = ["home", "weekly", "daily", "topics", "topic", "classics", "hot", "favorites", "sources", "detail", "privacy", "other"];
   var CATEGORIES = ["agent", "platform", "bi", "product", ""];
   var DEVICE_KEY = "dh_analytics_device_v1";
   var SESSION_KEY = "dh_analytics_session_v1";
@@ -70,9 +70,10 @@
     if (!path || /\/datahot$/.test(path)) return "home";
     if (/\/e\/[a-f0-9]{12}\.html$/.test(path)) return "detail";
     if (/\/topics\/[^/]+\.html$/.test(path)) return "topic";
+    if (/\/weekly\/\d{4}-W\d{2}\.html$/.test(path)) return "weekly";
     var filename = path.split("/").pop() || "index.html";
     var pages = {
-      "index.html": "home", "daily.html": "daily", "topics.html": "topics", "classics.html": "classics",
+      "index.html": "home", "weekly.html": "weekly", "daily.html": "weekly", "topics.html": "topics", "classics.html": "classics",
       "hot.html": "hot", "favorites.html": "favorites", "sources.html": "sources",
       "privacy.html": "privacy"
     };
@@ -307,8 +308,8 @@
         emit("filter", { filter: filter.getAttribute("data-topic") || "" }, 750);
         return;
       }
-      var brief = event.target.closest('[data-analytics="daily_brief"]');
-      if (brief) emit("daily_brief_click", context(brief.closest("[data-event-id]") || body), 750);
+      var brief = event.target.closest('[data-analytics="weekly_brief"]');
+      if (brief) emit("weekly_brief_click", context(brief.closest("[data-event-id]") || body), 750);
 
       var anchor = event.target.closest("a[href]");
       if (anchor) {

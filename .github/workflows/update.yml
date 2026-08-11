@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: datahot-update
+  cancel-in-progress: false
+
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -63,6 +67,8 @@ jobs:
           ANALYTICS_SITE_ID: ${{ vars.ANALYTICS_SITE_ID || 'datahot' }}
           ANALYTICS_ENV: "production"
           ANALYTICS_PRODUCTION_HOST: "henryhb1105-arch.github.io"
+          DAILY_BRIEF_ENABLED: ${{ vars.DAILY_BRIEF_ENABLED || 'true' }}
+          DAILY_BRIEF_FORCE: ${{ vars.DAILY_BRIEF_FORCE || 'false' }}
           BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
           BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
         run: |

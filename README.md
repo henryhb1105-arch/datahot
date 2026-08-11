@@ -81,6 +81,10 @@ GitHub Actions 每 6 小时自动运行（UTC 0/6/12/18 第 17 分），数据�
 
 分析客户端默认关闭，只有配置公开 HTTPS 接收端后才在正式域名发送字段白名单事件；localhost、测试、GPC/DNT 和手动关闭均不发送。它不采集正文、完整搜索词、Cookie、身份、指纹或位置。事件 schema、去重规则、接收端契约和指标公式见 [`ANALYTICS.md`](ANALYTICS.md)，NDJSON 导出可用 `python3 pipeline/analytics_metrics.py export.ndjson` 先做质量校验再计算指标。
 
+### 每日简报
+
+每天从北京时间当天的高价值事件中固定选取 8–10 条，只发布一个不可变版本。缓存键包含日期、事件 ID/摘要输入哈希、提示词版本与模型版本；同日后续更新不会再次调用 DeepSeek。模型未配置、调用失败或预算耗尽时自动发布规则版，所有详情入口仍来自站内稳定事件 ID。调用以 `daily_brief` 用途计入 `llm_usage.json`。设置 `DAILY_BRIEF_ENABLED=false` 可停止生成并隐藏入口；`DAILY_BRIEF_FORCE=true` 只在手动触发工作流时生效，用于主动替换异常版本，不会让定时任务重复付费生成。
+
 ## 内容声明
 
 本站仅聚合各信源的摘要与原文链接，不转载全文，版权归原作者所有。

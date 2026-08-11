@@ -623,6 +623,29 @@ def _personal_prose_length(response):
     return sum(len(str(value)) for value in values)
 
 
+def _fit_personal_summary(value, maximum, minimum):
+    """Keep short display summaries within schema limits without adding facts."""
+    text = " ".join(str(value or "").split())
+    if len(text) <= maximum:
+        return text
+    for marker in ("。", "；", "，", "："):
+        boundary = text.find(marker)
+        if minimum <= boundary <= maximum:
+            return text[:boundary].rstrip()
+    return text[:maximum].rstrip("，。；：、 ")
+
+
+def _normalize_personal_response(response):
+    if not isinstance(response, dict):
+        return response
+    normalized = dict(response)
+    normalized["title"] = _fit_personal_summary(response.get("title"), 24, 4)
+    normalized["bottom_line"] = _fit_personal_summary(
+        response.get("bottom_line"), 80, 16,
+    )
+    return normalized
+
+
 def _overstates_early_signal(text):
     text = str(text or "")
     negations = ("不足", "不能", "尚未", "没有", "无法", "并未", "不代表", "未能")
@@ -687,7 +710,7 @@ def _repair_prompt(original_prompt, errors):
     )
 
 
-def _call_validated(llm_generate, prompt, item_id, validator):
+def _call_validated(llm_generate, prompt, item_id, validator, normalizer=None):
     errors = []
     for attempt in range(2):
         current_prompt = prompt if attempt == 0 else _repair_prompt(prompt, errors)
@@ -699,6 +722,8 @@ def _call_validated(llm_generate, prompt, item_id, validator):
         except Exception as exc:
             errors = [f"model_error:{type(exc).__name__}:{str(exc)[:160]}"]
             continue
+        if normalizer is not None:
+            response = normalizer(response)
         errors = validator(response)
         if not errors:
             return response, []
@@ -1026,6 +1051,7 @@ def generate_weekly_brief(
         personal_response, errors = _call_validated(
             llm_generate, prompt, f"{week_id}:personal",
             lambda value: validate_personal_response(value, signal_doc, evidence_map),
+            normalizer=_normalize_personal_response,
         )
     except Exception as exc:
         personal_response, errors = None, [type(exc).__name__[:80]]

@@ -460,6 +460,35 @@ class WeeklyBriefGenerationTests(unittest.TestCase):
         )
         self.assertNotIn("infra-full-cycle", {item["signal_id"] for item in brief["signals"]})
 
+    def test_personal_summary_fields_are_bounded_before_validation(self):
+        events = [event(i) for i in range(10)]
+        signals = public_response(events)
+
+        def callback(_prompt, *, item_id):
+            if ":signals" in item_id:
+                return signals
+            response = personal_response(signals, events)
+            response["title"] = "语义层与开放数据层成为AI查询基础设施，存储尝试仍处早期"
+            response["bottom_line"] = (
+                "本周最明确的变化是语义层和开放数据接口开始同时进入AI查询产品设计；"
+                "但现有证据仍以供应商材料为主，尚不能证明这些做法已经成为行业标准，"
+                "需要继续用真实任务验证稳定性和维护成本。"
+            )
+            return response
+
+        with tempfile.TemporaryDirectory() as tmp:
+            cache, output, archive = self.paths(tmp)
+            brief, status = generate_weekly_brief(
+                events, now=datetime(2026, 8, 11, 2, tzinfo=timezone.utc),
+                model="deepseek-v4", llm_generate=callback,
+                cache_path=cache, output_path=output, archive_dir=archive,
+            )
+
+        self.assertEqual(status, "generated_ai")
+        self.assertLessEqual(len(brief["title"]), 24)
+        self.assertLessEqual(len(brief["bottom_line"]), 80)
+        self.assertTrue(valid_brief(brief))
+
     def test_pending_rule_placeholder_upgrades_to_ai(self):
         events = [event(i) for i in range(10)]
         calls = []

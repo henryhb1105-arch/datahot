@@ -129,6 +129,9 @@ def prefilter_entries(entries, source, now):
 
 
 def source_control_snapshot(source):
+    focus_categories = source.get("focus_categories") or []
+    if isinstance(focus_categories, str):
+        focus_categories = [focus_categories]
     return {
         "tier": source.get("tier", "default"),
         "fetch_interval_hours": _number(source.get("fetch_interval_hours", 6), 6),
@@ -136,4 +139,24 @@ def source_control_snapshot(source):
         "lookback_days": _number(source.get("lookback_days", 7), 7),
         "require_published": bool(source.get("require_published", False)),
         "has_keyword_filter": bool(source.get("include_keywords") or source.get("exclude_keywords")),
+        "focus_categories": [
+            value for value in focus_categories if value in {"agent", "platform", "bi", "product"}
+        ],
     }
+
+
+def accepted_categories_by_source(events, accepted_item_ids):
+    """Attribute accepted candidates to their final clustered category."""
+    accepted_item_ids = set(accepted_item_ids)
+    result = {}
+    for event in events:
+        category = str(event.get("category") or "platform")
+        for item in event.get("items") or []:
+            if item.get("id") not in accepted_item_ids:
+                continue
+            source = str(item.get("source") or "")
+            if not source:
+                continue
+            categories = result.setdefault(source, {})
+            categories[category] = categories.get(category, 0) + 1
+    return result

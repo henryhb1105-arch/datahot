@@ -13,6 +13,7 @@ RSS/API 采集 ──► LLM 加工（DeepSeek）──► latest.json ──►
 - `pipeline/sources.json` — 信源配置（`enabled: false` 的为待解封源）
 - `pipeline/run_update.py` — 采集 / 过滤 / LLM 加工 / 打分 / 数据输出
 - `pipeline/build_site.py` — 静态页面渲染
+- `pipeline/lite_data.py` — 首页/搜索/收藏的轻量数据与首屏结构规则
 - `pipeline/check_links.py` — 全站本地 `href/src` 完整性检查（失效链接会阻断构建）
 - `pipeline/config.json` — 本地 LLM 密钥（**已 gitignore，不要提交**）
 - `.github/workflows/update.yml` — 每 6 小时定时运行 + 自动发布 Pages
@@ -80,6 +81,8 @@ GitHub Actions 每 6 小时自动运行（UTC 0/6/12/18 第 17 分），数据�
 ### 隐私友好行为分析
 
 分析客户端默认关闭，只有配置公开 HTTPS 接收端后才在正式域名发送字段白名单事件；localhost、测试、GPC/DNT 和手动关闭均不发送。它不采集正文、完整搜索词、Cookie、身份、指纹或位置。事件 schema、去重规则、接收端契约和指标公式见 [`ANALYTICS.md`](ANALYTICS.md)，NDJSON 导出可用 `python3 pipeline/analytics_metrics.py export.ndjson` 先做质量校验再计算指标。
+
+首页默认只静态输出 20 条并使用不含正文的 `latest-lite.json` 完成加载更多、搜索和收藏；首屏厂商上限、栏目软阈值、当前体积基线和一键回滚见 [`PERFORMANCE.md`](PERFORMANCE.md)。
 
 ### 每日简报
 

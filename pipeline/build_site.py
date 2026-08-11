@@ -9,12 +9,16 @@ from urllib.parse import urlparse
 from content_blocks import render_blocks_html, sanitize_blocks
 from check_links import check_site_links, format_broken_links
 from feed import build_atom_feed, validate_atom_feed
+from lite_data import (
+    DEFAULT_PAGE_SIZE, build_lite_payload, find_forbidden_fields, rank_home_events,
+)
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 DETAIL_DIR = SITE / "e"
 TOPIC_DIR = SITE / "topics"
 ANALYTICS_ASSET = ROOT / "pipeline" / "assets" / "analytics.js"
+HOME_ASSET = ROOT / "pipeline" / "assets" / "home.js"
 TZ = timezone(timedelta(hours=8))
 CAT_BADGE = {"agent": "b-agent", "platform": "b-platform", "bi": "b-bi", "product": "b-product"}
 CAT_LABEL = {"agent": "Data Agent", "platform": "AI 数据平台", "bi": "BI 与可视化", "product": "数据产品"}
@@ -128,6 +132,9 @@ main,.layout>*,.hotlist>*{min-width:0}
 .fav-entry:hover{color:var(--accent)}
 .privacy-btn{border:none;background:var(--accent);color:#fff;border-radius:99px;padding:9px 16px;font-size:12.5px;font-weight:650;cursor:pointer;margin:4px 6px 4px 0}
 .privacy-btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.load-more{display:block;margin:18px auto 4px;border:1px solid var(--line);background:var(--card);color:var(--txt2);border-radius:99px;padding:9px 22px;font-size:12.5px;font-weight:650;cursor:pointer}
+.load-more:hover{border-color:var(--accent);color:var(--accent)}
+.load-more[disabled]{opacity:.65;cursor:default}
 .daily-teaser{display:block;background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border-radius:var(--radius);padding:18px 22px;margin-bottom:22px;text-decoration:none;position:relative;overflow:hidden}
 .daily-teaser:hover{transform:translateY(-1px)}
 .daily-teaser .daily-kicker{font-size:11px;letter-spacing:1.5px;color:#f5b48a;font-weight:750;margin-bottom:6px}
@@ -225,6 +232,10 @@ def analytics_head(prefix=""):
 
 def feed_enabled():
     return os.getenv("FEED_ENABLED", "true").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def lite_home_enabled():
+    return os.getenv("LITE_HOME_ENABLED", "true").strip().lower() in {"1", "true", "yes", "on"}
 
 
 def feed_discovery():
@@ -851,6 +862,15 @@ def render_sources_page(events, payload, css):
     ss = json.load(open(ss_path)) if ss_path.exists() else {}
     all_sources = json.load(open(ROOT / "pipeline" / "sources.json"))
     gen = datetime.fromisoformat(payload["generated_at"])
+    event_categories = Counter(event.get("category", "platform") for event in events)
+    focused_source_counts = Counter()
+    accepted_category_totals = Counter()
+    for src in all_sources:
+        for category in src.get("focus_categories") or []:
+            focused_source_counts[category] += 1
+    for rec in ss.values():
+        for category, count in (rec.get("total_accepted_by_category") or {}).items():
+            accepted_category_totals[category] += int(count)
 
     TYPE_LABEL = {"vendor": "厂商", "media": "媒体", "community": "社区"}
 
@@ -901,6 +921,17 @@ def render_sources_page(events, payload, css):
             f'{control.get("fetch_interval_hours", 6):g}小时/轮 · '
             f'上限 {control.get("max_candidates_per_run", 20)}'
         )
+        focus_categories = control.get("focus_categories") or src.get("focus_categories") or []
+        focus_text = " / ".join(CAT_LABEL.get(category, category) for category in focus_categories)
+        adoption_by_category = rec.get("total_accepted_by_category") or {}
+        category_audit = " · ".join(
+            f'{CAT_LABEL.get(category, category)} {int(adoption_by_category.get(category, 0))}'
+            for category in focus_categories
+        )
+        focus_html = (
+            f'<div class="snote">专项监控 {esc(focus_text)} · 累计采用 {esc(category_audit or "0")}</div>'
+            if focus_categories else ""
+        )
         rows.append({
             "st": st, "html": f'''<div class="srow">
   <div class="srow-top">
@@ -912,7 +943,7 @@ def render_sources_page(events, payload, css):
   <div class="srow-sub">{audit}</div>
   <div class="srow-sub">最近成功 {last_ok} · {last_filter}</div>
   <div class="snote">调度 {schedule}</div>
-  {err}{recommendation}{note}
+  {focus_html}{err}{recommendation}{note}
 </div>'''})
 
     order = {"fail": 0, "warn": 1, "off": 2, "ok": 3}
@@ -922,6 +953,12 @@ def render_sources_page(events, payload, css):
     n_ok = sum(1 for r in rows if r["st"] == "ok")
     sys_ok = all(r["st"] in ("ok", "off") for r in rows)
     sys_dot = "ok" if sys_ok else "warn"
+    category_monitor = "".join(
+        f'''<div style="flex:1;min-width:150px;padding:10px 12px;background:var(--soft);border-radius:9px">
+  <b>{esc(CAT_LABEL[category])}</b><div class="snote">在站事件 {event_categories.get(category, 0)} · 专项信源 {focused_source_counts.get(category, 0)} · 累计采用 {accepted_category_totals.get(category, 0)}</div>
+</div>'''
+        for category in ("bi", "product", "agent", "platform")
+    )
 
     body = f'''
 <div class="wrap" style="padding:28px 20px 60px;max-width:900px">
@@ -932,6 +969,9 @@ def render_sources_page(events, payload, css):
     <span class="ssub">最后更新 {gen.strftime("%m-%d %H:%M")} · <span id="nextRun">计算下次更新…</span></span></div>
     <div class="ssub" style="margin-top:6px">每日 4 批：08:17 / 14:17 / 20:17 / 02:17（北京时间）· 采集 → AI 加工 → 聚簇 → 自动发布</div>
   </div>
+
+  <div class="section-title"><h2>栏目结构监控</h2><span>不做机械配额 · 独立观察专项信源与采用结果</span></div>
+  <div class="scard" style="display:flex;gap:10px;flex-wrap:wrap">{category_monitor}</div>
 
   <div class="section-title"><h2>信源记分牌</h2><span>{len(all_sources)} 个信源 · 按需要关注排序</span></div>
   <div class="scard" style="padding:6px 18px">{rows_html}</div>
@@ -1029,8 +1069,8 @@ def render_classics_page(events, css):
     return page_shell("典藏 · DataHot", "数据领域穿越时间的内容：方法论、框架与深度实践", css, body,
                       tabbar("classics"), prefix="", active="classics")
 
-def render_favorites_page(css):
-    """收藏页：客户端从 localStorage 读取收藏，拉 latest.json 渲染"""
+def render_favorites_page(css, data_url="data/latest-lite.json"):
+    """收藏页：只拉 metadata-only 数据；详情正文留在详情页。"""
     body = """
 <div class="wrap" style="padding:28px 20px 60px;max-width:900px">
   <div class="section-title"><h2>★ 我的收藏</h2><span>保存在本机浏览器 · 不上传</span></div>
@@ -1045,7 +1085,8 @@ def render_favorites_page(css):
     list.innerHTML='<div style="padding:20px 0;color:var(--sub);font-size:13px;line-height:1.8">还没有收藏。<br>在时间轴卡片或详情页点 ☆ 星标，内容会出现在这里。</div>';
     return;
   }
-  fetch('data/latest.json').then(function(r){return r.json();}).then(function(d){
+  function safe(v){return String(v||'').replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c];});}
+  fetch('__DATA_URL__').then(function(r){return r.json();}).then(function(d){
     var map={};
     d.events.forEach(function(e){map[e.event_id]=e;});
     var html='';
@@ -1053,8 +1094,8 @@ def render_favorites_page(css):
       var e=map[id];
       if(!e) return;
       html+='<a class="hrow" href="e/'+e.event_id+'.html">'
-        +'<span class="ht">'+e.zh_title.replace(/</g,'&lt;')+'</span>'
-        +'<span class="hm">'+(e.items[0]?e.items[0].source:'')+' · '+e.published.slice(0,10)+'</span></a>';
+        +'<span class="ht">'+safe(e.zh_title)+'</span>'
+        +'<span class="hm">'+safe(e.items[0]?e.items[0].source:'')+' · '+safe((e.published||e.first_seen||'').slice(0,10))+'</span></a>';
     });
     list.innerHTML=html||'<div style="padding:20px 0;color:var(--sub);font-size:13px">收藏的内容已过期（超过 7 天的新闻会出池，典藏内容永久保留）。</div>';
   }).catch(function(){
@@ -1062,6 +1103,7 @@ def render_favorites_page(css):
   });
 })();
 </script>"""
+    body = body.replace("__DATA_URL__", esc(data_url))
     return page_shell("我的收藏 · DataHot", "你收藏的数据领域资讯", css, body, tabbar(""), prefix="", active="favorites")
 
 
@@ -1190,9 +1232,10 @@ def write_detail_pages(all_events, css, detail_dir=None):
 
 def main():
     SITE.mkdir(parents=True, exist_ok=True)
-    if not ANALYTICS_ASSET.exists():
-        raise FileNotFoundError(f"missing analytics asset: {ANALYTICS_ASSET}")
+    if not ANALYTICS_ASSET.exists() or not HOME_ASSET.exists():
+        raise FileNotFoundError("missing browser asset")
     shutil.copyfile(ANALYTICS_ASSET, SITE / "analytics.js")
+    shutil.copyfile(HOME_ASSET, SITE / "home.js")
     payload = json.load(open(SITE / "data" / "latest.json"))
     all_events = payload["events"]
     daily_enabled = daily_brief_enabled()
@@ -1202,6 +1245,25 @@ def main():
     # 首页只展示 7 天窗口内的新鲜事件；evergreen 老内容沉淀在典藏/主题页
     window = timedelta(days=7)
     events = [e for e in all_events if gen - datetime.fromisoformat(e.get("first_seen") or e["published"]) <= window]
+    lite_enabled = lite_home_enabled()
+    home_ranking = rank_home_events(events, page_size=DEFAULT_PAGE_SIZE)
+    home_first_page = rank_home_events(
+        events, page_size=DEFAULT_PAGE_SIZE, first_page_only=True,
+    )
+    lite_payload = build_lite_payload(
+        all_events, payload["generated_at"], ranking=home_ranking, page_size=DEFAULT_PAGE_SIZE,
+    )
+    violations = find_forbidden_fields(lite_payload)
+    if violations:
+        raise RuntimeError(f"latest-lite.json contains forbidden body fields: {', '.join(violations[:5])}")
+    lite_path = SITE / "data" / "latest-lite.json"
+    lite_bytes = (json.dumps(lite_payload, ensure_ascii=False, separators=(",", ":")) + "\n").encode("utf-8")
+    full_bytes = (SITE / "data" / "latest.json").stat().st_size
+    if len(lite_bytes) >= full_bytes:
+        raise RuntimeError(f"latest-lite.json must be smaller than latest.json ({len(lite_bytes)} >= {full_bytes})")
+    lite_path.write_bytes(lite_bytes)
+    reduction = round((1 - len(lite_bytes) / full_bytes) * 100, 1)
+    print(f"[lite] latest.json {full_bytes:,} B → latest-lite.json {len(lite_bytes):,} B（减少 {reduction}%）")
 
     # ── 详情页 ──
     valid_ids = write_detail_pages(all_events, css)
@@ -1251,8 +1313,9 @@ def main():
         <div class="sources"><span class="srcbadge">{src_badge(e["items"][0]["source"])}</span>{sources_html(e)}<span class="htime">{card_time(e)}</span></div></div>'''
 
     # ── 时间轴 ──
+    initial_events = home_first_page if lite_enabled else events
     days = defaultdict(list)
-    for e in events:
+    for e in initial_events:
         days[day_key(e.get("first_seen") or e["published"])].append(e)
     timeline = ""
     for d in sorted(days, reverse=True):
@@ -1284,6 +1347,19 @@ def main():
         for t in TOPICS_META if t["name"] in active_topics)
     daily_teaser = render_daily_brief_teaser(daily_brief) if daily_enabled else ""
     daily_header_link = f'<a class="tab d-only" href="daily.html" style="text-decoration:none">{ic("calendar",14)} 简报</a>' if daily_enabled else ""
+    home_config = (
+        f'<meta id="homeDataConfig" data-lite-url="data/latest-lite.json" '
+        f'data-page-size="{DEFAULT_PAGE_SIZE}" data-total="{len(events)}">'
+        if lite_enabled else ""
+    )
+    timeline_html = f'<div id="timeline">{timeline}</div>' if lite_enabled else timeline
+    load_more = (
+        f'<button class="load-more" id="loadMore" type="button" '
+        f'{"hidden" if len(events) <= DEFAULT_PAGE_SIZE else ""}>'
+        f'加载更多（{len(home_first_page)}/{len(events)}）</button>'
+        if lite_enabled else ""
+    )
+    home_asset = '<script defer src="home.js"></script>' if lite_enabled else ""
 
     page = f'''<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
@@ -1300,6 +1376,8 @@ def main():
 <meta name="theme-color" content="#1a1d23">
 {feed_discovery()}
 {analytics_head("")}
+{home_config}
+{home_asset}
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="DataHot">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -1326,13 +1404,14 @@ def main():
   <div class="section-title"><h2>{ic("flame",18)} 本期热点</h2><span>多信源聚簇 · 按热度排序</span><a href="hot.html" style="margin-left:auto;font-size:12.5px;color:var(--accent);font-weight:600">完整榜单 →</a></div>
   <div class="hotlist">{hot_cards}</div>
   <div class="section-title" style="align-items:center"><h2>{ic("calendar",18)} 时间轴</h2><span>近 7 天</span>
-    <input id="q" class="tlsearch" placeholder="搜索近 7 天事件" title="搜索范围：近 7 天时间轴的标题、摘要与标签"><span id="qClear" style="display:none;cursor:pointer;color:var(--sub);margin-left:6px" title="清除搜索">✕</span><span style="font-size:11px;color:var(--sub)">（<span id="rCount"></span>）</span>
+    <input id="q" class="tlsearch" placeholder="搜索近 7 天事件" title="搜索范围：近 7 天时间轴的标题、摘要与标签"><span id="qClear" style="display:none;cursor:pointer;color:var(--sub);margin-left:6px" title="清除搜索">✕</span><span style="font-size:11px;color:var(--sub)">（<span id="rCount">{len(events)}</span>）</span>
   </div>
   <div class="chiprow" id="chiprow">
     <span class="fchip on" data-topic="all">全部</span>
     {topic_fchips}
   </div>
-  {timeline}
+  {timeline_html}
+  {load_more}
 </main>
 
 <aside>
@@ -1365,6 +1444,8 @@ function showFavTp(t){{
 function dhInitFav(){{
   const favs=dhFavs();
   document.querySelectorAll('[data-fav]').forEach(b=>{{
+    if(b.dataset.favBound==='1') return;
+    b.dataset.favBound='1';
     if(favs.includes(b.dataset.fav)) b.classList.add('on');
     b.addEventListener('click',ev=>{{
       ev.stopPropagation();
@@ -1374,7 +1455,9 @@ function dhInitFav(){{
     }});
   }});
 }}
+window.dhInitFav=dhInitFav;
 dhInitFav();
+if(!document.getElementById('homeDataConfig')){{
 function applyFilter(pred){{
   let total=0;
   document.querySelectorAll('.item').forEach(el=>{{
@@ -1422,6 +1505,7 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
     if(url) location.href=url;
   }});
 }});
+}}
 // 移动端下拉刷新
 (function(){{
   const ind=document.getElementById('ptr');
@@ -1456,7 +1540,8 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
     (SITE / "sources.html").write_text(render_sources_page(all_events, payload, css), encoding="utf-8")
     (SITE / "classics.html").write_text(render_classics_page(all_events, css), encoding="utf-8")
     (SITE / "hot.html").write_text(render_hot_page(events, css), encoding="utf-8")
-    (SITE / "favorites.html").write_text(render_favorites_page(css), encoding="utf-8")
+    favorite_data_url = "data/latest-lite.json" if lite_enabled else "data/latest.json"
+    (SITE / "favorites.html").write_text(render_favorites_page(css, favorite_data_url), encoding="utf-8")
     (SITE / "daily.html").write_text(render_daily_brief_page(daily_brief, all_events, css), encoding="utf-8")
     (SITE / "privacy.html").write_text(render_privacy_page(css), encoding="utf-8")
 
@@ -1468,7 +1553,7 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
         print(format_broken_links(broken, SITE))
         raise RuntimeError("generated site contains broken local links")
     print("[links] 本地 href/src 100% 有效")
-    print(f"[render] 首页 ({len(page)//1024} KB) + 详情页 {len(valid_ids)} 个")
+    print(f"[render] 首页 ({len(page.encode('utf-8')):,} B) + 详情页 {len(valid_ids)} 个")
 
 if __name__ == "__main__":
     main()

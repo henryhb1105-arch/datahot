@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "pipeline"))
 
 from source_controls import (  # noqa: E402
+    accepted_categories_by_source,
     prefilter_entries,
     source_candidate_limit,
     source_control_snapshot,
@@ -49,10 +50,26 @@ class SourceSchedulingTests(unittest.TestCase):
     def test_each_source_limit_and_defaults_are_independent(self):
         self.assertEqual(source_candidate_limit({"max_candidates_per_run": 4}), 4)
         self.assertEqual(source_candidate_limit({}), 20)
-        snapshot = source_control_snapshot({"tier": "media_low", "fetch_interval_hours": 24})
+        snapshot = source_control_snapshot({
+            "tier": "media_low", "fetch_interval_hours": 24,
+            "focus_categories": ["bi", "product", "invalid"],
+        })
         self.assertEqual(snapshot["tier"], "media_low")
         self.assertEqual(snapshot["fetch_interval_hours"], 24)
         self.assertEqual(snapshot["max_candidates_per_run"], 20)
+        self.assertEqual(snapshot["focus_categories"], ["bi", "product"])
+
+    def test_final_cluster_category_is_attributed_to_source(self):
+        events = [{
+            "category": "bi", "items": [
+                {"id": "a", "source": "Hex Blog"},
+                {"id": "b", "source": "Other"},
+            ],
+        }, {"category": "product", "items": [{"id": "c", "source": "Hex Blog"}]}]
+        self.assertEqual(
+            accepted_categories_by_source(events, {"a", "c"}),
+            {"Hex Blog": {"bi": 1, "product": 1}},
+        )
 
 
 class SourcePrefilterTests(unittest.TestCase):
@@ -123,6 +140,12 @@ class SourcePrefilterTests(unittest.TestCase):
         self.assertEqual(claude["max_candidates_per_run"], 8)
         self.assertTrue(claude["require_published"])
         self.assertTrue(claude["include_keywords"])
+        for name in ("Hex Blog", "Amplitude Blog", "Netflix Technology Blog"):
+            source = by_name[name]
+            self.assertLessEqual(source["max_candidates_per_run"], 5)
+            self.assertTrue(source["require_published"])
+            self.assertTrue(source["include_keywords"])
+            self.assertTrue(source["focus_categories"])
 
 
 if __name__ == "__main__":

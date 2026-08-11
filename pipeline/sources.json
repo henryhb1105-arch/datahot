@@ -99,7 +99,8 @@
   "enabled": true,
   "tier": "official_high",
   "fetch_interval_hours": 6,
-  "max_candidates_per_run": 10
+  "max_candidates_per_run": 10,
+  "focus_categories": ["bi", "product"]
  },
  {
   "name": "Metabase Blog",
@@ -109,7 +110,8 @@
   "enabled": true,
   "tier": "official_high",
   "fetch_interval_hours": 6,
-  "max_candidates_per_run": 10
+  "max_candidates_per_run": 10,
+  "focus_categories": ["bi"]
  },
  {
   "name": "ClickHouse Blog",
@@ -161,6 +163,7 @@
   "fetch_interval_hours": 24,
   "max_candidates_per_run": 5,
   "include_keywords": ["数据", "BI", "分析", "数仓", "湖仓", "SQL", "Agent", "智能体", "可视化", "数据产品"],
+  "focus_categories": ["product"],
   "note": "数据产品方法论重镇"
  },
  {
@@ -172,6 +175,7 @@
   "tier": "official_high",
   "fetch_interval_hours": 6,
   "max_candidates_per_run": 10,
+  "focus_categories": ["bi"],
   "note": "国内 BI 头部厂商官方 feed"
  },
  {
@@ -311,6 +315,7 @@
   "tier": "official_high",
   "fetch_interval_hours": 6,
   "max_candidates_per_run": 10,
+  "focus_categories": ["platform"],
   "note": "官网无 RSS 且 Cloudflare 拦截，走 Medium 工程博客"
  },
  {
@@ -322,6 +327,7 @@
   "tier": "official_high",
   "fetch_interval_hours": 6,
   "max_candidates_per_run": 10,
+  "focus_categories": ["bi"],
   "note": "主站 403，改用 Power Platform 官方博客（含 Power BI 内容）"
  },
  {
@@ -331,5 +337,56 @@
   "weight": 3,
   "enabled": false,
   "note": "该 Medium 出版物不存在（404）；Tableau 主站 403，暂靠媒体源覆盖其动态"
+ },
+ {
+  "name": "Hex Blog",
+  "kind": "sitemap",
+  "urls": ["https://hex.tech/sitemap.xml"],
+  "url_include": "hex.tech/blog/",
+  "path_exclude": ["/blog/category/"],
+  "type": "vendor",
+  "weight": 3,
+  "enabled": true,
+  "tier": "official_targeted",
+  "fetch_interval_hours": 12,
+  "max_candidates_per_run": 5,
+  "lookback_days": 14,
+  "require_published": true,
+  "include_keywords": ["analytics", "data", "semantic", "metric", "dashboard", "agent", "eval", "notebook", "sql", "bi", "visualization"],
+  "focus_categories": ["bi", "product"],
+  "note": "官方 Sitemap；路径、日期和高精度分析关键词三重过滤"
+ },
+ {
+  "name": "Amplitude Blog",
+  "kind": "sitemap",
+  "urls": ["https://amplitude.com/sitemap-root.xml"],
+  "url_include": "amplitude.com/blog/",
+  "path_exclude": ["/blog/tag/", "/blog/author/"],
+  "type": "vendor",
+  "weight": 3,
+  "enabled": true,
+  "tier": "official_targeted",
+  "fetch_interval_hours": 12,
+  "max_candidates_per_run": 5,
+  "lookback_days": 7,
+  "require_published": true,
+  "include_keywords": ["analytics", "metric", "product", "experiment", "retention", "cohort", "data", "insight", "feature", "conversion", "funnel"],
+  "focus_categories": ["product", "bi"],
+  "note": "官方 Sitemap；聚焦产品分析、实验和指标实践"
+ },
+ {
+  "name": "Netflix Technology Blog",
+  "url": "https://netflixtechblog.com/feed",
+  "type": "vendor",
+  "weight": 3,
+  "enabled": true,
+  "tier": "engineering_targeted",
+  "fetch_interval_hours": 12,
+  "max_candidates_per_run": 4,
+  "lookback_days": 14,
+  "require_published": true,
+  "include_keywords": ["data platform", "data engineering", "analytics", "data pipeline", "data infrastructure", "metadata", "batch compute", "streaming", "warehouse", "lakehouse", "spark", "flink", "database"],
+  "focus_categories": ["platform"],
+  "note": "官方工程 RSS；仅保留数据平台和分析基础设施主题"
  }
 ]

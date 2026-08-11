@@ -1,0 +1,169 @@
+#!/usr/bin/env python3
+"""Build the metadata-only payload used by lists, search and favourites."""
+
+from __future__ import annotations
+
+from collections import Counter
+
+
+LITE_SCHEMA_VERSION = 1
+DEFAULT_PAGE_SIZE = 20
+DEFAULT_VENDOR_CAP = 4
+DEFAULT_CATEGORY_SOFT_CAP = 12
+FORBIDDEN_FIELDS = {
+    "full_zh", "content_blocks", "article_blocks", "article_text", "media",
+    "summary", "fulltext", "body", "raw_html",
+}
+
+
+def _primary_source(event):
+    items = event.get("items") or []
+    return str(items[0].get("source") or "") if items else ""
+
+
+def _primary_vendor(event):
+    vendors = event.get("vendors") or []
+    return str(vendors[0]) if vendors else _primary_source(event)
+
+
+def _quality_gate(event):
+    """Only meaningful signals may override the category soft cap."""
+    return bool(
+        event.get("pinned")
+        or int(event.get("importance") or 0) >= 70
+        or int(event.get("heat") or 0) >= 65
+        or len(event.get("items") or []) >= 2
+    )
+
+
+def _sort_key(event):
+    return (
+        str(event.get("first_seen") or event.get("published") or ""),
+        int(event.get("heat") or 0),
+        int(event.get("importance") or 0),
+        str(event.get("event_id") or ""),
+    )
+
+
+def rank_home_events(
+    events, *, page_size=DEFAULT_PAGE_SIZE, vendor_cap=DEFAULT_VENDOR_CAP,
+    category_soft_cap=DEFAULT_CATEGORY_SOFT_CAP, minimum_page_size=20,
+    first_page_only=False,
+):
+    """Return a stable order whose first page is diverse without quotas.
+
+    Vendor caps are hard on the first page. The category cap is soft: an event
+    can exceed it only when it passes a content-quality gate. If the result is
+    shorter than the desired first-screen floor, category limits relax while
+    the vendor cap remains intact.
+    """
+    ordered = sorted(events, key=_sort_key, reverse=True)
+    selected = []
+    deferred = []
+    vendor_counts = Counter()
+    category_counts = Counter()
+    selected_ids = set()
+
+    def can_add(event, *, allow_quality=False, relax_category=False):
+        vendor = _primary_vendor(event)
+        category = str(event.get("category") or "")
+        if vendor and vendor_counts[vendor] >= vendor_cap:
+            return False
+        return (
+            relax_category
+            or category_counts[category] < category_soft_cap
+            or (allow_quality and _quality_gate(event))
+        )
+
+    def add(event):
+        event_id = str(event.get("event_id") or "")
+        if not event_id or event_id in selected_ids:
+            return
+        selected.append(event)
+        selected_ids.add(event_id)
+        vendor_counts[_primary_vendor(event)] += 1
+        category_counts[str(event.get("category") or "")] += 1
+
+    for event in ordered:
+        if len(selected) >= page_size:
+            deferred.append(event)
+        elif can_add(event):
+            add(event)
+        else:
+            deferred.append(event)
+
+    # First let every category compete under the same ceiling. Only after that
+    # may genuinely strong events cross the category ceiling.
+    floor = min(page_size, max(0, minimum_page_size))
+    target = page_size if len(ordered) >= page_size else floor
+    if len(selected) < target:
+        for event in deferred:
+            if len(selected) >= target:
+                break
+            if can_add(event, allow_quality=True):
+                add(event)
+
+    # Operational floor: a sparse source mix must not leave a broken-looking
+    # first screen. This last resort still retains the hard vendor cap.
+    if len(selected) < floor:
+        for event in deferred:
+            if len(selected) >= floor:
+                break
+            if can_add(event, relax_category=True):
+                add(event)
+
+    if first_page_only:
+        return selected
+    return selected + [event for event in ordered if event.get("event_id") not in selected_ids]
+
+
+def lite_event(event):
+    """Project one event to the documented non-body field allowlist."""
+    return {
+        "event_id": event.get("event_id", ""),
+        "zh_title": event.get("zh_title", ""),
+        "zh_summary": event.get("zh_summary", ""),
+        "reason": event.get("reason", ""),
+        "category": event.get("category", ""),
+        "category_label": event.get("category_label", ""),
+        "vendors": list(event.get("vendors") or []),
+        "topics": list(event.get("topics") or []),
+        "heat": int(event.get("heat") or 0),
+        "star": bool(event.get("star")),
+        "importance": int(event.get("importance") or 0),
+        "shelf": event.get("shelf", "news"),
+        "pinned": bool(event.get("pinned")),
+        "published": event.get("published"),
+        "first_seen": event.get("first_seen"),
+        "items": [
+            {"source": item.get("source", "")}
+            for item in (event.get("items") or []) if item.get("source")
+        ],
+    }
+
+
+def build_lite_payload(events, generated_at, *, ranking=None, page_size=DEFAULT_PAGE_SIZE):
+    if ranking is None:
+        ranking = rank_home_events(events, page_size=page_size)
+    return {
+        "schema_version": LITE_SCHEMA_VERSION,
+        "generated_at": generated_at,
+        "page_size": page_size,
+        "home_event_ids": [event["event_id"] for event in ranking],
+        "events": [lite_event(event) for event in events],
+    }
+
+
+def find_forbidden_fields(value, *, path="$"):
+    """Return recursive body-field violations for build/tests."""
+    violations = []
+    if isinstance(value, dict):
+        for key, child in value.items():
+            child_path = f"{path}.{key}"
+            if key in FORBIDDEN_FIELDS:
+                violations.append(child_path)
+            violations.extend(find_forbidden_fields(child, path=child_path))
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            violations.extend(find_forbidden_fields(child, path=f"{path}[{index}]"))
+    return violations

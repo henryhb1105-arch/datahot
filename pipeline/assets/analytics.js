@@ -268,8 +268,8 @@
       storageSet(session, SESSION_STARTED_KEY, "1");
     }
 
-    var exposureNodes = Array.prototype.slice.call(doc.querySelectorAll("[data-analytics-list][data-event-id]"));
     var exposed = new Set();
+    var observer = null;
     function expose(node) {
       var props = context(node);
       if (!props.event_id || exposed.has(props.event_id)) return;
@@ -277,17 +277,21 @@
       emit("list_exposure", props, 0);
     }
     if ("IntersectionObserver" in win) {
-      var observer = new win.IntersectionObserver(function (entries) {
+      observer = new win.IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
           if (entry.isIntersecting && entry.intersectionRatio >= 0.4) {
             expose(entry.target); observer.unobserve(entry.target);
           }
         });
       }, { threshold: [0.4] });
-      exposureNodes.forEach(function (node) { observer.observe(node); });
-    } else {
-      exposureNodes.forEach(expose);
     }
+    function observeList(container) {
+      var scope = container && container.querySelectorAll ? container : doc;
+      var nodes = Array.prototype.slice.call(scope.querySelectorAll("[data-analytics-list][data-event-id]"));
+      nodes.forEach(function (node) { if (observer) observer.observe(node); else expose(node); });
+    }
+    api.observeList = observeList;
+    observeList(doc);
 
     doc.addEventListener("click", function (event) {
       var favorite = event.target.closest("[data-fav]");
@@ -355,7 +359,8 @@
     queryBucket: queryBucket,
     pageFromPath: pageFromPath,
     boot: boot,
-    track: function () {}, flush: function () {}, disable: function () {}, enable: function () {}
+    track: function () {}, flush: function () {}, disable: function () {}, enable: function () {},
+    observeList: function () {}
   };
   return api;
 });

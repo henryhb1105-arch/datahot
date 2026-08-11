@@ -57,4 +57,5 @@ test("minimum event model is explicitly enumerated", () => {
     "list_exposure", "detail_click", "outbound_click", "favorite_toggle",
     "search", "filter", "daily_brief_click", "session_start",
   ]) assert.ok(analytics.eventNames.includes(name));
+  assert.equal(typeof analytics.observeList, "function");
 });

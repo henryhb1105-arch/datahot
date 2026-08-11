@@ -21,7 +21,8 @@ from content_blocks import (
 from media_cache import cache_event_media, prune_media_cache
 from daily_brief import generate_daily_brief
 from source_controls import (
-    prefilter_entries, source_candidate_limit, source_control_snapshot, source_due,
+    accepted_categories_by_source, prefilter_entries, source_candidate_limit,
+    source_control_snapshot, source_due,
 )
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -1321,6 +1322,9 @@ def main():
     # 信源状态持久化：连续失败计数 + 抓取/入选计数（入选率 = 信源质量记分牌）
     from collections import Counter as _Counter
     accepted = _Counter(it["source"] for it in new_items)
+    accepted_categories = accepted_categories_by_source(
+        events, (item["id"] for item in new_items),
+    )
     now_iso = now.astimezone(TZ).isoformat()
     llm_by_source = LLM_USAGE.snapshot().get("by_source", {})
     for st in source_status:
@@ -1334,6 +1338,7 @@ def main():
             rec["last_new"] = 0
             rec["last_model_calls"] = 0
             rec["last_model_tokens"] = 0
+            rec["last_accepted_by_category"] = {}
             ss[st["name"]] = rec
             continue
         rec["last_attempt"] = now_iso
@@ -1359,6 +1364,12 @@ def main():
             rec["total_model_tokens"] = rec.get("total_model_tokens", 0) + rec["last_model_tokens"]
             accepted_now = accepted.get(st["name"], 0)
             rec["last_accepted"] = accepted_now
+            category_now = accepted_categories.get(st["name"], {})
+            rec["last_accepted_by_category"] = category_now
+            category_totals = dict(rec.get("total_accepted_by_category") or {})
+            for category, count in category_now.items():
+                category_totals[category] = int(category_totals.get(category, 0)) + int(count)
+            rec["total_accepted_by_category"] = category_totals
             if st.get("new", 0) > 0 and accepted_now == 0:
                 rec["zero_accept_streak"] = rec.get("zero_accept_streak", 0) + 1
             elif accepted_now > 0:

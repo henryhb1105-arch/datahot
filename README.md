@@ -34,6 +34,18 @@ cd site && npm run dev   # 或 python3 -m http.server
 GitHub Actions 每 6 小时自动运行（UTC 0/6/12/18 第 17 分），数据回写仓库、站点发布到 `gh-pages` 分支。
 仓库 Secrets 需配置：`LLM_API_KEY`（DeepSeek）。
 
+### DeepSeek 用量与预算
+
+每次更新会将调用次数、输入/输出 Token、失败调用、用途和信源统计写入 `site/data/llm_usage.json`，并在 GitHub Actions Summary 中显示本次汇总。记录中不保存 prompt 或模型回答正文；若供应商未返回 usage，会明确标记并按请求前估算值扣减预算。
+
+可在仓库 Actions Variables 中调整：
+
+- `MAX_LLM_TOKENS_PER_RUN`：单次更新的 Token 上限，默认 `160000`
+- `MAX_LLM_TOKENS_PER_DAY`：自然日 Token 上限，默认 `500000`
+- `MAX_COMPILE_EVENTS_PER_RUN`：每次最多生成全文编译稿的事件数，默认 `8`
+
+达到上限时会在 API 请求前停止新调用，不影响已采集原文的保留和静态站点构建。
+
 ## 内容声明
 
 本站仅聚合各信源的摘要与原文链接，不转载全文，版权归原作者所有。

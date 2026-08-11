@@ -9,7 +9,7 @@ from datetime import datetime, timezone, timedelta
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from run_update import (fetch_article_text, make_event, load_llm_config, llm_chat, compile_fulltext,
                         norm_url, fetch_url, strip_html, calc_heat, TOPIC_NAMES,
-                        CATEGORIES_LABEL, TZ)
+                        CATEGORIES_LABEL, TZ, LLM_USAGE)
 
 ROOT = Path(__file__).resolve().parent.parent
 LATEST = ROOT / "site" / "data" / "latest.json"
@@ -86,17 +86,23 @@ def main():
         if it.get("article_text"):
             content += f"\n原文：{it['article_text'][:2200]}"
         topics_str = "/".join(TOPIC_NAMES)
-        out = llm_chat(base, key, model,
+        out = llm_chat(
+            base, key, model,
             "你是数据领域垂直资讯站的编辑，为以下内容生成中文加工稿。输出 JSON："
             '{"zh_title": "中文标题(≤40字，不要带网站后缀)", "zh_summary": "中文摘要3-4句", '
             '"reason": "推荐理由1-2句", '
             '"category": "agent|platform|bi|product", '
             '"topics": ["从主题词表选0-2个：' + topics_str + '，没有就空数组"], '
-            '"vendors": ["提到的厂商"], "importance": 1-100整数}\n\n' + content)
+            '"vendors": ["提到的厂商"], "importance": 1-100整数}\n\n' + content,
+            purpose="curated_enrich", source=it.get("source", ""), item_id=it.get("id", ""),
+        )
         it["zh_title"] = (out.get("zh_title") or it["title"]).strip()
         it["zh_summary"] = out.get("zh_summary") or it["summary"][:300]
         it["reason"] = out.get("reason", "")
-        it["full_zh"] = compile_fulltext(it["zh_title"], it.get("article_text") or it.get("summary", ""), cfg)
+        it["full_zh"] = compile_fulltext(
+            it["zh_title"], it.get("article_text") or it.get("summary", ""), cfg,
+            context={"source": it.get("source", ""), "item_id": it.get("id", "")},
+        )
         cat = out.get("category")
         if cat in CATEGORIES_LABEL:
             it["category"], it["category_label"] = cat, CATEGORIES_LABEL[cat]
@@ -125,4 +131,8 @@ def main():
             print(f"  账号：{a}  → 可通过 wechat2rss 转为长期信源（待确认）")
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    finally:
+        LLM_USAGE.finalize()
+        print(LLM_USAGE.one_line_summary())

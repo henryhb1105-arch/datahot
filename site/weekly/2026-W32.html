@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>2026-W32 每周简报 · DataHot</title>
-<meta name="description" content="本期筛选 15 条高价值事件，覆盖Data Agent 4 条、AI 数据平台 7 条、BI 与可视化 1 条、数据产品 3 条。内容按热度、重要性与多信源信号整理。">
+<title>2026-W32 每周情报 · DataHot</title>
+<meta name="description" content="本周信号指向语义层与数据层开放，但多为供应商自述，需观察独立验证。">
 <link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 <meta name="theme-color" content="#1a1d23">
@@ -38,7 +38,7 @@
   .wrap{max-width:1160px;margin:0 auto;padding:0 20px}
 
   /* ── 顶部导航 ── */
-  header{position:sticky;top:0;z-index:50;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+  header{position:sticky;top:0;z-index:50;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
   .nav{display:flex;align-items:center;gap:18px;min-height:56px}
   .logo{font-size:20px;font-weight:800;letter-spacing:-.5px}
   .logo em{font-style:normal;color:var(--accent)}
@@ -232,20 +232,55 @@ main,.layout>*,.hotlist>*{min-width:0}
 .weekly-waiting:hover{border-color:var(--accent);color:var(--accent)}
 .weekly-waiting b{color:var(--ink);font-size:13px}
 .weekly-waiting span:last-child{margin-left:auto;color:var(--sub);font-size:11.5px}
-.weekly-summary{background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border:0}
+.weekly-summary{background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border:0;padding:20px 22px}
 .weekly-summary h1{font-size:25px;line-height:1.4;margin:4px 0 8px}
-.weekly-summary p{font-size:14px;line-height:1.85;color:#e5e7eb}
+.weekly-summary p{font-size:14px;line-height:1.75;color:#e5e7eb;margin:0}
 .weekly-change{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.12);font-size:13px;line-height:1.7;color:#f3f4f6}
 .weekly-change:last-child{border-bottom:0}
-.weekly-row{display:block;text-decoration:none;color:var(--ink);padding:15px 0;border-bottom:1px solid var(--soft)}
-.weekly-row:last-child{border-bottom:0}
-.weekly-row:hover .weekly-title{color:var(--accent)}
-.weekly-title{font-size:15px;font-weight:750;line-height:1.55}
-.weekly-row p{font-size:12.5px;line-height:1.7;color:var(--txt2);margin:5px 0}
-.weekly-row .weekly-row-meta{font-size:11px;color:var(--sub)}
+.weekly-themes{display:grid;gap:14px}
+.weekly-theme{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px}
+.weekly-theme h2{font-size:19px;line-height:1.5;margin:9px 0 12px}
+.weekly-theme p{font-size:13.5px;line-height:1.85;color:var(--txt2);margin:0 0 12px}
+.weekly-badges{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.weekly-pill{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:99px;padding:3px 8px;font-size:10.5px;color:var(--sub)}
+.weekly-pill.priority-now{border-color:#dc2626;color:#b91c1c;background:#fef2f2}
+.weekly-pill.priority-test{border-color:#d97706;color:#b45309;background:#fffbeb}
+.weekly-pill.priority-watch{border-color:#2563eb;color:#1d4ed8;background:#eff6ff}
+.weekly-pill.priority-ignore{color:var(--sub);background:var(--soft)}
+.weekly-anchor{background:var(--soft);border-left:3px solid var(--accent);padding:10px 12px;border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.75;color:var(--txt2);margin:0 0 14px}
+.weekly-anchor b,.weekly-why b{color:var(--ink)}
+.weekly-why{font-size:13px;line-height:1.8;color:var(--txt2);border-top:1px solid var(--soft);padding-top:12px}
+.weekly-action{margin-top:12px;background:#fff8ed;border:1px solid #f3d5aa;border-radius:9px;padding:11px 12px;font-size:13px;line-height:1.75;color:var(--txt2)}
+.weekly-action b{color:#9a4f08;margin-right:7px}
+.weekly-signal-meta{font-size:11px;color:var(--sub);margin-top:12px}
+.weekly-secondary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.weekly-secondary .scard{font-size:12.5px;line-height:1.75;color:var(--txt2)}
+.weekly-secondary b{display:block;color:var(--ink);font-size:12px;margin-bottom:6px}
+.weekly-evidence{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:0 18px}
+.weekly-evidence summary{cursor:pointer;padding:15px 0;font-size:13px;font-weight:700;color:var(--ink)}
+.weekly-evidence-row{display:flex;gap:12px;align-items:baseline;padding:11px 0;border-top:1px solid var(--soft);text-decoration:none;color:var(--ink)}
+.weekly-evidence-row:hover span:first-child{color:var(--accent)}
+.weekly-evidence-row span:first-child{font-size:13px;line-height:1.55;flex:1}
+.weekly-evidence-row span:last-child{font-size:10.5px;color:var(--sub);white-space:nowrap}
 .weekly-archive{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 22px}
 .weekly-archive a{font-size:12px;color:var(--sub);border:1px solid var(--line);border-radius:99px;padding:5px 10px;text-decoration:none}
 .weekly-archive a:hover,.weekly-archive a.on{border-color:var(--accent);color:var(--accent)}
+@media (prefers-color-scheme: dark){
+  .weekly-pill.priority-now{border-color:#ef7b7b;color:#ffaaaa;background:rgba(220,38,38,.14)}
+  .weekly-pill.priority-test{border-color:#d89a3d;color:#f2bd70;background:rgba(217,119,6,.14)}
+  .weekly-pill.priority-watch{border-color:#6ea8ff;color:#9cc3ff;background:rgba(37,99,235,.14)}
+  .weekly-action{background:rgba(217,119,6,.12);border-color:rgba(242,189,112,.38);color:var(--txt2)}
+  .weekly-action b{color:#f2bd70}
+}
+@media(max-width:700px){
+  .weekly-summary{padding:16px 20px}
+  .weekly-summary h1{font-size:23px}
+  .weekly-theme{padding:17px}
+  .weekly-theme h2{font-size:17px}
+  .weekly-secondary{grid-template-columns:1fr}
+  .weekly-evidence-row{align-items:flex-start;flex-direction:column;gap:4px}
+  .weekly-evidence-row span:last-child{white-space:normal}
+}
 .hrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--soft);text-decoration:none;color:var(--ink)}
 .hrow:last-child{border-bottom:none}
 .hrow .rk{font-size:15px;font-weight:800;color:var(--accent);width:26px;flex-shrink:0;text-align:center}
@@ -268,13 +303,30 @@ main,.layout>*,.hotlist>*{min-width:0}
 .hot .hsum{font-size:12.5px;color:var(--txt2);line-height:1.65;margin:6px 0 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .hot .htime{margin-left:auto;font-size:11px;color:var(--sub)}
 .tabbar{display:none}
+.more-mask,.more-sheet{display:none}
 @media(max-width:960px){
   body{padding-bottom:64px}
   footer{padding-bottom:96px}
-  .tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--tabbar-bg);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:70;padding-bottom:env(safe-area-inset-bottom)}
-  .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0 6px;font-size:11px;color:var(--sub);text-decoration:none;gap:2px}
-  .tabbar a .ico{font-size:19px}
-  .tabbar a.on{color:var(--accent);font-weight:600}
+  body.mobile-section{padding-top:env(safe-area-inset-top)}
+  .section-brand-header,.detail-brand-header{display:none}
+  .tabbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));position:fixed;bottom:0;left:0;right:0;background:var(--tabbar-bg);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:70;padding:0 0 env(safe-area-inset-bottom)}
+  .tabbar a,.tabbar button{appearance:none;border:0;background:transparent;min-width:0;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 2px 5px;font:inherit;font-size:11px;color:var(--sub);text-decoration:none;gap:2px;cursor:pointer;touch-action:manipulation}
+  .tabbar .ico{display:grid;place-items:center;height:22px}
+  .tabbar a.on,.tabbar button.on{color:var(--accent);font-weight:650}
+  .more-mask{display:block;position:fixed;inset:0;background:rgba(0,0,0,.42);opacity:0;pointer-events:none;transition:opacity .22s ease;z-index:78}
+  .more-mask.show{opacity:1;pointer-events:auto}
+  .more-sheet{display:block;position:fixed;left:0;right:0;bottom:0;z-index:80;max-height:70vh;overflow:auto;background:var(--card);border-radius:18px 18px 0 0;padding:8px 16px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -14px 40px rgba(0,0,0,.18);transform:translateY(110%);transition:transform .28s cubic-bezier(.32,.72,.35,1)}
+  .more-sheet.show{transform:translateY(0)}
+  .more-handle{width:36px;height:4px;border-radius:99px;background:var(--line);margin:2px auto 12px}
+  .more-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .more-head h2{font-size:18px}
+  .more-close{appearance:none;border:0;background:var(--soft);color:var(--sub);width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer}
+  .more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .more-link{display:flex;align-items:center;gap:11px;min-height:58px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);text-decoration:none;color:var(--ink)}
+  .more-link .more-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent);flex:0 0 auto}
+  .more-link span:last-child{min-width:0;font-size:13px;font-weight:650}
+  .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  body.more-open{overflow:hidden}
 }
 .tgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
 @media(max-width:960px){.tgrid{grid-template-columns:1fr}}
@@ -285,89 +337,106 @@ main,.layout>*,.hotlist>*{min-width:0}
 .tcard .tn{font-size:12px;color:var(--accent);font-weight:700}
 .tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-</style></head><body class="has-sb">
+</style></head><body class="has-sb mobile-section" data-nav-active="weekly">
 <aside class="sidebar"><div class="slogo"><a href="../index.html" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><a class="mi" href="../index.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi on" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>每周简报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../classics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg>典藏</a><a class="mi" href="../hot.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>完整榜单</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>我的收藏</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>
-<header><div class="wrap nav">
+<header class="section-brand-header"><div class="wrap nav">
   <div class="logo"><a href="../index.html" style="text-decoration:none">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
 
 <div class="wrap" style="padding:28px 20px 60px;max-width:860px">
-  <div class="section-title"><h2><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> 每周简报</h2><span>2026-08-03 至 2026-08-09 · 每周一次</span></div>
+  <div class="section-title"><h2><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> 每周情报</h2><span>2026-08-03 至 2026-08-09 · 每周一次</span></div>
   <div class="weekly-archive"><span style="font-size:12px;color:var(--sub);padding:6px 2px">历史周报</span><a class="on" href="2026-W32.html">2026-W32</a></div>
   <div class="scard weekly-summary">
-    <div class="weekly-kicker">2026-W32 · 规则整理（AI 不可用或预算受限）</div>
-    <h1>本周数据 AI 关键进展</h1>
-    <p>本期筛选 15 条高价值事件，覆盖Data Agent 4 条、AI 数据平台 7 条、BI 与可视化 1 条、数据产品 3 条。内容按热度、重要性与多信源信号整理。</p>
-    <div style="margin:12px 0"><span class="chip">Data Agent 4 条</span> <span class="chip">AI 数据平台 7 条</span> <span class="chip">BI 与可视化 1 条</span> <span class="chip">数据产品 3 条</span> </div>
-    <div><div class="weekly-change">重点关注：Aloudata Agent 分析技能详解：从业务问题到可用分析</div><div class="weekly-change">重点关注：Musinsa用ClickHouse Cloud扩展受众引擎，TCO降71.4%</div><div class="weekly-change">重点关注：Snowflake AIM：将数据迁移从数年缩短至数周</div></div>
-    <div class="weekly-meta" style="margin-top:12px;color:#aeb4be;font-size:11px">2026-08-11 20:26 生成 · 周级不可变缓存 · 提示词 weekly-brief-v1</div>
+    <div class="weekly-kicker">DATAHOT WEEKLY · 2026-08-03 至 2026-08-09</div>
+    <h1>语义层与数据开放：AI数据栈新焦点</h1>
+    <p>本周信号指向语义层与数据层开放，但多为供应商自述，需观察独立验证。</p>
+    <div class="weekly-meta" style="margin-top:10px;color:#aeb4be;font-size:11px">2 个信号 · 约 3 分钟读完 · 历史基线 1/4 周 · 2026-08-12 01:21 更新</div>
   </div>
-  <div class="section-title"><h2>本周趋势判断</h2><span>只归纳本期已收录事件</span></div>
-  <div class="scard" style="font-size:13.5px;color:var(--txt2);line-height:1.85">本周高价值信息主要集中在 Data Agent，其余栏目按质量门槛择优收录。</div>
-  <div class="section-title"><h2>Data Agent</h2><span>4 条</span></div><div class="scard"><a class="weekly-row" href="../e/203a40c0d09f.html" data-analytics-list="1" data-event-id="203a40c0d09f" data-category="agent" data-source="Aloudata 博客">
-  <div class="weekly-title">Aloudata Agent 分析技能详解：从业务问题到可用分析</div>
-  <p>Aloudata 官方博客以会员唤醒活动为例，详解企业级分析 Agent 如何像人类分析师一样工作。它通过多源融合取数、归因分析、What-if 模拟和人机协作，将临时口径的复盘需求转化为可上会的完整报告。整个过程无需提需求单，几分钟即可从问题得到可复核的分析结果。</p>
-  <div class="weekly-row-meta"><span class="badge b-agent">Data Agent</span> · Aloudata 博客 · 热度 58</div>
-</a><a class="weekly-row" href="../e/ed8330108532.html" data-analytics-list="1" data-event-id="ed8330108532" data-category="agent" data-source="InfoQ 中文">
-  <div class="weekly-title">金融监管Harness实践：知识与数据驱动Agent稳定运行</div>
-  <p>AICon深圳大会将于2026年8月21日至22日举行，中软融鑫总工程师于浩军将分享金融监管领域的Harness实践。他强调Agent落地关键已从模型能力转向系统工程能力，金融监管场景零容错、强追溯、口径复杂，Agent稳定性取决于数据资产与知识资产质量。实践验证，监管报表全链路的稳定性依赖工程化治理而非单纯模型调优。</p>
-  <div class="weekly-row-meta"><span class="badge b-agent">Data Agent</span> · InfoQ 中文 · 热度 46</div>
-</a><a class="weekly-row" href="../e/26c7d5691708.html" data-analytics-list="1" data-event-id="26c7d5691708" data-category="agent" data-source="InfoQ（AI/数据工程）">
-  <div class="weekly-title">运行时无关的AI工作流：兼顾生产持久性与快速评估</div>
-  <p>本文提出一种运行时无关的AI工作流模式，用于解决生产环境持久性与评估迭代速度之间的矛盾。通过将业务逻辑与运行环境解耦，同一套代码可以在生产与评估中运行，避免版本漂移。作者认为正确架构应让默认路径即最优路径。</p>
-  <div class="weekly-row-meta"><span class="badge b-agent">Data Agent</span> · InfoQ（AI/数据工程） · 热度 41</div>
-</a><a class="weekly-row" href="../e/36e5214115ac.html" data-analytics-list="1" data-event-id="36e5214115ac" data-category="agent" data-source="人人都是产品经理">
-  <div class="weekly-title">RAG和Reference都叫知识库？搭Skill别选错</div>
-  <p>本文用生活化类比拆解RAG与Reference两类AI知识库的本质区别：RAG是先搜后答的自动搜索引擎，Reference是按人定规则调用的手动文件柜。通过退货政策PDF案例，清晰对比了两者工作流程与适用场景，帮助数据从业者理解知识库底层机制与选型要点。</p>
-  <div class="weekly-row-meta"><span class="badge b-agent">Data Agent</span> · 人人都是产品经理 · 热度 39</div>
-</a></div><div class="section-title"><h2>AI 数据平台</h2><span>7 条</span></div><div class="scard"><a class="weekly-row" href="../e/0a099ff0f253.html" data-analytics-list="1" data-event-id="0a099ff0f253" data-category="platform" data-source="ClickHouse Blog">
-  <div class="weekly-title">Musinsa用ClickHouse Cloud扩展受众引擎，TCO降71.4%</div>
-  <p>韩国时尚平台Musinsa将其受众引擎从自托管ClickHouse迁移至ClickHouse Cloud，存储成本降低86.5%，总拥有成本最高下降71.4%。ClickPipes简化了实时数据摄入，该CDP覆盖1640万会员，并加入支持自然语言查询的AI助手MAI。</p>
-  <div class="weekly-row-meta"><span class="badge b-platform">AI 数据平台</span> · ClickHouse Blog · 热度 57</div>
-</a><a class="weekly-row" href="../e/caa8145425d1.html" data-analytics-list="1" data-event-id="caa8145425d1" data-category="platform" data-source="Snowflake Engineering（Medium）">
-  <div class="weekly-title">Snowflake AIM：将数据迁移从数年缩短至数周</div>
-  <p>Snowflake 推出 AIM，提出数据工程的未来是自主化。文章指出数据仓库迁移的真正难点不在于 SQL 复杂，而在于流程冗长、环节众多，且依赖人工维护清单和记忆。传统方式用 Excel 跟踪迁移进度，有人要反复手动运行 SQL Server 导出脚本，几周后清单就会过期并造成混乱。AIM 针对这一场景，试图让迁移过程更自主可控。</p>
-  <div class="weekly-row-meta"><span class="badge b-platform">AI 数据平台</span> · Snowflake Engineering（Medium） · 热度 53</div>
-</a><a class="weekly-row" href="../e/ae493c961c04.html" data-analytics-list="1" data-event-id="ae493c961c04" data-category="platform" data-source="极客公园">
-  <div class="weekly-title">穹彻智能联合阿里云构建机器人训练数据生产线</div>
-  <p>穹彻智能联合阿里云打造端到端 UMI Data + AI Pipeline，将机器人原始数据处理流程自动化。该产线基于 MaxCompute MaxFrame 提供分布式计算，DataWorks 负责编排调度，Hologres 管理数据，PAI 支撑模型训练。实际效果显示整体吞吐提升超10倍，云端算力可弹性扩展至10万+ CU，模型训练效率提升约50%。</p>
-  <div class="weekly-row-meta"><span class="badge b-platform">AI 数据平台</span> · 极客公园 · 热度 51</div>
-</a><a class="weekly-row" href="../e/cf0a8f7b6f35.html" data-analytics-list="1" data-event-id="cf0a8f7b6f35" data-category="platform" data-source="InfoQ 中文">
-  <div class="weekly-title">HBM不够用，AI SSD迎来爆发前夜</div>
-  <p>大模型推理遭遇容量墙和I/O墙，SSD正进入实时数据路径，成为HBM、VRAM和DRAM之外的正式存储层级。月之暗面Mooncake已采用KV Cache分离式推理架构，英伟达推出CMX上下文内存存储平台。传统SSD难以满足推理的时序约束，业界出现AI负载强化型与企业级两类AI SSD路线。</p>
-  <div class="weekly-row-meta"><span class="badge b-platform">AI 数据平台</span> · InfoQ 中文 · 热度 49</div>
-</a><a class="weekly-row" href="../e/fd48142639c3.html" data-analytics-list="1" data-event-id="fd48142639c3" data-category="platform" data-source="Aloudata 动态">
-  <div class="weekly-title">Aloudata入选2026 Data+AI厂商全景报告</div>
-  <p>爱分析发布《2026 Data+AI厂商全景报告》，Aloudata凭借NoETL语义编织产品体系入选语义平台、通用Data Agent、决策智能平台、AI数据服务、DataOps五大细分市场。Aloudata提出语义编织和明细级语义层理念，构建AI可理解的数据底座，并推出企业级可信数据分析智能体Aloudata Agent。全球头部厂商如Snowflake、Databricks也已布局语义层，Gartner将语义定位为数据智能关键基础设施。</p>
-  <div class="weekly-row-meta"><span class="badge b-platform">AI 数据平台</span> · Aloudata 动态 · 热度 44</div>
-</a><a class="weekly-row" href="../e/b66e4f9b44c9.html" data-analytics-list="1" data-event-id="b66e4f9b44c9" data-category="platform" data-source="Microsoft Power BI（Power Platform Blog）">
-  <div class="weekly-title">Power Platform 2026年7/8月功能更新：数据网格控件正式发布</div>
-  <p>微软Power Platform发布2026年7/8月功能更新，重点宣布画布应用的数据网格现代控件正式可用。该控件基于Fluent UI构建，提供高性能表格视图，内置搜索、排序、选择及丰富列类型。用户可通过开发者计划免费试用，并值得关注10月27-29日举行的PPCC 2026大会。</p>
-  <div class="weekly-row-meta"><span class="badge b-platform">AI 数据平台</span> · Microsoft Power BI（Power Platform Blog） · 热度 44</div>
-</a><a class="weekly-row" href="../e/63b7989f4b33.html" data-analytics-list="1" data-event-id="63b7989f4b33" data-category="platform" data-source="InfoQ（AI/数据工程）">
-  <div class="weekly-title">Stripe用图搜索与状态机自动化数据库修复</div>
-  <p>Stripe工程团队近日分享了如何将全球基础设施建模为图，结合图搜索算法与状态机，自动计算并执行数据库事故修复方案。该方法旨在减少人工干预，提升数据库运维的自动化水平。</p>
-  <div class="weekly-row-meta"><span class="badge b-platform">AI 数据平台</span> · InfoQ（AI/数据工程） · 热度 41</div>
-</a></div><div class="section-title"><h2>BI 与可视化</h2><span>1 条</span></div><div class="scard"><a class="weekly-row" href="../e/37d58f2d9863.html" data-analytics-list="1" data-event-id="37d58f2d9863" data-category="bi" data-source="Metabase Blog">
-  <div class="weekly-title">Metabase发布安全更新，请立即升级</div>
-  <p>Metabase披露其云服务曾遭利用0-day漏洞的攻击，影响1.58及以上版本。官方已封堵攻击端点并完成修补，云客户实例已自动升级；自托管实例仍可能脆弱，攻击者可通过SQL注入获取管理员权限，窃取数据库凭据与数据。官方建议用户立即升级至最新补丁版本，并检查会话、API密钥及管理员账户。</p>
-  <div class="weekly-row-meta"><span class="badge b-bi">BI 与可视化</span> · Metabase Blog · 热度 35</div>
-</a></div><div class="section-title"><h2>数据产品</h2><span>3 条</span></div><div class="scard"><a class="weekly-row" href="../e/f4962a2fa921.html" data-analytics-list="1" data-event-id="f4962a2fa921" data-category="product" data-source="人人都是产品经理">
-  <div class="weekly-title">AI秒级出报表，为何业务仍来不及？</div>
-  <p>AI将报表生成提速到秒级，但业务链路中的等待可能让分析失去意义。SoFi的546个失败会话与Blend的新产品Autopilot Analytics Agent，共同指向一个被忽视的指标：行动窗口。文章建议从业务结果反推产品设计，用剩余窗口、Time to Intervention和窗口命中率重新定义数据产品优先级。</p>
-  <div class="weekly-row-meta"><span class="badge b-product">数据产品</span> · 人人都是产品经理 · 热度 50</div>
-</a><a class="weekly-row" href="../e/ded49e4ed330.html" data-analytics-list="1" data-event-id="ded49e4ed330" data-category="product" data-source="Aloudata 博客">
-  <div class="weekly-title">语义层方案如何选型？五级分层与三条分界线</div>
-  <p>Aloudata 在博客中将语义层方案按能力划分为 L0 至 L4 五级，并梳理出三条分界线，帮助市场建立选型标尺。文章引用 Cube 团队的对照实验：仅提供数仓 schema 时，前沿模型准确率为 45.5%–50.5%；补充 4KB 语义说明文档后升至 67.7%–68.7%。作者指出，语义层在 AI 数据查询中正从“可选”变为“必要”，但词汇滥用也加剧了选型困难。</p>
-  <div class="weekly-row-meta"><span class="badge b-product">数据产品</span> · Aloudata 博客 · 热度 46</div>
-</a><a class="weekly-row" href="../e/4d1764cb4a3d.html" data-analytics-list="1" data-event-id="4d1764cb4a3d" data-category="product" data-source="TechCrunch AI">
-  <div class="weekly-title">Rippling推AI支出控制台，追踪员工AI投入产出</div>
-  <p>HR软件商Rippling发布AI Spend Console，用于追踪和控制企业AI支出，可查看员工、团队及角色的花费与生产力。此前Rippling因AI支出失控，3月时预计将消耗R&amp;D人力预算的40%，月度增长80%。该工具还能识别高AI花费但代码常被返工的工程师。</p>
-  <div class="weekly-row-meta"><span class="badge b-product">数据产品</span> · TechCrunch AI · 热度 45</div>
-</a></div>
-  <div class="section-title"><h2>下周继续关注</h2><span>跟踪方向，不做事实预测</span></div>
-  <div class="scard"><div class="weekly-change" style="color:var(--txt2);border-color:var(--soft)">继续跟踪 Data Agent 相关产品和实践的后续落地。</div><div class="weekly-change" style="color:var(--txt2);border-color:var(--soft)">关注 Aloudata、Databricks、Snowflake 的后续发布与跨信源验证。</div></div>
+  <div class="section-title"><h2>本周与你有关</h2><span>最多 3 个，不凑数</span></div>
+  <div class="weekly-themes"><article class="weekly-theme">
+  <div class="weekly-badges">
+    <span class="weekly-pill priority-test">安排测试</span>
+    <span class="weekly-pill">早期信号</span>
+    <span class="weekly-pill">中等置信</span>
+  </div>
+  <h2>语义层成为AI数据查询必要组件</h2>
+  <div class="weekly-anchor"><b>具体锚点</b>　Cube对照实验显示语义文档将模型准确率从45.5%–50.5%提升至67.7%–68.7%；Aloudata发布L0-L4五级语义层评估框架。</div>
+  <p>语义层正从可选项变为AI数据查询的关键组件。Cube对照实验显示，引入语义文档后模型准确率从45.5%–50.5%大幅提升至67.7%–68.7%，说明明确的业务术语和指标口径能显著降低自然语言到SQL的映射歧义。Aloudata进一步提出L0-L4五级语义层评估框架，为选型提供参考。目前证据主要来自供应商，但方向明确，建议在小范围项目中验证其实际收益。</p>
+  <div class="weekly-why"><b>这对你意味着什么</b>　如果你正在构建AI驱动的数据分析功能，语义层可能直接影响查询准确率和用户体验。没有语义层，模型可能因含糊查询而失败，导致用户信任度下降。随着AI查询需求增长，提前规划语义层架构有助于避免后期重构，降低维护成本。</div>
+  <div class="weekly-action"><b>安排测试</b>选择一个内部业务域，构建基础语义层并对比有无语义层的AI查询准确率，评估实际效果。同时关注Aloudata、Cube等厂商的客户案例，验证其可行性。</div>
+  <div class="weekly-signal-meta">过去4周无相关事件，该信号为本周新出现。 · 两个独立来源（Aloudata、Cube）提供证据，但均为供应商观点，缺乏独立第三方验证。</div>
+</article><article class="weekly-theme">
+  <div class="weekly-badges">
+    <span class="weekly-pill priority-watch">继续观察</span>
+    <span class="weekly-pill">早期信号</span>
+    <span class="weekly-pill">中等置信</span>
+  </div>
+  <h2>数据层开放与防锁定成AI时代新焦点</h2>
+  <div class="weekly-anchor"><b>具体锚点</b>　TiDB博客称Kimi、Pinterest等在生产环境使用TiDB；TiDB SCaiLE 2026会议预告展示Agent引发数据库请求增长。</div>
+  <p>TiDB博客强调开源数据层在AI时代的重要性，并提及Kimi、Pinterest等生产环境使用TiDB，以及SCaiLE 2026会议将展示Agent引发的数据库负载增长。这暗示AI应用可能需要更弹性、防锁定的数据基础设施。但目前信息仅来自TiDB官方，缺乏独立验证，且未提供具体技术细节。</p>
+  <div class="weekly-why"><b>这对你意味着什么</b>　若你的数据栈依赖特定云厂商或专有数据库，AI工作负载的波动性和多样性可能带来成本与灵活性挑战。开源和Serverless选项可能提供更敏捷的扩展能力，但迁移成本和兼容性需要评估。此信号若成立，可能影响未来数据库选型策略。</div>
+  <div class="weekly-action"><b>继续观察</b>暂不调整现有架构，但持续关注TiDB及其他数据库厂商在AI场景下的客户案例和技术演进。可在内部沙盒环境测试开源数据库与现有AI应用集成的可行性。</div>
+  <div class="weekly-signal-meta">过去4周无此类信息，本周首次出现，属于早期信号。 · TiDB博客连续两篇文章强调开源数据层与AI持久化，但仅一家供应商，且无客户独立案例。</div>
+</article></div>
+  <div class="section-title"><h2>判断边界</h2><span>反证、缺口与下周验证</span></div>
+  <div class="weekly-secondary">
+    <div class="scard"><b>不要过度解读</b>本周信号均为早期迹象，非主流趋势。语义层证据虽有对照实验，但样本和供应商代表性有限；数据层开放仅一家供应商观点，AI SSD更只有媒体转述。切勿据此大规模调整生产架构，尤其勿因单一供应商宣传而更换数据库或存储方案。</div>
+    <div class="scard"><b>当前不确定性</b>主要不确定性在于证据来源单一：语义层由Aloudata和Cube提供，数据层开放仅TiDB，AI SSD仅InfoQ文章。缺乏独立第三方验证和客户客观数据。此外，仅有一周基线，无法判断趋势的持久性。AI SSD低置信度，因其无原始技术细节，采用案例可能夸大。</div>
+    <div class="scard"><b>下周验证问题</b>下周关注：是否有更多厂商或客户案例验证语义层效果？AI SSD技术是否有更详细的技术发布或采用案例？</div>
+  </div>
+  <div class="section-title"><h2>证据</h2><span>标题仅在索引中出现</span></div><details class="weekly-evidence">
+  <summary>证据索引 · 6 条（默认折叠）</summary>
+  <a class="weekly-evidence-row" href="../e/ded49e4ed330.html" data-analytics-list="1" data-event-id="ded49e4ed330" data-source="Aloudata 博客">
+  <span>语义层方案如何选型？五级分层与三条分界线</span>
+  <span>Aloudata 博客 · 站内详情</span>
+</a><a class="weekly-evidence-row" href="../e/203a40c0d09f.html" data-analytics-list="1" data-event-id="203a40c0d09f" data-source="Aloudata 博客">
+  <span>Aloudata Agent 分析技能详解：从业务问题到可用分析</span>
+  <span>Aloudata 博客 · 站内详情</span>
+</a><a class="weekly-evidence-row" href="../e/fd48142639c3.html" data-analytics-list="1" data-event-id="fd48142639c3" data-source="Aloudata 动态">
+  <span>Aloudata入选2026 Data+AI厂商全景报告</span>
+  <span>Aloudata 动态 · 站内详情</span>
+</a><a class="weekly-evidence-row" href="../e/ddcb4a5b6b52.html" data-analytics-list="1" data-event-id="ddcb4a5b6b52" data-source="TiDB Blog">
+  <span>开源数据层将赢得AI未来</span>
+  <span>TiDB Blog · 站内详情</span>
+</a><a class="weekly-evidence-row" href="../e/341ca51f8349.html" data-analytics-list="1" data-event-id="341ca51f8349" data-source="TiDB Blog">
+  <span>AI应用完整状态栈：内存、文件与Serverless数据库持久化</span>
+  <span>TiDB Blog · 站内详情</span>
+</a><a class="weekly-evidence-row" href="../e/8e38b0b5374d.html" data-analytics-list="1" data-event-id="8e38b0b5374d" data-source="TiDB Blog">
+  <span>TiDB SCaiLE 2026：同样的复杂性，不同的时钟速度</span>
+  <span>TiDB Blog · 站内详情</span>
+</a>
+</details>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
-<nav class="tabbar"><a href="../index.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span>热榜</a><a href="../weekly.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>周报</a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span>主题</a><a href="../classics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></span>典藏</a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span>收藏</a><a href="../sources.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span>信源</a></nav>
+<nav class="tabbar" aria-label="移动端主导航">
+  <a href="../index.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../weekly.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span>周报</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a>
+  <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
+</nav>
+<div class="more-mask" data-more-mask></div>
+<section class="more-sheet" id="mobileMoreSheet" aria-label="更多导航" aria-hidden="true">
+  <div class="more-handle" aria-hidden="true"></div>
+  <div class="more-head"><h2>更多</h2><button class="more-close" type="button" data-more-close aria-label="关闭更多导航">×</button></div>
+  <div class="more-grid"><a class="more-link" href="../hot.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></span><span>完整榜单</span></a><a class="more-link" href="../classics.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></span><span>典藏</span></a><a class="more-link" href="../favorites.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>我的收藏</span></a><a class="more-link" href="../sources.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span><span>信源</span></a><a class="more-link" href="../privacy.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg></span><span>隐私说明</span></a></div>
+</section>
+<script>
+(function(){
+  var trigger=document.querySelector('[data-more-open]');
+  var sheet=document.getElementById('mobileMoreSheet');
+  var mask=document.querySelector('[data-more-mask]');
+  var closeBtn=document.querySelector('[data-more-close]');
+  if(!trigger||!sheet||!mask||!closeBtn) return;
+  function setMore(open){
+    trigger.setAttribute('aria-expanded',open?'true':'false');
+    sheet.setAttribute('aria-hidden',open?'false':'true');
+    sheet.classList.toggle('show',open);
+    mask.classList.toggle('show',open);
+    document.body.classList.toggle('more-open',open);
+    if(open) closeBtn.focus(); else trigger.focus();
+  }
+  trigger.addEventListener('click',function(){setMore(true)});
+  closeBtn.addEventListener('click',function(){setMore(false)});
+  mask.addEventListener('click',function(){setMore(false)});
+  document.addEventListener('keydown',function(event){if(event.key==='Escape'&&sheet.classList.contains('show')) setMore(false)});
+})();
+</script>
 </body></html>

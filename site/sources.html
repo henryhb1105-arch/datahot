@@ -38,7 +38,7 @@
   .wrap{max-width:1160px;margin:0 auto;padding:0 20px}
 
   /* ── 顶部导航 ── */
-  header{position:sticky;top:0;z-index:50;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+  header{position:sticky;top:0;z-index:50;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
   .nav{display:flex;align-items:center;gap:18px;min-height:56px}
   .logo{font-size:20px;font-weight:800;letter-spacing:-.5px}
   .logo em{font-style:normal;color:var(--accent)}
@@ -232,20 +232,55 @@ main,.layout>*,.hotlist>*{min-width:0}
 .weekly-waiting:hover{border-color:var(--accent);color:var(--accent)}
 .weekly-waiting b{color:var(--ink);font-size:13px}
 .weekly-waiting span:last-child{margin-left:auto;color:var(--sub);font-size:11.5px}
-.weekly-summary{background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border:0}
+.weekly-summary{background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border:0;padding:20px 22px}
 .weekly-summary h1{font-size:25px;line-height:1.4;margin:4px 0 8px}
-.weekly-summary p{font-size:14px;line-height:1.85;color:#e5e7eb}
+.weekly-summary p{font-size:14px;line-height:1.75;color:#e5e7eb;margin:0}
 .weekly-change{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.12);font-size:13px;line-height:1.7;color:#f3f4f6}
 .weekly-change:last-child{border-bottom:0}
-.weekly-row{display:block;text-decoration:none;color:var(--ink);padding:15px 0;border-bottom:1px solid var(--soft)}
-.weekly-row:last-child{border-bottom:0}
-.weekly-row:hover .weekly-title{color:var(--accent)}
-.weekly-title{font-size:15px;font-weight:750;line-height:1.55}
-.weekly-row p{font-size:12.5px;line-height:1.7;color:var(--txt2);margin:5px 0}
-.weekly-row .weekly-row-meta{font-size:11px;color:var(--sub)}
+.weekly-themes{display:grid;gap:14px}
+.weekly-theme{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px}
+.weekly-theme h2{font-size:19px;line-height:1.5;margin:9px 0 12px}
+.weekly-theme p{font-size:13.5px;line-height:1.85;color:var(--txt2);margin:0 0 12px}
+.weekly-badges{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.weekly-pill{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:99px;padding:3px 8px;font-size:10.5px;color:var(--sub)}
+.weekly-pill.priority-now{border-color:#dc2626;color:#b91c1c;background:#fef2f2}
+.weekly-pill.priority-test{border-color:#d97706;color:#b45309;background:#fffbeb}
+.weekly-pill.priority-watch{border-color:#2563eb;color:#1d4ed8;background:#eff6ff}
+.weekly-pill.priority-ignore{color:var(--sub);background:var(--soft)}
+.weekly-anchor{background:var(--soft);border-left:3px solid var(--accent);padding:10px 12px;border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.75;color:var(--txt2);margin:0 0 14px}
+.weekly-anchor b,.weekly-why b{color:var(--ink)}
+.weekly-why{font-size:13px;line-height:1.8;color:var(--txt2);border-top:1px solid var(--soft);padding-top:12px}
+.weekly-action{margin-top:12px;background:#fff8ed;border:1px solid #f3d5aa;border-radius:9px;padding:11px 12px;font-size:13px;line-height:1.75;color:var(--txt2)}
+.weekly-action b{color:#9a4f08;margin-right:7px}
+.weekly-signal-meta{font-size:11px;color:var(--sub);margin-top:12px}
+.weekly-secondary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.weekly-secondary .scard{font-size:12.5px;line-height:1.75;color:var(--txt2)}
+.weekly-secondary b{display:block;color:var(--ink);font-size:12px;margin-bottom:6px}
+.weekly-evidence{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:0 18px}
+.weekly-evidence summary{cursor:pointer;padding:15px 0;font-size:13px;font-weight:700;color:var(--ink)}
+.weekly-evidence-row{display:flex;gap:12px;align-items:baseline;padding:11px 0;border-top:1px solid var(--soft);text-decoration:none;color:var(--ink)}
+.weekly-evidence-row:hover span:first-child{color:var(--accent)}
+.weekly-evidence-row span:first-child{font-size:13px;line-height:1.55;flex:1}
+.weekly-evidence-row span:last-child{font-size:10.5px;color:var(--sub);white-space:nowrap}
 .weekly-archive{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 22px}
 .weekly-archive a{font-size:12px;color:var(--sub);border:1px solid var(--line);border-radius:99px;padding:5px 10px;text-decoration:none}
 .weekly-archive a:hover,.weekly-archive a.on{border-color:var(--accent);color:var(--accent)}
+@media (prefers-color-scheme: dark){
+  .weekly-pill.priority-now{border-color:#ef7b7b;color:#ffaaaa;background:rgba(220,38,38,.14)}
+  .weekly-pill.priority-test{border-color:#d89a3d;color:#f2bd70;background:rgba(217,119,6,.14)}
+  .weekly-pill.priority-watch{border-color:#6ea8ff;color:#9cc3ff;background:rgba(37,99,235,.14)}
+  .weekly-action{background:rgba(217,119,6,.12);border-color:rgba(242,189,112,.38);color:var(--txt2)}
+  .weekly-action b{color:#f2bd70}
+}
+@media(max-width:700px){
+  .weekly-summary{padding:16px 20px}
+  .weekly-summary h1{font-size:23px}
+  .weekly-theme{padding:17px}
+  .weekly-theme h2{font-size:17px}
+  .weekly-secondary{grid-template-columns:1fr}
+  .weekly-evidence-row{align-items:flex-start;flex-direction:column;gap:4px}
+  .weekly-evidence-row span:last-child{white-space:normal}
+}
 .hrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--soft);text-decoration:none;color:var(--ink)}
 .hrow:last-child{border-bottom:none}
 .hrow .rk{font-size:15px;font-weight:800;color:var(--accent);width:26px;flex-shrink:0;text-align:center}
@@ -268,13 +303,30 @@ main,.layout>*,.hotlist>*{min-width:0}
 .hot .hsum{font-size:12.5px;color:var(--txt2);line-height:1.65;margin:6px 0 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .hot .htime{margin-left:auto;font-size:11px;color:var(--sub)}
 .tabbar{display:none}
+.more-mask,.more-sheet{display:none}
 @media(max-width:960px){
   body{padding-bottom:64px}
   footer{padding-bottom:96px}
-  .tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--tabbar-bg);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:70;padding-bottom:env(safe-area-inset-bottom)}
-  .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0 6px;font-size:11px;color:var(--sub);text-decoration:none;gap:2px}
-  .tabbar a .ico{font-size:19px}
-  .tabbar a.on{color:var(--accent);font-weight:600}
+  body.mobile-section{padding-top:env(safe-area-inset-top)}
+  .section-brand-header,.detail-brand-header{display:none}
+  .tabbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));position:fixed;bottom:0;left:0;right:0;background:var(--tabbar-bg);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:70;padding:0 0 env(safe-area-inset-bottom)}
+  .tabbar a,.tabbar button{appearance:none;border:0;background:transparent;min-width:0;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 2px 5px;font:inherit;font-size:11px;color:var(--sub);text-decoration:none;gap:2px;cursor:pointer;touch-action:manipulation}
+  .tabbar .ico{display:grid;place-items:center;height:22px}
+  .tabbar a.on,.tabbar button.on{color:var(--accent);font-weight:650}
+  .more-mask{display:block;position:fixed;inset:0;background:rgba(0,0,0,.42);opacity:0;pointer-events:none;transition:opacity .22s ease;z-index:78}
+  .more-mask.show{opacity:1;pointer-events:auto}
+  .more-sheet{display:block;position:fixed;left:0;right:0;bottom:0;z-index:80;max-height:70vh;overflow:auto;background:var(--card);border-radius:18px 18px 0 0;padding:8px 16px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -14px 40px rgba(0,0,0,.18);transform:translateY(110%);transition:transform .28s cubic-bezier(.32,.72,.35,1)}
+  .more-sheet.show{transform:translateY(0)}
+  .more-handle{width:36px;height:4px;border-radius:99px;background:var(--line);margin:2px auto 12px}
+  .more-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .more-head h2{font-size:18px}
+  .more-close{appearance:none;border:0;background:var(--soft);color:var(--sub);width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer}
+  .more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .more-link{display:flex;align-items:center;gap:11px;min-height:58px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);text-decoration:none;color:var(--ink)}
+  .more-link .more-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent);flex:0 0 auto}
+  .more-link span:last-child{min-width:0;font-size:13px;font-weight:650}
+  .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  body.more-open{overflow:hidden}
 }
 .tgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
 @media(max-width:960px){.tgrid{grid-template-columns:1fr}}
@@ -285,9 +337,9 @@ main,.layout>*,.hotlist>*{min-width:0}
 .tcard .tn{font-size:12px;color:var(--accent);font-weight:700}
 .tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-</style></head><body class="has-sb">
+</style></head><body class="has-sb mobile-section" data-nav-active="sources">
 <aside class="sidebar"><div class="slogo"><a href="index.html" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><a class="mi" href="index.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>每周简报</a><a class="mi" href="topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="classics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg>典藏</a><a class="mi" href="hot.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>完整榜单</a><a class="mi" href="favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>我的收藏</a><a class="mi on" href="sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>
-<header><div class="wrap nav">
+<header class="section-brand-header"><div class="wrap nav">
   <div class="logo"><a href="index.html" style="text-decoration:none">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
 
@@ -295,24 +347,35 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="section-title"><h2><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg> 信源与更新状态</h2><span>透明公开 · 每 6 小时自动巡检</span></div>
 
   <div class="scard syscard">
-    <div class="sys-line"><span class="dot ok"></span><b>系统运行中</b>
-    <span class="ssub">最后更新 08-11 10:27 · <span id="nextRun">计算下次更新…</span></span></div>
+    <div class="sys-line"><span class="dot warn"></span><b>存在异常信源</b>
+    <span class="ssub">最后更新 08-12 03:19 · <span id="nextRun">计算下次更新…</span></span></div>
     <div class="ssub" style="margin-top:6px">每日 4 批：08:17 / 14:17 / 20:17 / 02:17（北京时间）· 采集 → AI 加工 → 聚簇 → 自动发布</div>
   </div>
 
   <div class="section-title"><h2>栏目结构监控</h2><span>不做机械配额 · 独立观察专项信源与采用结果</span></div>
   <div class="scard" style="display:flex;gap:10px;flex-wrap:wrap"><div style="flex:1;min-width:150px;padding:10px 12px;background:var(--soft);border-radius:9px">
-  <b>BI 与可视化</b><div class="snote">在站事件 2 · 专项信源 9 · 累计采用 0</div>
+  <b>BI 与可视化</b><div class="snote">在站事件 3 · 专项信源 9 · 累计采用 1</div>
 </div><div style="flex:1;min-width:150px;padding:10px 12px;background:var(--soft);border-radius:9px">
-  <b>数据产品</b><div class="snote">在站事件 4 · 专项信源 5 · 累计采用 0</div>
+  <b>数据产品</b><div class="snote">在站事件 7 · 专项信源 5 · 累计采用 3</div>
 </div><div style="flex:1;min-width:150px;padding:10px 12px;background:var(--soft);border-radius:9px">
-  <b>Data Agent</b><div class="snote">在站事件 29 · 专项信源 5 · 累计采用 0</div>
+  <b>Data Agent</b><div class="snote">在站事件 28 · 专项信源 5 · 累计采用 0</div>
 </div><div style="flex:1;min-width:150px;padding:10px 12px;background:var(--soft);border-radius:9px">
-  <b>AI 数据平台</b><div class="snote">在站事件 42 · 专项信源 8 · 累计采用 0</div>
+  <b>AI 数据平台</b><div class="snote">在站事件 52 · 专项信源 8 · 累计采用 17</div>
 </div></div>
 
   <div class="section-title"><h2>信源记分牌</h2><span>39 个信源 · 按需要关注排序</span></div>
   <div class="scard" style="padding:6px 18px"><div class="srow">
+  <div class="srow-top">
+    <span class="dot warn"></span><b>Hex Blog</b>
+    <span class="stype">厂商</span>
+    <span class="sstat st-warn">上次失败（抖动观察中）</span>
+    <span class="scount">在站 0 条</span>
+  </div>
+  <div class="srow-sub">候选 0 · 采用 0 · 暂无数据 · 模型 0 次 / 0 Token</div>
+  <div class="srow-sub">最近成功 — · 上轮原始 0 · 预筛 0 · 新候选 0</div>
+  <div class="snote">调度 official_targeted · 12小时/轮 · 上限 5</div>
+<div class="snote">专项监控 BI 与可视化 / 数据产品 · 累计采用 BI 与可视化 0 · 数据产品 0</div><div class="serr">can&#x27;t compare offset-naive and offset-aware datetimes</div><div class="snote">官方 Sitemap；路径、日期和高精度分析关键词三重过滤</div>
+</div><div class="srow">
   <div class="srow-top">
     <span class="dot off"></span><b>36氪</b>
     <span class="stype">媒体</span>
@@ -322,7 +385,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="srow-sub">候选 0 · 采用 0 · 暂无数据 · 模型 0 次 / 0 Token</div>
   <div class="srow-sub">最近成功 — · 上轮原始 0 · 预筛 0 · 新候选 0</div>
   <div class="snote">调度 default · 6小时/轮 · 上限 20</div>
-  <div class="snote">feed 有 JS 反爬挑战，暂不可抓；待 RSSHub 或代理</div>
+<div class="snote">feed 有 JS 反爬挑战，暂不可抓；待 RSSHub 或代理</div>
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot off"></span><b>Tableau Engineering（Medium）</b>
@@ -333,7 +396,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="srow-sub">候选 0 · 采用 0 · 暂无数据 · 模型 0 次 / 0 Token</div>
   <div class="srow-sub">最近成功 — · 上轮原始 0 · 预筛 0 · 新候选 0</div>
   <div class="snote">调度 default · 6小时/轮 · 上限 20</div>
-  <div class="snote">该 Medium 出版物不存在（404）；Tableau 主站 403，暂靠媒体源覆盖其动态</div>
+<div class="snote">该 Medium 出版物不存在（404）；Tableau 主站 403，暂靠媒体源覆盖其动态</div>
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>Databricks Blog</b>
@@ -341,21 +404,21 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="sstat st-ok">正常</span>
     <span class="scount">在站 11 条</span>
   </div>
-  <div class="srow-sub">候选 3 · 采用 3 · 入选率 100% · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
+  <div class="srow-sub">候选 5 · 采用 5 · 入选率 100% · 模型 4 次 / 11,887 Token</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 10 · 预筛 0 · 新候选 0</div>
   <div class="snote">调度 official_high · 6小时/轮 · 上限 12</div>
-  
+
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>Snowflake Engineering（Medium）</b>
     <span class="stype">厂商</span>
     <span class="sstat st-ok">正常</span>
-    <span class="scount">在站 11 条</span>
+    <span class="scount">在站 10 条</span>
   </div>
-  <div class="srow-sub">候选 2 · 采用 2 · 入选率 100% · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
+  <div class="srow-sub">候选 3 · 采用 3 · 入选率 100% · 模型 2 次 / 3,101 Token</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 10 · 预筛 0 · 新候选 0</div>
   <div class="snote">调度 official_high · 6小时/轮 · 上限 10</div>
-  <div class="snote">专项监控 AI 数据平台 · 累计采用 AI 数据平台 0</div><div class="snote">官网无 RSS 且 Cloudflare 拦截，走 Medium 工程博客</div>
+<div class="snote">专项监控 AI 数据平台 · 累计采用 AI 数据平台 1</div><div class="snote">官网无 RSS 且 Cloudflare 拦截，走 Medium 工程博客</div>
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>Claude 官方博客</b>
@@ -364,9 +427,20 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="scount">在站 7 条</span>
   </div>
   <div class="srow-sub">候选 3621 · 采用 129 · 入选率 4% <span class="slow">低产</span> · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 80</div>
+  <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
   <div class="snote">调度 low_precision · 24小时/轮 · 上限 2</div>
-  <div class="snote">官网无 RSS，走 sitemap 过滤 blog 路径</div>
+<div class="snote">官网无 RSS，走 sitemap 过滤 blog 路径</div>
+</div><div class="srow">
+  <div class="srow-top">
+    <span class="dot ok"></span><b>ClickHouse Blog</b>
+    <span class="stype">厂商</span>
+    <span class="sstat st-ok">正常</span>
+    <span class="scount">在站 7 条</span>
+  </div>
+  <div class="srow-sub">候选 3 · 采用 3 · 入选率 100% · 模型 2 次 / 6,568 Token</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 20 · 预筛 13 · 新候选 0</div>
+  <div class="snote">调度 official_high · 6小时/轮 · 上限 10</div>
+
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>Snowflake Release Notes</b>
@@ -375,20 +449,9 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="scount">在站 6 条</span>
   </div>
   <div class="srow-sub">候选 12 · 采用 12 · 入选率 100% · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 6 · 预筛 0 · 新候选 0</div>
   <div class="snote">调度 structured_high · 6小时/轮 · 上限 6</div>
-  <div class="snote">文档站周更发布说明，比博客更早更准</div>
-</div><div class="srow">
-  <div class="srow-top">
-    <span class="dot ok"></span><b>ClickHouse Blog</b>
-    <span class="stype">厂商</span>
-    <span class="sstat st-ok">正常</span>
-    <span class="scount">在站 6 条</span>
-  </div>
-  <div class="srow-sub">候选 2 · 采用 2 · 入选率 100% · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
-  <div class="snote">调度 official_high · 6小时/轮 · 上限 10</div>
-  
+<div class="snote">文档站周更发布说明，比博客更早更准</div>
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>AWS Big Data Blog</b>
@@ -396,21 +459,21 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="sstat st-ok">正常</span>
     <span class="scount">在站 6 条</span>
   </div>
-  <div class="srow-sub">候选 2 · 采用 2 · 入选率 100% · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
+  <div class="srow-sub">候选 3 · 采用 3 · 入选率 100% · 模型 2 次 / 5,865 Token</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 20 · 预筛 14 · 新候选 0</div>
   <div class="snote">调度 official_high · 6小时/轮 · 上限 12</div>
-  
+
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>Fivetran Blog</b>
     <span class="stype">厂商</span>
     <span class="sstat st-ok">正常</span>
-    <span class="scount">在站 5 条</span>
+    <span class="scount">在站 6 条</span>
   </div>
-  <div class="srow-sub">候选 5 · 采用 2 · 入选率 40% · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
+  <div class="srow-sub">候选 6 · 采用 3 · 入选率 50% · 模型 2 次 / 7,054 Token</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 20 · 预筛 14 · 新候选 0</div>
   <div class="snote">调度 official_high · 6小时/轮 · 上限 10</div>
-  
+
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>InfoQ 中文</b>
@@ -421,7 +484,18 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="srow-sub">候选 458 · 采用 22 · 入选率 5% <span class="slow">低产</span> · 模型 0 次 / 0 Token</div>
   <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
   <div class="snote">调度 media_low · 24小时/轮 · 上限 5</div>
-  
+
+</div><div class="srow">
+  <div class="srow-top">
+    <span class="dot ok"></span><b>爱分析</b>
+    <span class="stype">媒体</span>
+    <span class="sstat st-ok">正常</span>
+    <span class="scount">在站 4 条</span>
+  </div>
+  <div class="srow-sub">候选 7 · 采用 4 · 入选率 57% · 模型 13 次 / 65,495 Token</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 7 · 预筛 0 · 新候选 0</div>
+  <div class="snote">调度 default · 6小时/轮 · 上限 20</div>
+<div class="snote">无RSS，HTML列表页采集（issue #30）</div>
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>人人都是产品经理</b>
@@ -432,7 +506,18 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="srow-sub">候选 354 · 采用 19 · 入选率 5% <span class="slow">低产</span> · 模型 0 次 / 0 Token</div>
   <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
   <div class="snote">调度 media_low · 24小时/轮 · 上限 5</div>
-  <div class="snote">专项监控 数据产品 · 累计采用 数据产品 0</div><div class="snote">数据产品方法论重镇</div>
+<div class="snote">专项监控 数据产品 · 累计采用 数据产品 0</div><div class="snote">数据产品方法论重镇</div>
+</div><div class="srow">
+  <div class="srow-top">
+    <span class="dot ok"></span><b>TiDB Blog</b>
+    <span class="stype">厂商</span>
+    <span class="sstat st-ok">正常</span>
+    <span class="scount">在站 4 条</span>
+  </div>
+  <div class="srow-sub">候选 5 · 采用 5 · 入选率 100% · 模型 8 次 / 23,339 Token</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 10 · 预筛 4 · 新候选 0</div>
+  <div class="snote">调度 official_targeted · 12小时/轮 · 上限 5</div>
+<div class="snote">专项监控 Data Agent / AI 数据平台 · 累计采用 Data Agent 0 · AI 数据平台 5</div><div class="snote">PingCAP 官方 RSS；聚焦 TiDB 工程、HTAP、Agent 数据层与迁移案例</div>
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>Aloudata 博客</b>
@@ -441,9 +526,9 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="scount">在站 3 条</span>
   </div>
   <div class="srow-sub">候选 3 · 采用 3 · 入选率 100% · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 88 · 预筛 85 · 新候选 0</div>
   <div class="snote">调度 official_high · 6小时/轮 · 上限 10</div>
-  <div class="snote">官网无 RSS，走 sitemap 通道</div>
+<div class="snote">官网无 RSS，走 sitemap 通道</div>
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>ThoughtSpot Blog</b>
@@ -452,9 +537,9 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="scount">在站 3 条</span>
   </div>
   <div class="srow-sub">候选 1 · 采用 1 · 入选率 100% · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 10 · 预筛 7 · 新候选 0</div>
   <div class="snote">调度 official_high · 6小时/轮 · 上限 10</div>
-  <div class="snote">专项监控 BI 与可视化 / 数据产品 · 累计采用 BI 与可视化 0 · 数据产品 0</div>
+<div class="snote">专项监控 BI 与可视化 / 数据产品 · 累计采用 BI 与可视化 0 · 数据产品 0</div>
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>InfoQ（AI/数据工程）</b>
@@ -462,10 +547,10 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="sstat st-ok">正常</span>
     <span class="scount">在站 3 条</span>
   </div>
-  <div class="srow-sub">候选 261 · 采用 12 · 入选率 5% <span class="slow">低产</span> · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
+  <div class="srow-sub">候选 263 · 采用 12 · 入选率 5% <span class="slow">低产</span> · 模型 2 次 / 3,443 Token</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 15 · 预筛 0 · 新候选 0</div>
   <div class="snote">调度 media_targeted · 12小时/轮 · 上限 8</div>
-  
+
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>dbt Blog</b>
@@ -474,9 +559,9 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="scount">在站 2 条</span>
   </div>
   <div class="srow-sub">候选 1 · 采用 1 · 入选率 100% · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 20 · 预筛 18 · 新候选 0</div>
   <div class="snote">调度 official_high · 6小时/轮 · 上限 10</div>
-  
+
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>Microsoft Power BI（Power Platform Blog）</b>
@@ -485,9 +570,9 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="scount">在站 2 条</span>
   </div>
   <div class="srow-sub">候选 0 · 采用 0 · 暂无数据 · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 10 · 预筛 8 · 新候选 0</div>
   <div class="snote">调度 official_high · 6小时/轮 · 上限 10</div>
-  <div class="snote">专项监控 BI 与可视化 · 累计采用 BI 与可视化 0</div><div class="snote">主站 403，改用 Power Platform 官方博客（含 Power BI 内容）</div>
+<div class="snote">专项监控 BI 与可视化 · 累计采用 BI 与可视化 0</div><div class="snote">主站 403，改用 Power Platform 官方博客（含 Power BI 内容）</div>
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>OpenAI News</b>
@@ -496,9 +581,9 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="scount">在站 1 条</span>
   </div>
   <div class="srow-sub">候选 203 · 采用 1 · 入选率 0% <span class="slow">低产</span> · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 13</div>
+  <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
   <div class="snote">调度 low_precision · 24小时/轮 · 上限 5</div>
-  <div class="snote">官方新闻 RSS</div>
+<div class="snote">官方新闻 RSS</div>
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>Aloudata 动态</b>
@@ -507,9 +592,9 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="scount">在站 1 条</span>
   </div>
   <div class="srow-sub">候选 1 · 采用 1 · 入选率 100% · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 58 · 预筛 57 · 新候选 0</div>
   <div class="snote">调度 official_high · 6小时/轮 · 上限 10</div>
-  <div class="snote">官网无 RSS，走 sitemap 通道</div>
+<div class="snote">官网无 RSS，走 sitemap 通道</div>
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>Metabase Blog</b>
@@ -518,9 +603,9 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="scount">在站 1 条</span>
   </div>
   <div class="srow-sub">候选 0 · 采用 0 · 暂无数据 · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 10 · 预筛 9 · 新候选 0</div>
   <div class="snote">调度 official_high · 6小时/轮 · 上限 10</div>
-  <div class="snote">专项监控 BI 与可视化 · 累计采用 BI 与可视化 0</div>
+<div class="snote">专项监控 BI 与可视化 · 累计采用 BI 与可视化 0</div>
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>极客公园</b>
@@ -531,7 +616,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="srow-sub">候选 511 · 采用 20 · 入选率 4% <span class="slow">低产</span> · 模型 0 次 / 0 Token</div>
   <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
   <div class="snote">调度 media_low · 24小时/轮 · 上限 4</div>
-  
+
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>TechCrunch AI</b>
@@ -542,7 +627,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="srow-sub">候选 491 · 采用 19 · 入选率 4% <span class="slow">低产</span> · 模型 0 次 / 0 Token</div>
   <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
   <div class="snote">调度 media_low · 24小时/轮 · 上限 4</div>
-  
+
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>Hacker News（数据关键词）</b>
@@ -551,20 +636,53 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="scount">在站 1 条</span>
   </div>
   <div class="srow-sub">候选 99 · 采用 5 · 入选率 5% <span class="slow">低产</span> · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 8 · 预筛 6 · 新候选 0</div>
   <div class="snote">调度 community_targeted · 12小时/轮 · 上限 10</div>
-  
+
 </div><div class="srow">
   <div class="srow-top">
-    <span class="dot ok"></span><b>爱分析</b>
-    <span class="stype">媒体</span>
+    <span class="dot ok"></span><b>Amplitude Blog</b>
+    <span class="stype">厂商</span>
     <span class="sstat st-ok">正常</span>
-    <span class="scount">在站 0 条</span>
+    <span class="scount">在站 1 条</span>
   </div>
-  <div class="srow-sub">候选 0 · 采用 0 · 暂无数据 · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 — · 上轮原始 0 · 预筛 0 · 新候选 0</div>
-  <div class="snote">调度 default · 6小时/轮 · 上限 20</div>
-  <div class="snote">无RSS，HTML列表页采集（issue #30）</div>
+  <div class="srow-sub">候选 1 · 采用 1 · 入选率 100% · 模型 2 次 / 6,783 Token</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 2055 · 预筛 2054 · 新候选 0</div>
+  <div class="snote">调度 official_targeted · 12小时/轮 · 上限 5</div>
+<div class="snote">专项监控 数据产品 / BI 与可视化 · 累计采用 数据产品 1 · BI 与可视化 0</div><div class="snote">官方 Sitemap；聚焦产品分析、实验和指标实践</div>
+</div><div class="srow">
+  <div class="srow-top">
+    <span class="dot ok"></span><b>Netflix Technology Blog</b>
+    <span class="stype">厂商</span>
+    <span class="sstat st-ok">正常</span>
+    <span class="scount">在站 1 条</span>
+  </div>
+  <div class="srow-sub">候选 3 · 采用 2 · 入选率 67% · 模型 5 次 / 5,373 Token</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 10 · 预筛 7 · 新候选 0</div>
+  <div class="snote">调度 engineering_targeted · 12小时/轮 · 上限 4</div>
+<div class="snote">专项监控 AI 数据平台 · 累计采用 AI 数据平台 2</div><div class="snote">官方工程 RSS；仅保留数据平台和分析基础设施主题</div>
+</div><div class="srow">
+  <div class="srow-top">
+    <span class="dot ok"></span><b>Google BigQuery Release Notes</b>
+    <span class="stype">厂商</span>
+    <span class="sstat st-ok">正常</span>
+    <span class="scount">在站 1 条</span>
+  </div>
+  <div class="srow-sub">候选 1 · 采用 1 · 入选率 100% · 模型 2 次 / 4,342 Token</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 20 · 预筛 19 · 新候选 0</div>
+  <div class="snote">调度 structured_high · 6小时/轮 · 上限 6</div>
+<div class="snote">专项监控 Data Agent / AI 数据平台 · 累计采用 Data Agent 0 · AI 数据平台 1</div><div class="snote">Google 官方 BigQuery 产品更新 RSS；结构化一手发布</div>
+</div><div class="srow">
+  <div class="srow-top">
+    <span class="dot ok"></span><b>Google Looker Release Notes</b>
+    <span class="stype">厂商</span>
+    <span class="sstat st-ok">正常</span>
+    <span class="scount">在站 1 条</span>
+  </div>
+  <div class="srow-sub">候选 1 · 采用 1 · 入选率 100% · 模型 2 次 / 4,503 Token</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 20 · 预筛 15 · 新候选 0</div>
+  <div class="snote">调度 structured_high · 12小时/轮 · 上限 5</div>
+<div class="snote">专项监控 Data Agent / BI 与可视化 · 累计采用 Data Agent 0 · BI 与可视化 1</div><div class="snote">Google 官方 Looker 更新 RSS；过滤纯修复噪音，保留 AI、BI 与重要变更</div>
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>StarRocks Blog</b>
@@ -573,9 +691,9 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="scount">在站 0 条</span>
   </div>
   <div class="srow-sub">候选 0 · 采用 0 · 暂无数据 · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 10 · 预筛 10 · 新候选 0</div>
   <div class="snote">调度 official_high · 6小时/轮 · 上限 10</div>
-  
+
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>帆软</b>
@@ -584,9 +702,9 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="scount">在站 0 条</span>
   </div>
   <div class="srow-sub">候选 0 · 采用 0 · 暂无数据 · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 10 · 预筛 10 · 新候选 0</div>
   <div class="snote">调度 official_high · 6小时/轮 · 上限 10</div>
-  <div class="snote">专项监控 BI 与可视化 · 累计采用 BI 与可视化 0</div><div class="snote">国内 BI 头部厂商官方 feed</div>
+<div class="snote">专项监控 BI 与可视化 · 累计采用 BI 与可视化 0</div><div class="snote">国内 BI 头部厂商官方 feed</div>
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>雷锋网</b>
@@ -597,7 +715,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="srow-sub">候选 503 · 采用 20 · 入选率 4% <span class="slow">低产</span> · 模型 0 次 / 0 Token</div>
   <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
   <div class="snote">调度 media_low · 24小时/轮 · 上限 4</div>
-  
+
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>量子位</b>
@@ -608,7 +726,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="srow-sub">候选 270 · 采用 10 · 入选率 4% <span class="slow">低产</span> · 模型 0 次 / 0 Token</div>
   <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
   <div class="snote">调度 media_low · 24小时/轮 · 上限 4</div>
-  <div class="snote">公众号官网镜像 RSS</div>
+<div class="snote">公众号官网镜像 RSS</div>
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>The Verge AI</b>
@@ -619,7 +737,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="srow-sub">候选 270 · 采用 10 · 入选率 4% <span class="slow">低产</span> · 模型 0 次 / 0 Token</div>
   <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
   <div class="snote">调度 media_low · 24小时/轮 · 上限 4</div>
-  
+
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>Bluesky 数据社区</b>
@@ -627,65 +745,10 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="sstat st-ok">正常</span>
     <span class="scount">在站 0 条</span>
   </div>
-  <div class="srow-sub">候选 261 · 采用 9 · 入选率 3% <span class="slow">低产</span> · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 08-11 10:27 · 上轮原始 0 · 预筛 0 · 新候选 0</div>
+  <div class="srow-sub">候选 262 · 采用 9 · 入选率 3% <span class="slow">低产</span> · 模型 1 次 / 1,533 Token</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 7 · 预筛 0 · 新候选 0</div>
   <div class="snote">调度 community_targeted · 12小时/轮 · 上限 10</div>
-  <div class="snote">本机网络不可达 bsky，仅 CI 生效</div>
-</div><div class="srow">
-  <div class="srow-top">
-    <span class="dot ok"></span><b>Hex Blog</b>
-    <span class="stype">厂商</span>
-    <span class="sstat st-ok">正常</span>
-    <span class="scount">在站 0 条</span>
-  </div>
-  <div class="srow-sub">候选 0 · 采用 0 · 暂无数据 · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 — · 上轮原始 0 · 预筛 0 · 新候选 0</div>
-  <div class="snote">调度 official_targeted · 12小时/轮 · 上限 5</div>
-  <div class="snote">专项监控 BI 与可视化 / 数据产品 · 累计采用 BI 与可视化 0 · 数据产品 0</div><div class="snote">官方 Sitemap；路径、日期和高精度分析关键词三重过滤</div>
-</div><div class="srow">
-  <div class="srow-top">
-    <span class="dot ok"></span><b>Amplitude Blog</b>
-    <span class="stype">厂商</span>
-    <span class="sstat st-ok">正常</span>
-    <span class="scount">在站 0 条</span>
-  </div>
-  <div class="srow-sub">候选 0 · 采用 0 · 暂无数据 · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 — · 上轮原始 0 · 预筛 0 · 新候选 0</div>
-  <div class="snote">调度 official_targeted · 12小时/轮 · 上限 5</div>
-  <div class="snote">专项监控 数据产品 / BI 与可视化 · 累计采用 数据产品 0 · BI 与可视化 0</div><div class="snote">官方 Sitemap；聚焦产品分析、实验和指标实践</div>
-</div><div class="srow">
-  <div class="srow-top">
-    <span class="dot ok"></span><b>Netflix Technology Blog</b>
-    <span class="stype">厂商</span>
-    <span class="sstat st-ok">正常</span>
-    <span class="scount">在站 0 条</span>
-  </div>
-  <div class="srow-sub">候选 0 · 采用 0 · 暂无数据 · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 — · 上轮原始 0 · 预筛 0 · 新候选 0</div>
-  <div class="snote">调度 engineering_targeted · 12小时/轮 · 上限 4</div>
-  <div class="snote">专项监控 AI 数据平台 · 累计采用 AI 数据平台 0</div><div class="snote">官方工程 RSS；仅保留数据平台和分析基础设施主题</div>
-</div><div class="srow">
-  <div class="srow-top">
-    <span class="dot ok"></span><b>Google BigQuery Release Notes</b>
-    <span class="stype">厂商</span>
-    <span class="sstat st-ok">正常</span>
-    <span class="scount">在站 0 条</span>
-  </div>
-  <div class="srow-sub">候选 0 · 采用 0 · 暂无数据 · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 — · 上轮原始 0 · 预筛 0 · 新候选 0</div>
-  <div class="snote">调度 structured_high · 6小时/轮 · 上限 6</div>
-  <div class="snote">专项监控 Data Agent / AI 数据平台 · 累计采用 Data Agent 0 · AI 数据平台 0</div><div class="snote">Google 官方 BigQuery 产品更新 RSS；结构化一手发布</div>
-</div><div class="srow">
-  <div class="srow-top">
-    <span class="dot ok"></span><b>Google Looker Release Notes</b>
-    <span class="stype">厂商</span>
-    <span class="sstat st-ok">正常</span>
-    <span class="scount">在站 0 条</span>
-  </div>
-  <div class="srow-sub">候选 0 · 采用 0 · 暂无数据 · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 — · 上轮原始 0 · 预筛 0 · 新候选 0</div>
-  <div class="snote">调度 structured_high · 12小时/轮 · 上限 5</div>
-  <div class="snote">专项监控 Data Agent / BI 与可视化 · 累计采用 Data Agent 0 · BI 与可视化 0</div><div class="snote">Google 官方 Looker 更新 RSS；过滤纯修复噪音，保留 AI、BI 与重要变更</div>
+<div class="snote">本机网络不可达 bsky，仅 CI 生效</div>
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>Microsoft Fabric Blog</b>
@@ -694,9 +757,9 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="scount">在站 0 条</span>
   </div>
   <div class="srow-sub">候选 0 · 采用 0 · 暂无数据 · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 — · 上轮原始 0 · 预筛 0 · 新候选 0</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 10 · 预筛 10 · 新候选 0</div>
   <div class="snote">调度 official_targeted · 12小时/轮 · 上限 5</div>
-  <div class="snote">专项监控 Data Agent / AI 数据平台 / BI 与可视化 · 累计采用 Data Agent 0 · AI 数据平台 0 · BI 与可视化 0</div><div class="snote">Microsoft Fabric 官方页面声明的 RSS；按高精度数据与 BI 关键词过滤</div>
+<div class="snote">专项监控 Data Agent / AI 数据平台 / BI 与可视化 · 累计采用 Data Agent 0 · AI 数据平台 0 · BI 与可视化 0</div><div class="snote">Microsoft Fabric 官方页面声明的 RSS；按高精度数据与 BI 关键词过滤</div>
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>DuckDB Engineering Blog</b>
@@ -704,10 +767,10 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="sstat st-ok">正常</span>
     <span class="scount">在站 0 条</span>
   </div>
-  <div class="srow-sub">候选 0 · 采用 0 · 暂无数据 · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 — · 上轮原始 0 · 预筛 0 · 新候选 0</div>
+  <div class="srow-sub">候选 1 · 采用 1 · 入选率 100% · 模型 2 次 / 6,432 Token</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 10 · 预筛 9 · 新候选 0</div>
   <div class="snote">调度 official_high · 6小时/轮 · 上限 6</div>
-  <div class="snote">专项监控 AI 数据平台 / 数据产品 · 累计采用 AI 数据平台 0 · 数据产品 0</div><div class="snote">DuckDB 官方工程 RSS；覆盖发布、SQL、Lakehouse 与本地分析</div>
+<div class="snote">专项监控 AI 数据平台 / 数据产品 · 累计采用 AI 数据平台 1 · 数据产品 0</div><div class="snote">DuckDB 官方工程 RSS；覆盖发布、SQL、Lakehouse 与本地分析</div>
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>Apache Iceberg Blog</b>
@@ -716,20 +779,9 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="scount">在站 0 条</span>
   </div>
   <div class="srow-sub">候选 0 · 采用 0 · 暂无数据 · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 — · 上轮原始 0 · 预筛 0 · 新候选 0</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 12 · 预筛 12 · 新候选 0</div>
   <div class="snote">调度 official_high · 12小时/轮 · 上限 5</div>
-  <div class="snote">专项监控 AI 数据平台 · 累计采用 AI 数据平台 0</div><div class="snote">Apache Iceberg 官方 RSS；覆盖开放表格式、规范、版本与生态</div>
-</div><div class="srow">
-  <div class="srow-top">
-    <span class="dot ok"></span><b>TiDB Blog</b>
-    <span class="stype">厂商</span>
-    <span class="sstat st-ok">正常</span>
-    <span class="scount">在站 0 条</span>
-  </div>
-  <div class="srow-sub">候选 0 · 采用 0 · 暂无数据 · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 — · 上轮原始 0 · 预筛 0 · 新候选 0</div>
-  <div class="snote">调度 official_targeted · 12小时/轮 · 上限 5</div>
-  <div class="snote">专项监控 Data Agent / AI 数据平台 · 累计采用 Data Agent 0 · AI 数据平台 0</div><div class="snote">PingCAP 官方 RSS；聚焦 TiDB 工程、HTAP、Agent 数据层与迁移案例</div>
+<div class="snote">专项监控 AI 数据平台 · 累计采用 AI 数据平台 0</div><div class="snote">Apache Iceberg 官方 RSS；覆盖开放表格式、规范、版本与生态</div>
 </div><div class="srow">
   <div class="srow-top">
     <span class="dot ok"></span><b>Apache Doris Blog</b>
@@ -738,9 +790,9 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="scount">在站 0 条</span>
   </div>
   <div class="srow-sub">候选 0 · 采用 0 · 暂无数据 · 模型 0 次 / 0 Token</div>
-  <div class="srow-sub">最近成功 — · 上轮原始 0 · 预筛 0 · 新候选 0</div>
+  <div class="srow-sub">最近成功 08-12 00:33 · 上轮原始 20 · 预筛 20 · 新候选 0</div>
   <div class="snote">调度 official_targeted · 12小时/轮 · 上限 5</div>
-  <div class="snote">专项监控 Data Agent / AI 数据平台 / BI 与可视化 · 累计采用 Data Agent 0 · AI 数据平台 0 · BI 与可视化 0</div><div class="snote">Apache Doris 官方博客 RSS；过滤活动类内容，避免抓取超大完整站点 Sitemap</div>
+<div class="snote">专项监控 Data Agent / AI 数据平台 / BI 与可视化 · 累计采用 Data Agent 0 · AI 数据平台 0 · BI 与可视化 0</div><div class="snote">Apache Doris 官方博客 RSS；过滤活动类内容，避免抓取超大完整站点 Sitemap</div>
 </div></div>
 
   <details class="scard act"><summary><b>➕ 如何添加信源</b></summary>
@@ -779,5 +831,35 @@ function copyTpl(){
 }
 </script>
 <footer>DataHot，数据领域AI资讯分享 · <a href="privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
-<nav class="tabbar"><a href="index.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span>热榜</a><a href="weekly.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>周报</a><a href="topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span>主题</a><a href="classics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></span>典藏</a><a href="favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span>收藏</a><a href="sources.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span>信源</a></nav>
+<nav class="tabbar" aria-label="移动端主导航">
+  <a href="index.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="weekly.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span>周报</span></a><a href="topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a>
+  <button class="tabbar-more on" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
+</nav>
+<div class="more-mask" data-more-mask></div>
+<section class="more-sheet" id="mobileMoreSheet" aria-label="更多导航" aria-hidden="true">
+  <div class="more-handle" aria-hidden="true"></div>
+  <div class="more-head"><h2>更多</h2><button class="more-close" type="button" data-more-close aria-label="关闭更多导航">×</button></div>
+  <div class="more-grid"><a class="more-link" href="hot.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></span><span>完整榜单</span></a><a class="more-link" href="classics.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></span><span>典藏</span></a><a class="more-link" href="favorites.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>我的收藏</span></a><a class="more-link on" href="sources.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span><span>信源</span></a><a class="more-link" href="privacy.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg></span><span>隐私说明</span></a></div>
+</section>
+<script>
+(function(){
+  var trigger=document.querySelector('[data-more-open]');
+  var sheet=document.getElementById('mobileMoreSheet');
+  var mask=document.querySelector('[data-more-mask]');
+  var closeBtn=document.querySelector('[data-more-close]');
+  if(!trigger||!sheet||!mask||!closeBtn) return;
+  function setMore(open){
+    trigger.setAttribute('aria-expanded',open?'true':'false');
+    sheet.setAttribute('aria-hidden',open?'false':'true');
+    sheet.classList.toggle('show',open);
+    mask.classList.toggle('show',open);
+    document.body.classList.toggle('more-open',open);
+    if(open) closeBtn.focus(); else trigger.focus();
+  }
+  trigger.addEventListener('click',function(){setMore(true)});
+  closeBtn.addEventListener('click',function(){setMore(false)});
+  mask.addEventListener('click',function(){setMore(false)});
+  document.addEventListener('keydown',function(event){if(event.key==='Escape'&&sheet.classList.contains('show')) setMore(false)});
+})();
+</script>
 </body></html>

@@ -46,7 +46,7 @@
   .wrap{max-width:1160px;margin:0 auto;padding:0 20px}
 
   /* ── 顶部导航 ── */
-  header{position:sticky;top:0;z-index:50;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+  header{position:sticky;top:0;z-index:50;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
   .nav{display:flex;align-items:center;gap:18px;min-height:56px}
   .logo{font-size:20px;font-weight:800;letter-spacing:-.5px}
   .logo em{font-style:normal;color:var(--accent)}
@@ -240,20 +240,55 @@ main,.layout>*,.hotlist>*{min-width:0}
 .weekly-waiting:hover{border-color:var(--accent);color:var(--accent)}
 .weekly-waiting b{color:var(--ink);font-size:13px}
 .weekly-waiting span:last-child{margin-left:auto;color:var(--sub);font-size:11.5px}
-.weekly-summary{background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border:0}
+.weekly-summary{background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border:0;padding:20px 22px}
 .weekly-summary h1{font-size:25px;line-height:1.4;margin:4px 0 8px}
-.weekly-summary p{font-size:14px;line-height:1.85;color:#e5e7eb}
+.weekly-summary p{font-size:14px;line-height:1.75;color:#e5e7eb;margin:0}
 .weekly-change{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.12);font-size:13px;line-height:1.7;color:#f3f4f6}
 .weekly-change:last-child{border-bottom:0}
-.weekly-row{display:block;text-decoration:none;color:var(--ink);padding:15px 0;border-bottom:1px solid var(--soft)}
-.weekly-row:last-child{border-bottom:0}
-.weekly-row:hover .weekly-title{color:var(--accent)}
-.weekly-title{font-size:15px;font-weight:750;line-height:1.55}
-.weekly-row p{font-size:12.5px;line-height:1.7;color:var(--txt2);margin:5px 0}
-.weekly-row .weekly-row-meta{font-size:11px;color:var(--sub)}
+.weekly-themes{display:grid;gap:14px}
+.weekly-theme{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px}
+.weekly-theme h2{font-size:19px;line-height:1.5;margin:9px 0 12px}
+.weekly-theme p{font-size:13.5px;line-height:1.85;color:var(--txt2);margin:0 0 12px}
+.weekly-badges{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.weekly-pill{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:99px;padding:3px 8px;font-size:10.5px;color:var(--sub)}
+.weekly-pill.priority-now{border-color:#dc2626;color:#b91c1c;background:#fef2f2}
+.weekly-pill.priority-test{border-color:#d97706;color:#b45309;background:#fffbeb}
+.weekly-pill.priority-watch{border-color:#2563eb;color:#1d4ed8;background:#eff6ff}
+.weekly-pill.priority-ignore{color:var(--sub);background:var(--soft)}
+.weekly-anchor{background:var(--soft);border-left:3px solid var(--accent);padding:10px 12px;border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.75;color:var(--txt2);margin:0 0 14px}
+.weekly-anchor b,.weekly-why b{color:var(--ink)}
+.weekly-why{font-size:13px;line-height:1.8;color:var(--txt2);border-top:1px solid var(--soft);padding-top:12px}
+.weekly-action{margin-top:12px;background:#fff8ed;border:1px solid #f3d5aa;border-radius:9px;padding:11px 12px;font-size:13px;line-height:1.75;color:var(--txt2)}
+.weekly-action b{color:#9a4f08;margin-right:7px}
+.weekly-signal-meta{font-size:11px;color:var(--sub);margin-top:12px}
+.weekly-secondary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.weekly-secondary .scard{font-size:12.5px;line-height:1.75;color:var(--txt2)}
+.weekly-secondary b{display:block;color:var(--ink);font-size:12px;margin-bottom:6px}
+.weekly-evidence{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:0 18px}
+.weekly-evidence summary{cursor:pointer;padding:15px 0;font-size:13px;font-weight:700;color:var(--ink)}
+.weekly-evidence-row{display:flex;gap:12px;align-items:baseline;padding:11px 0;border-top:1px solid var(--soft);text-decoration:none;color:var(--ink)}
+.weekly-evidence-row:hover span:first-child{color:var(--accent)}
+.weekly-evidence-row span:first-child{font-size:13px;line-height:1.55;flex:1}
+.weekly-evidence-row span:last-child{font-size:10.5px;color:var(--sub);white-space:nowrap}
 .weekly-archive{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 22px}
 .weekly-archive a{font-size:12px;color:var(--sub);border:1px solid var(--line);border-radius:99px;padding:5px 10px;text-decoration:none}
 .weekly-archive a:hover,.weekly-archive a.on{border-color:var(--accent);color:var(--accent)}
+@media (prefers-color-scheme: dark){
+  .weekly-pill.priority-now{border-color:#ef7b7b;color:#ffaaaa;background:rgba(220,38,38,.14)}
+  .weekly-pill.priority-test{border-color:#d89a3d;color:#f2bd70;background:rgba(217,119,6,.14)}
+  .weekly-pill.priority-watch{border-color:#6ea8ff;color:#9cc3ff;background:rgba(37,99,235,.14)}
+  .weekly-action{background:rgba(217,119,6,.12);border-color:rgba(242,189,112,.38);color:var(--txt2)}
+  .weekly-action b{color:#f2bd70}
+}
+@media(max-width:700px){
+  .weekly-summary{padding:16px 20px}
+  .weekly-summary h1{font-size:23px}
+  .weekly-theme{padding:17px}
+  .weekly-theme h2{font-size:17px}
+  .weekly-secondary{grid-template-columns:1fr}
+  .weekly-evidence-row{align-items:flex-start;flex-direction:column;gap:4px}
+  .weekly-evidence-row span:last-child{white-space:normal}
+}
 .hrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--soft);text-decoration:none;color:var(--ink)}
 .hrow:last-child{border-bottom:none}
 .hrow .rk{font-size:15px;font-weight:800;color:var(--accent);width:26px;flex-shrink:0;text-align:center}
@@ -276,13 +311,30 @@ main,.layout>*,.hotlist>*{min-width:0}
 .hot .hsum{font-size:12.5px;color:var(--txt2);line-height:1.65;margin:6px 0 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .hot .htime{margin-left:auto;font-size:11px;color:var(--sub)}
 .tabbar{display:none}
+.more-mask,.more-sheet{display:none}
 @media(max-width:960px){
   body{padding-bottom:64px}
   footer{padding-bottom:96px}
-  .tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--tabbar-bg);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:70;padding-bottom:env(safe-area-inset-bottom)}
-  .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0 6px;font-size:11px;color:var(--sub);text-decoration:none;gap:2px}
-  .tabbar a .ico{font-size:19px}
-  .tabbar a.on{color:var(--accent);font-weight:600}
+  body.mobile-section{padding-top:env(safe-area-inset-top)}
+  .section-brand-header,.detail-brand-header{display:none}
+  .tabbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));position:fixed;bottom:0;left:0;right:0;background:var(--tabbar-bg);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:70;padding:0 0 env(safe-area-inset-bottom)}
+  .tabbar a,.tabbar button{appearance:none;border:0;background:transparent;min-width:0;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 2px 5px;font:inherit;font-size:11px;color:var(--sub);text-decoration:none;gap:2px;cursor:pointer;touch-action:manipulation}
+  .tabbar .ico{display:grid;place-items:center;height:22px}
+  .tabbar a.on,.tabbar button.on{color:var(--accent);font-weight:650}
+  .more-mask{display:block;position:fixed;inset:0;background:rgba(0,0,0,.42);opacity:0;pointer-events:none;transition:opacity .22s ease;z-index:78}
+  .more-mask.show{opacity:1;pointer-events:auto}
+  .more-sheet{display:block;position:fixed;left:0;right:0;bottom:0;z-index:80;max-height:70vh;overflow:auto;background:var(--card);border-radius:18px 18px 0 0;padding:8px 16px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -14px 40px rgba(0,0,0,.18);transform:translateY(110%);transition:transform .28s cubic-bezier(.32,.72,.35,1)}
+  .more-sheet.show{transform:translateY(0)}
+  .more-handle{width:36px;height:4px;border-radius:99px;background:var(--line);margin:2px auto 12px}
+  .more-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .more-head h2{font-size:18px}
+  .more-close{appearance:none;border:0;background:var(--soft);color:var(--sub);width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer}
+  .more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .more-link{display:flex;align-items:center;gap:11px;min-height:58px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);text-decoration:none;color:var(--ink)}
+  .more-link .more-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent);flex:0 0 auto}
+  .more-link span:last-child{min-width:0;font-size:13px;font-weight:650}
+  .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  body.more-open{overflow:hidden}
 }
 .tgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
 @media(max-width:960px){.tgrid{grid-template-columns:1fr}}
@@ -349,12 +401,12 @@ main,.layout>*,.hotlist>*{min-width:0}
 @media(prefers-reduced-motion:reduce){.tts-player *{scroll-behavior:auto!important;transition:none!important}}
 .disclaimer{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}
 .disclaimer a{color:var(--accent)}
-</style></head><body data-page="detail" data-event-id="eaca584690ea" data-category="platform" data-source="Snowflake Release Notes">
-<header><div class="wrap nav">
+</style></head><body class="mobile-detail" data-page="detail" data-event-id="eaca584690ea" data-category="platform" data-source="Snowflake Release Notes">
+<header class="detail-brand-header"><div class="wrap nav">
   <div class="logo"><a href="../index.html">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
 <div class="article">
-  <div class="topbar">
+  <div class="topbar detail-context">
     <a class="back" href="../index.html" style="margin-bottom:0">← 返回热榜</a>
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="eaca584690ea" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
@@ -370,7 +422,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="star">精选</span>
     <span title="发布时间">发布 2026-08-10 01:32</span>
     
-    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 40</span>
+    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 38</span>
   </div>
   <h1>Snowflake 10.25 版发布：多项 SQL 与数据湖能力更新</h1>
 
@@ -382,10 +434,40 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://docs.snowflake.com/en/release-notes/2026/10_25" target="_blank" rel="noopener" data-analytics="outbound" data-source="Snowflake Release Notes">查看原文 ↗</a></div>
 </div>
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://docs.snowflake.com/en/release-notes/2026/10_25" target="_blank" rel="noopener" data-analytics="outbound" data-source="Snowflake Release Notes">Snowflake Release Notes（英文）</a><span class="src more">首发</span><span class="count">2026-08-10 01:32</span></div></div>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/973421af8576.html"><span class="n">›</span>Snowflake 发布 10.26 版本更新说明<span class="count">47</span></a><a class="vendor-row" href="../e/334f406bd4ea.html"><span class="n">›</span>Snowflake 10.24 版本发布：新增每用户配额与语义视图物化<span class="count">53</span></a><a class="vendor-row" href="../e/160014e6f8b8.html"><span class="n">›</span>Snowflake发布2026年6月末版本说明<span class="count">30</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/973421af8576.html"><span class="n">›</span>Snowflake 发布 10.26 版本更新说明<span class="count">46</span></a><a class="vendor-row" href="../e/334f406bd4ea.html"><span class="n">›</span>Snowflake 10.24 版本发布：新增每用户配额与语义视图物化<span class="count">52</span></a><a class="vendor-row" href="../e/160014e6f8b8.html"><span class="n">›</span>Snowflake发布2026年6月末版本说明<span class="count">28</span></a></div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
-<nav class="tabbar"><a href="../index.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span>热榜</a><a href="../weekly.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>周报</a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span>主题</a><a href="../classics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></span>典藏</a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span>收藏</a><a href="../sources.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span>信源</a></nav>
+<nav class="tabbar" aria-label="移动端主导航">
+  <a href="../index.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../weekly.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span>周报</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a>
+  <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
+</nav>
+<div class="more-mask" data-more-mask></div>
+<section class="more-sheet" id="mobileMoreSheet" aria-label="更多导航" aria-hidden="true">
+  <div class="more-handle" aria-hidden="true"></div>
+  <div class="more-head"><h2>更多</h2><button class="more-close" type="button" data-more-close aria-label="关闭更多导航">×</button></div>
+  <div class="more-grid"><a class="more-link" href="../hot.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></span><span>完整榜单</span></a><a class="more-link" href="../classics.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></span><span>典藏</span></a><a class="more-link" href="../favorites.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>我的收藏</span></a><a class="more-link" href="../sources.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span><span>信源</span></a><a class="more-link" href="../privacy.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg></span><span>隐私说明</span></a></div>
+</section>
+<script>
+(function(){
+  var trigger=document.querySelector('[data-more-open]');
+  var sheet=document.getElementById('mobileMoreSheet');
+  var mask=document.querySelector('[data-more-mask]');
+  var closeBtn=document.querySelector('[data-more-close]');
+  if(!trigger||!sheet||!mask||!closeBtn) return;
+  function setMore(open){
+    trigger.setAttribute('aria-expanded',open?'true':'false');
+    sheet.setAttribute('aria-hidden',open?'false':'true');
+    sheet.classList.toggle('show',open);
+    mask.classList.toggle('show',open);
+    document.body.classList.toggle('more-open',open);
+    if(open) closeBtn.focus(); else trigger.focus();
+  }
+  trigger.addEventListener('click',function(){setMore(true)});
+  closeBtn.addEventListener('click',function(){setMore(false)});
+  mask.addEventListener('click',function(){setMore(false)});
+  document.addEventListener('keydown',function(event){if(event.key==='Escape'&&sheet.classList.contains('show')) setMore(false)});
+})();
+</script>
 
 
 <div class="sh-mask" id="shMask" onclick="shClose()"></div>
@@ -408,11 +490,24 @@ main,.layout>*,.hotlist>*{min-width:0}
 </div>
 <div class="sh-toast" id="shToast"></div>
 <style>
-.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.sharebtns{display:flex;gap:8px}
-.sbtn{border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;margin-bottom:14px}
+.topbar .back{flex:0 0 auto;white-space:nowrap}
+.sharebtns{display:flex;gap:8px;min-width:0;max-width:100%}
+.sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
+.sbtn svg{flex:0 0 auto}
 .sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .sbtn:active{transform:scale(.95)}
+@media(max-width:960px){
+.topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topbar.detail-context .back{font-size:14px;font-weight:650;color:var(--ink)}
+}
+@media(max-width:600px){
+.topbar{align-items:stretch;flex-direction:column;gap:10px}
+.topbar.detail-context{margin:-20px -14px 14px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
+.sharebtns{width:100%;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.sharebtns .sbtn{padding:7px 11px}
+.sharebtns::-webkit-scrollbar{display:none}
+}
 @media (prefers-color-scheme: dark){
 .sh-group,.sh-cancel{background:rgba(30,33,38,.97)}
 .sh-opt{color:var(--ink);border-bottom-color:var(--line)}
@@ -458,7 +553,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title": "Snowflake 10.25 版发布：多项 SQL 与数据湖能力更新", "summary": "Snowflake 发布 10.25 版本更新，覆盖 SQL 与数据湖能力。会话变量大小限制从 256 字节提升至 16KB，对象定义大小限制从 95KB 提升至 1MB。VARIANT 与结构化类型新增 UUID 和 DECFLOAT 值支持，并推出 FORMAT_STRING_TEMPLATE 函数。Apache Iceberg 表新增 UNKNOWN 数据类型预览支持。", "reason": "Snowflake 官方版本更新直接影响数仓与湖仓实践，本次容量上限提升和 Iceberg 类型支持增强值得数据从业者关注。", "topic": "湖仓", "heat": 40, "source": "Snowflake Release Notes", "date": "2026-08-10", "url": "https://henryhb1105-arch.github.io/datahot/e/eaca584690ea.html"};
+var SH_EV = {"title": "Snowflake 10.25 版发布：多项 SQL 与数据湖能力更新", "summary": "Snowflake 发布 10.25 版本更新，覆盖 SQL 与数据湖能力。会话变量大小限制从 256 字节提升至 16KB，对象定义大小限制从 95KB 提升至 1MB。VARIANT 与结构化类型新增 UUID 和 DECFLOAT 值支持，并推出 FORMAT_STRING_TEMPLATE 函数。Apache Iceberg 表新增 UNKNOWN 数据类型预览支持。", "reason": "Snowflake 官方版本更新直接影响数仓与湖仓实践，本次容量上限提升和 Iceberg 类型支持增强值得数据从业者关注。", "topic": "湖仓", "heat": 38, "source": "Snowflake Release Notes", "date": "2026-08-10", "url": "https://henryhb1105-arch.github.io/datahot/e/eaca584690ea.html"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

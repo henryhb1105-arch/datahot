@@ -46,6 +46,7 @@ ICONS = {
  "sparkle": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>',
  "file": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg>',
  "list": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>',
+ "more": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>',
  "rss": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>',
  "star": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>',
  "bookmark": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg>',
@@ -224,13 +225,30 @@ main,.layout>*,.hotlist>*{min-width:0}
 .hot .hsum{font-size:12.5px;color:var(--txt2);line-height:1.65;margin:6px 0 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .hot .htime{margin-left:auto;font-size:11px;color:var(--sub)}
 .tabbar{display:none}
+.more-mask,.more-sheet{display:none}
 @media(max-width:960px){
   body{padding-bottom:64px}
   footer{padding-bottom:96px}
-  .tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--tabbar-bg);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:70;padding-bottom:env(safe-area-inset-bottom)}
-  .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0 6px;font-size:11px;color:var(--sub);text-decoration:none;gap:2px}
-  .tabbar a .ico{font-size:19px}
-  .tabbar a.on{color:var(--accent);font-weight:600}
+  body.mobile-section{padding-top:env(safe-area-inset-top)}
+  .section-brand-header,.detail-brand-header{display:none}
+  .tabbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));position:fixed;bottom:0;left:0;right:0;background:var(--tabbar-bg);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:70;padding:0 0 env(safe-area-inset-bottom)}
+  .tabbar a,.tabbar button{appearance:none;border:0;background:transparent;min-width:0;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 2px 5px;font:inherit;font-size:11px;color:var(--sub);text-decoration:none;gap:2px;cursor:pointer;touch-action:manipulation}
+  .tabbar .ico{display:grid;place-items:center;height:22px}
+  .tabbar a.on,.tabbar button.on{color:var(--accent);font-weight:650}
+  .more-mask{display:block;position:fixed;inset:0;background:rgba(0,0,0,.42);opacity:0;pointer-events:none;transition:opacity .22s ease;z-index:78}
+  .more-mask.show{opacity:1;pointer-events:auto}
+  .more-sheet{display:block;position:fixed;left:0;right:0;bottom:0;z-index:80;max-height:70vh;overflow:auto;background:var(--card);border-radius:18px 18px 0 0;padding:8px 16px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -14px 40px rgba(0,0,0,.18);transform:translateY(110%);transition:transform .28s cubic-bezier(.32,.72,.35,1)}
+  .more-sheet.show{transform:translateY(0)}
+  .more-handle{width:36px;height:4px;border-radius:99px;background:var(--line);margin:2px auto 12px}
+  .more-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .more-head h2{font-size:18px}
+  .more-close{appearance:none;border:0;background:var(--soft);color:var(--sub);width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer}
+  .more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .more-link{display:flex;align-items:center;gap:11px;min-height:58px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);text-decoration:none;color:var(--ink)}
+  .more-link .more-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent);flex:0 0 auto}
+  .more-link span:last-child{min-width:0;font-size:13px;font-weight:650}
+  .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  body.more-open{overflow:hidden}
 }
 .tgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
 @media(max-width:960px){.tgrid{grid-template-columns:1fr}}
@@ -302,10 +320,54 @@ def tabbar(active, prefix=""):
     items = [("热榜", ic("flame",20), "index.html", "home")]
     if weekly_brief_enabled():
         items.append(("周报", ic("calendar",20), "weekly.html", "weekly"))
-    items += [("主题", ic("map",20), "topics.html", "topics"), ("典藏", ic("bookmark",20), "classics.html", "classics"), ("收藏", ic("star",20), "favorites.html", "favorites"), ("信源", ic("rss",20), "sources.html", "sources")]
-    return ('<nav class="tabbar">' + "".join(
-        f'<a href="{prefix}{u}" class="{"on" if k == active else ""}"><span class="ico">{i}</span>{n}</a>'
-        for n, i, u, k in items) + "</nav>")
+    items.append(("主题", ic("map",20), "topics.html", "topics"))
+    primary = "".join(
+        f'<a href="{prefix}{u}" class="{"on" if k == active else ""}"><span class="ico">{i}</span><span>{n}</span></a>'
+        for n, i, u, k in items)
+    more_items = [
+        ("完整榜单", "list", "hot.html", "hot"),
+        ("典藏", "bookmark", "classics.html", "classics"),
+        ("我的收藏", "star", "favorites.html", "favorites"),
+        ("信源", "rss", "sources.html", "sources"),
+        ("隐私说明", "file", "privacy.html", "privacy"),
+    ]
+    more_keys = {item[3] for item in more_items if item[3] != "hot"}
+    more_on = active in more_keys
+    more_links = "".join(
+        f'<a class="more-link{" on" if key == active else ""}" href="{prefix}{url}">'
+        f'<span class="more-icon">{ic(icon,18)}</span><span>{name}</span></a>'
+        for name, icon, url, key in more_items)
+    return f'''<nav class="tabbar" aria-label="移动端主导航">
+  {primary}
+  <button class="tabbar-more{" on" if more_on else ""}" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico">{ic("more",20)}</span><span>更多</span></button>
+</nav>
+<div class="more-mask" data-more-mask></div>
+<section class="more-sheet" id="mobileMoreSheet" aria-label="更多导航" aria-hidden="true">
+  <div class="more-handle" aria-hidden="true"></div>
+  <div class="more-head"><h2>更多</h2><button class="more-close" type="button" data-more-close aria-label="关闭更多导航">×</button></div>
+  <div class="more-grid">{more_links}</div>
+</section>
+<script>
+(function(){{
+  var trigger=document.querySelector('[data-more-open]');
+  var sheet=document.getElementById('mobileMoreSheet');
+  var mask=document.querySelector('[data-more-mask]');
+  var closeBtn=document.querySelector('[data-more-close]');
+  if(!trigger||!sheet||!mask||!closeBtn) return;
+  function setMore(open){{
+    trigger.setAttribute('aria-expanded',open?'true':'false');
+    sheet.setAttribute('aria-hidden',open?'false':'true');
+    sheet.classList.toggle('show',open);
+    mask.classList.toggle('show',open);
+    document.body.classList.toggle('more-open',open);
+    if(open) closeBtn.focus(); else trigger.focus();
+  }}
+  trigger.addEventListener('click',function(){{setMore(true)}});
+  closeBtn.addEventListener('click',function(){{setMore(false)}});
+  mask.addEventListener('click',function(){{setMore(false)}});
+  document.addEventListener('keydown',function(event){{if(event.key==='Escape'&&sheet.classList.contains('show')) setMore(false)}});
+}})();
+</script>'''
 
 def esc(s):
     return html.escape(s or "", quote=True)
@@ -620,12 +682,12 @@ def render_detail(e, all_events, css, tts_item=None):
 @media(prefers-reduced-motion:reduce){{.tts-player *{{scroll-behavior:auto!important;transition:none!important}}}}
 .disclaimer{{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}}
 .disclaimer a{{color:var(--accent)}}
-</style></head><body data-page="detail" data-event-id="{e["event_id"]}" data-category="{esc(e["category"])}" data-source="{main_src}">
-<header><div class="wrap nav">
+</style></head><body class="mobile-detail" data-page="detail" data-event-id="{e["event_id"]}" data-category="{esc(e["category"])}" data-source="{main_src}">
+<header class="detail-brand-header"><div class="wrap nav">
   <div class="logo"><a href="../index.html">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
 <div class="article">
-  <div class="topbar">
+  <div class="topbar detail-context">
     <a class="back" href="../index.html" style="margin-bottom:0">← 返回热榜</a>
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="{e["event_id"]}" title="收藏">{ic("star",13)}</button>
@@ -694,8 +756,13 @@ def share_ui(e, page_url):
 .sbtn svg{flex:0 0 auto}
 .sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .sbtn:active{transform:scale(.95)}
+@media(max-width:960px){
+.topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topbar.detail-context .back{font-size:14px;font-weight:650;color:var(--ink)}
+}
 @media(max-width:600px){
 .topbar{align-items:stretch;flex-direction:column;gap:10px}
+.topbar.detail-context{margin:-20px -14px 14px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
 .sharebtns{width:100%;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .sharebtns .sbtn{padding:7px 11px}
 .sharebtns::-webkit-scrollbar{display:none}
@@ -973,9 +1040,9 @@ def page_shell(title, desc, css, body, tabbar_html, prefix="", active=""):
 {analytics_head(prefix)}
 <style>{css}
 {SHARED_CSS}
-</style></head><body class="has-sb">
+</style></head><body class="has-sb mobile-section" data-nav-active="{esc(active)}">
 {sidebar(active, prefix=prefix)}
-<header><div class="wrap nav">
+<header class="section-brand-header"><div class="wrap nav">
   <div class="logo"><a href="{prefix}index.html" style="text-decoration:none">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
 {body}
@@ -1072,7 +1139,7 @@ def render_sources_page(events, payload, css):
   <div class="srow-sub">{audit}</div>
   <div class="srow-sub">最近成功 {last_ok} · {last_filter}</div>
   <div class="snote">调度 {schedule}</div>
-  {focus_html}{err}{recommendation}{note}
+{focus_html}{err}{recommendation}{note}
 </div>'''})
 
     order = {"fail": 0, "warn": 1, "off": 2, "ok": 3}
@@ -1233,7 +1300,7 @@ def render_favorites_page(css, data_url="data/latest-lite.json"):
 })();
 </script>"""
     body = body.replace("__DATA_URL__", esc(data_url))
-    return page_shell("我的收藏 · DataHot", "你收藏的数据领域资讯", css, body, tabbar(""), prefix="", active="favorites")
+    return page_shell("我的收藏 · DataHot", "你收藏的数据领域资讯", css, body, tabbar("favorites"), prefix="", active="favorites")
 
 
 def load_weekly_brief(path=None):
@@ -1431,7 +1498,7 @@ def render_privacy_page(css):
 </div>'''
     return page_shell(
         "隐私与匿名统计 · DataHot", "DataHot 的隐私友好匿名统计说明与关闭开关",
-        css, body, tabbar(""), prefix="", active="privacy",
+        css, body, tabbar("privacy"), prefix="", active="privacy",
     )
 
 def write_detail_pages(all_events, css, detail_dir=None, tts_manifest=None, site_root=SITE):
@@ -1626,10 +1693,10 @@ def main():
 .hot a:hover{{color:var(--accent)}}
 #ptr{{position:fixed;top:0;left:0;right:0;height:0;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;background:var(--bg);z-index:60;transition:height .12s ease-out}}
 #ptr span{{font-size:12.5px;color:var(--sub);padding-bottom:8px}}
-</style></head><body class="has-sb" data-page="home">
+</style></head><body class="has-sb home-page" data-page="home">
 {sidebar("home", gen)}
 <div id="ptr"><span>下拉刷新</span></div>
-<header><div class="wrap nav">
+<header class="home-header"><div class="wrap nav">
   <div class="logo">Data<em>Hot</em><span class="tag">每 6 小时更新</span></div>
   <span class="upd-time">{ic("clock",12)} {gen.strftime("%m-%d %H:%M")} 更新</span>
   {weekly_header_link}

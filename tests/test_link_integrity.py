@@ -2,6 +2,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -74,6 +75,38 @@ class LinkCheckerTests(unittest.TestCase):
 
 
 class BuildPathRegressionTests(unittest.TestCase):
+    def test_mobile_navigation_has_four_primary_slots_and_more_sheet(self):
+        with patch.dict(build_site.os.environ, {"WEEKLY_BRIEF_ENABLED": "true"}, clear=False):
+            markup = build_site.tabbar("home")
+        primary = markup.split("</nav>", 1)[0]
+        self.assertEqual(primary.count("<a "), 3)
+        self.assertEqual(primary.count("<button "), 1)
+        self.assertIn("<span>热榜</span>", primary)
+        self.assertIn("<span>周报</span>", primary)
+        self.assertIn("<span>主题</span>", primary)
+        self.assertIn("<span>更多</span>", primary)
+        for label in ("完整榜单", "典藏", "我的收藏", "信源", "隐私说明"):
+            self.assertIn(label, markup)
+
+    def test_more_pages_highlight_more_tab(self):
+        favorites = build_site.tabbar("favorites")
+        self.assertIn('class="tabbar-more on"', favorites)
+        self.assertIn('class="more-link on" href="favorites.html"', favorites)
+        self.assertNotIn('class="tabbar-more on"', build_site.tabbar("home"))
+
+    def test_section_and_detail_use_mobile_context_headers(self):
+        section = build_site.page_shell(
+            "Topic", "Desc", "", "<main></main>",
+            build_site.tabbar("topics"), active="topics",
+        )
+        self.assertIn('class="has-sb mobile-section"', section)
+        self.assertIn('class="section-brand-header"', section)
+
+        detail = build_site.render_detail(event("detail-event"), [event("detail-event")], "")
+        self.assertIn('class="mobile-detail"', detail)
+        self.assertIn('class="detail-brand-header"', detail)
+        self.assertIn('class="topbar detail-context"', detail)
+
     def test_nested_page_sidebar_uses_page_prefix(self):
         page = build_site.page_shell(
             "Topic", "Desc", "", "<main></main>",

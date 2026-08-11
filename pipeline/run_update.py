@@ -13,6 +13,9 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 from llm_usage import LLMBudgetExceeded, LLMUsageTracker
 from candidate_cache import CandidateCache, candidate_content_hash
+from source_controls import (
+    prefilter_entries, source_candidate_limit, source_control_snapshot, source_due,
+)
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
@@ -734,6 +737,8 @@ def main():
 
     DATA.mkdir(parents=True, exist_ok=True); ARCHIVE.mkdir(parents=True, exist_ok=True)
     latest_path = DATA / "latest.json"
+    ss_path = DATA / "sources_status.json"
+    ss = json.load(open(ss_path)) if ss_path.exists() else {}
     events = []
     if latest_path.exists():
         old = json.load(open(latest_path))
@@ -752,6 +757,15 @@ def main():
 
     new_items, source_status = [], []
     for s in sources:
+        control = source_control_snapshot(s)
+        due, schedule_reason = source_due(s, ss.get(s["name"], {}), now)
+        if not due:
+            source_status.append({
+                "name": s["name"], "ok": True, "new": 0, "skipped": True,
+                "skip_reason": schedule_reason, "control": control,
+            })
+            print(f"[schedule] {s['name']:28s} 跳过（{schedule_reason}）")
+            continue
         try:
             if s.get("kind") == "hn_algolia":
                 entries = fetch_hn_algolia(s)
@@ -763,12 +777,15 @@ def main():
                 entries = fetch_snowflake_rn(s)
             else:
                 entries = parse_feed(fetch_feed(s["url"]), s)
+            entries, filter_stats = prefilter_entries(entries, s, now)
+            candidate_limit = source_candidate_limit(s, PER_SOURCE_MAX)
             kept = 0
+            skipped_seen = 0
+            limit_reached = False
             for e in entries:
-                if e["published"] and e["published"] < cutoff:
-                    continue
                 iid = hashlib.md5(e["link"].encode()).hexdigest()[:12]
                 if iid in seen:
+                    skipped_seen += 1
                     continue
                 nurl = norm_url(e["link"])
                 if nurl in seen_urls:
@@ -785,7 +802,11 @@ def main():
                     elif nurl in new_by_url:
                         prev = new_by_url[nurl]
                         prev["signal"] = prev.get("signal", 0) + e.get("signal", 0)
+                    skipped_seen += 1
                     continue
+                if kept >= candidate_limit:
+                    limit_reached = True
+                    break
                 seen.add(iid); seen_urls.add(nurl)
                 pub_dt = e["published"] or now
                 if pub_dt > now + timedelta(hours=2):  # 信源排期导致的未来时间 → 钳到抓取时间
@@ -809,10 +830,26 @@ def main():
                 })
                 new_by_url[nurl] = new_items[-1]
                 kept += 1
-            source_status.append({"name": s["name"], "ok": True, "new": kept})
-            print(f"[fetch] {s['name']:28s} 新增 {kept} 条")
+            source_status.append({
+                "name": s["name"], "ok": True, "new": kept,
+                "fetched": filter_stats["fetched"],
+                "eligible": filter_stats["eligible"],
+                "prefiltered": filter_stats["prefiltered"],
+                "prefilter_dropped": filter_stats["dropped"],
+                "skipped_seen": skipped_seen,
+                "limit_reached": limit_reached,
+                "schedule_reason": schedule_reason,
+                "control": control,
+            })
+            print(
+                f"[fetch] {s['name']:28s} 原始 {filter_stats['fetched']} | "
+                f"预筛后 {filter_stats['eligible']} | 新增 {kept}"
+            )
         except Exception as e:
-            source_status.append({"name": s["name"], "ok": False, "error": str(e)})
+            source_status.append({
+                "name": s["name"], "ok": False, "error": str(e),
+                "schedule_reason": schedule_reason, "control": control,
+            })
             print(f"[fetch] {s['name']:28s} 失败: {e}")
 
     # F5+：全部新条目抓原文正文（用于摘要质量 + AI 全文编译），并发执行
@@ -842,19 +879,59 @@ def main():
     # 信源状态持久化：连续失败计数 + 抓取/入选计数（入选率 = 信源质量记分牌）
     from collections import Counter as _Counter
     accepted = _Counter(it["source"] for it in new_items)
-    ss_path = DATA / "sources_status.json"
-    ss = json.load(open(ss_path)) if ss_path.exists() else {}
     now_iso = now.astimezone(TZ).isoformat()
+    llm_by_source = LLM_USAGE.snapshot().get("by_source", {})
     for st in source_status:
         rec = ss.get(st["name"], {})
         rec["last_run"] = now_iso
         rec["ok"] = st["ok"]
+        rec["control"] = st.get("control", {})
+        rec["last_schedule_reason"] = st.get("skip_reason") or st.get("schedule_reason", "")
+        if st.get("skipped"):
+            rec["last_skipped"] = now_iso
+            rec["last_new"] = 0
+            rec["last_model_calls"] = 0
+            rec["last_model_tokens"] = 0
+            ss[st["name"]] = rec
+            continue
+        rec["last_attempt"] = now_iso
         if st["ok"]:
             rec["last_ok"] = now_iso
+            rec["last_fetch"] = now_iso
             rec["fails"] = 0
             rec["total_fetched"] = rec.get("total_fetched", 0) + st.get("new", 0)
             rec["total_accepted"] = rec.get("total_accepted", 0) + accepted.get(st["name"], 0)
+            rec["total_raw_entries"] = rec.get("total_raw_entries", 0) + st.get("fetched", 0)
+            rec["total_prefiltered"] = rec.get("total_prefiltered", 0) + st.get("prefiltered", 0)
             rec["last_new"] = st.get("new", 0)
+            rec["last_raw_entries"] = st.get("fetched", 0)
+            rec["last_eligible"] = st.get("eligible", 0)
+            rec["last_prefiltered"] = st.get("prefiltered", 0)
+            rec["last_prefilter_dropped"] = st.get("prefilter_dropped", {})
+            rec["last_skipped_seen"] = st.get("skipped_seen", 0)
+            rec["last_limit_reached"] = bool(st.get("limit_reached"))
+            usage = llm_by_source.get(st["name"], {})
+            rec["last_model_calls"] = int(usage.get("calls", 0))
+            rec["last_model_tokens"] = int(usage.get("total_tokens", 0))
+            rec["total_model_calls"] = rec.get("total_model_calls", 0) + rec["last_model_calls"]
+            rec["total_model_tokens"] = rec.get("total_model_tokens", 0) + rec["last_model_tokens"]
+            accepted_now = accepted.get(st["name"], 0)
+            rec["last_accepted"] = accepted_now
+            if st.get("new", 0) > 0 and accepted_now == 0:
+                rec["zero_accept_streak"] = rec.get("zero_accept_streak", 0) + 1
+            elif accepted_now > 0:
+                rec["zero_accept_streak"] = 0
+            total_candidates = rec.get("total_fetched", 0)
+            rec["acceptance_rate"] = (
+                round(rec.get("total_accepted", 0) / total_candidates, 4)
+                if total_candidates else 0
+            )
+            if rec.get("zero_accept_streak", 0) >= 3:
+                rec["recommendation"] = (
+                    f"连续 {rec['zero_accept_streak']} 轮零采用，建议增大抓取间隔或收紧预筛；不自动停用"
+                )
+            else:
+                rec.pop("recommendation", None)
         else:
             rec["fails"] = rec.get("fails", 0) + 1
             rec["error"] = st.get("error", "")[:120]

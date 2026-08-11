@@ -49,6 +49,12 @@ GitHub Actions 每 6 小时自动运行（UTC 0/6/12/18 第 17 分），数据�
 
 达到上限时会在 API 请求前停止新调用，不影响已采集原文的保留和静态站点构建。候选缓存会原子写入 `site/data/candidate_cache.json`；同 URL、同内容、同模型与规则版本在 TTL 内不会重复调用相关性模型。
 
+### 信源调度与预筛
+
+`pipeline/sources.json` 支持为每个信源独立配置 `fetch_interval_hours`、`max_candidates_per_run`、`lookback_days`、`require_published`、`path_include/path_exclude` 和 `include_keywords/exclude_keywords`。删除这些可选字段即回退到每 6 小时、单轮 20 条、7 天窗口、无关键词限制的默认行为。手动补数时可临时设置 `FORCE_SOURCE_FETCH=true` 绕过分频，不会改写信源配置。
+
+每轮的调度原因、预筛数、候选数、采用率、模型调用数和 Token 会写入 `site/data/sources_status.json`。连续三轮有候选但零采用时只记录降频建议，不会自动停用或删除信源。
+
 ## 内容声明
 
 本站仅聚合各信源的摘要与原文链接，不转载全文，版权归原作者所有。

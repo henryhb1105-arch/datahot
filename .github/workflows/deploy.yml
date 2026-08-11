@@ -1,0 +1,70 @@
+name: DataHot 源码发布
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "pipeline/**"
+      - "ui-mockup/**"
+      - "site/icons/**"
+      - "site/favicon.ico"
+      - "requirements.txt"
+      - ".github/workflows/deploy.yml"
+      - ".github/workflows/update.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: datahot-publish
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 密钥泄露扫描
+        run: |
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.24.0/gitleaks_8.24.0_linux_x64.tar.gz | tar xz gitleaks
+          ./gitleaks git --verbose .
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 安装构建依赖
+        run: python3 -m pip install --require-hashes -r requirements.txt
+
+      - name: 回归测试
+        run: |
+          python3 -m unittest discover -s tests -v
+          node --test tests/analytics.test.js tests/home.test.js
+
+      - name: 生成静态站并校验链接
+        env:
+          ANALYTICS_ENABLED: ${{ vars.ANALYTICS_ENABLED || 'false' }}
+          ANALYTICS_ENDPOINT: ${{ vars.ANALYTICS_ENDPOINT }}
+          ANALYTICS_SITE_ID: ${{ vars.ANALYTICS_SITE_ID || 'datahot' }}
+          ANALYTICS_ENV: "production"
+          ANALYTICS_PRODUCTION_HOST: "henryhb1105-arch.github.io"
+          DAILY_BRIEF_ENABLED: ${{ vars.DAILY_BRIEF_ENABLED || 'true' }}
+          FEED_ENABLED: ${{ vars.FEED_ENABLED || 'true' }}
+          LITE_HOME_ENABLED: ${{ vars.LITE_HOME_ENABLED || 'true' }}
+        run: |
+          python3 pipeline/build_site.py
+          python3 pipeline/check_links.py site
+
+      - name: 发布到 GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site

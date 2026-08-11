@@ -17,6 +17,7 @@ RSS/API 采集 ──► LLM 加工（DeepSeek）──► latest.json ──►
 - `pipeline/check_links.py` — 全站本地 `href/src` 完整性检查（失效链接会阻断构建）
 - `pipeline/config.json` — 本地 LLM 密钥（**已 gitignore，不要提交**）
 - `.github/workflows/update.yml` — 每 6 小时定时运行 + 自动发布 Pages
+- `.github/workflows/deploy.yml` — 源码合并后只构建/测试/发布，不调用 DeepSeek
 
 ## 本地运行
 

@@ -102,6 +102,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .slow{color:var(--amber);font-weight:700}
 .serr{font-size:11px;color:var(--accent);margin-top:3px}
 .snote{font-size:11px;color:var(--sub);margin-top:3px}
+.srec{font-size:11px;color:var(--amber);margin-top:3px;font-weight:650}
 .sys-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .ssub{font-size:12.5px;color:var(--sub)}
 .act{cursor:pointer}
@@ -775,6 +776,31 @@ def render_sources_page(events, payload, css):
         last_ok = rec.get("last_ok", "")[5:16].replace("T", " ") if rec.get("last_ok") else "—"
         err = f'<div class="serr">{esc(rec.get("error",""))}</div>' if rec.get("error") and st in ("fail", "warn") else ""
         note = f'<div class="snote">{esc(src.get("note",""))}</div>' if src.get("note") else ""
+        recommendation = (
+            f'<div class="srec">{esc(rec["recommendation"])}</div>'
+            if rec.get("recommendation") else ""
+        )
+        control = rec.get("control") or {
+            "tier": src.get("tier", "default"),
+            "fetch_interval_hours": src.get("fetch_interval_hours", 6),
+            "max_candidates_per_run": src.get("max_candidates_per_run", 20),
+        }
+        model_calls = rec.get("total_model_calls", 0)
+        model_tokens = rec.get("total_model_tokens", 0)
+        audit = (
+            f'候选 {fetched} · 采用 {acc} · {rate_txt}{low} · '
+            f'模型 {model_calls} 次 / {model_tokens:,} Token'
+        )
+        last_filter = (
+            f'上轮原始 {rec.get("last_raw_entries", 0)} · '
+            f'预筛 {rec.get("last_prefiltered", 0)} · '
+            f'新候选 {rec.get("last_new", 0)}'
+        )
+        schedule = (
+            f'{control.get("tier", "default")} · '
+            f'{control.get("fetch_interval_hours", 6):g}小时/轮 · '
+            f'上限 {control.get("max_candidates_per_run", 20)}'
+        )
         rows.append({
             "st": st, "html": f'''<div class="srow">
   <div class="srow-top">
@@ -783,8 +809,10 @@ def render_sources_page(events, payload, css):
     <span class="sstat {'st-'+st}">{st_txt}</span>
     <span class="scount">在站 {insite.get(src["name"], 0)} 条</span>
   </div>
-  <div class="srow-sub">最近成功 {last_ok} · 上次新增 {rec.get("last_new", 0)} · {rate_txt}{low}</div>
-  {err}{note}
+  <div class="srow-sub">{audit}</div>
+  <div class="srow-sub">最近成功 {last_ok} · {last_filter}</div>
+  <div class="snote">调度 {schedule}</div>
+  {err}{recommendation}{note}
 </div>'''})
 
     order = {"fail": 0, "warn": 1, "off": 2, "ok": 3}

@@ -303,6 +303,12 @@ class WeeklyBriefSelectionTests(unittest.TestCase):
 
 
 class WeeklySignalValidationTests(unittest.TestCase):
+    def test_schema_length_error_reports_actual_and_allowed_length(self):
+        errors = validate_json_schema(
+            "甲" * 81, {"type": "string", "maxLength": 80}, "$.bottom_line",
+        )
+        self.assertEqual(errors, ["$.bottom_line: string is too long (81>80)"])
+
     def test_schema_rejects_extra_text_fields(self):
         response = public_response([event(i) for i in range(4)])
         response["commentary"] = "JSON 前后说明不应进入对象"

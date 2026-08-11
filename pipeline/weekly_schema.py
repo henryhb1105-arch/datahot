@@ -162,10 +162,13 @@ def validate_json_schema(value, schema, path="$", *, errors=None):
 
     if isinstance(value, str):
         if len(value) < int(schema.get("minLength", 0)):
-            errors.append(f"{path}: string is too short")
+            errors.append(
+                f"{path}: string is too short "
+                f"({len(value)}<{int(schema.get('minLength', 0))})"
+            )
         maximum = schema.get("maxLength")
         if maximum is not None and len(value) > int(maximum):
-            errors.append(f"{path}: string is too long")
+            errors.append(f"{path}: string is too long ({len(value)}>{int(maximum)})")
         pattern = schema.get("pattern")
         if pattern and not re.fullmatch(pattern, value):
             errors.append(f"{path}: string does not match pattern")

@@ -155,6 +155,20 @@ class TTSDetailRenderingTests(unittest.TestCase):
         page = build_site.render_detail(event_fixture(), [event_fixture()], "", tts_item=unsafe)
         self.assertNotIn("data-tts-open", page)
 
+    def test_narrow_detail_actions_stay_single_line_and_scroll(self):
+        item = {
+            "status": "ready",
+            "audio_path": "audio/2026/08/0123456789ab-aaaaaaaaaaaa.mp3",
+            "duration_seconds": 58,
+        }
+        page = build_site.render_detail(event_fixture(), [event_fixture()], "", tts_item=item)
+        self.assertIn(".topbar .back{flex:0 0 auto;white-space:nowrap}", page)
+        self.assertIn("flex:0 0 auto;white-space:nowrap", page)
+        self.assertIn(".topbar{align-items:stretch;flex-direction:column;gap:10px}", page)
+        self.assertIn(".sharebtns{width:100%;gap:6px;overflow-x:auto", page)
+        self.assertIn(".sharebtns .sbtn{padding:7px 11px}", page)
+        self.assertIn(".sharebtns::-webkit-scrollbar{display:none}", page)
+
 
 if __name__ == "__main__":
     unittest.main()

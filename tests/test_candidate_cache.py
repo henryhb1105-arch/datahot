@@ -41,7 +41,7 @@ class CandidateCacheTests(unittest.TestCase):
     def test_content_hash_ignores_whitespace_but_detects_changes(self):
         first = {"title": "A  title", "summary": "one\n two", "article_text": "body"}
         same = {"title": "A title", "summary": "one two", "article_text": "body"}
-        changed = {**same, "article_text": "new body"}
+        changed = {**same, "summary": "changed summary"}
         self.assertEqual(candidate_content_hash(first), candidate_content_hash(same))
         self.assertNotEqual(candidate_content_hash(first), candidate_content_hash(changed))
 

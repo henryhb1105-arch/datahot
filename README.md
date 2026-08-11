@@ -95,6 +95,23 @@ GitHub Actions 每 6 小时自动运行（UTC 0/6/12/18 第 17 分），数据�
 
 站点构建会生成 [`feed.xml`](https://henryhb1105-arch.github.io/datahot/feed.xml)，并在所有页面 `<head>` 声明 `application/atom+xml` 自动发现入口。每条 Feed 只包含 DataHot 标题、摘要、稳定详情链接、时间、分类和首要信源，不嵌入第三方全文、图片或任意 HTML。构建会校验 XML、HTTPS 绝对链接、稳定唯一 ID 和对应详情文件；设置 `FEED_ENABLED=false` 可停止生成并移除自动发现声明。
 
+### 本地精华朗读
+
+详情页可读取 `site/data/tts-manifest.json`，只在同站点 MP3 已生成且路径通过白名单校验时显示“听这篇”。朗读稿由 `pipeline/tts_text.py` 从标题、摘要、推荐理由和正文关键段落确定性提取，自动排除 URL、代码、表格、来源列表与免责声明，不调用 DeepSeek。`pipeline/tts_generate.py --dry-run` 可在没有语音模型的机器上检查待生成队列。
+
+正式音频由带 `datahot-tts` 标签的 Mac mini self-hosted runner 使用本地 Qwen3-TTS Base 模型生成。工作流默认由 `TTS_RUNNER_ENABLED=false` 关闭；启用前需要在 runner 本机准备 Python 环境、模型、已确认的 `datahot-anchor-v1` 参考音频和准确文本，并配置：
+
+- `TTS_RUNNER_ENABLED=true`
+- `TTS_PYTHON`：本地 Qwen TTS 虚拟环境 Python 的绝对路径
+- `TTS_MODEL_PATH`：本地 Qwen3-TTS Base 模型目录
+- `TTS_REFERENCE_AUDIO` / `TTS_REFERENCE_TEXT_FILE`：参考音频与逐字稿
+- `TTS_MAX_EVENTS_PER_RUN`：单轮上限，默认 `8`
+- `TTS_MAX_CHARACTERS`：单篇字符上限，默认 `350`
+- `TTS_RETENTION_DAYS`：音频保留期，默认 `30`
+- `TTS_AUDIO_BITRATE`：默认 `64k`
+
+Mac runner 只有仓库内容写权限，不拥有部署控制权；它提交 MP3 与 manifest 后，由下一轮既有定时更新发布到 Pages。生成失败不会阻塞文字站点，缺少 ready 音频的页面不会渲染播放器。将 `TTS_RUNNER_ENABLED=false` 可停止新音频任务。
+
 ## 内容声明
 
 本站仅聚合各信源的摘要与原文链接，不转载全文，版权归原作者所有。

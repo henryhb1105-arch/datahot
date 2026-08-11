@@ -8,6 +8,8 @@ on:
       - "ui-mockup/**"
       - "site/icons/**"
       - "site/favicon.ico"
+      - "site/audio/**"
+      - "site/data/tts-manifest.json"
       - "requirements.txt"
       - ".github/workflows/deploy.yml"
       - ".github/workflows/update.yml"
@@ -47,7 +49,7 @@ jobs:
       - name: 回归测试
         run: |
           python3 -m unittest discover -s tests -v
-          node --test tests/analytics.test.js tests/home.test.js
+          node --test tests/analytics.test.js tests/home.test.js tests/tts-player.test.js
 
       - name: 生成静态站并校验链接
         env:

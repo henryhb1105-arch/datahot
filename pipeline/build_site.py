@@ -22,6 +22,8 @@ TOPIC_DIR = SITE / "topics"
 WEEKLY_DIR = SITE / "weekly"
 ANALYTICS_ASSET = ROOT / "pipeline" / "assets" / "analytics.js"
 HOME_ASSET = ROOT / "pipeline" / "assets" / "home.js"
+TTS_ASSET = ROOT / "pipeline" / "assets" / "tts-player.js"
+TTS_MANIFEST = SITE / "data" / "tts-manifest.json"
 TZ = timezone(timedelta(hours=8))
 CAT_BADGE = {"agent": "b-agent", "platform": "b-platform", "bi": "b-bi", "product": "b-product"}
 CAT_LABEL = {"agent": "Data Agent", "platform": "AI 数据平台", "bi": "BI 与可视化", "product": "数据产品"}
@@ -46,6 +48,7 @@ ICONS = {
  "rss": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>',
  "star": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>',
  "bookmark": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg>',
+ "headphones": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><path d="M18 19h1a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-1v6zM6 19H5a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h1v6z"/></svg>',
 }
 def ic(name, size=15):
     return ICONS[name].replace("<svg ", '<svg width="{}" height="{}" style="vertical-align:-2px" aria-hidden="true" '.format(size, size))
@@ -385,7 +388,62 @@ def human_time(iso):
     h = delta.seconds // 3600
     return f"{h} 小时前" if h >= 1 else "刚刚"
 
-def render_detail(e, all_events, css):
+TTS_AUDIO_PATH_RE = re.compile(
+    r"^audio/\d{4}/\d{2}/[a-f0-9]{12}-[a-f0-9]{12,64}\.mp3$"
+)
+
+
+def load_tts_manifest(path=TTS_MANIFEST):
+    path = Path(path)
+    if not path.exists():
+        return {"items": {}}
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {"items": {}}
+    return payload if isinstance(payload, dict) and isinstance(payload.get("items"), dict) else {"items": {}}
+
+
+def tts_item_for_event(manifest, event_id, site_root=SITE):
+    item = manifest.get("items", {}).get(event_id) if isinstance(manifest, dict) else None
+    if not isinstance(item, dict) or item.get("status") != "ready":
+        return None
+    audio_path = str(item.get("audio_path") or "")
+    if not TTS_AUDIO_PATH_RE.fullmatch(audio_path) or not (Path(site_root) / audio_path).is_file():
+        return None
+    return item
+
+
+def render_tts_ui(item):
+    if not isinstance(item, dict) or item.get("status") != "ready":
+        return "", "", ""
+    audio_path = str(item.get("audio_path") or "")
+    if not TTS_AUDIO_PATH_RE.fullmatch(audio_path):
+        return "", "", ""
+    try:
+        duration = max(0, int(round(float(item.get("duration_seconds") or 0))))
+    except (TypeError, ValueError):
+        duration = 0
+    button = (
+        '<button class="sbtn ghost tts-open" type="button" data-tts-open '
+        'aria-expanded="false" aria-controls="ttsPlayer">'
+        f'{ic("headphones",13)} <span data-tts-open-label>听这篇</span></button>'
+    )
+    player = f'''<section class="tts-player" id="ttsPlayer" data-tts-player data-duration="{duration}" hidden aria-label="文章精华朗读">
+  <audio data-tts-audio preload="metadata" src="../{esc(audio_path)}"></audio>
+  <div class="tts-copy"><b>DataHot 主播</b><span data-tts-status>约 {max(1, round(duration / 60))} 分钟精华朗读</span></div>
+  <button class="tts-toggle" type="button" data-tts-toggle aria-label="播放朗读">播放</button>
+  <input class="tts-progress" type="range" data-tts-progress min="0" max="{duration}" value="0" step="0.1" aria-label="朗读进度">
+  <span class="tts-time" data-tts-time>0:00 / {duration // 60}:{duration % 60:02d}</span>
+  <label class="tts-rate-label">语速<select data-tts-rate aria-label="朗读语速">
+    <option value="1">1.0×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option>
+  </select></label>
+</section>'''
+    return button, player, '<script defer src="../tts-player.js"></script>'
+
+
+def render_detail(e, all_events, css, tts_item=None):
+    tts_button, tts_player, tts_script = render_tts_ui(tts_item)
     ebg = title_bigrams(e["zh_title"])
     related = sorted(
         (x for x in all_events if x["event_id"] != e["event_id"]),
@@ -512,6 +570,18 @@ def render_detail(e, all_events, css):
 .fulltext h5.fh{{font-size:15px;font-weight:800;color:var(--ink);margin:20px 0 8px;padding-left:10px;border-left:3px solid var(--accent)}}
 .fulltext p.fwarn{{font-size:12.5px;color:var(--amber);background:var(--accent-soft);border-radius:8px;padding:8px 12px}}
 .fulltext p{{font-size:15px;line-height:1.95;color:var(--txt3);margin:0 0 14px}}
+.tts-player{{display:grid;grid-template-columns:auto auto minmax(120px,1fr) auto auto;align-items:center;gap:10px 12px;background:linear-gradient(135deg,var(--card),var(--soft));border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:2px 0 18px}}
+.tts-player[hidden]{{display:none}}
+.tts-copy{{display:flex;flex-direction:column;min-width:112px;line-height:1.35}}
+.tts-copy b{{font-size:12.5px;color:var(--ink)}}
+.tts-copy span{{font-size:10.5px;color:var(--sub);margin-top:2px}}
+.tts-toggle{{border:0;border-radius:99px;background:var(--ink);color:var(--card);font-size:12px;font-weight:750;padding:7px 13px;cursor:pointer;min-width:58px}}
+.tts-progress{{width:100%;accent-color:var(--accent);cursor:pointer}}
+.tts-time{{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}}
+.tts-rate-label{{font-size:10.5px;color:var(--sub);display:flex;align-items:center;gap:4px}}
+.tts-rate-label select{{border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--ink);font-size:11px;padding:4px 5px}}
+@media(max-width:600px){{.tts-player{{grid-template-columns:1fr auto auto;gap:9px;padding:11px 12px}}.tts-copy{{grid-column:1/-1;grid-row:1;flex-direction:row;align-items:baseline;gap:8px}}.tts-toggle{{grid-column:1;grid-row:2}}.tts-time{{grid-column:2;grid-row:2}}.tts-rate-label{{grid-column:3;grid-row:2}}.tts-progress{{grid-column:1/-1;grid-row:3}}}}
+@media(prefers-reduced-motion:reduce){{.tts-player *{{scroll-behavior:auto!important;transition:none!important}}}}
 .disclaimer{{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}}
 .disclaimer a{{color:var(--accent)}}
 </style></head><body data-page="detail" data-event-id="{e["event_id"]}" data-category="{esc(e["category"])}" data-source="{main_src}">
@@ -523,6 +593,7 @@ def render_detail(e, all_events, css):
     <a class="back" href="../index.html" style="margin-bottom:0">← 返回热榜</a>
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="{e["event_id"]}" title="收藏">{ic("star",13)}</button>
+{("      " + tts_button) if tts_button else ""}
       <a class="sbtn ghost" href="{main_link}" target="_blank" rel="noopener" data-analytics="outbound" data-source="{main_src}">{ic("arrow",13)} 原文</a>
       <button class="sbtn ghost" onclick="openPoster()">{ic("image",13)} 海报</button>
       <button class="sbtn" onclick="openSheet()">{ic("share",13)} 分享</button>
@@ -537,6 +608,7 @@ def render_detail(e, all_events, css):
     <span style="margin-left:auto" class="heatnum">{ic("flame",13)} {e["heat"]}</span>
   </div>
   <h1>{esc(e["zh_title"])}</h1>
+{("  " + tts_player) if tts_player else ""}
   <div class="body">{esc(e["zh_summary"])}</div>
   {f'<div class="why"><span><span class="w">{ic("sparkle",13)} 推荐理由：</span>{esc(clean_reason(e["reason"]))}</span></div>' if e.get("reason") else ""}
   {f'<div class="vendors" style="margin-top:14px">{vtags}</div>' if vtags else ""}
@@ -546,6 +618,7 @@ def render_detail(e, all_events, css):
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 {tabbar("home", "../")}
+{tts_script}
 </body></html>'''
     return page.replace("</body></html>", share_ui(e, page_url) + "</body></html>")
 
@@ -1292,16 +1365,20 @@ def render_privacy_page(css):
         css, body, tabbar(""), prefix="", active="privacy",
     )
 
-def write_detail_pages(all_events, css, detail_dir=None):
+def write_detail_pages(all_events, css, detail_dir=None, tts_manifest=None, site_root=SITE):
     """All events retained in latest.json keep a stable detail page."""
     detail_dir = Path(detail_dir) if detail_dir is not None else DETAIL_DIR
     detail_dir.mkdir(parents=True, exist_ok=True)
     valid_ids = set()
+    tts_manifest = tts_manifest or {"items": {}}
     for event in all_events:
         filename = event["event_id"] + ".html"
         valid_ids.add(filename)
         (detail_dir / filename).write_text(
-            render_detail(event, all_events, css), encoding="utf-8",
+            render_detail(
+                event, all_events, css,
+                tts_item=tts_item_for_event(tts_manifest, event["event_id"], site_root=site_root),
+            ), encoding="utf-8",
         )
     for path in detail_dir.glob("*.html"):
         if path.name not in valid_ids:
@@ -1311,10 +1388,11 @@ def write_detail_pages(all_events, css, detail_dir=None):
 
 def main():
     SITE.mkdir(parents=True, exist_ok=True)
-    if not ANALYTICS_ASSET.exists() or not HOME_ASSET.exists():
+    if not ANALYTICS_ASSET.exists() or not HOME_ASSET.exists() or not TTS_ASSET.exists():
         raise FileNotFoundError("missing browser asset")
     shutil.copyfile(ANALYTICS_ASSET, SITE / "analytics.js")
     shutil.copyfile(HOME_ASSET, SITE / "home.js")
+    shutil.copyfile(TTS_ASSET, SITE / "tts-player.js")
     payload = json.load(open(SITE / "data" / "latest.json"))
     all_events = payload["events"]
     qualified_events = [event for event in all_events if is_list_eligible(event)]
@@ -1361,7 +1439,9 @@ def main():
     print(f"[lite] latest.json {full_bytes:,} B → latest-lite.json {len(lite_bytes):,} B（减少 {reduction}%）")
 
     # ── 详情页 ──
-    valid_ids = write_detail_pages(all_events, css)
+    valid_ids = write_detail_pages(
+        all_events, css, tts_manifest=load_tts_manifest(), site_root=SITE,
+    )
 
     # ── Atom 1.0 Feed：只包含 DataHot 摘要与稳定站内详情链接 ──
     feed_path = SITE / "feed.xml"

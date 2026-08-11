@@ -13,6 +13,7 @@ RSS/API 采集 ──► LLM 加工（DeepSeek）──► latest.json ──►
 - `pipeline/sources.json` — 信源配置（`enabled: false` 的为待解封源）
 - `pipeline/run_update.py` — 采集 / 过滤 / LLM 加工 / 打分 / 数据输出
 - `pipeline/build_site.py` — 静态页面渲染
+- `pipeline/check_links.py` — 全站本地 `href/src` 完整性检查（失效链接会阻断构建）
 - `pipeline/config.json` — 本地 LLM 密钥（**已 gitignore，不要提交**）
 - `.github/workflows/update.yml` — 每 6 小时定时运行 + 自动发布 Pages
 
@@ -24,6 +25,9 @@ cp pipeline/.env.example pipeline/config.json
 
 # 2. 更新数据并生成站点
 python3 pipeline/run_update.py && python3 pipeline/build_site.py
+
+# 可独立复查已生成站点；有效率必须为 100%
+python3 pipeline/check_links.py site
 
 # 3. 本地预览
 cd site && npm run dev   # 或 python3 -m http.server

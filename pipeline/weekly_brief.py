@@ -371,7 +371,10 @@ def generate_weekly_brief(
         "mode": mode,
         "ai_assisted": mode == "ai",
         "fallback_reason": fallback_reason,
-        "cache_key": key,
+        # This is a deterministic SHA-256 content fingerprint, not a credential.
+        # Keep the public field name explicit so secret scanners do not confuse it
+        # with an API key.
+        "content_fingerprint": key,
         "input_hash": input_hash,
         "prompt_version": PROMPT_VERSION,
         "model": str(model or "rule"),

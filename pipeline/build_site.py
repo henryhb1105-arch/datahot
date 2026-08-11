@@ -6,6 +6,7 @@ from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 from content_blocks import render_blocks_html, sanitize_blocks
+from check_links import check_site_links, format_broken_links
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
@@ -162,17 +163,17 @@ main,.layout>*,.hotlist>*{min-width:0}
 .tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 """
 
-def sidebar(active, gen=None):
+def sidebar(active, gen=None, prefix=""):
     """桌面端左侧菜单栏（≥961px 显示，移动端隐藏，由底部 Tab 承担导航）"""
     items = [("热榜", "flame", "index.html", "home"), ("主题", "map", "topics.html", "topics"),
              ("典藏", "bookmark", "classics.html", "classics"), ("完整榜单", "list", "hot.html", "hot"),
              ("我的收藏", "star", "favorites.html", "favorites"), ("信源", "rss", "sources.html", "sources")]
     menu = "".join(
-        f'<a class="mi{" on" if k == active else ""}" href="{u}">{ic(i,16)}{n}</a>'
+        f'<a class="mi{" on" if k == active else ""}" href="{prefix}{u}">{ic(i,16)}{n}</a>'
         for n, i, u, k in items)
     foot = f'更新 {gen.strftime("%m-%d %H:%M")}<br>' if gen else ""
     return ('<aside class="sidebar">'
-            '<div class="slogo"><a href="index.html" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div>'
+            f'<div class="slogo"><a href="{prefix}index.html" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div>'
             + menu +
             f'<div class="sfoot">{foot}每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>')
 
@@ -767,7 +768,7 @@ def page_shell(title, desc, css, body, tabbar_html, prefix="", active=""):
 <style>{css}
 {SHARED_CSS}
 </style></head><body class="has-sb">
-{sidebar(active)}
+{sidebar(active, prefix=prefix)}
 <header><div class="wrap nav">
   <div class="logo"><a href="{prefix}index.html" style="text-decoration:none">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
@@ -997,6 +998,23 @@ def render_favorites_page(css):
 </script>"""
     return page_shell("我的收藏 · DataHot", "你收藏的数据领域资讯", css, body, tabbar(""), prefix="", active="favorites")
 
+def write_detail_pages(all_events, css, detail_dir=None):
+    """All events retained in latest.json keep a stable detail page."""
+    detail_dir = Path(detail_dir) if detail_dir is not None else DETAIL_DIR
+    detail_dir.mkdir(parents=True, exist_ok=True)
+    valid_ids = set()
+    for event in all_events:
+        filename = event["event_id"] + ".html"
+        valid_ids.add(filename)
+        (detail_dir / filename).write_text(
+            render_detail(event, all_events, css), encoding="utf-8",
+        )
+    for path in detail_dir.glob("*.html"):
+        if path.name not in valid_ids:
+            path.unlink()
+    return valid_ids
+
+
 def main():
     payload = json.load(open(SITE / "data" / "latest.json"))
     all_events = payload["events"]
@@ -1007,15 +1025,7 @@ def main():
     events = [e for e in all_events if gen - datetime.fromisoformat(e.get("first_seen") or e["published"]) <= window]
 
     # ── 详情页 ──
-    DETAIL_DIR.mkdir(parents=True, exist_ok=True)
-    valid_ids = set()
-    for e in events:
-        valid_ids.add(e["event_id"] + ".html")
-        (DETAIL_DIR / (e["event_id"] + ".html")).write_text(render_detail(e, events, css), encoding="utf-8")
-    # 清理过期详情页
-    for f in DETAIL_DIR.glob("*.html"):
-        if f.name not in valid_ids:
-            f.unlink()
+    valid_ids = write_detail_pages(all_events, css)
 
     # ── 主题地图 + 主题页 ──
     TOPIC_DIR.mkdir(parents=True, exist_ok=True)
@@ -1253,6 +1263,12 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
 
     out = SITE / "index.html"
     out.write_text(page, encoding="utf-8")
+    broken = check_site_links(SITE)
+    if broken:
+        print(f"[links] 构建失败：发现 {len(broken)} 个失效本地引用")
+        print(format_broken_links(broken, SITE))
+        raise RuntimeError("generated site contains broken local links")
+    print("[links] 本地 href/src 100% 有效")
     print(f"[render] 首页 ({len(page)//1024} KB) + 详情页 {len(valid_ids)} 个")
 
 if __name__ == "__main__":

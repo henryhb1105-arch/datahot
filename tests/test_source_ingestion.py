@@ -22,6 +22,13 @@ EXPECTED_NEW_SOURCES = {
     "Apache Doris Blog",
     "Visier Blog",
 }
+EXPECTED_PEOPLE_AI_SOURCES = {
+    "Anthropic Economic Index",
+    "Indeed Hiring Lab",
+    "Josh Bersin",
+    "AIHR",
+    "Handshake Network Trends",
+}
 
 
 class OfficialFeedParsingTests(unittest.TestCase):
@@ -65,6 +72,28 @@ class OfficialFeedParsingTests(unittest.TestCase):
         self.assertEqual([entry["title"] for entry in entries], ["vector search"])
         self.assertIsNotNone(entries[0]["published"])
 
+    def test_handshake_html_list_keeps_both_network_trends_paths(self):
+        source = {
+            "url": "https://joinhandshake.com/research/",
+            "base": "https://joinhandshake.com",
+            "link_re": r"(/(?:(?:blog/)?network-trends|research/economic-research)/[a-z0-9-]+/)",
+        }
+        page = b'''<a class="report-card" href="/blog/network-trends/ai-workforce/"><img alt="cover"></a>
+        <a class="report-card" href="/blog/network-trends/ai-workforce/"><h3>AI workforce report</h3></a>
+        <a href="/network-trends/gen-z-hiring/"><span>Gen Z hiring trends</span></a>
+        <a href="/research/economic-research/ai-job-outlook/"><span>AI job outlook</span></a>
+        <a href="/blog/employers/promo/">Promotion</a>'''
+        with patch.object(run_update, "fetch_url", return_value=page):
+            entries = run_update.fetch_html_list(source)
+        self.assertEqual(
+            [entry["link"] for entry in entries],
+            [
+                "https://joinhandshake.com/blog/network-trends/ai-workforce/",
+                "https://joinhandshake.com/network-trends/gen-z-hiring/",
+                "https://joinhandshake.com/research/economic-research/ai-job-outlook/",
+            ],
+        )
+
 
 class ProductionSourceConfigurationTests(unittest.TestCase):
     @classmethod
@@ -79,6 +108,9 @@ class ProductionSourceConfigurationTests(unittest.TestCase):
         self.assertEqual(len(names), len(set(names)))
         self.assertTrue(EXPECTED_NEW_SOURCES.issubset(self.by_name))
         for name in EXPECTED_NEW_SOURCES:
+            self.assertTrue(self.by_name[name]["enabled"])
+        self.assertTrue(EXPECTED_PEOPLE_AI_SOURCES.issubset(self.by_name))
+        for name in EXPECTED_PEOPLE_AI_SOURCES:
             self.assertTrue(self.by_name[name]["enabled"])
 
     def test_new_sources_have_bounded_controls(self):
@@ -106,8 +138,39 @@ class ProductionSourceConfigurationTests(unittest.TestCase):
         self.assertEqual(source["url"], "https://www.visier.com/blog/rss.xml")
         self.assertEqual(source["fetch_interval_hours"], 24)
         self.assertEqual(source["max_candidates_per_run"], 4)
-        self.assertEqual(source["focus_categories"], ["insight"])
+        self.assertIn("insight", source["focus_categories"])
+        self.assertIn("agent", source["focus_categories"])
+        self.assertIn("bi", source["focus_categories"])
+        self.assertEqual(source["tier"], "low_precision")
         self.assertTrue(source["require_published"])
+
+    def test_people_ai_sources_are_bounded_and_editorially_reviewed(self):
+        for name in EXPECTED_PEOPLE_AI_SOURCES:
+            source = self.by_name[name]
+            self.assertEqual(source["tier"], "low_precision")
+            self.assertEqual(source["fetch_interval_hours"], 24)
+            self.assertLessEqual(source["max_candidates_per_run"], 4)
+            self.assertTrue(source["include_keywords"])
+            self.assertIn("insight", source["focus_categories"])
+            self.assertTrue(source.get("homepage", "").startswith("https://"))
+
+    def test_broad_sources_keep_existing_data_topics_and_people_ai_terms(self):
+        for name in ("OpenAI News", "Claude 官方博客"):
+            terms = {str(term).casefold() for term in self.by_name[name]["include_keywords"]}
+            self.assertIn("agent", terms)
+            self.assertTrue({"data", "analytics"}.issubset(terms))
+            self.assertTrue({"workforce", "skills", "talent"}.issubset(terms))
+
+    def test_new_sources_can_route_beyond_their_audit_focus(self):
+        josh = self.by_name["Josh Bersin"]
+        now = run_update.datetime.now(run_update.timezone.utc)
+        entries = [
+            {"title": "Multi-Agent AI for talent acquisition", "summary": "", "link": "https://example.com/agent", "published": now},
+            {"title": "People analytics reveals a pay equity gap", "summary": "", "link": "https://example.com/insight", "published": now},
+        ]
+        kept, _stats = run_update.prefilter_entries(entries, josh, now)
+        self.assertEqual(len(kept), 2)
+        self.assertIn("agent", josh["focus_categories"])
 
 
 if __name__ == "__main__":

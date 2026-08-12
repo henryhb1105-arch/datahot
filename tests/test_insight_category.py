@@ -10,6 +10,7 @@ sys.path.insert(0, str(ROOT / "pipeline"))
 
 import build_site  # noqa: E402
 import run_update  # noqa: E402
+from taxonomy import CATEGORY_LABELS, normalize_category_label  # noqa: E402
 
 
 def insight_event():
@@ -47,8 +48,24 @@ class InsightCategoryTests(unittest.TestCase):
         card = build_site.render_card(insight_event())
         self.assertIn('data-cat="insight"', card)
         self.assertEqual(build_site.CAT_BADGE["insight"], "b-insight")
-        self.assertEqual(build_site.CAT_LABEL["insight"], "AI 分析与洞察")
+        self.assertEqual(build_site.CAT_LABEL["insight"], "AI分析")
+        self.assertIs(build_site.CAT_LABEL, CATEGORY_LABELS)
         self.assertIn("组织人才", card)
+
+    def test_legacy_display_label_is_normalized_from_stable_category(self):
+        record = insight_event()
+        self.assertTrue(normalize_category_label(record))
+        self.assertEqual(record["category"], "insight")
+        self.assertEqual(record["category_label"], "AI分析")
+        self.assertFalse(normalize_category_label(record))
+
+    def test_cached_legacy_label_cannot_reenter_pipeline(self):
+        item = insight_event()
+        cached = {"enrichment": {
+            "category": "insight", "category_label": "AI 分析与洞察",
+        }}
+        restored = run_update._cached_enrichment(item, cached)
+        self.assertEqual(restored["category_label"], "AI分析")
 
     def test_business_scenes_reuse_topic_taxonomy(self):
         topics = json.loads((ROOT / "pipeline" / "topics.json").read_text(encoding="utf-8"))

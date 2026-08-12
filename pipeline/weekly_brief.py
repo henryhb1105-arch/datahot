@@ -11,6 +11,8 @@ from collections import Counter
 from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 
+from taxonomy import CATEGORY_LABELS
+
 from lite_data import event_timestamp, is_list_eligible
 from weekly_schema import (
     PERSONAL_RESPONSE_SCHEMA, SIGNAL_RESPONSE_SCHEMA, validate_json_schema,
@@ -31,13 +33,6 @@ MIN_IMPORTANCE = 45
 PUBLISH_HOUR = 8
 CACHE_WEEKS = 26
 BASELINE_WEEKS = 4
-CATEGORY_LABELS = {
-    "agent": "Data Agent",
-    "platform": "AI 数据平台",
-    "bi": "BI 与可视化",
-    "product": "数据产品",
-    "insight": "AI 分析与洞察",
-}
 STRONG_TREND_WORDS = ("进入", "转向", "成为主流", "全面", "普遍", "行业已经")
 MECHANISM_KEYWORDS = (
     "Data Agent", "Agent", "语义层", "语义约束", "工作流", "评估", "人机协作",

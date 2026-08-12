@@ -24,6 +24,7 @@ from source_controls import (
     accepted_categories_by_source, prefilter_entries, source_candidate_limit,
     source_control_snapshot, source_due,
 )
+from taxonomy import CATEGORY_LABELS, normalize_category_label, normalize_category_labels
 from work_tags import (
     TAXONOMY_VERSION as WORK_TAGS_VERSION,
     merge_work_tags, normalize_work_tags, prompt_instructions as work_tag_prompt,
@@ -47,13 +48,7 @@ UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit
 
 socket.setdefaulttimeout(20)
 
-CATEGORIES_LABEL = dict(
-    agent="Data Agent",
-    platform="AI 数据平台",
-    bi="BI 与可视化",
-    product="数据产品",
-    insight="AI 分析与洞察",
-)
+CATEGORIES_LABEL = CATEGORY_LABELS
 
 TOPICS_META = json.load(open(Path(__file__).resolve().parent / "topics.json"))
 TOPIC_NAMES = [t["name"] for t in TOPICS_META]
@@ -67,6 +62,9 @@ VENDOR_TAGS = {
     "Aloudata 动态": ["Aloudata"], "Aloudata 博客": ["Aloudata"],
     "Snowflake Release Notes": ["Snowflake"], "OpenAI News": ["OpenAI"],
     "Claude 官方博客": ["Anthropic", "Claude"],
+    "Anthropic Economic Index": ["Anthropic", "Claude"],
+    "Indeed Hiring Lab": ["Indeed"], "AIHR": ["AIHR"],
+    "Handshake Network Trends": ["Handshake"],
     "Microsoft Power BI（Power Platform Blog）": ["Microsoft", "Power BI"],
     "Tableau Engineering（Medium）": ["Tableau"],
     "Google BigQuery Release Notes": ["Google", "BigQuery"],
@@ -463,7 +461,7 @@ def llm_chat_text(base, key, model, prompt, max_tokens=4096,
         raise
 
 # ── F4：加固的相关性过滤 + AI 加工 ─────────────────────────
-ENRICH_RULES = """你是一个数据领域垂直资讯站的编辑。本站只覆盖五个领域：Data Agent（ChatBI/Text-to-SQL/分析Agent）、AI数据平台（数仓/湖仓/语义层/数据集成治理）、BI与可视化（BI工具/报表）、数据产品（方法论/融资并购/行业报告）、AI分析与洞察（用AI或数据分析回答明确业务问题，并形成可用于决策的发现）。
+ENRICH_RULES = """你是一个数据领域垂直资讯站的编辑。本站只覆盖五个领域：Data Agent（ChatBI/Text-to-SQL/分析Agent）、AI数据平台（数仓/湖仓/语义层/数据集成治理）、BI与可视化（BI工具/报表）、数据产品（方法论/融资并购/行业报告）、AI分析（用AI或数据分析回答明确业务问题，并形成可用于决策的发现）。
 
 【相关性硬规则】
 - 注意：dbt 仅指数据工具 dbt Labs/getdbt；心理疗法 DBT（辩证行为疗法、skills-based treatment 等语境）一律 false
@@ -472,7 +470,7 @@ ENRICH_RULES = """你是一个数据领域垂直资讯站的编辑。本站只�
 - 泛AI新闻一律 false：AI消费应用、AI硬件、AI政策八卦、模型发布（与数据场景无关）、AI音乐/绘画/社交等
 - 数据分析/数据库/数据基础设施的融资并购、产品发布、技术实践 → true
 
-【AI分析与洞察分类边界】
+【AI分析分类边界】
 - 只有同时具备以下四项才归入 insight：明确业务问题；有数据/分析/研究依据；给出具体发现或预测；说明可采取的决策或行动
 - insight 关注业务问题本身，而不是某个工具的发布。若主语是产品发布、技术实现、融资并购或行业泛观点，仍归入 agent/platform/bi/product
 - 只有“AI赋能”“智能洞察”等营销措辞，没有事实、指标、样本或分析过程，不得归入 insight
@@ -492,9 +490,12 @@ ENRICH_RULES = """你是一个数据领域垂直资讯站的编辑。本站只�
 输出 JSON（不要输出多余内容）：
 {"relevant": true或false, "zh_title": "中文标题(≤40字)", "zh_summary": "中文摘要3-4句，保留产品名与数字，不得编造原文没有的信息", "reason": "推荐理由：为什么数据从业者应关注，1-2句", "category": "agent|platform|bi|product|insight", "shelf": "news 或 evergreen（方法论/框架/深度实践/报告解读等半年后仍值得读的标 evergreen，发布/融资/版本更新等时效内容标 news）", "topics": ["从主题词表选0-2个：""" + "/".join(TOPIC_NAMES) + """，没有合适的就空数组，宁缺毋滥"], "work_tags": {"product_objects": [], "use_cases": [], "decision_concerns": []}, "vendors": ["提到的数据厂商，如Snowflake/Databricks/PowerBI/帆软等，没有则空数组"], "importance": 1-100整数}"""
 
-ENRICH_RULE_VERSION = f"enrich-v2-{WORK_TAGS_VERSION}"
-INSIGHT_ENRICH_RULE_VERSION = f"enrich-insight-v1-{WORK_TAGS_VERSION}"
-INSIGHT_FOCUS_SOURCES = frozenset({"爱分析", "Visier Blog"})
+ENRICH_RULE_VERSION = f"enrich-v3-{WORK_TAGS_VERSION}"
+INSIGHT_ENRICH_RULE_VERSION = f"enrich-insight-v2-{WORK_TAGS_VERSION}"
+INSIGHT_FOCUS_SOURCES = frozenset({
+    "爱分析", "Visier Blog", "Indeed Hiring Lab", "Josh Bersin",
+    "AIHR", "Handshake Network Trends", "Anthropic Economic Index",
+})
 REVIEW_REQUIRED_TIERS = frozenset({"low_precision", "community_targeted", "media_low"})
 
 
@@ -526,6 +527,7 @@ def _cached_enrichment(it, cached):
     ):
         if key in enrichment:
             it[key] = enrichment[key]
+    normalize_category_label(it)
     return it
 
 
@@ -543,7 +545,12 @@ RULE_POSITIVE_TERMS = (
     "data", "database", "analytics", "warehouse", "lakehouse", "sql", "dashboard",
     "business intelligence", "semantic layer", "etl", "elt", "dbt", "agent", "数据", "分析", "数仓", "湖仓", "可视化",
     "语义层", "智能体", "数据产品", "报表", "people analytics", "workforce analytics",
-    "workforce planning", "attrition", "turnover", "headcount", "组织", "人才", "员工流失",
+    "workforce planning", "attrition", "turnover", "headcount", "talent intelligence",
+    "recruiting analytics", "recruitment analytics", "talent acquisition", "compensation",
+    "pay equity", "skills gap", "labor market", "labour market", "job postings",
+    "organization design", "organisational design", "span of control", "employee engagement",
+    "human resources", "hr analytics", "workforce productivity", "组织", "人才", "员工流失",
+    "招聘", "薪酬", "人效", "组织效能", "人才盘点", "人才分析", "劳动力市场",
 )
 RULE_NEGATIVE_TERMS = (
     "smartphone", "gaming", "music generation", "image generation", "dating app",
@@ -1432,15 +1439,15 @@ def fetch_html_list(source):
     title_re = source.get("title_re", r"<strong[^>]*>(.*?)</strong>")
     base = source.get("base", "")
     entries, seen = [], set()
-    for m in re.finditer(r'<a\s+href="' + link_re + r'"[^>]*>(.*?)</a>', html_txt, re.S):
+    for m in re.finditer(r'<a\b[^>]*\bhref="' + link_re + r'"[^>]*>(.*?)</a>', html_txt, re.S | re.I):
         path, inner = m.group(1), m.group(2)
         if path in seen:
             continue
-        seen.add(path)
         tm = re.search(title_re, inner, re.S)
-        title = strip_html(tm.group(1)) if tm else ""
+        title = strip_html(tm.group(1)) if tm else strip_html(inner)
         if not title:
             continue
+        seen.add(path)
         entries.append({"title": title, "link": base + path, "published": None, "summary": "", "_slug_title": True})
     return entries[:PER_SOURCE_MAX]
 
@@ -1485,6 +1492,9 @@ def main():
         else:  # 旧版 items 结构迁移
             for i in old.get("items", []):
                 events.append(make_event(i))
+    normalized_labels = normalize_category_labels(events)
+    if normalized_labels:
+        print(f"[taxonomy] 统一分类展示名 {normalized_labels} 条")
     # 周报优先使用上轮已完成的一周数据并抢先占用极小预算，避免内容审核
     # 与正文生成先耗尽单轮额度。周一 08:17 之前不会提前发布新一期。
     _brief, brief_status = generate_weekly_brief_for_events(events, cfg, now)

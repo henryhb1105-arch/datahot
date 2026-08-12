@@ -15,16 +15,11 @@ from datetime import datetime
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
+from taxonomy import CATEGORY_LABELS, normalize_category_labels
+
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_LATEST = ROOT / "site" / "data" / "latest.json"
-CATEGORY_LABELS = {
-    "agent": "Data Agent",
-    "platform": "AI 数据平台",
-    "bi": "BI 与可视化",
-    "product": "数据产品",
-    "insight": "AI 分析与洞察",
-}
 TRACKING_KEYS = {
     "fbclid", "gclid", "igshid", "mc_cid", "mc_eid", "ref", "source",
 }
@@ -165,6 +160,7 @@ def import_batch(batch_path: Path, latest_path: Path = DEFAULT_LATEST) -> dict:
     events = payload.get("events")
     if not isinstance(events, list):
         raise ValueError("latest.json events must be a list")
+    normalize_category_labels(events)
 
     by_url: dict[str, dict] = {}
     for event in events:

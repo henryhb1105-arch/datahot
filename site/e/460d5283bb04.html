@@ -354,6 +354,24 @@ main,.layout>*,.hotlist>*{min-width:0}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
 .article .vendor-row{text-decoration:none}
+.source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
+.source-heading{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.source-heading h4{margin:0}
+.source-summary{font-size:11.5px;color:var(--sub)}
+.source-group{padding:10px 0;border-bottom:1px solid var(--soft)}
+.source-group-head{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txt3);margin-bottom:2px}
+.source-group-head b{font-weight:700}
+.source-group-head span{font-size:10.5px;color:var(--sub)}
+.source-report{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:14px;padding:4px 0;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.55}
+.source-report:hover .source-report-title{color:var(--accent)}
+.source-report-title{min-width:0;overflow-wrap:anywhere}
+.source-report-date{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}
+.source-more{padding-top:8px}
+.source-more>summary{width:max-content;max-width:100%;font-size:12px;color:var(--accent);cursor:pointer;list-style:none;padding:4px 0}
+.source-more>summary::-webkit-details-marker{display:none}
+.source-more>summary::after{content:" ↓"}
+.source-more[open]>summary::after{content:" ↑"}
+@media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
 .fulltext .cb-heading{font-size:17px;line-height:1.55;margin:24px 0 10px;color:var(--ink)}
 .fulltext p{margin:0 0 14px}
 .fulltext strong{font-weight:750;color:var(--ink)}
@@ -412,7 +430,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="460d5283bb04" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
 
-      <a class="sbtn ghost" href="https://www.fivetran.com/blog/open-data-infrastructure-needs-context-engineering-to-unify-data-use-cases" target="_blank" rel="noopener" data-analytics="outbound" data-source="Fivetran Blog"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 原文</a>
+      <a class="sbtn ghost" href="https://www.fivetran.com/blog/open-data-infrastructure-needs-context-engineering-to-unify-data-use-cases" target="_blank" rel="noopener" data-analytics="outbound" data-source="Fivetran Blog"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
       <button class="sbtn ghost" onclick="openPoster()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
       <button class="sbtn" onclick="openSheet()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
     </span>
@@ -434,8 +452,8 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="fulltext"><p>Fivetran产品布道师Charles Wang于2026年8月7日发表博客，提出开放数据基础设施（Open Data Infrastructure）需要依靠上下文工程（context engineering）来统一数据用例。文章开篇指出，单一事实来源（single source of truth）并非仅仅来自数据集中化，还必须从数据中工程化地构建上下文。</p><p>Fivetran与dbt Labs联合推荐的解决方案是托管数据湖服务（Managed Data Lake Service, MDLS）。该服务将数据以开放表格式（open table formats）交付，使数据湖得以从源系统持续同步，并自动管理模式演进，同时将元数据发布到目录中，从而让每个计算引擎都能访问一致、受治理的数据视图。这种统一数据架构可以与任何计算或查询引擎结合，支持所有数据用例。</p><p>然而，MDLS虽然提供了可被广泛工具读取的技术格式，但数据团队仍需将原始数据转化为一种上下文——既能向人类用户，也能向AI用户传递单一事实来源。文章强调，Agent和人类无法基于冲突的事实版本进行协作，尤其在智能自动化具有连续性和高规模特征的场景下，一致性至关重要。</p><p>上下文工程被定义为一种实践：使AI系统所需的信息在使用时变得显式、结构化、可信且可检索。与人类不同，AI系统缺乏来自经验、在职培训、自主学习和常识所构成的隐性知识与群体知识。因此，AI必须被显式地赋予所有相关上下文，这使得上下文工程成为释放开放数据基础设施潜力的关键。</p><p>Charles Wang将上下文工程划分为四大需求，文章中首先阐述的是语义与血缘（Semantics and provenance）：即数据代表什么、来源如何、经过怎样的转换。这一部分对确保数据在不同引擎和AI代理之间被正确解读至关重要。</p><p>该博客还隐含地提出了一个观点：统一数据架构只是基础，而上下文工程是让数据真正服务于智能决策的桥梁。对于正在构建语义层、文本转SQL或分析Agent的数据团队而言，这篇来自数据集成厂商的实践视角提供了参考方向。</p></div>
   <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://www.fivetran.com/blog/open-data-infrastructure-needs-context-engineering-to-unify-data-use-cases" target="_blank" rel="noopener" data-analytics="outbound" data-source="Fivetran Blog">查看原文 ↗</a></div>
 </div>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://www.fivetran.com/blog/open-data-infrastructure-needs-context-engineering-to-unify-data-use-cases" target="_blank" rel="noopener" data-analytics="outbound" data-source="Fivetran Blog">Fivetran Blog（英文）</a><span class="src more">首发</span><span class="count">2026-08-07 23:06</span></div></div>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/058d72e9b2d3.html"><span class="n">›</span>Databricks加入开放安全AI联盟，推进AI安全与数据治理<span class="count">32</span></a><a class="vendor-row" href="../e/036431034b26.html"><span class="n">›</span>构建医疗AI无需重建数据平台<span class="count">54</span></a><a class="vendor-row" href="../e/6539aeeb4002.html"><span class="n">›</span>Physical Intelligence用ClickHouse管理Postgres统一机器人数据栈<span class="count">35</span></a></div>
+  
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/e7420873acde.html"><span class="n">›</span>ClickHouse成立基础数据库研究团队ClickHouse Labs<span class="count">63</span></a><a class="vendor-row" href="../e/058d72e9b2d3.html"><span class="n">›</span>Databricks加入开放安全AI联盟，推进AI安全与数据治理<span class="count">32</span></a><a class="vendor-row" href="../e/036431034b26.html"><span class="n">›</span>构建医疗AI无需重建数据平台<span class="count">54</span></a></div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 <nav class="tabbar" aria-label="移动端主导航">

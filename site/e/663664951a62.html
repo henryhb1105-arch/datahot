@@ -354,6 +354,24 @@ main,.layout>*,.hotlist>*{min-width:0}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
 .article .vendor-row{text-decoration:none}
+.source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
+.source-heading{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.source-heading h4{margin:0}
+.source-summary{font-size:11.5px;color:var(--sub)}
+.source-group{padding:10px 0;border-bottom:1px solid var(--soft)}
+.source-group-head{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txt3);margin-bottom:2px}
+.source-group-head b{font-weight:700}
+.source-group-head span{font-size:10.5px;color:var(--sub)}
+.source-report{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:14px;padding:4px 0;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.55}
+.source-report:hover .source-report-title{color:var(--accent)}
+.source-report-title{min-width:0;overflow-wrap:anywhere}
+.source-report-date{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}
+.source-more{padding-top:8px}
+.source-more>summary{width:max-content;max-width:100%;font-size:12px;color:var(--accent);cursor:pointer;list-style:none;padding:4px 0}
+.source-more>summary::-webkit-details-marker{display:none}
+.source-more>summary::after{content:" ↓"}
+.source-more[open]>summary::after{content:" ↑"}
+@media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
 .fulltext .cb-heading{font-size:17px;line-height:1.55;margin:24px 0 10px;color:var(--ink)}
 .fulltext p{margin:0 0 14px}
 .fulltext strong{font-weight:750;color:var(--ink)}
@@ -412,7 +430,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="663664951a62" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
 
-      <a class="sbtn ghost" href="https://aws.amazon.com/blogs/big-data/transforming-search-at-delivery-hero-a-migration-journey-to-opensearch-service-with-radial-search/" target="_blank" rel="noopener" data-analytics="outbound" data-source="AWS Big Data Blog"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 原文</a>
+      <a class="sbtn ghost" href="https://aws.amazon.com/blogs/big-data/transforming-search-at-delivery-hero-a-migration-journey-to-opensearch-service-with-radial-search/" target="_blank" rel="noopener" data-analytics="outbound" data-source="AWS Big Data Blog"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
       <button class="sbtn ghost" onclick="openPoster()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
       <button class="sbtn" onclick="openSheet()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
     </span>
@@ -434,7 +452,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="fulltext"><p>在在线生鲜与杂货购物中，用户输入“低脂酸奶”时，搜索引擎往往能返回“希腊酸奶”或“0.5%脂肪酸奶”等语义相关而非字面匹配的结果。这种体验背后是语义搜索与词法搜索的混合检索系统，它同时兼顾了结果的精确性与召回率。Delivery Hero作为全球领先的在线食品配送平台，自2024年起就在杂货垂直领域探索语义搜索，并逐步从原型验证演进为生产级系统。</p><p>该系统最初构建为一个独立服务，基于SpringBoot和Apache Lucene 9.9，部署在Kubernetes上。检索流程是：用户发起搜索后，系统先从静态内存Lucene索引中获取前50个最近邻候选结果，然后通过过滤层剔除缺货商品，最后将与语义结果并行的词法检索结果合并输出。这一方案虽然可行，但在扩展性、成本效率和实验灵活性方面存在限制。</p><p>为了进一步优化，Delivery Hero决定将语义搜索基础设施迁移到Amazon OpenSearch Service。他们放弃了传统的k近邻（k-NN）搜索，转而采用径向搜索（radial search）。径向搜索能更高效地处理向量检索，尤其适合在保持准确性的同时降低计算与存储开销。该迁移使得系统能够更方便地进行实验和调整，例如改变向量维度或距离阈值，而无需重写整个检索链路。</p><p>新系统结合了径向向量检索与传统词法检索，形成混合搜索架构。这种架构既能理解用户意图，又能精确匹配品牌、品类等关键属性，从而在大规模商品数据上提供高相关性的搜索结果。Delivery Hero的搜索团队通过这一迁移，实现了更快的响应速度、更低的运营成本，并为后续的算法迭代保留了充分的灵活性。</p><p>该案例来自AWS大数据博客，详细展示了从基于Lucene的独立服务迁移到托管式OpenSearch Service的完整路径。尽管迁移过程涉及复杂的基础设施改造，但最终效果显著。对于同样面临语义搜索规模挑战的团队而言，Delivery Hero的经验提供了有价值的参考：在向量检索方案选型时，径向搜索可能比传统k-NN更适配某些使用场景。</p><p>值得注意的是，该迁移并非简单的替换，而是对整个检索架构的再设计。通过将候选生成、过滤与合并逻辑重新映射到OpenSearch Service的能力上，Delivery Hero消除了自建索引的运维负担，同时获得了云上托管的弹性与可观测性。这标志着他们在搜索技术路线上的一次重要升级，也为后续引入更多机器学习模型奠定了数据基础。</p></div>
   <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://aws.amazon.com/blogs/big-data/transforming-search-at-delivery-hero-a-migration-journey-to-opensearch-service-with-radial-search/" target="_blank" rel="noopener" data-analytics="outbound" data-source="AWS Big Data Blog">查看原文 ↗</a></div>
 </div>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://aws.amazon.com/blogs/big-data/transforming-search-at-delivery-hero-a-migration-journey-to-opensearch-service-with-radial-search/" target="_blank" rel="noopener" data-analytics="outbound" data-source="AWS Big Data Blog">AWS Big Data Blog（英文）</a><span class="src more">首发</span><span class="count">2026-08-04 23:55</span></div></div>
+  
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/fbbccffba47d.html"><span class="n">›</span>Amazon OpenSearch Service延长旧版引擎支持周期<span class="count">38</span></a><a class="vendor-row" href="../e/f4a8cf5520c4.html"><span class="n">›</span>How Anthropic&#x27;s finance team uses Claude to shape the narrative behind the numbers | Claude by Anthropic<span class="count">45</span></a><a class="vendor-row" href="../e/f5f77fd32d06.html"><span class="n">›</span>Product development in the agentic era | Claude by Anthropic<span class="count">45</span></a></div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>

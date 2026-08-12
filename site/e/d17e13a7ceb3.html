@@ -354,6 +354,24 @@ main,.layout>*,.hotlist>*{min-width:0}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
 .article .vendor-row{text-decoration:none}
+.source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
+.source-heading{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.source-heading h4{margin:0}
+.source-summary{font-size:11.5px;color:var(--sub)}
+.source-group{padding:10px 0;border-bottom:1px solid var(--soft)}
+.source-group-head{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txt3);margin-bottom:2px}
+.source-group-head b{font-weight:700}
+.source-group-head span{font-size:10.5px;color:var(--sub)}
+.source-report{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:14px;padding:4px 0;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.55}
+.source-report:hover .source-report-title{color:var(--accent)}
+.source-report-title{min-width:0;overflow-wrap:anywhere}
+.source-report-date{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}
+.source-more{padding-top:8px}
+.source-more>summary{width:max-content;max-width:100%;font-size:12px;color:var(--accent);cursor:pointer;list-style:none;padding:4px 0}
+.source-more>summary::-webkit-details-marker{display:none}
+.source-more>summary::after{content:" ↓"}
+.source-more[open]>summary::after{content:" ↑"}
+@media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
 .fulltext .cb-heading{font-size:17px;line-height:1.55;margin:24px 0 10px;color:var(--ink)}
 .fulltext p{margin:0 0 14px}
 .fulltext strong{font-weight:750;color:var(--ink)}
@@ -412,7 +430,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="d17e13a7ceb3" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
 
-      <a class="sbtn ghost" href="https://claude.com/blog/building-agents-that-reach-production-systems-with-mcp" target="_blank" rel="noopener" data-analytics="outbound" data-source="Claude 官方博客"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 原文</a>
+      <a class="sbtn ghost" href="https://claude.com/blog/building-agents-that-reach-production-systems-with-mcp" target="_blank" rel="noopener" data-analytics="outbound" data-source="Claude 官方博客"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
       <button class="sbtn ghost" onclick="openPoster()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
       <button class="sbtn" onclick="openSheet()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
     </span>
@@ -434,7 +452,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="fulltext"><p>Anthropic 在 Claude 官方博客发布文章《Building agents that reach production systems with MCP》，发布于2026年4月22日，讨论如何让 AI Agent 真正触达企业生产系统。文章开篇提出一个核心观点：Agent 的价值取决于它能连接多少系统。团队在构建 Agent 时，通常会收敛到三种连接外部系统的方式——直接 API 调用、命令行工具（CLI）和 MCP（Model Context Protocol）。</p><p>直接 API 调用是最常见的起步方式。Agent 可以通过在代码执行沙箱中编写 HTTP 请求代码，或者通过通用的函数调用工具直接调用服务端 API。这种方式在“一个 Agent 对接一个服务”或少数几个集成场景下工作良好，也是大多数团队的起点。然而，随着集成规模扩大，问题逐渐显现：由于 Agent 与服务之间没有公共层，每一对组合都变成一次定制集成，需要单独处理认证、工具描述和各种边界情况。这正是典型的 M×N 集成问题，维护成本会随连接数量快速上升。</p><p>CLI 路径则让 Agent 在沙箱中直接运行命令行工具。这种方式保留了现有 CLI 工具的易用性和脚本化能力，适合那些已经具备成熟命令行接口的系统。不过，CLI 通常缺少标准化描述和自动发现机制，Agent 需要提前了解每个工具的参数和输出结构，因此在大规模跨平台复用上也存在局限。</p><p>MCP 提供了第三种路径：在 Agent 与服务之间引入一个公共协议层。通过统一的接口描述、认证和工具注册机制，MCP 让同一个 Agent 能够以标准方式接入多个外部系统，从而避免为每个服务编写独立的适配逻辑。文章强调，生产环境中的 Agent 之所以倾向于采用 MCP，是因为它能够显著降低集成复杂度，并让集成能力在不同 Agent 平台之间复用。</p><p>文章最后总结了构建有效 MCP 集成的主要模式。对于数据团队而言，MCP 的意义在于它为“数据 Agent”访问数据仓库、语义层和 BI 工具提供了标准化的连接方式，使得 ChatBI、Text-to-SQL 等场景可以更稳定地触达生产环境。这篇来自 Anthropic 的官方技术实践，值得所有关注 Data Agent 架构的工程师参考。</p></div>
   <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://claude.com/blog/building-agents-that-reach-production-systems-with-mcp" target="_blank" rel="noopener" data-analytics="outbound" data-source="Claude 官方博客">查看原文 ↗</a></div>
 </div>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://claude.com/blog/building-agents-that-reach-production-systems-with-mcp" target="_blank" rel="noopener" data-analytics="outbound" data-source="Claude 官方博客">Claude 官方博客（英文）</a><span class="src more">首发</span><span class="count">2026-08-10 09:48</span></div></div>
+  
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/95de2946ad51.html"><span class="n">›</span>Claude托管Agent更新：支持自托管沙盒与MCP隧道<span class="count">60</span></a><a class="vendor-row" href="../e/d145e4d3307d.html"><span class="n">›</span>Anthropic API新增四项Agent构建能力<span class="count">54</span></a><a class="vendor-row" href="../e/3bb9e34e59c3.html"><span class="n">›</span>构建企业级数据分析助手：Data Agent开发实践<span class="count">60</span></a></div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>

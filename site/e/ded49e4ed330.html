@@ -354,6 +354,24 @@ main,.layout>*,.hotlist>*{min-width:0}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
 .article .vendor-row{text-decoration:none}
+.source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
+.source-heading{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.source-heading h4{margin:0}
+.source-summary{font-size:11.5px;color:var(--sub)}
+.source-group{padding:10px 0;border-bottom:1px solid var(--soft)}
+.source-group-head{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txt3);margin-bottom:2px}
+.source-group-head b{font-weight:700}
+.source-group-head span{font-size:10.5px;color:var(--sub)}
+.source-report{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:14px;padding:4px 0;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.55}
+.source-report:hover .source-report-title{color:var(--accent)}
+.source-report-title{min-width:0;overflow-wrap:anywhere}
+.source-report-date{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}
+.source-more{padding-top:8px}
+.source-more>summary{width:max-content;max-width:100%;font-size:12px;color:var(--accent);cursor:pointer;list-style:none;padding:4px 0}
+.source-more>summary::-webkit-details-marker{display:none}
+.source-more>summary::after{content:" ↓"}
+.source-more[open]>summary::after{content:" ↑"}
+@media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
 .fulltext .cb-heading{font-size:17px;line-height:1.55;margin:24px 0 10px;color:var(--ink)}
 .fulltext p{margin:0 0 14px}
 .fulltext strong{font-weight:750;color:var(--ink)}
@@ -412,7 +430,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="ded49e4ed330" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
 
-      <a class="sbtn ghost" href="https://aloudata.com/blogs/semantic-layer-upper-limit-evaluation" target="_blank" rel="noopener" data-analytics="outbound" data-source="Aloudata 博客"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 原文</a>
+      <a class="sbtn ghost" href="https://aloudata.com/blogs/semantic-layer-upper-limit-evaluation" target="_blank" rel="noopener" data-analytics="outbound" data-source="Aloudata 博客"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
       <button class="sbtn ghost" onclick="openPoster()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
       <button class="sbtn" onclick="openSheet()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
     </span>
@@ -434,7 +452,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="fulltext"><p>当所有人都在谈论语义层，如何判断一个方案的上限？Aloudata 于 2026-08-05 在 NoETL 博客发布文章，作者刘靓。文中回顾，Aloudata CAN 指标平台发布于 2023 年 12 月，此后两年多团队投入大量精力向客户解释什么是指标语义层以及为什么必要：在 BI 场景中是为了指标口径治理、管理和指标开发一体化；在 AI 场景中，没有语义层，AI 便无法稳定、准确地响应数据查询。</p><p>过去半年，海外语义层逐渐成为共识：OSI 推动语义共识，各大厂商将“语义/上下文”纳入平台内置能力，Gartner 与 Forrester 均将语义层视为关键基础设施。国内厂商也开始集体跟进：云厂商将语义层植入数据开发治理平台，运营商发布通过信通院双认证的本体建模平台，BI 厂商将 ChatBI 升级为搭载指标语义的 Agent 架构，坚持 NL2SQL 路线的 AI Native 厂商也在方案中写入“语义层”。</p><p>然而作者认为，当所有人同时使用一个词，它便不再传递有效信息。五份方案都写“基于语义层”，等于没说，选型会滑向打钩和报价。因此，文章提出一套衡量标尺：将 AI 分析方案的语义能力分为 L0 至 L4 五个层级。</p><p>L0 为提示词语义，即把表结构、字段名塞进大模型提示词，模型直接生成 SQL，没有独立语义资产，同一问题问三遍可能得到三份不同的 SQL。L1 为描述语义，在 L0 基础上加入表字段备注、指标字典和业务文档，准确率提升但仍属概率生成。L2 为契约语义，指标、维度、关系成为系统内独立的一等对象，查询经语义编译生成确定性 SQL，能稳定覆盖已知问题，但场景一多指标易膨胀。L3 为组装语义，将语义对象拆解到原子级，基于明细数据动态组装执行，能覆盖未知问题。L4 为过程语义，既能对指标变更做影响分析和回归，也能让多步分析的每一步可追溯，答案可以自证。</p><p>从用户视角看，L1 到 L4 对应四种体验：答不稳、答已知、答未知、答得可查证。文章随后提出三条分界线，其中第一条是 L1→L2，即从“辅助模型猜测”到“系统无需猜测”。Cube 团队在一项配对对照实验（arXiv:2604.25149）中测得：仅提供数仓 schema 时，三个前沿模型的准确率在 45.5% 至 50.5% 之间；补上一份 4KB 的手写语义说明文档后，准确率升至 67.7% 至 68.7%。这表明语义信息能显著改善模型表现，也为语义层分级提供了实证依据。</p><p>文章旨在为市场提供一把选型的衡量标尺，这把尺子同样也度量 Aloudata 自身。</p></div>
   <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://aloudata.com/blogs/semantic-layer-upper-limit-evaluation" target="_blank" rel="noopener" data-analytics="outbound" data-source="Aloudata 博客">查看原文 ↗</a></div>
 </div>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://aloudata.com/blogs/semantic-layer-upper-limit-evaluation" target="_blank" rel="noopener" data-analytics="outbound" data-source="Aloudata 博客">Aloudata 博客（英文）</a><span class="src more">首发</span><span class="count">2026-08-05 16:11</span></div></div>
+  
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/11bd570decd5.html"><span class="n">›</span>银行目标部门分析筛选：乙方视角的部门墙拆解<span class="count">49</span></a><a class="vendor-row" href="../e/c93bfa7909b8.html"><span class="n">›</span>Anthropic用Claude自动化95%数据分析查询<span class="count">58</span></a><a class="vendor-row" href="../e/f4962a2fa921.html"><span class="n">›</span>AI秒级出报表，为何业务仍来不及？<span class="count">50</span></a></div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>

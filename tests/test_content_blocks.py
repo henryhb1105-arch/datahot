@@ -289,6 +289,45 @@ class ContentBlockTranslationTests(unittest.TestCase):
         self.assertEqual(stats["applied"], len(nodes))
         self.assertTrue(blocks_plain_text(translated).startswith("译:"))
 
+    def test_pipeline_translation_retries_only_nodes_omitted_by_provider(self):
+        nodes = translation_nodes(self.blocks)
+        first_response = {
+            "nodes": [
+                {"id": node["id"], "text": "译:" + node["text"]}
+                for node in nodes[:-1]
+            ],
+        }
+        retry_response = {
+            "nodes": [{"id": nodes[-1]["id"], "text": "译:" + nodes[-1]["text"]}],
+        }
+        with patch.object(
+            run_update, "llm_chat", side_effect=[first_response, retry_response],
+        ) as call:
+            translated, stats = run_update.translate_article_blocks(
+                self.blocks, ("key", "https://example.test", "model"),
+                source="Feed", item_id="event-1",
+            )
+        self.assertEqual(call.call_count, 2)
+        retry_prompt = call.call_args_list[1].args[3]
+        self.assertIn(nodes[-1]["id"], retry_prompt)
+        self.assertNotIn(nodes[0]["id"], retry_prompt)
+        self.assertEqual(stats["retried_nodes"], 1)
+        self.assertEqual(stats["retry_batches"], 1)
+        self.assertEqual(stats["missing"], 0)
+        self.assertTrue(stats["complete"])
+        self.assertTrue(blocks_plain_text(translated).startswith("译:"))
+
+    def test_block_translation_budget_includes_one_complete_retry_pass(self):
+        nodes = translation_nodes(self.blocks)
+        batches = run_update._translation_batches(nodes)
+        initial = sum(
+            run_update._estimated_llm_tokens(
+                run_update._block_translation_prompt(batch, index, len(batches)), 8000,
+            )
+            for index, batch in enumerate(batches, start=1)
+        )
+        self.assertGreater(run_update.translation_budget_estimate(self.blocks), initial)
+
     def test_fetch_article_content_returns_parser_diagnostics_on_request(self):
         markup = (
             '<html><head><title>Example</title></head><body><header><input></header>'

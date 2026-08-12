@@ -956,11 +956,17 @@ def translation_budget_estimate(blocks=None, text=""):
     """Estimate the whole faithful translation before starting any paid batch."""
     source_blocks = sanitize_blocks(blocks or [])
     if source_blocks:
-        batches = _translation_batches(translation_nodes(source_blocks, maximum_chars=None))
+        nodes = translation_nodes(source_blocks, maximum_chars=None)
+        batches = _translation_batches(nodes)
         prompts = [
             _block_translation_prompt(batch, index, len(batches))
             for index, batch in enumerate(batches, start=1)
         ]
+        retry_batches = _translation_batches(nodes, maximum_chars=3000)
+        prompts.extend(
+            _block_translation_prompt(batch, index, len(retry_batches))
+            for index, batch in enumerate(retry_batches, start=1)
+        )
     else:
         chunks = _plain_text_chunks(text)
         prompts = [
@@ -992,7 +998,26 @@ def translate_article_blocks(blocks, cfg, *, source, item_id, deep=False, purpos
         )
         translated_nodes.extend(out.get("nodes", []))
     translated, stats = apply_translations(source_blocks, translated_nodes)
-    stats["batches"] = len(batches)
+    returned_ids = {
+        str(node.get("id") or "")
+        for node in translated_nodes if isinstance(node, dict) and str(node.get("text") or "").strip()
+    }
+    missing_nodes = [node for node in nodes if node["id"] not in returned_ids]
+    retry_batches = _translation_batches(missing_nodes, maximum_chars=3000)
+    for index, batch in enumerate(retry_batches, start=1):
+        out = llm_chat(
+            base, key, model,
+            _block_translation_prompt(batch, index, len(retry_batches)),
+            max_tokens=8000, purpose=purpose or "body_translation",
+            source=source, item_id=item_id, strict_object=True,
+        )
+        translated_nodes.extend(out.get("nodes", []))
+    if retry_batches:
+        translated, stats = apply_translations(source_blocks, translated_nodes)
+    stats["initial_batches"] = len(batches)
+    stats["retry_batches"] = len(retry_batches)
+    stats["retried_nodes"] = len(missing_nodes)
+    stats["batches"] = len(batches) + len(retry_batches)
     stats["complete"] = stats.get("missing", 0) == 0 and stats.get("applied", 0) == len(nodes)
     return translated, stats
 

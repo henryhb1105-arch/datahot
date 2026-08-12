@@ -15,10 +15,10 @@ from llm_usage import LLMBudgetExceeded, LLMUsageTracker
 from candidate_cache import CandidateCache, candidate_content_hash
 from cluster_cache import ClusterDecisionCache, cluster_pair_key
 from content_blocks import (
-    apply_translations, blocks_plain_text, limit_blocks,
+    apply_translations, blocks_plain_text,
     parse_html_blocks_with_report, sanitize_blocks, translation_nodes,
 )
-from media_cache import cache_event_media, prune_media_cache, same_site_media
+from media_cache import cache_event_media, prune_media_cache
 from weekly_brief import generate_weekly_brief
 from source_controls import (
     accepted_categories_by_source, prefilter_entries, source_candidate_limit,
@@ -41,7 +41,7 @@ TZ = timezone(timedelta(hours=8))
 LLM_USAGE = LLMUsageTracker(DATA / "llm_usage.json")
 CANDIDATE_CACHE = CandidateCache(DATA / "candidate_cache.json")
 CLUSTER_CACHE = ClusterDecisionCache(DATA / "cluster_cache.json")
-CONTENT_BLOCKS_PROCESSOR_VERSION = "blocks-v2"
+CONTENT_BLOCKS_PROCESSOR_VERSION = "original-first-v1"
 
 UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/126.0 Safari/537.36",
       "Accept": "application/rss+xml,application/xml,text/xml,*/*"}
@@ -136,14 +136,36 @@ def text_of(el, *names):
                 return child.text
     return ""
 
+
+def rich_html_of(el, *names):
+    """Return the first rich feed field without stripping its HTML structure."""
+    wanted = [str(name).split("}")[-1] for name in names]
+    for name in wanted:
+        for child in el:
+            if child.tag.split("}")[-1] != name:
+                continue
+            if child.text:
+                return child.text.strip()
+            serialized = "".join(ET.tostring(grandchild, encoding="unicode") for grandchild in child)
+            # Atom XHTML content is commonly namespace-prefixed after ElementTree
+            # serialization.  Strip only tag prefixes/namespace declarations so
+            # the local HTML parser can still recognize p/table/figure/img tags.
+            serialized = re.sub(r"(<\/?)[A-Za-z_][\w.-]*:", r"\1", serialized)
+            serialized = re.sub(r"\s+xmlns(?::[\w.-]+)?=([\"']).*?\1", "", serialized)
+            if serialized.strip():
+                return serialized.strip()
+    return ""
+
 def parse_feed(root_el, source):
     items = []
     for it in root_el.iter("item"):
+        rich_content = rich_html_of(it, "encoded", "content", "description", "summary")
         items.append({
             "title": strip_html(text_of(it, "title")),
             "link": text_of(it, "link").strip(),
             "published": parse_date(text_of(it, "pubDate", "published", "updated", "date")),
-            "summary": strip_html(text_of(it, "description", "summary", "encoded")),
+            "summary": strip_html(rich_content or text_of(it, "description", "summary", "encoded")),
+            "feed_content_html": rich_content,
         })
     ns = "{http://www.w3.org/2005/Atom}"
     for it in root_el.iter(ns + "entry"):
@@ -151,11 +173,13 @@ def parse_feed(root_el, source):
         for l in it.iter(ns + "link"):
             if l.get("href") and (l.get("rel") in (None, "alternate")):
                 link = l.get("href"); break
+        rich_content = rich_html_of(it, "content", "summary")
         items.append({
             "title": strip_html(text_of(it, ns + "title")),
             "link": link,
             "published": parse_date(text_of(it, ns + "published", ns + "updated")),
-            "summary": strip_html(text_of(it, ns + "summary", ns + "content")),
+            "summary": strip_html(rich_content or text_of(it, ns + "summary", ns + "content")),
+            "feed_content_html": rich_content,
         })
     return [i for i in items if i["title"] and i["link"]][:PER_SOURCE_MAX]
 
@@ -198,7 +222,7 @@ def extract_meta_date(html_txt):
                 return dt
     return None
 
-def fetch_article_content(url, max_chars=24000, *, include_report=False):
+def fetch_article_content(url, max_chars=120000, *, include_report=False):
     """提取安全结构化 blocks，同时保留纯文本兼容输出和可选诊断。"""
     empty_report = {
         "strategy": "fetch_failed", "blocks": 0, "text_chars": 0,
@@ -247,7 +271,10 @@ def fetch_article_content(url, max_chars=24000, *, include_report=False):
             text = strip_html(fallback)
             blocks = []
             parse_report["fallback_reason"] = "structured_body_too_short"
-        usable_text = text[:max_chars] if meaningful or len(text) > 400 else ""
+        # A whole-page text dump mixes navigation, recommendations and footers and
+        # produces the exact "乱糟糟" detail page we want to avoid.  Treat it as
+        # unavailable unless the structured extractor found a meaningful article.
+        usable_text = text[:max_chars] if meaningful else ""
         return result(usable_text, title, pub_date, blocks, parse_report)
     except Exception as exc:
         report = dict(empty_report)
@@ -255,10 +282,34 @@ def fetch_article_content(url, max_chars=24000, *, include_report=False):
         return result(report=report)
 
 
-def fetch_article_text(url, max_chars=24000):
+def fetch_article_text(url, max_chars=120000):
     """兼容旧调用方：返回 (正文, 标题, meta 发布日期)。"""
     text, title, pub_date, _blocks = fetch_article_content(url, max_chars=max_chars)
     return text, title, pub_date
+
+
+def prefer_rss_article_content(text, blocks, report, feed_html, article_url):
+    """Prefer a full RSS body when it is at least as useful as the web page body."""
+    feed_html = str(feed_html or "").strip()
+    if not feed_html:
+        return text, blocks, report
+    feed_blocks, feed_report = parse_html_blocks_with_report(feed_html, article_url)
+    feed_text = blocks_plain_text(feed_blocks)
+    feed_structural = sum(
+        block.get("type") in {"heading", "list", "blockquote", "code", "table", "figure"}
+        for block in feed_blocks
+    )
+    page_structural = sum(
+        block.get("type") in {"heading", "list", "blockquote", "code", "table", "figure"}
+        for block in blocks
+    )
+    feed_score = len(feed_text) + feed_structural * 120
+    page_score = len(text) + page_structural * 120
+    if len(feed_text) >= 400 and (not text or feed_score >= page_score * 0.9):
+        selected_report = dict(feed_report)
+        selected_report["strategy"] = "rss_" + str(feed_report.get("strategy") or "content")
+        return feed_text, feed_blocks, selected_report
+    return text, blocks, report
 
 # ── LLM 配置 ──────────────────────────────────────────────
 def load_llm_config():
@@ -826,54 +877,122 @@ def merge_group_sources(event, group, primary):
     recalc_event_heat(event)
 
 
-STANDARD_BODY_RULES = """你是数据领域资讯站的编辑。根据可见原文写一篇 600–1200 个中文字符的新闻解读，固定包含「## 关键事实」「## 行业影响」「## 实践要点」三部分。保留产品名、数字、时间、公司和技术细节；严禁编造原文不存在的事实。只输出正文。"""
+def detect_source_language(text):
+    """Small deterministic gate: Chinese goes straight through, others translate."""
+    value = str(text or "")
+    han = len(re.findall(r"[\u3400-\u9fff]", value))
+    kana = len(re.findall(r"[\u3040-\u30ff]", value))
+    hangul = len(re.findall(r"[\uac00-\ud7af]", value))
+    latin = len(re.findall(r"[A-Za-z]", value))
+    if kana >= 4 or hangul >= 4:
+        return "other"
+    if han >= 20 and han / max(1, han + latin) >= 0.16:
+        return "zh"
+    if han and latin < 10:
+        return "zh"
+    if latin >= 20:
+        return "other"
+    return "unknown"
 
 
-def clamp_standard_body(text, maximum=1200):
-    text = re.sub(r"\n{3,}", "\n\n", (text or "").strip())
-    if len(text) <= maximum:
-        return text
-    cut = text[:maximum]
-    sentence_end = max(cut.rfind(mark) for mark in ("。", "！", "？", "\n"))
-    return cut[:sentence_end + 1].strip() if sentence_end >= 600 else cut.rstrip()
-
-
-def deep_body_eligible(event, threshold=80):
-    return bool(
-        event.get("pinned")
-        or event.get("shelf") == "evergreen"
-        or int(event.get("importance", 0)) >= threshold
+def _content_hash(blocks, text=""):
+    payload = (
+        json.dumps(sanitize_blocks(blocks), ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        if blocks else str(text or "").strip()
     )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:24] if payload else ""
+
+
+def _translation_batches(nodes, maximum_chars=None):
+    maximum_chars = maximum_chars or _bounded_env_int(
+        "CONTENT_TRANSLATION_BATCH_CHARS", 6000, minimum=1000, maximum=12000,
+    )
+    batches, current, used = [], [], 0
+    for node in nodes:
+        size = len(node.get("text", ""))
+        if current and used + size > maximum_chars:
+            batches.append(current)
+            current, used = [], 0
+        current.append(node)
+        used += size
+    if current:
+        batches.append(current)
+    return batches
 
 
 def translate_article_blocks(blocks, cfg, *, source, item_id, deep=False, purpose=""):
-    """只把结构化文本节点交给 LLM，格式和 ID 由本地合并。"""
+    """Faithfully translate every text node while preserving local structure/IDs."""
+    del deep  # 兼容旧调用签名；原文优先方案不再区分“标准/深度编译”。
     key, base, model = cfg
-    preserved = {"figure", "table"}
-    character_budget = 14000 if deep else 3200
-    source_blocks = limit_blocks(
-        blocks, character_budget, preserve_types=preserved,
-    )
-    nodes = translation_nodes(source_blocks, character_budget)
+    source_blocks = sanitize_blocks(blocks)
+    nodes = translation_nodes(source_blocks, maximum_chars=None)
     if not (key and base and model and nodes):
-        return [], {"applied": 0, "ignored": 0, "missing": len(nodes)}
-    prompt = (
-        "你是数据领域中文编译。下面是文章的文本节点 JSON。"
-        "只翻译/忠实编译 text，不删除事实、数字、产品名、代码或链接文字；"
-        "不新增节点，不输出 HTML/Markdown，不改 id。"
-        '只输出 JSON：{"nodes":[{"id":"原id","text":"中文"}]}\n\n'
-        + json.dumps(nodes, ensure_ascii=False, separators=(",", ":"))
-    )
-    out = llm_chat(
-        base, key, model, prompt,
-        max_tokens=8000 if deep else 4500,
-        purpose=purpose or ("body_blocks_deep" if deep else "body_blocks_standard"),
-        source=source, item_id=item_id, strict_object=True,
-    )
-    translated, stats = apply_translations(source_blocks, out.get("nodes", []))
-    if not deep:
-        translated = limit_blocks(translated, 1200, preserve_types=preserved)
+        return [], {
+            "applied": 0, "ignored": 0, "missing": len(nodes),
+            "batches": 0, "complete": False,
+        }
+    translated_nodes = []
+    batches = _translation_batches(nodes)
+    for index, batch in enumerate(batches, start=1):
+        prompt = (
+            "你是忠实翻译器。下面 JSON 来自同一篇文章，按原文顺序逐节点翻译成简体中文。"
+            "只翻译 text：不得总结、删减、扩写、重组、合并或改变论证顺序；"
+            "保留全部事实、数字、专有名词、代码和链接文字。"
+            "不新增节点，不输出 HTML/Markdown，不改 id。"
+            '只输出 JSON：{"nodes":[{"id":"原id","text":"忠实中文译文"}]}\n'
+            f"批次 {index}/{len(batches)}：\n"
+            + json.dumps(batch, ensure_ascii=False, separators=(",", ":"))
+        )
+        out = llm_chat(
+            base, key, model, prompt, max_tokens=8000,
+            purpose=purpose or "body_translation",
+            source=source, item_id=item_id, strict_object=True,
+        )
+        translated_nodes.extend(out.get("nodes", []))
+    translated, stats = apply_translations(source_blocks, translated_nodes)
+    stats["batches"] = len(batches)
+    stats["complete"] = stats.get("missing", 0) == 0 and stats.get("applied", 0) == len(nodes)
     return translated, stats
+
+
+def _plain_text_chunks(text, maximum_chars=6000):
+    chunks, current = [], ""
+    for paragraph in re.split(r"\n\s*\n", str(text or "").strip()):
+        paragraph = paragraph.strip()
+        if not paragraph:
+            continue
+        pieces = [paragraph[i:i + maximum_chars] for i in range(0, len(paragraph), maximum_chars)]
+        for piece in pieces:
+            candidate = piece if not current else current + "\n\n" + piece
+            if current and len(candidate) > maximum_chars:
+                chunks.append(current)
+                current = piece
+            else:
+                current = candidate
+    if current:
+        chunks.append(current)
+    return chunks
+
+
+def translate_plain_text(text, cfg, *, source, item_id, purpose="body_translation"):
+    """Faithfully translate a rare plain-text article fallback without abstraction."""
+    key, base, model = cfg
+    chunks = _plain_text_chunks(text)
+    if not (key and base and model and chunks):
+        return ""
+    output = []
+    for index, chunk in enumerate(chunks, start=1):
+        translated = llm_chat_text(
+            base, key, model,
+            "将下面文章片段忠实翻译成简体中文。不得总结、删减、扩写、重组或抽象；"
+            "保留段落顺序、事实、数字、专有名词和代码。只输出译文。\n\n"
+            f"片段 {index}/{len(chunks)}：\n{chunk}",
+            max_tokens=8000, purpose=purpose, source=source, item_id=item_id,
+        ).strip()
+        if not translated:
+            return ""
+        output.append(translated)
+    return "\n\n".join(output)
 
 
 def content_parse_record(report, *, status, source="", reason="", media_report=None):
@@ -910,97 +1029,102 @@ def content_parse_record(report, *, status, source="", reason="", media_report=N
     return record
 
 
-def generate_event_body(event, primary, cfg, body_state):
-    """Generate at most one standard/deep body for a clustered event."""
-    if event.get("full_zh"):
-        return event["full_zh"]
-    key, base, model = cfg
-    source_text = primary.get("article_text") or primary.get("summary", "")
-    if not (key and base and model and source_text):
-        event["full_zh"] = event.get("zh_summary", "")
+def generate_event_body(event, primary, cfg, body_state=None, *, purpose="body_translation"):
+    """Materialize a readable original/translation; use AI prose only as last fallback."""
+    body_state = body_state if isinstance(body_state, dict) else {}
+    article_url = primary.get("link", "")
+    source = primary.get("source", "")
+    article_blocks = sanitize_blocks(primary.get("article_blocks", []), article_url)
+    article_text = str(primary.get("article_text") or "").strip()
+    original_text = blocks_plain_text(article_blocks) if article_blocks else article_text
+    content_hash = _content_hash(article_blocks, article_text)
+    if (
+        content_hash and event.get("source_content_hash") == content_hash
+        and event.get("content_mode") in {"original", "translated"}
+        and (event.get("content_blocks") or event.get("full_zh"))
+    ):
+        return event.get("full_zh", "")
+
+    if not original_text:
+        event["full_zh"] = event.get("full_zh") or event.get("zh_summary", "")
+        event["content_mode"] = "ai_fallback"
         event["content_level"] = "summary"
-        if primary.get("article_blocks"):
-            event["content_parse"] = content_parse_record(
-                primary.get("_article_parse"), status="untranslated",
-                source=primary.get("source", ""), reason="llm_unavailable",
-            )
+        event["source_language"] = "unknown"
+        event["translation_status"] = "not_applicable"
+        event["body_chars"] = len(event["full_zh"])
+        body_state["fallback"] = body_state.get("fallback", 0) + 1
         return event["full_zh"]
-    threshold = int(os.getenv("DEEP_IMPORTANCE_THRESHOLD", "80"))
-    can_deep = (
-        deep_body_eligible(event, threshold)
-        and body_state.get("deep_used", 0) < body_state.get("max_deep", 2)
-    )
-    try:
-        article_blocks = sanitize_blocks(primary.get("article_blocks", []), primary.get("link", ""))
-        if article_blocks:
-            parse_report = primary.get("_article_parse") or {}
-            if can_deep:
-                body_state["deep_used"] = body_state.get("deep_used", 0) + 1
-            translated, translation_stats = translate_article_blocks(
-                article_blocks, cfg,
-                source=primary.get("source", ""), item_id=event["event_id"], deep=can_deep,
-            )
-            if translation_stats.get("applied", 0) <= 0:
-                print(f"[body] 结构化正文翻译失败，降级摘要: {event['zh_title'][:40]}")
-                translated = []
-            body = blocks_plain_text(translated)
-            has_structural = any(
-                block.get("type") in {"figure", "table"} for block in translated
-            )
-            if not can_deep and len(body) < 600 and not (len(body) >= 120 and has_structural):
-                print(f"[body] 结构化普通正文过短，降级摘要: {event['zh_title'][:40]}")
-                body, translated = "", []
-            if translated and translation_stats.get("applied", 0) > 0:
-                cached_blocks, media_report = cache_event_media(
-                    translated, event["event_id"], primary.get("link", ""), SITE,
+
+    language = detect_source_language(original_text)
+    display_blocks = article_blocks
+    display_text = original_text
+    mode = "original"
+    translation_status = "not_needed" if language == "zh" else "unavailable"
+    translation_error = ""
+    if language != "zh":
+        try:
+            if article_blocks:
+                translated, stats = translate_article_blocks(
+                    article_blocks, cfg, source=source, item_id=event["event_id"],
+                    purpose=purpose,
                 )
-                event["content_blocks"] = cached_blocks
-                event["content_format"] = "blocks-v1"
-                event["content_parse"] = content_parse_record(
-                    parse_report, status="ready", source=primary.get("source", ""),
-                    media_report=media_report,
-                )
-                if media_report["figures"]:
-                    print(
-                        f"[media] {event['zh_title'][:30]} | "
-                        f"缓存 {media_report['cached']} / 链接 {media_report['link_only']}"
-                    )
-            elif article_blocks:
-                event["content_parse"] = content_parse_record(
-                    parse_report, status="failed", source=primary.get("source", ""),
-                    reason="translation_failed_or_too_short",
-                )
-            level = "deep" if can_deep else "standard"
-        elif can_deep:
-            body_state["deep_used"] = body_state.get("deep_used", 0) + 1
-            body = compile_fulltext(
-                event["zh_title"], source_text, cfg,
-                context={"source": primary.get("source", ""), "item_id": event["event_id"]},
-            )
-            level = "deep"
-        else:
-            body = llm_chat_text(
-                base, key, model,
-                STANDARD_BODY_RULES + "\n\n【标题】" + event["zh_title"] + "\n\n" + source_text[:9000],
-                max_tokens=2200, purpose="body_standard",
-                source=primary.get("source", ""), item_id=event["event_id"],
-            )
-            body = clamp_standard_body(body)
-            if len(body) < 600:
-                print(f"[body] 普通正文过短，降级摘要: {event['zh_title'][:40]}")
-                body, level = "", "summary"
+                if translated and stats.get("complete"):
+                    display_blocks = translated
+                    display_text = blocks_plain_text(translated)
+                    mode, translation_status = "translated", "complete"
+                elif cfg[0] and cfg[1] and cfg[2]:
+                    translation_status = "failed"
+                    translation_error = "incomplete_translation"
             else:
-                level = "standard"
-    except Exception as exc:
-        print(f"[body] 生成降级: {event['zh_title'][:40]} | {exc}")
-        body, level = "", "summary"
-    event["full_zh"] = body or event.get("zh_summary", "")
-    event["content_level"] = level if body else "summary"
-    if not body:
+                translated_text = translate_plain_text(
+                    article_text, cfg, source=source, item_id=event["event_id"], purpose=purpose,
+                )
+                if translated_text:
+                    display_text = translated_text
+                    mode, translation_status = "translated", "complete"
+                elif cfg[0] and cfg[1] and cfg[2]:
+                    translation_status = "failed"
+                    translation_error = "empty_translation"
+        except Exception as exc:
+            translation_status = "failed"
+            translation_error = type(exc).__name__
+            print(f"[body] 翻译失败，保留原文: {event.get('zh_title', '')[:40]} | {exc}")
+
+    media_report = None
+    if display_blocks:
+        cached_blocks, media_report = cache_event_media(
+            display_blocks, event["event_id"], article_url, SITE,
+        )
+        event["content_blocks"] = cached_blocks
+        event["content_format"] = "blocks-v1"
+        display_text = blocks_plain_text(cached_blocks)
+        if media_report["figures"]:
+            print(
+                f"[media] {event.get('zh_title', '')[:30]} | "
+                f"缓存 {media_report['cached']} / 链接 {media_report['link_only']}"
+            )
+    else:
         event.pop("content_blocks", None)
-        event.pop("content_format", None)
-    event["body_chars"] = len(event["full_zh"])
-    return event["full_zh"]
+        event["content_format"] = "plain-v1"
+
+    record = content_parse_record(
+        primary.get("_article_parse"), status="ready", source=source,
+        reason=translation_error, media_report=media_report,
+    )
+    record.update({
+        "content_mode": mode, "source_language": language,
+        "translation_status": translation_status, "source_content_hash": content_hash,
+    })
+    event["content_parse"] = record
+    event["full_zh"] = display_text
+    event["content_mode"] = mode
+    event["content_level"] = mode
+    event["source_language"] = language
+    event["translation_status"] = translation_status
+    event["source_content_hash"] = content_hash
+    event["body_chars"] = len(display_text)
+    body_state[mode] = body_state.get(mode, 0) + 1
+    return display_text
 
 
 def _bounded_env_int(name, default, *, minimum=0, maximum=100):
@@ -1020,31 +1144,38 @@ def _event_time(event):
     return value.astimezone(timezone.utc)
 
 
-def backfill_structured_content(events, cfg, *, now=None, limit=None, lookback_days=None):
-    """Boundedly upgrade recent high-value legacy events that contain a figure/table."""
+def backfill_structured_content(
+    events, cfg, *, now=None, limit=None, lookback_days=None, feed_content_by_url=None,
+):
+    """Upgrade legacy detail bodies; Chinese is free, foreign translation is bounded."""
     now = now or datetime.now(timezone.utc)
     now_utc = now.replace(tzinfo=timezone.utc) if now.tzinfo is None else now.astimezone(timezone.utc)
     limit = (
-        _bounded_env_int("CONTENT_BLOCKS_BACKFILL_LIMIT", 2, maximum=8)
+        _bounded_env_int("CONTENT_TRANSLATION_BACKFILL_LIMIT", 2, maximum=8)
         if limit is None else max(0, min(8, int(limit)))
     )
     lookback_days = (
         _bounded_env_int("CONTENT_BLOCKS_BACKFILL_DAYS", 30, minimum=1, maximum=90)
         if lookback_days is None else max(1, min(90, int(lookback_days)))
     )
-    attempt_limit = _bounded_env_int(
-        "CONTENT_BLOCKS_BACKFILL_ATTEMPTS", max(12, limit * 4), maximum=24,
-    )
-    key, base, model = cfg
-    summary = {"limit": limit, "attempted": 0, "ready": 0, "skipped": 0, "failed": 0}
-    if not (limit and key and base and model):
-        summary["disabled_reason"] = "limit_or_llm_unavailable"
+    attempt_limit = _bounded_env_int("CONTENT_BACKFILL_ATTEMPTS", 24, maximum=48)
+    summary = {
+        "foreign_limit": limit, "attempted": 0, "ready": 0,
+        "original": 0, "translated": 0, "deferred_foreign": 0,
+        "skipped": 0, "failed": 0,
+    }
+    if attempt_limit <= 0:
+        summary["disabled_reason"] = "attempt_limit_zero"
         return summary
+    feed_content_by_url = feed_content_by_url if isinstance(feed_content_by_url, dict) else {}
 
     retry_cutoff = now_utc - timedelta(days=7)
     eligible = []
     for event in events:
-        if event.get("content_blocks") or _event_time(event) < now_utc - timedelta(days=lookback_days):
+        if (
+            event.get("content_mode") in {"original", "translated"}
+            or _event_time(event) < now_utc - timedelta(days=lookback_days)
+        ):
             continue
         previous = event.get("content_parse") if isinstance(event.get("content_parse"), dict) else {}
         attempted_at = parse_date(previous.get("attempted_at"))
@@ -1064,7 +1195,7 @@ def backfill_structured_content(events, cfg, *, now=None, limit=None, lookback_d
         reverse=True,
     )
 
-    plans = []
+    foreign_used = 0
     for event in eligible[:attempt_limit]:
         primary = event["items"][0]
         source = primary.get("source", "")
@@ -1072,71 +1203,51 @@ def backfill_structured_content(events, cfg, *, now=None, limit=None, lookback_d
         text, _title, _published, blocks, parse_report = fetch_article_content(
             primary.get("link", ""), include_report=True,
         )
-        visual_count = int(parse_report.get("figures", 0) or 0) + int(parse_report.get("tables", 0) or 0)
-        if not (text and blocks and visual_count):
+        text, blocks, parse_report = prefer_rss_article_content(
+            text, blocks, parse_report,
+            feed_content_by_url.get(norm_url(primary.get("link", ""))),
+            primary.get("link", ""),
+        )
+        if not text:
             event["content_parse"] = content_parse_record(
                 parse_report, status="skipped", source=source,
-                reason="no_usable_figure_or_table",
+                reason="no_usable_original",
             )
             summary["skipped"] += 1
             continue
-        same_site_figures = sum(
-            block.get("type") == "figure"
-            and same_site_media(block.get("src", ""), primary.get("link", ""))
-            for block in blocks
+        language = detect_source_language(blocks_plain_text(blocks) if blocks else text)
+        can_translate = bool(
+            language != "zh" and cfg[0] and cfg[1] and cfg[2] and foreign_used < limit
         )
-        plans.append((
-            (
-                same_site_figures > 0, same_site_figures,
-                int(parse_report.get("tables", 0) or 0) > 0,
-                int(event.get("importance", 0) or 0), _event_time(event),
-            ),
-            event, primary, blocks, parse_report,
-        ))
-
-    plans.sort(key=lambda plan: plan[0], reverse=True)
-    summary["planned"] = len(plans)
-    for _priority, event, primary, blocks, parse_report in plans:
-        if summary["ready"] >= limit:
-            break
-        source = primary.get("source", "")
+        if language != "zh" and not can_translate:
+            summary["deferred_foreign"] += 1
+        if can_translate:
+            foreign_used += 1
+        body_cfg = cfg if language == "zh" or can_translate else ("", "", "")
+        body_primary = dict(primary)
+        body_primary.update({
+            "article_text": text, "article_blocks": blocks, "_article_parse": parse_report,
+        })
         try:
-            translated, translation_stats = translate_article_blocks(
-                blocks, cfg, source=source, item_id=event["event_id"], deep=False,
-                purpose="body_blocks_backfill",
-            )
-            body = blocks_plain_text(translated)
-            has_structural = any(
-                block.get("type") in {"figure", "table"} for block in translated
-            )
-            if translation_stats.get("applied", 0) <= 0 or not (len(body) >= 120 and has_structural):
-                raise ValueError("translation_failed_or_too_short")
-            cached_blocks, media_report = cache_event_media(
-                translated, event["event_id"], primary.get("link", ""), SITE,
-            )
-            event["content_blocks"] = cached_blocks
-            event["content_format"] = "blocks-v1"
-            event["full_zh"] = body
-            event["body_chars"] = len(body)
-            if event.get("content_level") not in {"deep", "standard"}:
-                event["content_level"] = "standard"
-            event["content_parse"] = content_parse_record(
-                parse_report, status="ready", source=source, media_report=media_report,
+            generate_event_body(
+                event, body_primary, body_cfg, {}, purpose="body_translation_backfill",
             )
             summary["ready"] += 1
+            summary[event.get("content_mode", "original")] = summary.get(
+                event.get("content_mode", "original"), 0,
+            ) + 1
             print(
                 f"[backfill] {event.get('zh_title', '')[:36]} | "
-                f"{parse_report.get('strategy')} | 图 {parse_report.get('figures', 0)} "
-                f"表 {parse_report.get('tables', 0)}"
+                f"{event.get('content_mode')} | {parse_report.get('strategy')} | "
+                f"图 {parse_report.get('figures', 0)} 表 {parse_report.get('tables', 0)}"
             )
         except Exception as exc:
-            event.pop("content_blocks", None)
-            event.pop("content_format", None)
             event["content_parse"] = content_parse_record(
                 parse_report, status="failed", source=source, reason=str(exc),
             )
             summary["failed"] += 1
             print(f"[backfill] 失败 {event.get('zh_title', '')[:36]} | {exc}")
+    summary["planned"] = summary["attempted"] - summary["skipped"] - summary["deferred_foreign"]
     return summary
 
 
@@ -1146,7 +1257,7 @@ def structured_content_metrics(events, *, run_id=""):
         "run_id": run_id or LLM_USAGE.run_id,
         "attempted": 0, "ready": 0, "figures": 0, "tables": 0,
         "media_cached": 0, "media_link_only": 0,
-        "strategies": {}, "fallbacks": {}, "by_source": {},
+        "strategies": {}, "content_modes": {}, "fallbacks": {}, "by_source": {},
     }
     for event in events:
         record = event.get("content_parse")
@@ -1160,6 +1271,8 @@ def structured_content_metrics(events, *, run_id=""):
         metrics["tables"] += int(record.get("tables", 0) or 0)
         strategy = str(record.get("strategy") or "unknown")
         metrics["strategies"][strategy] = metrics["strategies"].get(strategy, 0) + 1
+        mode = str(record.get("content_mode") or "unknown")
+        metrics["content_modes"][mode] = metrics["content_modes"].get(mode, 0) + 1
         if status != "ready":
             reason = str(record.get("reason") or status)[:120]
             metrics["fallbacks"][reason] = metrics["fallbacks"].get(reason, 0) + 1
@@ -1285,6 +1398,12 @@ def make_event(it):
     }
     if isinstance(it.get("work_tags"), dict):
         event["work_tags"] = normalize_work_tags(it["work_tags"])
+    for key in (
+        "content_mode", "content_level", "source_language", "translation_status",
+        "source_content_hash", "content_parse", "body_chars",
+    ):
+        if key in it:
+            event[key] = it[key]
     return event
 
 def recalc_event_heat(e):
@@ -1305,11 +1424,20 @@ def merge_into(e, it):
     recalc_event_heat(e)
     if len(it.get("zh_summary", "")) > len(e.get("zh_summary", "")):
         e["zh_summary"], e["reason"] = it["zh_summary"], it.get("reason", e["reason"])
-    if len(it.get("full_zh", "")) > len(e.get("full_zh", "")):
+    if (
+        it.get("content_mode") in {"original", "translated"}
+        and e.get("content_mode") not in {"original", "translated"}
+    ) or len(it.get("full_zh", "")) > len(e.get("full_zh", "")):
         e["full_zh"] = it["full_zh"]
         if it.get("content_blocks"):
             e["content_blocks"] = it["content_blocks"]
             e["content_format"] = it.get("content_format", "blocks-v1")
+        for key in (
+            "content_mode", "content_level", "source_language", "translation_status",
+            "source_content_hash", "content_parse", "body_chars",
+        ):
+            if key in it:
+                e[key] = it[key]
     e["vendors"] = list(dict.fromkeys(e.get("vendors", []) + it.get("vendors", [])))[:5]
     e["topics"] = [t for t in dict.fromkeys(e.get("topics", []) + it.get("topics", []))][:3]
     merged_tags = merge_work_tags(e.get("work_tags"), it.get("work_tags"))
@@ -1508,6 +1636,7 @@ def main():
     new_by_url = {}  # 本轮新增条目的 url 索引（同文多帖信号叠加）
 
     new_items, source_status = [], []
+    feed_content_by_url = {}
     for s in sources:
         control = source_control_snapshot(s)
         due, schedule_reason = source_due(s, ss.get(s["name"], {}), now)
@@ -1537,6 +1666,8 @@ def main():
             skipped_seen = 0
             limit_reached = False
             for e in entries:
+                if e.get("feed_content_html"):
+                    feed_content_by_url[norm_url(e["link"])] = e["feed_content_html"]
                 iid = hashlib.md5(e["link"].encode()).hexdigest()[:12]
                 if iid in seen:
                     skipped_seen += 1
@@ -1569,7 +1700,8 @@ def main():
                 pub_iso = pub_dt.astimezone(TZ).isoformat() if e["published"] else None
                 new_items.append({
                     "id": iid, "title": e["title"], "zh_title": e["title"],
-                    "summary": e["summary"][:600], "zh_summary": e["summary"][:300],
+                    "summary": e.get("summary", "")[:600], "zh_summary": e.get("summary", "")[:300],
+                    "feed_content_html": e.get("feed_content_html", ""),
                     "reason": "", "link": e["link"],
                     "source": s["name"], "source_type": s["type"],
                     "source_tier": s.get("tier", "default"),
@@ -1612,6 +1744,9 @@ def main():
         text, page_title, meta_date, blocks, parse_report = fetch_article_content(
             it["link"], include_report=True,
         )
+        text, blocks, parse_report = prefer_rss_article_content(
+            text, blocks, parse_report, it.get("feed_content_html"), it["link"],
+        )
         it["article_text"] = text
         it["article_blocks"] = blocks
         it["_article_parse"] = parse_report
@@ -1631,8 +1766,19 @@ def main():
             list(pool.map(grab, new_items))
         got = sum(1 for it in new_items if it["article_text"])
         print(f"[article] 旧流程正文抓取成功 {got}/{len(new_items)}")
-        new_items = llm_enrich(new_items, cfg, generate_fulltext=True)
+        new_items = llm_enrich(new_items, cfg, generate_fulltext=False)
         events = cluster_events(new_items, events, cfg, late_merge=True)
+        legacy_body_state = {"original": 0, "translated": 0, "fallback": 0}
+        for primary in new_items:
+            target = next(
+                (
+                    event for event in events
+                    if any(item.get("id") == primary["id"] for item in event.get("items", []))
+                ),
+                None,
+            )
+            if target is not None:
+                generate_event_body(target, primary, cfg, legacy_body_state)
     else:
         # 元数据 → 候选缓存 → 规则初筛 → 当轮聚簇 → 主来源 → 元数据加工 → 事件正文
         new_items = precheck_candidate_cache(new_items, cfg)
@@ -1696,11 +1842,7 @@ def main():
                     event["shelf"], event["pinned"] = "evergreen", True
                 if event["event_id"] in cur.get("drop", []):
                     event["shelf"], event["pinned"] = "news", False
-        try:
-            max_deep = max(0, int(os.getenv("MAX_DEEP_EVENTS_PER_RUN", "2")))
-        except ValueError:
-            max_deep = 2
-        body_state = {"deep_used": 0, "max_deep": max_deep}
+        body_state = {"original": 0, "translated": 0, "fallback": 0}
         for group, primary in accepted_records:
             event = next(
                 (
@@ -1716,10 +1858,13 @@ def main():
         new_items = accepted_items
         print(
             f"[pipeline] event_first 接受 {len(new_items)} 条，"
-            f"深度正文 {body_state['deep_used']}/{body_state['max_deep']} 个"
+            f"原文 {body_state['original']} / 忠实译文 {body_state['translated']} / "
+            f"降级 {body_state['fallback']} 个"
         )
 
-    backfill_summary = backfill_structured_content(events, cfg, now=now)
+    backfill_summary = backfill_structured_content(
+        events, cfg, now=now, feed_content_by_url=feed_content_by_url,
+    )
     run_structured = structured_content_metrics(events, run_id=LLM_USAGE.run_id)
     run_structured["backfill"] = backfill_summary
     write_structured_content_summary(run_structured)

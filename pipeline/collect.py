@@ -7,12 +7,9 @@ import sys, json, hashlib, re, html as H
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from run_update import (fetch_article_content, make_event, load_llm_config, llm_chat, compile_fulltext,
-                        translate_article_blocks,
+from run_update import (fetch_article_content, make_event, generate_event_body, load_llm_config, llm_chat,
                         norm_url, fetch_url, strip_html, calc_heat, TOPIC_NAMES,
                         CATEGORIES_LABEL, TZ, LLM_USAGE)
-from content_blocks import blocks_plain_text
-from media_cache import cache_event_media
 
 ROOT = Path(__file__).resolve().parent.parent
 LATEST = ROOT / "site" / "data" / "latest.json"
@@ -51,7 +48,7 @@ def main():
 
     new_items, wx_accounts = [], []
     for u in urls:
-        meta_dt, blocks = None, []
+        meta_dt, blocks, parse_report = None, [], {}
         if norm_url(u) in seen_urls:
             print(f"跳过（已收录）: {u}"); continue
         if "mp.weixin.qq.com" in u:
@@ -64,7 +61,7 @@ def main():
             title = u.rsplit("/", 1)[-1].replace(".pdf", "").replace("-", " ")
             source = "主编收录"
         else:
-            text, title, meta_dt, blocks = fetch_article_content(u)
+            text, title, meta_dt, blocks, parse_report = fetch_article_content(u, include_report=True)
             source = "主编收录"
         if not title:
             print(f"抓取失败: {u}"); continue
@@ -80,6 +77,7 @@ def main():
             "published": pub_iso or now.isoformat(), "_pub_dt": pub_dt or now,
             "signal": 0, "importance": 50, "heat": 20,
             "star": False, "article_text": text, "article_blocks": blocks, "shelf": "news",
+            "_article_parse": parse_report,
         })
         print(f"抓到: [{source}] {title[:50]}")
 
@@ -105,25 +103,6 @@ def main():
         it["zh_title"] = (out.get("zh_title") or it["title"]).strip()
         it["zh_summary"] = out.get("zh_summary") or it["summary"][:300]
         it["reason"] = out.get("reason", "")
-        if it.get("article_blocks"):
-            translated, stats = translate_article_blocks(
-                it["article_blocks"], cfg,
-                source=it.get("source", ""), item_id=it.get("id", ""), deep=True,
-            )
-            if translated and stats.get("applied", 0):
-                it["content_blocks"] = translated
-                it["content_format"] = "blocks-v1"
-                it["full_zh"] = blocks_plain_text(translated)
-            else:
-                it["full_zh"] = compile_fulltext(
-                    it["zh_title"], it.get("article_text") or it.get("summary", ""), cfg,
-                    context={"source": it.get("source", ""), "item_id": it.get("id", "")},
-                )
-        else:
-            it["full_zh"] = compile_fulltext(
-                it["zh_title"], it.get("article_text") or it.get("summary", ""), cfg,
-                context={"source": it.get("source", ""), "item_id": it.get("id", "")},
-            )
         cat = out.get("category")
         if cat in CATEGORIES_LABEL:
             it["category"], it["category_label"] = cat, CATEGORIES_LABEL[cat]
@@ -141,12 +120,7 @@ def main():
             it["shelf"] = "evergreen"   # 收录一律进典藏
             it["pinned"] = True
             event = make_event(it)
-            if event.get("content_blocks"):
-                event["content_blocks"], media_report = cache_event_media(
-                    event["content_blocks"], event["event_id"], it["link"], ROOT / "site",
-                )
-                if media_report["figures"]:
-                    print(f"媒体：缓存 {media_report['cached']} / 仅链接 {media_report['link_only']}")
+            generate_event_body(event, it, cfg, {})
             events.append(event)
             print(f"已入典藏: {it['zh_title'][:50]}")
         d["events"] = events

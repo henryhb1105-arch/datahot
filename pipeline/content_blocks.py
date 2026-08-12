@@ -404,8 +404,13 @@ def _meaningful_blocks(blocks):
     )
 
 
-def select_article_media(blocks, maximum=3):
-    """Keep the most explanatory figures, while preserving their source order."""
+def select_article_media(blocks, maximum=None):
+    """Drop decorative media and keep explanatory figures in source order.
+
+    ``maximum`` remains available for bounded callers, but article extraction keeps
+    every useful figure by default.  The media cache applies its own download cap;
+    figures beyond that cap remain visible as safe source links instead of vanishing.
+    """
     safe = sanitize_blocks(blocks)
     candidates, seen = [], set()
     for index, block in enumerate(safe):
@@ -426,9 +431,10 @@ def select_article_media(blocks, maximum=3):
         score += 3 if width >= 640 and height >= 240 else 0
         score += 6 if EXPLANATORY_IMAGE_RE.search(descriptor) else 0
         candidates.append((score, index))
-    selected = {
-        index for _score, index in sorted(candidates, key=lambda value: (-value[0], value[1]))[:maximum]
-    }
+    ranked = sorted(candidates, key=lambda value: (-value[0], value[1]))
+    if maximum is not None:
+        ranked = ranked[:max(0, int(maximum))]
+    selected = {index for _score, index in ranked}
     filtered = [
         block for index, block in enumerate(safe)
         if block.get("type") != "figure" or index in selected
@@ -717,7 +723,7 @@ def _parse_html_blocks_raw(html_text, base_url=""):
     return sanitize_blocks(parser.blocks, base_url)
 
 
-def parse_html_blocks_with_report(html_text, base_url="", maximum_figures=3):
+def parse_html_blocks_with_report(html_text, base_url="", maximum_figures=None):
     """Extract the best article body and return auditable selection metadata."""
     source = str(html_text or "")
     regions = _container_regions(source)
@@ -797,14 +803,14 @@ def _translation_targets(blocks):
                 yield node["id"], node, "text"
 
 
-def translation_nodes(blocks, maximum_chars=16000):
+def translation_nodes(blocks, maximum_chars=None):
     nodes, used = [], 0
     safe = sanitize_blocks(blocks)
     for node_id, target, field in _translation_targets(safe):
         text = target.get(field, "")
         if not text.strip():
             continue
-        if used + len(text) > maximum_chars:
+        if maximum_chars is not None and used + len(text) > maximum_chars:
             remaining = maximum_chars - used
             if remaining <= 0:
                 break

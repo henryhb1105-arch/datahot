@@ -6,7 +6,7 @@ from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 from urllib.parse import urlparse
-from content_blocks import render_blocks_html, sanitize_blocks, sanitize_url
+from content_blocks import blocks_plain_text, render_blocks_html, sanitize_blocks, sanitize_url
 from check_links import check_site_links, format_broken_links
 from feed import build_atom_feed, validate_atom_feed
 from lite_data import (
@@ -855,6 +855,15 @@ def render_detail(e, all_events, css, tts_item=None):
     )
     # blocks-v1 先经本地白名单清洗再渲染；异常或旧数据安全降级到 full_zh。
     safe_blocks = sanitize_blocks(e.get("content_blocks", []), main_url)
+    if safe_blocks and safe_blocks[0].get("type") == "heading":
+        import difflib as _dl
+        leading = blocks_plain_text([safe_blocks[0]]).strip()
+        known_titles = [e.get("zh_title", ""), primary_item.get("title", "")]
+        if leading and max(
+            (_dl.SequenceMatcher(None, leading.casefold(), title.casefold()).ratio() for title in known_titles if title),
+            default=0,
+        ) >= 0.72:
+            safe_blocks = safe_blocks[1:]
     render_media = os.getenv("MEDIA_BLOCKS_ENABLED", "true").strip().lower() not in {"0", "false", "no", "off"}
     full_paras = render_blocks_html(safe_blocks, render_media=render_media) if safe_blocks else ""
     if not full_paras:
@@ -872,9 +881,30 @@ def render_detail(e, all_events, css, tts_item=None):
                 full_paras += "".join(f"<p>{esc(x)}</p>" for x in para.split("\n") if x.strip())
     full_block = ""
     if full_paras:
-        full_block = f'''<div class="card"><h4>{ic("file")} 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
+        content_mode = e.get("content_mode") or "legacy_ai"
+        if content_mode == "translated":
+            content_title = "忠实译文"
+            content_badge = "AI 仅逐段翻译 · 未总结重组"
+            content_note = "AI 仅用于按原文顺序逐段翻译；正文结构、事实、表格和图表沿用原文"
+        elif content_mode == "original" and e.get("source_language") == "zh":
+            content_title = "原文正文"
+            content_badge = "原文 · 未经 AI 改写"
+            content_note = "正文来自 RSS 或原网页；DataHot 仅做安全清洗和版式整理，未使用 AI 改写"
+        elif content_mode == "original":
+            content_title = "原文正文（未翻译）"
+            content_badge = "翻译暂不可用 · 保留原文"
+            content_note = "当前直接显示原文，自动翻译暂不可用；未进行 AI 摘写或重组"
+        elif content_mode == "ai_fallback":
+            content_title = "内容摘要"
+            content_badge = "原文不可用 · 降级展示"
+            content_note = "未获得可用全文，当前为降级内容，仅供定位原始信源"
+        else:
+            content_title = "历史编译稿"
+            content_badge = "旧版 AI 基于原文编译"
+            content_note = "这是改版前生成的历史 AI 编译内容，后续将由原文或忠实译文替换"
+        full_block = f'''<div class="card content-card"><h4>{ic("file")} {content_title} <span class="content-origin-badge">{content_badge}</span></h4>
   <div class="fulltext">{full_paras}</div>
-  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · {original_link}</div>
+  <div class="disclaimer">{content_note} · {original_link}</div>
 </div>'''
     page_url = f"{SITE_BASE}/e/{event_id}.html"
     jsonld_payload = {
@@ -914,6 +944,8 @@ def render_detail(e, all_events, css, tts_item=None):
 .article .body{{font-size:15.5px;line-height:1.9;color:var(--txt3);margin:20px 0}}
 .article .card{{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}}
 .article h4{{font-size:14px;font-weight:800;margin-bottom:10px}}
+.content-card>h4{{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}}
+.content-origin-badge{{font-size:11px;color:var(--sub);font-weight:500}}
 .article .vendor-row{{text-decoration:none}}
 .source-section{{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}}
 .source-heading{{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}}
@@ -1233,7 +1265,7 @@ function posterLayout(x,W,P,qrImg){
   if(qrImg){x.drawImage(qrImg,74,y+46,130,130);}
   else{x.fillStyle='#666';x.font='400 22px sans-serif';x.fillText('扫码访问',88,y+118);}
   x.fillStyle=P.name;x.font='700 30px -apple-system,PingFang SC,sans-serif';
-  x.fillText('扫码阅读全文编译',240,y+60);
+  x.fillText('扫码阅读全文或忠实译文',240,y+60);
   x.fillStyle=P.foot;x.font='400 24px -apple-system,PingFang SC,sans-serif';
   x.fillText('DataHot · 数据领域 AI 热榜',240,y+110);
   x.fillText('henryhb1105-arch.github.io/datahot',240,y+150);

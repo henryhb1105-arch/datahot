@@ -48,7 +48,8 @@ GitHub Actions 每 6 小时自动运行（UTC 0/6/12/18 第 17 分），数据�
 
 - `MAX_LLM_TOKENS_PER_RUN`：单次更新的 Token 上限，默认 `160000`
 - `MAX_LLM_TOKENS_PER_DAY`：自然日 Token 上限，默认 `500000`
-- `MAX_COMPILE_EVENTS_PER_RUN`：每次最多生成全文编译稿的事件数，默认 `8`
+- `CONTENT_TRANSLATION_BATCH_CHARS`：外文忠实翻译的单批字符数，默认 `6000`
+- `CONTENT_TRANSLATION_BACKFILL_LIMIT`：单轮旧文章外文翻译上限，默认 `2`；中文原文回填不占该额度
 - `CANDIDATE_CACHE_ENABLED`：是否开启候选判定缓存，默认 `true`
 - `CANDIDATE_CACHE_TTL_DAYS`：accepted/rejected 判定保留天数，默认 `21`
 - `CANDIDATE_CACHE_ERROR_TTL_HOURS`：失败候选的重试退避时长，默认 `6`
@@ -63,25 +64,23 @@ GitHub Actions 每 6 小时自动运行（UTC 0/6/12/18 第 17 分），数据�
 
 ### 事件优先加工流程
 
-默认 `PIPELINE_ORDER=event_first`：元数据采集 → 候选缓存 → 规则初筛 → 当轮聚簇 → 选主来源 → 只抓主来源正文 → LLM 元数据加工 → 事件正文。普通新闻生成 600–1200 字符的关键事实、行业影响和实践要点；置顶、常青或重要度达标的事件才进入深度编译。
+默认 `PIPELINE_ORDER=event_first`：元数据采集 → 候选缓存 → 规则初筛 → 当轮聚簇 → 选主来源 → 读取 RSS 全文/主来源正文 → LLM 元数据加工 → 原文优先正文。中文正文经过安全清洗和结构化排版后直接展示，不调用 LLM；外文只按原文节点顺序完整翻译，不总结、不删减、不重组。只有无法获得可用原文时才降级到已有摘要。
 
-- `MAX_DEEP_EVENTS_PER_RUN`：单轮深度正文上限，默认 `2`
-- `DEEP_IMPORTANCE_THRESHOLD`：深度正文重要度门槛，默认 `80`
 - `CLUSTER_CACHE_TTL_DAYS`：标题/事件聚簇判定缓存，默认 `14` 天
 
-正文预算耗尽时直接降级为已有中文摘要，构建不中断。如需紧急回滚加工顺序，将 Actions Variable `PIPELINE_ORDER` 设为 `legacy`；候选、Token 和信源控制数据不会被删除。
+外文翻译预算耗尽或翻译不完整时直接保留原文，不用 AI 摘要替代全文；构建不中断。事件持久化 `content_mode`、原文语言和内容 hash，同一原文不会在后续轮次重复翻译。如需紧急回滚加工顺序，将 Actions Variable `PIPELINE_ORDER` 设为 `legacy`；该顺序也使用同一套原文优先正文策略。
 
 ### 结构化正文安全模型
 
 正文优先保存为 `blocks-v1`，支持 `heading`、`paragraph`、`list`、`blockquote`、`code`、`table` 和 `figure`；表格保留安全范围内的 `rowspan` / `colspan`，文本节点支持 `strong`、`em`、`code`、`link` 和 DataHot 语义颜色 token。block 与文本节点都有稳定 ID。DeepSeek 只接收正文、图注和替代文字的 `{id, text}` 列表并返回相同 ID，本地合并译文，因此不会让模型改写图片地址、链接、marks 或块结构。
 
-正文根节点按 `article` → `main` → 语义内容容器 → JSON-LD `articleBody` → 最大正文容器 → 全页兜底的顺序选择；每个结果会记录命中策略、正文块数、图片/表格数和回退原因。图片按原文流内位置保留，过滤 logo、头像、小尺寸装饰图和重复图，再按图注、替代文字、尺寸及 chart/diagram 等解释性信号选出最多 3 张。图片和表格不会因普通正文的 1200 字符预算被截掉。
+正文根节点按 RSS `content:encoded` / Atom `content` 与原网页的可用度选择，再按 `article` → `main` → 语义内容容器 → JSON-LD `articleBody` → 最大正文容器 → 全页兜底的顺序提取；每个结果会记录命中策略、正文块数、图片/表格数和回退原因。图片按原文流内位置保留，只过滤 logo、头像、小尺寸装饰图、重复图和危险内容，不再固定截成 3 张。标题层级、段落、列表、引用、代码、表格、图片和图注都由统一正文样式呈现，避免直接倾倒原始 HTML。
 
 抓取的第三方 HTML 不会直接入库或渲染：脚本、iframe、Canvas、事件属性和非 HTTP(S) 协议会被移除，颜色只映射到站点设计 token。渲染前会再次清洗；blocks 缺失或异常时继续使用已有 `full_zh` 安全纯文本兼容层。
 
-图片与静态图表只在同站点来源、未声明 `noimageindex` 且通过公网 URL、MIME、文件大小和像素上限检查后缓存到 `site/media/<event_id>/`。位图通过 Pillow 重新编码以清除 EXIF 和任意元数据；SVG 只保留静态图形白名单，删除脚本、外部引用和危险属性。默认每事件最多 3 张、单文件 5 MB、总缓存 250 MB，过期事件目录随数据一起清理。缓存失败时不热链，只显示图注、来源和原图入口。设置 `MEDIA_BLOCKS_ENABLED=false` 可立即关闭图片渲染并保留这些可追溯信息。
+图片与静态图表只在同站点来源、未声明 `noimageindex` 且通过公网 URL、MIME、文件大小和像素上限检查后缓存到 `site/media/<event_id>/`。位图通过 Pillow 重新编码以清除 EXIF 和任意元数据；SVG 只保留静态图形白名单，删除脚本、外部引用和危险属性。默认每事件最多缓存 12 张、单文件 5 MB、总缓存 250 MB；超过缓存上限的图仍保留图注、来源和原图入口，不会从正文结构中消失。设置 `MEDIA_BLOCKS_ENABLED=false` 可立即关闭图片渲染并保留这些可追溯信息。
 
-每轮还会限量检查近期高价值的旧事件，只对确实解析出图片或表格的文章补齐结构化正文；默认最多成功回填 2 篇、回看 30 天、尝试 12 篇，失败或无视觉内容后 7 天内不重试。可用 `CONTENT_BLOCKS_BACKFILL_LIMIT`、`CONTENT_BLOCKS_BACKFILL_DAYS` 和 `CONTENT_BLOCKS_BACKFILL_ATTEMPTS` 调整，设 `CONTENT_BLOCKS_BACKFILL_LIMIT=0` 可关闭。当前轮命中率、解析策略、回退原因、图片/表格与缓存数量写入 `latest.json` 的 `structured_content`、各信源的 `last_structured_content`，并显示在 GitHub Actions Summary。
+每轮还会检查近期旧事件并补齐原文优先正文。中文原文直接回填且不消耗 LLM Token；外文翻译默认单轮最多 2 篇，避免历史补数挤占新文章预算。可用 `CONTENT_TRANSLATION_BACKFILL_LIMIT`、`CONTENT_BLOCKS_BACKFILL_DAYS` 和 `CONTENT_BACKFILL_ATTEMPTS` 调整。当前轮命中率、解析策略、内容模式、图片/表格与缓存数量写入 `latest.json` 的 `structured_content`、各信源的 `last_structured_content`，并显示在 GitHub Actions Summary。
 
 ### 隐私友好行为分析
 
@@ -122,4 +121,4 @@ Mac runner 只有仓库内容写权限，不拥有部署控制权；它提交 MP
 
 ## 内容声明
 
-本站仅聚合各信源的摘要与原文链接，不转载全文，版权归原作者所有。
+本站作为个人 RSS 阅读器使用：中文信源展示经安全清洗与排版的原文，外文信源展示按原文顺序生成的忠实中文译文；无法获得全文时才显示降级摘要。原文与图表归原作者及原发布方所有。

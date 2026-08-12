@@ -199,58 +199,53 @@ class EventFirstPipelineTests(unittest.TestCase):
                 run_update.CANDIDATE_CACHE = original_cache
         self.assertEqual([candidate["id"] for candidate in enriched], ["official"])
 
-    def test_body_generation_is_idempotent_and_standard_length_is_bounded(self):
+    def test_chinese_original_is_direct_complete_and_idempotent(self):
         target = event("e1", title="数据平台发布")
-        primary = item("p1", "Data platform launch")
-        body = "## 关键事实\n" + "数" * 1300
-        with patch.object(run_update, "llm_chat_text", return_value=body) as generate:
+        original = "第一段原文事实。\n\n" + "第二段包含数字 123。" * 300
+        primary = item("p1", "数据平台发布", article_text=original)
+        with patch.object(run_update, "llm_chat_text") as generate:
             first = run_update.generate_event_body(
-                target, primary, ("k", "base", "model"), {"deep_used": 0, "max_deep": 0}
+                target, primary, ("k", "base", "model"), {}
             )
             second = run_update.generate_event_body(
-                target, primary, ("k", "base", "model"), {"deep_used": 0, "max_deep": 0}
+                target, primary, ("k", "base", "model"), {}
             )
-        self.assertEqual(first, second)
-        self.assertGreaterEqual(len(first), 600)
-        self.assertLessEqual(len(first), 1200)
-        self.assertEqual(target["content_level"], "standard")
-        generate.assert_called_once()
+        self.assertEqual(first, original)
+        self.assertEqual(second, original)
+        self.assertGreater(len(first), 1200)
+        self.assertEqual(target["content_mode"], "original")
+        self.assertEqual(target["source_language"], "zh")
+        self.assertEqual(target["translation_status"], "not_needed")
+        generate.assert_not_called()
 
-    def test_short_or_budget_exhausted_body_degrades_to_summary(self):
-        short = event("short", zh_summary="保留摘要")
-        primary = item("p2", "Data update")
-        with patch.object(run_update, "llm_chat_text", return_value="过短"):
-            result = run_update.generate_event_body(
-                short, primary, ("k", "base", "model"), {"deep_used": 0, "max_deep": 0}
-            )
+    def test_foreign_original_is_faithfully_translated_without_length_cap(self):
+        target = event("foreign", zh_summary="摘要")
+        primary = item("p2", "Data update", article_text="English source paragraph. " * 400)
+        with patch.object(run_update, "llm_chat_text", side_effect=lambda *_a, **_k: "忠实译文段落。" * 300) as translate:
+            result = run_update.generate_event_body(target, primary, ("k", "base", "model"), {})
+            again = run_update.generate_event_body(target, primary, ("k", "base", "model"), {})
+        self.assertEqual(result, again)
+        self.assertGreater(len(result), 1200)
+        self.assertEqual(target["content_mode"], "translated")
+        self.assertEqual(target["translation_status"], "complete")
+        self.assertGreaterEqual(translate.call_count, 1)
+
+    def test_translation_budget_failure_keeps_foreign_original_not_ai_summary(self):
+        target = event("budget", zh_summary="预算摘要")
+        original = "English source fact 123. " * 80
+        primary = item("p", "Data update", article_text=original)
+        with patch.object(run_update, "llm_chat_text", side_effect=LLMBudgetExceeded("limit")):
+            result = run_update.generate_event_body(target, primary, ("k", "base", "model"), {})
+        self.assertEqual(result, original.strip())
+        self.assertEqual(target["content_mode"], "original")
+        self.assertEqual(target["translation_status"], "failed")
+
+    def test_unavailable_original_is_the_only_summary_fallback(self):
+        target = event("missing", zh_summary="保留摘要")
+        primary = item("p", "Data update", article_text="", summary="")
+        result = run_update.generate_event_body(target, primary, ("k", "base", "model"), {})
         self.assertEqual(result, "保留摘要")
-        self.assertEqual(short["content_level"], "summary")
-
-        budget = event("budget", zh_summary="预算摘要")
-        with patch.object(
-            run_update, "llm_chat_text", side_effect=LLMBudgetExceeded("limit")
-        ):
-            result = run_update.generate_event_body(
-                budget, primary, ("k", "base", "model"), {"deep_used": 0, "max_deep": 0}
-            )
-        self.assertEqual(result, "预算摘要")
-        self.assertEqual(budget["content_level"], "summary")
-
-    def test_deep_generation_has_explicit_gate_and_run_cap(self):
-        state = {"deep_used": 0, "max_deep": 1}
-        primary = item("p", "Evergreen data guide")
-        deep = event("deep", shelf="evergreen", importance=90)
-        capped = event("capped", shelf="evergreen", importance=90)
-        with patch.object(run_update, "compile_fulltext", return_value="深度正文" * 200) as compile_call, patch.object(
-            run_update, "llm_chat_text", return_value="标准正文" * 200
-        ) as standard_call:
-            run_update.generate_event_body(deep, primary, ("k", "base", "model"), state)
-            run_update.generate_event_body(capped, primary, ("k", "base", "model"), state)
-        self.assertEqual(deep["content_level"], "deep")
-        self.assertEqual(capped["content_level"], "standard")
-        self.assertEqual(state["deep_used"], 1)
-        compile_call.assert_called_once()
-        standard_call.assert_called_once()
+        self.assertEqual(target["content_mode"], "ai_fallback")
 
     def test_late_merge_can_be_disabled_for_existing_events(self):
         existing = [event("a"), event("b")]
@@ -259,7 +254,7 @@ class EventFirstPipelineTests(unittest.TestCase):
         self.assertEqual(len(result), 2)
         judge.assert_not_called()
 
-    def test_backfill_is_bounded_and_only_upgrades_visual_articles(self):
+    def test_backfill_upgrades_chinese_text_and_visual_articles_without_llm(self):
         visual = event("visual", title="带图文章", importance=90)
         plain = event("plain", title="纯文字文章", importance=80)
         blocks = [
@@ -299,16 +294,16 @@ class EventFirstPipelineTests(unittest.TestCase):
                 [visual, plain], ("k", "base", "model"), now=NOW, limit=1, lookback_days=30,
             )
 
-        self.assertEqual(summary["ready"], 1)
+        self.assertEqual(summary["ready"], 2)
         self.assertEqual(summary["attempted"], 2)
-        self.assertEqual(summary["planned"], 1)
+        self.assertEqual(summary["planned"], 2)
         self.assertEqual(visual["content_format"], "blocks-v1")
         self.assertEqual(visual["content_parse"]["status"], "ready")
         self.assertEqual(visual["content_parse"]["media"]["cached"], 1)
-        self.assertNotIn("content_blocks", plain)
-        self.assertEqual(translate.call_args.kwargs["purpose"], "body_blocks_backfill")
+        self.assertEqual(plain["content_mode"], "original")
+        translate.assert_not_called()
 
-    def test_backfill_retries_an_old_processor_and_prioritizes_cacheable_media(self):
+    def test_backfill_retries_an_old_processor_and_chinese_does_not_use_foreign_cap(self):
         cross_site = event("cross", title="跨站图片", importance=95)
         same_site = event("same", title="同站图片", importance=80)
         cross_site["content_parse"] = {
@@ -355,10 +350,51 @@ class EventFirstPipelineTests(unittest.TestCase):
             )
 
         self.assertEqual(summary["attempted"], 2)
-        self.assertEqual(summary["ready"], 1)
-        self.assertEqual(translated.called_item, "same")
-        self.assertEqual(same_site["content_parse"]["processor_version"], "blocks-v2")
-        self.assertNotIn("content_blocks", cross_site)
+        self.assertEqual(summary["ready"], 2)
+        self.assertFalse(hasattr(translated, "called_item"))
+        self.assertEqual(same_site["content_parse"]["processor_version"], "original-first-v1")
+        self.assertEqual(cross_site["content_mode"], "original")
+
+    def test_backfill_foreign_translation_has_separate_run_cap(self):
+        first = event("foreign-a", importance=90)
+        second = event("foreign-b", importance=80)
+        blocks = [{
+            "type": "paragraph", "id": "b-foreign00001",
+            "children": [{
+                "type": "text", "id": "t-foreign00001",
+                "text": "English source facts and benchmark numbers. " * 20,
+                "marks": [],
+            }],
+        }]
+        report = {
+            "strategy": "article", "blocks": 1, "text_chars": 840,
+            "figures": 0, "tables": 0, "figures_discovered": 0,
+            "figures_selected": 0, "figures_rejected": 0,
+        }
+        def translate_when_configured(source_blocks, configured, **_kwargs):
+            if not configured[0]:
+                return [], {"applied": 0, "ignored": 0, "missing": 1, "complete": False}
+            return source_blocks, {"applied": 1, "ignored": 0, "missing": 0, "complete": True}
+
+        with patch.object(
+            run_update, "fetch_article_content",
+            return_value=("English source facts. " * 40, "", None, blocks, report),
+        ), patch.object(
+            run_update, "translate_article_blocks",
+            side_effect=translate_when_configured,
+        ) as translate, patch.object(
+            run_update, "cache_event_media",
+            return_value=(blocks, {"figures": 0, "cached": 0, "link_only": 0, "reasons": {}}),
+        ):
+            summary = run_update.backfill_structured_content(
+                [first, second], ("k", "base", "model"), now=NOW,
+                limit=1, lookback_days=30,
+            )
+        self.assertEqual(summary["ready"], 2)
+        self.assertEqual(summary["deferred_foreign"], 1)
+        self.assertEqual(sum(bool(call.args[1][0]) for call in translate.call_args_list), 1)
+        self.assertEqual(first["content_mode"], "translated")
+        self.assertEqual(second["content_mode"], "original")
 
     def test_structured_metrics_are_scoped_to_the_current_run_and_source(self):
         current = event("current")

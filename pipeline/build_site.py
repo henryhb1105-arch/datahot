@@ -26,6 +26,7 @@ TOPIC_DIR = SITE / "topics"
 WEEKLY_DIR = SITE / "weekly"
 ANALYTICS_ASSET = ROOT / "pipeline" / "assets" / "analytics.js"
 HOME_ASSET = ROOT / "pipeline" / "assets" / "home.js"
+DETAIL_ASSET = ROOT / "pipeline" / "assets" / "detail.js"
 TTS_ASSET = ROOT / "pipeline" / "assets" / "tts-player.js"
 TTS_MANIFEST = SITE / "data" / "tts-manifest.json"
 TZ = timezone(timedelta(hours=8))
@@ -936,6 +937,7 @@ def render_detail(e, all_events, css, tts_item=None):
 <meta name="theme-color" content="#1a1d23">
 {feed_discovery()}
 {analytics_head("../")}
+<script defer src="../detail.js"></script>
 <script type="application/ld+json">{jsonld}</script>
 <style>{css}
 {SHARED_CSS}
@@ -1018,7 +1020,7 @@ def render_detail(e, all_events, css, tts_item=None):
 </div></header>
 <div class="article">
   <div class="topbar detail-context">
-    <a class="back" href="../index.html" style="margin-bottom:0">← 返回</a>
+    <a class="back" href="../index.html" data-smart-back style="margin-bottom:0">← 返回</a>
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="{event_id}" title="收藏">{ic("star",13)}</button>
 {("      " + tts_button) if tts_button else ""}
@@ -1803,10 +1805,11 @@ def write_detail_pages(all_events, css, detail_dir=None, tts_manifest=None, site
 
 def main():
     SITE.mkdir(parents=True, exist_ok=True)
-    if not ANALYTICS_ASSET.exists() or not HOME_ASSET.exists() or not TTS_ASSET.exists():
+    if not all(asset.exists() for asset in (ANALYTICS_ASSET, HOME_ASSET, DETAIL_ASSET, TTS_ASSET)):
         raise FileNotFoundError("missing browser asset")
     shutil.copyfile(ANALYTICS_ASSET, SITE / "analytics.js")
     shutil.copyfile(HOME_ASSET, SITE / "home.js")
+    shutil.copyfile(DETAIL_ASSET, SITE / "detail.js")
     shutil.copyfile(TTS_ASSET, SITE / "tts-player.js")
     payload = json.load(open(SITE / "data" / "latest.json"))
     all_events = payload["events"]

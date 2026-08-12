@@ -439,6 +439,8 @@ class ContentBlockRenderingTests(unittest.TestCase):
         self.assertNotIn("未经 AI 改写", page)
         self.assertNotIn('class="content-origin-badge"></span>', page)
         self.assertIn("← 返回</a>", page)
+        self.assertIn('href="../index.html" data-smart-back', page)
+        self.assertIn('src="../detail.js"', page)
         self.assertNotIn("返回热榜", page)
         self.assertNotIn("全文编译", page)
 

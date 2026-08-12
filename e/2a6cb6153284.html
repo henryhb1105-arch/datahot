@@ -510,9 +510,115 @@ a.source-name:hover{color:var(--accent)}
   <div class="body">MotherDuck推出Guides，把指标定义、表关系、历史迁移和业务例外等说明作为可查询、可版本化的上下文保存在数仓中。Agent在执行查询或构建数据任务时，可以按需发现并加载这些说明，减少仅凭schema猜测业务语义造成的错误。</div>
   <div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>企业数据Agent的核心瓶颈正在从SQL生成转向上下文治理，Guides提供了一个接近‘数仓内技能文件’的实现样本。</span></div>
   <div class="vendors" style="margin-top:14px"><a class="chip" href="../topics/data-agent.html">Data Agent</a><a class="chip" href="../topics/semantic-layer.html">语义层</a><span class="vtag">MotherDuck</span><span class="vtag">DuckDB</span></div>
-  <div class="card content-card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 历史编译稿 <span class="content-origin-badge">旧版 AI 基于原文编译</span></h4>
-  <div class="fulltext"><h5 class="fh">关键事实</h5><p>MotherDuck推出Guides，允许团队把指标口径、表之间的关系、迁移历史、数据陷阱和输出风格写成Markdown式说明，并作为数仓对象管理。Guides可被搜索、查询和版本控制，Agent只在任务需要时加载相关上下文。</p><h5 class="fh">行业影响</h5><p>数据库schema只能描述字段和类型，无法告诉Agent某张表是否已停更、某个指标为何要去重，或团队默认采用哪套业务定义。把非结构化知识放回数据平台，有助于让Agent的答案可复用、可治理。</p><h5 class="fh">实践要点</h5><p>落地时应先整理高频指标、关键join关系和已知数据陷阱，明确所有者与更新流程；Guides不是一次性文档，而是需要与数据模型一起持续维护的生产资产。</p></div>
-  <div class="disclaimer">这是改版前生成的历史 AI 编译内容，后续将由原文或忠实译文替换 · <a href="https://motherduck.com/docs/key-tasks/guides/" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="主编收录">查看原文 ↗</a></div>
+  <div class="card content-card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 原文正文（未翻译） <span class="content-origin-badge">翻译暂不可用 · 保留原文</span></h4>
+  <div class="fulltext"><p>Preview</p><p>This feature is in <a href="https://motherduck.com/docs/about-motherduck/feature-stages/" target="_blank" rel="noopener noreferrer nofollow">preview</a> and is subject to change.</p><p>With guides you capture the domain knowledge that isn&#x27;t visible from a schema: how your org defines MRR, which tables to join on, which columns to avoid, common pitfalls in your data, or what &quot;client&quot; means in your field of work. Guides also work for personal preferences: your Dive styling, your Flight conventions, the way you like results formatted.</p><p>Guides are markdown documents you store in MotherDuck that AI agents read before working with your data. You write a guide once; from then on, every agent session picks it up automatically through the <a href="https://motherduck.com/docs/key-tasks/ai-and-motherduck/mcp-setup/" target="_blank" rel="noopener noreferrer nofollow">MCP server</a>. No copy-pasting context into every chat over and over. Org-shared guides align every agent in your organization on the same definitions; private guides personalize agents to how you work.</p><h2 class="cb-heading">Prerequisites<a href="https://motherduck.com/docs/key-tasks/guides/#prerequisites" target="_blank" rel="noopener noreferrer nofollow">​</a></h2><ul><li>A MotherDuck account with the <a href="https://motherduck.com/docs/key-tasks/ai-and-motherduck/mcp-setup/" target="_blank" rel="noopener noreferrer nofollow">MCP server</a> connected to an AI client like Claude, Cursor, or Claude Code</li><li>Permission to share org-wide guides (for publishing guides to your whole organization)</li></ul><h2 class="cb-heading">Organize guides with topics<a href="https://motherduck.com/docs/key-tasks/guides/#organize-guides-with-topics" target="_blank" rel="noopener noreferrer nofollow">​</a></h2><p>Topics are an effective way for agents to discover guides without wasting tokens. Instead of loading every guide up front it calls <code>list_guides(topic)</code>, the agent sees the topic tree with guide counts and drills into the topics that look relevant to the task. This is called progressive disclosure and works best when you:</p><ul><li><strong>Pick descriptive topic names.</strong> The agent decides whether to open <code>revenue-billing</code> based on the name alone, so <code>revenue-billing</code> beats <code>misc</code> or <code>team-docs</code>.</li><li><strong>Keep the structure easy to traverse.</strong> A handful of well-named top-level topics with one or two levels below is easier to navigate than a deep or fragmented tree. Topics carry no uniqueness — any number of guides can share one.</li><li><strong>Reserve the root for truly general guides.</strong> Guides without a topic are listed individually in every <code>get_query_guide</code> overview: easiest for the agent to find, but they occupy space in every session. Leave the topic empty only for guides so general they don&#x27;t belong to any specific domain, like a company description, unique attributes to the field the company operates in, a data platform overview or org-wide SQL conventions.</li></ul><pre><code class="language-text">- data-quality/ (1 guide)
+- revenue-billing/ (2 guides)
+- revenue-billing/forecasting/ (1 guide)
+- &quot;Data platform overview&quot; — what lives where in our warehouse (organization, uuid: a1b2c3d4-...)
+</code></pre><pre><code class="language-text">(no topic)              One orientation guide: the definitions an agent needs first,
+                        per-schema notes, the join graph, and pointers to everything below
+definitions/            A glossary of terms that maps common language to your data
+&lt;domain&gt;/               How bundles of metrics are computed, one topic per area:
+                        revenue-billing/, sales-funnel/, product-usage/
+&lt;database&gt;/&lt;schema&gt;/    Information related to a specific database, schema, and so on
+</code></pre><pre><code class="language-text">Create a Dive guide that says that I prefer dark-themed Dives with compact number formatting
+</code></pre><pre><code class="language-text">Create an org-wide guide with topic &quot;revenue-billing&quot; that explains:
+- MRR is calculated from the subscriptions table using status = &#x27;active&#x27; and trial_end IS NULL
+- ARR is MRR × 12
+- The billing schema is in the billing database, main schema
+- Never join subscriptions to invoices for revenue — use subscriptions directly
+</code></pre><pre><code class="language-">
+SELECT
+  id,
+  topic,
+  current_version
+FROM
+  MD_CREATE_GUIDE (
+    topic = &#x27;revenue-billing&#x27;,
+    title = &#x27;MRR and ARR Definitions&#x27;,
+    description = &#x27;How monthly and annual recurring revenue are calculated&#x27;,
+    content = &#x27;
+# MRR and ARR definitions
+
+MRR is the sum of all active subscription amounts normalized to a monthly value.
+
+Key rules:
+- Use the subscriptions table, not invoices
+- Filter to status = active
+- Exclude trial subscriptions (trial_end IS NULL)
+&#x27;,
+    access = &#x27;user&#x27;
+  );</code></pre><pre><code class="language-text">What guides does my organization have?
+</code></pre><pre><code class="language-sql">SELECT id, topic, title, description, access FROM MD_LIST_GUIDES();
+</code></pre><pre><code class="language-sql">SELECT id, title FROM MD_LIST_GUIDES(topic = &#x27;revenue-billing&#x27;);
+</code></pre><pre><code class="language-sql">SELECT title, content
+FROM MD_GET_GUIDE(id = &#x27;a1b2c3d4-e5f6-7890-abcd-ef1234567890&#x27;);
+</code></pre><pre><code class="language-text">Update the MRR guide to add a section on expansion MRR
+</code></pre><pre><code class="language-sql">SELECT current_version
+FROM MD_UPDATE_GUIDE(
+  id = &#x27;a1b2c3d4-e5f6-7890-abcd-ef1234567890&#x27;,
+  content = &#x27;...(full updated markdown)...&#x27;,
+  change_comment = &#x27;Add expansion MRR section&#x27;
+);
+</code></pre><pre><code class="language-text">Rename billing.main.orders to billing.main.customer_orders in the MRR guide
+</code></pre><pre><code class="language-sql">SELECT topic, title
+FROM MD_UPDATE_GUIDE_METADATA(
+  id = &#x27;a1b2c3d4-e5f6-7890-abcd-ef1234567890&#x27;,
+  topic = &#x27;customer-orders&#x27;,
+  title = &#x27;Customer Order Filters&#x27;
+);
+</code></pre><pre><code class="language-sql">SELECT current_version
+FROM MD_UPDATE_GUIDE(
+  id = &#x27;a1b2c3d4-e5f6-7890-abcd-ef1234567890&#x27;,
+  &quot;references&quot; = [
+    {
+      &#x27;type&#x27;: &#x27;catalog&#x27;,
+      &#x27;url&#x27;: &#x27;md:billing&#x27;,
+      &#x27;schema&#x27;: &#x27;main&#x27;,
+      &#x27;table&#x27;: &#x27;subscriptions&#x27;,
+      &#x27;description&#x27;: &#x27;Primary source for subscription revenue data&#x27;
+    },
+    {
+      &#x27;type&#x27;: &#x27;catalog&#x27;,
+      &#x27;url&#x27;: &#x27;md:billing&#x27;,
+      &#x27;schema&#x27;: &#x27;main&#x27;,
+      &#x27;table&#x27;: &#x27;subscriptions&#x27;,
+      &#x27;column&#x27;: &#x27;amount&#x27;,
+      &#x27;description&#x27;: &#x27;Monthly subscription amount in cents&#x27;
+    }
+  ]
+);
+</code></pre><pre><code class="language-sql">SELECT current_version
+FROM MD_UPDATE_GUIDE(
+  id = &#x27;b2c3d4e5-f6a7-8901-bcde-f12345678901&#x27;,
+  &quot;references&quot; = [
+    {
+      &#x27;type&#x27;: &#x27;catalog&#x27;,
+      &#x27;url&#x27;: &#x27;md:_share/sample_data/23b0d623-1361-421d-ae77-62d701d471e6&#x27;,
+      &#x27;schema&#x27;: &#x27;hn&#x27;,
+      &#x27;table&#x27;: &#x27;hacker_news&#x27;,
+      &#x27;description&#x27;: &#x27;Hacker News sample data shared by MotherDuck&#x27;
+    }
+  ]
+);
+</code></pre><pre><code class="language-sql">SELECT id, title
+FROM MD_LIST_GUIDES(
+  reference = {
+    &#x27;type&#x27;: &#x27;catalog&#x27;,
+    &#x27;url&#x27;: &#x27;md:billing&#x27;,
+    &#x27;schema&#x27;: &#x27;main&#x27;,
+    &#x27;table&#x27;: &#x27;subscriptions&#x27;
+  }
+);
+</code></pre><pre><code class="language-sql">SELECT access
+FROM MD_SET_GUIDE_ACCESS(
+  id = &#x27;a1b2c3d4-e5f6-7890-abcd-ef1234567890&#x27;,
+  access = &#x27;organization&#x27;
+);
+</code></pre><pre><code class="language-sql">SELECT success
+FROM MD_DELETE_GUIDE(id = &#x27;a1b2c3d4-e5f6-7890-abcd-ef1234567890&#x27;);
+</code></pre></div>
+  <div class="disclaimer">当前直接显示原文，自动翻译暂不可用；未进行 AI 摘写或重组 · <a href="https://motherduck.com/docs/key-tasks/guides/" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="主编收录">查看原文 ↗</a></div>
 </div>
 <section class="source-section" aria-labelledby="supplementSourcesTitle"><div class="source-heading"><h4 id="supplementSourcesTitle">补充来源</h4><span class="source-summary">1 个信源 · 1 篇报道</span></div><div class="source-group"><div class="source-group-head"><b>X 线索·@motherduck</b></div><a class="source-report" href="https://x.com/motherduck/status/2087177975166902737" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="X 线索·@motherduck"><span class="source-report-title">X 原帖：MotherDuck用Guides补齐Data Agent看不到的业务上下文 <span aria-hidden="true">↗</span></span><span class="source-report-date">2026-08-11 22:03</span></a></div></section>
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/ac7c75fedd0b.html"><span class="n">›</span>一招教你鉴定真假Data Agent<span class="count">50</span></a><a class="vendor-row" href="../e/1526c962704f.html"><span class="n">›</span>Data Agent：超越BI与AI的边界<span class="count">54</span></a><a class="vendor-row" href="../e/203a40c0d09f.html"><span class="n">›</span>Aloudata Agent 分析技能详解：从业务问题到可用分析<span class="count">55</span></a></div>

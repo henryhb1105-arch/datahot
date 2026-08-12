@@ -224,6 +224,23 @@ class ContentBlockTranslationTests(unittest.TestCase):
         self.assertEqual(stats["ignored"], 1)
         self.assertNotIn("injected", blocks_plain_text(translated))
 
+    def test_translation_completeness_ignores_blank_source_nodes(self):
+        blocks = sanitize_blocks([
+            {
+                "type": "paragraph",
+                "children": [
+                    {"type": "text", "text": "English fact", "marks": []},
+                    {"type": "text", "text": "   ", "marks": [{"type": "strong"}]},
+                ],
+            },
+        ])
+        nodes = translation_nodes(blocks)
+        self.assertEqual(len(nodes), 1)
+        _translated, stats = apply_translations(
+            blocks, [{"id": nodes[0]["id"], "text": "英文事实"}],
+        )
+        self.assertEqual(stats, {"applied": 1, "ignored": 0, "missing": 0})
+
     def test_translated_markup_is_escaped_by_renderer(self):
         node = translation_nodes(self.blocks)[0]
         translated, _ = apply_translations(

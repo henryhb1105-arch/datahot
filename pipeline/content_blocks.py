@@ -825,6 +825,7 @@ def apply_translations(blocks, translated_nodes):
     existing = {
         node_id: (target, field)
         for node_id, target, field in _translation_targets(result)
+        if str(target.get(field) or "").strip()
     }
     applied, ignored = 0, 0
     seen = set()

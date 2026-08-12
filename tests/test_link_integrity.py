@@ -105,7 +105,7 @@ class BuildPathRegressionTests(unittest.TestCase):
         self.assertIn("<span>主题</span>", primary)
         self.assertIn("<span>收藏</span>", primary)
         self.assertIn("<span>更多</span>", primary)
-        for label in ("每周简报", "完整榜单", "典藏", "信源", "隐私说明"):
+        for label in ("每周简报", "完整榜单", "典藏", "信源", "接入 Agent", "隐私说明"):
             self.assertIn(label, markup)
 
     def test_more_pages_highlight_more_tab(self):
@@ -116,6 +116,13 @@ class BuildPathRegressionTests(unittest.TestCase):
         self.assertNotIn('class="tabbar-more on"', favorites)
         self.assertIn('href="favorites.html" class="on"', favorites)
         self.assertNotIn('class="tabbar-more on"', build_site.tabbar("home"))
+
+    def test_agent_page_is_available_in_desktop_and_mobile_navigation(self):
+        sidebar = build_site.sidebar("agent")
+        tabbar = build_site.tabbar("agent")
+        self.assertIn('class="mi on" href="agent.html"', sidebar)
+        self.assertIn('class="tabbar-more on"', tabbar)
+        self.assertIn('class="more-link on" href="agent.html"', tabbar)
 
     def test_section_and_detail_use_shared_navigation_shells(self):
         section = build_site.page_shell(

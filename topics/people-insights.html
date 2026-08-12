@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob: https://api.qrserver.com; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-zTbqoLXOVJ6Y7bxwX42flzVUMpf3rgsI16LDibNF8HY='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>组织人才 · DataHot 主题</title>
+<meta name="description" content="人才流动、组织效能与技能供需——用数据理解人与组织如何变化">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="theme-color" content="#1a1d23">
+<link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://henryhb1105-arch.github.io/datahot/feed.xml">
+<meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="henryhb1105-arch.github.io">
+<script defer src="../analytics.js"></script>
+<style>
+  :root{
+    color-scheme: light dark;
+    --bg:#f6f7f9; --card:#ffffff; --ink:#1a1d23; --sub:#6b7280; --line:#e5e7eb;
+    --accent:#d94f2b; --accent-soft:#fdf0ec;
+    --blue:#2563eb; --green:#0f9d6c; --purple:#7c3aed; --amber:#b45309;
+    --txt2:#4b5563; --txt3:#374151; --soft:#f3f4f6; --hover:#f0f1f3;
+    --header-bg:rgba(255,255,255,.92); --tabbar-bg:rgba(255,255,255,.95);
+    --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#121417; --card:#1e2126; --ink:#e9ebef; --sub:#9aa1ab; --line:#2e323a;
+      --accent:#e5603c; --accent-soft:rgba(229,96,60,.16);
+      --blue:#6ea8ff; --green:#34c98e; --purple:#a78bfa; --amber:#e0a455;
+      --txt2:#b6bcc6; --txt3:#cdd2da; --soft:#2a2e35; --hover:#2a2e35;
+      --header-bg:rgba(18,20,23,.92); --tabbar-bg:rgba(30,33,38,.95);
+    }
+    .tab.on,.fchip.on{background:var(--ink);color:#121417}
+    .sidebar a.mi.on{background:rgba(229,96,60,.14);color:var(--accent)}
+    .sub-box input,.tlsearch{color:var(--ink)}
+    .mock-banner{background:#000}
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 20px}
+
+  /* ── 顶部导航 ── */
+  header{position:sticky;top:0;z-index:50;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+  .nav{display:flex;align-items:center;gap:18px;min-height:56px}
+  .logo{font-size:20px;font-weight:800;letter-spacing:-.5px}
+  .logo em{font-style:normal;color:var(--accent)}
+  .logo .tag{font-size:11px;font-weight:500;color:var(--sub);margin-left:8px;border:1px solid var(--line);border-radius:99px;padding:2px 8px;vertical-align:middle}
+  .home-logo{display:inline-flex;align-items:center;border-radius:8px}
+  .home-logo:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+  .update-info{position:relative;margin-left:auto}
+  .update-info summary{list-style:none}
+  .update-info summary::-webkit-details-marker{display:none}
+  .upd-time{font-size:11.5px;color:var(--sub);white-space:nowrap;display:inline-flex;align-items:center;gap:4px;padding:5px 8px;border-radius:99px;cursor:help;transition:background .15s,color .15s}
+  .update-info:hover .upd-time,.update-info:focus-within .upd-time,.update-info[open] .upd-time{background:var(--hover);color:var(--ink)}
+  .upd-time:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .update-popover{position:absolute;right:0;top:calc(100% + 9px);z-index:90;width:min(330px,calc(100vw - 28px));padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);box-shadow:0 12px 32px rgba(0,0,0,.14);font-size:12.5px;line-height:1.7;color:var(--txt2);white-space:normal;opacity:0;visibility:hidden;transform:translateY(-4px);pointer-events:none;transition:opacity .15s,transform .15s,visibility .15s}
+  .update-popover b{display:block;margin-bottom:3px;color:var(--ink);font-size:13px}
+  .update-info:not(.is-dismissed):hover .update-popover,.update-info:not(.is-dismissed):focus-within .update-popover,.update-info[open]:not(.is-dismissed) .update-popover{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto}
+  .tabs{display:flex;gap:4px;flex:1}
+  .tab{padding:6px 14px;border-radius:99px;font-size:14px;color:var(--sub);cursor:pointer;white-space:nowrap}
+  .tab:hover{background:var(--hover)}
+  .tab.on{background:var(--ink);color:#fff;font-weight:600}
+  .search{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:6px 14px;font-size:13px;color:var(--sub);min-width:180px;cursor:pointer}
+  .btn-sub{background:var(--accent);color:#fff;border-radius:99px;padding:7px 16px;font-size:13px;font-weight:600;white-space:nowrap}
+
+  .layout{display:grid;grid-template-columns:1fr 320px;gap:24px;padding:28px 0 60px}
+  @media(max-width:960px){.layout{grid-template-columns:1fr}}
+
+  /* ── 移动端导航适配 ── */
+  @media(max-width:960px){
+    .nav{flex-wrap:wrap;height:auto;padding:8px 0;gap:10px;min-height:52px}
+    .logo{font-size:19px}
+    .logo .tag{display:none}
+    .tabs{order:3;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
+    .tabs::-webkit-scrollbar{display:none}
+    .tab{flex-shrink:0;padding:5px 12px;font-size:13px}
+    .search{margin-left:auto;min-width:0;padding:5px 12px}
+    .btn-sub{display:none}
+  }
+
+  /* ── iPhone 体验适配 ── */
+  @media(max-width:600px){
+    body{-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+    .wrap{padding:0 14px}
+    .section-title h2{font-size:17px}
+    .hotlist{grid-template-columns:1fr;gap:10px}
+    .hot{padding:14px 16px}
+    .hot h3{font-size:14px}
+    .item{padding:14px 16px;border-radius:12px}
+    .item h3{font-size:15px;overflow-wrap:anywhere}
+    .item .sum{font-size:13px;line-height:1.7;overflow-wrap:anywhere}
+    .item .top{font-size:11px;gap:6px}
+    .heatnum{font-size:12px}
+    .why{font-size:12.5px;line-height:1.7}
+    .brief{padding:16px 18px}
+    .brief p{font-size:13.5px}
+    .chiprow{gap:6px}
+    .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:32px;display:inline-flex;align-items:center}
+    .tab,.fchip,.chip{touch-action:manipulation}
+    aside{align-self:start;position:sticky;top:20px}
+@media(min-width:1280px){.wrap{max-width:1320px}}
+aside .card{padding:14px 16px}
+    .article{padding:20px 14px 48px}
+    .article h1{font-size:20px}
+    .article .body{font-size:14.5px}
+    .fulltext p{font-size:14px}
+    .cta{width:100%;text-align:center;padding:13px 0;font-size:15px}
+    .day-head .date{font-size:15px}
+  }
+
+  /* ── 每周简报 ── */
+  .brief{background:linear-gradient(135deg,#1a1d23 0%,#2b2418 60%,#3d2412 100%);color:#fff;border-radius:var(--radius);padding:22px 26px;margin-bottom:22px;position:relative;overflow:hidden}
+  .brief .label{font-size:12px;letter-spacing:2px;color:#f5b48a;font-weight:700;margin-bottom:8px}
+  .brief p{font-size:15px;line-height:1.8;color:#f3f4f6}
+  .brief .meta{margin-top:10px;font-size:12px;color:#9ca3af}
+  .brief::after{content:"⚡";position:absolute;right:18px;top:14px;font-size:42px;opacity:.25}
+
+  /* ── 热点榜 ── */
+  .section-title{display:flex;align-items:baseline;gap:10px;margin:6px 0 14px}
+  .section-title h2{font-size:19px;font-weight:800}
+  .section-title span{font-size:12px;color:var(--sub)}
+  .hotlist{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:30px}
+  @media(max-width:960px){.hotlist{grid-template-columns:1fr}}
+  .hot{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;position:relative;transition:.15s;cursor:pointer}
+  .hot:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+  .hot .rank{position:absolute;top:-1px;left:16px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:0 0 8px 8px}
+  .hot .heat{position:absolute;top:12px;right:16px;font-size:12px;color:var(--accent);font-weight:700}
+  .hot h3{font-size:15px;font-weight:700;margin:14px 0 8px;line-height:1.5}
+  .hot .sources{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
+  .src{font-size:11px;background:var(--soft);color:var(--sub);border-radius:6px;padding:2px 8px}
+  .src.more{background:var(--accent-soft);color:var(--accent)}
+
+  /* ── 时间轴 ── */
+  .day{margin-bottom:8px}
+  .day-head{display:flex;align-items:center;gap:12px;margin:22px 0 12px}
+  .day-head .date{font-size:17px;font-weight:800}
+  .day-head .info{font-size:12px;color:var(--sub)}
+  .day-head::after{content:"";flex:1;height:1px;background:var(--line)}
+  .item{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin-bottom:12px;transition:.15s;cursor:pointer}
+  .item:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+  .item .top{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub);flex-wrap:wrap}
+  .badge{font-weight:600;border-radius:6px;padding:1px 8px;font-size:11px}
+  .b-agent{background:#eef2ff;color:var(--blue)}
+  .b-platform{background:#ecfdf5;color:var(--green)}
+  .b-bi{background:#f5f3ff;color:var(--purple)}
+  .b-product{background:#fef7e8;color:var(--amber)}
+  .b-insight{background:#fff1f2;color:#be123c}
+  .star{color:var(--accent);font-weight:700}
+  .item .heatnum{margin-left:auto;font-weight:800;color:var(--accent);font-size:13px}
+  .item h3{font-size:16px;font-weight:700;margin:8px 0 6px;line-height:1.55}
+  .item .sum{font-size:13.5px;color:var(--txt2);line-height:1.75}
+  .item .also{margin-top:10px;font-size:12px;color:var(--sub)}
+  .item .also b{color:var(--ink)}
+  .why{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;font-size:13px;color:var(--txt2);line-height:1.75}
+.why .w{color:var(--accent);font-weight:700;white-space:nowrap;font-size:12px;letter-spacing:1px}
+.why .w svg{vertical-align:-2px}
+  .vendors{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
+  .vtag{font-size:11px;border:1px dashed var(--line);color:var(--sub);border-radius:99px;padding:1px 10px;cursor:default}
+  
+
+  /* ── 侧栏 ── */
+  aside .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
+  aside h4{font-size:14px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+  .vendor-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--soft);font-size:13px;cursor:pointer}
+  .vendor-row:last-child{border-bottom:none}
+  .vendor-row .n{width:16px;color:var(--sub);font-size:12px}
+  .vendor-row .count{margin-left:auto;font-size:12px;color:var(--accent);font-weight:700}
+  .up{transform:scale(.8)}
+  .sub-box input{width:100%;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:8px;outline:none}
+  .sub-box button{width:100%;background:var(--ink);color:var(--bg);border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer}
+  .status{font-size:12.5px;color:var(--sub);line-height:2}
+  .status b{color:var(--green)}
+  .legend{display:flex;flex-direction:column;gap:6px;font-size:12.5px}
+  .legend .row{display:flex;align-items:center;gap:8px;color:var(--sub)}
+
+  footer{border-top:1px solid var(--line);padding:26px 0;text-align:center;font-size:12px;color:var(--sub)}
+  .mock-banner{background:#1a1d23;color:#fff;text-align:center;font-size:12px;padding:7px;letter-spacing:1px}
+  .mock-banner b{color:#f5b48a}
+
+
+body{overflow-x:clip}
+main,.layout>*,.hotlist>*{min-width:0}
+.d-only{display:inline-block}
+@media(max-width:960px){.d-only{display:none}}
+.chip{display:inline-block;font-size:11px;background:#eef2ff;color:var(--blue);border-radius:99px;padding:1px 10px;text-decoration:none}
+.chip:hover{background:#dbe4ff}
+.tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
+.tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
+.chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px;position:relative}
+.chiprow::after{content:"";position:sticky;right:0;flex-shrink:0;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+.chiprow::-webkit-scrollbar{display:none}
+.chiprow .fchip{flex-shrink:0;font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
+.chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
+@media (prefers-color-scheme: dark){
+  .chip{background:rgba(110,168,255,.16);color:#6ea8ff}
+  .chip:hover{background:rgba(110,168,255,.26)}
+  .chiprow .fchip.on{background:var(--ink);color:#121417;border-color:var(--ink)}
+  .chiprow .fchip{background:var(--card);color:var(--sub);border-color:var(--line)}
+}
+.scard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 20px;margin-bottom:14px}
+.source-page{padding:30px 20px 60px;max-width:820px}
+.source-intro{margin-bottom:30px}
+.source-intro h1{font-size:27px;line-height:1.35;margin:0 0 10px}
+.source-intro p{font-size:14px;line-height:1.8;color:var(--txt2);margin:0;max-width:720px}
+.source-alert{margin-top:14px;padding:10px 12px;border-left:3px solid var(--amber);background:var(--soft);border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.7;color:var(--txt2)}
+.source-alert b{color:var(--ink);margin-right:6px}
+.source-group{margin:0 0 28px}
+.source-group-head{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:8px}
+.source-group-head h2{font-size:16px;line-height:1.4;margin:0}
+.source-group-head span{font-size:11.5px;color:var(--sub)}
+.source-row{display:flex;align-items:center;gap:12px;min-height:49px;border-bottom:1px solid var(--soft)}
+.source-name{display:inline-flex;align-items:center;gap:4px;min-width:0;color:var(--ink);font-size:13.5px;font-weight:650;line-height:1.5;text-decoration:none}
+a.source-name:hover{color:var(--accent)}
+.source-name svg{flex:0 0 auto}
+.source-focus{margin-left:auto;color:var(--sub);font-size:11.5px;line-height:1.45;text-align:right}
+.source-health{color:var(--amber);font-size:11.5px;white-space:nowrap}
+.source-disabled{margin:2px 0 28px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.source-disabled summary{cursor:pointer;padding:13px 0;font-size:13px;font-weight:650;color:var(--txt2)}
+.source-disabled .source-row{align-items:flex-start;padding:11px 0;min-height:0}
+.source-disabled-reason{margin-left:auto;max-width:62%;font-size:11.5px;line-height:1.6;color:var(--sub);text-align:right}
+.source-contribute{display:flex;align-items:center;gap:18px;background:var(--soft);border-radius:var(--radius);padding:17px 18px;margin-bottom:20px}
+.source-contribute-copy{min-width:0;flex:1}
+.source-contribute h2{font-size:15px;margin:0 0 4px}
+.source-contribute p{font-size:12.5px;line-height:1.6;color:var(--sub);margin:0}
+.source-cta{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border-radius:99px;background:var(--ink);color:var(--bg);padding:8px 14px;font-size:12px;font-weight:650;text-decoration:none}
+.source-cta:hover{opacity:.86}
+.source-principle{font-size:12px;line-height:1.75;color:var(--sub);margin:0}
+@media(max-width:600px){
+  .source-page{padding:22px 18px 52px}
+  .source-intro{margin-bottom:25px}
+  .source-intro h1{font-size:24px}
+  .source-row{gap:8px}
+  .source-name{font-size:13px}
+  .source-focus{max-width:45%;font-size:11px}
+  .source-disabled .source-row{display:block}
+  .source-disabled-reason{max-width:none;margin:4px 0 0;text-align:left}
+  .source-contribute{align-items:flex-start;flex-direction:column;gap:12px}
+}
+.crow{display:flex;align-items:baseline;gap:8px;padding:9px 0;border-bottom:1px solid var(--soft);text-decoration:none;color:var(--ink)}
+.crow:last-child{border-bottom:none}
+.crow:hover .ctitle{color:var(--accent)}
+.cpin{width:18px;flex-shrink:0;font-size:12px}
+.ctitle{font-size:13.5px;font-weight:600;line-height:1.55;flex:1}
+.cmeta{font-size:11px;color:var(--sub);white-space:nowrap}
+.favbtn{border:none;background:none;color:var(--sub);cursor:pointer;padding:2px;display:inline-flex;align-items:center}
+.favbtn.on{color:var(--accent)}
+.favbtn.on svg{fill:currentColor}
+.favbtn svg{pointer-events:none}
+.fav-entry{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--sub);white-space:nowrap;text-decoration:none}
+.fav-entry:hover{color:var(--accent)}
+.privacy-btn{border:none;background:var(--accent);color:#fff;border-radius:99px;padding:9px 16px;font-size:12.5px;font-weight:650;cursor:pointer;margin:4px 6px 4px 0}
+.privacy-btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.load-more{display:block;margin:18px auto 4px;border:1px solid var(--line);background:var(--card);color:var(--txt2);border-radius:99px;padding:9px 22px;font-size:12.5px;font-weight:650;cursor:pointer}
+.load-more:hover{border-color:var(--accent);color:var(--accent)}
+.load-more[disabled]{opacity:.65;cursor:default}
+.weekly-teaser{display:block;background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border-radius:var(--radius);padding:18px 22px;margin-bottom:22px;text-decoration:none;position:relative;overflow:hidden}
+.weekly-teaser:hover{transform:translateY(-1px)}
+.weekly-teaser .weekly-kicker{font-size:11px;letter-spacing:1.5px;color:#f5b48a;font-weight:750;margin-bottom:6px}
+.weekly-teaser h2{font-size:19px;line-height:1.45;margin:0 0 5px}
+.weekly-teaser p{font-size:12.5px;line-height:1.7;color:#e5e7eb;margin:0;max-width:720px}
+.weekly-teaser .weekly-meta{font-size:11px;color:#aeb4be;margin-top:8px}
+.weekly-waiting{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:10px 14px;margin-bottom:18px;color:var(--txt2);font-size:12.5px;text-decoration:none}
+.weekly-waiting:hover{border-color:var(--accent);color:var(--accent)}
+.weekly-waiting b{color:var(--ink);font-size:13px}
+.weekly-waiting span:last-child{margin-left:auto;color:var(--sub);font-size:11.5px}
+.weekly-summary{background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border:0;padding:20px 22px}
+.weekly-summary h1{font-size:25px;line-height:1.4;margin:4px 0 8px}
+.weekly-summary p{font-size:14px;line-height:1.75;color:#e5e7eb;margin:0}
+.weekly-change{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.12);font-size:13px;line-height:1.7;color:#f3f4f6}
+.weekly-change:last-child{border-bottom:0}
+.weekly-themes{display:grid;gap:14px}
+.weekly-theme{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px}
+.weekly-theme h2{font-size:19px;line-height:1.5;margin:9px 0 12px}
+.weekly-theme p{font-size:13.5px;line-height:1.85;color:var(--txt2);margin:0 0 12px}
+.weekly-badges{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.weekly-pill{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:99px;padding:3px 8px;font-size:10.5px;color:var(--sub)}
+.weekly-pill.priority-now{border-color:#dc2626;color:#b91c1c;background:#fef2f2}
+.weekly-pill.priority-test{border-color:#d97706;color:#b45309;background:#fffbeb}
+.weekly-pill.priority-watch{border-color:#2563eb;color:#1d4ed8;background:#eff6ff}
+.weekly-pill.priority-ignore{color:var(--sub);background:var(--soft)}
+.weekly-anchor{background:var(--soft);border-left:3px solid var(--accent);padding:10px 12px;border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.75;color:var(--txt2);margin:0 0 14px}
+.weekly-anchor b,.weekly-why b{color:var(--ink)}
+.weekly-why{font-size:13px;line-height:1.8;color:var(--txt2);border-top:1px solid var(--soft);padding-top:12px}
+.weekly-action{margin-top:12px;background:#fff8ed;border:1px solid #f3d5aa;border-radius:9px;padding:11px 12px;font-size:13px;line-height:1.75;color:var(--txt2)}
+.weekly-action b{color:#9a4f08;margin-right:7px}
+.weekly-signal-meta{font-size:11px;color:var(--sub);margin-top:12px}
+.weekly-secondary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.weekly-secondary .scard{font-size:12.5px;line-height:1.75;color:var(--txt2)}
+.weekly-secondary b{display:block;color:var(--ink);font-size:12px;margin-bottom:6px}
+.weekly-evidence{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:0 18px}
+.weekly-evidence summary{cursor:pointer;padding:15px 0;font-size:13px;font-weight:700;color:var(--ink)}
+.weekly-evidence-row{display:flex;gap:12px;align-items:baseline;padding:11px 0;border-top:1px solid var(--soft);text-decoration:none;color:var(--ink)}
+.weekly-evidence-row:hover span:first-child{color:var(--accent)}
+.weekly-evidence-row span:first-child{font-size:13px;line-height:1.55;flex:1}
+.weekly-evidence-row span:last-child{font-size:10.5px;color:var(--sub);white-space:nowrap}
+.weekly-archive{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 22px}
+.weekly-archive a{font-size:12px;color:var(--sub);border:1px solid var(--line);border-radius:99px;padding:5px 10px;text-decoration:none}
+.weekly-archive a:hover,.weekly-archive a.on{border-color:var(--accent);color:var(--accent)}
+@media (prefers-color-scheme: dark){
+  .weekly-pill.priority-now{border-color:#ef7b7b;color:#ffaaaa;background:rgba(220,38,38,.14)}
+  .weekly-pill.priority-test{border-color:#d89a3d;color:#f2bd70;background:rgba(217,119,6,.14)}
+  .weekly-pill.priority-watch{border-color:#6ea8ff;color:#9cc3ff;background:rgba(37,99,235,.14)}
+  .weekly-action{background:rgba(217,119,6,.12);border-color:rgba(242,189,112,.38);color:var(--txt2)}
+  .weekly-action b{color:#f2bd70}
+}
+@media(max-width:700px){
+  .weekly-summary{padding:16px 20px}
+  .weekly-summary h1{font-size:23px}
+  .weekly-theme{padding:17px}
+  .weekly-theme h2{font-size:17px}
+  .weekly-secondary{grid-template-columns:1fr}
+  .weekly-evidence-row{align-items:flex-start;flex-direction:column;gap:4px}
+  .weekly-evidence-row span:last-child{white-space:normal}
+}
+.hrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--soft);text-decoration:none;color:var(--ink)}
+.hrow:last-child{border-bottom:none}
+.hrow .rk{font-size:15px;font-weight:800;color:var(--accent);width:26px;flex-shrink:0;text-align:center}
+.hrow .ht{flex:1;font-size:14px;font-weight:600;line-height:1.5}
+.hrow:hover .ht{color:var(--accent)}
+.hrow .hm{font-size:11px;color:var(--sub);white-space:nowrap}
+.srcbadge{font-size:10px;border:1px solid var(--line);border-radius:5px;padding:0 5px;color:var(--sub);flex-shrink:0;line-height:1.6}
+.sidebar{display:none}
+@media(min-width:961px){
+  body.has-sb{padding-left:224px}
+  body.has-sb>header{display:none}
+  .sidebar{display:flex;position:fixed;left:0;top:0;bottom:0;width:224px;flex-direction:column;background:var(--card);border-right:1px solid var(--line);padding:22px 16px;z-index:40}
+  .sidebar .slogo{font-size:20px;font-weight:800;margin-bottom:26px}
+  .sidebar .slogo em{font-style:normal;color:var(--accent)}
+  .sidebar a.mi{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:14px;color:var(--sub);text-decoration:none;margin-bottom:2px}
+  .sidebar a.mi:hover{background:var(--hover);color:var(--ink)}
+  .sidebar a.mi.on{background:var(--ink);color:var(--bg);font-weight:600}
+  .sidebar .sfoot{margin-top:auto;font-size:11.5px;color:var(--sub);line-height:1.8}
+}
+.hot .hsum{font-size:12.5px;color:var(--txt2);line-height:1.65;margin:6px 0 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hot .htime{margin-left:auto;font-size:11px;color:var(--sub)}
+.tabbar{display:none}
+.more-mask,.more-sheet{display:none}
+@media(max-width:960px){
+  body{padding-bottom:64px}
+  footer{padding-bottom:96px}
+  body.mobile-section{padding-top:env(safe-area-inset-top)}
+  .section-brand-header,.detail-brand-header{display:none}
+  .tabbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));position:fixed;bottom:0;left:0;right:0;background:var(--tabbar-bg);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:70;padding:0 0 env(safe-area-inset-bottom)}
+  .tabbar a,.tabbar button{appearance:none;border:0;background:transparent;min-width:0;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 2px 5px;font:inherit;font-size:11px;color:var(--sub);text-decoration:none;gap:2px;cursor:pointer;touch-action:manipulation}
+  .tabbar .ico{display:grid;place-items:center;height:22px}
+  .tabbar a.on,.tabbar button.on{color:var(--accent);font-weight:650}
+  .more-mask{display:block;position:fixed;inset:0;background:rgba(0,0,0,.42);opacity:0;pointer-events:none;transition:opacity .22s ease;z-index:78}
+  .more-mask.show{opacity:1;pointer-events:auto}
+  .more-sheet{display:block;position:fixed;left:0;right:0;bottom:0;z-index:80;max-height:70vh;overflow:auto;background:var(--card);border-radius:18px 18px 0 0;padding:8px 16px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -14px 40px rgba(0,0,0,.18);transform:translateY(110%);transition:transform .28s cubic-bezier(.32,.72,.35,1)}
+  .more-sheet.show{transform:translateY(0)}
+  .more-handle{width:36px;height:4px;border-radius:99px;background:var(--line);margin:2px auto 12px}
+  .more-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .more-head h2{font-size:18px}
+  .more-close{appearance:none;border:0;background:var(--soft);color:var(--sub);width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer}
+  .more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .more-link{display:flex;align-items:center;gap:11px;min-height:58px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);text-decoration:none;color:var(--ink)}
+  .more-link .more-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent);flex:0 0 auto}
+  .more-link span:last-child{min-width:0;font-size:13px;font-weight:650}
+  .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  body.more-open{overflow:hidden}
+}
+.tgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+@media(max-width:960px){.tgrid{grid-template-columns:1fr}}
+.tcard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;text-decoration:none;display:block;transition:.15s}
+.tcard:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+.tcard h3{font-size:17px;font-weight:800;margin-bottom:6px}
+.tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:10px}
+.tcard .tn{font-size:12px;color:var(--accent);font-weight:700}
+.tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+</style></head><body class="has-sb mobile-section" data-nav-active="topics">
+<aside class="sidebar"><div class="slogo"><a href="../index.html" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><a class="mi" href="../index.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>每周简报</a><a class="mi on" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../classics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg>典藏</a><a class="mi" href="../hot.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>完整榜单</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>我的收藏</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>
+<header class="section-brand-header"><div class="wrap nav">
+  <div class="logo"><a href="../index.html" style="text-decoration:none">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
+</div></header>
+
+<div class="wrap" style="padding:28px 20px 60px;max-width:900px">
+  <a class="back" href="../topics.html" style="font-size:13px;color:var(--sub)">← 主题地图</a>
+  <h1 style="font-size:26px;font-weight:800;margin:14px 0 6px">组织人才</h1>
+  <p style="font-size:14px;color:var(--sub);margin-bottom:8px">人才流动、组织效能与技能供需——用数据理解人与组织如何变化</p>
+  <p style="font-size:12.5px;color:var(--sub);margin-bottom:18px">近 7 天收录 2 个事件 · 每 6 小时更新</p>
+  <div class="vendors" style="margin-bottom:18px"><span class="vtag">Visier</span></div>
+  <div class="scard" style="margin-bottom:18px"><h4 style="margin-bottom:6px"><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg> 本主题必读</h4><a class="crow" href="../e/d44afcf41d63.html"><span class="cpin"></span><span class="ctitle">评估人员分析与劳动力智能方案的9条标准</span><span class="cmeta">2026-07-29</span></a><a class="crow" href="../e/d5b1f80826c9.html"><span class="cpin"></span><span class="ctitle">劳动力分析：是什么、如何运作及为何重要</span><span class="cmeta">2026-07-28</span></a></div>
+  <div class="day"><div class="day-head"><span class="date">8月12日</span><span class="info">2 个事件</span></div><div class="item" data-cat="product" data-topics="组织人才" data-link="../e/d44afcf41d63.html" data-analytics-list="1" data-event-id="d44afcf41d63" data-category="product" data-source="Visier Blog">
+      <div class="top"><span class="srcbadge">官网·RSS</span><span style="font-weight:600;color:var(--txt3)">Visier Blog</span><span>07-29</span><span title="热度分=AI重要性50% + 新鲜度20% + 社区信号15%(封顶) + 多信源15%，满分100"></span>
+      <button class="favbtn" data-fav="d44afcf41d63" title="收藏"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
+      <span class="heatnum" title="热度分：AI重要性50% + 新鲜度20% + 社区信号15%(封顶) + 多信源15%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 52</span></div>
+      <h3><a href="../e/d44afcf41d63.html">评估人员分析与劳动力智能方案的9条标准</a></h3>
+      <p class="sum">本文为HR技术领导者提供了一个评估人员分析与劳动力智能解决方案的实用框架，涵盖数据模型成熟度、总拥有成本等大多数RFP易忽略的标准。文章指出，许多供应商评估流程只优化当前问题，未考虑长期可行性。在AI加速技术栈价值兑现的背景下，选择能随劳动力变化而演进的合作伙伴至关重要。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>人员分析是数据产品在组织人才场景的重要应用，该评估框架帮助从业者避开常见采购误区，关注数据模型成熟度与长期成本，对数据产品选型和建设有参考价值。</span></div><div class="vendors"><a class="chip" href="../topics/people-insights.html">组织人才</a><span class="vtag">Visier</span></div>
+    </div>
+<div class="item" data-cat="insight" data-topics="组织人才" data-link="../e/d5b1f80826c9.html" data-analytics-list="1" data-event-id="d5b1f80826c9" data-category="insight" data-source="Visier Blog">
+      <div class="top"><span class="srcbadge">官网·RSS</span><span style="font-weight:600;color:var(--txt3)">Visier Blog</span><span>07-28</span><span title="热度分=AI重要性50% + 新鲜度20% + 社区信号15%(封顶) + 多信源15%，满分100"></span>
+      <button class="favbtn" data-fav="d5b1f80826c9" title="收藏"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
+      <span class="heatnum" title="热度分：AI重要性50% + 新鲜度20% + 社区信号15%(封顶) + 多信源15%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 49</span></div>
+      <h3><a href="../e/d5b1f80826c9.html">劳动力分析：是什么、如何运作及为何重要</a></h3>
+      <p class="sum">文章介绍劳动力分析的定义、类型及在员工生命周期中的应用。引用Visier与Deloitte对500名高管的调研，仅3%认为拥有充分信息支持人员决策；另有Deloitte研究显示83%的公司劳动力分析成熟度较低。文中提出提升成熟度的关键：将HR与生产力系统数据统一为可信模型，并建立基于洞察及时行动的组织纪律。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>帮助数据从业者理解劳动力分析如何连接多源数据并支持人员决策，是数据分析方法论在组织人才场景的典型实践参考。</span></div><div class="vendors"><a class="chip" href="../topics/people-insights.html">组织人才</a><span class="vtag">Visier</span></div>
+    </div></div>
+</div>
+<footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
+<nav class="tabbar" aria-label="移动端主导航">
+  <a href="../index.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../weekly.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span>周报</span></a><a href="../topics.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a>
+  <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
+</nav>
+<div class="more-mask" data-more-mask></div>
+<section class="more-sheet" id="mobileMoreSheet" aria-label="更多导航" aria-hidden="true">
+  <div class="more-handle" aria-hidden="true"></div>
+  <div class="more-head"><h2>更多</h2><button class="more-close" type="button" data-more-close aria-label="关闭更多导航">×</button></div>
+  <div class="more-grid"><a class="more-link" href="../hot.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></span><span>完整榜单</span></a><a class="more-link" href="../classics.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></span><span>典藏</span></a><a class="more-link" href="../favorites.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>我的收藏</span></a><a class="more-link" href="../sources.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span><span>信源</span></a><a class="more-link" href="../privacy.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg></span><span>隐私说明</span></a></div>
+</section>
+<script>
+(function(){
+  var trigger=document.querySelector('[data-more-open]');
+  var sheet=document.getElementById('mobileMoreSheet');
+  var mask=document.querySelector('[data-more-mask]');
+  var closeBtn=document.querySelector('[data-more-close]');
+  if(!trigger||!sheet||!mask||!closeBtn) return;
+  function setMore(open){
+    trigger.setAttribute('aria-expanded',open?'true':'false');
+    sheet.setAttribute('aria-hidden',open?'false':'true');
+    sheet.classList.toggle('show',open);
+    mask.classList.toggle('show',open);
+    document.body.classList.toggle('more-open',open);
+    if(open) closeBtn.focus(); else trigger.focus();
+  }
+  trigger.addEventListener('click',function(){setMore(true)});
+  closeBtn.addEventListener('click',function(){setMore(false)});
+  mask.addEventListener('click',function(){setMore(false)});
+  document.addEventListener('keydown',function(event){if(event.key==='Escape'&&sheet.classList.contains('show')) setMore(false)});
+})();
+</script>
+</body></html>

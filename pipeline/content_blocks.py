@@ -53,9 +53,22 @@ def sanitize_url(value, base_url=""):
     value = re.sub(r"[\x00-\x20]+", "", str(value or ""))
     if not value:
         return ""
+    if "\\" in value:
+        return ""
     absolute = urljoin(base_url, value)
-    parsed = urlparse(absolute)
-    if parsed.scheme.lower() not in {"http", "https"} or not parsed.netloc:
+    try:
+        parsed = urlparse(absolute)
+        hostname = parsed.hostname
+        _ = parsed.port
+    except ValueError:
+        return ""
+    if (
+        parsed.scheme.lower() not in {"http", "https"}
+        or not parsed.netloc
+        or not hostname
+        or parsed.username
+        or parsed.password
+    ):
         return ""
     return absolute
 

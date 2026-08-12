@@ -70,11 +70,39 @@ def ic(name, size=15):
 TOPICS_META = json.load(open(ROOT / "pipeline" / "topics.json"))
 SOURCES_META = {x["name"]: x for x in json.load(open(ROOT / "pipeline" / "sources.json"))}
 
+HOME_FILTER_TOPIC_ORDER = (
+    "Data Agent", "平台AI化", "语义层", "实时分析", "ChatBI",
+    "湖仓", "BI变局", "数据人", "组织人才",
+)
+HOME_FILTER_TOPIC_LABELS = {
+    "Data Agent": "Agent",
+    "平台AI化": "AI平台",
+    "实时分析": "实时",
+}
+
 def src_display(name):
     """信源显示名：站内术语转外部可读 + 英文语境半角括号"""
     if name == "主编收录":
         return "DataHot 精选"
     return re.sub(r"（(?=[A-Za-z])", " (", name).replace("）", ")")
+
+
+def render_home_filter_chips(timeline_events):
+    """Render stable home-filter order while preserving canonical filter values."""
+    active_topics = {t for e in timeline_events for t in e.get("topics", [])}
+    configured_topics = [topic["name"] for topic in TOPICS_META]
+    preferred = [name for name in HOME_FILTER_TOPIC_ORDER if name in active_topics]
+    remaining = [
+        name for name in configured_topics
+        if name in active_topics and name not in HOME_FILTER_TOPIC_ORDER
+    ]
+    parts = ['<span class="fchip" data-category="insight">AI分析</span>']
+    parts.extend(
+        f'<span class="fchip" data-topic="{esc(name)}">'
+        f'{esc(HOME_FILTER_TOPIC_LABELS.get(name, name))}</span>'
+        for name in (*preferred, *remaining)
+    )
+    return "".join(parts)
 
 def src_badge(source_name):
     """信源类型标识：公众号/RSS/官网/HN/Bluesky/收录（参考 AI HOT 的信源标注）"""
@@ -132,6 +160,10 @@ main,.layout>*,.hotlist>*{min-width:0}
 .chiprow::-webkit-scrollbar{display:none}
 .chiprow .fchip{flex-shrink:0;font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
 .chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
+@media(max-width:600px){
+  .chiprow{gap:6px}
+  .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:32px;display:inline-flex;align-items:center}
+}
 @media (prefers-color-scheme: dark){
   .chip{background:rgba(110,168,255,.16);color:#6ea8ff}
   .chip:hover{background:rgba(110,168,255,.26)}
@@ -1865,19 +1897,8 @@ def main():
     bad = [s["name"] for s in payload["sources"] if not s["ok"]]
     bad_txt = "、".join(bad) if bad else "无"
 
-    # 主题筛选条：洞察是 category 状态，但在视觉上固定插在“语义层”后。
-    active_topics = {t for e in timeline_events for t in e.get("topics", [])}
-    topic_chip_parts = []
-    for topic in TOPICS_META:
-        if topic["name"] in active_topics:
-            topic_chip_parts.append(
-                f'<span class="fchip" data-topic="{esc(topic["name"])}">{esc(topic["name"])}</span>'
-            )
-        if topic["name"] == "语义层":
-            topic_chip_parts.append(
-                '<span class="fchip" data-category="insight">AI 分析与洞察</span>'
-            )
-    topic_fchips = "".join(topic_chip_parts)
+    # 首页筛选顺序保持稳定；短名称只用于显示，底层筛选值继续兼容旧 URL。
+    topic_fchips = render_home_filter_chips(timeline_events)
     weekly_teaser = render_weekly_brief_teaser(weekly_brief) if weekly_enabled else ""
     weekly_header_link = f'<a class="tab d-only" href="weekly.html" style="text-decoration:none">{ic("calendar",14)} 周报</a>' if weekly_enabled else ""
     home_config = (

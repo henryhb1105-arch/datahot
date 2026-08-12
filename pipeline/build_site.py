@@ -68,6 +68,8 @@ def src_badge(source_name):
     """信源类型标识：公众号/RSS/官网/HN/Bluesky/收录（参考 AI HOT 的信源标注）"""
     if source_name.startswith("公众号"):
         return "公众号"
+    if source_name.startswith("X 线索·"):
+        return "X 线索"
     if source_name == "主编收录":
         return "收录"
     meta = SOURCES_META.get(source_name, {})

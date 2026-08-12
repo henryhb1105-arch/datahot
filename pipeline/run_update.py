@@ -24,6 +24,10 @@ from source_controls import (
     accepted_categories_by_source, prefilter_entries, source_candidate_limit,
     source_control_snapshot, source_due,
 )
+from work_tags import (
+    TAXONOMY_VERSION as WORK_TAGS_VERSION,
+    merge_work_tags, normalize_work_tags, prompt_instructions as work_tag_prompt,
+)
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
@@ -466,10 +470,14 @@ ENRICH_RULES = """你是一个数据领域垂直资讯站的编辑。本站只�
 标题 "OpenAI 发布新款AI智能音箱" → {"relevant": false}
 标题 "Airbnb 测试 AI 搜索功能" → {"relevant": false}
 
-输出 JSON（不要输出多余内容）：
-{"relevant": true或false, "zh_title": "中文标题(≤40字)", "zh_summary": "中文摘要3-4句，保留产品名与数字，不得编造原文没有的信息", "reason": "推荐理由：为什么数据从业者应关注，1-2句", "category": "agent|platform|bi|product", "shelf": "news 或 evergreen（方法论/框架/深度实践/报告解读等半年后仍值得读的标 evergreen，发布/融资/版本更新等时效内容标 news）", "topics": ["从主题词表选0-2个：ChatBI/Data Agent/语义层/平台AI化/BI变局/湖仓/实时分析/数据人，没有合适的就空数组，宁缺毋滥"], "vendors": ["提到的数据厂商，如Snowflake/Databricks/PowerBI/帆软等，没有则空数组"], "importance": 1-100整数}"""
+【工作标签】
+从下列封闭词表选择。只标记原文直接支持的对象、场景和决策关注；不得推测特定公司的内部需求。每个维度允许为空，宁缺毋滥：
+""" + work_tag_prompt() + """
 
-ENRICH_RULE_VERSION = "enrich-v1"
+输出 JSON（不要输出多余内容）：
+{"relevant": true或false, "zh_title": "中文标题(≤40字)", "zh_summary": "中文摘要3-4句，保留产品名与数字，不得编造原文没有的信息", "reason": "推荐理由：为什么数据从业者应关注，1-2句", "category": "agent|platform|bi|product", "shelf": "news 或 evergreen（方法论/框架/深度实践/报告解读等半年后仍值得读的标 evergreen，发布/融资/版本更新等时效内容标 news）", "topics": ["从主题词表选0-2个：ChatBI/Data Agent/语义层/平台AI化/BI变局/湖仓/实时分析/数据人，没有合适的就空数组，宁缺毋滥"], "work_tags": {"product_objects": [], "use_cases": [], "decision_concerns": []}, "vendors": ["提到的数据厂商，如Snowflake/Databricks/PowerBI/帆软等，没有则空数组"], "importance": 1-100整数}"""
+
+ENRICH_RULE_VERSION = f"enrich-v2-{WORK_TAGS_VERSION}"
 REVIEW_REQUIRED_TIERS = frozenset({"low_precision", "community_targeted", "media_low"})
 
 
@@ -492,7 +500,7 @@ def _cached_enrichment(it, cached):
     enrichment = cached.get("enrichment") or {}
     for key in (
         "zh_title", "zh_summary", "reason", "category", "category_label",
-        "vendors", "topics", "shelf", "importance", "heat",
+        "vendors", "topics", "work_tags", "shelf", "importance", "heat",
     ):
         if key in enrichment:
             it[key] = enrichment[key]
@@ -504,7 +512,7 @@ def _cacheable_enrichment(it):
         key: it[key]
         for key in (
             "zh_title", "zh_summary", "reason", "category", "category_label",
-            "vendors", "topics", "shelf", "importance", "heat",
+            "vendors", "topics", "work_tags", "shelf", "importance", "heat",
         )
         if key in it
     }
@@ -596,6 +604,7 @@ def llm_enrich(items, cfg, *, generate_fulltext=True):
         llm_vendors = [v for v in (out.get("vendors") or []) if isinstance(v, str) and v.strip()]
         it["vendors"] = list(dict.fromkeys(it.get("vendors", []) + llm_vendors))[:5]
         it["topics"] = [t for t in (out.get("topics") or []) if t in TOPIC_NAMES][:2]
+        it["work_tags"] = normalize_work_tags(out.get("work_tags"))
         it["shelf"] = out.get("shelf") if out.get("shelf") in ("news", "evergreen") else "news"
         it["importance"] = int(out.get("importance", 50))
         it["star"] = it["importance"] >= 75  # 精选由内容质量决定，不看信源出身
@@ -1215,6 +1224,9 @@ def cluster_events(new_items, events, cfg, *, late_merge=True):
                         a["signal"] = max(a.get("signal", 0), b.get("signal", 0))
                         recalc_event_heat(a)
                         a["vendors"] = list(dict.fromkeys(a.get("vendors", []) + b.get("vendors", [])))[:5]
+                        merged_tags = merge_work_tags(a.get("work_tags"), b.get("work_tags"))
+                        if merged_tags is not None:
+                            a["work_tags"] = merged_tags
                         events.pop(j)
                         print(f"[cluster] 合并事件: {b['zh_title'][:30]} → {a['zh_title'][:30]}")
                         changed = True
@@ -1225,7 +1237,7 @@ def cluster_events(new_items, events, cfg, *, late_merge=True):
 
 def make_event(it):
     eid = hashlib.md5(norm_url(it["link"]).encode()).hexdigest()[:12]
-    return {
+    event = {
         "event_id": eid,
         "zh_title": it["zh_title"], "zh_summary": it["zh_summary"], "reason": it.get("reason", ""),
         "full_zh": it.get("full_zh", ""),
@@ -1241,6 +1253,9 @@ def make_event(it):
         "items": [{"id": it["id"], "source": it["source"], "link": it["link"],
                    "published": it["published"], "ingested_at": it.get("ingested_at"), "title": it["title"]}],
     }
+    if isinstance(it.get("work_tags"), dict):
+        event["work_tags"] = normalize_work_tags(it["work_tags"])
+    return event
 
 def recalc_event_heat(e):
     """事件热度 = calc_heat(最高重要性, 收录时间(新鲜度), 最强社区信号, 信源数-1)"""
@@ -1267,6 +1282,9 @@ def merge_into(e, it):
             e["content_format"] = it.get("content_format", "blocks-v1")
     e["vendors"] = list(dict.fromkeys(e.get("vendors", []) + it.get("vendors", [])))[:5]
     e["topics"] = [t for t in dict.fromkeys(e.get("topics", []) + it.get("topics", []))][:3]
+    merged_tags = merge_work_tags(e.get("work_tags"), it.get("work_tags"))
+    if merged_tags is not None:
+        e["work_tags"] = merged_tags
     if it.get("shelf") == "evergreen":
         e["shelf"] = "evergreen"
 

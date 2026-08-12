@@ -253,6 +253,7 @@ def lite_event(event):
         "category_label": event.get("category_label", ""),
         "vendors": list(event.get("vendors") or []),
         "topics": list(event.get("topics") or []),
+        **({"work_tags": event["work_tags"]} if isinstance(event.get("work_tags"), dict) else {}),
         "heat": int(event.get("heat") or 0),
         "star": bool(event.get("star")),
         "importance": int(event.get("importance") or 0),

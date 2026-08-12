@@ -210,6 +210,19 @@ class ManualBatchTests(unittest.TestCase):
         self.assertTrue(all(row["shelf"] == "evergreen" for row in records))
         self.assertEqual(len({norm_url(row["source_url"]) for row in records}), 6)
 
+    def test_hr_ai_reports_batch_contains_eight_reviewed_people_insights(self):
+        batch = json.loads((
+            ROOT / "pipeline" / "manual_batches" / "2026-08-12-hr-ai-reports.json"
+        ).read_text(encoding="utf-8"))
+        records = validate_batch(batch)
+
+        self.assertEqual(batch["issue"], 87)
+        self.assertEqual(len(records), 8)
+        self.assertTrue(all(row["category"] == "insight" for row in records))
+        self.assertTrue(all(row["topics"] == ["组织人才"] for row in records))
+        self.assertTrue(all(row["shelf"] == "evergreen" for row in records))
+        self.assertEqual(len({norm_url(row["source_url"]) for row in records}), 8)
+
     def test_production_latest_contains_each_batch_link_once(self):
         batch = json.loads((
             ROOT / "pipeline" / "manual_batches" / "2026-08-12-x-first.json"
@@ -231,6 +244,23 @@ class ManualBatchTests(unittest.TestCase):
     def test_production_latest_contains_each_hr_ai_source_once(self):
         batch = json.loads((
             ROOT / "pipeline" / "manual_batches" / "2026-08-12-hr-ai-insights.json"
+        ).read_text(encoding="utf-8"))
+        latest = json.loads((
+            ROOT / "site" / "data" / "latest.json"
+        ).read_text(encoding="utf-8"))
+        links = [
+            norm_url(item["link"])
+            for event in latest["events"]
+            for item in event.get("items", [])
+        ]
+
+        for record in validate_batch(batch):
+            with self.subTest(title=record["zh_title"]):
+                self.assertEqual(links.count(norm_url(record["source_url"])), 1)
+
+    def test_production_latest_contains_each_hr_ai_report_once(self):
+        batch = json.loads((
+            ROOT / "pipeline" / "manual_batches" / "2026-08-12-hr-ai-reports.json"
         ).read_text(encoding="utf-8"))
         latest = json.loads((
             ROOT / "site" / "data" / "latest.json"

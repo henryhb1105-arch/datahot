@@ -187,6 +187,18 @@ class ContentBlockParsingTests(unittest.TestCase):
         self.assertEqual(report["figures_selected"], 3)
         self.assertEqual(report["figures_rejected"], 3)
 
+    def test_article_parser_keeps_all_explanatory_figures_by_default(self):
+        figures = "".join(
+            f'<figure><img src="https://example.com/chart-{index}.png" alt="chart {index}" '
+            'width="900" height="500"><figcaption>Result chart</figcaption></figure>'
+            for index in range(1, 6)
+        )
+        markup = '<article><p>' + "完整正文。" * 100 + '</p>' + figures + '</article>'
+        blocks, report = parse_html_blocks_with_report(markup, "https://example.com/post")
+        self.assertEqual(sum(block["type"] == "figure" for block in blocks), 5)
+        self.assertEqual(report["figures_selected"], 5)
+        self.assertEqual(report["figures_rejected"], 0)
+
 
 class ContentBlockTranslationTests(unittest.TestCase):
     def setUp(self):
@@ -294,7 +306,7 @@ class ContentBlockTranslationTests(unittest.TestCase):
         self.assertEqual(report["figures"], 1)
         self.assertTrue(any(block["type"] == "figure" for block in blocks))
 
-    def test_event_body_degrades_when_no_translation_node_is_applied(self):
+    def test_event_body_keeps_original_when_translation_is_incomplete(self):
         primary = {
             "article_text": blocks_plain_text(self.blocks),
             "article_blocks": self.blocks,
@@ -317,9 +329,10 @@ class ContentBlockTranslationTests(unittest.TestCase):
                 ("key", "https://example.test", "model"),
                 {"deep_used": 0, "max_deep": 2},
             )
-        self.assertEqual(body, "可用摘要")
-        self.assertEqual(event["content_level"], "summary")
-        self.assertNotIn("content_blocks", event)
+        self.assertEqual(body, blocks_plain_text(self.blocks))
+        self.assertEqual(event["content_mode"], "original")
+        self.assertEqual(event["translation_status"], "failed")
+        self.assertIn("content_blocks", event)
 
 
 class ContentBlockRenderingTests(unittest.TestCase):
@@ -352,6 +365,8 @@ class ContentBlockRenderingTests(unittest.TestCase):
     def test_detail_page_renders_safe_structured_blocks(self):
         article = self.base_event()
         article["content_blocks"] = parse_html_blocks(SAMPLE_HTML, "https://example.com/post")
+        article["content_mode"] = "original"
+        article["source_language"] = "zh"
         page = build_site.render_detail(article, [article], "")
         self.assertIn("<strong>", page)
         self.assertIn("<blockquote>", page)
@@ -363,6 +378,19 @@ class ContentBlockRenderingTests(unittest.TestCase):
         self.assertIn("prefers-color-scheme: dark", page)
         self.assertIn('aria-label="原文表格"', page)
         self.assertIn("overscroll-behavior-inline:contain", page)
+        self.assertIn("原文正文", page)
+        self.assertIn("未经 AI 改写", page)
+        self.assertNotIn("全文编译", page)
+
+    def test_detail_page_labels_translation_without_claiming_ai_compilation(self):
+        article = self.base_event()
+        article["content_blocks"] = parse_html_blocks(SAMPLE_HTML, "https://example.com/post")
+        article["content_mode"] = "translated"
+        article["source_language"] = "other"
+        page = build_site.render_detail(article, [article], "")
+        self.assertIn("忠实译文", page)
+        self.assertIn("AI 仅逐段翻译", page)
+        self.assertNotIn("全文编译", page)
 
     def test_legacy_fulltext_still_renders_when_blocks_are_missing(self):
         article = self.base_event()

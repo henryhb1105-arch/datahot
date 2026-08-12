@@ -56,6 +56,60 @@ class OfficialFeedParsingTests(unittest.TestCase):
         self.assertEqual(atom_items[0]["link"], "https://example.com/duckdb")
         self.assertIsNotNone(atom_items[0]["published"])
 
+    def test_rss_full_content_html_is_preserved_for_structured_detail_body(self):
+        rss = ET.fromstring("""
+            <rss xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><item>
+              <title>中文完整文章</title>
+              <link>https://example.com/full</link>
+              <description>只有摘要</description>
+              <content:encoded><![CDATA[
+                <article><h2>第一部分</h2><p>这是 RSS 中的完整中文正文。</p>
+                <table><tr><th>指标</th><td>123</td></tr></table>
+                <figure><img src="https://example.com/chart.png" alt="趋势图"
+                  width="900" height="500"><figcaption>完整图表</figcaption></figure>
+                </article>
+              ]]></content:encoded>
+            </item></channel></rss>
+        """)
+        parsed = run_update.parse_feed(rss, {})[0]
+        self.assertIn("<table>", parsed["feed_content_html"])
+        self.assertIn("完整中文正文", parsed["summary"])
+
+    def test_full_rss_body_can_replace_a_less_complete_web_page(self):
+        page_html = '<article><p>' + "网页短正文。" * 70 + '</p></article>'
+        page_blocks, page_report = run_update.parse_html_blocks_with_report(
+            page_html, "https://example.com/full",
+        )
+        page_text = run_update.blocks_plain_text(page_blocks)
+        feed_html = (
+            '<article><h2>完整章节</h2><p>' + "RSS 完整正文与事实。" * 100
+            + '</p><table><tr><th>指标</th><td>123</td></tr></table></article>'
+        )
+        text, blocks, report = run_update.prefer_rss_article_content(
+            page_text, page_blocks, page_report, feed_html, "https://example.com/full",
+        )
+        self.assertTrue(report["strategy"].startswith("rss_"))
+        self.assertIn("RSS 完整正文", text)
+        self.assertIn("table", [block["type"] for block in blocks])
+
+    def test_atom_xhtml_content_keeps_structural_tags(self):
+        atom = ET.fromstring("""
+          <feed xmlns="http://www.w3.org/2005/Atom"><entry>
+            <title>Atom full article</title>
+            <link href="https://example.com/atom-full" />
+            <updated>2026-08-12T08:00:00Z</updated>
+            <content type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml">
+              <p>Full Atom paragraph.</p>
+              <table><tr><th>Metric</th><td>42</td></tr></table>
+            </div></content>
+          </entry></feed>
+        """)
+        rich = run_update.parse_feed(atom, {})[0]["feed_content_html"]
+        blocks = run_update.parse_html_blocks_with_report(
+            rich, "https://example.com/atom-full",
+        )[0]
+        self.assertIn("table", [block["type"] for block in blocks])
+
     def test_sitemap_path_filter_keeps_blog_entries(self):
         sitemap = ET.fromstring("""
           <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

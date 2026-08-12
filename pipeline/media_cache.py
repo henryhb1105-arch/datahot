@@ -285,7 +285,7 @@ def cache_event_media(blocks, event_id, article_url, site_root, *, fetcher=None,
     enabled = media_enabled() if enabled is None else bool(enabled)
     maximum_bytes = _env_int("MEDIA_MAX_BYTES", 5_000_000, maximum=10_000_000)
     maximum_pixels = _env_int("MEDIA_MAX_PIXELS", 24_000_000, maximum=40_000_000)
-    maximum_items = _env_int("MEDIA_MAX_PER_EVENT", 3, maximum=12)
+    maximum_items = _env_int("MEDIA_MAX_PER_EVENT", 12, maximum=24)
     min_width = _env_int("MEDIA_MIN_WIDTH", 240, maximum=2000)
     min_height = _env_int("MEDIA_MIN_HEIGHT", 120, maximum=2000)
     max_dimension = _env_int("MEDIA_MAX_DIMENSION", 2400, maximum=5000)

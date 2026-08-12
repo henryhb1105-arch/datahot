@@ -75,6 +75,26 @@ class LinkCheckerTests(unittest.TestCase):
 
 
 class BuildPathRegressionTests(unittest.TestCase):
+    def test_source_public_url_only_allows_web_links(self):
+        self.assertEqual(
+            build_site.source_public_url({"url": "https://example.com/feed.xml"}),
+            "https://example.com/feed.xml",
+        )
+        self.assertEqual(build_site.source_public_url({"url": "javascript:alert(1)"}), "")
+
+    def test_source_public_url_hides_sitemap_path(self):
+        source = {
+            "kind": "sitemap",
+            "urls": ["https://example.com/private/sitemap.xml"],
+        }
+        self.assertEqual(build_site.source_public_url(source), "https://example.com/")
+
+    def test_source_public_url_supports_community_sources(self):
+        self.assertEqual(
+            build_site.source_public_url({"kind": "hn_algolia"}),
+            "https://news.ycombinator.com/",
+        )
+
     def test_mobile_navigation_has_four_primary_slots_and_more_sheet(self):
         with patch.dict(build_site.os.environ, {"WEEKLY_BRIEF_ENABLED": "true"}, clear=False):
             markup = build_site.tabbar("home")

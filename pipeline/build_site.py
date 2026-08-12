@@ -85,6 +85,25 @@ def src_badge(source_name):
     if stype == "community":
         return "社区"
     return "RSS"
+
+def source_public_url(source):
+    """Return a reader-safe source URL without exposing sitemap endpoints."""
+    kind_fallbacks = {
+        "hn_algolia": "https://news.ycombinator.com/",
+        "bluesky": "https://bsky.app/",
+    }
+    candidates = [source.get("url"), *(source.get("urls") or [])]
+    for candidate in candidates:
+        if not isinstance(candidate, str):
+            continue
+        candidate = candidate.strip()
+        parsed = urlparse(candidate)
+        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+            continue
+        if source.get("kind") == "sitemap" and candidate in (source.get("urls") or []):
+            return f"{parsed.scheme}://{parsed.netloc}/"
+        return candidate
+    return kind_fallbacks.get(source.get("kind"), "")
 TOPIC_SLUG = {t["name"]: t["slug"] for t in TOPICS_META}
 
 SHARED_CSS = """
@@ -108,27 +127,45 @@ main,.layout>*,.hotlist>*{min-width:0}
   .chiprow .fchip.on{background:var(--ink);color:#121417;border-color:var(--ink)}
   .chiprow .fchip{background:var(--card);color:var(--sub);border-color:var(--line)}
 }
-.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0}
-.dot.ok{background:var(--green)}.dot.warn{background:var(--amber)}.dot.fail{background:var(--accent)}.dot.off{background:var(--sub)}
 .scard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 20px;margin-bottom:14px}
-.srow{padding:12px 0;border-bottom:1px solid var(--soft)}
-.srow:last-child{border-bottom:none}
-.srow-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.stype{font-size:10.5px;border:1px solid var(--line);border-radius:6px;padding:0 7px;color:var(--sub)}
-.sstat{font-size:11.5px}
-.st-ok{color:var(--green)}.st-warn{color:var(--amber)}.st-fail{color:var(--accent)}.st-off{color:var(--sub)}
-.scount{margin-left:auto;font-size:12px;color:var(--accent);font-weight:700}
-.srow-sub{font-size:11.5px;color:var(--sub);margin-top:4px}
-.slow{color:var(--amber);font-weight:700}
-.serr{font-size:11px;color:var(--accent);margin-top:3px}
-.snote{font-size:11px;color:var(--sub);margin-top:3px}
-.srec{font-size:11px;color:var(--amber);margin-top:3px;font-weight:650}
-.sys-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.ssub{font-size:12.5px;color:var(--sub)}
-.act{cursor:pointer}
-.act summary{padding:2px 0;list-style:none}
-.act-body{font-size:13px;color:var(--txt2);line-height:1.8;margin:10px 0}
-.tpl{background:var(--soft);border-radius:8px;padding:10px 14px;font-size:12.5px;white-space:pre-line;margin-bottom:10px;color:var(--txt3)}
+.source-page{padding:30px 20px 60px;max-width:820px}
+.source-intro{margin-bottom:30px}
+.source-intro h1{font-size:27px;line-height:1.35;margin:0 0 10px}
+.source-intro p{font-size:14px;line-height:1.8;color:var(--txt2);margin:0;max-width:720px}
+.source-alert{margin-top:14px;padding:10px 12px;border-left:3px solid var(--amber);background:var(--soft);border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.7;color:var(--txt2)}
+.source-alert b{color:var(--ink);margin-right:6px}
+.source-group{margin:0 0 28px}
+.source-group-head{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:8px}
+.source-group-head h2{font-size:16px;line-height:1.4;margin:0}
+.source-group-head span{font-size:11.5px;color:var(--sub)}
+.source-row{display:flex;align-items:center;gap:12px;min-height:49px;border-bottom:1px solid var(--soft)}
+.source-name{display:inline-flex;align-items:center;gap:4px;min-width:0;color:var(--ink);font-size:13.5px;font-weight:650;line-height:1.5;text-decoration:none}
+a.source-name:hover{color:var(--accent)}
+.source-name svg{flex:0 0 auto}
+.source-focus{margin-left:auto;color:var(--sub);font-size:11.5px;line-height:1.45;text-align:right}
+.source-health{color:var(--amber);font-size:11.5px;white-space:nowrap}
+.source-disabled{margin:2px 0 28px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.source-disabled summary{cursor:pointer;padding:13px 0;font-size:13px;font-weight:650;color:var(--txt2)}
+.source-disabled .source-row{align-items:flex-start;padding:11px 0;min-height:0}
+.source-disabled-reason{margin-left:auto;max-width:62%;font-size:11.5px;line-height:1.6;color:var(--sub);text-align:right}
+.source-contribute{display:flex;align-items:center;gap:18px;background:var(--soft);border-radius:var(--radius);padding:17px 18px;margin-bottom:20px}
+.source-contribute-copy{min-width:0;flex:1}
+.source-contribute h2{font-size:15px;margin:0 0 4px}
+.source-contribute p{font-size:12.5px;line-height:1.6;color:var(--sub);margin:0}
+.source-cta{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border-radius:99px;background:var(--ink);color:var(--bg);padding:8px 14px;font-size:12px;font-weight:650;text-decoration:none}
+.source-cta:hover{opacity:.86}
+.source-principle{font-size:12px;line-height:1.75;color:var(--sub);margin:0}
+@media(max-width:600px){
+  .source-page{padding:22px 18px 52px}
+  .source-intro{margin-bottom:25px}
+  .source-intro h1{font-size:24px}
+  .source-row{gap:8px}
+  .source-name{font-size:13px}
+  .source-focus{max-width:45%;font-size:11px}
+  .source-disabled .source-row{display:block}
+  .source-disabled-reason{max-width:none;margin:4px 0 0;text-align:left}
+  .source-contribute{align-items:flex-start;flex-direction:column;gap:12px}
+}
 .crow{display:flex;align-items:baseline;gap:8px;padding:9px 0;border-bottom:1px solid var(--soft);text-decoration:none;color:var(--ink)}
 .crow:last-child{border-bottom:none}
 .crow:hover .ctitle{color:var(--accent)}
@@ -1122,161 +1159,103 @@ def page_shell(title, desc, css, body, tabbar_html, prefix="", active=""):
 </body></html>'''
 
 def render_sources_page(events, payload, css):
-    """信源状态页：系统状态条 + 信源质量记分牌 + 行动区"""
-    from collections import Counter
-    insite = Counter(sub["source"] for e in events for sub in e["items"])
+    """公开信源页：信源目录、异常提示与单一推荐入口。"""
     ss_path = SITE / "data" / "sources_status.json"
     ss = json.load(open(ss_path)) if ss_path.exists() else {}
     all_sources = json.load(open(ROOT / "pipeline" / "sources.json"))
     gen = datetime.fromisoformat(payload["generated_at"])
-    event_categories = Counter(event.get("category", "platform") for event in events)
-    focused_source_counts = Counter()
-    accepted_category_totals = Counter()
-    for src in all_sources:
-        for category in src.get("focus_categories") or []:
-            focused_source_counts[category] += 1
-    for rec in ss.values():
-        for category, count in (rec.get("total_accepted_by_category") or {}).items():
-            accepted_category_totals[category] += int(count)
+    enabled_sources = [source for source in all_sources if source.get("enabled")]
+    disabled_sources = [source for source in all_sources if not source.get("enabled")]
 
-    TYPE_LABEL = {"vendor": "厂商", "media": "媒体", "community": "社区"}
+    def source_row(source, *, disabled=False):
+        public_url = source_public_url(source)
+        name = esc(source["name"])
+        if public_url:
+            name_html = (
+                f'<a class="source-name" href="{esc(public_url)}" target="_blank" rel="noopener" '
+                f'data-analytics="outbound" data-source="{esc(source["name"])}">'
+                f'{name}{ic("arrow", 13)}</a>'
+            )
+        else:
+            name_html = f'<span class="source-name">{name}</span>'
 
-    def status_of(src):
-        rec = ss.get(src["name"], {})
-        if not src.get("enabled"):
-            return ("off", "已停用")
-        fails = rec.get("fails", 0)
-        if fails >= 2:
-            return ("fail", f"连续失败 {fails} 次")
-        if fails == 1:
-            return ("warn", "上次失败（抖动观察中）")
-        return ("ok", "正常")
+        if disabled:
+            reason = esc(source.get("note") or "暂不更新")
+            return (
+                f'<div class="source-row">{name_html}'
+                f'<span class="source-disabled-reason">{reason}</span></div>'
+            )
 
-    rows = []
-    for src in all_sources:
-        st, st_txt = status_of(src)
-        rec = ss.get(src["name"], {})
-        fetched, acc = rec.get("total_fetched", 0), rec.get("total_accepted", 0)
-        rate = round(acc / fetched * 100) if fetched else None
-        rate_txt = f"入选率 {rate}%" if rate is not None else "暂无数据"
-        low = ' <span class="slow">低产</span>' if (rate is not None and rate < 20 and fetched >= 10) else ""
-        last_ok = rec.get("last_ok", "")[5:16].replace("T", " ") if rec.get("last_ok") else "—"
-        err = f'<div class="serr">{esc(rec.get("error",""))}</div>' if rec.get("error") and st in ("fail", "warn") else ""
-        note = f'<div class="snote">{esc(src.get("note",""))}</div>' if src.get("note") else ""
-        recommendation = (
-            f'<div class="srec">{esc(rec["recommendation"])}</div>'
-            if rec.get("recommendation") else ""
+        focus = " · ".join(
+            CAT_LABEL.get(category, category)
+            for category in (source.get("focus_categories") or [])
         )
-        control = rec.get("control") or {
-            "tier": src.get("tier", "default"),
-            "fetch_interval_hours": src.get("fetch_interval_hours", 6),
-            "max_candidates_per_run": src.get("max_candidates_per_run", 20),
-        }
-        model_calls = rec.get("total_model_calls", 0)
-        model_tokens = rec.get("total_model_tokens", 0)
-        audit = (
-            f'候选 {fetched} · 采用 {acc} · {rate_txt}{low} · '
-            f'模型 {model_calls} 次 / {model_tokens:,} Token'
+        focus_html = f'<span class="source-focus">{esc(focus)}</span>' if focus else ""
+        fails = int((ss.get(source["name"]) or {}).get("fails", 0) or 0)
+        health_html = (
+            f'<span class="source-health">{"暂时异常" if fails >= 2 else "更新延迟"}</span>'
+            if fails else ""
         )
-        last_filter = (
-            f'上轮原始 {rec.get("last_raw_entries", 0)} · '
-            f'预筛 {rec.get("last_prefiltered", 0)} · '
-            f'新候选 {rec.get("last_new", 0)}'
-        )
-        schedule = (
-            f'{control.get("tier", "default")} · '
-            f'{control.get("fetch_interval_hours", 6):g}小时/轮 · '
-            f'上限 {control.get("max_candidates_per_run", 20)}'
-        )
-        focus_categories = control.get("focus_categories") or src.get("focus_categories") or []
-        focus_text = " / ".join(CAT_LABEL.get(category, category) for category in focus_categories)
-        adoption_by_category = rec.get("total_accepted_by_category") or {}
-        category_audit = " · ".join(
-            f'{CAT_LABEL.get(category, category)} {int(adoption_by_category.get(category, 0))}'
-            for category in focus_categories
-        )
-        focus_html = (
-            f'<div class="snote">专项监控 {esc(focus_text)} · 累计采用 {esc(category_audit or "0")}</div>'
-            if focus_categories else ""
-        )
-        rows.append({
-            "st": st, "html": f'''<div class="srow">
-  <div class="srow-top">
-    <span class="dot {st}"></span><b>{esc(src["name"])}</b>
-    <span class="stype">{TYPE_LABEL.get(src.get("type"), "其他")}</span>
-    <span class="sstat {'st-'+st}">{st_txt}</span>
-    <span class="scount">在站 {insite.get(src["name"], 0)} 条</span>
-  </div>
-  <div class="srow-sub">{audit}</div>
-  <div class="srow-sub">最近成功 {last_ok} · {last_filter}</div>
-  <div class="snote">调度 {schedule}</div>
-{focus_html}{err}{recommendation}{note}
-</div>'''})
+        return f'<div class="source-row">{name_html}{focus_html}{health_html}</div>'
 
-    order = {"fail": 0, "warn": 1, "off": 2, "ok": 3}
-    rows.sort(key=lambda r: (order[r["st"]], -insite.get(r["html"].split("<b>")[1].split("</b>")[0], 0)))
-    rows_html = "".join(r["html"] for r in rows)
-
-    n_ok = sum(1 for r in rows if r["st"] == "ok")
-    sys_ok = all(r["st"] in ("ok", "off") for r in rows)
-    sys_dot = "ok" if sys_ok else "warn"
-    category_monitor = "".join(
-        f'''<div style="flex:1;min-width:150px;padding:10px 12px;background:var(--soft);border-radius:9px">
-  <b>{esc(CAT_LABEL[category])}</b><div class="snote">在站事件 {event_categories.get(category, 0)} · 专项信源 {focused_source_counts.get(category, 0)} · 累计采用 {accepted_category_totals.get(category, 0)}</div>
-</div>'''
-        for category in ("bi", "product", "agent", "platform")
+    group_specs = (
+        ("官方与厂商", "vendor"),
+        ("行业媒体", "media"),
+        ("社区", "community"),
     )
+    group_html = []
+    for label, source_type in group_specs:
+        sources = [source for source in enabled_sources if source.get("type") == source_type]
+        if not sources:
+            continue
+        rows = "".join(source_row(source) for source in sources)
+        group_html.append(f'''<section class="source-group">
+  <div class="source-group-head"><h2>{label}</h2><span>{len(sources)} 个</span></div>
+  <div class="source-list">{rows}</div>
+</section>''')
+
+    failed_sources = [
+        source for source in enabled_sources
+        if int((ss.get(source["name"]) or {}).get("fails", 0) or 0) > 0
+    ]
+    alert_html = ""
+    if failed_sources:
+        alert_html = (
+            f'<div class="source-alert"><b>{len(failed_sources)} 个信源更新异常</b>'
+            '其余信源继续正常更新，异常项已在下方标出。</div>'
+        )
+
+    disabled_html = ""
+    if disabled_sources:
+        rows = "".join(source_row(source, disabled=True) for source in disabled_sources)
+        disabled_html = f'''<details class="source-disabled">
+  <summary>已停用信源（{len(disabled_sources)}）</summary>
+  <div class="source-list">{rows}</div>
+</details>'''
 
     body = f'''
-<div class="wrap" style="padding:28px 20px 60px;max-width:900px">
-  <div class="section-title"><h2>{ic("rss",18)} 信源与更新状态</h2><span>透明公开 · 每 6 小时自动巡检</span></div>
+<div class="wrap source-page">
+  <header class="source-intro">
+    <h1>信源</h1>
+    <p>DataHot 当前监控 {len(enabled_sources)} 个信源，覆盖 Data Agent、AI 数据平台、BI 与数据产品，每 6 小时更新。最后更新 {gen.strftime("%m-%d %H:%M")}。</p>
+    {alert_html}
+  </header>
 
-  <div class="scard syscard">
-    <div class="sys-line"><span class="dot {sys_dot}"></span><b>{"系统运行中" if sys_ok else "存在异常信源"}</b>
-    <span class="ssub">最后更新 {gen.strftime("%m-%d %H:%M")} · <span id="nextRun">计算下次更新…</span></span></div>
-    <div class="ssub" style="margin-top:6px">每日 4 批：08:17 / 14:17 / 20:17 / 02:17（北京时间）· 采集 → AI 加工 → 聚簇 → 自动发布</div>
-  </div>
+  {''.join(group_html)}
+  {disabled_html}
 
-  <div class="section-title"><h2>栏目结构监控</h2><span>不做机械配额 · 独立观察专项信源与采用结果</span></div>
-  <div class="scard" style="display:flex;gap:10px;flex-wrap:wrap">{category_monitor}</div>
+  <section class="source-contribute">
+    <div class="source-contribute-copy">
+      <h2>推荐新信源</h2>
+      <p>没有你关注的官方博客、行业媒体或数据社区？</p>
+    </div>
+    <a class="source-cta" href="https://github.com/henryhb1105-arch/datahot/issues/new" target="_blank" rel="noopener" data-analytics="outbound">推荐新信源</a>
+  </section>
 
-  <div class="section-title"><h2>信源记分牌</h2><span>{len(all_sources)} 个信源 · 按需要关注排序</span></div>
-  <div class="scard" style="padding:6px 18px">{rows_html}</div>
-
-  <details class="scard act"><summary><b>➕ 如何添加信源</b></summary>
-    <div class="act-body">想监控新的信源（博客 RSS / 公众号官网 / 社区账号）？复制下面模板，发给 Kimi 或在 GitHub 提 issue，测通即上线：</div>
-    <div class="tpl" id="srcTpl">新信源申请：\n名称：（如 机器之心）\n网址：（官网或 RSS 地址）</div>
-    <button class="sbtn" id="tplBtn" onclick="copyTpl()">复制模板</button>
-  </details>
-  <details class="scard act"><summary><b>⚙️ 更新机制</b></summary>
-    <div class="act-body">GitHub Actions 定时任务（免费额度），每日 4 批：采集 RSS/社区 → DeepSeek 过滤与编译 → 事件聚簇去重 → 热度打分 → 静态页生成 → 自动发布。每次发布前自动执行 gitleaks 密钥扫描。定时任务高峰期可能延迟几分钟，属正常现象。</div>
-  </details>
-  <details class="scard act"><summary><b>📜 内容声明</b></summary>
-    <div class="act-body">本站仅聚合各信源的摘要与 AI 编译内容并链接原文，不转载全文，版权归原作者与原发布方所有。信源方如需调整展示方式，可通过 GitHub issue 联系。</div>
-  </details>
+  <p class="source-principle">DataHot 优先收录官方发布、工程实践和有明确数据行业价值的内容；本站仅提供摘要与原文链接。</p>
 </div>
-<script>
-(function(){{
-  var times=[[8,17],[14,17],[20,17],[2,17]];
-  var now=new Date(), best=null;
-  for(var d=0; d<2 && !best; d++){{
-    for(var i=0;i<times.length;i++){{
-      var t=new Date(now); t.setDate(now.getDate()+d); t.setHours(times[i][0],times[i][1],0,0);
-      if(t>now){{best=t;break;}}
-    }}
-  }}
-  if(best){{
-    var mins=Math.round((best-now)/60000), h=Math.floor(mins/60), m=mins%60;
-    document.getElementById('nextRun').textContent='下次更新 '+best.getHours().toString().padStart(2,'0')+':'+best.getMinutes().toString().padStart(2,'0')+'（约 '+(h?h+' 小时 ':'')+m+' 分钟后）';
-  }}
-}})();
-function copyTpl(){{
-  var t=document.getElementById('srcTpl').innerText;
-  function done(){{var b=document.getElementById('tplBtn');b.textContent='已复制 ✓';setTimeout(function(){{b.textContent='复制模板'}},1500);}}
-  if(navigator.clipboard){{navigator.clipboard.writeText(t).then(done,done);}}else{{done();}}
-}}
-</script>'''
-    return page_shell("信源与更新状态 · DataHot", "DataHot 的信源清单、健康状态与更新机制", css, body,
+'''
+    return page_shell("信源 · DataHot", "DataHot 正在监控的公开信源与选源原则", css, body,
                       tabbar("sources"), prefix="", active="sources")
 
 def render_hot_page(events, css):

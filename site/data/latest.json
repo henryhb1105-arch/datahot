@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-08-12T09:33:03.230381+08:00",
+ "generated_at": "2026-08-12T10:12:24.883574+08:00",
  "events": [
   {
    "event_id": "477745cf963d",
@@ -9028,7 +9028,7 @@
    "zh_title": "Epic Games如何调优OpenSearch支撑Fortnite分析",
    "zh_summary": "Epic Games与AWS合作，对其Amazon OpenSearch Service集群进行优化，用于Fortnite游戏遥测数据的存储与分析。团队通过调整实例规格、重新平衡分片、优化索引映射以及升级引擎和Graviton版本，在降低运营成本的同时显著提升了查询延迟和吞吐量。该实践支撑了数十亿级遥测事件的处理，帮助Epic识别玩法趋势并辅助实时运营决策。",
    "reason": "聚焦游戏数据分析场景下的OpenSearch调优实践，涉及大规模遥测处理、查询性能与成本优化，对数据平台从业者有直接参考价值。",
-   "full_zh": "## Epic Games 如何调优 OpenSearch 支撑 Fortnite 分析\n\n自 2017 年 Fortnite 上线以来，Epic Games 已覆盖全球数亿玩家。Fortnite 运行在 Amazon Web Services（AWS）上，并利用 Amazon OpenSearch Service 等服务支撑部分内部分析工作，在大规模场景下辅助决策。Amazon OpenSearch Service 在理解游戏生态系统方面发挥了重要作用。\n\nOpenSearch Service 支撑两类用例：搜索工作负载与分析工作负载。Epic Games 的一个团队有一个用例，需要存储并分析滑动窗口内的游戏事件数据。这涉及支持复杂查询和多层聚合，并将分析结果馈入其他内部系统，从而帮助驱动不断演进的玩家体验。在 Fortnite 这样拥有庞大玩家基础的游戏规模下，这些查询需要处理海量的传入数据。\n\n这些洞察有助于识别新兴的游戏玩法趋势，理解玩家如何与新内容互动，并揭示更多关于 Fortnite 生态系统的信息。它们为实时运营决策提供依据，并基于社区整体聚合行为，向玩家呈现相关内容。\n\n随着 Epic Games 的基础设施处理数十亿级别的遥测事件，该团队发现了优化其 OpenSearch Service 集群以提升性能和成本效率的机会。本文介绍了 Epic Games 如何与 AWS 合作，对其 OpenSearch Service 部署进行改造，在显著改善查询延迟和资源利用率的同时降低了运营成本。\n\n## 挑战\n\nEpic Games 运行着一个 OpenSearch Service 域，需要处理持续的高容量写入，以及 CPU 密集型的批量聚合作业。理想情况下，这些聚合作业应该更频繁地运行，以保持分析结果的新鲜度。更短的作业间隔意味着更新的数据，从而能更快地识别游戏玩法趋势、检测异常，并为实时运营决策提供信息。但现有的配置无法在不将域扩展到超出工作负载合理需求的情况下支持这一点，否则会推高成本。\n\nEpic Games 与 AWS 合作，确定了可以改进的方面，重点关注硬件利用率、分片策略、索引映射和查询行为等领域。\n\n## 观测结果\n\n该集群运行在 r7g 内存优化型数据节点上，每个节点拥有 48 个 vCPU 和 384 GiB 内存。在每台节点的可用内存中，只有一小部分（32 GiB）分配给了 Java 虚拟机（JVM）堆，该值设置为压缩普通对象指针（compressed oops）所支持的最大推荐值。其余内存（堆外内存）用于文件系统缓存和操作系统。各数据节点的系统内存并未得到充分利用（图 1）。\n\n图 1：各数据节点的系统内存利用率\n\n如上图所示，在整个观测期间，利用率始终远低于 100%，证实分配给这些节点的大量堆外内存并未被使用。这部分过剩容量可以被安全地置换为额外的计算资源。JVM 内存压力如图 2 所示，相关联的垃圾收集指标（包括次数和时间）如图 3 所示。\n\n## 观察结果\n\n图 2：JVM 内存压力\n\n图 3：JVM 垃圾回收指标，次数（上）与耗时（下）\n\n这些图表显示，JVM 内存压力保持在临界阈值以下，垃圾回收次数与耗时均处于低位且稳定，表明整个域的 JVM 利用率处于健康状态。\n\n虽然集群级 CPU 指标乍看之下表现正常（图 4），但放大到节点级指标后，清晰暴露出了节点热点。节点热点的根本原因在于集群的分片策略。\n\n图 4：集群级 CPU 利用率\n\n该集群的数据节点分布在多个可用区（Availability Zones）。每个索引使用固定数量的主分片并配置副本，分片达到一定大小后执行滚动（rollover）。乍看之下，该配置似乎相当均衡：分片副本分布在各个可用区，每个节点持有可控份额的数据。\n\n然而，主分片数量低于数据节点总数。这意味着，针对最新数据的搜索——这是最常见的访问模式——只会在一部分可用节点上执行。结果，部分节点持续出现 CPU 热点，而其余节点处于低利用率状态（图 5）。\n\n图 5：节点级 CPU 利用率，显示热点节点\n\n如上图所示，部分节点的 CPU 利用率高达 90%，而其他多个节点低于 20%，凸显了查询执行在集群中分布不均的问题。\n\n## 建议与实施\n\n基于上述观察，AWS 与 Epic Games 合作实施了一系列针对性优化，涵盖硬件选型、分片策略、索引映射和查询行为。以下各节详细说明每项建议及其落地方式。\n\n## 合理调整集群规格\n\n由于聚合查询天然属于 CPU 密集型，且集群的 JVM 内存压力远在可接受范围内，AWS 建议从内存优化型 r7g 实例迁移至计算优化型 c7g 实例。c7g 系列提供更高的 vCPU 与内存配比，更适合处理能力而非内存容量构成瓶颈的工作负载。\n\n所提议的架构要求使用比现有 r7g 数量更多的 c7g 节点。这一迁移使集群总 CPU 容量提升约 33%，同时内存仅为原来的三分之二。净效果是成本显著降低约 10%——通过让实例配置与实际工作负载特性对齐，以更低成本获得更强的处理能力（表 1）。\n\n表 1：实例迁移对比，r7g 与 c7g\n\n| 项目 | r7g（迁移前） | c7g（迁移后） | 净影响 |\n|------|--------------|--------------|--------|\n| 实例家族 | 内存优化 | 计算优化 | CPU 与内存配比更适合聚合工作负载 |\n| 每节点 vCPU | 相同 | 相同 | 每节点 CPU 相同；节点更多 = 总 CPU 更高 |\n| 每节点内存 | 更高 | 更低 | 减少未使用的内存；JVM 堆保持不变 |\n| 总 CPU | 基线 | 总 vCPU 增加 33% | 在更多节点上分布更均匀 |\n| 成本 | 基线 | 降低约 10% | 每美元获得更高性能 |\n\n## 分片策略\n\n为配合新的集群规格，Epic Games 团队更改了分片策略，使主分片数量与数据节点数量保持一致，并配置 1 个副本。这样可将写入密集负载和批量聚合搜索查询负载均匀分布到所有可用数据节点上。\n\n## 分片优化\n\n团队采用 ISM（索引状态管理）策略，通过滚动（rollover）机制管理分片大小，利用 `min_primary_shard_size` 将分片大小控制在建议范围内。这使分片数量保持有界且可预测，并提供了一条清晰的扩展模式：先调整节点数量，再相应更新 ISM 策略。实施后，节点级 CPU 利用率呈现出更加均匀的分布（图 6）。\n\n图 6：分片优化后的节点级 CPU 利用率\n\n如图 6 所示，域内所有节点的 CPU 利用率水平相近，证实数据和流量在集群中分布良好，不存在节点热点。\n\n## 映射优化\n\n索引映射中许多字段同时启用了 text 和 keyword 字段类型，尽管访问模式显示这些字段仅用于聚合、排序或过滤场景，从未用于全文匹配查询。移除冗余的 text 字段类型降低了存储开销，并通过消除索引时不必要的分析（analysis）提升了查询性能。\n\n对于高基数字符串字段，murmur3 字段类型为基数聚合提供了一种“计算一次并存储”的优化：murmur3 不是在查询时对 keyword 值进行哈希，而是在索引时计算一次哈希并将其存储为数值型 doc_value，从而让聚合跳过查询时昂贵的字符串哈希步骤（基数估算本身仍在查询时计算）。以下示例说明了映射变更：\n\n**变更前：**\n\n```json\n\"some_field\": {\n  \"type\": \"text\",\n  \"fields\": {\n    \"keyword\": {\n      \"ignore_above\": 256,\n      \"type\": \"keyword\"\n    }\n  }\n},\n\"another_field\": {\n  \"type\": \"text\",\n  \"fields\": {\n    \"keyword\": {\n      \"ignore_above\": 256,\n      \"type\": \"keyword\"\n    }\n  }\n},\n\"cardinality_field\": {\n  \"type\": \"text\",\n  \"fields\": {\n    \"keyword\": {\n      \"ignore_above\": 256,\n      \"type\": \"keyword\"\n    }\n  }\n}\n```\n\n**变更后：**\n\n```json\n\"some_field\": {\n  \"type\": \"keyword\"\n},\n\"another_field\": {\n  \"type\": \"keyword\"\n},\n\"cardinality_field\": {\n  \"type\": \"keyword\",\n  \"fields\": {\n    \"hash\": {\n      \"type\": \"murmur3\"\n    }\n  }\n}\n```\n\n这些映射变更降低了总体存储量，减少了分片数量（从而降低了 CPU 需求），并缩减了集群管理节点（cluster manager node）的状态大小。\n\n## 索引优化\n\n还应用了额外的索引级优化来提升查询性能并减少开销。索引排序被配置为默认使用主日期字段，通过将物理数据布局与最常见的查询顺序对齐，改善了基于时间的访问模式的性能。ISM 策略被更新为在滚动后将索引强制合并（force merge）为 1 个段，减少了只读索引上的段开销。最后，调整了刷新间隔（refresh interval），以在索引吞吐量与搜索新鲜度之间取得平衡。\n\n## 从 OpenSearch Service 2.17 升级到 3.1\n\n该域从 OpenSearch Service 2.17 升级到 3.1，降低了错误计数并提升了 Amazon OpenSearch Ingestion 管道层面的吞吐量。性能提升显著：仅升级后，sum 聚合的 p99 延迟就下降了 40%–50%，大型 96 小时基数聚合的 p95 下降了超过 40%。所有查询类型的总体查询性能均有所提升，线程池压力显著降低，429 错误大幅减少（图 7）。\n\n图 7：OpenSearch Service 3.1 升级前后的查询性能\n\n## 从 Graviton 3 升级到 Graviton 4\n\n实例类型从 c7g（Graviton 3）升级到 c8g（Graviton 4）。\n\n性能提升立竿见影：所有查询的 p99 从 380 ms 降至 250 ms；所有查询的 p95 从 245 ms 降至 230 ms；所有查询的 p90 从 225 ms 降至 200 ms；所有查询的 p50 从 100 ms 降至 70 ms。日期窗口基数查询的 p99 从 220 ms 减半至 98 ms，基于 sum 的聚合也获得了类似的提升。整体吞吐量提升了 16%。\n\n## 分层缓存（Tiered caching）\n\n升级到 OpenSearch Service 3.1 后，团队启用了分层缓存。分层缓存用基于磁盘的层级扩展了默认的堆内请求缓存。当条目从堆内缓存中逐出时，它们会溢出到节点本地 SSD 上更大的磁盘缓存中，而不是被丢弃。这使集群能够在不增加 JVM 堆使用量的情况下，为更大量的查询保留缓存结果。\n\nEpic Games 工作负载中的批量聚合任务会在重叠的时间窗口上重复发出查询。仅靠堆内缓存太小，无法在连续的任务运行之间保留结果，因此昂贵的聚合每次都要重新计算。启用磁盘层级后，较长时间窗口聚合（例如 96 小时基数查询）的结果可以在两次运行之间保留。这使得一些较大的聚合查询（尤其是那些跨越较长时间窗口的查询）获得了更一致、更快速的结果。\n\n## 结果汇总\n\n下表总结了各项优化的影响。\n\n| 优化策略 | 影响 |\n|---|---|\n| 实例规格调整（r7g 到 c7g） | CPU 增加 33%，成本降低 10% |\n| 分片再平衡 | 消除了各节点上的 CPU 热点 |\n| 映射优化 | 减少了存储、分片数量和集群状态大小 |\n| OpenSearch Service 2.17 升级到 3.1 | p99 sum 聚合降低 40-50%，429 错误减少 |\n| Graviton 3 升级到 Graviton 4 | p99 从 380 ms 降至 250 ms，吞吐量提升 16% |\n| 分层缓存 | 大型聚合查询的结果更一致 |\n\n表 2：结果汇总\n\n## 结论\n\n通过对 OpenSearch Service 部署进行优化，Epic Games 的一个团队将 p99 查询延迟从 380 ms 降至 250 ms，吞吐量提升了 16%，成本降低了 10%。这些收益来自使实例类型、分片策略、映射和引擎版本与实际工作负载需求保持一致。",
+   "full_zh": "Epic Games 团队如何为 Fortnite 分析调优 Amazon OpenSearch Service\n\n自 2017 年 Fortnite 发布以来，Epic Games已覆盖全球数亿玩家。Fortnite 运行在 Amazon Web Services (AWS) 上，并利用诸如Amazon OpenSearch Service等服务来支持某些内部分析，并在规模上驱动决策。\n\nAmazon OpenSearch Service 在理解游戏生态系统方面一直很有帮助。OpenSearch Service 支持两种类型的用例：搜索工作负载和分析工作负载。Epic Games 的一个团队有一个用例，需要存储和分析滑动窗口的游戏事件数据。这涉及支持复杂查询和多层聚合，将分析结果馈送到其他内部系统，帮助他们推动不断发展的玩家体验。在像 Fortnite 这样拥有庞大玩家基础的游戏规模下，这些查询针对大量传入数据运行。\n\n这些见解有助于识别新兴的游戏趋势，了解玩家如何与新内容互动，并揭示更多关于 Fortnite 生态系统的信息。它们为实时运营决策提供信息，并根据社区中的聚合活动帮助向玩家展示相关内容。\n\n随着 Epic Games 的基础设施处理数十亿遥测事件，团队发现了优化其 OpenSearch Service 集群以提高性能和成本效益的机会。本文详细介绍了 Epic Games 如何与 AWS 合作，转变其 OpenSearch Service 部署，在降低运营成本的同时，显著改善查询延迟和资源利用率。\n\n挑战\n\nEpic Games 运行着一个 OpenSearch Service 域，该域处理持续的高容量写入以及 CPU 密集型的批量聚合作业。理想情况下，这些聚合作业应该更频繁地运行，以保持分析的新鲜度。较短的作业间隔意味着更新的数据，用于识别游戏趋势、检测异常并为实时运营决策提供信息。但现有配置无法在不扩展域规模的情况下支持这一点，而这超出了工作负载的合理需求，从而推高了成本。Epic Games 与 AWS 合作，确定可以改进的地方，重点关注硬件利用率、分片策略、索引映射和查询行为等领域。\n\n观察\n\n该集群运行在 r7g 内存优化数据节点上，每个节点有 48 个 vCPU 和 384 GiB 内存。在每个节点的可用内存中，只有一小部分（32 GiB）分配给 Java 虚拟机（JVM）堆，设置为压缩 oops 的最大推荐值压缩 oops。其余（堆外内存）用于文件系统缓存和操作系统。数据节点上的系统内存并未完全利用（图 1）。\n\n图 1：数据节点上的系统内存利用率\n\n如上图所示，在整个观察期间利用率远低于 100%，确认分配给这些节点的大部分堆外内存未使用。多余容量可以安全地换为额外的计算资源。\n\nJVM 内存压力如图 2 所示，相关的垃圾回收指标（数量和耗时）如图 3 所示。\n\n图 2：\n\nR7g (Before)c7g (After)Net ImpactInstance FamilyMemory OptimizedCompute OptimizedBetter CPU-to-RAM alignment for aggregation workloadsvCPUs per NodeSameSameSame per-node CPU. More nodes = higher aggregate CPUMemory per NodeHigherLowerReduced unused memory; JVM heap unchangedAggregate CPUBaseline+33% more total vCPUsDistributed more evenly across higher node countCostBaseline~10% reductionMore performance per dollar spent\n\nBefore:After:\n\nOptimization StrategyImpactRight-sizing (r7g to c7g)33% more CPU, 10% cost reductionSharding rebalanceEliminated CPU hotspots across nodesMapping optimizationReduced storage, shard count, and cluster state sizeOpenSearch Service 2.17 to 3.1p99 sum aggs reduced 40-50%, fewer 429 errorsGraviton 3 to Graviton 4p99 380 ms to 250 ms, 16% higher throughputTiered cachingMore consistent results on large aggregation queries",
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [
@@ -9055,7 +9055,847 @@
      "ingested_at": "2026-08-11T01:38:20.381714+08:00",
      "title": "How a team at Epic Games tuned Amazon OpenSearch Service for Fortnite analytics"
     }
-   ]
+   ],
+   "content_blocks": [
+    {
+     "type": "heading",
+     "id": "b-d136b538c03b",
+     "children": [
+      {
+       "type": "text",
+       "text": "Epic Games 团队如何为 Fortnite 分析调优 Amazon OpenSearch Service",
+       "marks": [],
+       "id": "t-203b486e708b"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-717488c8b124",
+     "children": [
+      {
+       "type": "text",
+       "text": "自 2017 年 Fortnite 发布以来，",
+       "marks": [],
+       "id": "t-95c0b43c28bd"
+      },
+      {
+       "type": "text",
+       "text": "Epic Games",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.epicgames.com/site/home?sessionInvalidated=true"
+        }
+       ],
+       "id": "t-548296b56965"
+      },
+      {
+       "type": "text",
+       "text": "已覆盖全球数亿玩家。",
+       "marks": [],
+       "id": "t-fe95cc0f7386"
+      },
+      {
+       "type": "text",
+       "text": "Fortnite 运行在 Amazon Web Services (AWS) 上",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://aws.amazon.com/solutions/case-studies/innovators/epic-games/"
+        }
+       ],
+       "id": "t-c39ba1c870a1"
+      },
+      {
+       "type": "text",
+       "text": "，并利用诸如",
+       "marks": [],
+       "id": "t-20949618ae50"
+      },
+      {
+       "type": "text",
+       "text": "Amazon OpenSearch Service",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://aws.amazon.com/opensearch-service/"
+        }
+       ],
+       "id": "t-c08cfce8a7b5"
+      },
+      {
+       "type": "text",
+       "text": "等服务来支持某些内部分析，并在规模上驱动决策。",
+       "marks": [],
+       "id": "t-bcf4513e48bc"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-621b80502c8f",
+     "children": [
+      {
+       "type": "text",
+       "text": "Amazon OpenSearch Service 在理解游戏生态系统方面一直很有帮助。OpenSearch Service 支持两种类型的用例：搜索工作负载和分析工作负载。Epic Games 的一个团队有一个用例，需要存储和分析滑动窗口的游戏事件数据。这涉及支持复杂查询和多层聚合，将分析结果馈送到其他内部系统，帮助他们推动不断发展的玩家体验。在像 Fortnite 这样拥有庞大玩家基础的游戏规模下，这些查询针对大量传入数据运行。",
+       "marks": [],
+       "id": "t-bdf8f4d77f7f"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-043cf3a5fb2c",
+     "children": [
+      {
+       "type": "text",
+       "text": "这些见解有助于识别新兴的游戏趋势，了解玩家如何与新内容互动，并揭示更多关于 Fortnite 生态系统的信息。它们为实时运营决策提供信息，并根据社区中的聚合活动帮助向玩家展示相关内容。",
+       "marks": [],
+       "id": "t-adbc9124295f"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-bae7204d06be",
+     "children": [
+      {
+       "type": "text",
+       "text": "随着 Epic Games 的基础设施处理数十亿遥测事件，团队发现了优化其 OpenSearch Service 集群以提高性能和成本效益的机会。本文详细介绍了 Epic Games 如何与 AWS 合作，转变其 OpenSearch Service 部署，在降低运营成本的同时，显著改善查询延迟和资源利用率。",
+       "marks": [],
+       "id": "t-da1daa99e95d"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-3fa9e70346f3",
+     "children": [
+      {
+       "type": "text",
+       "text": "挑战",
+       "marks": [],
+       "id": "t-9c7db590551d"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-ed589d5db8ae",
+     "children": [
+      {
+       "type": "text",
+       "text": "Epic Games 运行着一个 OpenSearch Service 域，该域处理持续的高容量写入以及 CPU 密集型的批量聚合作业。理想情况下，这些聚合作业应该更频繁地运行，以保持分析的新鲜度。较短的作业间隔意味着更新的数据，用于识别游戏趋势、检测异常并为实时运营决策提供信息。但现有配置无法在不扩展域规模的情况下支持这一点，而这超出了工作负载的合理需求，从而推高了成本。Epic Games 与 AWS 合作，确定可以改进的地方，重点关注硬件利用率、分片策略、索引映射和查询行为等领域。",
+       "marks": [],
+       "id": "t-33ebd38565cc"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-eec119c253bc",
+     "children": [
+      {
+       "type": "text",
+       "text": "观察",
+       "marks": [],
+       "id": "t-96bdb72ffc64"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-e8b67128748f",
+     "children": [
+      {
+       "type": "text",
+       "text": "该集群运行在 r7g 内存优化数据节点上，每个节点有 48 个 vCPU 和 384 GiB 内存。在每个节点的可用内存中，只有一小部分（32 GiB）分配给 Java 虚拟机（JVM）堆，设置为压缩 oops 的最大推荐值",
+       "marks": [],
+       "id": "t-78d2c2e17edc"
+      },
+      {
+       "type": "text",
+       "text": "压缩 oops",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.baeldung.com/jvm-compressed-oops"
+        }
+       ],
+       "id": "t-e5f63d3d8baf"
+      },
+      {
+       "type": "text",
+       "text": "。其余（堆外内存）用于文件系统缓存和操作系统。数据节点上的系统内存并未完全利用（图 1）。",
+       "marks": [],
+       "id": "t-9c63f2b3a4d3"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-de6b817840eb",
+     "children": [
+      {
+       "type": "text",
+       "text": "图 1：数据节点上的系统内存利用率",
+       "marks": [],
+       "id": "t-dee9fcf16d19"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-a9dc74a83d83",
+     "children": [
+      {
+       "type": "text",
+       "text": "如上图所示，在整个观察期间利用率远低于 100%，确认分配给这些节点的大部分堆外内存未使用。多余容量可以安全地换为额外的计算资源。",
+       "marks": [],
+       "id": "t-5c20e8b55045"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-aea229197425",
+     "children": [
+      {
+       "type": "text",
+       "text": "JVM 内存压力如图 2 所示，相关的垃圾回收指标（数量和耗时）如图 3 所示。",
+       "marks": [],
+       "id": "t-1a46f8720a82"
+      }
+     ]
+    },
+    {
+     "type": "figure",
+     "id": "b-874cb1f3bbeb",
+     "src": "https://d2908q01vomqb2.cloudfront.net/b6692ea5df920cad691c20319a6fffd7a4a766b8/2026/08/04/Screenshot-2026-08-03-at-11.03.08 AM.png",
+     "alt": "",
+     "caption": "",
+     "source_url": "https://aws.amazon.com/blogs/big-data/how-a-team-at-epic-games-tuned-amazon-opensearch-service-for-fortnite-analytics/",
+     "width": 1753,
+     "height": 504,
+     "media_status": "link_only",
+     "media_reason": "cross_site_host"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-edaa8de02875",
+     "children": [
+      {
+       "type": "text",
+       "text": "图 2：",
+       "marks": [],
+       "id": "t-fc199db4b0d0"
+      }
+     ]
+    },
+    {
+     "type": "figure",
+     "id": "b-6b7041f1b843",
+     "src": "https://d2908q01vomqb2.cloudfront.net/b6692ea5df920cad691c20319a6fffd7a4a766b8/2026/08/04/image-jvm-3.png",
+     "alt": "",
+     "caption": "",
+     "source_url": "https://aws.amazon.com/blogs/big-data/how-a-team-at-epic-games-tuned-amazon-opensearch-service-for-fortnite-analytics/",
+     "width": 2404,
+     "height": 723,
+     "media_status": "link_only",
+     "media_reason": "cross_site_host"
+    },
+    {
+     "type": "figure",
+     "id": "b-1cdc053fb030",
+     "src": "https://d2908q01vomqb2.cloudfront.net/b6692ea5df920cad691c20319a6fffd7a4a766b8/2026/08/04/Screenshot-2026-08-03-at-11.06.50 AM.png",
+     "alt": "",
+     "caption": "",
+     "source_url": "https://aws.amazon.com/blogs/big-data/how-a-team-at-epic-games-tuned-amazon-opensearch-service-for-fortnite-analytics/",
+     "width": 1770,
+     "height": 302,
+     "media_status": "link_only",
+     "media_reason": "cross_site_host"
+    },
+    {
+     "type": "table",
+     "id": "b-3cfea3096d12",
+     "rows": [
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "R7g (Before)",
+           "marks": [
+            "strong"
+           ],
+           "id": "t-d56dbd206cc7"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "c7g (After)",
+           "marks": [
+            "strong"
+           ],
+           "id": "t-9e4e373875d4"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Net Impact",
+           "marks": [
+            "strong"
+           ],
+           "id": "t-3ba110bc1811"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Instance Family",
+           "marks": [
+            "strong"
+           ],
+           "id": "t-b9801a2b7d2b"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Memory Optimized",
+           "marks": [],
+           "id": "t-184908ef14a0"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Compute Optimized",
+           "marks": [],
+           "id": "t-c472a51e2489"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Better CPU-to-RAM alignment for aggregation workloads",
+           "marks": [],
+           "id": "t-7475784c7551"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "vCPUs per Node",
+           "marks": [
+            "strong"
+           ],
+           "id": "t-a2a3014a149d"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Same",
+           "marks": [],
+           "id": "t-7632d282e3e9"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Same",
+           "marks": [],
+           "id": "t-178a029c111a"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Same per-node CPU. More nodes = higher aggregate CPU",
+           "marks": [],
+           "id": "t-9d8f1de36f34"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Memory per Node",
+           "marks": [
+            "strong"
+           ],
+           "id": "t-06119205b823"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Higher",
+           "marks": [],
+           "id": "t-eb095024567f"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Lower",
+           "marks": [],
+           "id": "t-102cbfbcc0a7"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Reduced unused memory; JVM heap unchanged",
+           "marks": [],
+           "id": "t-a200eaea63ef"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Aggregate CPU",
+           "marks": [
+            "strong"
+           ],
+           "id": "t-ccc9a093e225"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Baseline",
+           "marks": [],
+           "id": "t-26a74e07cb44"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "+33% more total vCPUs",
+           "marks": [],
+           "id": "t-1bf56efcb664"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Distributed more evenly across higher node count",
+           "marks": [],
+           "id": "t-928735d2be33"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Cost",
+           "marks": [
+            "strong"
+           ],
+           "id": "t-35187e551c30"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Baseline",
+           "marks": [],
+           "id": "t-6310e2b71abe"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "~10% reduction",
+           "marks": [],
+           "id": "t-d5a333e28542"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "More performance per dollar spent",
+           "marks": [],
+           "id": "t-848365989a53"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "table",
+     "id": "b-4151e7b44d80",
+     "rows": [
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Before:",
+           "marks": [],
+           "id": "t-2bccfca80fdd"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "After:",
+           "marks": [],
+           "id": "t-08891bf5ce78"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "   ",
+           "marks": [],
+           "id": "t-d1397a710cb3"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "   ",
+           "marks": [],
+           "id": "t-9b3b7b82bfc8"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "table",
+     "id": "b-42d1c7204ea1",
+     "rows": [
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Optimization Strategy",
+           "marks": [
+            "strong"
+           ],
+           "id": "t-ed6b61833bea"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Impact",
+           "marks": [
+            "strong"
+           ],
+           "id": "t-52f9b0b38eb2"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Right-sizing (r7g to c7g)",
+           "marks": [],
+           "id": "t-d2b83afbf07a"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "33% more CPU, 10% cost reduction",
+           "marks": [],
+           "id": "t-00e53069ee76"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Sharding rebalance",
+           "marks": [],
+           "id": "t-a444523bcb7d"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Eliminated CPU hotspots across nodes",
+           "marks": [],
+           "id": "t-8493d91d5ef0"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Mapping optimization",
+           "marks": [],
+           "id": "t-6aa5529b933a"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Reduced storage, shard count, and cluster state size",
+           "marks": [],
+           "id": "t-03b4d0c3900d"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "OpenSearch Service 2.17 to 3.1",
+           "marks": [],
+           "id": "t-68ce11cd7c45"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "p99 sum aggs reduced 40-50%, fewer 429 errors",
+           "marks": [],
+           "id": "t-9ddcf7dbf743"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Graviton 3 to Graviton 4",
+           "marks": [],
+           "id": "t-1135049d1240"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "p99 380 ms to 250 ms, 16% higher throughput",
+           "marks": [],
+           "id": "t-675a32082a19"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Tiered caching",
+           "marks": [],
+           "id": "t-6ffbe052885e"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "More consistent results on large aggregation queries",
+           "marks": [],
+           "id": "t-3e1b3d1666f1"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "content_format": "blocks-v1",
+   "body_chars": 2083,
+   "content_level": "standard",
+   "content_parse": {
+    "run_id": "github-31556105319-1",
+    "processor_version": "blocks-v2",
+    "attempted_at": "2026-08-12T10:12:56.009800+08:00",
+    "status": "ready",
+    "source": "AWS Big Data Blog",
+    "strategy": "article",
+    "blocks": 66,
+    "text_chars": 12718,
+    "figures": 3,
+    "tables": 3,
+    "figures_discovered": 7,
+    "figures_selected": 3,
+    "figures_rejected": 4,
+    "media": {
+     "figures": 3,
+     "cached": 0,
+     "link_only": 3,
+     "reasons": {
+      "cross_site_host": 3
+     }
+    }
+   }
   },
   {
    "event_id": "97bebf774eeb",
@@ -9376,7 +10216,7 @@
    "vendors": [
     "阿里云"
    ],
-   "heat": 50,
+   "heat": 49,
    "star": false,
    "importance": 65,
    "signal": 0,
@@ -9791,7 +10631,7 @@
     "Anthropic",
     "Claude"
    ],
-   "heat": 52,
+   "heat": 51,
    "star": false,
    "importance": 70,
    "signal": 0,
@@ -9818,7 +10658,7 @@
    "zh_title": "银行目标部门分析筛选：乙方视角的部门墙拆解",
    "zh_summary": "本文从层级与部门双维度切入银行客户分析，拆解公司业务部、风险管控部、科技子公司等典型组织的职能、KPI与预算逻辑。提出用六维框架（职能定位、核心KPI、典型动作、出入帐、产品匹配、生态补全缺口）精准定位目标部门。作者曾用该方法分析24个部门、上百种产品，发现4款产品打错部门、3个需求从未触达。该方法论可平移至电网、医院等大型ToB组织。",
    "reason": "面向数据产品厂商的银行客户销售方法论，帮助数据从业者理解客户决策链条与预算入口，精准切入金融科技项目。",
-   "full_zh": "## 银行目标部门分析筛选：乙方视角的部门墙拆解\n\n银行内部部门墙高耸，产品再好送不到对口部门也是白搭。本文从层级与部门双维度切入，拆解公司业务部、风险管控部、科技子公司等典型组织的职能、KPI与预算逻辑，教你用六维框架精准定位目标部门，让产品方案直击客户痛点，突破关系门槛。\n\n上一篇从六个维度拆解了银行客户的宏观画像——背景、层级、对标、年报、招标、部门。了解了一个银行的定位和现状痛点，但银行是个庞大的组织，每个条线、每个部门关注的内容都不同。你的产品再好，送不到对口的部门手里，也只是一张废纸。不同部门之间有着无形的部门墙，资源共享渠道并不算通畅。这一篇，我们就来展开说说：银行归口部门分析要怎么做，产品怎么精准匹配进去。\n\n## 两个维度：层级与部门\n\n先区分两个概念：层级是纵向的权力分配，部门是横向的职能划分。只有两个维度交叉，你才知道“找谁决策”和“找谁买单”。\n\n## 银行层级结构\n\n银行体系呈树状。层级结构上，有总行、分行、支行、网点：\n\n总行：战略制定、标准输出、集中采购（集采）、重大决策。\n\n（省）分行：政策执行、区域拓展、本地化需求落地——场景金融往往就在分行层级落地。\n\n支行和网点：一线业务执行与服务、产品使用反馈与优化。\n\n部门划分越往下越不清晰，有的支行“网金”只有一个人，直接挂在科技部下。推一个产品也经常需要总分联动：在分行推的，总行也要知晓，做出标杆项目后总行可能会要求全国推广；总行中标的，分行也要了解清楚、落地使用。反之，该在分行试点的产品，总行往往会先观望，不会立刻推动；总行确定招标的产品，分行也通常等招标结果再做采购。\n\n## 部门维度：前台、中台、后台与延伸组织\n\n再来看部门维度。各银行根据规模、",
+   "full_zh": "热门文章\n\n高强度写代码的场景里，最便宜的 Token 反而是 Codex 套餐\n\n模型是电，产品是电器：AI 产品真正的壁垒是数据回路\n\nClaude Code提示词删减风波：什么变了，什么没变\n\n高强度写代码的场景里，最便宜的 Token 反而是 Codex 套餐 08-08         模型是电，产品是电器：AI 产品真正的壁垒是数据回路 08-01          Claude Code提示词删减风波：什么变了，什么没变 08-01         门店越开越多，合同为什么越来越难管？ 08-04         AI没有先消灭岗位，先消灭的是“交接” 08-03         Agent 产品真正的门槛：从工具调用到不确定性管理 08-10",
    "category": "product",
    "category_label": "数据产品",
    "vendors": [],
@@ -9842,7 +10682,358 @@
      "ingested_at": "2026-08-10T15:14:37+08:00"
     }
    ],
-   "first_seen": "2026-08-10T15:14:37+08:00"
+   "first_seen": "2026-08-10T15:14:37+08:00",
+   "content_blocks": [
+    {
+     "type": "paragraph",
+     "id": "b-67b001e85610",
+     "children": [
+      {
+       "type": "text",
+       "text": "热门文章",
+       "marks": [],
+       "id": "t-efc6248419e9"
+      }
+     ]
+    },
+    {
+     "type": "figure",
+     "id": "b-8534ffd97033",
+     "src": "https://image.woshipm.com/2023/04/14/91d2911a-da9e-11ed-95a1-00163e0b5ff3.png!/both/100x60",
+     "alt": "高强度写代码的场景里，最便宜的 Token 反而是 Codex 套餐",
+     "caption": "",
+     "source_url": "https://www.woshipm.com/share/6436415.html",
+     "media_status": "link_only",
+     "media_reason": "dimensions_too_small"
+    },
+    {
+     "type": "figure",
+     "id": "b-16f589ef63c8",
+     "src": "https://image.woshipm.com/2023/04/14/b6fdcf88-daa1-11ed-aaf8-00163e0b5ff3.png!/both/100x60",
+     "alt": "模型是电，产品是电器：AI 产品真正的壁垒是数据回路",
+     "caption": "",
+     "source_url": "https://www.woshipm.com/share/6436415.html",
+     "media_status": "link_only",
+     "media_reason": "dimensions_too_small"
+    },
+    {
+     "type": "figure",
+     "id": "b-95589851dea7",
+     "src": "https://image.woshipm.com/2026/04/21/98bcab10-3d2d-11f1-9542-00163e09d72f.png!/both/100x60",
+     "alt": "Claude Code提示词删减风波：什么变了，什么没变",
+     "caption": "",
+     "source_url": "https://www.woshipm.com/share/6436415.html",
+     "media_status": "link_only",
+     "media_reason": "dimensions_too_small"
+    },
+    {
+     "type": "list",
+     "id": "b-804bd68f1ee4",
+     "ordered": false,
+     "items": [
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "  ",
+         "marks": [],
+         "id": "t-af30c8872877"
+        },
+        {
+         "type": "text",
+         "text": "  ",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.woshipm.com/ai/6442487.html"
+          }
+         ],
+         "id": "t-3d91b25b7837"
+        },
+        {
+         "type": "text",
+         "text": "   ",
+         "marks": [],
+         "id": "t-1a7bb50b1e85"
+        },
+        {
+         "type": "text",
+         "text": "高强度写代码的场景里，最便宜的 Token 反而是 Codex 套餐",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.woshipm.com/ai/6442487.html"
+          }
+         ],
+         "id": "t-ae90097972a1"
+        },
+        {
+         "type": "text",
+         "text": " 08-08  ",
+         "marks": [],
+         "id": "t-c6aa12ee390e"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "  ",
+         "marks": [],
+         "id": "t-3d04b89fb538"
+        },
+        {
+         "type": "text",
+         "text": "  ",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.woshipm.com/ai/6437579.html"
+          }
+         ],
+         "id": "t-e7fe90535c91"
+        },
+        {
+         "type": "text",
+         "text": "   ",
+         "marks": [],
+         "id": "t-66c2d9d38ff4"
+        },
+        {
+         "type": "text",
+         "text": "模型是电，产品是电器：AI 产品真正的壁垒是数据回路",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.woshipm.com/ai/6437579.html"
+          }
+         ],
+         "id": "t-dbf82c5b0215"
+        },
+        {
+         "type": "text",
+         "text": " 08-01  ",
+         "marks": [],
+         "id": "t-5a722a2413de"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": " ",
+         "marks": [],
+         "id": "t-04b8a29d6ff6"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "  ",
+         "marks": [],
+         "id": "t-c7f2479f09fd"
+        },
+        {
+         "type": "text",
+         "text": "  ",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.woshipm.com/share/6438536.html"
+          }
+         ],
+         "id": "t-e3a0e60eccbe"
+        },
+        {
+         "type": "text",
+         "text": "   ",
+         "marks": [],
+         "id": "t-a37d396dbc1b"
+        },
+        {
+         "type": "text",
+         "text": "Claude Code提示词删减风波：什么变了，什么没变",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.woshipm.com/share/6438536.html"
+          }
+         ],
+         "id": "t-7ce29548d362"
+        },
+        {
+         "type": "text",
+         "text": " 08-01  ",
+         "marks": [],
+         "id": "t-63a107330f42"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "  ",
+         "marks": [],
+         "id": "t-0643b992a7a4"
+        },
+        {
+         "type": "text",
+         "text": "  ",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.woshipm.com/share/6439825.html"
+          }
+         ],
+         "id": "t-859b113a3a68"
+        },
+        {
+         "type": "text",
+         "text": "   ",
+         "marks": [],
+         "id": "t-70921644b2ea"
+        },
+        {
+         "type": "text",
+         "text": "门店越开越多，合同为什么越来越难管？",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.woshipm.com/share/6439825.html"
+          }
+         ],
+         "id": "t-271d0dd42f00"
+        },
+        {
+         "type": "text",
+         "text": " 08-04  ",
+         "marks": [],
+         "id": "t-b26fca795926"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "  ",
+         "marks": [],
+         "id": "t-298eb7a1139c"
+        },
+        {
+         "type": "text",
+         "text": "  ",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.woshipm.com/zhichang/6438947.html"
+          }
+         ],
+         "id": "t-5990ec5bee42"
+        },
+        {
+         "type": "text",
+         "text": "   ",
+         "marks": [],
+         "id": "t-7f923f603ed1"
+        },
+        {
+         "type": "text",
+         "text": "AI没有先消灭岗位，先消灭的是“交接”",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.woshipm.com/zhichang/6438947.html"
+          }
+         ],
+         "id": "t-2ef4c8a201eb"
+        },
+        {
+         "type": "text",
+         "text": " 08-03  ",
+         "marks": [],
+         "id": "t-670441687937"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "  ",
+         "marks": [],
+         "id": "t-84fd27872b5d"
+        },
+        {
+         "type": "text",
+         "text": "  ",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.woshipm.com/ai/6443369.html"
+          }
+         ],
+         "id": "t-5133f6f75e82"
+        },
+        {
+         "type": "text",
+         "text": "   ",
+         "marks": [],
+         "id": "t-eea0f2962d48"
+        },
+        {
+         "type": "text",
+         "text": "Agent 产品真正的门槛：从工具调用到不确定性管理",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.woshipm.com/ai/6443369.html"
+          }
+         ],
+         "id": "t-083925de496f"
+        },
+        {
+         "type": "text",
+         "text": " 08-10  ",
+         "marks": [],
+         "id": "t-98f813b85676"
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "content_format": "blocks-v1",
+   "body_chars": 333,
+   "content_level": "standard",
+   "content_parse": {
+    "run_id": "github-31556105319-1",
+    "processor_version": "blocks-v2",
+    "attempted_at": "2026-08-12T10:12:48.578653+08:00",
+    "status": "ready",
+    "source": "人人都是产品经理",
+    "strategy": "semantic_container",
+    "blocks": 5,
+    "text_chars": 333,
+    "figures": 3,
+    "tables": 0,
+    "figures_discovered": 6,
+    "figures_selected": 3,
+    "figures_rejected": 3,
+    "media": {
+     "figures": 3,
+     "cached": 0,
+     "link_only": 3,
+     "reasons": {
+      "dimensions_too_small": 3
+     }
+    }
+   }
   },
   {
    "event_id": "31f779d28091",
@@ -11716,7 +12907,7 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 38,
+   "heat": 37,
    "star": false,
    "importance": 50,
    "signal": 0,
@@ -11748,7 +12939,7 @@
     "Blend",
     "Glassbox"
    ],
-   "heat": 49,
+   "heat": 48,
    "star": false,
    "importance": 72,
    "signal": 0,
@@ -13229,7 +14420,7 @@
     "Databricks",
     "Palantir"
    ],
-   "heat": 43,
+   "heat": 42,
    "star": false,
    "importance": 72,
    "signal": 0,
@@ -13611,7 +14802,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:263m_remaining",
+   "skip_reason": "frequency_gate:224m_remaining",
    "control": {
     "tier": "default",
     "fetch_interval_hours": 6.0,
@@ -13627,7 +14818,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1388m_remaining",
+   "skip_reason": "frequency_gate:1400m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -13643,7 +14834,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1388m_remaining",
+   "skip_reason": "frequency_gate:1400m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -13659,7 +14850,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:263m_remaining",
+   "skip_reason": "frequency_gate:224m_remaining",
    "control": {
     "tier": "structured_high",
     "fetch_interval_hours": 6.0,
@@ -13675,7 +14866,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:263m_remaining",
+   "skip_reason": "frequency_gate:224m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -13691,7 +14882,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:263m_remaining",
+   "skip_reason": "frequency_gate:224m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -13707,7 +14898,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:263m_remaining",
+   "skip_reason": "frequency_gate:224m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -13723,7 +14914,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:263m_remaining",
+   "skip_reason": "frequency_gate:224m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -13739,7 +14930,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:263m_remaining",
+   "skip_reason": "frequency_gate:224m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -13758,7 +14949,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:263m_remaining",
+   "skip_reason": "frequency_gate:224m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -13776,7 +14967,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:263m_remaining",
+   "skip_reason": "frequency_gate:224m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -13792,7 +14983,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:263m_remaining",
+   "skip_reason": "frequency_gate:224m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -13808,7 +14999,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:263m_remaining",
+   "skip_reason": "frequency_gate:224m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -13824,7 +15015,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:263m_remaining",
+   "skip_reason": "frequency_gate:224m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -13840,7 +15031,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1388m_remaining",
+   "skip_reason": "frequency_gate:1400m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -13858,7 +15049,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:263m_remaining",
+   "skip_reason": "frequency_gate:224m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -13876,7 +15067,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1388m_remaining",
+   "skip_reason": "frequency_gate:1400m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -13892,7 +15083,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1388m_remaining",
+   "skip_reason": "frequency_gate:1400m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -13908,7 +15099,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1388m_remaining",
+   "skip_reason": "frequency_gate:1400m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -13924,7 +15115,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1388m_remaining",
+   "skip_reason": "frequency_gate:1400m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -13940,7 +15131,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:180m_remaining",
+   "skip_reason": "frequency_gate:141m_remaining",
    "control": {
     "tier": "media_targeted",
     "fetch_interval_hours": 12.0,
@@ -13956,7 +15147,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1388m_remaining",
+   "skip_reason": "frequency_gate:1400m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -13972,7 +15163,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1388m_remaining",
+   "skip_reason": "frequency_gate:1400m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -13988,7 +15179,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:180m_remaining",
+   "skip_reason": "frequency_gate:141m_remaining",
    "control": {
     "tier": "community_targeted",
     "fetch_interval_hours": 12.0,
@@ -14004,7 +15195,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:180m_remaining",
+   "skip_reason": "frequency_gate:141m_remaining",
    "control": {
     "tier": "community_targeted",
     "fetch_interval_hours": 12.0,
@@ -14020,7 +15211,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:263m_remaining",
+   "skip_reason": "frequency_gate:224m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -14038,7 +15229,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:263m_remaining",
+   "skip_reason": "frequency_gate:224m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -14056,7 +15247,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:180m_remaining",
+   "skip_reason": "frequency_gate:141m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -14075,7 +15266,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:180m_remaining",
+   "skip_reason": "frequency_gate:141m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -14094,7 +15285,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:180m_remaining",
+   "skip_reason": "frequency_gate:141m_remaining",
    "control": {
     "tier": "engineering_targeted",
     "fetch_interval_hours": 12.0,
@@ -14112,7 +15303,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:263m_remaining",
+   "skip_reason": "frequency_gate:224m_remaining",
    "control": {
     "tier": "structured_high",
     "fetch_interval_hours": 6.0,
@@ -14131,7 +15322,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:180m_remaining",
+   "skip_reason": "frequency_gate:141m_remaining",
    "control": {
     "tier": "structured_high",
     "fetch_interval_hours": 12.0,
@@ -14150,7 +15341,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:180m_remaining",
+   "skip_reason": "frequency_gate:141m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -14170,7 +15361,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:263m_remaining",
+   "skip_reason": "frequency_gate:224m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -14189,7 +15380,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:180m_remaining",
+   "skip_reason": "frequency_gate:141m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 12.0,
@@ -14207,7 +15398,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:180m_remaining",
+   "skip_reason": "frequency_gate:141m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -14226,7 +15417,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:180m_remaining",
+   "skip_reason": "frequency_gate:141m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -14243,32 +15434,32 @@
   }
  ],
  "structured_content": {
-  "run_id": "github-31553939284-1",
+  "run_id": "github-31556105319-1",
   "attempted": 2,
   "ready": 2,
-  "figures": 4,
-  "tables": 0,
-  "media_cached": 1,
-  "media_link_only": 3,
+  "figures": 6,
+  "tables": 3,
+  "media_cached": 0,
+  "media_link_only": 6,
   "strategies": {
-   "semantic_container": 1,
-   "article": 1
+   "article": 1,
+   "semantic_container": 1
   },
   "fallbacks": {},
   "by_source": {
+   "AWS Big Data Blog": {
+    "attempted": 1,
+    "ready": 1,
+    "figures": 3,
+    "tables": 3,
+    "media_cached": 0
+   },
    "人人都是产品经理": {
     "attempted": 1,
     "ready": 1,
     "figures": 3,
     "tables": 0,
     "media_cached": 0
-   },
-   "主编收录": {
-    "attempted": 1,
-    "ready": 1,
-    "figures": 1,
-    "tables": 0,
-    "media_cached": 1
    }
   },
   "backfill": {

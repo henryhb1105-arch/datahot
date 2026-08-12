@@ -885,16 +885,16 @@ def render_detail(e, all_events, css, tts_item=None):
     if full_paras:
         content_mode = e.get("content_mode") or "legacy_ai"
         if content_mode == "translated":
-            content_title = "忠实译文"
-            content_badge = "AI 仅逐段翻译 · 未总结重组"
+            content_title = "译文"
+            content_badge = "AI 逐段翻译"
             content_note = "AI 仅用于按原文顺序逐段翻译；正文结构、事实、表格和图表沿用原文"
         elif content_mode == "original" and e.get("source_language") == "zh":
-            content_title = "原文正文"
-            content_badge = "原文 · 未经 AI 改写"
+            content_title = "原文"
+            content_badge = ""
             content_note = "正文来自 RSS 或原网页；DataHot 仅做安全清洗和版式整理，未使用 AI 改写"
         elif content_mode == "original":
-            content_title = "原文正文（未翻译）"
-            content_badge = "翻译暂不可用 · 保留原文"
+            content_title = "原文"
+            content_badge = ""
             content_note = "当前直接显示原文，自动翻译暂不可用；未进行 AI 摘写或重组"
         elif content_mode == "ai_fallback":
             content_title = "内容摘要"
@@ -904,7 +904,8 @@ def render_detail(e, all_events, css, tts_item=None):
             content_title = "历史编译稿"
             content_badge = "旧版 AI 基于原文编译"
             content_note = "这是改版前生成的历史 AI 编译内容，后续将由原文或忠实译文替换"
-        full_block = f'''<div class="card content-card"><h4>{ic("file")} {content_title} <span class="content-origin-badge">{content_badge}</span></h4>
+        badge_html = f' <span class="content-origin-badge">{content_badge}</span>' if content_badge else ""
+        full_block = f'''<div class="card content-card"><h4>{ic("file")} {content_title}{badge_html}</h4>
   <div class="fulltext">{full_paras}</div>
   <div class="disclaimer">{content_note} · {original_link}</div>
 </div>'''
@@ -1021,7 +1022,7 @@ def render_detail(e, all_events, css, tts_item=None):
 </div></header>
 <div class="article">
   <div class="topbar detail-context">
-    <a class="back" href="../index.html" style="margin-bottom:0">← 返回热榜</a>
+    <a class="back" href="../index.html" style="margin-bottom:0">← 返回</a>
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="{event_id}" title="收藏">{ic("star",13)}</button>
 {("      " + tts_button) if tts_button else ""}

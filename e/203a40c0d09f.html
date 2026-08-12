@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob: https://api.qrserver.com; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-QNkIvrOVSgj2B5/ulkJsQo/hLxXD6VCcGq4olzny7Rw=' 'sha256-fFhA+trsQigCzRvD+ndFHIEx3PsD+SerUS6YZ4IiGD4=' 'sha256-zTbqoLXOVJ6Y7bxwX42flzVUMpf3rgsI16LDibNF8HY='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob: https://api.qrserver.com; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-QNkIvrOVSgj2B5/ulkJsQo/hLxXD6VCcGq4olzny7Rw=' 'sha256-lUisp35sXPhuUnjvN90xNI11xv0CbUQzaegx/R9QUus=' 'sha256-zTbqoLXOVJ6Y7bxwX42flzVUMpf3rgsI16LDibNF8HY='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Aloudata Agent 分析技能详解：从业务问题到可用分析 · DataHot</title>
@@ -127,6 +127,20 @@ aside .card{padding:14px 16px}
   .section-title{display:flex;align-items:baseline;gap:10px;margin:6px 0 14px}
   .section-title h2{font-size:19px;font-weight:800}
   .section-title span{font-size:12px;color:var(--sub)}
+  .timeline-toolbar{align-items:center}
+  .timeline-toolbar h2,.timeline-toolbar .timeline-meta,.timeline-toolbar .timeline-count{white-space:nowrap}
+  .timeline-searchbox{display:flex;align-items:center;min-width:0;margin-left:auto}
+  .timeline-searchbox .tlsearch{margin-left:0;min-width:0;flex:1 1 0}
+  .timeline-clear{cursor:pointer;color:var(--sub);margin-left:6px}
+  .timeline-count{font-size:11px;color:var(--sub)}
+  @media(max-width:600px){
+    .timeline-toolbar{display:grid;grid-template-columns:max-content minmax(0,1fr) max-content;column-gap:8px;row-gap:10px}
+    .timeline-toolbar h2{grid-column:1}
+    .timeline-meta{grid-column:2;font-size:11px!important}
+    .timeline-count{grid-column:3}
+    .timeline-searchbox{grid-column:1/-1;grid-row:2;width:100%;margin-left:0}
+    .timeline-searchbox .tlsearch,.timeline-searchbox .tlsearch:focus{width:100%}
+  }
   .hotlist{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:30px}
   @media(max-width:960px){.hotlist{grid-template-columns:1fr}}
   .hot{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;position:relative;transition:.15s;cursor:pointer}
@@ -474,7 +488,7 @@ a.source-name:hover{color:var(--accent)}
     <span class="star">精选</span>
     <span title="发布时间">发布 2026-08-06 15:18</span>
     
-    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 56</span>
+    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 55</span>
   </div>
   <h1>Aloudata Agent 分析技能详解：从业务问题到可用分析</h1>
 
@@ -605,7 +619,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title":"Aloudata Agent 分析技能详解：从业务问题到可用分析","summary":"Aloudata 官方博客以会员唤醒活动为例，详解企业级分析 Agent 如何像人类分析师一样工作。它通过多源融合取数、归因分析、What-if 模拟和人机协作，将临时口径的复盘需求转化为可上会的完整报告。整个过程无需提需求单，几分钟即可从问题得到可复核的分析结果。","reason":"这是 Data Agent 在真实业务场景中的完整工作流展示，对数据从业者理解分析 Agent 的产品形态和价值有直接参考意义。","topic":"Data Agent","heat":56,"source":"Aloudata 博客","date":"2026-08-06","url":"https://henryhb1105-arch.github.io/datahot/e/203a40c0d09f.html"};
+var SH_EV = {"title":"Aloudata Agent 分析技能详解：从业务问题到可用分析","summary":"Aloudata 官方博客以会员唤醒活动为例，详解企业级分析 Agent 如何像人类分析师一样工作。它通过多源融合取数、归因分析、What-if 模拟和人机协作，将临时口径的复盘需求转化为可上会的完整报告。整个过程无需提需求单，几分钟即可从问题得到可复核的分析结果。","reason":"这是 Data Agent 在真实业务场景中的完整工作流展示，对数据从业者理解分析 Agent 的产品形态和价值有直接参考意义。","topic":"Data Agent","heat":55,"source":"Aloudata 博客","date":"2026-08-06","url":"https://henryhb1105-arch.github.io/datahot/e/203a40c0d09f.html"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

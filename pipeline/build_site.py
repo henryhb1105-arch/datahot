@@ -26,8 +26,14 @@ HOME_ASSET = ROOT / "pipeline" / "assets" / "home.js"
 TTS_ASSET = ROOT / "pipeline" / "assets" / "tts-player.js"
 TTS_MANIFEST = SITE / "data" / "tts-manifest.json"
 TZ = timezone(timedelta(hours=8))
-CAT_BADGE = {"agent": "b-agent", "platform": "b-platform", "bi": "b-bi", "product": "b-product"}
-CAT_LABEL = {"agent": "Data Agent", "platform": "AI 数据平台", "bi": "BI 与可视化", "product": "数据产品"}
+CAT_BADGE = {
+    "agent": "b-agent", "platform": "b-platform", "bi": "b-bi",
+    "product": "b-product", "insight": "b-insight",
+}
+CAT_LABEL = {
+    "agent": "Data Agent", "platform": "AI 数据平台", "bi": "BI 与可视化",
+    "product": "数据产品", "insight": "AI 分析与洞察",
+}
 WEEK_CN = "一二三四五六日"
 HEAT_FORMULA = "AI重要性50% + 新鲜度20% + 社区信号15%(封顶) + 多信源15%"
 UPDATE_MECHANISM = (
@@ -1231,7 +1237,7 @@ document.querySelectorAll('[data-share-action]').forEach(function(control){
 </script>""".replace("__EV_JSON__", ev_json)
 
 def render_topics_map(events, css):
-    """主题地图页：8 个主题的卡片墙"""
+    """主题地图页：只展示当前有内容的主题卡片。"""
     cards = ""
     for t in TOPICS_META:
         evs = [e for e in events if t["name"] in e.get("topics", [])]
@@ -1243,7 +1249,7 @@ def render_topics_map(events, css):
   <div class="td">{esc(t["desc"])}</div>
   <div class="tn">{len(evs)} 个事件 →</div>{latest}
 </a>'''
-    return page_shell("主题地图 · DataHot", "按主题看数据领域：8 条持续演进的叙事线", css, f'''
+    return page_shell("主题地图 · DataHot", "按主题看数据领域持续演进的技术与业务叙事", css, f'''
 <div class="wrap" style="padding:28px 20px 60px;max-width:900px">
   <div class="section-title"><h2>{ic("map",18)} 主题地图</h2><span>按议题看数据领域 · 持续更新</span></div>
   <div class="tgrid">{cards}</div>
@@ -1385,7 +1391,7 @@ def render_sources_page(events, payload, css):
 <div class="wrap source-page">
   <header class="source-intro">
     <h1>信源</h1>
-    <p>DataHot 当前监控 {len(enabled_sources)} 个信源，覆盖 Data Agent、AI 数据平台、BI 与数据产品，每 6 小时更新。最后更新 {gen.strftime("%m-%d %H:%M")}。</p>
+    <p>DataHot 当前监控 {len(enabled_sources)} 个信源，覆盖 Data Agent、AI 数据平台、BI、数据产品和 AI 分析与洞察，每 6 小时更新。最后更新 {gen.strftime("%m-%d %H:%M")}。</p>
     {alert_html}
   </header>
 
@@ -1871,9 +1877,9 @@ def main():
 <html lang="zh-CN"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>DataHot · 数据领域 AI 热榜</title>
-<meta name="description" content="监控 Data Agent、AI 数据平台、BI、数据产品四个领域的资讯热榜，多信源聚簇 + AI 中文摘要与推荐理由，每 6 小时更新。">
+<meta name="description" content="监控 Data Agent、AI 数据平台、BI、数据产品、AI 分析与洞察五个领域的资讯热榜，多信源聚簇 + AI 中文摘要与推荐理由，每 6 小时更新。">
 <meta property="og:title" content="DataHot · 数据领域 AI 热榜">
-<meta property="og:description" content="Data Agent / AI 数据平台 / BI / 数据产品的每日热点，每 6 小时自动更新。">
+<meta property="og:description" content="Data Agent / AI 数据平台 / BI / 数据产品 / AI 分析与洞察的热点，每 6 小时自动更新。">
 <meta property="og:type" content="website">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
@@ -1926,6 +1932,7 @@ def main():
     <div class="row"><span class="badge b-platform">AI 数据平台</span>湖仓 · 语义层 · 数据治理</div>
     <div class="row"><span class="badge b-bi">BI 与可视化</span>BI 厂商 · 报表 · 可视化</div>
     <div class="row"><span class="badge b-product">数据产品</span>方法论 · 融资并购 · 报告</div>
+    <div class="row"><span class="badge b-insight">AI 分析与洞察</span>组织人才 · 经营增长 · 风险决策</div>
   </div></div>
   <div class="card"><h4>{ic("clock")} 更新状态</h4><div class="status">
     最后更新：<b>{gen.strftime("%Y-%m-%d %H:%M")}</b><br>

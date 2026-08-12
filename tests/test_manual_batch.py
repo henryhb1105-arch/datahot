@@ -15,6 +15,26 @@ class ManualBatchTests(unittest.TestCase):
     def _write_json(self, path, value):
         path.write_text(json.dumps(value, ensure_ascii=False), encoding="utf-8")
 
+    def test_insight_category_is_accepted(self):
+        record = {
+            "zh_title": "人才洞察",
+            "zh_summary": "员工数据揭示技能缺口。",
+            "reason": "支持人才规划决策。",
+            "full_zh": "正文",
+            "source_title": "People analytics insight",
+            "source_url": "https://example.com/insight",
+            "discovery_url": "https://x.com/example/status/55",
+            "discovery_account": "example",
+            "published": "2026-08-12T00:00:00+08:00",
+            "category": "insight",
+        }
+        rows = validate_batch({
+            "schema_version": 1,
+            "ingested_at": "2026-08-12T08:00:00+08:00",
+            "items": [record],
+        })
+        self.assertEqual(rows[0]["category"], "insight")
+
     def test_import_is_idempotent_and_enriches_existing_canonical_url(self):
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)

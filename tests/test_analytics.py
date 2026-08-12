@@ -47,6 +47,9 @@ class AnalyticsSchemaTests(unittest.TestCase):
         self.assertIn("query_bucket_required", validate_event(event(4, "search")))
         self.assertIn("environment", validate_event(event(5, "session_start", environment="development")))
 
+    def test_insight_category_is_valid(self):
+        self.assertEqual(validate_event(event(6, "session_start", category="insight")), [])
+
 
 class AnalyticsMetricTests(unittest.TestCase):
     def sample(self):

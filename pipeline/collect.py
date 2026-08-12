@@ -92,10 +92,12 @@ def main():
         topics_str = "/".join(TOPIC_NAMES)
         out = llm_chat(
             base, key, model,
-            "你是数据领域垂直资讯站的编辑，为以下内容生成中文加工稿。输出 JSON："
+            "你是数据领域垂直资讯站的编辑，为以下内容生成中文加工稿。"
+            "insight 仅用于同时包含明确业务问题、数据或研究依据、具体发现、决策行动四项的内容；"
+            "产品发布和技术实现仍归原有类别。输出 JSON："
             '{"zh_title": "中文标题(≤40字，不要带网站后缀)", "zh_summary": "中文摘要3-4句", '
             '"reason": "推荐理由1-2句", '
-            '"category": "agent|platform|bi|product", '
+            '"category": "agent|platform|bi|product|insight", '
             '"topics": ["从主题词表选0-2个：' + topics_str + '，没有就空数组"], '
             '"vendors": ["提到的厂商"], "importance": 1-100整数}\n\n' + content,
             purpose="curated_enrich", source=it.get("source", ""), item_id=it.get("id", ""),

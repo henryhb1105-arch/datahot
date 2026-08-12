@@ -27,7 +27,7 @@ def event(
     number, *, seen="2026-08-05T08:00:00+08:00", category=None,
     heat=None, summary=None, source=None, title=None, topics=None, vendors=None,
 ):
-    categories = ["agent", "platform", "bi", "product"]
+    categories = ["agent", "platform", "bi", "product", "insight"]
     category = category or categories[number % len(categories)]
     event_id = f"{number:012x}"
     source = source or f"Source {number}"
@@ -251,7 +251,7 @@ class WeeklyBriefSelectionTests(unittest.TestCase):
         self.assertNotIn(f"{31:012x}", ids)
         self.assertEqual(
             {item["category"] for item in selected},
-            {"agent", "platform", "bi", "product"},
+            {"agent", "platform", "bi", "product", "insight"},
         )
 
     def test_same_source_family_is_capped_at_two(self):

@@ -36,6 +36,7 @@ CATEGORY_LABELS = {
     "platform": "AI 数据平台",
     "bi": "BI 与可视化",
     "product": "数据产品",
+    "insight": "AI 分析与洞察",
 }
 STRONG_TREND_WORDS = ("进入", "转向", "成为主流", "全面", "普遍", "行业已经")
 MECHANISM_KEYWORDS = (

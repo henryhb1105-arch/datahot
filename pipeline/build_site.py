@@ -542,6 +542,69 @@ def render_tts_ui(item):
     return button, player, '<script defer src="../tts-player.js"></script>'
 
 
+def detail_primary_item(event):
+    """Return the event's editorial primary item without inferring it from time."""
+    items = event.get("items") or []
+    if not items:
+        raise ValueError("detail event must contain at least one source item")
+    primary_id = event.get("primary_item_id")
+    if primary_id:
+        for item in items:
+            if item.get("id") == primary_id:
+                return item
+    return items[0]
+
+
+def render_supplement_sources(event, primary_item):
+    """Render non-primary reports, grouped by source and kept individually reachable."""
+    supplements = [item for item in (event.get("items") or []) if item is not primary_item]
+    if not supplements:
+        return ""
+
+    grouped = {}
+    for item in supplements:
+        grouped.setdefault(item.get("source") or "未知来源", []).append(item)
+
+    def report_row(item, source_name):
+        title = str(item.get("title") or "查看报道").strip() or "查看报道"
+        published = item.get("published")
+        date = f'<span class="source-report-date">{fmt_date(published)}</span>' if published else ""
+        return (
+            f'<a class="source-report" href="{esc(item.get("link") or "")}" target="_blank" '
+            f'rel="noopener" data-analytics="outbound" data-source="{esc(source_name)}">'
+            f'<span class="source-report-title">{esc(title)} <span aria-hidden="true">↗</span></span>{date}</a>'
+        )
+
+    def source_group(source_name, reports):
+        rows = "".join(report_row(item, source_name) for item in reports)
+        report_count = f'<span>{len(reports)} 篇</span>' if len(reports) > 1 else ""
+        return (
+            '<div class="source-group">'
+            f'<div class="source-group-head"><b>{esc(src_display(source_name))}</b>{report_count}</div>'
+            f'{rows}</div>'
+        )
+
+    groups = list(grouped.items())
+    visible_groups = groups if len(groups) <= 3 else groups[:2]
+    hidden_groups = [] if len(groups) <= 3 else groups[2:]
+    visible_html = "".join(source_group(name, reports) for name, reports in visible_groups)
+    hidden_html = ""
+    if hidden_groups:
+        remainder = "".join(source_group(name, reports) for name, reports in hidden_groups)
+        hidden_html = (
+            '<details class="source-more">'
+            f'<summary>展开另外 {len(hidden_groups)} 个信源</summary>{remainder}</details>'
+        )
+
+    return (
+        '<section class="source-section" aria-labelledby="supplementSourcesTitle">'
+        '<div class="source-heading">'
+        '<h4 id="supplementSourcesTitle">补充来源</h4>'
+        f'<span class="source-summary">{len(groups)} 个信源 · {len(supplements)} 篇报道</span>'
+        f'</div>{visible_html}{hidden_html}</section>'
+    )
+
+
 def render_detail(e, all_events, css, tts_item=None):
     tts_button, tts_player, tts_script = render_tts_ui(tts_item)
     ebg = title_bigrams(e["zh_title"])
@@ -553,30 +616,17 @@ def render_detail(e, all_events, css, tts_item=None):
         f'<a class="vendor-row" href="../{detail_url(x)}">'
         f'<span class="n">›</span>{esc(x["zh_title"])}<span class="count">{x["heat"]}</span></a>'
         for x in related) or '<div style="font-size:12.5px;color:var(--sub)">暂无相关事件</div>'
-    sorted_items = sorted(e["items"], key=lambda s: s["published"])
-    srcs = ""
-    merged_src = {}
-    for s in sorted_items:
-        merged_src.setdefault(s["source"], []).append(s)
-    i = 0
-    for src_name, subs in merged_src.items():
-        first_badge = '<span class="src more">首发</span>' if i == 0 else ""
-        n_badge = f'<span class="src">×{len(subs)}</span>' if len(subs) > 1 else ""
-        en_note = "（英文）" if src_name not in ("InfoQ（AI/数据工程）", "主编收录") else ""
-        s0 = subs[0]
-        srcs += (f'<div class="vendor-row"><span class="n">↗</span>'
-                 f'<a href="{esc(s0["link"])}" target="_blank" rel="noopener" data-analytics="outbound" data-source="{esc(src_name)}">{esc(src_display(src_name))}{en_note}</a>'
-                 f'{first_badge}{n_badge}'
-                 f'<span class="count">{fmt_date(s0["published"])}</span></div>')
-        i += 1
+    primary_item = detail_primary_item(e)
+    supplement_sources = render_supplement_sources(e, primary_item)
     tchips = "".join(
         f'<a class="chip" href="../topics/{TOPIC_SLUG[t]}.html">{esc(t)}</a>'
         for t in e.get("topics", []) if t in TOPIC_SLUG)
     vtags = tchips + "".join(f'<span class="vtag">{esc(v)}</span>' for v in e.get("vendors", []))
     desc = esc(e["zh_summary"][:150])
-    main_url = sorted_items[0]["link"]
+    main_url = primary_item["link"]
     main_link = esc(main_url)
-    main_src = esc(sorted_items[0]["source"])
+    main_src_name = primary_item["source"]
+    main_src = esc(main_src_name)
     # blocks-v1 先经本地白名单清洗再渲染；异常或旧数据安全降级到 full_zh。
     safe_blocks = sanitize_blocks(e.get("content_blocks", []), main_url)
     render_media = os.getenv("MEDIA_BLOCKS_ENABLED", "true").strip().lower() not in {"0", "false", "no", "off"}
@@ -605,7 +655,7 @@ def render_detail(e, all_events, css, tts_item=None):
         "@context": "https://schema.org", "@type": "NewsArticle",
         "headline": e["zh_title"], "description": e["zh_summary"][:150],
         "datePublished": e["published"], "inLanguage": "zh-CN",
-        "isBasedOn": sorted_items[0]["link"],
+        "isBasedOn": main_url,
         "publisher": {"@type": "Organization", "name": "DataHot"},
     }, ensure_ascii=False)
     page = f'''<!DOCTYPE html>
@@ -637,6 +687,24 @@ def render_detail(e, all_events, css, tts_item=None):
 .article .card{{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}}
 .article h4{{font-size:14px;font-weight:800;margin-bottom:10px}}
 .article .vendor-row{{text-decoration:none}}
+.source-section{{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}}
+.source-heading{{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}}
+.source-heading h4{{margin:0}}
+.source-summary{{font-size:11.5px;color:var(--sub)}}
+.source-group{{padding:10px 0;border-bottom:1px solid var(--soft)}}
+.source-group-head{{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txt3);margin-bottom:2px}}
+.source-group-head b{{font-weight:700}}
+.source-group-head span{{font-size:10.5px;color:var(--sub)}}
+.source-report{{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:14px;padding:4px 0;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.55}}
+.source-report:hover .source-report-title{{color:var(--accent)}}
+.source-report-title{{min-width:0;overflow-wrap:anywhere}}
+.source-report-date{{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}}
+.source-more{{padding-top:8px}}
+.source-more>summary{{width:max-content;max-width:100%;font-size:12px;color:var(--accent);cursor:pointer;list-style:none;padding:4px 0}}
+.source-more>summary::-webkit-details-marker{{display:none}}
+.source-more>summary::after{{content:" ↓"}}
+.source-more[open]>summary::after{{content:" ↑"}}
+@media(max-width:600px){{.source-report{{grid-template-columns:1fr;gap:0}}.source-report-date{{margin-top:1px}}}}
 .fulltext .cb-heading{{font-size:17px;line-height:1.55;margin:24px 0 10px;color:var(--ink)}}
 .fulltext p{{margin:0 0 14px}}
 .fulltext strong{{font-weight:750;color:var(--ink)}}
@@ -695,14 +763,14 @@ def render_detail(e, all_events, css, tts_item=None):
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="{e["event_id"]}" title="收藏">{ic("star",13)}</button>
 {("      " + tts_button) if tts_button else ""}
-      <a class="sbtn ghost" href="{main_link}" target="_blank" rel="noopener" data-analytics="outbound" data-source="{main_src}">{ic("arrow",13)} 原文</a>
+      <a class="sbtn ghost" href="{main_link}" target="_blank" rel="noopener" data-analytics="outbound" data-source="{main_src}">{ic("arrow",13)} 查看原文</a>
       <button class="sbtn ghost" onclick="openPoster()">{ic("image",13)} 海报</button>
       <button class="sbtn" onclick="openSheet()">{ic("share",13)} 分享</button>
     </span>
   </div>
   <div class="meta">
-    <span class="srcbadge">{src_badge(e["items"][0]["source"])}</span>
-    <span style="font-weight:600;color:var(--txt3)">{esc(src_display(e["items"][0]["source"]))}</span>
+    <span class="srcbadge">{src_badge(main_src_name)}</span>
+    <span style="font-weight:600;color:var(--txt3)">{esc(src_display(main_src_name))}</span>
     {'<span class="star">精选</span>' if e.get("star") else ''}
     <span title="发布时间">{("发布 " + fmt_date(e["published"])) if e.get("published") else "收录 " + fmt_date(e.get("first_seen"))}</span>
     {f'<span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 {md(e.get("first_seen"))}</span>' if e.get("published") and e.get("first_seen") and e["published"][:10] != e["first_seen"][:10] else ""}
@@ -714,7 +782,7 @@ def render_detail(e, all_events, css, tts_item=None):
   {f'<div class="why"><span><span class="w">{ic("sparkle",13)} 推荐理由：</span>{esc(clean_reason(e["reason"]))}</span></div>' if e.get("reason") else ""}
   {f'<div class="vendors" style="margin-top:14px">{vtags}</div>' if vtags else ""}
   {full_block}
-  <div class="card"><h4>{ic("link")} 信源（{len(e["items"])} 家报道 · 按时间排序）</h4>{srcs}</div>
+  {supplement_sources}
   <div class="card"><h4>{ic("list")} 相关事件</h4>{rel_html}</div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
@@ -728,7 +796,7 @@ def share_ui(e, page_url):
     ev_json = json.dumps({
         "title": e["zh_title"], "summary": e.get("zh_summary", ""),
         "reason": e.get("reason", ""), "topic": (e.get("topics") or [""])[0],
-        "heat": e["heat"], "source": src_display(e["items"][0]["source"]),
+        "heat": e["heat"], "source": src_display(detail_primary_item(e)["source"]),
         "date": (e.get("published") or e.get("first_seen") or "")[:10], "url": page_url,
     }, ensure_ascii=False)
     return """

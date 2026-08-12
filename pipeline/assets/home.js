@@ -18,11 +18,40 @@
     return Number.isFinite(page) && page > 0 ? page : 1;
   }
 
+  function normalizedCategory(value) {
+    var category = String(value || "").trim();
+    return ["agent", "platform", "bi", "product", "insight"].indexOf(category) >= 0 ? category : "";
+  }
+
+  var INSIGHT_TOPICS = ["组织人才", "财务经营", "销售增长", "客户运营", "供应链", "风险管理"];
+
+  function filterStateAfterSelection(state, selection) {
+    var next = {
+      q: String(state.q || ""),
+      topic: String(state.topic || "all"),
+      category: normalizedCategory(state.category),
+      page: 1
+    };
+    if (selection.all) {
+      next.topic = "all"; next.category = "";
+    } else if (selection.category) {
+      next.category = selection.category === next.category ? "" : normalizedCategory(selection.category);
+      if (next.category === "insight" && INSIGHT_TOPICS.indexOf(next.topic) < 0) next.topic = "all";
+    } else if (selection.topic) {
+      next.topic = selection.topic === next.topic ? "all" : selection.topic;
+      if (next.category === "insight" && next.topic !== "all" && INSIGHT_TOPICS.indexOf(next.topic) < 0) {
+        next.category = "";
+      }
+    }
+    return next;
+  }
+
   function stateFromSearch(search) {
     var params = new URLSearchParams(String(search || "").replace(/^\?/, ""));
     return {
       q: String(params.get("q") || "").trim(),
       topic: String(params.get("topic") || "all").trim() || "all",
+      category: normalizedCategory(params.get("category")),
       page: normalizedPage(params.get("page"))
     };
   }
@@ -31,6 +60,7 @@
     var params = new URLSearchParams();
     if (state.q) params.set("q", state.q);
     if (state.topic && state.topic !== "all") params.set("topic", state.topic);
+    if (normalizedCategory(state.category)) params.set("category", normalizedCategory(state.category));
     if (normalizedPage(state.page) > 1) params.set("page", String(normalizedPage(state.page)));
     var query = params.toString();
     return query ? "?" + query : "";
@@ -43,8 +73,10 @@
 
   function filterEvents(events, state) {
     var topic = state.topic && state.topic !== "all" ? state.topic : "";
+    var category = normalizedCategory(state.category);
     var q = String(state.q || "").toLocaleLowerCase("zh-CN");
     return (events || []).filter(function (event) {
+      if (category && event.category !== category) return false;
       if (topic && (event.topics || []).indexOf(topic) < 0) return false;
       if (!q) return true;
       var text = [event.zh_title, event.zh_summary, event.reason, event.category_label]
@@ -126,6 +158,7 @@
       }
       byKey.get(parts.key).events.push(event);
     });
+    groups.sort(function (left, right) { return right.parts.key.localeCompare(left.parts.key); });
     return groups.map(function (group) {
       return '<div class="day"><div class="day-head"><span class="date">' + escapeHtml(group.parts.head) +
         '</span><span class="info">' + escapeHtml(group.parts.label) + " · " + group.events.length +
@@ -183,17 +216,29 @@
 
     if (count) count.textContent = String(total);
     if (qInput) qInput.value = state.q;
+    function syncChips() {
+      doc.querySelectorAll("#chiprow .fchip").forEach(function (chip) {
+        var isAll = chip.dataset.topic === "all";
+        var selected = isAll
+          ? (!state.category && state.topic === "all")
+          : (chip.dataset.category
+            ? chip.dataset.category === state.category
+            : chip.dataset.topic === state.topic);
+        chip.classList.toggle("on", selected);
+      });
+    }
     doc.querySelectorAll("#chiprow .fchip").forEach(function (chip) {
-      chip.classList.toggle("on", chip.dataset.topic === state.topic || (state.topic === "all" && chip.dataset.topic === "all"));
       chip.addEventListener("click", function () {
-        state.topic = chip.dataset.topic === state.topic ? "all" : chip.dataset.topic;
-        state.page = 1;
-        doc.querySelectorAll("#chiprow .fchip").forEach(function (item) {
-          item.classList.toggle("on", item.dataset.topic === state.topic || (state.topic === "all" && item.dataset.topic === "all"));
+        state = filterStateAfterSelection(state, {
+          all: chip.dataset.topic === "all",
+          category: chip.dataset.category || "",
+          topic: chip.dataset.category ? "" : (chip.dataset.topic || "")
         });
+        syncChips();
         refresh();
       });
     });
+    syncChips();
     var timer = null;
     if (qInput) qInput.addEventListener("input", function () {
       if (timer) win.clearTimeout(timer);
@@ -213,12 +258,17 @@
       if (!event.target.closest("a,button") && card.dataset.link) win.location.href = card.dataset.link;
     });
 
-    if (state.q || state.topic !== "all" || state.page > 1) refresh();
+    if (state.q || state.topic !== "all" || state.category || state.page > 1) refresh();
+    else {
+      var prefetch = function () { fetchEvents().catch(function () {}); };
+      if (typeof win.requestIdleCallback === "function") win.requestIdleCallback(prefetch, { timeout: 1500 });
+      else win.setTimeout(prefetch, 500);
+    }
     try {
       var saved = JSON.parse(win.sessionStorage.getItem(scrollKey) || "null");
       if (saved && saved.href === win.location.href && Date.now() - saved.at < 30 * 60 * 1000) {
         var restore = function () { win.requestAnimationFrame(function () { win.scrollTo(0, saved.y || 0); }); };
-        if (state.q || state.topic !== "all" || state.page > 1) fetchEvents().then(refresh).then(restore);
+        if (state.q || state.topic !== "all" || state.category || state.page > 1) fetchEvents().then(refresh).then(restore);
         else restore();
       }
     } catch (_error) {}
@@ -228,6 +278,7 @@
     escapeHtml: escapeHtml,
     stateFromSearch: stateFromSearch,
     searchForState: searchForState,
+    filterStateAfterSelection: filterStateAfterSelection,
     orderedEvents: orderedEvents,
     filterEvents: filterEvents,
     visibleEvents: visibleEvents,

@@ -11,7 +11,7 @@ sys.path.insert(0, str(ROOT / "pipeline"))
 from lite_data import (  # noqa: E402
     FIRST_PAGE_SOURCE_CAPS, build_lite_payload, event_timestamp,
     find_forbidden_fields, is_list_eligible, rank_home_events, rank_hot_events,
-    select_home_events,
+    rank_timeline_events, select_home_events, select_timeline_events,
 )
 
 
@@ -120,6 +120,30 @@ class LitePayloadTests(unittest.TestCase):
         sources = [item["items"][0]["source"] for item in first]
         self.assertLessEqual(sources.count("Claude 官方博客"), 2)
         self.assertFalse(any(left == right == "Claude 官方博客" for left, right in zip(sources, sources[1:])))
+
+    def test_timeline_retains_qualified_history_without_global_source_cap(self):
+        items = []
+        for index in range(12):
+            item = event(index, vendor="Claude", category="agent")
+            item["items"][0]["source"] = "Claude 官方博客"
+            item["zh_title"] = f"Claude 数据代理更新 {index}"
+            item["zh_summary"] = "经过中文编辑的完整摘要。"
+            items.append(item)
+        selected = select_timeline_events(items)
+        self.assertEqual(len(selected), 12)
+
+    def test_timeline_ranking_keeps_every_item_and_descending_days(self):
+        items = []
+        for index in range(45):
+            item = event(index, vendor=f"Vendor {index % 8}", category="platform")
+            item["zh_title"] = f"数据平台历史事件 {index}"
+            item["zh_summary"] = "经过中文编辑的完整摘要。"
+            items.append(item)
+        ranked = rank_timeline_events(items, page_size=20)
+        self.assertEqual(len(ranked), len(items))
+        self.assertEqual(len({item["event_id"] for item in ranked}), len(items))
+        days = [event_timestamp(item).date() for item in ranked]
+        self.assertEqual(days, sorted(days, reverse=True))
 
     def test_public_sort_prefers_published_time_over_recent_ingestion(self):
         old = event(1)

@@ -31,6 +31,14 @@ class HomeHeaderTests(unittest.TestCase):
         self.assertIn("event.key!=='Escape'", script)
         self.assertIn("info.contains(event.target)", script)
 
+    def test_home_build_declares_unbounded_progressive_timeline_and_insight_chip(self):
+        source = (ROOT / "pipeline" / "build_site.py").read_text(encoding="utf-8")
+        self.assertIn("不限时间 · 每批 {DEFAULT_PAGE_SIZE} 条", source)
+        semantic = source.index('topic["name"] == "语义层"')
+        insight = source.index('data-category="insight"', semantic)
+        self.assertGreater(insight, semantic)
+        self.assertIn('placeholder="搜索全部在站事件"', source)
+
 
 if __name__ == "__main__":
     unittest.main()

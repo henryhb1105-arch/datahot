@@ -99,6 +99,20 @@ def select_home_events(
     return selected
 
 
+def select_timeline_events(events):
+    """Return every qualified retained event for the progressive timeline.
+
+    Source caps belong to short-window promotion surfaces. Applying them to
+    the complete timeline would permanently hide valid history, so this pool
+    only applies the public editorial gate and chronological ordering.
+    """
+    return sorted(
+        (event for event in events if is_list_eligible(event)),
+        key=_sort_key,
+        reverse=True,
+    )
+
+
 def _quality_gate(event):
     """Only meaningful signals may override the category soft cap."""
     return bool(
@@ -205,6 +219,51 @@ def rank_home_events(
     return selected + [event for event in ordered if event.get("event_id") not in selected_ids]
 
 
+def rank_timeline_events(
+    events, *, page_size=DEFAULT_PAGE_SIZE, source_caps=None,
+    prevent_adjacent_sources=True,
+):
+    """Order the full timeline in diverse pages without losing history.
+
+    Dates remain strictly descending so loading another page only appends to
+    the current last day or adds older days. Diversity is applied within each
+    day in page-sized batches; if a day has too little source variety, the
+    remaining items fill the batch rather than disappearing.
+    """
+    by_day = {}
+    for event in select_timeline_events(events):
+        timestamp = event_timestamp(event)
+        day = timestamp.date().isoformat() if timestamp else "unknown"
+        by_day.setdefault(day, []).append(event)
+
+    ranked = []
+    size = max(1, int(page_size))
+    for day in sorted(by_day, reverse=True):
+        remaining = list(by_day[day])
+        while remaining:
+            target = min(size, len(remaining))
+            batch = rank_home_events(
+                remaining,
+                page_size=target,
+                minimum_page_size=target,
+                first_page_only=True,
+                source_caps=source_caps,
+                prevent_adjacent_sources=prevent_adjacent_sources,
+            )
+            batch_ids = {event.get("event_id") for event in batch}
+            if len(batch) < target:
+                for event in remaining:
+                    if event.get("event_id") in batch_ids:
+                        continue
+                    batch.append(event)
+                    batch_ids.add(event.get("event_id"))
+                    if len(batch) >= target:
+                        break
+            ranked.extend(batch)
+            remaining = [event for event in remaining if event.get("event_id") not in batch_ids]
+    return ranked
+
+
 def rank_hot_events(events, *, limit=9, source_cap=2):
     """Rank a trustworthy hot list while preventing one publisher takeover."""
     counts = Counter()
@@ -270,7 +329,7 @@ def lite_event(event):
 
 def build_lite_payload(events, generated_at, *, ranking=None, page_size=DEFAULT_PAGE_SIZE):
     if ranking is None:
-        ranking = rank_home_events(events, page_size=page_size)
+        ranking = rank_timeline_events(events, page_size=page_size)
     return {
         "schema_version": LITE_SCHEMA_VERSION,
         "generated_at": generated_at,

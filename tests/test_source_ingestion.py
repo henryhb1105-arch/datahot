@@ -29,6 +29,14 @@ EXPECTED_PEOPLE_AI_SOURCES = {
     "AIHR",
     "Handshake Network Trends",
 }
+EXPECTED_PEOPLE_AI_WAVE2_SOURCES = {
+    "SHRM Research",
+    "Mercer Insights",
+    "ADP Research",
+    "Workday Newsroom",
+    "Microsoft WorkLab",
+    "Lightcast Research",
+}
 
 
 class OfficialFeedParsingTests(unittest.TestCase):
@@ -166,6 +174,9 @@ class ProductionSourceConfigurationTests(unittest.TestCase):
         self.assertTrue(EXPECTED_PEOPLE_AI_SOURCES.issubset(self.by_name))
         for name in EXPECTED_PEOPLE_AI_SOURCES:
             self.assertTrue(self.by_name[name]["enabled"])
+        self.assertTrue(EXPECTED_PEOPLE_AI_WAVE2_SOURCES.issubset(self.by_name))
+        for name in EXPECTED_PEOPLE_AI_WAVE2_SOURCES:
+            self.assertTrue(self.by_name[name]["enabled"])
 
     def test_new_sources_have_bounded_controls(self):
         for name in EXPECTED_NEW_SOURCES:
@@ -225,6 +236,81 @@ class ProductionSourceConfigurationTests(unittest.TestCase):
         kept, _stats = run_update.prefilter_entries(entries, josh, now)
         self.assertEqual(len(kept), 2)
         self.assertIn("agent", josh["focus_categories"])
+
+    def test_people_ai_wave2_uses_controlled_recent_windows(self):
+        research_sitemaps = {
+            "SHRM Research", "Mercer Insights", "Microsoft WorkLab", "Lightcast Research",
+        }
+        research_feeds = {"ADP Research", "Workday Newsroom"}
+        for name in EXPECTED_PEOPLE_AI_WAVE2_SOURCES:
+            source = self.by_name[name]
+            self.assertEqual(source["tier"], "low_precision")
+            self.assertTrue(source["require_published"])
+            self.assertLessEqual(source["max_candidates_per_run"], 2)
+            self.assertTrue(source["include_keywords"])
+            self.assertTrue(source.get("homepage", "").startswith("https://"))
+            self.assertIn("insight", source["focus_categories"])
+        for name in research_sitemaps:
+            source = self.by_name[name]
+            self.assertEqual(source["kind"], "sitemap")
+            self.assertEqual(source["fetch_interval_hours"], 48)
+            self.assertEqual(source["lookback_days"], 180)
+            self.assertTrue(source["path_include"])
+        for name in research_feeds:
+            source = self.by_name[name]
+            self.assertNotIn("kind", source)
+            self.assertEqual(source["fetch_interval_hours"], 24)
+            self.assertEqual(source["lookback_days"], 120)
+
+    def test_people_ai_wave2_filters_keep_research_and_drop_corporate_noise(self):
+        now = run_update.datetime.now(run_update.timezone.utc)
+        fixtures = {
+            "SHRM Research": (
+                "SHRM research finds AI changes workforce skills",
+                "https://www.shrm.org/topics-tools/research/ai-workforce-skills",
+            ),
+            "Mercer Insights": (
+                "AI workforce analytics reshapes organization design",
+                "https://www.mercer.com/insights/talent-and-transformation/ai-workforce/",
+            ),
+            "ADP Research": (
+                "ADP National Employment Report shows annual pay growth",
+                "https://mediacenter.adp.com/employment-report-pay-growth",
+            ),
+            "Workday Newsroom": (
+                "Workday research finds AI eases employee burnout",
+                "https://newsroom.workday.com/ai-workforce-research",
+            ),
+            "Microsoft WorkLab": (
+                "Work Trend Index shows human agent teams reshape the workforce",
+                "https://www.microsoft.com/en-us/worklab/work-trend-index/human-agent-teams",
+            ),
+            "Lightcast Research": (
+                "AI skills employers need across the workforce",
+                "https://lightcast.io/resources/research/ai-skills-employers-need",
+            ),
+        }
+        for name, (title, link) in fixtures.items():
+            kept, _stats = run_update.prefilter_entries(
+                [{"title": title, "summary": "", "link": link, "published": now}],
+                self.by_name[name],
+                now,
+            )
+            self.assertEqual(len(kept), 1, name)
+
+        for name in ("ADP Research", "Workday Newsroom"):
+            kept, stats = run_update.prefilter_entries(
+                [{
+                    "title": "AI quarterly financial results and investor earnings",
+                    "summary": "",
+                    "link": "https://example.com/financial-results",
+                    "published": now,
+                }],
+                self.by_name[name],
+                now,
+            )
+            self.assertEqual(kept, [], name)
+            self.assertEqual(stats["dropped"]["excluded"], 1, name)
 
 
 if __name__ == "__main__":

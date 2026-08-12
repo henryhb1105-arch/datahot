@@ -119,6 +119,19 @@ class SourcePrefilterTests(unittest.TestCase):
             ["data-new", "data-mid", "data-old"],
         )
 
+    def test_lookback_window_rejects_old_entries_before_candidate_budget(self):
+        entries = [
+            self.entry("AI workforce recent", days=179),
+            self.entry("AI workforce too old", days=181),
+        ]
+        kept, stats = prefilter_entries(
+            entries,
+            {"lookback_days": 180, "include_keywords": ["AI", "workforce"]},
+            NOW,
+        )
+        self.assertEqual([entry["title"] for entry in kept], ["AI workforce recent"])
+        self.assertEqual(stats["dropped"]["time"], 1)
+
     def test_short_ascii_keywords_match_words_not_substrings(self):
         entries = [
             self.entry("mobile phone"),

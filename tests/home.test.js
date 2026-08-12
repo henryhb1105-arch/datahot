@@ -3,6 +3,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const home = require("../pipeline/assets/home.js");
+const detail = require("../pipeline/assets/detail.js");
 
 function event(id, topic = "Agent", source = "Source") {
   return {
@@ -38,6 +39,36 @@ test("home position belongs to the current history entry and matching filter sta
   });
   assert.equal(home.snapshotFromHistory(historyState, { ...state, topic: "实时分析" }), null);
   assert.equal(home.snapshotFromHistory(null, state), null);
+});
+
+test("detail return uses history only for a same-tab visit from the DataHot home page", () => {
+  const current = "https://example.com/datahot/e/89e262591ce7.html";
+  assert.equal(detail.shouldUseHistoryBack(
+    "https://example.com/datahot/index.html?topic=Data+Agent&page=3", current, 4
+  ), true);
+  assert.equal(detail.shouldUseHistoryBack("https://example.com/datahot/", current, 2), true);
+  assert.equal(detail.shouldUseHistoryBack("https://example.com/datahot/hot.html", current, 4), false);
+  assert.equal(detail.shouldUseHistoryBack("https://outside.example/article", current, 4), false);
+  assert.equal(detail.shouldUseHistoryBack("https://example.com/datahot/index.html", current, 1), false);
+  assert.equal(detail.shouldUseHistoryBack("", current, 4), false);
+});
+
+test("smart detail return prevents the fallback link and goes back once", () => {
+  let clickHandler = null;
+  let backCalls = 0;
+  let prevented = false;
+  const link = { addEventListener: (name, handler) => { if (name === "click") clickHandler = handler; } };
+  detail.boot({
+    document: {
+      referrer: "https://example.com/datahot/index.html?topic=Data+Agent&page=3",
+      querySelector: () => link
+    },
+    location: { href: "https://example.com/datahot/e/89e262591ce7.html" },
+    history: { length: 3, back: () => { backCalls += 1; } }
+  });
+  clickHandler({ preventDefault: () => { prevented = true; } });
+  assert.equal(prevented, true);
+  assert.equal(backCalls, 1);
 });
 
 test("pagination and filtering operate on lite metadata", () => {

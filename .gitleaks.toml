@@ -1,0 +1,16 @@
+[extend]
+useDefault = true
+
+# Google Forms resource keys are public routing parameters embedded in source
+# articles, not credentials. Keep this exception on the generic API-key rule
+# and require the complete docs.google.com/forms URL shape so unrelated keys
+# continue to fail the scan.
+[[rules]]
+id = "generic-api-key"
+
+[[rules.allowlists]]
+description = "Public Google Forms resourcekey URL parameters"
+regexTarget = "line"
+regexes = [
+  '''https://docs\.google\.com/forms/(?:d|d/e)/[A-Za-z0-9_-]+/(?:edit|viewform)\?resourcekey=0-[A-Za-z0-9_-]{16,64}(?:["'&<[:space:]]|$)''',
+]

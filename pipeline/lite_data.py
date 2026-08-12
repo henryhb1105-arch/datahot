@@ -14,6 +14,7 @@ DEFAULT_VENDOR_CAP = 4
 DEFAULT_CATEGORY_SOFT_CAP = 12
 DEFAULT_WINDOW_SOURCE_CAP = 20
 HOME_WINDOW_DAYS = 7
+MIN_PUBLIC_IMPORTANCE = 30
 FIRST_PAGE_SOURCE_CAPS = {"Claude 官方博客": 2}
 WINDOW_SOURCE_CAPS = {"Claude 官方博客": 6}
 LIST_CATEGORIES = frozenset({"agent", "platform", "bi", "product", "insight"})
@@ -60,9 +61,17 @@ def is_list_eligible(event):
         return False
     if str(event.get("category") or "") not in LIST_CATEGORIES:
         return False
-    try:
-        importance = int(event.get("importance") or 50)
-    except (TypeError, ValueError):
+    raw_importance = event.get("importance")
+    if raw_importance not in (None, ""):
+        try:
+            importance = int(raw_importance)
+        except (TypeError, ValueError):
+            return False
+        if importance < MIN_PUBLIC_IMPORTANCE:
+            return False
+    else:
+        # Older retained events predate importance scoring. Keep them public
+        # until they receive an explicit editorial score.
         importance = 50
     editorial_signal = bool(
         str(event.get("reason") or "").strip()
@@ -315,7 +324,10 @@ def lite_event(event):
         **({"work_tags": event["work_tags"]} if isinstance(event.get("work_tags"), dict) else {}),
         "heat": int(event.get("heat") or 0),
         "star": bool(event.get("star")),
-        "importance": int(event.get("importance") or 0),
+        "importance": (
+            None if event.get("importance") in (None, "")
+            else int(event.get("importance"))
+        ),
         "shelf": event.get("shelf", "news"),
         "pinned": bool(event.get("pinned")),
         "published": event.get("published"),

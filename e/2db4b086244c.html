@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob: https://api.qrserver.com; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-31S8e7G4ZpG+PnI1F/N0u4Ei8wOPWSNDyYleH4TW1C8=' 'sha256-nOtWBHzif9Hf7bSy/zCIQlDF9ybqIVJfiX8IyQgSlxo=' 'sha256-zTbqoLXOVJ6Y7bxwX42flzVUMpf3rgsI16LDibNF8HY='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob: https://api.qrserver.com; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-nOtWBHzif9Hf7bSy/zCIQlDF9ybqIVJfiX8IyQgSlxo=' 'sha256-sY8Xcs8DSAcZU+JbYRszI92CW0PaGzNbBz5hE/1xKag=' 'sha256-zTbqoLXOVJ6Y7bxwX42flzVUMpf3rgsI16LDibNF8HY='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Snowflake性能技巧与调优实践（第5部分） · DataHot</title>
@@ -403,6 +403,8 @@ a.source-name:hover{color:var(--accent)}
 .article .body{font-size:15.5px;line-height:1.9;color:var(--txt3);margin:20px 0}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
+.content-card>h4{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.content-origin-badge{font-size:11px;color:var(--sub);font-weight:500}
 .article .vendor-row{text-decoration:none}
 .source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
 .source-heading{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
@@ -508,9 +510,9 @@ a.source-name:hover{color:var(--accent)}
   <div class="body">本文是Snowflake支持团队基于DataEngBytes 2026演讲扩展的性能调优系列第5篇，涵盖仓库大小选择、SELECT列表中的相关子查询、谓词转换以及并发查询拥塞等主题。内容来自数据领域厂商官方博客，属于数据库性能优化实践。</div>
   <div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>针对Snowflake真实场景的性能调优方法，对数据平台工程师优化查询与资源成本有直接参考价值。</span></div>
   <div class="vendors" style="margin-top:14px"><span class="vtag">Snowflake</span></div>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
+  <div class="card content-card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 历史编译稿 <span class="content-origin-badge">旧版 AI 基于原文编译</span></h4>
   <div class="fulltext"><h5 class="fh">关键事实</h5><p>Snowflake支持团队工程师于2026年7月末受邀在DataEngBytes 2026大会发表演讲，分享日常支持工作中积累的性能调优经验。这篇后续文章作为演讲内容的扩展，聚焦四个技术主题：仓库大小（Warehouse Sizes）、SELECT列表中的相关子查询（Correlated Subqueries in the SELECT list）、谓词转换（Predicate Transformations）以及并发查询踩踏（Concurrent Query Stampede）。文章为该系列第5部分，延续了此前多期性能技巧与调优实践的主题脉络。原文未披露具体调优参数或案例数据，但明确将上述四类问题列为影响Snowflake查询性能的关键场景。</p><h5 class="fh">行业影响</h5><p>Snowflake作为云原生数据仓库的代表性产品，其性能调优话题在数据工程社区持续受到高度关注。此次分享由官方支持团队输出，意味着这些主题直接来源于真实生产环境的故障排查与优化经验，而非理论推演。仓库大小配置直接影响计算成本与响应速度，相关子查询在SELECT列表中的处理方式关系到复杂查询的编写范式，谓词转换决定了查询优化器能否有效裁剪数据，并发查询踩踏则直指多用户场景下的资源竞争与稳定性问题。这些内容对使用Snowflake的企业数据团队具有直接参考价值，也反映了云数据仓库在规模化运维中面临的共性挑战。在DataEngBytes这类行业会议上分享，有助于推动最佳实践在社区内传播，促进用户更合理地设计查询与配置仓库资源。</p><h5 class="fh">实践要点</h5><p>对于正在使用Snowflake的数据工程师而言，围绕上述四个主题可形成初步的排查思路。仓库大小需根据负载特征动态调整，避免固定配置导致的资源浪费或性能瓶颈。SELECT列表中出现相关子查询时，应评估是否存在替代写法，或依赖优化器正确处理相关引用。谓词变换方面，关注查询条件能否被下推至底层存储，从而减少扫描量。并发查询踩踏则需要监控同时运行的查询数量与资源队列，必要时设置仓库级或多仓库策略以隔离负载。由于原文未给出具体操作细节，实际调优时建议结合Snowflake文档与系统视图（如QUERY_HISTORY、WAREHOUSE_METERING）进行针对性验证。后续若该系列发布更深入的案例研究，值得继续跟踪。</p></div>
-  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://medium.com/snowflake/snowflake-performance-tips-and-tricks-part-5-3689d2384d3d?source=rss----34b6daafc07---4" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Snowflake Engineering（Medium）">查看原文 ↗</a></div>
+  <div class="disclaimer">这是改版前生成的历史 AI 编译内容，后续将由原文或忠实译文替换 · <a href="https://medium.com/snowflake/snowflake-performance-tips-and-tricks-part-5-3689d2384d3d?source=rss----34b6daafc07---4" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Snowflake Engineering（Medium）">查看原文 ↗</a></div>
 </div>
 
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/8ddd604ceabf.html"><span class="n">›</span>Snowflake 10.28版本发布说明（预览）<span class="count">24</span></a><a class="vendor-row" href="../e/973421af8576.html"><span class="n">›</span>Snowflake 发布 10.26 版本更新说明<span class="count">44</span></a><a class="vendor-row" href="../e/5a003e60d050.html"><span class="n">›</span>Snowflake可观测性成熟度三级框架解析<span class="count">31</span></a></div>
@@ -751,7 +753,7 @@ function posterLayout(x,W,P,qrImg){
   if(qrImg){x.drawImage(qrImg,74,y+46,130,130);}
   else{x.fillStyle='#666';x.font='400 22px sans-serif';x.fillText('扫码访问',88,y+118);}
   x.fillStyle=P.name;x.font='700 30px -apple-system,PingFang SC,sans-serif';
-  x.fillText('扫码阅读全文编译',240,y+60);
+  x.fillText('扫码阅读全文或忠实译文',240,y+60);
   x.fillStyle=P.foot;x.font='400 24px -apple-system,PingFang SC,sans-serif';
   x.fillText('DataHot · 数据领域 AI 热榜',240,y+110);
   x.fillText('henryhb1105-arch.github.io/datahot',240,y+150);

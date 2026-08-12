@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob: https://api.qrserver.com; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-bnylD9SAVql2lHkeIEZ3rUjd2D8pa8YQW+4F0vIeNVU=' 'sha256-kg5jHQ2uwUqtbsyuX9bZKTpvujdFCARj+sgnZtE7AKU=' 'sha256-zTbqoLXOVJ6Y7bxwX42flzVUMpf3rgsI16LDibNF8HY='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob: https://api.qrserver.com; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-kg5jHQ2uwUqtbsyuX9bZKTpvujdFCARj+sgnZtE7AKU=' 'sha256-s7/fIUuzyyn6jHy2m7H5Hc3+eZk5k0lsLTPekb67o04=' 'sha256-zTbqoLXOVJ6Y7bxwX42flzVUMpf3rgsI16LDibNF8HY='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Netflix实时分布式图查询实践：gRPC执行API · DataHot</title>
@@ -403,6 +403,8 @@ a.source-name:hover{color:var(--accent)}
 .article .body{font-size:15.5px;line-height:1.9;color:var(--txt3);margin:20px 0}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
+.content-card>h4{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.content-origin-badge{font-size:11px;color:var(--sub);font-weight:500}
 .article .vendor-row{text-decoration:none}
 .source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
 .source-heading{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
@@ -499,9 +501,9 @@ a.source-name:hover{color:var(--accent)}
   <div class="body">本文是Netflix构建实时分布式图（RDG）系列的第三篇，重点介绍查询层设计。作者Nilesh Mishra和Ajit Koti展示了如何通过gRPC执行API支持对数十亿节点和边的低延迟查询，并兼顾灵活性与性能。结合前文的数据处理流水线与存储层设计，完整呈现了Netflix大规模实时图数据平台的技术路径。</div>
   <div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>面向大规模实时图数据的查询API设计，涉及数据平台基础设施的延迟与灵活性权衡，值得数据从业者参考。</span></div>
   <div class="vendors" style="margin-top:14px"><a class="chip" href="../topics/realtime.html">实时分析</a></div>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
+  <div class="card content-card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 历史编译稿 <span class="content-origin-badge">旧版 AI 基于原文编译</span></h4>
   <div class="fulltext"><p>作者：Nilesh Mishra 和 Ajit Koti</p><p>这是关于我们如何构建实时分布式图（RDG）的多部分博客系列的第三篇。在第一部分中，我们讨论了创建 RDG 的动机，以及为 RDG 填充数据的数据处理管道架构。在第二部分中，我们讨论了如何设计存储层，使其在维持个位数毫秒级延迟的同时处理数十亿个节点和边。在第三部分中，我们将探讨如何设计一个快速、灵活的……</p><p class="fwarn">【此处原文未能完整读取】</p></div>
-  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://netflixtechblog.com/how-and-why-netflix-built-a-real-time-distributed-graph-part-3-querying-the-graph-with-grpc-0f3468349607?source=rss----2615bd06b42e---4" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Netflix Technology Blog">查看原文 ↗</a></div>
+  <div class="disclaimer">这是改版前生成的历史 AI 编译内容，后续将由原文或忠实译文替换 · <a href="https://netflixtechblog.com/how-and-why-netflix-built-a-real-time-distributed-graph-part-3-querying-the-graph-with-grpc-0f3468349607?source=rss----2615bd06b42e---4" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Netflix Technology Blog">查看原文 ↗</a></div>
 </div>
 
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/9f8ca8dc2ec6.html"><span class="n">›</span>Netflix设备能力建模与分析实践<span class="count">49</span></a><a class="vendor-row" href="../e/e802165c0888.html"><span class="n">›</span>Introducing the Claude Team plan and iOS app | Claude by Anthropic<span class="count">42</span></a><a class="vendor-row" href="../e/ba8377c644db.html"><span class="n">›</span>Extending Claude&#x27;s capabilities with skills and MCP | Claude by Anthropic<span class="count">42</span></a></div>
@@ -742,7 +744,7 @@ function posterLayout(x,W,P,qrImg){
   if(qrImg){x.drawImage(qrImg,74,y+46,130,130);}
   else{x.fillStyle='#666';x.font='400 22px sans-serif';x.fillText('扫码访问',88,y+118);}
   x.fillStyle=P.name;x.font='700 30px -apple-system,PingFang SC,sans-serif';
-  x.fillText('扫码阅读全文编译',240,y+60);
+  x.fillText('扫码阅读全文或忠实译文',240,y+60);
   x.fillStyle=P.foot;x.font='400 24px -apple-system,PingFang SC,sans-serif';
   x.fillText('DataHot · 数据领域 AI 热榜',240,y+110);
   x.fillText('henryhb1105-arch.github.io/datahot',240,y+150);

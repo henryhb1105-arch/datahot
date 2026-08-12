@@ -272,6 +272,8 @@ class ContentBlockTranslationTests(unittest.TestCase):
         self.assertNotIn("<strong>", prompt)
         self.assertNotIn("onclick", prompt)
         self.assertIn('"id":"t-', prompt)
+        self.assertTrue(call.call_args.kwargs["strict_object"])
+        self.assertEqual(call.call_args.kwargs["max_tokens"], 8000)
         self.assertEqual(stats["applied"], len(nodes))
         self.assertTrue(blocks_plain_text(translated).startswith("译:"))
 

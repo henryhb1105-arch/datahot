@@ -300,12 +300,65 @@ class EventFirstPipelineTests(unittest.TestCase):
             )
 
         self.assertEqual(summary["ready"], 1)
-        self.assertEqual(summary["attempted"], 1)
+        self.assertEqual(summary["attempted"], 2)
+        self.assertEqual(summary["planned"], 1)
         self.assertEqual(visual["content_format"], "blocks-v1")
         self.assertEqual(visual["content_parse"]["status"], "ready")
         self.assertEqual(visual["content_parse"]["media"]["cached"], 1)
         self.assertNotIn("content_blocks", plain)
         self.assertEqual(translate.call_args.kwargs["purpose"], "body_blocks_backfill")
+
+    def test_backfill_retries_an_old_processor_and_prioritizes_cacheable_media(self):
+        cross_site = event("cross", title="跨站图片", importance=95)
+        same_site = event("same", title="同站图片", importance=80)
+        cross_site["content_parse"] = {
+            "processor_version": "blocks-v1", "attempted_at": NOW.isoformat(),
+            "status": "failed",
+        }
+
+        def figure_blocks(event_id, image_host):
+            return [
+                {
+                    "type": "paragraph", "id": f"b-{event_id}0000000000"[:14],
+                    "children": [{"type": "text", "id": f"t-{event_id}0000000000"[:14], "text": "正文" * 80, "marks": []}],
+                },
+                {
+                    "type": "figure", "id": f"b-{event_id}1111111111"[:14],
+                    "src": f"https://{image_host}/chart.png", "alt": "chart",
+                    "source_url": f"https://example.com/{event_id}",
+                    "width": 900, "height": 500,
+                },
+            ]
+
+        def fetched(url, **_kwargs):
+            event_id = url.rsplit("/", 1)[-1]
+            host = "cdn.other.test" if event_id == "cross" else "images.example.com"
+            blocks = figure_blocks(event_id, host)
+            report = {
+                "strategy": "article", "blocks": 2, "text_chars": 165,
+                "figures": 1, "tables": 0, "figures_discovered": 1,
+                "figures_selected": 1, "figures_rejected": 0,
+            }
+            return "正文" * 80, "", None, blocks, report
+
+        def translated(blocks, _cfg, **kwargs):
+            translated.called_item = kwargs["item_id"]
+            return blocks, {"applied": 2, "ignored": 0, "missing": 0}
+
+        media_report = {"figures": 1, "cached": 1, "link_only": 0, "reasons": {}}
+        with patch.object(run_update, "fetch_article_content", side_effect=fetched), patch.object(
+            run_update, "translate_article_blocks", side_effect=translated
+        ), patch.object(run_update, "cache_event_media", return_value=(figure_blocks("same", "images.example.com"), media_report)):
+            summary = run_update.backfill_structured_content(
+                [cross_site, same_site], ("k", "base", "model"), now=NOW,
+                limit=1, lookback_days=30,
+            )
+
+        self.assertEqual(summary["attempted"], 2)
+        self.assertEqual(summary["ready"], 1)
+        self.assertEqual(translated.called_item, "same")
+        self.assertEqual(same_site["content_parse"]["processor_version"], "blocks-v2")
+        self.assertNotIn("content_blocks", cross_site)
 
     def test_structured_metrics_are_scoped_to_the_current_run_and_source(self):
         current = event("current")

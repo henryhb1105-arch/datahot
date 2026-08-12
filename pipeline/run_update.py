@@ -18,7 +18,7 @@ from content_blocks import (
     apply_translations, blocks_plain_text, limit_blocks,
     parse_html_blocks_with_report, sanitize_blocks, translation_nodes,
 )
-from media_cache import cache_event_media, prune_media_cache
+from media_cache import cache_event_media, prune_media_cache, same_site_media
 from weekly_brief import generate_weekly_brief
 from source_controls import (
     accepted_categories_by_source, prefilter_entries, source_candidate_limit,
@@ -36,6 +36,7 @@ TZ = timezone(timedelta(hours=8))
 LLM_USAGE = LLMUsageTracker(DATA / "llm_usage.json")
 CANDIDATE_CACHE = CandidateCache(DATA / "candidate_cache.json")
 CLUSTER_CACHE = ClusterDecisionCache(DATA / "cluster_cache.json")
+CONTENT_BLOCKS_PROCESSOR_VERSION = "blocks-v2"
 
 UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/126.0 Safari/537.36",
       "Accept": "application/rss+xml,application/xml,text/xml,*/*"}
@@ -809,10 +810,11 @@ def translate_article_blocks(blocks, cfg, *, source, item_id, deep=False, purpos
     """只把结构化文本节点交给 LLM，格式和 ID 由本地合并。"""
     key, base, model = cfg
     preserved = {"figure", "table"}
+    character_budget = 14000 if deep else 3200
     source_blocks = limit_blocks(
-        blocks, 16000 if deep else 5000, preserve_types=preserved,
+        blocks, character_budget, preserve_types=preserved,
     )
-    nodes = translation_nodes(source_blocks, 16000 if deep else 5000)
+    nodes = translation_nodes(source_blocks, character_budget)
     if not (key and base and model and nodes):
         return [], {"applied": 0, "ignored": 0, "missing": len(nodes)}
     prompt = (
@@ -824,9 +826,9 @@ def translate_article_blocks(blocks, cfg, *, source, item_id, deep=False, purpos
     )
     out = llm_chat(
         base, key, model, prompt,
-        max_tokens=8000 if deep else 3000,
+        max_tokens=8000 if deep else 4500,
         purpose=purpose or ("body_blocks_deep" if deep else "body_blocks_standard"),
-        source=source, item_id=item_id,
+        source=source, item_id=item_id, strict_object=True,
     )
     translated, stats = apply_translations(source_blocks, out.get("nodes", []))
     if not deep:
@@ -839,6 +841,7 @@ def content_parse_record(report, *, status, source="", reason="", media_report=N
     report = report if isinstance(report, dict) else {}
     record = {
         "run_id": LLM_USAGE.run_id,
+        "processor_version": CONTENT_BLOCKS_PROCESSOR_VERSION,
         "attempted_at": datetime.now(TZ).isoformat(),
         "status": str(status or "unknown")[:40],
         "source": str(source or "")[:120],
@@ -1005,7 +1008,7 @@ def backfill_structured_content(events, cfg, *, now=None, limit=None, lookback_d
             continue
         previous = event.get("content_parse") if isinstance(event.get("content_parse"), dict) else {}
         attempted_at = parse_date(previous.get("attempted_at"))
-        if attempted_at is not None:
+        if attempted_at is not None and previous.get("processor_version") == CONTENT_BLOCKS_PROCESSOR_VERSION:
             if attempted_at.tzinfo is None:
                 attempted_at = attempted_at.replace(tzinfo=timezone.utc)
             if attempted_at.astimezone(timezone.utc) >= retry_cutoff:
@@ -1021,9 +1024,8 @@ def backfill_structured_content(events, cfg, *, now=None, limit=None, lookback_d
         reverse=True,
     )
 
+    plans = []
     for event in eligible[:attempt_limit]:
-        if summary["ready"] >= limit:
-            break
         primary = event["items"][0]
         source = primary.get("source", "")
         summary["attempted"] += 1
@@ -1038,6 +1040,26 @@ def backfill_structured_content(events, cfg, *, now=None, limit=None, lookback_d
             )
             summary["skipped"] += 1
             continue
+        same_site_figures = sum(
+            block.get("type") == "figure"
+            and same_site_media(block.get("src", ""), primary.get("link", ""))
+            for block in blocks
+        )
+        plans.append((
+            (
+                same_site_figures > 0, same_site_figures,
+                int(parse_report.get("tables", 0) or 0) > 0,
+                int(event.get("importance", 0) or 0), _event_time(event),
+            ),
+            event, primary, blocks, parse_report,
+        ))
+
+    plans.sort(key=lambda plan: plan[0], reverse=True)
+    summary["planned"] = len(plans)
+    for _priority, event, primary, blocks, parse_report in plans:
+        if summary["ready"] >= limit:
+            break
+        source = primary.get("source", "")
         try:
             translated, translation_stats = translate_article_blocks(
                 blocks, cfg, source=source, item_id=event["event_id"], deep=False,

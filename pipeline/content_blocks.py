@@ -961,24 +961,21 @@ def render_blocks_html(blocks, render_media=True):
                 f'<table>{"".join(rows)}</table></div>'
             )
         elif kind == "figure":
+            cached_src = sanitize_cached_media_path(block.get("cached_src"))
+            if not render_media or not cached_src or block.get("media_status") != "cached":
+                continue
             original_src = html.escape(block["src"], quote=True)
             source_url = html.escape(block.get("source_url") or block["src"], quote=True)
-            cached_src = sanitize_cached_media_path(block.get("cached_src"))
             alt = html.escape(block.get("alt", ""), quote=True)
             caption = html.escape(block.get("caption") or block.get("alt") or "")
             dimensions = ""
             if block.get("width") and block.get("height"):
                 dimensions = f' width="{block["width"]}" height="{block["height"]}"'
-            if render_media and cached_src:
-                visual = (
-                    f'<a class="cb-media-link" href="{original_src}" target="_blank" '
-                    f'rel="noopener noreferrer nofollow"><img src="{cached_src}" alt="{alt}" '
-                    f'loading="lazy" decoding="async"{dimensions}></a>'
-                )
-            elif render_media:
-                visual = '<div class="cb-media-placeholder" role="img" aria-label="图片未缓存">图片未缓存，可前往来源查看</div>'
-            else:
-                visual = ""
+            visual = (
+                f'<a class="cb-media-link" href="{original_src}" target="_blank" '
+                f'rel="noopener noreferrer nofollow"><img src="{cached_src}" alt="{alt}" '
+                f'loading="lazy" decoding="async"{dimensions}></a>'
+            )
             host = html.escape(urlparse(block.get("source_url") or block["src"]).netloc)
             links = (
                 f'<span class="cb-media-source">来源：<a href="{source_url}" target="_blank" '

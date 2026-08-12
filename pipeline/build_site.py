@@ -991,7 +991,6 @@ def render_detail(e, all_events, css, tts_item=None):
 .cb-media-meta{{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:var(--sub)}}
 .cb-media-meta a{{font-size:11.5px}}
 .cb-media-source{{margin-right:auto;overflow-wrap:anywhere}}
-.cb-media-placeholder{{min-height:150px;display:grid;place-items:center;padding:24px;text-align:center;color:var(--sub);background:linear-gradient(135deg,var(--soft),var(--card))}}
 @media(max-width:600px){{.cb-figure{{margin:16px -8px;border-radius:9px}}.cb-figure figcaption{{padding:9px 11px}}.cb-table{{max-width:100%;margin-left:0;margin-right:0}}}}
 @media (prefers-color-scheme: dark){{.cb-media-link{{background:#171a20}}}}
 .tone-accent{{color:var(--accent);font-weight:650}}.tone-warning{{color:var(--amber);font-weight:650}}

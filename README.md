@@ -78,7 +78,7 @@ GitHub Actions 每 6 小时自动运行（UTC 0/6/12/18 第 17 分），数据�
 
 抓取的第三方 HTML 不会直接入库或渲染：脚本、iframe、Canvas、事件属性和非 HTTP(S) 协议会被移除，颜色只映射到站点设计 token。渲染前会再次清洗；blocks 缺失或异常时继续使用已有 `full_zh` 安全纯文本兼容层。
 
-图片与静态图表只在同站点来源、未声明 `noimageindex` 且通过公网 URL、MIME、文件大小和像素上限检查后缓存到 `site/media/<event_id>/`。位图通过 Pillow 重新编码以清除 EXIF 和任意元数据；SVG 只保留静态图形白名单，删除脚本、外部引用和危险属性。默认每事件最多缓存 12 张、单文件 5 MB、总缓存 250 MB；超过缓存上限的图仍保留图注、来源和原图入口，不会从正文结构中消失。设置 `MEDIA_BLOCKS_ENABLED=false` 可立即关闭图片渲染并保留这些可追溯信息。
+图片与静态图表优先缓存同站点来源；确需使用独立图片 CDN 的信源，必须在 `pipeline/sources.json` 中按信源绑定 `media_hosts`，必要时用 `media_referer: article` 携带原文地址，不能把共享 CDN 放进全局白名单。所有文件仍须通过公网 URL、MIME、文件大小和像素上限检查后才会写入 `site/media/<event_id>/`。位图通过 Pillow 重新编码以清除 EXIF 和任意元数据；SVG 只保留静态图形白名单，删除脚本、外部引用和危险属性。默认每事件最多缓存 12 张、单文件 5 MB、总缓存 250 MB，并在每次更新中限量重试旧文章的可恢复失败。未缓存成功的图片保留在结构化数据中供后续重试，但详情页不会显示图片占位或失败提示。设置 `MEDIA_BLOCKS_ENABLED=false` 可立即关闭图片渲染。
 
 每轮还会检查近期旧事件并补齐原文优先正文。中文原文直接回填且不消耗 LLM Token；外文翻译默认单轮最多 2 篇，避免历史补数挤占新文章预算。可用 `CONTENT_TRANSLATION_BACKFILL_LIMIT`、`CONTENT_BLOCKS_BACKFILL_DAYS` 和 `CONTENT_BACKFILL_ATTEMPTS` 调整。当前轮命中率、解析策略、内容模式、图片/表格与缓存数量写入 `latest.json` 的 `structured_content`、各信源的 `last_structured_content`，并显示在 GitHub Actions Summary。
 

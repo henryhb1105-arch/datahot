@@ -132,6 +132,21 @@ class EventFirstPipelineTests(unittest.TestCase):
             "official",
         )
 
+    def test_media_policy_is_bound_to_the_named_source(self):
+        configs = {
+            "Official": {
+                "media_hosts": ["cdn.official.invalid"],
+                "media_referer": "article",
+            },
+            "Other": {},
+        }
+        self.assertEqual(run_update.source_media_policy("Official", configs), {
+            "allowed_hosts": ["cdn.official.invalid"], "send_referer": True,
+        })
+        self.assertEqual(run_update.source_media_policy("Other", configs), {
+            "allowed_hosts": [], "send_referer": False,
+        })
+
     def test_metadata_enrichment_can_skip_fulltext(self):
         original_cache = run_update.CANDIDATE_CACHE
         with tempfile.TemporaryDirectory() as tmp:
@@ -354,6 +369,54 @@ class EventFirstPipelineTests(unittest.TestCase):
         self.assertFalse(hasattr(translated, "called_item"))
         self.assertEqual(same_site["content_parse"]["processor_version"], "original-first-v1")
         self.assertEqual(cross_site["content_mode"], "original")
+
+    def test_media_refresh_retries_only_source_bound_recoverable_figures(self):
+        figure = {
+            "type": "figure", "src": "https://cdn.official.invalid/chart.png",
+            "source_url": "https://example.com/allowed", "alt": "chart", "caption": "",
+            "media_status": "link_only", "media_reason": "cross_site_host",
+        }
+        allowed = event("allowed", importance=90, content_blocks=[figure])
+        allowed["items"][0]["source"] = "Official"
+        blocked = event("blocked", importance=80, content_blocks=[dict(figure)])
+        blocked["items"][0]["source"] = "Other"
+        already_current = event("current", importance=100, content_blocks=[dict(figure)])
+        already_current["items"][0]["source"] = "Official"
+        already_current["content_parse"] = {
+            "media": {"policy_version": run_update.MEDIA_CACHE_POLICY_VERSION},
+        }
+        cached_figure = dict(figure)
+        cached_figure.update({
+            "cached_src": "../media/allowed/0123456789abcdef01234567.png",
+            "media_status": "cached",
+        })
+        cached_figure.pop("media_reason", None)
+        report = {
+            "figures": 1, "cached": 1, "link_only": 0, "bytes": 123,
+            "reasons": {}, "policy_version": run_update.MEDIA_CACHE_POLICY_VERSION,
+        }
+        configs = {
+            "Official": {
+                "media_hosts": ["cdn.official.invalid"],
+                "media_referer": "article",
+            },
+            "Other": {},
+        }
+        with patch.object(
+            run_update, "cache_event_media", return_value=([cached_figure], report),
+        ) as cache:
+            summary = run_update.refresh_media_cache(
+                [allowed, blocked, already_current], configs, limit=10,
+            )
+        self.assertEqual((summary["eligible"], summary["attempted"], summary["cached"]), (1, 1, 1))
+        self.assertEqual(allowed["content_blocks"][0]["media_status"], "cached")
+        self.assertEqual(
+            allowed["content_parse"]["media"]["policy_version"],
+            run_update.MEDIA_CACHE_POLICY_VERSION,
+        )
+        cache.assert_called_once()
+        self.assertEqual(cache.call_args.kwargs["allowed_hosts"], ["cdn.official.invalid"])
+        self.assertTrue(cache.call_args.kwargs["send_referer"])
 
     def test_backfill_foreign_translation_has_separate_run_cap(self):
         first = event("foreign-a", importance=90)

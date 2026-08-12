@@ -18,7 +18,10 @@ from content_blocks import (
     apply_translations, blocks_plain_text,
     parse_html_blocks_with_report, sanitize_blocks, translation_nodes,
 )
-from media_cache import cache_event_media, prune_media_cache
+from media_cache import (
+    MEDIA_CACHE_POLICY_VERSION, RETRYABLE_MEDIA_REASONS,
+    cache_event_media, prune_media_cache, same_site_media,
+)
 from weekly_brief import generate_weekly_brief
 from source_controls import (
     accepted_categories_by_source, prefilter_entries, source_candidate_limit,
@@ -1022,6 +1025,8 @@ def content_parse_record(report, *, status, source="", reason="", media_report=N
             key: max(0, int(media_report.get(key, 0) or 0))
             for key in ("figures", "cached", "link_only")
         }
+        if media_report.get("policy_version"):
+            record["media"]["policy_version"] = str(media_report["policy_version"])[:60]
         reasons = media_report.get("reasons")
         if isinstance(reasons, dict) and reasons:
             record["media"]["reasons"] = {
@@ -1031,7 +1036,24 @@ def content_parse_record(report, *, status, source="", reason="", media_report=N
     return record
 
 
-def generate_event_body(event, primary, cfg, body_state=None, *, purpose="body_translation"):
+def source_media_policy(source_name, source_configs=None):
+    """Return the source-bound CDN policy; shared CDN hosts are never global."""
+    configs = source_configs if isinstance(source_configs, dict) else {}
+    config = configs.get(source_name, {}) if isinstance(configs.get(source_name, {}), dict) else {}
+    hosts = [
+        str(host).strip().casefold().rstrip(".")
+        for host in config.get("media_hosts", [])
+        if isinstance(host, str) and host.strip()
+    ]
+    return {
+        "allowed_hosts": hosts,
+        "send_referer": config.get("media_referer") == "article" and bool(hosts),
+    }
+
+
+def generate_event_body(
+    event, primary, cfg, body_state=None, *, purpose="body_translation", media_policy=None,
+):
     """Materialize a readable original/translation; use AI prose only as last fallback."""
     body_state = body_state if isinstance(body_state, dict) else {}
     article_url = primary.get("link", "")
@@ -1094,8 +1116,11 @@ def generate_event_body(event, primary, cfg, body_state=None, *, purpose="body_t
 
     media_report = None
     if display_blocks:
+        media_policy = media_policy if isinstance(media_policy, dict) else {}
         cached_blocks, media_report = cache_event_media(
             display_blocks, event["event_id"], article_url, SITE,
+            allowed_hosts=media_policy.get("allowed_hosts"),
+            send_referer=bool(media_policy.get("send_referer")),
         )
         event["content_blocks"] = cached_blocks
         event["content_format"] = "blocks-v1"
@@ -1148,6 +1173,7 @@ def _event_time(event):
 
 def backfill_structured_content(
     events, cfg, *, now=None, limit=None, lookback_days=None, feed_content_by_url=None,
+    source_configs=None,
 ):
     """Upgrade legacy detail bodies; Chinese is free, foreign translation is bounded."""
     now = now or datetime.now(timezone.utc)
@@ -1233,6 +1259,7 @@ def backfill_structured_content(
         try:
             generate_event_body(
                 event, body_primary, body_cfg, {}, purpose="body_translation_backfill",
+                media_policy=source_media_policy(source, source_configs),
             )
             summary["ready"] += 1
             summary[event.get("content_mode", "original")] = summary.get(
@@ -1250,6 +1277,88 @@ def backfill_structured_content(
             summary["failed"] += 1
             print(f"[backfill] 失败 {event.get('zh_title', '')[:36]} | {exc}")
     summary["planned"] = summary["attempted"] - summary["skipped"] - summary["deferred_foreign"]
+    return summary
+
+
+def refresh_media_cache(events, source_configs=None, *, limit=None):
+    """Retry recoverable historical figures under the current source-bound policy."""
+    limit = (
+        _bounded_env_int("MEDIA_CACHE_BACKFILL_EVENTS", 48, maximum=64)
+        if limit is None else max(0, min(64, int(limit)))
+    )
+    summary = {
+        "policy_version": MEDIA_CACHE_POLICY_VERSION,
+        "eligible": 0, "attempted": 0, "figures": 0,
+        "cached": 0, "link_only": 0, "reasons": {},
+    }
+    if limit <= 0:
+        return summary
+
+    eligible = []
+    for event in events:
+        if not event.get("items"):
+            continue
+        blocks = sanitize_blocks(
+            event.get("content_blocks", []), event["items"][0].get("link", ""),
+        )
+        if not blocks:
+            continue
+        previous = event.get("content_parse") if isinstance(event.get("content_parse"), dict) else {}
+        previous_media = previous.get("media") if isinstance(previous.get("media"), dict) else {}
+        if previous_media.get("policy_version") == MEDIA_CACHE_POLICY_VERSION:
+            continue
+        primary = event["items"][0]
+        policy = source_media_policy(primary.get("source", ""), source_configs)
+        retryable = 0
+        for block in blocks:
+            if block.get("type") != "figure" or block.get("media_status") != "link_only":
+                continue
+            reason = block.get("media_reason")
+            if reason not in RETRYABLE_MEDIA_REASONS:
+                continue
+            if reason in {"cross_site_host", "redirected_cross_site"} and not same_site_media(
+                block.get("src", ""), primary.get("link", ""),
+                allowed_hosts=policy["allowed_hosts"],
+            ):
+                continue
+            retryable += 1
+        if retryable:
+            eligible.append((retryable, _event_time(event), event, blocks, policy))
+
+    eligible.sort(key=lambda item: (item[0], item[1]), reverse=True)
+    summary["eligible"] = len(eligible)
+    for _retryable, _timestamp, event, blocks, policy in eligible[:limit]:
+        primary = event["items"][0]
+        cached_blocks, report = cache_event_media(
+            blocks, event["event_id"], primary.get("link", ""), SITE,
+            allowed_hosts=policy["allowed_hosts"], send_referer=policy["send_referer"],
+        )
+        event["content_blocks"] = cached_blocks
+        record = event.get("content_parse") if isinstance(event.get("content_parse"), dict) else {}
+        record = dict(record)
+        record.update({
+            "run_id": LLM_USAGE.run_id,
+            "attempted_at": datetime.now(TZ).isoformat(),
+            "status": record.get("status") or "ready",
+            "source": record.get("source") or primary.get("source", ""),
+        })
+        record["media"] = {
+            key: max(0, int(report.get(key, 0) or 0))
+            for key in ("figures", "cached", "link_only")
+        }
+        record["media"]["policy_version"] = MEDIA_CACHE_POLICY_VERSION
+        if report.get("reasons"):
+            record["media"]["reasons"] = dict(report["reasons"])
+        event["content_parse"] = record
+        summary["attempted"] += 1
+        for key in ("figures", "cached", "link_only"):
+            summary[key] += int(report.get(key, 0) or 0)
+        for reason, count in report.get("reasons", {}).items():
+            summary["reasons"][reason] = summary["reasons"].get(reason, 0) + int(count)
+        print(
+            f"[media-refresh] {event.get('zh_title', '')[:36]} | "
+            f"缓存 {report.get('cached', 0)} / 隐藏 {report.get('link_only', 0)}"
+        )
     return summary
 
 
@@ -1762,6 +1871,7 @@ def main():
             print(f"[date] meta 回填发布时间: {meta_date.date()} | {it['title'][:30]}")
         return it
 
+    source_configs = {source["name"]: source for source in sources}
     pipeline_order = os.getenv("PIPELINE_ORDER", "event_first").strip().lower()
     if pipeline_order == "legacy":
         with ThreadPoolExecutor(max_workers=12) as pool:
@@ -1780,13 +1890,15 @@ def main():
                 None,
             )
             if target is not None:
-                generate_event_body(target, primary, cfg, legacy_body_state)
+                generate_event_body(
+                    target, primary, cfg, legacy_body_state,
+                    media_policy=source_media_policy(primary.get("source", ""), source_configs),
+                )
     else:
         # 元数据 → 候选缓存 → 规则初筛 → 当轮聚簇 → 主来源 → 元数据加工 → 事件正文
         new_items = precheck_candidate_cache(new_items, cfg)
         new_items = rule_prefilter_candidates(new_items)
         groups = group_candidate_items(new_items, cfg)
-        source_configs = {source["name"]: source for source in sources}
         group_records = [
             (group, select_primary_source(group, source_configs)) for group in groups
         ]
@@ -1856,7 +1968,10 @@ def main():
             if event is None:
                 continue
             merge_group_sources(event, group, primary)
-            generate_event_body(event, primary, cfg, body_state)
+            generate_event_body(
+                event, primary, cfg, body_state,
+                media_policy=source_media_policy(primary.get("source", ""), source_configs),
+            )
         new_items = accepted_items
         print(
             f"[pipeline] event_first 接受 {len(new_items)} 条，"
@@ -1866,9 +1981,12 @@ def main():
 
     backfill_summary = backfill_structured_content(
         events, cfg, now=now, feed_content_by_url=feed_content_by_url,
+        source_configs=source_configs,
     )
+    media_refresh_summary = refresh_media_cache(events, source_configs)
     run_structured = structured_content_metrics(events, run_id=LLM_USAGE.run_id)
     run_structured["backfill"] = backfill_summary
+    run_structured["media_refresh"] = media_refresh_summary
     write_structured_content_summary(run_structured)
     print(
         f"[structured] ready {run_structured['ready']}/{run_structured['attempted']} | "

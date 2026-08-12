@@ -13,6 +13,7 @@ sys.path.insert(0, str(ROOT / "pipeline"))
 
 from content_blocks import parse_html_blocks, render_blocks_html, sanitize_blocks  # noqa: E402
 from media_cache import (  # noqa: E402
+    MEDIA_CACHE_POLICY_VERSION,
     MediaRejected,
     cache_event_media,
     download_media,
@@ -21,6 +22,7 @@ from media_cache import (  # noqa: E402
     sanitize_raster,
     sanitize_svg,
 )
+import media_cache  # noqa: E402
 import run_update  # noqa: E402
 import build_site  # noqa: E402
 
@@ -130,13 +132,81 @@ class MediaCacheTests(unittest.TestCase):
             "caption": "Quarterly chart", "source_url": "https://blog.example.com/post",
         }]
 
+    def test_production_workflow_uses_twelve_images_and_bounded_refresh(self):
+        workflow = (ROOT / ".github" / "workflows" / "update.yml").read_text(encoding="utf-8")
+        self.assertIn("MEDIA_MAX_PER_EVENT: ${{ vars.MEDIA_MAX_PER_EVENT || '12' }}", workflow)
+        self.assertIn(
+            "MEDIA_CACHE_BACKFILL_EVENTS: ${{ vars.MEDIA_CACHE_BACKFILL_EVENTS || '48' }}",
+            workflow,
+        )
+
     def test_same_site_policy_rejects_unrelated_hosts(self):
         self.assertTrue(same_site_media("https://cdn.example.com/a.png", "https://blog.example.com/post"))
         self.assertFalse(same_site_media("https://tracker.invalid/a.png", "https://blog.example.com/post"))
+        self.assertTrue(same_site_media(
+            "https://official-cdn.invalid/a.png", "https://blog.example.com/post",
+            allowed_hosts=["official-cdn.invalid"],
+        ))
+        self.assertFalse(same_site_media(
+            "https://official-cdn.invalid/a.png", "https://other.example.net/post",
+            allowed_hosts=[],
+        ))
 
     def test_private_network_urls_are_rejected_before_download(self):
         with self.assertRaisesRegex(MediaRejected, "private_host"):
             download_media("http://127.0.0.1/internal.png", 1000)
+
+    def test_download_upgrades_https_and_sends_source_referer(self):
+        captured = {}
+
+        class Headers:
+            def get_content_type(self):
+                return "image/png"
+
+            def get(self, _name, _default=None):
+                return _default
+
+        class Response:
+            headers = Headers()
+
+            def __init__(self):
+                self.payload = b"image"
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def geturl(self):
+                return "https://official-cdn.invalid/chart.png"
+
+            def read(self, _amount):
+                payload, self.payload = self.payload, b""
+                return payload
+
+        class Opener:
+            def open(self, request, timeout):
+                captured.update({"request": request, "timeout": timeout})
+                return Response()
+
+        with (
+            patch.object(media_cache, "_assert_public_host"),
+            patch.object(media_cache.urllib.request, "build_opener", return_value=Opener()),
+        ):
+            data, mime, final_url = download_media(
+                "http://official-cdn.invalid/chart.png", 1000,
+                allowed_article_url="https://blog.example.com/post",
+                allowed_hosts=["official-cdn.invalid"],
+                referer_url="https://blog.example.com/post",
+            )
+        self.assertEqual((data, mime, final_url), (
+            b"image", "image/png", "https://official-cdn.invalid/chart.png",
+        ))
+        self.assertEqual(captured["request"].full_url, "https://official-cdn.invalid/chart.png")
+        self.assertEqual(
+            captured["request"].get_header("Referer"), "https://blog.example.com/post",
+        )
 
     def test_safe_media_is_cached_in_event_directory(self):
         def fetcher(url, maximum):
@@ -155,6 +225,53 @@ class MediaCacheTests(unittest.TestCase):
             cached = Path(directory) / figure["cached_src"].removeprefix("../")
             self.assertTrue(cached.exists())
             self.assertLessEqual(cached.stat().st_size, 5_000_000)
+            self.assertEqual(report["policy_version"], MEDIA_CACHE_POLICY_VERSION)
+
+    def test_source_bound_cdn_is_cached_but_not_globally_allowed(self):
+        fetcher = unittest.mock.Mock(
+            return_value=(jpeg_bytes(), "image/jpeg", "https://official-cdn.invalid/chart.jpg"),
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            cached, report = cache_event_media(
+                self.figure("https://official-cdn.invalid/chart.jpg"),
+                "event-1", "https://blog.example.com/post", directory,
+                fetcher=fetcher, enabled=True, allowed_hosts=["official-cdn.invalid"],
+                send_referer=True,
+            )
+            self.assertEqual(report["cached"], 1)
+            self.assertEqual(cached[0]["media_status"], "cached")
+        fetcher.assert_called_once()
+
+        blocked_fetcher = unittest.mock.Mock(side_effect=AssertionError("must not download"))
+        with tempfile.TemporaryDirectory() as directory:
+            blocked, report = cache_event_media(
+                self.figure("https://official-cdn.invalid/chart.jpg"),
+                "event-2", "https://other.example.net/post", directory,
+                fetcher=blocked_fetcher, enabled=True, allowed_hosts=[],
+            )
+            self.assertEqual(report["reasons"], {"cross_site_host": 1})
+            self.assertNotIn("cached_src", blocked[0])
+        blocked_fetcher.assert_not_called()
+
+    def test_existing_local_cache_is_reused_without_download(self):
+        with tempfile.TemporaryDirectory() as directory:
+            name = "0123456789abcdef01234567.jpg"
+            media_file = Path(directory) / "media" / "event-1" / name
+            media_file.parent.mkdir(parents=True)
+            media_file.write_bytes(b"cached")
+            figure = self.figure()[0]
+            figure.update({
+                "cached_src": f"../media/event-1/{name}",
+                "media_status": "cached",
+            })
+            fetcher = unittest.mock.Mock(side_effect=AssertionError("must not download"))
+            cached, report = cache_event_media(
+                [figure], "event-1", "https://blog.example.com/post", directory,
+                fetcher=fetcher, enabled=True,
+            )
+            self.assertEqual(report["cached"], 1)
+            self.assertEqual(cached[0]["cached_src"], f"../media/event-1/{name}")
+            fetcher.assert_not_called()
 
     def test_cross_site_rights_and_disabled_modes_stay_link_only(self):
         fetcher = unittest.mock.Mock(side_effect=AssertionError("must not download"))
@@ -214,9 +331,9 @@ class MediaCacheTests(unittest.TestCase):
         self.assertNotIn("onclick", rendered)
         without_media = render_blocks_html([figure], render_media=False)
         self.assertNotIn("<img", without_media)
-        self.assertIn("查看原图", without_media)
+        self.assertEqual(without_media, "")
 
-    def test_detail_page_contains_responsive_media_container_and_fallback(self):
+    def test_detail_page_hides_uncached_media_without_placeholder(self):
         event = {
             "event_id": "event-1", "zh_title": "图表集成", "zh_summary": "摘要",
             "reason": "", "full_zh": "", "category": "bi", "category_label": "BI 与可视化",
@@ -228,10 +345,19 @@ class MediaCacheTests(unittest.TestCase):
                 "link": "https://blog.example.com/post",
                 "published": "2026-08-11T12:00:00+08:00", "title": "Source",
             }],
-            "content_blocks": self.figure(),
+            "content_blocks": [
+                {
+                    "type": "paragraph",
+                    "children": [{"type": "text", "text": "正文继续显示。", "marks": []}],
+                },
+                *self.figure(),
+            ],
         }
         page = build_site.render_detail(event, [event], "")
-        self.assertIn("cb-media-placeholder", page)
+        self.assertIn("正文继续显示。", page)
+        self.assertNotIn("cb-media-placeholder", page)
+        self.assertNotIn("图片未缓存", page)
+        self.assertNotIn("<figure", page)
         self.assertIn(".cb-figure img{display:block;width:100%;height:auto", page)
         self.assertIn("@media(max-width:600px)", page)
         self.assertIn(".cb-table{overflow-x:auto", page)

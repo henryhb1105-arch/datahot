@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-08-12T08:42:01.302979+08:00",
+ "generated_at": "2026-08-12T09:33:03.230381+08:00",
  "events": [
   {
    "event_id": "477745cf963d",
@@ -8151,7 +8151,7 @@
     "Databricks",
     "Omnigent"
    ],
-   "heat": 54,
+   "heat": 53,
    "star": false,
    "importance": 72,
    "signal": 0,
@@ -8185,7 +8185,7 @@
     "ThoughtSpot",
     "Snowflake"
    ],
-   "heat": 54,
+   "heat": 53,
    "star": false,
    "importance": 72,
    "signal": 0,
@@ -8970,7 +8970,7 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 59,
+   "heat": 58,
    "star": true,
    "importance": 82,
    "signal": 0,
@@ -9401,7 +9401,7 @@
    "zh_title": "数据分析Skill设计指南：从问题定义到流程拆解",
    "zh_summary": "文章提出数据分析Skill本质是操作流程，需先明确问题、数据底表、操作步骤和输出成果，再借助Codex、Claude Code、Trae等AI工具生成。强调放弃通用Skill，按业务场景拆分，并给出指标异动、用户行为、效果评估、预测、策略优化五大问题类型及各自解法。最后指出AI不能替代数据治理和业务沟通，底表设计和业务假设仍需人工把控。",
    "reason": "面向数据分析Agent的Skill设计方法论，帮助数据从业者系统化拆解分析场景并落地AI辅助分析。",
-   "full_zh": "## 数据分析Skill设计指南：从问题定义到流程拆解\n\n以前总有同学问：有没有数据分析的ppt模版，现在变成了：有没有数据分析Skill。授人以鱼，不如授人以渔。今天陈老师把做Skill的方法公布出来，大家收好。\n\n## 一、Skill本质是一个操作流程\n\n所以想做好Skill，先问：\n\n1）我要解决什么问题\n2）我需要用什么数据底表\n3）我需要分几步操作\n4）最终输出成果是什么\n\n梳理清楚流程，直接把提示词喂给利用codex，claude code、Trae等工具，他们就能生成一个有效Skill。AI还会自动提供特征工程，模型选择，计算公式的设计建议。\n\n说不清流程，大概率AI就算个“同比、环比”……人做的同比、环比价值低，AI做的同比、环比价值一样低，不会因为它是AI就更高贵。\n\n## 二、数据分析不是一个东西，是一堆东西\n\n业务场景，分为：销售、商品管理、用户增长、物流、生产、客服、财务等等：\n\n1）不同业务场景，使用的指标不一样\n2）不同分析问题，使用的方法不一样\n3）不同分析方法，计算的步骤不一样\n\n你需要放弃做通用数据分析Skill的想法，拆分场景，定义清楚每个场景下的：数据底表+方法+计算步骤，一个个扫荡场景，才好有成果。\n\n## 三、问题分类，可以参考这五个类型（背诵下来）\n\n1）指标异动类问题：趋势分析+结构分析+指标拆解，分维度对比+连环替代法用的多，一般基于销售/物流/工单底表聚合一次即可。相对容易落地。\n2）用户行为类问题：需要利用RFM方法，多次聚合用户行为数据，设计底表难度较大，分类规则复杂，单独列为一类。\n3）效果评估类问题：需要先制定标准，并且事前设计ABtest和事后补一个PSM，数据底表完全不一样，单独列为一类。\n4）预测类问题：可以用现成的机器学习方法。机器学习本身步骤清晰，规范性强，反而是分析问题类最容易Skill化的。\n5）策略优化类问题：需要先有策略目标，限制条件，经营参数等等输入，很多企业基础数据都不完整，决策流程充满领导拍脑袋，所以最难做。\n\n以上，当你思考“数据分析”时，要具体到以上五个问题中某一个。如果连基础分析方法都不了解，先整明白到底自己要干啥。\n\n## 四、流程越清晰，做Skill难度越低\n\n最典型的就是机器学习类问题，人搓代码嫌累，AI快的很，而且机器学习流程本身很清晰。\n\n以巨复杂的PSM举例，流程包括：准备数据底表→清晰干涉变量/结果变量/前置变量→特征工程→逻辑回归建模→匹配样本，得到参照组 → 计算干涉效应→输出报告，这几步。列清楚就行。AI还会自动增补一些环节，比如特征工程建议和匹配方案建议。\n\n反而是：该设计什么样的数据底表进行计算，是最重要的问题。虽然说AI能给些建议，但是还是得自己对业务有足够了解才行。\n\n## 五、为每个Skill设计好底表，确保计算正确\n\n比如你要诊断一个电商APP的利润问题，那么：\n\n指标：利润=GMV-退货-商品成本-平台扣点-推广费-物流费-税费\n指标：GMV=访客*转化*客单价\n维度：渠道=自然流+付费流\n维度：自然流来源，付费流来源\n维度：商品一二三级分类\n维度：利润款/流量款/搭配款\n\n全部定义好，尽量做到一张宽表里，丢给AI分析，能极大提高效率。\n\n如果出现：口径混乱，分类缺失，这不关AI的事情。AI不能替代数据治理，口径统一，明确标准的动作，提前做好。\n\n## 六、指标异动类问题有一个通用的流程\n\n一看主指标是否达标（先找标准）\n二看走势是否越来越糟（检查时间趋势）\n三看哪里捅了篓子（分维度找重点）\n四看哪个环节不好（最后拆子指标）\n\n不按这个顺序，很容易把问题拆的乱七八糟：\n\n1）没有标准，光看同比环比，也不确定“好/不好”\n2）不查趋势，找不到问题源头，沉溺于日波动\n3）不抓重点，框框把指标拆的稀烂，看不出所以然\n\n## 七、现在的AI不会提业务假设，所以要自己定假设\n\nAI能帮你算出来哪个维度差异大，但是：\n\n1）人货场哪个是业务关心维度\n2）货场之间是否存在交叉效应\n3）人货之间是否存在交叉效应\n4）货的旺季在哪里/生命周期有几周\n\n这些问题得问自己，问业务，AI最多给点提示。\n\n所以，做Skill的时候，在关键步骤后可设置：询问环节。让AI确认“是否有增补信息”“选择哪个维度深入”这样更符合实际情况。对于维度多，想多轮看数据，完全可以设置循环检查，直到用户主动停止。\n\n## 八、AI也不解决业务沟通问题，自己和业务聊\n\n在用户分析，效果评估，策略优化类问题中，有大量类似场景：\n\n1）“重度”用户的重度，到底标准是多少\n2）计算用户“偏好”，每一类行为权重订多少\n3）评估的指标是啥？期望效果/目标值到底多少？\n4）策略目标值是啥？期望从多少做到多少？\n5）业务的约束条件到底是啥？不要说“先不管”\n\n这些都是日常工作扯皮的地方，所以建议：先把预测、指标异动的Skill做顺利了，后边再慢慢讨论这些复杂问题。毕竟AI是你的员工不是你的老师，更不是老板。最后结果仍然要“体现业务价值，解决业务问题”而不是仅仅帮我们更快搓SQL。",
+   "full_zh": "热门文章\n\n字节、腾讯、阿里在做同一件事\n\n当AI能回答所有，“知乎”们还剩下什么？\n\n一定要往死里用的小红书运营实战型技巧\n\n字节、腾讯、阿里在做同一件事 08-10         当AI能回答所有，“知乎”们还剩下什么？ 08-09          一定要往死里用的小红书运营实战型技巧 08-05         AI办公没有超级入口 08-03         阿里太狠！刚上线「千问办公」，又开始内测「万有无界」，实测后结果很惊人 08-04         我用 Codex，从 0 到 1 搭了一个财务结算中心 08-03",
    "category": "agent",
    "category_label": "Data Agent",
    "vendors": [],
@@ -9426,7 +9426,358 @@
      "ingested_at": "2026-08-10T16:44:59+08:00"
     }
    ],
-   "first_seen": "2026-08-10T16:44:59+08:00"
+   "first_seen": "2026-08-10T16:44:59+08:00",
+   "content_blocks": [
+    {
+     "type": "paragraph",
+     "id": "b-67b001e85610",
+     "children": [
+      {
+       "type": "text",
+       "text": "热门文章",
+       "marks": [],
+       "id": "t-efc6248419e9"
+      }
+     ]
+    },
+    {
+     "type": "figure",
+     "id": "b-dbadad2bf8b4",
+     "src": "https://image.woshipm.com/wp-files/2026/08/5biSgIFdksFDz7Sby6Bw.jpeg!/both/100x60",
+     "alt": "字节、腾讯、阿里在做同一件事",
+     "caption": "",
+     "source_url": "https://www.woshipm.com/share/6444173.html",
+     "media_status": "link_only",
+     "media_reason": "dimensions_too_small"
+    },
+    {
+     "type": "figure",
+     "id": "b-fe7cf9837dd2",
+     "src": "https://image.woshipm.com/2026/08/07/204b9856-9207-11f1-b8bd-00163e09d72f.png!/both/100x60",
+     "alt": "当AI能回答所有，“知乎”们还剩下什么？",
+     "caption": "",
+     "source_url": "https://www.woshipm.com/share/6444173.html",
+     "media_status": "link_only",
+     "media_reason": "dimensions_too_small"
+    },
+    {
+     "type": "figure",
+     "id": "b-db1aaf599b1f",
+     "src": "https://image.woshipm.com/2023/04/14/703bdc46-da9e-11ed-9b82-00163e0b5ff3.png!/both/100x60",
+     "alt": "一定要往死里用的小红书运营实战型技巧",
+     "caption": "",
+     "source_url": "https://www.woshipm.com/share/6444173.html",
+     "media_status": "link_only",
+     "media_reason": "dimensions_too_small"
+    },
+    {
+     "type": "list",
+     "id": "b-d7df6dfe7e7f",
+     "ordered": false,
+     "items": [
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "  ",
+         "marks": [],
+         "id": "t-fb981de0e487"
+        },
+        {
+         "type": "text",
+         "text": "  ",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.woshipm.com/ai/6444235.html"
+          }
+         ],
+         "id": "t-219799238084"
+        },
+        {
+         "type": "text",
+         "text": "   ",
+         "marks": [],
+         "id": "t-2773a008c0cd"
+        },
+        {
+         "type": "text",
+         "text": "字节、腾讯、阿里在做同一件事",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.woshipm.com/ai/6444235.html"
+          }
+         ],
+         "id": "t-5e60aca9217c"
+        },
+        {
+         "type": "text",
+         "text": " 08-10  ",
+         "marks": [],
+         "id": "t-05e55ab9a422"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "  ",
+         "marks": [],
+         "id": "t-cd23836c7c16"
+        },
+        {
+         "type": "text",
+         "text": "  ",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.woshipm.com/ai/6443372.html"
+          }
+         ],
+         "id": "t-6c6f9445ba24"
+        },
+        {
+         "type": "text",
+         "text": "   ",
+         "marks": [],
+         "id": "t-bb44cee81875"
+        },
+        {
+         "type": "text",
+         "text": "当AI能回答所有，“知乎”们还剩下什么？",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.woshipm.com/ai/6443372.html"
+          }
+         ],
+         "id": "t-590d310173db"
+        },
+        {
+         "type": "text",
+         "text": " 08-09  ",
+         "marks": [],
+         "id": "t-5e2d1351922c"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": " ",
+         "marks": [],
+         "id": "t-02d83a8683f9"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "  ",
+         "marks": [],
+         "id": "t-aae0094dbb35"
+        },
+        {
+         "type": "text",
+         "text": "  ",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.woshipm.com/share/6440967.html"
+          }
+         ],
+         "id": "t-e7d9c867c954"
+        },
+        {
+         "type": "text",
+         "text": "   ",
+         "marks": [],
+         "id": "t-738d5dfc290c"
+        },
+        {
+         "type": "text",
+         "text": "一定要往死里用的小红书运营实战型技巧",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.woshipm.com/share/6440967.html"
+          }
+         ],
+         "id": "t-781979d28ccf"
+        },
+        {
+         "type": "text",
+         "text": " 08-05  ",
+         "marks": [],
+         "id": "t-f5822ffb6eb1"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "  ",
+         "marks": [],
+         "id": "t-a0cc701f96e1"
+        },
+        {
+         "type": "text",
+         "text": "  ",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.woshipm.com/ai/6438322.html"
+          }
+         ],
+         "id": "t-f80df9a100cd"
+        },
+        {
+         "type": "text",
+         "text": "   ",
+         "marks": [],
+         "id": "t-cb0c3c168c77"
+        },
+        {
+         "type": "text",
+         "text": "AI办公没有超级入口",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.woshipm.com/ai/6438322.html"
+          }
+         ],
+         "id": "t-c839685d5459"
+        },
+        {
+         "type": "text",
+         "text": " 08-03  ",
+         "marks": [],
+         "id": "t-3425e3d028a0"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "  ",
+         "marks": [],
+         "id": "t-4b76dc126def"
+        },
+        {
+         "type": "text",
+         "text": "  ",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.woshipm.com/share/6440384.html"
+          }
+         ],
+         "id": "t-cdf2e8160d57"
+        },
+        {
+         "type": "text",
+         "text": "   ",
+         "marks": [],
+         "id": "t-91d4a174a0f7"
+        },
+        {
+         "type": "text",
+         "text": "阿里太狠！刚上线「千问办公」，又开始内测「万有无界」，实测后结果很惊人",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.woshipm.com/share/6440384.html"
+          }
+         ],
+         "id": "t-5cc1fd4ec83c"
+        },
+        {
+         "type": "text",
+         "text": " 08-04  ",
+         "marks": [],
+         "id": "t-456fbde59576"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "  ",
+         "marks": [],
+         "id": "t-2cef3a8dd0b1"
+        },
+        {
+         "type": "text",
+         "text": "  ",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.woshipm.com/ai/6438540.html"
+          }
+         ],
+         "id": "t-ed25580cfd74"
+        },
+        {
+         "type": "text",
+         "text": "   ",
+         "marks": [],
+         "id": "t-0ad23cf0060a"
+        },
+        {
+         "type": "text",
+         "text": "我用 Codex，从 0 到 1 搭了一个财务结算中心",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.woshipm.com/ai/6438540.html"
+          }
+         ],
+         "id": "t-ade5f2e85c83"
+        },
+        {
+         "type": "text",
+         "text": " 08-03  ",
+         "marks": [],
+         "id": "t-8941fcaeb735"
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "content_format": "blocks-v1",
+   "body_chars": 270,
+   "content_level": "standard",
+   "content_parse": {
+    "run_id": "github-31553939284-1",
+    "processor_version": "blocks-v2",
+    "attempted_at": "2026-08-12T09:33:20.791199+08:00",
+    "status": "ready",
+    "source": "人人都是产品经理",
+    "strategy": "semantic_container",
+    "blocks": 5,
+    "text_chars": 270,
+    "figures": 3,
+    "tables": 0,
+    "figures_discovered": 6,
+    "figures_selected": 3,
+    "figures_rejected": 3,
+    "media": {
+     "figures": 3,
+     "cached": 0,
+     "link_only": 3,
+     "reasons": {
+      "dimensions_too_small": 3
+     }
+    }
+   }
   },
   {
    "event_id": "c0107b7e1677",
@@ -9471,7 +9822,7 @@
    "category": "product",
    "category_label": "数据产品",
    "vendors": [],
-   "heat": 48,
+   "heat": 47,
    "star": false,
    "importance": 62,
    "signal": 0,
@@ -9954,7 +10305,7 @@
     "Anthropic",
     "Claude"
    ],
-   "heat": 49,
+   "heat": 48,
    "star": false,
    "importance": 65,
    "signal": 0,
@@ -10122,7 +10473,7 @@
    "vendors": [
     "OpenAI"
    ],
-   "heat": 54,
+   "heat": 53,
    "star": true,
    "importance": 75,
    "signal": 0,
@@ -10424,7 +10775,7 @@
    "zh_title": "构建高效AI代理：Anthropic的实用指南",
    "zh_summary": "本文是Anthropic基于与数十个团队的合作经验，分享构建LLM代理的实用建议。文章指出，最成功的实现往往采用简单、可组合的模式，而非复杂框架。Anthropic区分了工作流与代理，并强调在构建应用时应从最简单方案开始，仅在必要时增加复杂性。",
    "reason": "一线经验总结，对AI代理开发具有直接指导意义，值得数据领域从业者参考。",
-   "full_zh": "## 构建高效AI代理：Anthropic的实用指南\n\n发布于2024年12月19日\n\n过去一年里，我们与数十支来自不同行业的团队合作，共同构建大语言模型（LLM）代理。一个一致的现象是：最成功的实现并没有使用复杂框架或专用库，而是用简单、可组合的模式构建。在本文中，我们分享与客户合作以及自行构建代理过程中学到的心得，并为开发者提供关于构建高效代理的实用建议。\n\n## 什么是代理？\n\n“代理”（Agent）可以有多种定义方式。一些客户将代理定义为完全自主的系统，能够在较长时间内独立运行，使用各种工具完成复杂任务。另一些人则用这个词来描述更具规定性的实现——这些实现遵循预定义的工作流。\n\n在Anthropic，我们将所有这些变体统称为代理系统（agentic systems），但在工作流（workflows）与代理（agents）之间划出了一条重要的架构区分：\n\n**工作流**（Workflows）是通过预定义代码路径编排LLM和工具的系统。\n\n**代理**（Agents）则是由LLM动态引导自身流程和工具使用的系统，自主控制如何完成任务。\n\n下面我们将详细探讨这两类代理系统。在附录1（“实践中的代理”）中，我们描述了客户从这类系统中获得特别价值的两个领域。\n\n## 何时（以及何时不该）使用代理\n\n在构建LLM应用时，我们建议尽可能寻找最简单的解决方案，只在必要时增加复杂度。这可能意味着根本不构建代理系统。代理系统通常以延迟和成本换取更好的任务性能，你应该判断这种权衡何时是合理的。\n\n当确实需要更高复杂度时：对于定义明确的任务，工作流能提供可预测性和一致性；而当需要在大规模场景中灵活应变、由模型驱动决策时，代理是更优的选择。但对许多应用而言，通过检索和上下文示例来优化单次LLM调用通常已经足够。\n\n## 何时以及如何使用框架\n\n有许多框架能让代理系统更容易实现，包括：\n\n**Claude Agent SDK**；**AWS的Strands Agents SDK**；**Rivet**——一个拖拽式GUI LLM工作流构建器；以及**Vellum**——另一个用于构建和测试复杂工作流的GUI工具。\n\n这些框架通过简化调用LLM、定义和解析工具、串联调用等标准底层任务，让入门变得容易。然而，它们也常常引入额外的抽象层，可能掩盖底层的提示词和响应，使其更难调试。它们还可能诱使你在简单方案已足够时增加复杂度。\n\n我们建议开发者从直接使用LLM API开始：许多模式只需几行代码即可实现。如果确实使用框架，请确保你理解底层代码——对内部实现的不正确假设是客户出错的常见来源。更多示例实现参见我们的cookbook。\n\n## 构建块、工作流与智能体\n\n在本节中，我们将探讨在生产环境中看到的智能体系统的常见模式。我们首先从基础构建块——增强型 LLM——开始，然后逐步增加复杂度，从简单的组合式工作流到自主智能体。\n\n## 构建块：增强型 LLM\n\n智能体系统的基本构建块，是经过检索、工具和记忆等增强能力加持的 LLM。我们当前的模型能够主动使用这些能力——生成自己的搜索查询、选择合适的工具，并决定要保留哪些信息。\n\n我们建议重点关注实现的两个关键方面：一是针对你的特定用例调整这些能力，二是确保它们为 LLM 提供一个简单、文档完善的接口。虽然实现这些增强的方法有很多，一种方式是通过我们最近发布的 Model Context Protocol（MCP），它允许开发者通过一个简单的客户端实现，与不断增长的第三方工具生态系统集成。在本文其余部分，我们假设每次 LLM 调用都能访问这些增强能力。\n\n## 工作流：提示词链\n\n提示词链将任务分解为一系列步骤，其中每次 LLM 调用都会处理前一次调用的输出。你可以在任何中间步骤添加程序化检查（见下图中的“gate”），以确保流程仍处于正轨。\n\n何时使用此工作流：这种工作流非常适合任务能够轻松、清晰地分解为固定子任务的情况。其主要目标是以延迟换取更高的准确性，方法是让每次 LLM 调用都变成一个更简单的任务。\n\n提示词链有用的示例：\n- 生成营销文案，然后将其翻译成另一种语言。\n- 撰写文档大纲，检查大纲是否满足某些标准，然后基于大纲撰写文档。\n\n## 工作流：路由\n\n路由会对输入进行分类，并将其引导至专门的后续任务。这种工作流允许实现关注点分离，并构建更专门的提示词。没有这种工作流时，针对某一种输入进行优化可能会损害其他输入的性能。\n\n何时使用此工作流：路由适合复杂任务，尤其是当存在更适合分别处理的不同类别，并且可以由 LLM 或更传统的分类模型/算法准确完成分类时。\n\n路由有用的示例：\n- 将不同类型的客户服务查询（一般问题、退款请求、技术支持）引导到不同的下游流程、提示词和工具中。\n- 将简单/常见问题路由到更小、成本效益更高的模型（如 Claude Haiku 4.5），将困难/不常见问题路由到能力更强的模型（如 Claude Sonnet 4.5），以优化整体性能。\n\n## 工作流：并行化\n\nLLM 有时可以同时处理一项任务，并通过程序化方式聚合它们的输出。这种工作流称为并行化，有两种关键变体：\n\n- 切分（Sectioning）：将任务分解为并行运行的独立子任务。\n- 投票（Voting）：多次运行同一任务，以获得多样化的输出。\n\n何时使用此工作流：当被拆分的子任务可以并行以提升速度时，或者当需要多种视角或多次尝试才能获得更高置信度的结果时，并行化非常有效。\n\n## 代理\n\n代理可以在检查点或遇到阻碍时暂停，等待人工反馈。任务通常在完成时终止，但引入停止条件（如最大迭代次数）也很常见，以便保持控制。代理能够处理复杂的任务，但其实现往往直截了当。它们通常就是在循环中基于环境反馈使用工具的LLM。因此，精心设计工具集及其文档至关重要。我们在附录2（\"为你的工具进行提示工程\"）中详细阐述了工具开发的最佳实践。\n\n## 自主代理\n\n**何时使用代理：** 代理可用于开放式问题——即难以或无法预测所需步骤数量、无法硬编码固定路径的场景。LLM可能会运行很多轮次，你必须对其决策能力有一定程度的信任。代理的自主性使其非常适合在可信环境中扩展任务。但自主性也意味着更高的成本和错误累积的潜在风险。我们建议在沙盒环境中进行广泛测试，并设置适当的防护措施。\n\n**代理有用的示例：** 以下示例来自我们自己的实现：\n\n- 一个解决SWE-bench任务的编码代理，该任务需要根据任务描述对多个文件进行编辑；\n- 我们的\"计算机使用\"参考实现，Claude使用计算机来完成任务。\n\n编码代理的高层流程\n\n## 组合与定制这些模式\n\n这些构建模块并非规定性的。它们是开发者可以根据不同用例进行塑造和组合的常见模式。与任何LLM功能一样，成功的关键在于衡量性能并迭代实现。重申一遍：只有当复杂性能够显著改善结果时，才应考虑增加它。\n\n## 总结\n\n在LLM领域的成功不在于构建最复杂的系统，而在于为你的需求构建合适的系统。从简单提示开始，通过全面的评估进行优化，只有当更简单的解决方案不足时才添加多步代理系统。\n\n在实现代理时，我们遵循三个核心原则：\n\n- 保持代理设计的简洁性。\n- 优先保证透明度，明确展示代理的规划步骤。\n- 通过全面的工具文档和测试，精心设计代理-计算机接口（ACI）。\n\n框架可以帮助你快速起步，但在进入生产环境时，不要犹豫减少抽象层，使用基础组件进行构建。遵循这些原则，你可以创建不仅强大，而且可靠、可维护、并赢得用户信任的代理。\n\n## 致谢\n\n作者：Erik S. 和 Barry Zhang。这项工作借鉴了我们在Anthropic构建代理的经验，以及客户分享的宝贵见解，对此我们深表感谢。\n\n## 附录1：实践中的代理\n\n我们与客户的合作揭示了AI代理两个特别有前景的应用，展示了上述模式的实际价值。这两个应用都说明了代理在需要对话与行动相结合、具有明确成功标准、支持反馈循环、并整合有意义的人工监督的任务中能带来最大价值。\n\n### A. 客户支持\n\n客户支持将熟悉的聊天机器人界面与通过工具集成增强的能力相结合。\n\n## 工具定义与防错优化\n\n良好的工具定义通常包含示例用法、边界情况、输入格式要求，以及与其他工具的清晰界限。你如何调整参数名称或描述，让事情更加一目了然？不妨把这看作是为团队中的初级开发者编写一份出色的文档字符串（docstring）。当你同时使用许多相似工具时，这一点尤其重要。\n\n测试模型如何使用你的工具：在我们的工作台（workbench）中运行大量示例输入，观察模型会犯哪些错误，然后迭代改进。为你的工具做防错（poka-yoke）设计——修改参数，让错误更难发生。\n\n在为 SWE-bench 构建代理时，我们实际上在优化工具上花费的时间比优化整体提示词还要多。例如，我们发现，当代理移出根目录后，模型在使用相对文件路径的工具时会出错。为解决这个问题，我们将工具改为始终要求绝对文件路径——结果模型完美无误地使用了这一方法。",
+   "full_zh": "注意：本文描述的许多工具环境自2024年12月以来已经发生变化。关于我们当前的方法，请参见我们如何构建Claude托管代理 以及托管代理文档。过去一年中，我们与数十个跨行业构建大型语言模型（LLM）代理的团队合作。一致地，最成功的实现并未使用复杂的框架或专门的库，而是采用简单、可组合的模式构建。\n\n在本文中，我们分享从客户合作和自建代理中学到的经验，并为开发人员构建有效代理提供实用建议。\n\n什么是代理？\n\n“代理”可以有多种定义。一些客户将代理定义为完全自治的系统，它们在较长时间内独立运行，使用各种工具完成复杂任务。另一些则用该术语描述更为规定性的实现，遵循预定义的工作流。在Anthropic，我们将所有这些变体归类为代理系统，但区分工作流和代理之间的重要架构区别：\n\n工作流是通过预定义代码路径编排LLM和工具的系统。代理则是LLM动态指导自身流程和工具使用，保持对任务完成方式的控制的系统。\n\n下面，我们将详细探讨这两种类型的代理系统。在附录1（“实践中的代理”）中，我们描述了客户在这些系统的使用中找到特别价值的两个领域。\n\n何时使用（以及何时不使用）代理\n\n在使用LLM构建应用程序时，我们建议寻找最简单的解决方案，仅在需要时增加复杂性。这可能意味着根本不构建代理系统。代理系统通常以延迟和成本换取更好的任务性能，您应考虑这种权衡是否合理。\n\n当需要更多复杂性时，工作流为明确定义的任务提供可预测性和一致性，而代理在需要灵活性和模型驱动的决策制定时是更好的选择。然而，对于许多应用，通过检索和上下文示例优化单个LLM调用通常就足够了。\n\n何时以及如何使用框架\n\n有许多框架使代理系统更容易实现，包括：\n\nThe Claude Agent SDK；AWS的Strands Agents SDK；Rivet，一个拖放式GUI LLM工作流构建器；以及Vellum，另一个用于构建和测试复杂工作流的GUI工具。\n\n这些框架通过简化标准低级任务（如调用LLM、定义和解析工具、链式调用）使入门变得容易。然而，它们通常会增加额外的抽象层，可能掩盖底层提示和响应，使其更难调试。它们也可能使添加复杂性变得诱人，而更简单的设置可能就足够了。\n\n我们建议开发人员首先直接使用LLM API：许多模式可以用几行代码实现。如果确实使用框架，请确保理解底层代码。对内部机制的错误假设是客户错误的常见来源。\n\n请参阅我们的coo\n\nT",
    "category": "agent",
    "category_label": "Data Agent",
    "vendors": [
@@ -10458,7 +10809,458 @@
      "ingested_at": "2026-08-10T01:31:34.077328+08:00"
     }
    ],
-   "first_seen": "2026-08-10T01:31:34.077328+08:00"
+   "first_seen": "2026-08-10T01:31:34.077328+08:00",
+   "content_blocks": [
+    {
+     "type": "paragraph",
+     "id": "b-b7a7a6ce1cb7",
+     "children": [
+      {
+       "type": "text",
+       "text": "注意：本文描述的许多工具环境自2024年12月以来已经发生变化。关于我们当前的方法，请参见",
+       "marks": [
+        "em"
+       ],
+       "id": "t-9b705b3d0628"
+      },
+      {
+       "type": "text",
+       "text": "我们如何构建Claude托管代理",
+       "marks": [
+        "em",
+        {
+         "type": "link",
+         "href": "https://www.anthropic.com/engineering/managed-agents"
+        },
+        "strong"
+       ],
+       "id": "t-3b0aad130d02"
+      },
+      {
+       "type": "text",
+       "text": " ",
+       "marks": [],
+       "id": "t-b634dfbf9ac1"
+      },
+      {
+       "type": "text",
+       "text": "以及",
+       "marks": [
+        "em"
+       ],
+       "id": "t-d5387956ae64"
+      },
+      {
+       "type": "text",
+       "text": "托管代理文档",
+       "marks": [
+        "em",
+        {
+         "type": "link",
+         "href": "https://platform.claude.com/docs/en/managed-agents/overview"
+        },
+        "strong"
+       ],
+       "id": "t-595fff2e4788"
+      },
+      {
+       "type": "text",
+       "text": "。",
+       "marks": [
+        "em",
+        {
+         "type": "link",
+         "href": "https://platform.claude.com/docs/en/managed-agents/overview"
+        }
+       ],
+       "id": "t-a04dc940baee"
+      },
+      {
+       "type": "text",
+       "text": "过去一年中，我们与数十个跨行业构建大型语言模型（LLM）代理的团队合作。一致地，最成功的实现并未使用复杂的框架或专门的库，而是采用简单、可组合的模式构建。",
+       "marks": [],
+       "id": "t-e12001246a27"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-f0cd1bfb0cc8",
+     "children": [
+      {
+       "type": "text",
+       "text": "在本文中，我们分享从客户合作和自建代理中学到的经验，并为开发人员构建有效代理提供实用建议。",
+       "marks": [],
+       "id": "t-01ebfe72f591"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-7e348bbdfb03",
+     "children": [
+      {
+       "type": "text",
+       "text": "什么是代理？",
+       "marks": [],
+       "id": "t-04afc75447ff"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-e55da1b3ae24",
+     "children": [
+      {
+       "type": "text",
+       "text": "“代理”可以有多种定义。一些客户将代理定义为完全自治的系统，它们在较长时间内独立运行，使用各种工具完成复杂任务。另一些则用该术语描述更为规定性的实现，遵循预定义的工作流。在Anthropic，我们将所有这些变体归类为",
+       "marks": [],
+       "id": "t-0ed9390f08a1"
+      },
+      {
+       "type": "text",
+       "text": "代理系统",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-45315df35ded"
+      },
+      {
+       "type": "text",
+       "text": "，但区分",
+       "marks": [],
+       "id": "t-d4f3417229b0"
+      },
+      {
+       "type": "text",
+       "text": "工作流",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-1d9d9a53e3ab"
+      },
+      {
+       "type": "text",
+       "text": "和",
+       "marks": [],
+       "id": "t-30852e2b19df"
+      },
+      {
+       "type": "text",
+       "text": "代理",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-cef75c9932b6"
+      },
+      {
+       "type": "text",
+       "text": "之间的重要架构区别：",
+       "marks": [],
+       "id": "t-38e2d5764abb"
+      }
+     ]
+    },
+    {
+     "type": "list",
+     "id": "b-b30d5126da15",
+     "ordered": false,
+     "items": [
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "工作流",
+         "marks": [
+          "strong"
+         ],
+         "id": "t-e45be32908da"
+        },
+        {
+         "type": "text",
+         "text": "是通过预定义代码路径编排LLM和工具的系统。",
+         "marks": [],
+         "id": "t-a557bb8f63bb"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "代理",
+         "marks": [
+          "strong"
+         ],
+         "id": "t-3459e2ca5a3a"
+        },
+        {
+         "type": "text",
+         "text": "则是LLM动态指导自身流程和工具使用，保持对任务完成方式的控制的系统。",
+         "marks": [],
+         "id": "t-6498d48b44c2"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-18a8950de1bc",
+     "children": [
+      {
+       "type": "text",
+       "text": "下面，我们将详细探讨这两种类型的代理系统。在附录1（“实践中的代理”）中，我们描述了客户在这些系统的使用中找到特别价值的两个领域。",
+       "marks": [],
+       "id": "t-581dc98bc558"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-1d9e86e5e6d8",
+     "children": [
+      {
+       "type": "text",
+       "text": "何时使用（以及何时不使用）代理",
+       "marks": [],
+       "id": "t-7d91293a3349"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-8a14c3a31a7a",
+     "children": [
+      {
+       "type": "text",
+       "text": "在使用LLM构建应用程序时，我们建议寻找最简单的解决方案，仅在需要时增加复杂性。这可能意味着根本不构建代理系统。代理系统通常以延迟和成本换取更好的任务性能，您应考虑这种权衡是否合理。",
+       "marks": [],
+       "id": "t-4411f12d0058"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-1ce0a066cb3a",
+     "children": [
+      {
+       "type": "text",
+       "text": "当需要更多复杂性时，工作流为明确定义的任务提供可预测性和一致性，而代理在需要灵活性和模型驱动的决策制定时是更好的选择。然而，对于许多应用，通过检索和上下文示例优化单个LLM调用通常就足够了。",
+       "marks": [],
+       "id": "t-3caa791e803e"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-7adce66c9ee5",
+     "children": [
+      {
+       "type": "text",
+       "text": "何时以及如何使用框架",
+       "marks": [],
+       "id": "t-4ccf0882a29b"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-b3273e6172f7",
+     "children": [
+      {
+       "type": "text",
+       "text": "有许多框架使代理系统更容易实现，包括：",
+       "marks": [],
+       "id": "t-1606b1ae6239"
+      }
+     ]
+    },
+    {
+     "type": "list",
+     "id": "b-d7692df414b3",
+     "ordered": false,
+     "items": [
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "The ",
+         "marks": [],
+         "id": "t-4fabea1aa38a"
+        },
+        {
+         "type": "text",
+         "text": "Claude Agent SDK",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://platform.claude.com/docs/en/agent-sdk/overview"
+          }
+         ],
+         "id": "t-e2fee195ad30"
+        },
+        {
+         "type": "text",
+         "text": "；",
+         "marks": [],
+         "id": "t-3120c4c8b8f2"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "AWS的Strands Agents SDK",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://strandsagents.com/latest/"
+          }
+         ],
+         "id": "t-507bcfd508c2"
+        },
+        {
+         "type": "text",
+         "text": "；",
+         "marks": [],
+         "id": "t-af329e5caee3"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "Rivet",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://rivet.ironcladapp.com/"
+          }
+         ],
+         "id": "t-9198b89bc573"
+        },
+        {
+         "type": "text",
+         "text": "，一个拖放式GUI LLM工作流构建器；以及",
+         "marks": [],
+         "id": "t-bd23c76dad14"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "Vellum",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.vellum.ai/"
+          }
+         ],
+         "id": "t-b028eaf1b969"
+        },
+        {
+         "type": "text",
+         "text": "，另一个用于构建和测试复杂工作流的GUI工具。",
+         "marks": [],
+         "id": "t-b5cdd5136385"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-32e6ca5769ca",
+     "children": [
+      {
+       "type": "text",
+       "text": "这些框架通过简化标准低级任务（如调用LLM、定义和解析工具、链式调用）使入门变得容易。然而，它们通常会增加额外的抽象层，可能掩盖底层提示和响应，使其更难调试。它们也可能使添加复杂性变得诱人，而更简单的设置可能就足够了。",
+       "marks": [],
+       "id": "t-9c5c3137815d"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-2a4aac30f9ef",
+     "children": [
+      {
+       "type": "text",
+       "text": "我们建议开发人员首先直接使用LLM API：许多模式可以用几行代码实现。如果确实使用框架，请确保理解底层代码。对内部机制的错误假设是客户错误的常见来源。",
+       "marks": [],
+       "id": "t-59ca6fa91988"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-5ac8c769c2c9",
+     "children": [
+      {
+       "type": "text",
+       "text": "请参阅我们的",
+       "marks": [],
+       "id": "t-459e4b91174b"
+      },
+      {
+       "type": "text",
+       "text": "coo",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://platform.claude.com/cookbook/patterns-agents-basic-workflows"
+        }
+       ],
+       "id": "t-b83160d8f07f"
+      }
+     ]
+    },
+    {
+     "type": "figure",
+     "id": "b-a92f202cf383",
+     "src": "https://www.anthropic.com/_next/image?url=https%3A%2F%2Fwww-cdn.anthropic.com%2Fimages%2F4zrzovbb%2Fwebsite%2Fd3083d3f40bb2b6f477901cc9a240738d3dd1371-2401x1000.png&w=3840&q=75",
+     "alt": "",
+     "caption": "T",
+     "source_url": "https://www.anthropic.com/research/building-effective-agents",
+     "cached_src": "../media/d4f17e123698/7f1244d5fe7e5dd0e00d4255.webp",
+     "width": 2400,
+     "height": 1000,
+     "mime": "image/webp",
+     "size_bytes": 24478,
+     "media_status": "cached"
+    }
+   ],
+   "content_format": "blocks-v1",
+   "body_chars": 1013,
+   "content_level": "standard",
+   "content_parse": {
+    "run_id": "github-31553939284-1",
+    "processor_version": "blocks-v2",
+    "attempted_at": "2026-08-12T09:33:29.015318+08:00",
+    "status": "ready",
+    "source": "主编收录",
+    "strategy": "article",
+    "blocks": 85,
+    "text_chars": 17891,
+    "figures": 1,
+    "tables": 0,
+    "figures_discovered": 8,
+    "figures_selected": 1,
+    "figures_rejected": 7,
+    "media": {
+     "figures": 1,
+     "cached": 1,
+     "link_only": 0
+    }
+   }
   },
   {
    "event_id": "097d6cd340b4",
@@ -10856,7 +11658,7 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 40,
+   "heat": 39,
    "star": false,
    "published": "2026-08-09T14:55:00+08:00",
    "items": [
@@ -12334,7 +13136,7 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "published": "2026-08-06T03:01:01+08:00",
    "items": [
@@ -12809,7 +13611,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:314m_remaining",
+   "skip_reason": "frequency_gate:263m_remaining",
    "control": {
     "tier": "default",
     "fetch_interval_hours": 6.0,
@@ -12825,7 +13627,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1437m_remaining",
+   "skip_reason": "frequency_gate:1388m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -12841,7 +13643,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1437m_remaining",
+   "skip_reason": "frequency_gate:1388m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -12857,7 +13659,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:314m_remaining",
+   "skip_reason": "frequency_gate:263m_remaining",
    "control": {
     "tier": "structured_high",
     "fetch_interval_hours": 6.0,
@@ -12873,7 +13675,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:314m_remaining",
+   "skip_reason": "frequency_gate:263m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -12889,7 +13691,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:314m_remaining",
+   "skip_reason": "frequency_gate:263m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -12905,7 +13707,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:314m_remaining",
+   "skip_reason": "frequency_gate:263m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -12921,7 +13723,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:314m_remaining",
+   "skip_reason": "frequency_gate:263m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -12937,7 +13739,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:314m_remaining",
+   "skip_reason": "frequency_gate:263m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -12956,7 +13758,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:314m_remaining",
+   "skip_reason": "frequency_gate:263m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -12974,7 +13776,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:314m_remaining",
+   "skip_reason": "frequency_gate:263m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -12990,7 +13792,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:314m_remaining",
+   "skip_reason": "frequency_gate:263m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -13006,7 +13808,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:314m_remaining",
+   "skip_reason": "frequency_gate:263m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -13022,7 +13824,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:314m_remaining",
+   "skip_reason": "frequency_gate:263m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -13038,7 +13840,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1437m_remaining",
+   "skip_reason": "frequency_gate:1388m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -13056,7 +13858,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:314m_remaining",
+   "skip_reason": "frequency_gate:263m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -13074,7 +13876,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1437m_remaining",
+   "skip_reason": "frequency_gate:1388m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -13090,7 +13892,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1437m_remaining",
+   "skip_reason": "frequency_gate:1388m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -13106,7 +13908,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1437m_remaining",
+   "skip_reason": "frequency_gate:1388m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -13122,7 +13924,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1437m_remaining",
+   "skip_reason": "frequency_gate:1388m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -13138,7 +13940,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:231m_remaining",
+   "skip_reason": "frequency_gate:180m_remaining",
    "control": {
     "tier": "media_targeted",
     "fetch_interval_hours": 12.0,
@@ -13154,7 +13956,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1437m_remaining",
+   "skip_reason": "frequency_gate:1388m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -13170,7 +13972,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1437m_remaining",
+   "skip_reason": "frequency_gate:1388m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -13186,7 +13988,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:231m_remaining",
+   "skip_reason": "frequency_gate:180m_remaining",
    "control": {
     "tier": "community_targeted",
     "fetch_interval_hours": 12.0,
@@ -13202,7 +14004,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:231m_remaining",
+   "skip_reason": "frequency_gate:180m_remaining",
    "control": {
     "tier": "community_targeted",
     "fetch_interval_hours": 12.0,
@@ -13218,7 +14020,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:314m_remaining",
+   "skip_reason": "frequency_gate:263m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -13236,7 +14038,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:314m_remaining",
+   "skip_reason": "frequency_gate:263m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -13254,7 +14056,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:231m_remaining",
+   "skip_reason": "frequency_gate:180m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -13273,7 +14075,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:231m_remaining",
+   "skip_reason": "frequency_gate:180m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -13292,7 +14094,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:231m_remaining",
+   "skip_reason": "frequency_gate:180m_remaining",
    "control": {
     "tier": "engineering_targeted",
     "fetch_interval_hours": 12.0,
@@ -13310,7 +14112,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:314m_remaining",
+   "skip_reason": "frequency_gate:263m_remaining",
    "control": {
     "tier": "structured_high",
     "fetch_interval_hours": 6.0,
@@ -13329,7 +14131,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:231m_remaining",
+   "skip_reason": "frequency_gate:180m_remaining",
    "control": {
     "tier": "structured_high",
     "fetch_interval_hours": 12.0,
@@ -13348,7 +14150,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:231m_remaining",
+   "skip_reason": "frequency_gate:180m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -13368,7 +14170,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:314m_remaining",
+   "skip_reason": "frequency_gate:263m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -13387,7 +14189,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:231m_remaining",
+   "skip_reason": "frequency_gate:180m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 12.0,
@@ -13405,7 +14207,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:231m_remaining",
+   "skip_reason": "frequency_gate:180m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -13424,7 +14226,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:231m_remaining",
+   "skip_reason": "frequency_gate:180m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -13441,32 +14243,32 @@
   }
  ],
  "structured_content": {
-  "run_id": "github-31551069545-1",
+  "run_id": "github-31553939284-1",
   "attempted": 2,
   "ready": 2,
   "figures": 4,
-  "tables": 1,
-  "media_cached": 2,
-  "media_link_only": 2,
+  "tables": 0,
+  "media_cached": 1,
+  "media_link_only": 3,
   "strategies": {
    "semantic_container": 1,
    "article": 1
   },
   "fallbacks": {},
   "by_source": {
-   "ThoughtSpot Blog": {
+   "人人都是产品经理": {
     "attempted": 1,
     "ready": 1,
-    "figures": 2,
-    "tables": 1,
+    "figures": 3,
+    "tables": 0,
     "media_cached": 0
    },
    "主编收录": {
     "attempted": 1,
     "ready": 1,
-    "figures": 2,
+    "figures": 1,
     "tables": 0,
-    "media_cached": 2
+    "media_cached": 1
    }
   },
   "backfill": {

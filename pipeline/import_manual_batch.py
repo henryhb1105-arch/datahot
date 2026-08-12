@@ -46,6 +46,11 @@ def stable_id(url: str) -> str:
     return hashlib.md5(norm_url(url).encode("utf-8")).hexdigest()[:12]
 
 
+def iso_timestamp(value: str) -> str:
+    """Normalize valid ISO timestamps to the form consumed by site builders."""
+    return datetime.fromisoformat(str(value).replace("Z", "+00:00")).isoformat()
+
+
 def _require_text(record: dict, key: str) -> str:
     value = str(record.get(key) or "").strip()
     if not value:
@@ -57,7 +62,7 @@ def validate_batch(batch: dict) -> list[dict]:
     if not isinstance(batch, dict) or batch.get("schema_version") != 1:
         raise ValueError("manual batch must use schema_version 1")
     ingested_at = _require_text(batch, "ingested_at")
-    datetime.fromisoformat(ingested_at.replace("Z", "+00:00"))
+    iso_timestamp(ingested_at)
     records = batch.get("items")
     if not isinstance(records, list) or not records:
         raise ValueError("manual batch items must be a non-empty list")
@@ -69,21 +74,32 @@ def validate_batch(batch: dict) -> list[dict]:
             raise ValueError("manual batch items must be objects")
         for key in (
             "zh_title", "zh_summary", "reason", "full_zh", "source_title",
-            "source_url", "discovery_url", "discovery_account", "published",
+            "source_url", "published",
         ):
             _require_text(record, key)
         if record.get("category") not in CATEGORY_LABELS:
             raise ValueError(f"invalid category: {record.get('category')}")
+        if record.get("shelf", "news") not in {"news", "evergreen"}:
+            raise ValueError(f"invalid shelf: {record.get('shelf')}")
+        if "source_name" in record:
+            _require_text(record, "source_name")
         published = record["published"]
-        datetime.fromisoformat(str(published).replace("Z", "+00:00"))
+        iso_timestamp(published)
         source_url = norm_url(record["source_url"])
-        discovery_url = norm_url(record["discovery_url"])
+        discovery_url = str(record.get("discovery_url") or "").strip()
+        discovery_account = str(record.get("discovery_account") or "").strip()
+        if bool(discovery_url) != bool(discovery_account):
+            raise ValueError("discovery_url and discovery_account must be provided together")
+        if record.get("discovery_published"):
+            iso_timestamp(record["discovery_published"])
         if source_url in canonical_urls:
             raise ValueError(f"duplicate canonical URL in batch: {source_url}")
-        if discovery_url in discovery_urls:
-            raise ValueError(f"duplicate discovery URL in batch: {discovery_url}")
         canonical_urls.add(source_url)
-        discovery_urls.add(discovery_url)
+        if discovery_url:
+            discovery_url = norm_url(discovery_url)
+            if discovery_url in discovery_urls:
+                raise ValueError(f"duplicate discovery URL in batch: {discovery_url}")
+            discovery_urls.add(discovery_url)
     return records
 
 
@@ -94,7 +110,7 @@ def _x_item(record: dict, ingested_at: str) -> dict:
         "id": stable_id(url),
         "source": f"X 线索·@{account}",
         "link": url,
-        "published": record["published"],
+        "published": iso_timestamp(record.get("discovery_published") or record["published"]),
         "ingested_at": ingested_at,
         "title": record.get("discovery_title") or f"X 原帖：{record['zh_title']}",
     }
@@ -105,15 +121,16 @@ def _new_event(record: dict, ingested_at: str) -> dict:
     importance = int(record.get("importance") or 70)
     items = [{
         "id": stable_id(source_url),
-        "source": "主编收录",
+        "source": record.get("source_name") or "主编收录",
         "link": source_url,
-        "published": record["published"],
+        "published": iso_timestamp(record["published"]),
         "ingested_at": ingested_at,
         "title": record["source_title"],
     }]
-    if norm_url(record["discovery_url"]) != norm_url(source_url):
+    discovery_url = str(record.get("discovery_url") or "").strip()
+    if discovery_url and norm_url(discovery_url) != norm_url(source_url):
         items.append(_x_item(record, ingested_at))
-    return {
+    event = {
         "event_id": stable_id(source_url),
         "zh_title": record["zh_title"],
         "zh_summary": record["zh_summary"],
@@ -129,14 +146,16 @@ def _new_event(record: dict, ingested_at: str) -> dict:
         "importance": importance,
         "signal": 0,
         "topics": list(dict.fromkeys(record.get("topics") or []))[:2],
-        "shelf": "news",
+        "shelf": record.get("shelf") or "news",
         "pinned": False,
-        "published": record["published"],
+        "published": iso_timestamp(record["published"]),
         "first_seen": ingested_at,
-        "discovery_url": record["discovery_url"],
-        "discovery_source": f"X·@{record['discovery_account'].lstrip('@')}",
         "items": items,
     }
+    if discovery_url:
+        event["discovery_url"] = record["discovery_url"]
+        event["discovery_source"] = f"X·@{record['discovery_account'].lstrip('@')}"
+    return event
 
 
 def import_batch(batch_path: Path, latest_path: Path = DEFAULT_LATEST) -> dict:
@@ -166,10 +185,14 @@ def import_batch(batch_path: Path, latest_path: Path = DEFAULT_LATEST) -> dict:
             added += 1
             continue
 
-        event["discovery_url"] = record["discovery_url"]
+        discovery_url = str(record.get("discovery_url") or "").strip()
+        if not discovery_url:
+            unchanged += 1
+            continue
+        event["discovery_url"] = discovery_url
         event["discovery_source"] = f"X·@{record['discovery_account'].lstrip('@')}"
         existing_links = {norm_url(item["link"]) for item in event.get("items") or []}
-        discovery = norm_url(record["discovery_url"])
+        discovery = norm_url(discovery_url)
         if discovery in existing_links:
             unchanged += 1
             continue

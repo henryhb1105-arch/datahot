@@ -113,6 +113,24 @@ class LLMUsageTrackerTests(unittest.TestCase):
             with self.assertRaises(LLMBudgetExceeded):
                 tracker.before_call("enrich", "a", estimated_tokens=11)
 
+    def test_budget_preflight_is_read_only_and_reports_both_limits(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "usage.json"
+            path.write_text(json.dumps({
+                "daily": {NOW.date().isoformat(): {"accounted_tokens": 60}}
+            }), encoding="utf-8")
+            tracker = self.make_tracker(
+                tmp, MAX_LLM_TOKENS_PER_RUN="50", MAX_LLM_TOKENS_PER_DAY="100",
+            )
+            status = tracker.budget_status(estimated_tokens=45)
+            self.assertEqual(status["run_remaining"], 50)
+            self.assertEqual(status["daily_remaining"], 40)
+            self.assertEqual(status["available_tokens"], 40)
+            self.assertFalse(status["available"])
+            self.assertFalse(tracker.can_call(45))
+            self.assertEqual(tracker.skipped["budget"], 0)
+            self.assertEqual(tracker.snapshot()["calls"], 0)
+
     def test_compile_limit_counts_unique_events_not_chunks(self):
         with tempfile.TemporaryDirectory() as tmp:
             tracker = self.make_tracker(tmp, MAX_COMPILE_EVENTS_PER_RUN="1")

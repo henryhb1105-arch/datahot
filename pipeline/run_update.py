@@ -32,6 +32,7 @@ from work_tags import (
     TAXONOMY_VERSION as WORK_TAGS_VERSION,
     merge_work_tags, normalize_work_tags, prompt_instructions as work_tag_prompt,
 )
+from lite_data import DEFAULT_PAGE_SIZE, FIRST_PAGE_SOURCE_CAPS, rank_timeline_events
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
@@ -45,6 +46,8 @@ LLM_USAGE = LLMUsageTracker(DATA / "llm_usage.json")
 CANDIDATE_CACHE = CandidateCache(DATA / "candidate_cache.json")
 CLUSTER_CACHE = ClusterDecisionCache(DATA / "cluster_cache.json")
 CONTENT_BLOCKS_PROCESSOR_VERSION = "original-first-v1"
+TRANSLATION_RETRY_POLICY_VERSION = "faithful-translation-retry-v1"
+METADATA_TRANSLATION_POLICY_VERSION = "metadata-translation-backfill-v1"
 
 UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/126.0 Safari/537.36",
       "Accept": "application/rss+xml,application/xml,text/xml,*/*"}
@@ -925,6 +928,48 @@ def _translation_batches(nodes, maximum_chars=None):
     return batches
 
 
+def _block_translation_prompt(batch, index, total):
+    return (
+        "你是忠实翻译器。下面 JSON 来自同一篇文章，按原文顺序逐节点翻译成简体中文。"
+        "只翻译 text：不得总结、删减、扩写、重组、合并或改变论证顺序；"
+        "保留全部事实、数字、专有名词、代码和链接文字。"
+        "不新增节点，不输出 HTML/Markdown，不改 id。"
+        '只输出 JSON：{"nodes":[{"id":"原id","text":"忠实中文译文"}]}\n'
+        f"批次 {index}/{total}：\n"
+        + json.dumps(batch, ensure_ascii=False, separators=(",", ":"))
+    )
+
+
+def _plain_translation_prompt(chunk, index, total):
+    return (
+        "将下面文章片段忠实翻译成简体中文。不得总结、删减、扩写、重组或抽象；"
+        "保留段落顺序、事实、数字、专有名词和代码。只输出译文。\n\n"
+        f"片段 {index}/{total}：\n{chunk}"
+    )
+
+
+def _estimated_llm_tokens(prompt, max_tokens):
+    return max(512, len(prompt) // 3 + int(max_tokens or 0))
+
+
+def translation_budget_estimate(blocks=None, text=""):
+    """Estimate the whole faithful translation before starting any paid batch."""
+    source_blocks = sanitize_blocks(blocks or [])
+    if source_blocks:
+        batches = _translation_batches(translation_nodes(source_blocks, maximum_chars=None))
+        prompts = [
+            _block_translation_prompt(batch, index, len(batches))
+            for index, batch in enumerate(batches, start=1)
+        ]
+    else:
+        chunks = _plain_text_chunks(text)
+        prompts = [
+            _plain_translation_prompt(chunk, index, len(chunks))
+            for index, chunk in enumerate(chunks, start=1)
+        ]
+    return sum(_estimated_llm_tokens(prompt, 8000) for prompt in prompts)
+
+
 def translate_article_blocks(blocks, cfg, *, source, item_id, deep=False, purpose=""):
     """Faithfully translate every text node while preserving local structure/IDs."""
     del deep  # 兼容旧调用签名；原文优先方案不再区分“标准/深度编译”。
@@ -939,15 +984,7 @@ def translate_article_blocks(blocks, cfg, *, source, item_id, deep=False, purpos
     translated_nodes = []
     batches = _translation_batches(nodes)
     for index, batch in enumerate(batches, start=1):
-        prompt = (
-            "你是忠实翻译器。下面 JSON 来自同一篇文章，按原文顺序逐节点翻译成简体中文。"
-            "只翻译 text：不得总结、删减、扩写、重组、合并或改变论证顺序；"
-            "保留全部事实、数字、专有名词、代码和链接文字。"
-            "不新增节点，不输出 HTML/Markdown，不改 id。"
-            '只输出 JSON：{"nodes":[{"id":"原id","text":"忠实中文译文"}]}\n'
-            f"批次 {index}/{len(batches)}：\n"
-            + json.dumps(batch, ensure_ascii=False, separators=(",", ":"))
-        )
+        prompt = _block_translation_prompt(batch, index, len(batches))
         out = llm_chat(
             base, key, model, prompt, max_tokens=8000,
             purpose=purpose or "body_translation",
@@ -989,9 +1026,7 @@ def translate_plain_text(text, cfg, *, source, item_id, purpose="body_translatio
     for index, chunk in enumerate(chunks, start=1):
         translated = llm_chat_text(
             base, key, model,
-            "将下面文章片段忠实翻译成简体中文。不得总结、删减、扩写、重组或抽象；"
-            "保留段落顺序、事实、数字、专有名词和代码。只输出译文。\n\n"
-            f"片段 {index}/{len(chunks)}：\n{chunk}",
+            _plain_translation_prompt(chunk, index, len(chunks)),
             max_tokens=8000, purpose=purpose, source=source, item_id=item_id,
         ).strip()
         if not translated:
@@ -1062,11 +1097,22 @@ def generate_event_body(
     article_text = str(primary.get("article_text") or "").strip()
     original_text = blocks_plain_text(article_blocks) if article_blocks else article_text
     content_hash = _content_hash(article_blocks, article_text)
-    if (
+    previous_record = (
+        dict(event.get("content_parse"))
+        if isinstance(event.get("content_parse"), dict) else {}
+    )
+    completed_same_source = bool(
         content_hash and event.get("source_content_hash") == content_hash
-        and event.get("content_mode") in {"original", "translated"}
         and (event.get("content_blocks") or event.get("full_zh"))
-    ):
+        and (
+            event.get("content_mode") == "translated"
+            and event.get("translation_status") == "complete"
+            or event.get("content_mode") == "original"
+            and event.get("source_language") == "zh"
+            and event.get("translation_status") == "not_needed"
+        )
+    )
+    if completed_same_source:
         return event.get("full_zh", "")
 
     if not original_text:
@@ -1087,6 +1133,14 @@ def generate_event_body(
     translation_error = ""
     if language != "zh":
         try:
+            if cfg[0] and cfg[1] and cfg[2]:
+                estimated_tokens = translation_budget_estimate(article_blocks, article_text)
+                if estimated_tokens and not LLM_USAGE.can_call(estimated_tokens):
+                    status = LLM_USAGE.budget_status(estimated_tokens)
+                    raise LLMBudgetExceeded(
+                        "whole article translation needs "
+                        f"{estimated_tokens} tokens; available {status['available_tokens']}"
+                    )
             if article_blocks:
                 translated, stats = translate_article_blocks(
                     article_blocks, cfg, source=source, item_id=event["event_id"],
@@ -1142,6 +1196,20 @@ def generate_event_body(
         "content_mode": mode, "source_language": language,
         "translation_status": translation_status, "source_content_hash": content_hash,
     })
+    if isinstance(previous_record.get("metadata_translation"), dict):
+        record["metadata_translation"] = previous_record["metadata_translation"]
+    if language != "zh":
+        record["translation"] = {
+            "run_id": LLM_USAGE.run_id,
+            "policy_version": TRANSLATION_RETRY_POLICY_VERSION,
+            "attempted_at": datetime.now(TZ).isoformat(),
+            "purpose": purpose,
+            "status": "complete" if translation_status == "complete" else (
+                "budget_deferred" if translation_error == "LLMBudgetExceeded" else translation_status
+            ),
+        }
+        if translation_error:
+            record["translation"]["error"] = translation_error[:80]
     event["content_parse"] = record
     event["full_zh"] = display_text
     event["content_mode"] = mode
@@ -1171,25 +1239,156 @@ def _event_time(event):
     return value.astimezone(timezone.utc)
 
 
+def _contains_han(value):
+    return bool(re.search(r"[\u3400-\u9fff]", str(value or "")))
+
+
+def _metadata_translation_record(event):
+    record = event.get("content_parse") if isinstance(event.get("content_parse"), dict) else {}
+    nested = record.get("metadata_translation")
+    return nested if isinstance(nested, dict) else {}
+
+
+def backfill_event_metadata(events, cfg, *, now=None, limit=None, lookback_days=30):
+    """Repair recent non-Chinese list metadata without replacing or deleting events."""
+    now = now or datetime.now(timezone.utc)
+    now_utc = now.replace(tzinfo=timezone.utc) if now.tzinfo is None else now.astimezone(timezone.utc)
+    limit = (
+        _bounded_env_int("CONTENT_METADATA_BACKFILL_LIMIT", 3, maximum=8)
+        if limit is None else max(0, min(8, int(limit)))
+    )
+    summary = {
+        "limit": limit, "eligible": 0, "attempted": 0, "complete": 0,
+        "deferred_budget": 0, "skipped": 0, "failed": 0,
+    }
+    key, base, model = cfg
+    if not (limit and key and base and model):
+        summary["disabled_reason"] = "no_budget_or_config"
+        return summary
+
+    cooldown_cutoff = now_utc - timedelta(hours=6)
+    eligible = []
+    for event in events:
+        if not event.get("items") or _event_time(event) < now_utc - timedelta(days=lookback_days):
+            continue
+        if _contains_han(event.get("zh_title")) and _contains_han(event.get("zh_summary")):
+            continue
+        previous = _metadata_translation_record(event)
+        attempted_at = parse_date(previous.get("attempted_at"))
+        if (
+            previous.get("policy_version") == METADATA_TRANSLATION_POLICY_VERSION
+            and previous.get("status") == "provider_error"
+            and attempted_at is not None
+        ):
+            if attempted_at.tzinfo is None:
+                attempted_at = attempted_at.replace(tzinfo=timezone.utc)
+            if attempted_at.astimezone(timezone.utc) >= cooldown_cutoff:
+                continue
+        eligible.append(event)
+    eligible.sort(key=_event_time, reverse=True)
+    summary["eligible"] = len(eligible)
+
+    for event in eligible[:limit]:
+        primary = event["items"][0]
+        original_title = primary.get("title") or event.get("zh_title") or ""
+        original_summary = event.get("zh_summary") or ""
+        original_body = str(event.get("full_zh") or "")[:2200]
+        prompt = (
+            ENRICH_RULES
+            + "\n\n这是已收录事件的中文元数据补译。不得因 relevant=false 删除事件；"
+              "只依据给出的原文忠实生成中文标题、摘要和推荐理由，不得抽象、扩写或编造。\n"
+            + f"标题：{original_title}\n摘要：{original_summary[:800]}\n原文节选：{original_body}"
+        )
+        estimated_tokens = _estimated_llm_tokens(prompt, 1800)
+        if not LLM_USAGE.can_call(estimated_tokens):
+            summary["deferred_budget"] += 1
+            break
+        summary["attempted"] += 1
+        try:
+            out = llm_chat(
+                base, key, model, prompt, max_tokens=1800,
+                purpose="metadata_translation_backfill",
+                source=primary.get("source", ""), item_id=event.get("event_id", ""),
+                strict_object=True,
+            )
+            zh_title = str(out.get("zh_title") or "").strip()
+            zh_summary = str(out.get("zh_summary") or "").strip()
+            if not (_contains_han(zh_title) and _contains_han(zh_summary)):
+                raise ValueError("metadata_translation_missing_chinese")
+            event["zh_title"] = zh_title
+            event["zh_summary"] = zh_summary
+            event["reason"] = str(out.get("reason") or event.get("reason") or "").strip()
+            category = out.get("category")
+            if category in CATEGORIES_LABEL:
+                event["category"] = category
+                event["category_label"] = CATEGORIES_LABEL[category]
+            event["vendors"] = list(dict.fromkeys(
+                list(event.get("vendors") or [])
+                + [value for value in (out.get("vendors") or []) if isinstance(value, str) and value.strip()]
+            ))[:5]
+            event["topics"] = [value for value in (out.get("topics") or []) if value in TOPIC_NAMES][:2]
+            if isinstance(out.get("work_tags"), dict):
+                event["work_tags"] = normalize_work_tags(out["work_tags"])
+            if out.get("shelf") in {"news", "evergreen"}:
+                event["shelf"] = out["shelf"]
+            try:
+                event["importance"] = min(100, max(1, int(out.get("importance", event.get("importance", 50)))))
+            except (TypeError, ValueError):
+                pass
+            event["star"] = int(event.get("importance", 50) or 50) >= 75
+            recalc_event_heat(event)
+            nested = {
+                "run_id": LLM_USAGE.run_id,
+                "policy_version": METADATA_TRANSLATION_POLICY_VERSION,
+                "attempted_at": datetime.now(TZ).isoformat(),
+                "purpose": "metadata_translation_backfill",
+                "status": "complete",
+            }
+            record = dict(event.get("content_parse") or {})
+            record["metadata_translation"] = nested
+            event["content_parse"] = record
+            summary["complete"] += 1
+            print(f"[metadata-backfill] {event.get('event_id')} | {zh_title[:40]}")
+        except LLMBudgetExceeded:
+            summary["attempted"] -= 1
+            summary["deferred_budget"] += 1
+            break
+        except Exception as exc:
+            record = dict(event.get("content_parse") or {})
+            record["metadata_translation"] = {
+                "run_id": LLM_USAGE.run_id,
+                "policy_version": METADATA_TRANSLATION_POLICY_VERSION,
+                "attempted_at": datetime.now(TZ).isoformat(),
+                "purpose": "metadata_translation_backfill",
+                "status": "provider_error",
+                "error": type(exc).__name__[:80],
+            }
+            event["content_parse"] = record
+            summary["failed"] += 1
+            print(f"[metadata-backfill] 失败 {event.get('event_id')} | {exc}")
+    return summary
+
+
 def backfill_structured_content(
     events, cfg, *, now=None, limit=None, lookback_days=None, feed_content_by_url=None,
     source_configs=None,
 ):
-    """Upgrade legacy detail bodies; Chinese is free, foreign translation is bounded."""
+    """Upgrade legacy bodies and retry preserved foreign originals in a stable order."""
     now = now or datetime.now(timezone.utc)
     now_utc = now.replace(tzinfo=timezone.utc) if now.tzinfo is None else now.astimezone(timezone.utc)
     limit = (
-        _bounded_env_int("CONTENT_TRANSLATION_BACKFILL_LIMIT", 2, maximum=8)
+        _bounded_env_int("CONTENT_TRANSLATION_BACKFILL_LIMIT", 6, maximum=8)
         if limit is None else max(0, min(8, int(limit)))
     )
     lookback_days = (
         _bounded_env_int("CONTENT_BLOCKS_BACKFILL_DAYS", 30, minimum=1, maximum=90)
         if lookback_days is None else max(1, min(90, int(lookback_days)))
     )
-    attempt_limit = _bounded_env_int("CONTENT_BACKFILL_ATTEMPTS", 24, maximum=48)
+    attempt_limit = _bounded_env_int("CONTENT_BACKFILL_ATTEMPTS", 12, maximum=48)
     summary = {
-        "foreign_limit": limit, "attempted": 0, "ready": 0,
+        "foreign_limit": limit, "eligible": 0, "attempted": 0, "ready": 0,
         "original": 0, "translated": 0, "deferred_foreign": 0,
+        "deferred_budget": 0, "stored_original_retries": 0,
         "skipped": 0, "failed": 0,
     }
     if attempt_limit <= 0:
@@ -1200,42 +1399,73 @@ def backfill_structured_content(
     retry_cutoff = now_utc - timedelta(days=7)
     eligible = []
     for event in events:
-        if (
-            event.get("content_mode") in {"original", "translated"}
-            or _event_time(event) < now_utc - timedelta(days=lookback_days)
-        ):
+        if _event_time(event) < now_utc - timedelta(days=lookback_days) or not event.get("items"):
             continue
+        mode = event.get("content_mode")
+        language = event.get("source_language")
+        translation_status = event.get("translation_status")
+        if mode == "translated" and translation_status == "complete":
+            continue
+        if mode == "original" and language == "zh" and translation_status == "not_needed":
+            continue
+        foreign_retry = bool(
+            mode == "original" and language != "zh" and translation_status != "complete"
+            and (event.get("content_blocks") or event.get("full_zh"))
+        )
         previous = event.get("content_parse") if isinstance(event.get("content_parse"), dict) else {}
-        attempted_at = parse_date(previous.get("attempted_at"))
-        if attempted_at is not None and previous.get("processor_version") == CONTENT_BLOCKS_PROCESSOR_VERSION:
-            if attempted_at.tzinfo is None:
-                attempted_at = attempted_at.replace(tzinfo=timezone.utc)
-            if attempted_at.astimezone(timezone.utc) >= retry_cutoff:
-                continue
-        if not event.get("items"):
-            continue
+        if not foreign_retry:
+            attempted_at = parse_date(previous.get("attempted_at"))
+            if attempted_at is not None and previous.get("processor_version") == CONTENT_BLOCKS_PROCESSOR_VERSION:
+                if attempted_at.tzinfo is None:
+                    attempted_at = attempted_at.replace(tzinfo=timezone.utc)
+                if attempted_at.astimezone(timezone.utc) >= retry_cutoff:
+                    continue
         eligible.append(event)
-    eligible.sort(
-        key=lambda event: (
-            bool(event.get("pinned")), event.get("shelf") == "evergreen",
-            int(event.get("importance", 0) or 0), _event_time(event),
+
+    homepage = rank_timeline_events(
+        events, page_size=DEFAULT_PAGE_SIZE, source_caps=FIRST_PAGE_SOURCE_CAPS,
+    )[:DEFAULT_PAGE_SIZE]
+    home_priority = {
+        event.get("event_id"): DEFAULT_PAGE_SIZE - index
+        for index, event in enumerate(homepage)
+    }
+    eligible.sort(key=lambda event: (
+        int(
+            _metadata_translation_record(event).get("run_id") == LLM_USAGE.run_id
+            and _metadata_translation_record(event).get("status") == "complete"
         ),
-        reverse=True,
-    )
+        home_priority.get(event.get("event_id"), 0),
+        bool(event.get("pinned")), event.get("shelf") == "evergreen",
+        int(event.get("importance", 0) or 0), _event_time(event),
+    ), reverse=True)
+    summary["eligible"] = len(eligible)
 
     foreign_used = 0
     for event in eligible[:attempt_limit]:
         primary = event["items"][0]
         source = primary.get("source", "")
         summary["attempted"] += 1
-        text, _title, _published, blocks, parse_report = fetch_article_content(
-            primary.get("link", ""), include_report=True,
+        previous = event.get("content_parse") if isinstance(event.get("content_parse"), dict) else {}
+        stored_blocks = sanitize_blocks(event.get("content_blocks", []), primary.get("link", ""))
+        stored_text = blocks_plain_text(stored_blocks) if stored_blocks else str(event.get("full_zh") or "").strip()
+        stored_foreign = bool(
+            event.get("content_mode") == "original"
+            and event.get("source_language") != "zh"
+            and event.get("translation_status") != "complete"
+            and stored_text
         )
-        text, blocks, parse_report = prefer_rss_article_content(
-            text, blocks, parse_report,
-            feed_content_by_url.get(norm_url(primary.get("link", ""))),
-            primary.get("link", ""),
-        )
+        if stored_foreign:
+            text, blocks, parse_report = stored_text, stored_blocks, dict(previous)
+            summary["stored_original_retries"] += 1
+        else:
+            text, _title, _published, blocks, parse_report = fetch_article_content(
+                primary.get("link", ""), include_report=True,
+            )
+            text, blocks, parse_report = prefer_rss_article_content(
+                text, blocks, parse_report,
+                feed_content_by_url.get(norm_url(primary.get("link", ""))),
+                primary.get("link", ""),
+            )
         if not text:
             event["content_parse"] = content_parse_record(
                 parse_report, status="skipped", source=source,
@@ -1247,8 +1477,15 @@ def backfill_structured_content(
         can_translate = bool(
             language != "zh" and cfg[0] and cfg[1] and cfg[2] and foreign_used < limit
         )
+        if can_translate:
+            estimated_tokens = translation_budget_estimate(blocks, text)
+            if estimated_tokens and not LLM_USAGE.can_call(estimated_tokens):
+                can_translate = False
+                summary["deferred_budget"] += 1
         if language != "zh" and not can_translate:
             summary["deferred_foreign"] += 1
+            if stored_foreign:
+                continue
         if can_translate:
             foreign_used += 1
         body_cfg = cfg if language == "zh" or can_translate else ("", "", "")
@@ -1276,7 +1513,7 @@ def backfill_structured_content(
             )
             summary["failed"] += 1
             print(f"[backfill] 失败 {event.get('zh_title', '')[:36]} | {exc}")
-    summary["planned"] = summary["attempted"] - summary["skipped"] - summary["deferred_foreign"]
+    summary["planned"] = summary["ready"]
     return summary
 
 
@@ -1979,12 +2216,14 @@ def main():
             f"降级 {body_state['fallback']} 个"
         )
 
+    metadata_backfill_summary = backfill_event_metadata(events, cfg, now=now)
     backfill_summary = backfill_structured_content(
         events, cfg, now=now, feed_content_by_url=feed_content_by_url,
         source_configs=source_configs,
     )
     media_refresh_summary = refresh_media_cache(events, source_configs)
     run_structured = structured_content_metrics(events, run_id=LLM_USAGE.run_id)
+    run_structured["metadata_backfill"] = metadata_backfill_summary
     run_structured["backfill"] = backfill_summary
     run_structured["media_refresh"] = media_refresh_summary
     write_structured_content_summary(run_structured)

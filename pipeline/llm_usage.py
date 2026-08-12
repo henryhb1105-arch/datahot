@@ -79,6 +79,34 @@ class LLMUsageTracker:
             )
         )
 
+    def budget_status(self, estimated_tokens=0):
+        """Return a read-only budget projection without reserving or counting a skip."""
+        estimated_tokens = max(0, int(estimated_tokens or 0))
+        with self.lock:
+            used_run = self.totals["accounted_tokens"] + self.reserved_tokens
+            used_daily = self._daily_tokens_before_run + used_run
+            run_remaining = (
+                max(0, self.max_run_tokens - used_run)
+                if self.max_run_tokens else None
+            )
+            daily_remaining = (
+                max(0, self.max_daily_tokens - used_daily)
+                if self.max_daily_tokens else None
+            )
+            limits = [value for value in (run_remaining, daily_remaining) if value is not None]
+            available_tokens = min(limits) if limits else None
+            return {
+                "estimated_tokens": estimated_tokens,
+                "run_remaining": run_remaining,
+                "daily_remaining": daily_remaining,
+                "available_tokens": available_tokens,
+                "available": available_tokens is None or estimated_tokens <= available_tokens,
+            }
+
+    def can_call(self, estimated_tokens=0):
+        """Cheap preflight used to avoid known-over-budget retry calls."""
+        return self.budget_status(estimated_tokens)["available"]
+
     def _load_history(self):
         try:
             data = json.loads(self.path.read_text(encoding="utf-8"))

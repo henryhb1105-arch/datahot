@@ -255,6 +255,33 @@ class EventFirstPipelineTests(unittest.TestCase):
         self.assertEqual(target["content_mode"], "original")
         self.assertEqual(target["translation_status"], "failed")
 
+    def test_same_hash_foreign_original_retries_after_budget_failure(self):
+        target = event("retry", zh_summary="预算摘要")
+        original = "English source fact 123. " * 80
+        primary = item("p", "Data update", article_text=original)
+        with patch.object(run_update, "llm_chat_text", side_effect=LLMBudgetExceeded("limit")):
+            first = run_update.generate_event_body(target, primary, ("k", "base", "model"), {})
+        with patch.object(run_update, "llm_chat_text", return_value="忠实中文译文。" * 80) as translate:
+            second = run_update.generate_event_body(target, primary, ("k", "base", "model"), {})
+        self.assertEqual(first, original.strip())
+        self.assertTrue(second.startswith("忠实中文译文"))
+        self.assertEqual(target["content_mode"], "translated")
+        self.assertEqual(target["translation_status"], "complete")
+        translate.assert_called()
+
+    def test_whole_article_budget_preflight_keeps_original_without_partial_calls(self):
+        target = event("preflight", zh_summary="预算摘要")
+        original = "English source fact 123. " * 80
+        primary = item("p", "Data update", article_text=original)
+        with patch.object(run_update.LLM_USAGE, "can_call", return_value=False), patch.object(
+            run_update.LLM_USAGE, "budget_status",
+            return_value={"available_tokens": 100, "available": False},
+        ), patch.object(run_update, "llm_chat_text") as translate:
+            result = run_update.generate_event_body(target, primary, ("k", "base", "model"), {})
+        self.assertEqual(result, original.strip())
+        self.assertEqual(target["content_parse"]["translation"]["status"], "budget_deferred")
+        translate.assert_not_called()
+
     def test_unavailable_original_is_the_only_summary_fallback(self):
         target = event("missing", zh_summary="保留摘要")
         primary = item("p", "Data update", article_text="", summary="")
@@ -458,6 +485,57 @@ class EventFirstPipelineTests(unittest.TestCase):
         self.assertEqual(sum(bool(call.args[1][0]) for call in translate.call_args_list), 1)
         self.assertEqual(first["content_mode"], "translated")
         self.assertEqual(second["content_mode"], "original")
+
+    def test_backfill_retries_stored_foreign_original_without_refetching(self):
+        target = event("stored", importance=90)
+        target.update({
+            "full_zh": "English stored original facts. " * 80,
+            "content_mode": "original",
+            "source_language": "other",
+            "translation_status": "unavailable",
+        })
+        with patch.object(run_update, "fetch_article_content") as fetch, patch.object(
+            run_update, "translate_plain_text", return_value="忠实中文译文。" * 80,
+        ) as translate:
+            summary = run_update.backfill_structured_content(
+                [target], ("k", "base", "model"), now=NOW, limit=1, lookback_days=30,
+            )
+        self.assertEqual(summary["stored_original_retries"], 1)
+        self.assertEqual(target["content_mode"], "translated")
+        fetch.assert_not_called()
+        translate.assert_called_once()
+
+    def test_metadata_backfill_repairs_recent_event_and_records_token_purpose(self):
+        target = event(
+            "metadata", title="English title", zh_summary="English summary",
+            importance=50,
+        )
+        target["items"][0]["title"] = "English title"
+        output = {
+            "relevant": True,
+            "zh_title": "数据平台英文文章标题",
+            "zh_summary": "这是一段忠实的中文摘要，保留原文事实。",
+            "reason": "值得数据从业者关注。",
+            "category": "platform",
+            "topics": [], "vendors": [], "importance": 65, "shelf": "news",
+        }
+        with patch.object(run_update, "llm_chat", return_value=output) as call:
+            summary = run_update.backfill_event_metadata(
+                [target], ("k", "base", "model"), now=NOW, limit=1,
+            )
+        self.assertEqual(summary["complete"], 1)
+        self.assertEqual(target["zh_title"], output["zh_title"])
+        self.assertEqual(target["content_parse"]["metadata_translation"]["status"], "complete")
+        self.assertEqual(call.call_args.kwargs["purpose"], "metadata_translation_backfill")
+
+    def test_update_workflow_uses_new_translation_limits_and_exact_env_names(self):
+        workflow = (ROOT / ".github" / "workflows" / "update.yml").read_text(encoding="utf-8")
+        self.assertIn("MAX_LLM_TOKENS_PER_DAY: ${{ vars.MAX_LLM_TOKENS_PER_DAY || '1000000' }}", workflow)
+        self.assertIn("CONTENT_TRANSLATION_BACKFILL_LIMIT:", workflow)
+        self.assertIn("CONTENT_METADATA_BACKFILL_LIMIT:", workflow)
+        self.assertIn("CONTENT_BACKFILL_ATTEMPTS:", workflow)
+        self.assertNotIn("CONTENT_BLOCKS_BACKFILL_LIMIT:", workflow)
+        self.assertNotIn("CONTENT_BLOCKS_BACKFILL_ATTEMPTS:", workflow)
 
     def test_structured_metrics_are_scoped_to_the_current_run_and_source(self):
         current = event("current")

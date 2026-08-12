@@ -39,6 +39,9 @@ class HomeHeaderTests(unittest.TestCase):
         self.assertGreater(insight, semantic)
         self.assertIn('placeholder="搜索全部在站事件"', source)
 
+    def test_completed_progressive_timeline_hides_load_more_button(self):
+        self.assertIn(".load-more[hidden]{display:none}", build_site.SHARED_CSS)
+
 
 if __name__ == "__main__":
     unittest.main()

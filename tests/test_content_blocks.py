@@ -434,8 +434,12 @@ class ContentBlockRenderingTests(unittest.TestCase):
         self.assertIn("prefers-color-scheme: dark", page)
         self.assertIn('aria-label="原文表格"', page)
         self.assertIn("overscroll-behavior-inline:contain", page)
-        self.assertIn("原文正文", page)
-        self.assertIn("未经 AI 改写", page)
+        self.assertIn(" 原文</h4>", page)
+        self.assertNotIn("原文正文", page)
+        self.assertNotIn("未经 AI 改写", page)
+        self.assertNotIn('class="content-origin-badge"></span>', page)
+        self.assertIn("← 返回</a>", page)
+        self.assertNotIn("返回热榜", page)
         self.assertNotIn("全文编译", page)
 
     def test_detail_page_labels_translation_without_claiming_ai_compilation(self):
@@ -444,9 +448,22 @@ class ContentBlockRenderingTests(unittest.TestCase):
         article["content_mode"] = "translated"
         article["source_language"] = "other"
         page = build_site.render_detail(article, [article], "")
-        self.assertIn("忠实译文", page)
-        self.assertIn("AI 仅逐段翻译", page)
+        self.assertIn(" 译文 <span", page)
+        self.assertIn("AI 逐段翻译", page)
+        self.assertNotIn('忠实译文 <span class="content-origin-badge">', page)
+        self.assertNotIn("AI 仅逐段翻译 · 未总结重组", page)
         self.assertNotIn("全文编译", page)
+
+    def test_untranslated_original_uses_the_same_compact_original_heading(self):
+        article = self.base_event()
+        article["content_blocks"] = parse_html_blocks(SAMPLE_HTML, "https://example.com/post")
+        article["content_mode"] = "original"
+        article["source_language"] = "other"
+        page = build_site.render_detail(article, [article], "")
+        self.assertIn(" 原文</h4>", page)
+        self.assertNotIn("原文正文（未翻译）", page)
+        self.assertNotIn("翻译暂不可用 · 保留原文", page)
+        self.assertNotIn('class="content-origin-badge"></span>', page)
 
     def test_legacy_fulltext_still_renders_when_blocks_are_missing(self):
         article = self.base_event()

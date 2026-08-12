@@ -72,7 +72,7 @@ def build_atom_feed(events, generated_at, *, site_base, limit=50):
     root = ET.Element(_tag("feed"))
     ET.SubElement(root, _tag("id")).text = f"{site_base}/"
     ET.SubElement(root, _tag("title")).text = "DataHot · 数据领域 AI 热榜"
-    ET.SubElement(root, _tag("subtitle")).text = "Data Agent、AI 数据平台、BI 与数据产品的中文摘要与原始信源入口"
+    ET.SubElement(root, _tag("subtitle")).text = "Data Agent、AI 数据平台、BI、数据产品和 AI 分析与洞察的中文摘要与原始信源入口"
     ET.SubElement(root, _tag("link"), {"href": f"{site_base}/", "rel": "alternate", "type": "text/html"})
     ET.SubElement(root, _tag("link"), {"href": f"{site_base}/feed.xml", "rel": "self", "type": "application/atom+xml"})
     ET.SubElement(root, _tag("updated")).text = _atom_time(generated)

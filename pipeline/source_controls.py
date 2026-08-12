@@ -140,7 +140,8 @@ def source_control_snapshot(source):
         "require_published": bool(source.get("require_published", False)),
         "has_keyword_filter": bool(source.get("include_keywords") or source.get("exclude_keywords")),
         "focus_categories": [
-            value for value in focus_categories if value in {"agent", "platform", "bi", "product"}
+            value for value in focus_categories
+            if value in {"agent", "platform", "bi", "product", "insight"}
         ],
     }
 

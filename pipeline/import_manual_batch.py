@@ -23,6 +23,7 @@ CATEGORY_LABELS = {
     "platform": "AI 数据平台",
     "bi": "BI 与可视化",
     "product": "数据产品",
+    "insight": "AI 分析与洞察",
 }
 TRACKING_KEYS = {
     "fbclid", "gclid", "igshid", "mc_cid", "mc_eid", "ref", "source",

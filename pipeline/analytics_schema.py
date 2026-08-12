@@ -13,7 +13,7 @@ EVENT_NAMES = {
     "favorite_toggle", "search", "filter", "weekly_brief_click", "daily_brief_click",
 }
 PAGES = {"home", "weekly", "daily", "topics", "topic", "classics", "hot", "favorites", "sources", "detail", "privacy", "other"}
-CATEGORIES = {"agent", "platform", "bi", "product", ""}
+CATEGORIES = {"agent", "platform", "bi", "product", "insight", ""}
 VIEWPORTS = {"small", "medium", "large"}
 REFERRERS = {"direct", "internal", "search", "social", "other"}
 ACTIONS = {"add", "remove", ""}

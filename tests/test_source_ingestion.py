@@ -20,6 +20,7 @@ EXPECTED_NEW_SOURCES = {
     "Apache Iceberg Blog",
     "TiDB Blog",
     "Apache Doris Blog",
+    "Visier Blog",
 }
 
 
@@ -99,6 +100,14 @@ class ProductionSourceConfigurationTests(unittest.TestCase):
             source = self.by_name[name]
             self.assertTrue(source["include_keywords"])
             self.assertLessEqual(source["max_candidates_per_run"], 5)
+
+    def test_visier_uses_bounded_official_rss_for_insight_candidates(self):
+        source = self.by_name["Visier Blog"]
+        self.assertEqual(source["url"], "https://www.visier.com/blog/rss.xml")
+        self.assertEqual(source["fetch_interval_hours"], 24)
+        self.assertEqual(source["max_candidates_per_run"], 4)
+        self.assertEqual(source["focus_categories"], ["insight"])
+        self.assertTrue(source["require_published"])
 
 
 if __name__ == "__main__":

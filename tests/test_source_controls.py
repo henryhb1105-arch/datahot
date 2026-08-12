@@ -52,12 +52,12 @@ class SourceSchedulingTests(unittest.TestCase):
         self.assertEqual(source_candidate_limit({}), 20)
         snapshot = source_control_snapshot({
             "tier": "media_low", "fetch_interval_hours": 24,
-            "focus_categories": ["bi", "product", "invalid"],
+            "focus_categories": ["bi", "product", "insight", "invalid"],
         })
         self.assertEqual(snapshot["tier"], "media_low")
         self.assertEqual(snapshot["fetch_interval_hours"], 24)
         self.assertEqual(snapshot["max_candidates_per_run"], 20)
-        self.assertEqual(snapshot["focus_categories"], ["bi", "product"])
+        self.assertEqual(snapshot["focus_categories"], ["bi", "product", "insight"])
 
     def test_final_cluster_category_is_attributed_to_source(self):
         events = [{
@@ -147,6 +147,12 @@ class SourcePrefilterTests(unittest.TestCase):
             self.assertTrue(source["require_published"])
             self.assertTrue(source["include_keywords"])
             self.assertTrue(source["focus_categories"])
+        for name in ("爱分析", "Visier Blog"):
+            source = by_name[name]
+            self.assertIn("insight", source["focus_categories"])
+            self.assertLessEqual(source["max_candidates_per_run"], 4)
+            self.assertGreaterEqual(source["fetch_interval_hours"], 12)
+            self.assertTrue(source["include_keywords"])
 
 
 if __name__ == "__main__":

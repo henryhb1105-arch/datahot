@@ -16,7 +16,7 @@ DEFAULT_WINDOW_SOURCE_CAP = 20
 HOME_WINDOW_DAYS = 7
 FIRST_PAGE_SOURCE_CAPS = {"Claude 官方博客": 2}
 WINDOW_SOURCE_CAPS = {"Claude 官方博客": 6}
-LIST_CATEGORIES = frozenset({"agent", "platform", "bi", "product"})
+LIST_CATEGORIES = frozenset({"agent", "platform", "bi", "product", "insight"})
 HAN_RE = re.compile(r"[\u3400-\u9fff]")
 FORBIDDEN_FIELDS = {
     "full_zh", "content_blocks", "article_blocks", "article_text", "media",

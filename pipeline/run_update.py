@@ -47,7 +47,13 @@ UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit
 
 socket.setdefaulttimeout(20)
 
-CATEGORIES_LABEL = dict(agent="Data Agent", platform="AI 数据平台", bi="BI 与可视化", product="数据产品")
+CATEGORIES_LABEL = dict(
+    agent="Data Agent",
+    platform="AI 数据平台",
+    bi="BI 与可视化",
+    product="数据产品",
+    insight="AI 分析与洞察",
+)
 
 TOPICS_META = json.load(open(Path(__file__).resolve().parent / "topics.json"))
 TOPIC_NAMES = [t["name"] for t in TOPICS_META]
@@ -66,6 +72,7 @@ VENDOR_TAGS = {
     "Google BigQuery Release Notes": ["Google", "BigQuery"],
     "Google Looker Release Notes": ["Google", "Looker"],
     "Microsoft Fabric Blog": ["Microsoft", "Fabric", "Power BI"],
+    "Visier Blog": ["Visier"],
     "DuckDB Engineering Blog": ["DuckDB"],
     "Apache Iceberg Blog": ["Apache Iceberg"],
     "TiDB Blog": ["PingCAP", "TiDB"],
@@ -456,7 +463,7 @@ def llm_chat_text(base, key, model, prompt, max_tokens=4096,
         raise
 
 # ── F4：加固的相关性过滤 + AI 加工 ─────────────────────────
-ENRICH_RULES = """你是一个数据领域垂直资讯站的编辑。本站只覆盖四个领域：Data Agent（ChatBI/Text-to-SQL/分析Agent）、AI数据平台（数仓/湖仓/语义层/数据集成治理）、BI与可视化（BI工具/报表）、数据产品（方法论/融资并购/行业报告）。
+ENRICH_RULES = """你是一个数据领域垂直资讯站的编辑。本站只覆盖五个领域：Data Agent（ChatBI/Text-to-SQL/分析Agent）、AI数据平台（数仓/湖仓/语义层/数据集成治理）、BI与可视化（BI工具/报表）、数据产品（方法论/融资并购/行业报告）、AI分析与洞察（用AI或数据分析回答明确业务问题，并形成可用于决策的发现）。
 
 【相关性硬规则】
 - 注意：dbt 仅指数据工具 dbt Labs/getdbt；心理疗法 DBT（辩证行为疗法、skills-based treatment 等语境）一律 false
@@ -465,19 +472,29 @@ ENRICH_RULES = """你是一个数据领域垂直资讯站的编辑。本站只�
 - 泛AI新闻一律 false：AI消费应用、AI硬件、AI政策八卦、模型发布（与数据场景无关）、AI音乐/绘画/社交等
 - 数据分析/数据库/数据基础设施的融资并购、产品发布、技术实践 → true
 
+【AI分析与洞察分类边界】
+- 只有同时具备以下四项才归入 insight：明确业务问题；有数据/分析/研究依据；给出具体发现或预测；说明可采取的决策或行动
+- insight 关注业务问题本身，而不是某个工具的发布。若主语是产品发布、技术实现、融资并购或行业泛观点，仍归入 agent/platform/bi/product
+- 只有“AI赋能”“智能洞察”等营销措辞，没有事实、指标、样本或分析过程，不得归入 insight
+- insight 的 topics 优先从六个业务场景选 1-2 个：组织人才、财务经营、销售增长、客户运营、供应链、风险管理；原文没有直接支持时不要推测
+
 【示例】
 标题 "Databricks launches new semantic layer" → {"relevant": true, ...}
 标题 "OpenAI 发布新款AI智能音箱" → {"relevant": false}
 标题 "Airbnb 测试 AI 搜索功能" → {"relevant": false}
+标题 "360万员工记录揭示AI转型中的技能断层，并给出人才配置建议" → {"relevant": true, "category": "insight", "topics": ["组织人才"], ...}
+标题 "Tableau 发布一键生成洞察功能" → {"relevant": true, "category": "bi", ...}
 
 【工作标签】
 从下列封闭词表选择。只标记原文直接支持的对象、场景和决策关注；不得推测特定公司的内部需求。每个维度允许为空，宁缺毋滥：
 """ + work_tag_prompt() + """
 
 输出 JSON（不要输出多余内容）：
-{"relevant": true或false, "zh_title": "中文标题(≤40字)", "zh_summary": "中文摘要3-4句，保留产品名与数字，不得编造原文没有的信息", "reason": "推荐理由：为什么数据从业者应关注，1-2句", "category": "agent|platform|bi|product", "shelf": "news 或 evergreen（方法论/框架/深度实践/报告解读等半年后仍值得读的标 evergreen，发布/融资/版本更新等时效内容标 news）", "topics": ["从主题词表选0-2个：ChatBI/Data Agent/语义层/平台AI化/BI变局/湖仓/实时分析/数据人，没有合适的就空数组，宁缺毋滥"], "work_tags": {"product_objects": [], "use_cases": [], "decision_concerns": []}, "vendors": ["提到的数据厂商，如Snowflake/Databricks/PowerBI/帆软等，没有则空数组"], "importance": 1-100整数}"""
+{"relevant": true或false, "zh_title": "中文标题(≤40字)", "zh_summary": "中文摘要3-4句，保留产品名与数字，不得编造原文没有的信息", "reason": "推荐理由：为什么数据从业者应关注，1-2句", "category": "agent|platform|bi|product|insight", "shelf": "news 或 evergreen（方法论/框架/深度实践/报告解读等半年后仍值得读的标 evergreen，发布/融资/版本更新等时效内容标 news）", "topics": ["从主题词表选0-2个：""" + "/".join(TOPIC_NAMES) + """，没有合适的就空数组，宁缺毋滥"], "work_tags": {"product_objects": [], "use_cases": [], "decision_concerns": []}, "vendors": ["提到的数据厂商，如Snowflake/Databricks/PowerBI/帆软等，没有则空数组"], "importance": 1-100整数}"""
 
 ENRICH_RULE_VERSION = f"enrich-v2-{WORK_TAGS_VERSION}"
+INSIGHT_ENRICH_RULE_VERSION = f"enrich-insight-v1-{WORK_TAGS_VERSION}"
+INSIGHT_FOCUS_SOURCES = frozenset({"爱分析", "Visier Blog"})
 REVIEW_REQUIRED_TIERS = frozenset({"low_precision", "community_targeted", "media_low"})
 
 
@@ -487,12 +504,17 @@ def requires_editorial_review(item):
 
 
 def _candidate_cache_context(it, model):
+    rule_version = (
+        INSIGHT_ENRICH_RULE_VERSION
+        if it.get("source") in INSIGHT_FOCUS_SOURCES
+        else ENRICH_RULE_VERSION
+    )
     return {
         "normalized_url": norm_url(it["link"]),
         "source_id": it.get("source", "unknown"),
         "content_hash": candidate_content_hash(it),
         "model": model,
-        "rule_version": ENRICH_RULE_VERSION,
+        "rule_version": rule_version,
     }
 
 
@@ -520,7 +542,8 @@ def _cacheable_enrichment(it):
 RULE_POSITIVE_TERMS = (
     "data", "database", "analytics", "warehouse", "lakehouse", "sql", "dashboard",
     "business intelligence", "semantic layer", "etl", "elt", "dbt", "agent", "数据", "分析", "数仓", "湖仓", "可视化",
-    "语义层", "智能体", "数据产品", "报表",
+    "语义层", "智能体", "数据产品", "报表", "people analytics", "workforce analytics",
+    "workforce planning", "attrition", "turnover", "headcount", "组织", "人才", "员工流失",
 )
 RULE_NEGATIVE_TERMS = (
     "smartphone", "gaming", "music generation", "image generation", "dating app",

@@ -18,7 +18,7 @@
     "result_count"
   ];
   var PAGES = ["home", "weekly", "daily", "topics", "topic", "classics", "hot", "favorites", "sources", "detail", "privacy", "other"];
-  var CATEGORIES = ["agent", "platform", "bi", "product", ""];
+  var CATEGORIES = ["agent", "platform", "bi", "product", "insight", ""];
   var DEVICE_KEY = "dh_analytics_device_v1";
   var SESSION_KEY = "dh_analytics_session_v1";
   var SESSION_STARTED_KEY = "dh_analytics_session_started_v1";

@@ -10,7 +10,7 @@ sys.path.insert(0, str(ROOT / "pipeline"))
 
 from lite_data import (  # noqa: E402
     FIRST_PAGE_SOURCE_CAPS, build_lite_payload, event_timestamp,
-    find_forbidden_fields, rank_home_events, rank_hot_events,
+    find_forbidden_fields, is_list_eligible, rank_home_events, rank_hot_events,
     select_home_events,
 )
 
@@ -32,6 +32,12 @@ def event(index, *, vendor="Vendor", category="platform", importance=50, heat=45
 
 
 class LitePayloadTests(unittest.TestCase):
+    def test_insight_category_is_list_eligible(self):
+        item = event(99, category="insight")
+        item["zh_title"] = "员工数据揭示组织技能缺口"
+        item["zh_summary"] = "分析给出了人才配置建议。"
+        self.assertTrue(is_list_eligible(item))
+
     def test_payload_never_contains_article_body_fields(self):
         payload = build_lite_payload([event(1)], "2026-08-11T12:00:00+08:00")
         self.assertEqual(find_forbidden_fields(payload), [])

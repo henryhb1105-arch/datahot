@@ -303,9 +303,13 @@
         }), 750);
         return;
       }
-      var filter = event.target.closest("[data-topic]");
+      var filter = event.target.closest("[data-topic],[data-category]");
       if (filter && filter.classList.contains("fchip")) {
-        emit("filter", { filter: filter.getAttribute("data-topic") || "" }, 750);
+        emit("filter", {
+          filter: filter.getAttribute("data-category")
+            ? "category:" + filter.getAttribute("data-category")
+            : (filter.getAttribute("data-topic") || "")
+        }, 750);
         return;
       }
       var brief = event.target.closest('[data-analytics="weekly_brief"]');

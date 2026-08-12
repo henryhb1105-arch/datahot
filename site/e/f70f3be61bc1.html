@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob: https://api.qrserver.com; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-ISm0mzAi4Sy5HD3tgerauIsQ0fbXx0Zy6xcE9YDihrA=' 'sha256-PPQIL8uMexo0ohks9f2ECMBxnuMPGExyHupWbkExSBA=' 'sha256-zTbqoLXOVJ6Y7bxwX42flzVUMpf3rgsI16LDibNF8HY='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>数据分析Skill设计指南：从问题定义到流程拆解 · DataHot</title>
 <meta name="description" content="文章提出数据分析Skill本质是操作流程，需先明确问题、数据底表、操作步骤和输出成果，再借助Codex、Claude Code、Trae等AI工具生成。强调放弃通用Skill，按业务场景拆分，并给出指标异动、用户行为、效果评估、预测、策略优化五大问题类型及各自解法。最后指出AI不能替代数据治理和业务">
@@ -16,7 +18,7 @@
 <link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://henryhb1105-arch.github.io/datahot/feed.xml">
 <meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="henryhb1105-arch.github.io">
 <script defer src="../analytics.js"></script>
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "NewsArticle", "headline": "数据分析Skill设计指南：从问题定义到流程拆解", "description": "文章提出数据分析Skill本质是操作流程，需先明确问题、数据底表、操作步骤和输出成果，再借助Codex、Claude Code、Trae等AI工具生成。强调放弃通用Skill，按业务场景拆分，并给出指标异动、用户行为、效果评估、预测、策略优化五大问题类型及各自解法。最后指出AI不能替代数据治理和业务", "datePublished": "2026-08-10T16:44:59+08:00", "inLanguage": "zh-CN", "isBasedOn": "https://www.woshipm.com/share/6444173.html", "publisher": {"@type": "Organization", "name": "DataHot"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"数据分析Skill设计指南：从问题定义到流程拆解","description":"文章提出数据分析Skill本质是操作流程，需先明确问题、数据底表、操作步骤和输出成果，再借助Codex、Claude Code、Trae等AI工具生成。强调放弃通用Skill，按业务场景拆分，并给出指标异动、用户行为、效果评估、预测、策略优化五大问题类型及各自解法。最后指出AI不能替代数据治理和业务","datePublished":"2026-08-10T16:44:59+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://www.woshipm.com/share/6444173.html"}</script>
 <style>
   :root{
     color-scheme: light dark;
@@ -51,6 +53,17 @@
   .logo{font-size:20px;font-weight:800;letter-spacing:-.5px}
   .logo em{font-style:normal;color:var(--accent)}
   .logo .tag{font-size:11px;font-weight:500;color:var(--sub);margin-left:8px;border:1px solid var(--line);border-radius:99px;padding:2px 8px;vertical-align:middle}
+  .home-logo{display:inline-flex;align-items:center;border-radius:8px}
+  .home-logo:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+  .update-info{position:relative;margin-left:auto}
+  .update-info summary{list-style:none}
+  .update-info summary::-webkit-details-marker{display:none}
+  .upd-time{font-size:11.5px;color:var(--sub);white-space:nowrap;display:inline-flex;align-items:center;gap:4px;padding:5px 8px;border-radius:99px;cursor:help;transition:background .15s,color .15s}
+  .update-info:hover .upd-time,.update-info:focus-within .upd-time,.update-info[open] .upd-time{background:var(--hover);color:var(--ink)}
+  .upd-time:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .update-popover{position:absolute;right:0;top:calc(100% + 9px);z-index:90;width:min(330px,calc(100vw - 28px));padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);box-shadow:0 12px 32px rgba(0,0,0,.14);font-size:12.5px;line-height:1.7;color:var(--txt2);white-space:normal;opacity:0;visibility:hidden;transform:translateY(-4px);pointer-events:none;transition:opacity .15s,transform .15s,visibility .15s}
+  .update-popover b{display:block;margin-bottom:3px;color:var(--ink);font-size:13px}
+  .update-info:not(.is-dismissed):hover .update-popover,.update-info:not(.is-dismissed):focus-within .update-popover,.update-info[open]:not(.is-dismissed) .update-popover{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto}
   .tabs{display:flex;gap:4px;flex:1}
   .tab{padding:6px 14px;border-radius:99px;font-size:14px;color:var(--sub);cursor:pointer;white-space:nowrap}
   .tab:hover{background:var(--hover)}
@@ -178,7 +191,6 @@ main,.layout>*,.hotlist>*{min-width:0}
 @media(max-width:960px){.d-only{display:none}}
 .chip{display:inline-block;font-size:11px;background:#eef2ff;color:var(--blue);border-radius:99px;padding:1px 10px;text-decoration:none}
 .chip:hover{background:#dbe4ff}
-.upd-time{margin-left:auto;font-size:11.5px;color:var(--sub);white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
 .tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
 .tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
 .chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px;position:relative}
@@ -192,27 +204,45 @@ main,.layout>*,.hotlist>*{min-width:0}
   .chiprow .fchip.on{background:var(--ink);color:#121417;border-color:var(--ink)}
   .chiprow .fchip{background:var(--card);color:var(--sub);border-color:var(--line)}
 }
-.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0}
-.dot.ok{background:var(--green)}.dot.warn{background:var(--amber)}.dot.fail{background:var(--accent)}.dot.off{background:var(--sub)}
 .scard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 20px;margin-bottom:14px}
-.srow{padding:12px 0;border-bottom:1px solid var(--soft)}
-.srow:last-child{border-bottom:none}
-.srow-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.stype{font-size:10.5px;border:1px solid var(--line);border-radius:6px;padding:0 7px;color:var(--sub)}
-.sstat{font-size:11.5px}
-.st-ok{color:var(--green)}.st-warn{color:var(--amber)}.st-fail{color:var(--accent)}.st-off{color:var(--sub)}
-.scount{margin-left:auto;font-size:12px;color:var(--accent);font-weight:700}
-.srow-sub{font-size:11.5px;color:var(--sub);margin-top:4px}
-.slow{color:var(--amber);font-weight:700}
-.serr{font-size:11px;color:var(--accent);margin-top:3px}
-.snote{font-size:11px;color:var(--sub);margin-top:3px}
-.srec{font-size:11px;color:var(--amber);margin-top:3px;font-weight:650}
-.sys-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.ssub{font-size:12.5px;color:var(--sub)}
-.act{cursor:pointer}
-.act summary{padding:2px 0;list-style:none}
-.act-body{font-size:13px;color:var(--txt2);line-height:1.8;margin:10px 0}
-.tpl{background:var(--soft);border-radius:8px;padding:10px 14px;font-size:12.5px;white-space:pre-line;margin-bottom:10px;color:var(--txt3)}
+.source-page{padding:30px 20px 60px;max-width:820px}
+.source-intro{margin-bottom:30px}
+.source-intro h1{font-size:27px;line-height:1.35;margin:0 0 10px}
+.source-intro p{font-size:14px;line-height:1.8;color:var(--txt2);margin:0;max-width:720px}
+.source-alert{margin-top:14px;padding:10px 12px;border-left:3px solid var(--amber);background:var(--soft);border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.7;color:var(--txt2)}
+.source-alert b{color:var(--ink);margin-right:6px}
+.source-group{margin:0 0 28px}
+.source-group-head{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:8px}
+.source-group-head h2{font-size:16px;line-height:1.4;margin:0}
+.source-group-head span{font-size:11.5px;color:var(--sub)}
+.source-row{display:flex;align-items:center;gap:12px;min-height:49px;border-bottom:1px solid var(--soft)}
+.source-name{display:inline-flex;align-items:center;gap:4px;min-width:0;color:var(--ink);font-size:13.5px;font-weight:650;line-height:1.5;text-decoration:none}
+a.source-name:hover{color:var(--accent)}
+.source-name svg{flex:0 0 auto}
+.source-focus{margin-left:auto;color:var(--sub);font-size:11.5px;line-height:1.45;text-align:right}
+.source-health{color:var(--amber);font-size:11.5px;white-space:nowrap}
+.source-disabled{margin:2px 0 28px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.source-disabled summary{cursor:pointer;padding:13px 0;font-size:13px;font-weight:650;color:var(--txt2)}
+.source-disabled .source-row{align-items:flex-start;padding:11px 0;min-height:0}
+.source-disabled-reason{margin-left:auto;max-width:62%;font-size:11.5px;line-height:1.6;color:var(--sub);text-align:right}
+.source-contribute{display:flex;align-items:center;gap:18px;background:var(--soft);border-radius:var(--radius);padding:17px 18px;margin-bottom:20px}
+.source-contribute-copy{min-width:0;flex:1}
+.source-contribute h2{font-size:15px;margin:0 0 4px}
+.source-contribute p{font-size:12.5px;line-height:1.6;color:var(--sub);margin:0}
+.source-cta{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border-radius:99px;background:var(--ink);color:var(--bg);padding:8px 14px;font-size:12px;font-weight:650;text-decoration:none}
+.source-cta:hover{opacity:.86}
+.source-principle{font-size:12px;line-height:1.75;color:var(--sub);margin:0}
+@media(max-width:600px){
+  .source-page{padding:22px 18px 52px}
+  .source-intro{margin-bottom:25px}
+  .source-intro h1{font-size:24px}
+  .source-row{gap:8px}
+  .source-name{font-size:13px}
+  .source-focus{max-width:45%;font-size:11px}
+  .source-disabled .source-row{display:block}
+  .source-disabled-reason{max-width:none;margin:4px 0 0;text-align:left}
+  .source-contribute{align-items:flex-start;flex-direction:column;gap:12px}
+}
 .crow{display:flex;align-items:baseline;gap:8px;padding:9px 0;border-bottom:1px solid var(--soft);text-decoration:none;color:var(--ink)}
 .crow:last-child{border-bottom:none}
 .crow:hover .ctitle{color:var(--accent)}
@@ -430,9 +460,9 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="f70f3be61bc1" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
 
-      <a class="sbtn ghost" href="https://www.woshipm.com/share/6444173.html" target="_blank" rel="noopener" data-analytics="outbound" data-source="人人都是产品经理"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
-      <button class="sbtn ghost" onclick="openPoster()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
-      <button class="sbtn" onclick="openSheet()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
+      <a class="sbtn ghost" href="https://www.woshipm.com/share/6444173.html" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="人人都是产品经理"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
+      <button class="sbtn ghost" type="button" data-share-action="poster"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
+      <button class="sbtn" type="button" data-share-action="open"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
     </span>
   </div>
   <div class="meta">
@@ -441,7 +471,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     
     <span title="发布时间">发布 2026-08-10 16:44</span>
     
-    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 53</span>
+    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 51</span>
   </div>
   <h1>数据分析Skill设计指南：从问题定义到流程拆解</h1>
 
@@ -449,13 +479,13 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>面向数据分析Agent的Skill设计方法论，帮助数据从业者系统化拆解分析场景并落地AI辅助分析。</span></div>
   <div class="vendors" style="margin-top:14px"><a class="chip" href="../topics/data-agent.html">Data Agent</a><a class="chip" href="../topics/data-people.html">数据人</a></div>
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
-  <div class="fulltext"><p>以前总有同学问：有没有数据分析的ppt模版，现在变成了：有没有数据分析Skill。授人以鱼，不如授人以渔。今天陈老师把做Skill的方法公布出来，大家收好。</p><h5 class="fh">一、Skill本质是一个操作流程</h5><p>所以想做好Skill，先问：</p><p>1）我要解决什么问题</p><p>2）我需要用什么数据底表</p><p>3）我需要分几步操作</p><p>4）最终输出成果是什么</p><p>梳理清楚流程，直接把提示词喂给利用codex，claude code、Trae等工具，他们就能生成一个有效Skill。AI还会自动提供特征工程，模型选择，计算公式的设计建议。</p><p>说不清流程，大概率AI就算个“同比、环比”……人做的同比、环比价值低，AI做的同比、环比价值一样低，不会因为它是AI就更高贵。</p><h5 class="fh">二、数据分析不是一个东西，是一堆东西</h5><p>业务场景，分为：销售、商品管理、用户增长、物流、生产、客服、财务等等：</p><p>1）不同业务场景，使用的指标不一样</p><p>2）不同分析问题，使用的方法不一样</p><p>3）不同分析方法，计算的步骤不一样</p><p>你需要放弃做通用数据分析Skill的想法，拆分场景，定义清楚每个场景下的：数据底表+方法+计算步骤，一个个扫荡场景，才好有成果。</p><h5 class="fh">三、问题分类，可以参考这五个类型（背诵下来）</h5><p>1）指标异动类问题：趋势分析+结构分析+指标拆解，分维度对比+连环替代法用的多，一般基于销售/物流/工单底表聚合一次即可。相对容易落地。</p><p>2）用户行为类问题：需要利用RFM方法，多次聚合用户行为数据，设计底表难度较大，分类规则复杂，单独列为一类。</p><p>3）效果评估类问题：需要先制定标准，并且事前设计ABtest和事后补一个PSM，数据底表完全不一样，单独列为一类。</p><p>4）预测类问题：可以用现成的机器学习方法。机器学习本身步骤清晰，规范性强，反而是分析问题类最容易Skill化的。</p><p>5）策略优化类问题：需要先有策略目标，限制条件，经营参数等等输入，很多企业基础数据都不完整，决策流程充满领导拍脑袋，所以最难做。</p><p>以上，当你思考“数据分析”时，要具体到以上五个问题中某一个。如果连基础分析方法都不了解，先整明白到底自己要干啥。</p><h5 class="fh">四、流程越清晰，做Skill难度越低</h5><p>最典型的就是机器学习类问题，人搓代码嫌累，AI快的很，而且机器学习流程本身很清晰。</p><p>以巨复杂的PSM举例，流程包括：准备数据底表→清晰干涉变量/结果变量/前置变量→特征工程→逻辑回归建模→匹配样本，得到参照组 → 计算干涉效应→输出报告，这几步。列清楚就行。AI还会自动增补一些环节，比如特征工程建议和匹配方案建议。</p><p>反而是：该设计什么样的数据底表进行计算，是最重要的问题。虽然说AI能给些建议，但是还是得自己对业务有足够了解才行。</p><h5 class="fh">五、为每个Skill设计好底表，确保计算正确</h5><p>比如你要诊断一个电商APP的利润问题，那么：</p><p>指标：利润=GMV-退货-商品成本-平台扣点-推广费-物流费-税费</p><p>指标：GMV=访客*转化*客单价</p><p>维度：渠道=自然流+付费流</p><p>维度：自然流来源，付费流来源</p><p>维度：商品一二三级分类</p><p>维度：利润款/流量款/搭配款</p><p>全部定义好，尽量做到一张宽表里，丢给AI分析，能极大提高效率。</p><p>如果出现：口径混乱，分类缺失，这不关AI的事情。AI不能替代数据治理，口径统一，明确标准的动作，提前做好。</p><h5 class="fh">六、指标异动类问题有一个通用的流程</h5><p>一看主指标是否达标（先找标准）</p><p>二看走势是否越来越糟（检查时间趋势）</p><p>三看哪里捅了篓子（分维度找重点）</p><p>四看哪个环节不好（最后拆子指标）</p><p>不按这个顺序，很容易把问题拆的乱七八糟：</p><p>1）没有标准，光看同比环比，也不确定“好/不好”</p><p>2）不查趋势，找不到问题源头，沉溺于日波动</p><p>3）不抓重点，框框把指标拆的稀烂，看不出所以然</p><h5 class="fh">七、现在的AI不会提业务假设，所以要自己定假设</h5><p>AI能帮你算出来哪个维度差异大，但是：</p><p>1）人货场哪个是业务关心维度</p><p>2）货场之间是否存在交叉效应</p><p>3）人货之间是否存在交叉效应</p><p>4）货的旺季在哪里/生命周期有几周</p><p>这些问题得问自己，问业务，AI最多给点提示。</p><p>所以，做Skill的时候，在关键步骤后可设置：询问环节。让AI确认“是否有增补信息”“选择哪个维度深入”这样更符合实际情况。对于维度多，想多轮看数据，完全可以设置循环检查，直到用户主动停止。</p><h5 class="fh">八、AI也不解决业务沟通问题，自己和业务聊</h5><p>在用户分析，效果评估，策略优化类问题中，有大量类似场景：</p><p>1）“重度”用户的重度，到底标准是多少</p><p>2）计算用户“偏好”，每一类行为权重订多少</p><p>3）评估的指标是啥？期望效果/目标值到底多少？</p><p>4）策略目标值是啥？期望从多少做到多少？</p><p>5）业务的约束条件到底是啥？不要说“先不管”</p><p>这些都是日常工作扯皮的地方，所以建议：先把预测、指标异动的Skill做顺利了，后边再慢慢讨论这些复杂问题。毕竟AI是你的员工不是你的老师，更不是老板。最后结果仍然要“体现业务价值，解决业务问题”而不是仅仅帮我们更快搓SQL。</p></div>
-  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://www.woshipm.com/share/6444173.html" target="_blank" rel="noopener" data-analytics="outbound" data-source="人人都是产品经理">查看原文 ↗</a></div>
+  <div class="fulltext"><p>热门文章</p><figure class="cb-figure"><div class="cb-media-placeholder" role="img" aria-label="图片未缓存">图片未缓存，可前往来源查看</div><figcaption><span>字节、腾讯、阿里在做同一件事</span><span class="cb-media-meta"><span class="cb-media-source">来源：<a href="https://www.woshipm.com/share/6444173.html" target="_blank" rel="noopener noreferrer nofollow">www.woshipm.com</a></span><a href="https://image.woshipm.com/wp-files/2026/08/5biSgIFdksFDz7Sby6Bw.jpeg!/both/100x60" target="_blank" rel="noopener noreferrer nofollow">查看原图 ↗</a></span></figcaption></figure><figure class="cb-figure"><div class="cb-media-placeholder" role="img" aria-label="图片未缓存">图片未缓存，可前往来源查看</div><figcaption><span>当AI能回答所有，“知乎”们还剩下什么？</span><span class="cb-media-meta"><span class="cb-media-source">来源：<a href="https://www.woshipm.com/share/6444173.html" target="_blank" rel="noopener noreferrer nofollow">www.woshipm.com</a></span><a href="https://image.woshipm.com/2026/08/07/204b9856-9207-11f1-b8bd-00163e09d72f.png!/both/100x60" target="_blank" rel="noopener noreferrer nofollow">查看原图 ↗</a></span></figcaption></figure><figure class="cb-figure"><div class="cb-media-placeholder" role="img" aria-label="图片未缓存">图片未缓存，可前往来源查看</div><figcaption><span>一定要往死里用的小红书运营实战型技巧</span><span class="cb-media-meta"><span class="cb-media-source">来源：<a href="https://www.woshipm.com/share/6444173.html" target="_blank" rel="noopener noreferrer nofollow">www.woshipm.com</a></span><a href="https://image.woshipm.com/2023/04/14/703bdc46-da9e-11ed-9b82-00163e0b5ff3.png!/both/100x60" target="_blank" rel="noopener noreferrer nofollow">查看原图 ↗</a></span></figcaption></figure><ul><li>  <a href="https://www.woshipm.com/ai/6444235.html" target="_blank" rel="noopener noreferrer nofollow">  </a>   <a href="https://www.woshipm.com/ai/6444235.html" target="_blank" rel="noopener noreferrer nofollow">字节、腾讯、阿里在做同一件事</a> 08-10  </li><li>  <a href="https://www.woshipm.com/ai/6443372.html" target="_blank" rel="noopener noreferrer nofollow">  </a>   <a href="https://www.woshipm.com/ai/6443372.html" target="_blank" rel="noopener noreferrer nofollow">当AI能回答所有，“知乎”们还剩下什么？</a> 08-09  </li><li> </li><li>  <a href="https://www.woshipm.com/share/6440967.html" target="_blank" rel="noopener noreferrer nofollow">  </a>   <a href="https://www.woshipm.com/share/6440967.html" target="_blank" rel="noopener noreferrer nofollow">一定要往死里用的小红书运营实战型技巧</a> 08-05  </li><li>  <a href="https://www.woshipm.com/ai/6438322.html" target="_blank" rel="noopener noreferrer nofollow">  </a>   <a href="https://www.woshipm.com/ai/6438322.html" target="_blank" rel="noopener noreferrer nofollow">AI办公没有超级入口</a> 08-03  </li><li>  <a href="https://www.woshipm.com/share/6440384.html" target="_blank" rel="noopener noreferrer nofollow">  </a>   <a href="https://www.woshipm.com/share/6440384.html" target="_blank" rel="noopener noreferrer nofollow">阿里太狠！刚上线「千问办公」，又开始内测「万有无界」，实测后结果很惊人</a> 08-04  </li><li>  <a href="https://www.woshipm.com/ai/6438540.html" target="_blank" rel="noopener noreferrer nofollow">  </a>   <a href="https://www.woshipm.com/ai/6438540.html" target="_blank" rel="noopener noreferrer nofollow">我用 Codex，从 0 到 1 搭了一个财务结算中心</a> 08-03  </li></ul></div>
+  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://www.woshipm.com/share/6444173.html" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="人人都是产品经理">查看原文 ↗</a></div>
 </div>
-  
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/36e5214115ac.html"><span class="n">›</span>RAG和Reference都叫知识库？搭Skill别选错<span class="count">39</span></a><a class="vendor-row" href="../e/3bb9e34e59c3.html"><span class="n">›</span>构建企业级数据分析助手：Data Agent开发实践<span class="count">60</span></a><a class="vendor-row" href="../e/2e943aff41b7.html"><span class="n">›</span>Anthropic与Millennium共推数字风险分析师<span class="count">53</span></a></div>
+
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/36e5214115ac.html"><span class="n">›</span>RAG和Reference都叫知识库？搭Skill别选错<span class="count">37</span></a><a class="vendor-row" href="../e/3bb9e34e59c3.html"><span class="n">›</span>构建企业级数据分析助手：Data Agent开发实践<span class="count">58</span></a><a class="vendor-row" href="../e/2e943aff41b7.html"><span class="n">›</span>Anthropic与Millennium共推数字风险分析师<span class="count">51</span></a></div>
 </div>
-<footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
+<footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 <nav class="tabbar" aria-label="移动端主导航">
   <a href="../index.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../weekly.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span>周报</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a>
   <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
@@ -489,21 +519,21 @@ main,.layout>*,.hotlist>*{min-width:0}
 </script>
 
 
-<div class="sh-mask" id="shMask" onclick="shClose()"></div>
+<div class="sh-mask" id="shMask" data-share-action="close"></div>
 <div class="sh-sheet" id="shSheet"><div class="sh-panel">
   <div class="sh-group">
     <div class="sh-title">分享这条资讯</div>
-    <button class="sh-opt" onclick="shCopy()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 复制链接</button>
-    <button class="sh-opt" onclick="shClose();openPoster()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 分享海报</button>
-    <button class="sh-opt" onclick="shNative()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 系统分享…</button>
+    <button class="sh-opt" type="button" data-share-action="copy"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 复制链接</button>
+    <button class="sh-opt" type="button" data-share-action="poster"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 分享海报</button>
+    <button class="sh-opt" type="button" data-share-action="native"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 系统分享…</button>
   </div>
-  <button class="sh-cancel" onclick="shClose()">取消</button>
+  <button class="sh-cancel" type="button" data-share-action="close">取消</button>
 </div></div>
 <div class="sh-poster-modal" id="shPoster">
   <div class="sh-poster-wrap"><img id="shPosterImg" alt="分享海报"></div>
   <div class="sh-poster-actions">
-    <a class="sh-save" id="shSave" href="#" onclick="shSaveClick(event)">保存图片</a>
-    <button class="sh-close" onclick="shClose()">关闭</button>
+    <a class="sh-save" id="shSave" href="#" data-share-action="save">保存图片</a>
+    <button class="sh-close" type="button" data-share-action="close">关闭</button>
   </div>
   <div class="sh-poster-tip">iOS 也可以长按图片保存</div>
 </div>
@@ -572,7 +602,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title": "数据分析Skill设计指南：从问题定义到流程拆解", "summary": "文章提出数据分析Skill本质是操作流程，需先明确问题、数据底表、操作步骤和输出成果，再借助Codex、Claude Code、Trae等AI工具生成。强调放弃通用Skill，按业务场景拆分，并给出指标异动、用户行为、效果评估、预测、策略优化五大问题类型及各自解法。最后指出AI不能替代数据治理和业务沟通，底表设计和业务假设仍需人工把控。", "reason": "面向数据分析Agent的Skill设计方法论，帮助数据从业者系统化拆解分析场景并落地AI辅助分析。", "topic": "Data Agent", "heat": 53, "source": "人人都是产品经理", "date": "2026-08-10", "url": "https://henryhb1105-arch.github.io/datahot/e/f70f3be61bc1.html"};
+var SH_EV = {"title":"数据分析Skill设计指南：从问题定义到流程拆解","summary":"文章提出数据分析Skill本质是操作流程，需先明确问题、数据底表、操作步骤和输出成果，再借助Codex、Claude Code、Trae等AI工具生成。强调放弃通用Skill，按业务场景拆分，并给出指标异动、用户行为、效果评估、预测、策略优化五大问题类型及各自解法。最后指出AI不能替代数据治理和业务沟通，底表设计和业务假设仍需人工把控。","reason":"面向数据分析Agent的Skill设计方法论，帮助数据从业者系统化拆解分析场景并落地AI辅助分析。","topic":"Data Agent","heat":51,"source":"人人都是产品经理","date":"2026-08-10","url":"https://henryhb1105-arch.github.io/datahot/e/f70f3be61bc1.html"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');
@@ -730,6 +760,17 @@ function dataToBlob(d){
 function showPoster(){
   document.getElementById('shPosterImg').src=posterURL;
   var a=document.getElementById('shSave');
-  a.href=URL.createObjectURL(dataToBlob(posterURL)); a.target='_blank';
+  a.href=URL.createObjectURL(dataToBlob(posterURL)); a.target='_blank';a.rel='noopener noreferrer';
 }
+document.querySelectorAll('[data-share-action]').forEach(function(control){
+  control.addEventListener('click',function(event){
+    var action=control.dataset.shareAction;
+    if(action==='open'){openSheet();}
+    else if(action==='close'){shClose();}
+    else if(action==='copy'){shCopy();}
+    else if(action==='poster'){shClose();openPoster();}
+    else if(action==='native'){shNative();}
+    else if(action==='save'){shSaveClick(event);}
+  });
+});
 </script></body></html>

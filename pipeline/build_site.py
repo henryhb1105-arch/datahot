@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """V1.1：读取 latest.json（事件结构），生成首页 + 每个事件的站内详情页（带 OG meta）"""
-import json, html, os, re, shutil
+import base64, hashlib, json, html, os, re, shutil
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 from urllib.parse import urlparse
-from content_blocks import render_blocks_html, sanitize_blocks
+from content_blocks import render_blocks_html, sanitize_blocks, sanitize_url
 from check_links import check_site_links, format_broken_links
 from feed import build_atom_feed, validate_atom_feed
 from lite_data import (
@@ -101,10 +101,10 @@ def source_public_url(source):
     for candidate in candidates:
         if not isinstance(candidate, str):
             continue
-        candidate = candidate.strip()
-        parsed = urlparse(candidate)
-        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        candidate = sanitize_url(candidate)
+        if not candidate:
             continue
+        parsed = urlparse(candidate)
         if source.get("kind") == "sitemap" and candidate in (source.get("urls") or []):
             return f"{parsed.scheme}://{parsed.netloc}/"
         return candidate
@@ -319,7 +319,7 @@ def sidebar(active, gen=None, prefix=""):
     return ('<aside class="sidebar">'
             f'<div class="slogo"><a href="{prefix}index.html"{logo_label} style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div>'
             + menu +
-            f'<div class="sfoot">{foot}每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>')
+            f'<div class="sfoot">{foot}每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>')
 
 
 def render_home_brand_update(gen):
@@ -361,12 +361,11 @@ def analytics_head(prefix=""):
     site_id = re.sub(r"[^a-z0-9_-]", "", os.getenv("ANALYTICS_SITE_ID", "datahot").lower())[:40] or "datahot"
     production_host = os.getenv("ANALYTICS_PRODUCTION_HOST", "henryhb1105-arch.github.io").strip().lower()
     production_host = production_host if re.fullmatch(r"[a-z0-9.-]+", production_host) else "henryhb1105-arch.github.io"
-    parsed = urlparse(endpoint)
-    endpoint_valid = bool(
-        parsed.scheme == "https" and parsed.netloc and not parsed.username and not parsed.password
-    )
+    safe_https_endpoint = sanitize_url(endpoint)
+    parsed = urlparse(safe_https_endpoint)
+    endpoint_valid = bool(parsed.scheme == "https" and parsed.netloc)
     enabled = enabled_value in {"1", "true", "yes", "on"} and environment == "production" and endpoint_valid
-    safe_endpoint = endpoint if endpoint_valid else ""
+    safe_endpoint = safe_https_endpoint if endpoint_valid else ""
     return (
         f'<meta name="datahot-analytics" data-enabled="{str(enabled).lower()}" '
         f'data-endpoint="{esc(safe_endpoint)}" data-site-id="{esc(site_id)}" '
@@ -448,6 +447,83 @@ def tabbar(active, prefix=""):
 def esc(s):
     return html.escape(s or "", quote=True)
 
+
+EVENT_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+INLINE_SCRIPT_RE = re.compile(
+    r"<script\b(?![^>]*\bsrc\s*=)[^>]*>(.*?)</script\s*>", re.I | re.S,
+)
+INLINE_EVENT_HANDLER_RE = re.compile(r"<[^>]+\son[a-z]+\s*=", re.I)
+
+
+def safe_event_id(value):
+    """Return a path/attribute-safe event id or fail the build closed."""
+    value = str(value or "")
+    if not EVENT_ID_RE.fullmatch(value):
+        raise ValueError(f"unsafe event_id: {value!r}")
+    return value
+
+
+def json_for_html(value):
+    """Serialize JSON without HTML parser breakouts inside script elements."""
+    return (
+        json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+        .replace("&", "\\u0026")
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+        .replace("\u2028", "\\u2028")
+        .replace("\u2029", "\\u2029")
+    )
+
+
+def _analytics_connect_origin():
+    endpoint = sanitize_url(os.getenv("ANALYTICS_ENDPOINT", "").strip())
+    parsed = urlparse(endpoint)
+    if parsed.scheme != "https" or not parsed.netloc:
+        return ""
+    return f"{parsed.scheme}://{parsed.netloc}"
+
+
+def finalize_html_security(document):
+    """Inject a restrictive CSP after all trusted inline scripts are finalized."""
+    if INLINE_EVENT_HANDLER_RE.search(document):
+        raise ValueError("inline event handlers are forbidden by the site CSP")
+    hashes = sorted({
+        "'sha256-" + base64.b64encode(
+            hashlib.sha256(script.encode("utf-8")).digest()
+        ).decode("ascii") + "'"
+        for script in INLINE_SCRIPT_RE.findall(document)
+    })
+    connect_sources = ["'self'"]
+    analytics_origin = _analytics_connect_origin()
+    if analytics_origin:
+        connect_sources.append(analytics_origin)
+    directives = [
+        "default-src 'self'",
+        "base-uri 'none'",
+        "object-src 'none'",
+        "frame-src 'none'",
+        "form-action 'none'",
+        "worker-src 'none'",
+        "manifest-src 'self'",
+        "font-src 'self' data:",
+        "media-src 'self' blob:",
+        "img-src 'self' data: blob: https://api.qrserver.com",
+        "connect-src " + " ".join(connect_sources),
+        "style-src 'self' 'unsafe-inline'",
+        "script-src 'self'" + ((" " + " ".join(hashes)) if hashes else ""),
+        "script-src-attr 'none'",
+        "upgrade-insecure-requests",
+    ]
+    meta = (
+        '<meta http-equiv="Content-Security-Policy" content="'
+        + "; ".join(directives)
+        + '">\n<meta name="referrer" content="strict-origin-when-cross-origin">'
+    )
+    marker = '<meta charset="UTF-8">'
+    if marker not in document:
+        raise ValueError("HTML document is missing the UTF-8 charset marker")
+    return document.replace(marker, marker + "\n" + meta, 1)
+
 def clean_reason(reason):
     """统一由界面添加“推荐理由：”，避免历史数据中的前缀重复。"""
     return re.sub(r"^\s*推荐理由\s*[:：]\s*", "", reason or "")
@@ -490,7 +566,7 @@ def day_key(iso):
     return datetime.fromisoformat(iso).astimezone(TZ).date()
 
 def detail_url(e):
-    return f'e/{e["event_id"]}.html'
+    return f'e/{safe_event_id(e["event_id"])}.html'
 
 def load_css():
     css = open(ROOT / "ui-mockup" / "index.html").read()
@@ -504,8 +580,9 @@ def sources_html(e, link=False):
         if sub["source"] in seen_src:
             continue
         seen_src.add(sub["source"])
-        if link:
-            parts.append(f'<a class="src" href="{esc(sub["link"])}" target="_blank" rel="noopener">{esc(sub["source"])} ↗</a>')
+        safe_link = _safe_source_url(sub.get("link"))
+        if link and safe_link:
+            parts.append(f'<a class="src" href="{esc(safe_link)}" target="_blank" rel="noopener noreferrer">{esc(sub["source"])} ↗</a>')
         else:
             parts.append(f'<span class="src">{esc(sub["source"])}</span>')
     return "".join(parts)
@@ -518,6 +595,7 @@ def is_classic_review(e):
     return (datetime.now(TZ) - datetime.fromisoformat(pub).astimezone(TZ)).days > 30
 
 def render_card(e, prefix=""):
+    event_id = safe_event_id(e["event_id"])
     star = '<span class="star">精选</span>' if e.get("star") else ""
     if is_classic_review(e):
         star += '<span class="star" style="color:var(--purple)">经典回顾</span>'
@@ -535,9 +613,9 @@ def render_card(e, prefix=""):
     vtags = "".join(f'<span class="vtag">{esc(v)}</span>' for v in e.get("vendors", []))
     vbox = f'<div class="vendors">{tchips}{vtags}</div>' if (tchips or vtags) else ""
     url = prefix + detail_url(e)
-    return f'''<div class="item" data-cat="{e["category"]}" data-topics="{esc("|".join(e.get("topics", [])))}" data-link="{url}" data-analytics-list="1" data-event-id="{e["event_id"]}" data-category="{esc(e["category"])}" data-source="{esc(e["items"][0]["source"])}">
+    return f'''<div class="item" data-cat="{esc(e["category"])}" data-topics="{esc("|".join(e.get("topics", [])))}" data-link="{url}" data-analytics-list="1" data-event-id="{event_id}" data-category="{esc(e["category"])}" data-source="{esc(e["items"][0]["source"])}">
       <div class="top"><span class="srcbadge">{src_badge(e["items"][0]["source"])}</span><span style="font-weight:600;color:var(--txt3)">{esc(src_display(e["items"][0]["source"]))}</span><span>{card_time(e)}</span>{star}
-      <button class="favbtn" data-fav="{e["event_id"]}" title="收藏">{ic("star",15)}</button>
+      <button class="favbtn" data-fav="{event_id}" title="收藏">{ic("star",15)}</button>
       <span class="heatnum" title="热度分：{HEAT_FORMULA}">{ic("flame",13)} {e["heat"]}</span></div>
       <h3><a href="{url}">{esc(e["zh_title"])}</a></h3>
       <p class="sum">{esc(e["zh_summary"])}</p>{also}{reason}{vbox}
@@ -643,9 +721,15 @@ def render_supplement_sources(event, primary_item):
         title = str(item.get("title") or "查看报道").strip() or "查看报道"
         published = item.get("published")
         date = f'<span class="source-report-date">{fmt_date(published)}</span>' if published else ""
+        safe_link = _safe_source_url(item.get("link"))
+        if not safe_link:
+            return (
+                '<div class="source-report source-report-unavailable">'
+                f'<span class="source-report-title">{esc(title)}</span>{date}</div>'
+            )
         return (
-            f'<a class="source-report" href="{esc(item.get("link") or "")}" target="_blank" '
-            f'rel="noopener" data-analytics="outbound" data-source="{esc(source_name)}">'
+            f'<a class="source-report" href="{esc(safe_link)}" target="_blank" '
+            f'rel="noopener noreferrer" data-analytics="outbound" data-source="{esc(source_name)}">'
             f'<span class="source-report-title">{esc(title)} <span aria-hidden="true">↗</span></span>{date}</a>'
         )
 
@@ -680,6 +764,7 @@ def render_supplement_sources(event, primary_item):
 
 
 def render_detail(e, all_events, css, tts_item=None):
+    event_id = safe_event_id(e["event_id"])
     tts_button, tts_player, tts_script = render_tts_ui(tts_item)
     ebg = title_bigrams(e["zh_title"])
     related = sorted(
@@ -697,10 +782,20 @@ def render_detail(e, all_events, css, tts_item=None):
         for t in e.get("topics", []) if t in TOPIC_SLUG)
     vtags = tchips + "".join(f'<span class="vtag">{esc(v)}</span>' for v in e.get("vendors", []))
     desc = esc(e["zh_summary"][:150])
-    main_url = primary_item["link"]
+    main_url = _safe_source_url(primary_item.get("link"))
     main_link = esc(main_url)
     main_src_name = primary_item["source"]
     main_src = esc(main_src_name)
+    original_link = (
+        f'<a href="{main_link}" target="_blank" rel="noopener noreferrer" '
+        f'data-analytics="outbound" data-source="{main_src}">查看原文 ↗</a>'
+        if main_url else '<span class="source-link-unavailable">原文链接不可用</span>'
+    )
+    original_button = (
+        f'<a class="sbtn ghost" href="{main_link}" target="_blank" rel="noopener noreferrer" '
+        f'data-analytics="outbound" data-source="{main_src}">{ic("arrow",13)} 查看原文</a>'
+        if main_url else ''
+    )
     # blocks-v1 先经本地白名单清洗再渲染；异常或旧数据安全降级到 full_zh。
     safe_blocks = sanitize_blocks(e.get("content_blocks", []), main_url)
     render_media = os.getenv("MEDIA_BLOCKS_ENABLED", "true").strip().lower() not in {"0", "false", "no", "off"}
@@ -722,16 +817,18 @@ def render_detail(e, all_events, css, tts_item=None):
     if full_paras:
         full_block = f'''<div class="card"><h4>{ic("file")} 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
   <div class="fulltext">{full_paras}</div>
-  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="{main_link}" target="_blank" rel="noopener" data-analytics="outbound" data-source="{main_src}">查看原文 ↗</a></div>
+  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · {original_link}</div>
 </div>'''
-    page_url = f"{SITE_BASE}/e/{e['event_id']}.html"
-    jsonld = json.dumps({
+    page_url = f"{SITE_BASE}/e/{event_id}.html"
+    jsonld_payload = {
         "@context": "https://schema.org", "@type": "NewsArticle",
         "headline": e["zh_title"], "description": e["zh_summary"][:150],
         "datePublished": e["published"], "inLanguage": "zh-CN",
-        "isBasedOn": main_url,
         "publisher": {"@type": "Organization", "name": "DataHot"},
-    }, ensure_ascii=False)
+    }
+    if main_url:
+        jsonld_payload["isBasedOn"] = main_url
+    jsonld = json_for_html(jsonld_payload)
     page = f'''<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -827,7 +924,7 @@ def render_detail(e, all_events, css, tts_item=None):
 @media(prefers-reduced-motion:reduce){{.tts-player *{{scroll-behavior:auto!important;transition:none!important}}}}
 .disclaimer{{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}}
 .disclaimer a{{color:var(--accent)}}
-</style></head><body class="mobile-detail" data-page="detail" data-event-id="{e["event_id"]}" data-category="{esc(e["category"])}" data-source="{main_src}">
+</style></head><body class="mobile-detail" data-page="detail" data-event-id="{event_id}" data-category="{esc(e["category"])}" data-source="{main_src}">
 <header class="detail-brand-header"><div class="wrap nav">
   <div class="logo"><a href="../index.html">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
@@ -835,11 +932,11 @@ def render_detail(e, all_events, css, tts_item=None):
   <div class="topbar detail-context">
     <a class="back" href="../index.html" style="margin-bottom:0">← 返回热榜</a>
     <span class="sharebtns">
-      <button class="sbtn ghost favbtn" data-fav="{e["event_id"]}" title="收藏">{ic("star",13)}</button>
+      <button class="sbtn ghost favbtn" data-fav="{event_id}" title="收藏">{ic("star",13)}</button>
 {("      " + tts_button) if tts_button else ""}
-      <a class="sbtn ghost" href="{main_link}" target="_blank" rel="noopener" data-analytics="outbound" data-source="{main_src}">{ic("arrow",13)} 查看原文</a>
-      <button class="sbtn ghost" onclick="openPoster()">{ic("image",13)} 海报</button>
-      <button class="sbtn" onclick="openSheet()">{ic("share",13)} 分享</button>
+      {original_button}
+      <button class="sbtn ghost" type="button" data-share-action="poster">{ic("image",13)} 海报</button>
+      <button class="sbtn" type="button" data-share-action="open">{ic("share",13)} 分享</button>
     </span>
   </div>
   <div class="meta">
@@ -859,36 +956,38 @@ def render_detail(e, all_events, css, tts_item=None):
 {supplement_sources}
   <div class="card"><h4>{ic("list")} 相关事件</h4>{rel_html}</div>
 </div>
-<footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
+<footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 {tabbar("home", "../")}
 {tts_script}
 </body></html>'''
-    return page.replace("</body></html>", share_ui(e, page_url) + "</body></html>")
+    return finalize_html_security(
+        page.replace("</body></html>", share_ui(e, page_url) + "</body></html>")
+    )
 
 def share_ui(e, page_url):
     """详情页分享组件：Action Sheet（复制链接/海报/系统分享）+ Canvas 海报生成。普通字符串，非 f-string"""
-    ev_json = json.dumps({
+    ev_json = json_for_html({
         "title": e["zh_title"], "summary": e.get("zh_summary", ""),
         "reason": e.get("reason", ""), "topic": (e.get("topics") or [""])[0],
         "heat": e["heat"], "source": src_display(detail_primary_item(e)["source"]),
         "date": (e.get("published") or e.get("first_seen") or "")[:10], "url": page_url,
-    }, ensure_ascii=False)
+    })
     return """
-<div class="sh-mask" id="shMask" onclick="shClose()"></div>
+<div class="sh-mask" id="shMask" data-share-action="close"></div>
 <div class="sh-sheet" id="shSheet"><div class="sh-panel">
   <div class="sh-group">
     <div class="sh-title">分享这条资讯</div>
-    <button class="sh-opt" onclick="shCopy()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 复制链接</button>
-    <button class="sh-opt" onclick="shClose();openPoster()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 分享海报</button>
-    <button class="sh-opt" onclick="shNative()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 系统分享…</button>
+    <button class="sh-opt" type="button" data-share-action="copy"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 复制链接</button>
+    <button class="sh-opt" type="button" data-share-action="poster"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 分享海报</button>
+    <button class="sh-opt" type="button" data-share-action="native"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 系统分享…</button>
   </div>
-  <button class="sh-cancel" onclick="shClose()">取消</button>
+  <button class="sh-cancel" type="button" data-share-action="close">取消</button>
 </div></div>
 <div class="sh-poster-modal" id="shPoster">
   <div class="sh-poster-wrap"><img id="shPosterImg" alt="分享海报"></div>
   <div class="sh-poster-actions">
-    <a class="sh-save" id="shSave" href="#" onclick="shSaveClick(event)">保存图片</a>
-    <button class="sh-close" onclick="shClose()">关闭</button>
+    <a class="sh-save" id="shSave" href="#" data-share-action="save">保存图片</a>
+    <button class="sh-close" type="button" data-share-action="close">关闭</button>
   </div>
   <div class="sh-poster-tip">iOS 也可以长按图片保存</div>
 </div>
@@ -1115,8 +1214,19 @@ function dataToBlob(d){
 function showPoster(){
   document.getElementById('shPosterImg').src=posterURL;
   var a=document.getElementById('shSave');
-  a.href=URL.createObjectURL(dataToBlob(posterURL)); a.target='_blank';
+  a.href=URL.createObjectURL(dataToBlob(posterURL)); a.target='_blank';a.rel='noopener noreferrer';
 }
+document.querySelectorAll('[data-share-action]').forEach(function(control){
+  control.addEventListener('click',function(event){
+    var action=control.dataset.shareAction;
+    if(action==='open'){openSheet();}
+    else if(action==='close'){shClose();}
+    else if(action==='copy'){shCopy();}
+    else if(action==='poster'){shClose();openPoster();}
+    else if(action==='native'){shNative();}
+    else if(action==='save'){shSaveClick(event);}
+  });
+});
 </script>""".replace("__EV_JSON__", ev_json)
 
 def render_topics_map(events, css):
@@ -1148,7 +1258,7 @@ def render_topic_page(t, events, css):
     must_html = ""
     if must:
         rows = "".join(
-            f'<a class="crow" href="../e/{e["event_id"]}.html"><span class="cpin">{"📌" if e.get("pinned") else ""}</span>'
+            f'<a class="crow" href="../{detail_url(e)}"><span class="cpin">{"📌" if e.get("pinned") else ""}</span>'
             f'<span class="ctitle">{esc(e["zh_title"])}</span><span class="cmeta">{(e.get("published") or e.get("first_seen") or "")[:10]}</span></a>'
             for e in must)
         must_html = f'<div class="scard" style="margin-bottom:18px"><h4 style="margin-bottom:6px">{ic("bookmark",14)} 本主题必读</h4>{rows}</div>'
@@ -1173,7 +1283,7 @@ def render_topic_page(t, events, css):
     return page_shell(f"{t['name']} · DataHot 主题", t["desc"], css, body, tabbar("topics", "../"), prefix="../", active="topics")
 
 def page_shell(title, desc, css, body, tabbar_html, prefix="", active=""):
-    return f'''<!DOCTYPE html>
+    return finalize_html_security(f'''<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>{esc(title)}</title>
@@ -1191,9 +1301,9 @@ def page_shell(title, desc, css, body, tabbar_html, prefix="", active=""):
   <div class="logo"><a href="{prefix}index.html" style="text-decoration:none">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
 {body}
-<footer>DataHot，数据领域AI资讯分享 · <a href="{prefix}privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
+<footer>DataHot，数据领域AI资讯分享 · <a href="{prefix}privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 {tabbar_html}
-</body></html>'''
+</body></html>''')
 
 def render_sources_page(events, payload, css):
     """公开信源页：信源目录、异常提示与单一推荐入口。"""
@@ -1209,7 +1319,7 @@ def render_sources_page(events, payload, css):
         name = esc(source["name"])
         if public_url:
             name_html = (
-                f'<a class="source-name" href="{esc(public_url)}" target="_blank" rel="noopener" '
+                f'<a class="source-name" href="{esc(public_url)}" target="_blank" rel="noopener noreferrer" '
                 f'data-analytics="outbound" data-source="{esc(source["name"])}">'
                 f'{name}{ic("arrow", 13)}</a>'
             )
@@ -1286,7 +1396,7 @@ def render_sources_page(events, payload, css):
       <h2>推荐新信源</h2>
       <p>没有你关注的官方博客、行业媒体或数据社区？</p>
     </div>
-    <a class="source-cta" href="https://github.com/henryhb1105-arch/datahot/issues/new" target="_blank" rel="noopener" data-analytics="outbound">推荐新信源</a>
+    <a class="source-cta" href="https://github.com/henryhb1105-arch/datahot/issues/new" target="_blank" rel="noopener noreferrer" data-analytics="outbound">推荐新信源</a>
   </section>
 
   <p class="source-principle">DataHot 优先收录官方发布、工程实践和有明确数据行业价值的内容；本站仅提供摘要与原文链接。</p>
@@ -1298,7 +1408,7 @@ def render_sources_page(events, payload, css):
 def render_hot_page(events, css):
     """完整榜单：热度 TOP 9"""
     top = rank_hot_events(events, limit=9, source_cap=2)
-    rows = "".join(f'''<a class="hrow" href="e/{e["event_id"]}.html">
+    rows = "".join(f'''<a class="hrow" href="{detail_url(e)}">
   <span class="rk">{i}</span>
   <span class="ht">{esc(e["zh_title"])}</span>
   <span class="hm">{ic("flame",12)} {e["heat"]} · {esc(e["items"][0]["source"])}{extra}</span>
@@ -1324,7 +1434,7 @@ def render_classics_page(events, css):
             continue
         used.update(e["event_id"] for e in evs)
         rows = "".join(
-            f'''<a class="crow" href="e/{e["event_id"]}.html">
+            f'''<a class="crow" href="{detail_url(e)}">
   <span class="cpin">{"📌" if e.get("pinned") else ""}</span>
   <span class="ctitle">{esc(e["zh_title"])}</span>
   <span class="cmeta">{esc(e["items"][0]["source"])} · {(e.get("published") or e.get("first_seen") or "")[:10]}</span>
@@ -1333,7 +1443,7 @@ def render_classics_page(events, css):
     other = [e for e in classics if e["event_id"] not in used]
     if other:
         rows = "".join(
-            f'''<a class="crow" href="e/{e["event_id"]}.html">
+            f'''<a class="crow" href="{detail_url(e)}">
   <span class="cpin">{"📌" if e.get("pinned") else ""}</span>
   <span class="ctitle">{esc(e["zh_title"])}</span>
   <span class="cmeta">{esc(e["items"][0]["source"])} · {(e.get("published") or e.get("first_seen") or "")[:10]}</span>
@@ -1370,13 +1480,13 @@ def render_favorites_page(css, data_url="data/latest-lite.json"):
   }
   function safe(v){return String(v||'').replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c];});}
   fetch('__DATA_URL__').then(function(r){return r.json();}).then(function(d){
-    var map={};
+    var map=Object.create(null);
     d.events.forEach(function(e){map[e.event_id]=e;});
     var html='';
     favs.forEach(function(id){
       var e=map[id];
       if(!e) return;
-      html+='<a class="hrow" href="e/'+e.event_id+'.html">'
+      html+='<a class="hrow" href="e/'+encodeURIComponent(String(e.event_id||''))+'.html">'
         +'<span class="ht">'+safe(e.zh_title)+'</span>'
         +'<span class="hm">'+safe(e.items[0]?e.items[0].source:'')+' · '+safe((e.published||e.first_seen||'').slice(0,10))+'</span></a>';
     });
@@ -1441,8 +1551,7 @@ def _weekly_archive_nav(archives, current_week_id, *, archive_prefix):
 
 
 def _safe_source_url(value):
-    parsed = urlparse(str(value or ""))
-    return str(value) if parsed.scheme in {"http", "https"} and parsed.netloc else ""
+    return sanitize_url(value)
 
 
 def render_weekly_brief_page(
@@ -1511,7 +1620,7 @@ def render_weekly_brief_page(
             destination = "站内详情"
         else:
             href = _safe_source_url(stored.get("source_url")) or f"{prefix}weekly.html"
-            outbound = ' target="_blank" rel="noopener" data-analytics="outbound"' if href.startswith("http") else ""
+            outbound = ' target="_blank" rel="noopener noreferrer" data-analytics="outbound"' if href.startswith("http") else ""
             destination = "原始信源 ↗" if href.startswith("http") else "证据快照"
         evidence_rows.append(f'''<a class="weekly-evidence-row" href="{esc(href)}"{outbound} data-analytics-list="1" data-event-id="{esc(event_id)}" data-source="{esc(source)}">
   <span>{esc(index_item.get("title"))}</span>
@@ -1559,13 +1668,13 @@ def render_weekly_brief_page(
 
 
 def render_legacy_daily_redirect():
-    return '''<!DOCTYPE html>
+    return finalize_html_security('''<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="refresh" content="0; url=weekly.html">
 <link rel="canonical" href="weekly.html">
 <title>简报已升级 · DataHot</title></head>
-<body><p>每日简报已升级为每周简报。<a href="weekly.html">前往最新周报 →</a></p></body></html>'''
+<body><p>每日简报已升级为每周简报。<a href="weekly.html">前往最新周报 →</a></p></body></html>''')
 
 
 def render_privacy_page(css):
@@ -1595,12 +1704,13 @@ def write_detail_pages(all_events, css, detail_dir=None, tts_manifest=None, site
     valid_ids = set()
     tts_manifest = tts_manifest or {"items": {}}
     for event in all_events:
-        filename = event["event_id"] + ".html"
+        event_id = safe_event_id(event["event_id"])
+        filename = event_id + ".html"
         valid_ids.add(filename)
         (detail_dir / filename).write_text(
             render_detail(
                 event, all_events, css,
-                tts_item=tts_item_for_event(tts_manifest, event["event_id"], site_root=site_root),
+                tts_item=tts_item_for_event(tts_manifest, event_id, site_root=site_root),
             ), encoding="utf-8",
         )
     for path in detail_dir.glob("*.html"):
@@ -1618,6 +1728,8 @@ def main():
     shutil.copyfile(TTS_ASSET, SITE / "tts-player.js")
     payload = json.load(open(SITE / "data" / "latest.json"))
     all_events = payload["events"]
+    for event in all_events:
+        safe_event_id(event.get("event_id"))
     qualified_events = [event for event in all_events if is_list_eligible(event)]
     weekly_enabled = weekly_brief_enabled()
     weekly_brief = load_weekly_brief() if weekly_enabled else None
@@ -1698,7 +1810,7 @@ def main():
         e = next((x for x in events if x["event_id"] == eid), None)
         if not e:
             continue
-        hot_cards += f'''<div class="hot" data-link="{detail_url(e)}" data-analytics-list="1" data-event-id="{e["event_id"]}" data-category="{esc(e["category"])}" data-source="{esc(e["items"][0]["source"])}"><span class="rank">TOP {n}</span><span class="heat">{ic("flame",12)} {e["heat"]}</span>
+        hot_cards += f'''<div class="hot" data-link="{detail_url(e)}" data-analytics-list="1" data-event-id="{safe_event_id(e["event_id"])}" data-category="{esc(e["category"])}" data-source="{esc(e["items"][0]["source"])}"><span class="rank">TOP {n}</span><span class="heat">{ic("flame",12)} {e["heat"]}</span>
         <h3><a href="{detail_url(e)}">{esc(e["zh_title"])}</a></h3>
         <p class="hsum">{esc(e["zh_summary"])}</p>
         <div class="sources"><span class="srcbadge">{src_badge(e["items"][0]["source"])}</span>{sources_html(e)}<span class="htime">{card_time(e)}</span></div></div>'''
@@ -1822,7 +1934,7 @@ def main():
 </aside>
 </div></div>
 
-<footer>DataHot，数据领域AI资讯分享 · <a href="privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
+<footer>DataHot，数据领域AI资讯分享 · <a href="privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 {tabbar("home")}
 
 <script>
@@ -1930,6 +2042,7 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
 {home_update_info_script()}
 </body></html>'''
 
+    page = finalize_html_security(page)
     (SITE / "sources.html").write_text(render_sources_page(events, payload, css), encoding="utf-8")
     (SITE / "classics.html").write_text(render_classics_page(qualified_events, css), encoding="utf-8")
     (SITE / "hot.html").write_text(render_hot_page(events, css), encoding="utf-8")

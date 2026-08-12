@@ -421,6 +421,81 @@
    ]
   },
   {
+   "event_id": "65c35101abc1",
+   "zh_title": "跨100+ AWS账户的集中CloudTrail监控",
+   "zh_summary": "AWS Big Data Blog 介绍了如何在 Amazon OpenSearch Service 上构建集中式 CloudTrail 监控方案，使用 Terraform 管理全栈资源。该方案每日处理 200 GB 日志，覆盖 100+ AWS 账户，提供自动化威胁检测，并支持按需生成 SOC 2、PCI DSS 和 HIPAA 合规报告，同时为四个团队提供隔离的权限访问。",
+   "reason": "面向大规模多云账户的安全日志集中分析与合规报告实践，对数据平台建设者具有参考价值。",
+   "full_zh": "## 关键事实\n\nAWS 官方大数据博客发布了一篇关于跨 100+ AWS 账户实施集中 CloudTrail 监控的解决方案。该方案基于 Amazon OpenSearch Service，并使用 Terraform 管理从域配置到访问控制、生命周期策略的全栈资源。核心工作负载指标包括：每日处理 200 GB CloudTrail 日志（约 18,000 文档/秒）、约 2,000 次搜索/天、平均搜索延迟低于 100 毫秒（实测 76 毫秒）、保留 30 天热数据、可用性目标 99.9%。架构上，组织跟踪将 100+ 账户的日志汇聚到集中 S3 存储桶，SQS 通知触发 OpenSearch Ingestion 管道，该管道可在 2 到 10 个 OpenSearch Compute Units（OCUs）之间根据队列深度自动缩放。OpenSearch 域配置为 6 个 or1.4xlarge 数据节点、3 个 r8g.large 专用主节点，分布在 3 个可用区，启用了静态加密、节点间加密、TLS 1.2 和细粒度访问控制。4 个团队（安全运营、事件响应、合规、DevOps）通过租户隔离获得角色适配的数据访问权限。方案包含 600+ 保存搜索、100+ 仪表盘，并支持自动威胁检测警报。基础设施即代码覆盖索引模板、ISM 策略、角色映射、租户和警报监视器。实例选择上采用零副本的 OR1 存储优化实例，利用 Amazon S3 段复制消除副本 CPU 开销，并推荐新部署使用 OR2 实例，其索引吞吐量比 OR1 高 26%。\n\n## 行业影响\n\n该方案直接回应了多云账户环境下安全监控的常见痛点：安全团队在数百 GB 日志中手动搜索需要数小时，合规报告生成需要数天；自定义 Lambda 函数管理索引生命周期容易形成碎片化代码库；单一共享搜索域缺乏一致访问控制。通过 OpenSearch 和",
+   "content_blocks": [],
+   "content_format": "",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [
+    "AWS",
+    "Amazon OpenSearch Service"
+   ],
+   "heat": 57,
+   "star": true,
+   "importance": 75,
+   "signal": 0,
+   "topics": [],
+   "shelf": "evergreen",
+   "pinned": false,
+   "published": "2026-08-11T23:48:03+08:00",
+   "first_seen": "2026-08-12T00:33:30.539407+08:00",
+   "items": [
+    {
+     "id": "4af823e56aa8",
+     "source": "AWS Big Data Blog",
+     "link": "https://aws.amazon.com/blogs/big-data/centralized-cloudtrail-monitoring-across-100-aws-accounts/",
+     "published": "2026-08-11T23:48:03+08:00",
+     "ingested_at": "2026-08-12T00:33:30.539407+08:00",
+     "title": "Centralized CloudTrail monitoring across 100+ AWS accounts"
+    }
+   ],
+   "content_level": "standard",
+   "body_chars": 808
+  },
+  {
+   "event_id": "dfb9071b69e0",
+   "zh_title": "BigQuery支持Gemini 3.1 Flash Lite与3.5 Flash GA模型",
+   "zh_summary": "BigQuery宣布正式支持gemini-3.1-flash-lite和gemini-3.5-flash GA模型，适用于us、eu及global多区域端点。用户可在所有生成式AI函数中使用这些模型。该更新源自BigQuery官方发布说明。",
+   "reason": "数据从业者可在BigQuery内直接调用最新Gemini模型进行生成式分析，降低AI功能集成成本。",
+   "full_zh": "## 关键事实\n\n2026年8月10日，Google Cloud 发布 BigQuery 生产环境更新，正式宣布 BigQuery 现已支持 **gemini-3.1-flash-lite** 和 **gemini-3.5-flash** 两个 GA（Generally Available）模型。这两个模型面向 **us**、**eu** 以及 **global** 多区域端点提供，并且可用于 BigQuery 中所有生成式 AI 函数。\n\n此次更新意味着，用户可以在 BigQuery 的 SQL 环境中直接调用这两个 Gemini 模型，执行文本生成、摘要、分类、实体抽取等生成式 AI 任务，而无需将数据导出到外部模型服务。多区域端点的选择方式与既有生成式 AI 功能一致，具体规则可见于 generative AI overview 中的 locations 说明。BigQuery 会自动更新至最新版本，且不支持回退到旧版本。\n\n## 行业影响\n\nGemini 3.1 Flash Lite 主打低延迟、低成本，适合高频轻量级推理场景；Gemini 3.5 Flash 则在推理质量与速度之间取得平衡，面向更复杂的生成任务。两个模型同时进入 GA 状态，标志着 BigQuery 在“数据仓库内直接运行大模型”的能力上进一步成熟。\n\n对企业用户而言，这意味着可以在数据存储所在位置直接完成 AI 推理，减少数据移动带来的合规风险与传输成本。尤其对于金融、零售、医疗等对数据驻留有严格要求的行业，多区域端点（us/eu/global）提供了更灵活的区域选择，有利于满足数据本地化要求。同时，所有生成式 AI 函数均可调用这两个模型，降低了集成开发成本，使数据工程师和分析师能够在熟悉的 SQL 工作流中构建 AI 驱动应用。\n\n从竞争格局看，BigQuery 持续将大模型能力嵌入数据平台，可能促使更多云数据仓库厂商跟进，进一步推动“数据库内 AI”成为数据分析领域的默认选项。\n\n## 实践要点\n\n1. **模型选择**：若任务对响应速度和成本敏感，优先选用 **gemini-3.1-flash-lite**；若需要更强的内容理解与生成质量，则选用 **gemini-3.5-flash**。\n2. **端点指定**：使用多区域端点时，注意选择 **us**、**eu** 或 **global**。不同端点可能影响数据驻留位置和网络延迟，应按业务合规需求配置。\n3. **函数兼容性**：这两个模型支持 BigQuery 中**所有**生成式 AI 函数，可直接替代或对照现有模型使用。建议在开发环境中先验证函数调用的返回值格式。\n4. **版本管理**：BigQuery 自动更新且不可降级。生产环境应提前在测试项目中对新模型进行充分评估，再切换到正式查询。",
+   "content_blocks": [],
+   "content_format": "",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [
+    "Google",
+    "BigQuery",
+    "Google Cloud"
+   ],
+   "heat": 55,
+   "star": true,
+   "importance": 70,
+   "signal": 0,
+   "topics": [
+    "平台AI化"
+   ],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-08-10T15:00:00+08:00",
+   "first_seen": "2026-08-12T00:33:30.539407+08:00",
+   "items": [
+    {
+     "id": "4b801aa892db",
+     "source": "Google BigQuery Release Notes",
+     "link": "https://docs.cloud.google.com/bigquery/docs/release-notes#August_10_2026",
+     "published": "2026-08-10T15:00:00+08:00",
+     "ingested_at": "2026-08-12T00:33:30.539407+08:00",
+     "title": "August 10, 2026"
+    }
+   ],
+   "content_level": "standard",
+   "body_chars": 1189
+  },
+  {
    "event_id": "cc0a355dcfb8",
    "zh_title": "Customize Cowork with plugins | Claude by Anthropic",
    "zh_summary": "",

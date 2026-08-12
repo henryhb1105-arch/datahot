@@ -40,6 +40,11 @@ EXPECTED_PEOPLE_AI_WAVE2_SOURCES = {
 
 
 class OfficialFeedParsingTests(unittest.TestCase):
+    def test_parse_date_normalizes_date_only_values_to_utc(self):
+        parsed = run_update.parse_date("2026-08-12")
+        self.assertEqual(parsed.tzinfo, run_update.timezone.utc)
+        self.assertEqual(parsed.isoformat(), "2026-08-12T00:00:00+00:00")
+
     def test_rss_and_atom_are_both_supported(self):
         rss = ET.fromstring("""
             <rss><channel><item>

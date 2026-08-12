@@ -47,8 +47,8 @@ class HomeHeaderTests(unittest.TestCase):
         ]}]
         chips = build_site.render_home_filter_chips(events)
         ordered_markup = [
-            'data-category="insight">AI分析</span>',
             'data-topic="Data Agent">Agent</span>',
+            'data-category="insight">AI分析</span>',
             'data-topic="平台AI化">AI平台</span>',
             'data-topic="语义层">语义层</span>',
             'data-topic="实时分析">实时</span>',
@@ -62,6 +62,12 @@ class HomeHeaderTests(unittest.TestCase):
         positions = [chips.index(markup) for markup in ordered_markup]
         self.assertEqual(positions, sorted(positions))
         self.assertNotIn("AI 分析与洞察", chips)
+
+    def test_insight_chip_stays_available_when_agent_topic_is_inactive(self):
+        chips = build_site.render_home_filter_chips([{"topics": ["语义层"]}])
+        self.assertTrue(chips.startswith(
+            '<span class="fchip" data-category="insight">AI分析</span>'
+        ))
 
     def test_home_filter_chips_keep_canonical_topic_values_for_urls(self):
         chips = build_site.render_home_filter_chips([

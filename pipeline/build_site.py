@@ -96,12 +96,16 @@ def render_home_filter_chips(timeline_events):
         name for name in configured_topics
         if name in active_topics and name not in HOME_FILTER_TOPIC_ORDER
     ]
-    parts = ['<span class="fchip" data-category="insight">AI分析</span>']
-    parts.extend(
-        f'<span class="fchip" data-topic="{esc(name)}">'
-        f'{esc(HOME_FILTER_TOPIC_LABELS.get(name, name))}</span>'
-        for name in (*preferred, *remaining)
-    )
+    parts = []
+    for name in (*preferred, *remaining):
+        parts.append(
+            f'<span class="fchip" data-topic="{esc(name)}">'
+            f'{esc(HOME_FILTER_TOPIC_LABELS.get(name, name))}</span>'
+        )
+        if name == "Data Agent":
+            parts.append('<span class="fchip" data-category="insight">AI分析</span>')
+    if "Data Agent" not in active_topics:
+        parts.insert(0, '<span class="fchip" data-category="insight">AI分析</span>')
     return "".join(parts)
 
 def src_badge(source_name):

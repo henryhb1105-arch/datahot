@@ -782,7 +782,7 @@ def render_detail(e, all_events, css, tts_item=None):
   {f'<div class="why"><span><span class="w">{ic("sparkle",13)} 推荐理由：</span>{esc(clean_reason(e["reason"]))}</span></div>' if e.get("reason") else ""}
   {f'<div class="vendors" style="margin-top:14px">{vtags}</div>' if vtags else ""}
   {full_block}
-  {supplement_sources}
+{supplement_sources}
   <div class="card"><h4>{ic("list")} 相关事件</h4>{rel_html}</div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>

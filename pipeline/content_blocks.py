@@ -966,9 +966,7 @@ def render_blocks_html(blocks, render_media=True):
             if not render_media or not cached_src or block.get("media_status") != "cached":
                 continue
             original_src = html.escape(block["src"], quote=True)
-            source_url = html.escape(block.get("source_url") or block["src"], quote=True)
             alt = html.escape(block.get("alt", ""), quote=True)
-            caption = html.escape(block.get("caption") or block.get("alt") or "")
             dimensions = ""
             if block.get("width") and block.get("height"):
                 dimensions = f' width="{block["width"]}" height="{block["height"]}"'
@@ -977,15 +975,5 @@ def render_blocks_html(blocks, render_media=True):
                 f'rel="noopener noreferrer nofollow"><img src="{cached_src}" alt="{alt}" '
                 f'loading="lazy" decoding="async"{dimensions}></a>'
             )
-            host = html.escape(urlparse(block.get("source_url") or block["src"]).netloc)
-            links = (
-                f'<span class="cb-media-source">来源：<a href="{source_url}" target="_blank" '
-                f'rel="noopener noreferrer nofollow">{host or "原文"}</a></span>'
-                f'<a href="{original_src}" target="_blank" rel="noopener noreferrer nofollow">查看原图 ↗</a>'
-            )
-            rendered.append(
-                f'<figure class="cb-figure">{visual}<figcaption>'
-                f'{f"<span>{caption}</span>" if caption else ""}<span class="cb-media-meta">{links}</span>'
-                f'</figcaption></figure>'
-            )
+            rendered.append(f'<figure class="cb-figure">{visual}</figure>')
     return "".join(rendered)

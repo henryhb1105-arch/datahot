@@ -315,7 +315,7 @@ class MediaCacheTests(unittest.TestCase):
             self.assertEqual(report["reasons"], {"cache_total_limit": 1})
             self.assertNotIn("cached_src", blocks[0])
 
-    def test_responsive_renderer_uses_local_media_and_traceable_links(self):
+    def test_responsive_renderer_shows_only_cached_image_without_caption(self):
         figure = self.figure()[0]
         figure.update({
             "cached_src": "../media/event-1/0123456789abcdef01234567.jpg",
@@ -326,8 +326,12 @@ class MediaCacheTests(unittest.TestCase):
         self.assertIn('loading="lazy"', rendered)
         self.assertIn('decoding="async"', rendered)
         self.assertIn("../media/event-1/0123456789abcdef01234567.jpg", rendered)
-        self.assertIn("来源：", rendered)
-        self.assertIn("查看原图", rendered)
+        self.assertIn('alt="Chart"', rendered)
+        self.assertNotIn("<figcaption", rendered)
+        self.assertNotIn("Quarterly chart", rendered)
+        self.assertNotIn("来源：", rendered)
+        self.assertNotIn("查看原图", rendered)
+        self.assertNotIn("cb-media-meta", rendered)
         self.assertNotIn("onclick", rendered)
         without_media = render_blocks_html([figure], render_media=False)
         self.assertNotIn("<img", without_media)
@@ -359,6 +363,8 @@ class MediaCacheTests(unittest.TestCase):
         self.assertNotIn("图片未缓存", page)
         self.assertNotIn("<figure", page)
         self.assertIn(".cb-figure img{display:block;width:100%;height:auto", page)
+        self.assertNotIn(".cb-figure figcaption", page)
+        self.assertNotIn(".cb-media-meta", page)
         self.assertIn("@media(max-width:600px)", page)
         self.assertIn(".cb-table{overflow-x:auto", page)
         self.assertIn("body{overflow-x:clip}", page)

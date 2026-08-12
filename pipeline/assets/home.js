@@ -66,6 +66,37 @@
     return query ? "?" + query : "";
   }
 
+  var HOME_HISTORY_KEY = "datahotHome";
+
+  function historyStateWithSnapshot(currentHistoryState, state, position) {
+    var next = currentHistoryState && typeof currentHistoryState === "object"
+      ? Object.assign({}, currentHistoryState) : {};
+    next[HOME_HISTORY_KEY] = {
+      version: 1,
+      search: searchForState(state),
+      page: normalizedPage(state.page),
+      y: Math.max(0, Number(position && position.y) || 0),
+      anchor: String(position && position.anchor || ""),
+      anchorOffset: Number(position && position.anchorOffset) || 0
+    };
+    return next;
+  }
+
+  function snapshotFromHistory(historyState, state) {
+    if (!historyState || typeof historyState !== "object") return null;
+    var snapshot = historyState[HOME_HISTORY_KEY];
+    if (!snapshot || snapshot.version !== 1) return null;
+    if (snapshot.search !== searchForState(state)) return null;
+    return {
+      version: 1,
+      search: snapshot.search,
+      page: normalizedPage(snapshot.page),
+      y: Math.max(0, Number(snapshot.y) || 0),
+      anchor: String(snapshot.anchor || ""),
+      anchorOffset: Number(snapshot.anchorOffset) || 0
+    };
+  }
+
   function orderedEvents(payload) {
     var map = new Map((payload.events || []).map(function (event) { return [event.event_id, event]; }));
     return (payload.home_event_ids || []).map(function (id) { return map.get(id); }).filter(Boolean);
@@ -180,10 +211,54 @@
     var state = stateFromSearch(win.location.search);
     var payloadPromise = null;
     var allEvents = null;
-    var scrollKey = "datahot-home-scroll-v1";
+    var restoredSnapshot = false;
+
+    if ("scrollRestoration" in win.history) win.history.scrollRestoration = "manual";
 
     function persistUrl() {
-      win.history.replaceState(null, "", win.location.pathname + searchForState(state) + win.location.hash);
+      var query = searchForState(state);
+      var historyState = win.history.state && typeof win.history.state === "object"
+        ? Object.assign({}, win.history.state) : {};
+      if (historyState[HOME_HISTORY_KEY] && historyState[HOME_HISTORY_KEY].search !== query) {
+        delete historyState[HOME_HISTORY_KEY];
+      }
+      win.history.replaceState(historyState, "", win.location.pathname + query + win.location.hash);
+    }
+    function positionForCard(card) {
+      var anchorCard = card;
+      if (!anchorCard) {
+        var cards = Array.from(root.querySelectorAll("[data-event-id]"));
+        anchorCard = cards.find(function (candidate) {
+          return candidate.getBoundingClientRect().bottom > 0;
+        }) || cards[0] || null;
+      }
+      var rect = anchorCard ? anchorCard.getBoundingClientRect() : null;
+      return {
+        y: win.scrollY || 0,
+        anchor: anchorCard ? String(anchorCard.dataset.eventId || "") : "",
+        anchorOffset: rect ? rect.top : 0
+      };
+    }
+    function saveHomePosition(card) {
+      var historyState = historyStateWithSnapshot(win.history.state, state, positionForCard(card));
+      win.history.replaceState(
+        historyState, "", win.location.pathname + searchForState(state) + win.location.hash
+      );
+    }
+    function restoreHomePosition(snapshot) {
+      if (!snapshot || restoredSnapshot) return;
+      var apply = function () {
+        var y = snapshot.y;
+        if (snapshot.anchor && /^[a-z0-9_-]+$/i.test(snapshot.anchor)) {
+          var anchor = root.querySelector('[data-event-id="' + snapshot.anchor + '"]');
+          if (anchor) {
+            y = (win.scrollY || 0) + anchor.getBoundingClientRect().top - snapshot.anchorOffset;
+          }
+        }
+        win.scrollTo(0, Math.max(0, y));
+        restoredSnapshot = true;
+      };
+      win.requestAnimationFrame(function () { win.requestAnimationFrame(apply); });
     }
     function fetchEvents() {
       if (!payloadPromise) {
@@ -252,32 +327,38 @@
     doc.addEventListener("click", function (event) {
       var card = event.target.closest && event.target.closest(".item,.hot");
       if (!card) return;
-      if (card.classList.contains("item")) {
-        try { win.sessionStorage.setItem(scrollKey, JSON.stringify({ href: win.location.href, y: win.scrollY, at: Date.now() })); } catch (_error) {}
-      }
-      if (!event.target.closest("a,button") && card.dataset.link) win.location.href = card.dataset.link;
+      var detailLink = event.target.closest && event.target.closest('a[href^="e/"]');
+      var cardNavigation = !event.target.closest("a,button") && card.dataset.link;
+      if (card.classList.contains("item") && (detailLink || cardNavigation)) saveHomePosition(card);
+      if (cardNavigation) win.location.href = card.dataset.link;
     });
 
-    if (state.q || state.topic !== "all" || state.category || state.page > 1) refresh();
+    var initialSnapshot = snapshotFromHistory(win.history.state, state);
+    var initialRender = null;
+    if (state.q || state.topic !== "all" || state.category || state.page > 1) initialRender = refresh();
     else {
       var prefetch = function () { fetchEvents().catch(function () {}); };
       if (typeof win.requestIdleCallback === "function") win.requestIdleCallback(prefetch, { timeout: 1500 });
       else win.setTimeout(prefetch, 500);
     }
-    try {
-      var saved = JSON.parse(win.sessionStorage.getItem(scrollKey) || "null");
-      if (saved && saved.href === win.location.href && Date.now() - saved.at < 30 * 60 * 1000) {
-        var restore = function () { win.requestAnimationFrame(function () { win.scrollTo(0, saved.y || 0); }); };
-        if (state.q || state.topic !== "all" || state.category || state.page > 1) fetchEvents().then(refresh).then(restore);
-        else restore();
-      }
-    } catch (_error) {}
+    if (initialSnapshot) {
+      if (initialRender) initialRender.then(function () { restoreHomePosition(initialSnapshot); });
+      else restoreHomePosition(initialSnapshot);
+    }
+    win.addEventListener("pageshow", function (event) {
+      if (!event.persisted) return;
+      restoredSnapshot = false;
+      var snapshot = snapshotFromHistory(win.history.state, state);
+      if (snapshot) restoreHomePosition(snapshot);
+    });
   }
 
   return {
     escapeHtml: escapeHtml,
     stateFromSearch: stateFromSearch,
     searchForState: searchForState,
+    historyStateWithSnapshot: historyStateWithSnapshot,
+    snapshotFromHistory: snapshotFromHistory,
     filterStateAfterSelection: filterStateAfterSelection,
     orderedEvents: orderedEvents,
     filterEvents: filterEvents,

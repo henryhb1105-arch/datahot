@@ -21,6 +21,25 @@ test("URL state preserves query, topic, category and page", () => {
   assert.equal(home.stateFromSearch("?category=unknown").category, "");
 });
 
+test("home position belongs to the current history entry and matching filter state", () => {
+  const state = { q: "", topic: "Data Agent", category: "", page: 3 };
+  const historyState = home.historyStateWithSnapshot(
+    { unrelated: "kept" }, state,
+    { y: 1480, anchor: "00abc123def0", anchorOffset: 92 }
+  );
+  assert.equal(historyState.unrelated, "kept");
+  assert.deepEqual(home.snapshotFromHistory(historyState, state), {
+    version: 1,
+    search: "?topic=Data+Agent&page=3",
+    page: 3,
+    y: 1480,
+    anchor: "00abc123def0",
+    anchorOffset: 92
+  });
+  assert.equal(home.snapshotFromHistory(historyState, { ...state, topic: "实时分析" }), null);
+  assert.equal(home.snapshotFromHistory(null, state), null);
+});
+
 test("pagination and filtering operate on lite metadata", () => {
   const events = [event(1), event(2, "BI"), event(3, "BI")];
   const result = home.visibleEvents(events, { q: "semantic", topic: "BI", page: 1 }, 1);

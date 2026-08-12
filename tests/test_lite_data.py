@@ -94,6 +94,19 @@ class LitePayloadTests(unittest.TestCase):
         selected = select_home_events([empty, untranslated, raw, good])
         self.assertEqual([item["event_id"] for item in selected], [good["event_id"]])
 
+    def test_public_pool_rejects_explicit_low_importance_but_keeps_legacy_unscored(self):
+        low = event(5, importance=10, heat=24)
+        low["zh_title"] = "Snowflake 预览发布说明暂无更新"
+        low["zh_summary"] = "本次没有需要宣布的重大功能、更新或增强。"
+        legacy = event(6)
+        legacy["importance"] = None
+        legacy["zh_title"] = "历史数据平台更新"
+        legacy["zh_summary"] = "这是一条在重要性评分上线前完成编辑的历史事件。"
+        selected = select_timeline_events([low, legacy])
+        self.assertEqual([item["event_id"] for item in selected], [legacy["event_id"]])
+        payload = build_lite_payload([low, legacy], "2026-08-11T12:00:00+08:00", ranking=selected)
+        self.assertIsNone(payload["events"][1]["importance"])
+
     def test_claude_backlog_is_bounded_in_feed_and_first_page(self):
         claude = []
         for index in range(12):

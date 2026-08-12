@@ -81,6 +81,30 @@ def event(event_id, title="同一数据平台发布", **overrides):
 
 
 class EventFirstPipelineTests(unittest.TestCase):
+    def test_empty_snowflake_release_note_is_rejected_before_enrichment(self):
+        empty = item(
+            "snowflake-empty",
+            "10.28 release notes (no announcements) (preview)",
+            source="Snowflake Release Notes",
+            source_type="vendor",
+            vendor_default=True,
+            article_text=(
+                "This release has no significant features, updates, or "
+                "enhancements to announce."
+            ),
+        )
+        substantive = dict(empty)
+        substantive["id"] = "snowflake-real"
+        substantive["title"] = "Snowflake 10.29 adds semantic view materialization"
+        substantive["article_text"] = "This release adds semantic view materialization."
+        other_source = dict(empty)
+        other_source["id"] = "other-source"
+        other_source["source"] = "Independent analysis"
+        self.assertTrue(run_update.is_empty_release_note(empty))
+        self.assertFalse(run_update.is_empty_release_note(substantive))
+        self.assertFalse(run_update.is_empty_release_note(other_source))
+        self.assertEqual(run_update.llm_enrich([empty], ("", "", "")), [])
+
     def test_candidate_cache_precedes_rule_filter(self):
         original_cache = run_update.CANDIDATE_CACHE
         with tempfile.TemporaryDirectory() as tmp:

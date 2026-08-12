@@ -660,8 +660,38 @@ def rule_prefilter_candidates(items):
     return kept
 
 
+EMPTY_SNOWFLAKE_RELEASE_MARKERS = (
+    "no significant features, updates, or enhancements to announce",
+    "release notes (no announcements)",
+    "release notes — no announcements",
+    "本次发布没有需要宣布的重大功能、更新或增强",
+)
+
+
+def is_empty_release_note(item):
+    """Reject placeholder release-note pages that explicitly announce nothing."""
+    if str(item.get("source") or "") != "Snowflake Release Notes":
+        return False
+    text = " ".join(
+        str(item.get(key) or "")
+        for key in ("title", "summary", "article_text")
+    ).casefold()
+    text = " ".join(text.split())
+    return any(marker in text for marker in EMPTY_SNOWFLAKE_RELEASE_MARKERS)
+
+
 def llm_enrich(items, cfg, *, generate_fulltext=True):
     key, base, model = cfg
+    meaningful = []
+    for it in items:
+        if is_empty_release_note(it):
+            print(f"[rules] 空发布说明，剔除: {it['title'][:50]}")
+            if model:
+                context = it.get("_cache_context") or _candidate_cache_context(it, model)
+                CANDIDATE_CACHE.remember(**context, status="rejected")
+            continue
+        meaningful.append(it)
+    items = meaningful
     if not (key and base and model):
         safe = [item for item in items if not requires_editorial_review(item)]
         dropped = len(items) - len(safe)

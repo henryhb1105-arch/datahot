@@ -114,7 +114,7 @@ class BuildPathRegressionTests(unittest.TestCase):
         self.assertIn('class="more-link on" href="favorites.html"', favorites)
         self.assertNotIn('class="tabbar-more on"', build_site.tabbar("home"))
 
-    def test_section_and_detail_use_mobile_context_headers(self):
+    def test_section_and_detail_use_shared_navigation_shells(self):
         section = build_site.page_shell(
             "Topic", "Desc", "", "<main></main>",
             build_site.tabbar("topics"), active="topics",
@@ -123,9 +123,12 @@ class BuildPathRegressionTests(unittest.TestCase):
         self.assertIn('class="section-brand-header"', section)
 
         detail = build_site.render_detail(event("detail-event"), [event("detail-event")], "")
-        self.assertIn('class="mobile-detail"', detail)
+        self.assertIn('class="has-sb mobile-detail"', detail)
         self.assertIn('class="detail-brand-header"', detail)
         self.assertIn('class="topbar detail-context"', detail)
+        self.assertEqual(detail.count('<aside class="sidebar">'), 1)
+        self.assertIn('class="mi on" href="../index.html"', detail)
+        self.assertIn('class="mi" href="../topics.html"', detail)
 
     def test_nested_page_sidebar_uses_page_prefix(self):
         page = build_site.page_shell(

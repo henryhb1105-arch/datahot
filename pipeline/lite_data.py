@@ -265,7 +265,14 @@ def rank_timeline_events(
 
 
 def rank_hot_events(events, *, limit=9, source_cap=2):
-    """Rank a trustworthy hot list while preventing one publisher takeover."""
+    """Rank a trustworthy hot list while preventing one publisher takeover.
+
+    Selection is strictly heat-descending: every round picks the highest-heat
+    remaining event whose source is still under the cap. A same-source
+    adjacency rule previously let a lower-heat event outrank a higher-heat
+    one (issue #82); the source cap alone is enough to prevent a takeover,
+    so the displayed order now always matches the shown heat values.
+    """
     counts = Counter()
     selected = []
     remaining = sorted(
@@ -281,17 +288,10 @@ def rank_hot_events(events, *, limit=9, source_cap=2):
     cap = max(1, int(source_cap))
     target = max(0, int(limit))
     while remaining and len(selected) < target:
-        last_source = _primary_source(selected[-1]) if selected else ""
         candidate_index = next((
             index for index, event in enumerate(remaining)
             if counts[_primary_source(event)] < cap
-            and _primary_source(event) != last_source
         ), None)
-        if candidate_index is None:
-            candidate_index = next((
-                index for index, event in enumerate(remaining)
-                if counts[_primary_source(event)] < cap
-            ), None)
         if candidate_index is None:
             break
         event = remaining.pop(candidate_index)

@@ -174,8 +174,25 @@ class LitePayloadTests(unittest.TestCase):
         ranked = rank_hot_events(events + [unfinished, other], limit=9, source_cap=2)
         self.assertNotIn(unfinished["event_id"], {item["event_id"] for item in ranked})
         self.assertEqual(sum(item["items"][0]["source"] == "One Publisher" for item in ranked), 2)
-        sources = [item["items"][0]["source"] for item in ranked]
-        self.assertFalse(any(left == right for left, right in zip(sources, sources[1:])))
+        heats = [item["heat"] for item in ranked]
+        self.assertEqual(heats, sorted(heats, reverse=True))
+
+    def test_hot_list_keeps_heat_order_for_same_source_events(self):
+        """issue #82：相邻同源的高分事件不得被低分事件反超。"""
+        top = event(1, heat=67)
+        top["items"][0]["source"] = "主编收录"
+        runner_up = event(2, heat=65)
+        runner_up["items"][0]["source"] = "主编收录"
+        lower = event(3, heat=59)
+        lower["items"][0]["source"] = "Databricks Blog"
+        for item in (top, runner_up, lower):
+            item["zh_title"] = f"数据热点 {item['event_id']}"
+            item["zh_summary"] = "完整中文摘要。"
+        ranked = rank_hot_events([lower, runner_up, top], limit=3, source_cap=2)
+        self.assertEqual(
+            [item["event_id"] for item in ranked],
+            [top["event_id"], runner_up["event_id"], lower["event_id"]],
+        )
 
 
 if __name__ == "__main__":

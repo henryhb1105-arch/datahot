@@ -30,6 +30,11 @@ CAT_BADGE = {"agent": "b-agent", "platform": "b-platform", "bi": "b-bi", "produc
 CAT_LABEL = {"agent": "Data Agent", "platform": "AI 数据平台", "bi": "BI 与可视化", "product": "数据产品"}
 WEEK_CN = "一二三四五六日"
 HEAT_FORMULA = "AI重要性50% + 新鲜度20% + 社区信号15%(封顶) + 多信源15%"
+UPDATE_MECHANISM = (
+    "DataHot 通常在北京时间 02:17、08:17、14:17、20:17 自动启动更新。"
+    "完成信源采集、筛选去重、AI 整理和静态发布后，页面时间才会变化，"
+    "因此可能比计划时间晚几分钟。"
+)
 
 ICONS = {
  "flame": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>',
@@ -113,7 +118,6 @@ main,.layout>*,.hotlist>*{min-width:0}
 @media(max-width:960px){.d-only{display:none}}
 .chip{display:inline-block;font-size:11px;background:#eef2ff;color:var(--blue);border-radius:99px;padding:1px 10px;text-decoration:none}
 .chip:hover{background:#dbe4ff}
-.upd-time{margin-left:auto;font-size:11.5px;color:var(--sub);white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
 .tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
 .tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
 .chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px;position:relative}
@@ -311,10 +315,43 @@ def sidebar(active, gen=None, prefix=""):
         f'<a class="mi{" on" if k == active else ""}" href="{prefix}{u}">{ic(i,16)}{n}</a>'
         for n, i, u, k in items)
     foot = f'更新 {gen.strftime("%m-%d %H:%M")}<br>' if gen else ""
+    logo_label = ' aria-label="刷新 DataHot 首页" title="刷新首页"' if active == "home" else ""
     return ('<aside class="sidebar">'
-            f'<div class="slogo"><a href="{prefix}index.html" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div>'
+            f'<div class="slogo"><a href="{prefix}index.html"{logo_label} style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div>'
             + menu +
             f'<div class="sfoot">{foot}每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>')
+
+
+def render_home_brand_update(gen):
+    """首页品牌刷新入口与可交互的更新机制说明。"""
+    return f'''<a class="logo home-logo" href="index.html" data-home-refresh aria-label="刷新 DataHot 首页" title="刷新首页">Data<em>Hot</em><span class="tag">每 6 小时更新</span></a>
+  <details class="update-info" data-update-info>
+    <summary class="upd-time" aria-describedby="updateMechanism">{ic("clock",12)} {gen.strftime("%m-%d %H:%M")} 更新</summary>
+    <div class="update-popover" id="updateMechanism" role="tooltip"><b>页面如何更新</b>{esc(UPDATE_MECHANISM)}</div>
+  </details>'''
+
+
+def home_update_info_script():
+    return '''<script>
+(function(){
+  var info=document.querySelector('[data-update-info]');
+  if(!info) return;
+  var summary=info.querySelector('summary');
+  document.addEventListener('click',function(event){
+    if(!info.contains(event.target)) info.removeAttribute('open');
+  });
+  document.addEventListener('keydown',function(event){
+    if(event.key!=='Escape') return;
+    info.removeAttribute('open');
+    info.classList.add('is-dismissed');
+  });
+  info.addEventListener('pointerleave',function(){info.classList.remove('is-dismissed')});
+  if(summary){
+    summary.addEventListener('click',function(){info.classList.remove('is-dismissed')});
+    summary.addEventListener('blur',function(){info.classList.remove('is-dismissed')});
+  }
+})();
+</script>'''
 
 
 def analytics_head(prefix=""):
@@ -1747,8 +1784,7 @@ def main():
 {sidebar("home", gen)}
 <div id="ptr"><span>下拉刷新</span></div>
 <header class="home-header"><div class="wrap nav">
-  <div class="logo">Data<em>Hot</em><span class="tag">每 6 小时更新</span></div>
-  <span class="upd-time">{ic("clock",12)} {gen.strftime("%m-%d %H:%M")} 更新</span>
+  {render_home_brand_update(gen)}
   {weekly_header_link}
   <a class="tab d-only" href="topics.html" style="text-decoration:none">{ic("map",14)} 主题</a>
   <a class="tab d-only" href="classics.html" style="text-decoration:none">{ic("bookmark",14)} 典藏</a>
@@ -1891,6 +1927,7 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
   }},{{passive:true}});
 }})();
 </script>
+{home_update_info_script()}
 </body></html>'''
 
     (SITE / "sources.html").write_text(render_sources_page(events, payload, css), encoding="utf-8")

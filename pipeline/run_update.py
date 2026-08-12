@@ -598,6 +598,7 @@ def llm_enrich(items, cfg, *, generate_fulltext=True):
         it["topics"] = [t for t in (out.get("topics") or []) if t in TOPIC_NAMES][:2]
         it["shelf"] = out.get("shelf") if out.get("shelf") in ("news", "evergreen") else "news"
         it["importance"] = int(out.get("importance", 50))
+        it["star"] = it["importance"] >= 75  # 精选由内容质量决定，不看信源出身
         it["heat"] = calc_heat(it["importance"], it.get("_pub_dt"), it.get("signal", 0))
         return it
 
@@ -1528,7 +1529,7 @@ def main():
                     "signal": e.get("signal", 0), "importance": 50, "topics": [],
                     "_slug_title": e.get("_slug_title", False),
                     "heat": calc_heat(50, pub_dt, e.get("signal", 0)),
-                    "star": s["type"] == "vendor" and s["weight"] >= 3,
+                    "star": False,  # 精选由 LLM 加工时按重要性判定
                     "article_text": "",
                 })
                 new_by_url[nurl] = new_items[-1]

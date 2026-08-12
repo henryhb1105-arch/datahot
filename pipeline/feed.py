@@ -9,6 +9,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
+from taxonomy import category_label
+
 
 ATOM = "http://www.w3.org/2005/Atom"
 ET.register_namespace("", ATOM)
@@ -72,7 +74,7 @@ def build_atom_feed(events, generated_at, *, site_base, limit=50):
     root = ET.Element(_tag("feed"))
     ET.SubElement(root, _tag("id")).text = f"{site_base}/"
     ET.SubElement(root, _tag("title")).text = "DataHot · 数据领域 AI 热榜"
-    ET.SubElement(root, _tag("subtitle")).text = "Data Agent、AI 数据平台、BI、数据产品和 AI 分析与洞察的中文摘要与原始信源入口"
+    ET.SubElement(root, _tag("subtitle")).text = "Data Agent、AI 数据平台、BI、数据产品和 AI分析的中文摘要与原始信源入口"
     ET.SubElement(root, _tag("link"), {"href": f"{site_base}/", "rel": "alternate", "type": "text/html"})
     ET.SubElement(root, _tag("link"), {"href": f"{site_base}/feed.xml", "rel": "self", "type": "application/atom+xml"})
     ET.SubElement(root, _tag("updated")).text = _atom_time(generated)
@@ -93,7 +95,7 @@ def build_atom_feed(events, generated_at, *, site_base, limit=50):
         ET.SubElement(entry, _tag("published")).text = _atom_time(published)
         ET.SubElement(entry, _tag("updated")).text = _atom_time(updated)
         category = str(event.get("category") or "platform")[:40]
-        label = _clean_text(event.get("category_label") or category, 80)
+        label = _clean_text(category_label(category, event.get("category_label") or category), 80)
         ET.SubElement(entry, _tag("category"), {"term": category, "label": label})
         ET.SubElement(entry, _tag("summary"), {"type": "text"}).text = summary
         source_item = next((item for item in event.get("items") or [] if item.get("source")), None)

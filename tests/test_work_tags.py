@@ -152,7 +152,7 @@ class WorkTagTests(unittest.TestCase):
         self.assertIn("work_tags", run_update.ENRICH_RULES)
         self.assertIn("指标与语义", run_update.ENRICH_RULES)
         self.assertIn(TAXONOMY_VERSION, run_update.ENRICH_RULE_VERSION)
-        self.assertIn("AI分析与洞察分类边界", run_update.ENRICH_RULES)
+        self.assertIn("AI分析分类边界", run_update.ENRICH_RULES)
         self.assertIn("组织人才", run_update.ENRICH_RULES)
         self.assertIn("agent|platform|bi|product|insight", run_update.ENRICH_RULES)
 

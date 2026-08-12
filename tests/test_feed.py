@@ -105,6 +105,17 @@ class AtomFeedTests(unittest.TestCase):
         self.assertIn("DataHot 已收录", summary)
         self.assertEqual(validate_atom_feed(payload, site_base=SITE_BASE), [])
 
+    def test_stale_insight_label_is_canonicalized_in_feed(self):
+        item = event(1)
+        item["category"] = "insight"
+        item["category_label"] = "AI 分析与洞察"
+        root = ET.fromstring(build_atom_feed(
+            [item], "2026-08-11T10:00:00+08:00", site_base=SITE_BASE,
+        ))
+        self.assertEqual(
+            root.find("atom:entry/atom:category", NS).get("label"), "AI分析",
+        )
+
 
 class FeedDiscoveryTests(unittest.TestCase):
     def test_root_nested_and_detail_pages_include_autodiscovery(self):

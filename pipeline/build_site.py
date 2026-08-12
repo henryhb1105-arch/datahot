@@ -16,6 +16,7 @@ from lite_data import (
     select_home_events, select_timeline_events,
 )
 from weekly_brief import valid_brief as valid_weekly_brief
+from taxonomy import CATEGORY_LABELS, normalize_category_labels
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
@@ -31,10 +32,7 @@ CAT_BADGE = {
     "agent": "b-agent", "platform": "b-platform", "bi": "b-bi",
     "product": "b-product", "insight": "b-insight",
 }
-CAT_LABEL = {
-    "agent": "Data Agent", "platform": "AI 数据平台", "bi": "BI 与可视化",
-    "product": "数据产品", "insight": "AI 分析与洞察",
-}
+CAT_LABEL = CATEGORY_LABELS
 WEEK_CN = "一二三四五六日"
 HEAT_FORMULA = "AI重要性50% + 新鲜度20% + 社区信号15%(封顶) + 多信源15%"
 UPDATE_MECHANISM = (
@@ -136,7 +134,7 @@ def source_public_url(source):
         "hn_algolia": "https://news.ycombinator.com/",
         "bluesky": "https://bsky.app/",
     }
-    candidates = [source.get("url"), *(source.get("urls") or [])]
+    candidates = [source.get("homepage"), source.get("url"), *(source.get("urls") or [])]
     for candidate in candidates:
         if not isinstance(candidate, str):
             continue
@@ -1438,7 +1436,7 @@ def render_sources_page(events, payload, css):
 <div class="wrap source-page">
   <header class="source-intro">
     <h1>信源</h1>
-    <p>DataHot 当前监控 {len(enabled_sources)} 个信源，覆盖 Data Agent、AI 数据平台、BI、数据产品和 AI 分析与洞察，每 6 小时更新。最后更新 {gen.strftime("%m-%d %H:%M")}。</p>
+    <p>DataHot 当前监控 {len(enabled_sources)} 个信源，覆盖 Data Agent、AI 数据平台、BI、数据产品和 AI分析，每 6 小时更新。最后更新 {gen.strftime("%m-%d %H:%M")}。</p>
     {alert_html}
   </header>
 
@@ -1782,6 +1780,7 @@ def main():
     shutil.copyfile(TTS_ASSET, SITE / "tts-player.js")
     payload = json.load(open(SITE / "data" / "latest.json"))
     all_events = payload["events"]
+    normalize_category_labels(all_events)
     for event in all_events:
         safe_event_id(event.get("event_id"))
     qualified_events = [event for event in all_events if is_list_eligible(event)]
@@ -1919,9 +1918,9 @@ def main():
 <html lang="zh-CN"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>DataHot · 数据领域 AI 热榜</title>
-<meta name="description" content="监控 Data Agent、AI 数据平台、BI、数据产品、AI 分析与洞察五个领域的资讯热榜，多信源聚簇 + AI 中文摘要与推荐理由，每 6 小时更新。">
+<meta name="description" content="监控 Data Agent、AI 数据平台、BI、数据产品、AI分析五个领域的资讯热榜，多信源聚簇 + AI 中文摘要与推荐理由，每 6 小时更新。">
 <meta property="og:title" content="DataHot · 数据领域 AI 热榜">
-<meta property="og:description" content="Data Agent / AI 数据平台 / BI / 数据产品 / AI 分析与洞察的热点，每 6 小时自动更新。">
+<meta property="og:description" content="Data Agent / AI 数据平台 / BI / 数据产品 / AI分析的热点，每 6 小时自动更新。">
 <meta property="og:type" content="website">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
@@ -1972,7 +1971,7 @@ def main():
     <div class="row"><span class="badge b-platform">AI 数据平台</span>湖仓 · 语义层 · 数据治理</div>
     <div class="row"><span class="badge b-bi">BI 与可视化</span>BI 厂商 · 报表 · 可视化</div>
     <div class="row"><span class="badge b-product">数据产品</span>方法论 · 融资并购 · 报告</div>
-    <div class="row"><span class="badge b-insight">AI 分析与洞察</span>组织人才 · 经营增长 · 风险决策</div>
+    <div class="row"><span class="badge b-insight">AI分析</span>组织人才 · 经营增长 · 风险决策</div>
   </div></div>
   <div class="card"><h4>{ic("clock")} 更新状态</h4><div class="status">
     最后更新：<b>{gen.strftime("%Y-%m-%d %H:%M")}</b><br>

@@ -163,6 +163,7 @@ class ManualBatchTests(unittest.TestCase):
             self.assertEqual(first["added"], 1)
             self.assertEqual(second["unchanged"], 1)
             self.assertEqual(event["shelf"], "evergreen")
+            self.assertEqual(event["category_label"], "AI分析")
             self.assertEqual(event["published"], "2026-03-31T00:00:00+00:00")
             self.assertEqual(event["items"][0]["source"], "SHRM")
             self.assertNotIn("discovery_url", event)

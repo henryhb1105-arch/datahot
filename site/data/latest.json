@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-08-12T10:12:24.883574+08:00",
+ "generated_at": "2026-08-12T10:43:51.643217+08:00",
  "events": [
   {
    "event_id": "477745cf963d",
@@ -7220,7 +7220,7 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 51,
+   "heat": 50,
    "star": false,
    "importance": 50,
    "signal": 31,
@@ -10037,7 +10037,7 @@
    "zh_title": "Fivetran用AI构建状态页，替换6.5万美元SaaS",
    "zh_summary": "Fivetran的两名工程师使用AI编码代理，在约4个月内设计、构建并上线了公司公开状态页的替代方案，替代了每年花费6.5万美元的Atlassian Statuspage。该系统现服务约2.6万名通知订阅者。文章详细介绍了实际成本、有效做法以及过程中出现的失误。",
    "reason": "Fivetran作为数据基础设施厂商，公开分享用AI编码代理替代昂贵SaaS的工程实践，对数据从业者评估AI开发效率与成本控制有参考价值。",
-   "full_zh": "## Fivetran用AI构建状态页，替换6.5万美元SaaS产品\n\n2026年8月7日  \nMike Gordon，Fivetran平台工程副总裁\n\n两位工程师借助AI编码智能体，设计、构建并上线了一个生产级状态页——以下是我们做对了什么、做错了什么，以及下次会如何改进。\n\n在约4个月的时间里，Fivetran的两名工程师——Valentina Mačković和Jelena Kostic——使用AI编码智能体，完成了从需求到生产上线的全流程，设计、构建并交付了一个替代每年6.5万美元SaaS产品的自研方案。该方案如今支撑着Fivetran的公开状态页，服务约26,000名通知订阅者。以下是真实成本、真正有效的做法，以及我们踩过的坑。\n\n## 背景：我们在替换什么\n\nFivetran的状态页原本是一个重度定制化的应用，运行在Atlassian Statuspage之上。它完成了设计之初的任务，但我们的使用方式早已远远偏离了Statuspage框架的原生能力。\n\n我们的状态页展示大量独立监控的服务，并且希望为每一项服务提供独立的服务状态与可用性数据——这种形态是托管产品从未真正为支持而设计的。于是我们在其上叠加了定制层：用Google Cloud Functions从BigQuery数据仓库计算可用性，用事件跟踪器同步状态，并用自动化将其接入我们的事件管理流程。\n\n最终形成的系统在成本和收益两侧都带来了真实的运维负担：\n\n- **资金成本**：每年约65,000美元，主要原因是每个通知订阅者都需要按人头付费。我们有约26,000个订阅者。\n- **时间成本**：我们花了大量固定工时去管理、排障和修复状态页，每年至少相当于10,000美元的工程师时间。\n- **性能问题**：页面加载缓慢，有时首次加载还会失败。对于一个其全部意义就在于“在其他一切系统都不可用时仍然可用”的页面来说，这是严重的失败模式。\n- **静默失败**：我们遇到过更新未传播却未被发现的情况。\n- **速率限制**：我们自己的自动化曾触达供应商API的速率限制。\n\n公平地说，对Atlassian而言，这并非什么丑闻。这是当你把一个通用产品远远推向其预期形态之外时必然发生的事，同时也是26,000名订阅者按订阅者计价的普通算术题。\n\n在这篇文章中，我们将展示如何利用AI替换一个已经超出其需求边界的系统。\n\n## 我们为什么决定迁移\n\n状态页处在一个特殊的位置。它是一个小型应用——只有少量读端点、一个管理面板、一个邮件队列——但承载着生产级规模的后果。当Fivetran遇到糟糕的一天时，它是成千上万客户查看的对象，而一次大规模通知事件可能意味着发送超过50,000封邮件。\n\n低复杂度，高 stakes。正是这种组合让它变得有趣。\n\n一年前，自建状态页会是一个干脆的“不”：工程成本远超许可证费用。而如今变化在于，AI移动了某一类软件的这条分界线——这类软件规格清晰、复杂度适中、租赁价格昂贵。我们很快就会发现，这条线是否移动得足够远。\n\n## 是什么推动了自建 vs 购买的决定\n\n有三点，按权重排序：\n\n对可靠性的控制。\n\n一个依赖第三方提供商的地位页的可靠性，只能达到该第三方的水平，而我们无法修复那些缓慢的部分。拥有它意味着我们可以把它同时从自己的核心平台和外部提供商中解耦。定价模式与产品不一致。我们按订阅者付费，而它在结构上就是一个邮件列表。成本随客户增长而上升，而交付的价值却没有。我们想要的是组织层面的答案，而不仅仅是软件。\n\n2名工程师使用AI智能体，能否刻意地把某个东西从PRD带到生产环境？如果能，那就是一种可复用的能力。状态页是验证这一点的好地方，因为搞砸的爆炸半径是可控的——我们可以让它与旧版并行运行，直到我们信任它。我们也可以在不必投入大量时间、金钱和精力的情况下，把实验称为失败。\n\n我们还想诚实地说明结论的边界。Fivetran自己的产品是一个SaaS产品，我们并不是在论证AI会让SaaS过时。状态页比数据移动平台容易替换得多。但同样的逻辑在边际上也适用于任何供应商：你的使用越是某个通用产品中薄薄的、明确定义的切片，构建这一方的等式就越已经发生了移动。\n\n## 我们如何构建\n\n## 设置AI\n\n团队做出的最重要的决定，是花很长时间不写代码。在任何功能工作之前，Valentina和Jelena构建了相当于AI智能体入职培训计划的东西。他们编写了一个CLAUDE.md，定义项目规则和一个16步开发流程。他们定义了6个智能体角色，每个角色都有自己的初始化文件：\n\n| 智能体角色 | 负责 |\n| --- | --- |\n| 项目负责人 | 委派与排序——从不写代码或文档 |\n| 产品经理 | 范围、需求、任务分解、审批 |\n| 软件架构师 | 技术设计、API契约、代码审查、合并 |\n| 软件工程师（后端/前端） | Java后端和React/TypeScript前端实现 |\n| QA工程师 | 端到端测试、缺陷分类 |\n| SRE工程师 | 部署、监控、GCP运维 |\n\n除了角色之外，他们还构建了一个技能库——针对后端约定、前端模式、整洁代码、JUnit、Bazel、Nx、QA和版本控制的可复用指令集。智能体之间只互相通信；当某个智能体不确定时，它会做出有记录的最大努力决策，而不是等待人类。每个功能都有自己的git分支和工作树，因此多个智能体团队可以并发运行而不会冲突。\n\n他们还给了智能体大多数AI编程尝试会跳过的东西：一份真正的规格说明。PRD和TDD被写成正式文档，转换为markdown，并作为上下文交给智能体，同时还有一个定义每个端点的OpenAPI模式，以及一套用于UI的Figma设计资源。我们决定按原样实现UI设计，这样就可以以现有状态页为参考，自动化大部分Figma和UX设计。\n\n工作量分配是整个项目的关键发现：\n\n| 工作项 | 预估小时数 |\n| --- | --- |\n| 需求与设计（PRD、TDD） | 52 |\n| 为智能体准备的规格（上下文文档、OpenAPI、设计资源） | 88 |\n| 智能体工具与编排（角色、技能、CI/CD、流程） | 160 |\n| 功能工作前的总投入 | 300 |\n| 生成MVP本身 | 162 |\n\n大约每构建1小时，就需要2小时的准备。这个比例不是效率失败，而是机制本身。\n\n## 与AI协作\n\n智能体之所以如此之快，正是因为上下文已经消除了所有歧义。工作框架就位后，MVP迅速成型。原型仓库的完整提交历史从2026年3月4日持续到4月15日——6周时间，46个拉取请求。前3周几乎全部是上下文与技能文件。随后在3月底至4月初的大约2周内，功能按顺序落地：群组CRUD、服务CRUD、数据库搭建、事件（incidents）、维护窗口、公共页面、CI、单元测试、部署工作流。\n\n由此形成的工作模式是：小任务优于大任务。团队明确测试了这一结论，并将其定为原则。大型功能需求会产生零散冗长、难以评审的拉取请求，这些请求往往只能被丢弃。架构师角色物有所值：一个加载了团队内部约定的专职评审智能体，能在人类看到结构性问题之前就将其捕获——包括一次对后端的彻底重构。\n\n掌控契约的是人，而不是键盘。Valentina和Jelena负责决定“正确”的标准——API的形态、数据模型、上线顺序——并验证输出与标准相符。AI编写代码。工程师构建系统。\n\n## 陷阱\n\n如果我们假装这一切一帆风顺，那对谁都没有好处。有几处地方，这次尝试的实际复杂度超出了预期：\n\n智能体会重复劳动。群组CRUD用了4个不同的拉取请求才实现完成，服务CRUD则用了5个。原型仓库的46个拉取请求中，有8个从未被合并，都是被放弃的重复工作和死胡同。如果没有人类去追踪实际已完成的工作，并行的智能体就会乐此不疲地反复解决已经解决的问题。\n\n与AI协作是一种新范式。最初的MVP既是项目执行，也是一次学习演练。这是我们的工程师为犯错\n\n## 与其他一切系统的集成\n\n我们重新接线了现有的数据聚合器和公开事故追踪器 Cloud Functions，使其写入新 API；启用了从事故管理系统中自动创建事故；构建了一个 Java 客户端，让产品仪表板从我们的后端而非供应商处读取数据；并且所有这些都在功能开关（feature flag）后面交付。\n\n## 订阅者迁移\n\n26,000 名订阅者必须完成迁移，不能有人丢失通知、也不能有人收到重复通知。仅这一项就是 40 小时的脚本工作，外加后续的数据修正。\n\n## 可审计性\n\n对事故、服务、组或订阅者的每一次更改，都会通过数据库触发器捕获到审计日志中。\n\n## 规模测试\n\n一场大规模事故可能产生 50,000 多封邮件事件。我们做了压力测试，在 5 分钟内持续发送 9,000 条通知。\n\n## 一长串正确性 bug\n\n事故标题中的特殊字符渲染不正确。超过 30 天的事故不会影响正常运行时间（uptime）条。维护窗口上出现了双重状态转换，新旧聚合之间还存在 uptime 差异。这些 bug 没有一个是\"有趣\"的，但所有这些问题都会被客户注意到。\n\n## 生产加固\n\n生产加固占总工作量的 56%——比需求、agent 框架和整个 MVP 加起来还要多。如果要从这篇文章中记住一个数字，那就是这个。\n\n## 部署到生产\n\n我们进行了一次刻意平淡的发布。预演（Staging）阶段：我们对公开页面和管理面板做了完整的 QA 检查。生产环境静默运行：新系统部署到生产环境，拥有完整数据和全部自动化——但通知被禁用，也没有客户流量。它在独立域名上与旧页面并行运行了数周，靠自身保持正确。DNS 切换：客户流量迁移到新页面，通知仍然关闭。开启通知：最后一步，也是最不可逆的一步，只有在其余部分都经过充分浸泡后才执行。\n\n随后，系统以一种你无法事先计划的方式得到了验证：一次真实的 P1 事故，需要通知全部订阅者。向大约 26,000 名订阅者的扇出（fanout）由新系统发出。那一刻，它不再是一个实验。\n\n## 可靠性\n\n状态页有一个不寻常的可靠性要求：它必须在其所报告的对象发生故障时存活下来。因此，其依赖关系是一个设计约束，而不是实现细节。\n\n我们有意识地解耦了以下内容：独立数据库——状态页运行在自己的 Postgres 实例上，不与核心平台系统共享。独立域名和部署管道——状态页的发布不与产品发布耦合，一次糟糕的产品部署不会导致页面宕机。独立的 GCP 项目——它运行在独立的 GCP 项目和可用区（AZ）中，与我们运行 Fivetran 控制平面或数据移动功能的地方分开。管理路径独立——即使产品不健康，我们的支持团队也可以发布事故更新，因为管理面板不依赖产品。\n\n## 为什么只用一个区域？\n\n今天，状态页运行在单个 GCP 区域中。这是一个刻意的、暂时的权衡。我们实际要防御的故障是 Fivetran 平台事故——对此，单区域隔离完全有效。额外防御区域性云故障是一个不同的、罕见得多的故障，它会使该系统的基础设施和运营成本大约翻倍，而该系统的整个经济论点就是运行成本低廉。\n\n## Fivetran用AI构建状态页，替换6.5万美元SaaS\n\n我们选择先交付能解决常见场景的版本，并在生产环境中验证它。我们的要求是：状态页能够在CSP（云服务商）区域故障中存活。只要状态页部署在Fivetran自有区域之外，就满足了最初的故障要求。我们打算让系统达到所需的可靠性水平，这可能意味着在另一个CSP中保留一份缓存副本，但大概也就到此为止了。\n\n下文的成本/投入数字来自跟踪工作项上的估算记录，而非考勤日志。它们涵盖了我们跟踪器中记录的工程工作，不包括未单独跟踪的管理、QA和设计时间。美元金额使用示意性的完全加载费率，即100美元/工程小时，而非实际薪酬。请将其视为一种善意的数量级估算，而非经审计的数字。\n\n## 我们此前的支出\n\n我们每年为Atlassian Statuspage支付约6.5万美元，主要驱动因素是约2.6万名可计费通知订阅者——此外还有内部工程团队花费在维护叠加于其上的自定义配置、Cloud Functions和自动化上的时间。更不用说还要绕开它的速率限制和静默故障。这些内部成本是真实存在的，但从未被单独列入预算——这本身就是现状的真实成本为何不可见的原因之一。\n\n## 构建成本\n\n| 阶段 | 小时数 | 占比 |\n|------|--------|------|\n| 需求与设计（PRD、TDD） | 52 | 5% |\n| 面向Agent的规格说明准备 | 88 | 8% |\n| Agent工具与编排 | 160 | 15% |\n| AI生成的MVP | 162 | 16% |\n| 产品加固与上线 | 537 | 51% |\n| 发布前缺陷修复 | 50 | 5% |\n| 到生产环境总计 | 约1,050 | 100% |\n\n这大约是131人日，即6.6人月——2名工程师约4个日历月，与实际发生的情况相符。按示意性的100美元/工程小时完全加载费率计算，一次性构建成本约为10.5万美元。\n\n## 运行成本\n\n| 项目 | 年度费用 |\n|------|----------|\n| 基础设施（GCP：集群、CloudSQL、出口流量） | 约2,400 – 4,800美元 |\n| 持续工程投入（约0.1 FTE用于维护和改进） | 约10,000美元 |\n| 年度预测运行费率 | 约12,400 – 25,000美元 |\n\n维护预测基于上线后积压工作的实际状况：29个未关闭事项，涵盖韧性工作、订阅管理、UI打磨和前端重构。值得注意的是，让厂商方案变得昂贵的通知量，我们自己服务的成本几乎为零——它只是一个队列加一个邮件发送器。\n\n## 诚实的账目\n\n我们每年节省约4万至5.3万美元，而一次性构建成本约10.5万美元。这意味着回收期约为2.5年，之后节省会持续累积。\n\n这部分值得仔细品味。这个故事的头条版本是“2名工程师替换了一款6.5万美元的产品”。真实版本是：构建成本高于年度授权费用，节省是真实存在的但并不立竿见影，而做这件事的最有力理由并非纯粹财务性的：\n\n- 页面更快、更可靠，而这才是客户真正体验到的。\n- 成本不再随订阅者数量增长，因此随着Fivetran的成长，节省会越来越大。\n- 我们现在可以以边际成本构建厂商从未提供的功能。\n- 我们拥有了一套可复用的AI开发框架——角色、技能和流程——只一次性投入300小时，并且适用于下一个项目；此外还有2名工程师获得了使用AI构建产品的真实生产环境经验。\n\n任何为自己的状态页做这道数学题的人，都应该预期看到类似的形态。\n\n如果账单是每年1万美元，而不是6.5万美元，答案很可能仍然是“继续买它”。这是一个真实的结论，我们宁愿发布它，也不愿发布一个更讨喜的结论。\n\n## 我们学到的东西\n\n规格说明才是瓶颈，而不是代码生成。我们每构建1小时，就要花2小时做准备，这个比例是合适的。从AI代理中获益最多的团队，是那些本就善于把需求写下来的团队。\n\n最后一英里仍然是一英里。生产加固占了56%的工作量——比需求、工具链，以及整个MVP加在一起还要大。\n\nAI压缩的是软件开发中本来就已经最快的部分。集成、迁移、认证、可观测性，以及长尾的正确性缺陷，并没有被压缩得那么多。\n\n任何从“我们两周内就做出了可用的演示”外推出来的估算，都会错上两倍或更多。\n\n代理需要一个管理者，而这个管理者不能是另一个代理。重复工作、幻觉式UI、偶尔出现的“掷骰子”式应用，这些都不是边缘情况，而是正常的失败模式。\n\n工程师所增加的价值，是对“什么才是正确的”做出判断，并验证输出是否符合这一判断。\n\n经济账确实发生了变化——对某一特定类别的软件而言。“定义清晰、复杂度适中、按某个对你极为不利的维度定价”，这句话描述的是大多数公司SaaS支出中一个真实且不断增长的条目类别。但它描述的并不是大多数软件。\n\n小团队现在能做出惊人的事情。两名工程师在4个月内，将一个服务26,000名订阅用户的系统从空白仓库带到了生产环境，并在一次真实的P1事件下完成了验证。这是最希望其他团队认真对待的结果。\n\n新的状态页已在 status.fivetran.com 上线。它由 Valentina Mačković 和 Jelena Kostic 设计、构建并交付。",
+   "full_zh": "数据洞察\n\n我们用AI构建了自己的状态页面，取代了价值6.5万美元的SaaS产品\n\n2026年8月7日\n\n我们用AI构建了自己的状态页面，取代了价值6.5万美元的SaaS产品\n\nMike Gordon\n\n平台工程副总裁\n\n，\n\nFivetran\n\n锚点链接\n\n分享\n\n两位工程师使用AI编码代理设计、构建并交付了一个生产就绪的状态页面——以下是有效的做法、无效的做法以及我们本可以做得更好的地方。\n\n在约4个月的时间里，Fivetran的两位工程师——Valentina Mačković和Jelena Kostic——设计、构建并交付了一个替代每年花费65,000美元的SaaS产品的方案，使用AI编码代理，从需求到生产。现在它为Fivetran的公共状态页面以及大约26,000名通知订阅者提供服务。这是实际花费、实际有效的内容以及我们犯的错误。\n\n背景：我们要替换的是什么\n\nFivetran的状态页面是一个在Atlassian Statuspage上运行的深度定制应用程序。它完成了设计的目标，但我们的使用方式已经远远超出了Statuspage框架的原生能力。我们的状态页面显示大量单独监控的服务，我们希望为每个服务提供单独的状态和正常运行时间。这种形态是托管产品从未真正围绕其构建的。因此，我们在其上叠加了定制：Google Cloud Functions从我们的BigQuery数据仓库计算正常运行时间，一个同步状态的事件跟踪器，以及将自动化接入我们事件管理流程的机制。\n\n结果是，该系统在两个方面都产生了实际的运营成本：\n\n金钱：每年约65,000美元，主要因为每个通知订阅者都需要计费。我们约有26,000个订阅者。时间：我们花费了大量小时来管理、排查和修复状态页面，加起来每年至少10,000美元的工程师时间。性能：页面加载缓慢，有时首次加载失败。对于一个其全部目的就是在其他一切不可用时保持可用的页面来说，这是一个严重的失败模式。静默失败：我们遇到了更新未传播且未检测到缺陷的情况。速率限制：我们自己的自动化遇到了供应商的API速率限制。\n\n公平地说，对Atlassian而言，这一切都不是什么丑闻。当你把通用产品远远推向其预期形态时，就会发生这种情况，而且按照每个订阅者26,000个订阅者的定价计算，这也是普通的算术。在这篇文章中，我们将展示如何使用AI来替换一个已经超出其需求范围的系统。\n\n[CTA_MODULE]\n\n我们为何决定迁移\n\n状态页面处于一个不寻常的位置。它是一个小型应用程序——少量读取端点、一个管理面板、一个电子邮件队列——但它承载着生产规模的后果。当Fivetran遇到糟糕的一天时，它是成千上万客户查看的工件，而大规模通知事件可能意味着超过50,000封电子邮件。低复杂性，高风险。\n\n这种组合正是它有趣的原因。一年前，自建状态页面会是个简单的“不”：工程成本远超许可证费用。改变的是，AI将这条线向某类软件移动了——定义明确、复杂性适中、重新实现成本高昂。\n\nWha\n\nAgent roleOwnsProject leadDelegation and sequencing; never writes code or documentsProduct managerScope, requirements, task breakdown, approvalsSoftware architectTechnical design, API contracts, code review, mergesSoftware engineer (BE / FE)Java backend and React/TypeScript frontend implementationQA engineerEnd-to-end tests, bug triageSRE engineerDeployment, monitoring, GCP operations\n\nWorkEstimated hoursRequirements and design (PRD, TDD)52Specification prep for agents (context docs, OpenAPI, design assets)88Agent tooling and orchestration (roles, skills, CI/CD, process)160Total invested before feature work300Producing the MVP itself162\n\nPhaseHoursShareRequirements and design (PRD, TDD)525%Specification prep for agents888%Agent tooling and orchestration16015%AI-generated MVP16216%Product hardening and rollout53751%Pre-release bug fixing505%Total to production~1,050100%\n\nComponentAnnualInfrastructure (GCP: cluster, CloudSQL, egress)~$2,400 – $4,800Ongoing engineering (~0.1 FTE for maintenance and improvements)~$10,000Annual forecast run rate~$12,400 – $25,000",
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [
@@ -10073,7 +10073,1306 @@
     }
    ],
    "discovery_url": "https://x.com/fivetran/status/2086860657006186930",
-   "discovery_source": "X·@fivetran"
+   "discovery_source": "X·@fivetran",
+   "content_blocks": [
+    {
+     "type": "paragraph",
+     "id": "b-c424fbc9baab",
+     "children": [
+      {
+       "type": "text",
+       "text": "数据洞察",
+       "marks": [],
+       "id": "t-8a6776469c8f"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-0e662d2b8795",
+     "children": [
+      {
+       "type": "text",
+       "text": "我们用AI构建了自己的状态页面，取代了价值6.5万美元的SaaS产品",
+       "marks": [],
+       "id": "t-625395f27535"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-84ad6f87f582",
+     "children": [
+      {
+       "type": "text",
+       "text": "2026年8月7日",
+       "marks": [],
+       "id": "t-df7dcc576ea7"
+      }
+     ]
+    },
+    {
+     "type": "figure",
+     "id": "b-fa6223acbd17",
+     "src": "https://cdn.prod.website-files.com/6130fa1501794e37c21867cf/6a76632b7028b9101c9a03e8_Blog_%20We%20built%20our%20own%20status%20page%20with%20AI%2C%20replacing%20a%20%2465k%20SaaS%20product%20(1).png",
+     "alt": "我们用AI构建了自己的状态页面，取代了价值6.5万美元的SaaS产品",
+     "caption": "",
+     "source_url": "https://www.fivetran.com/blog/we-built-our-own-status-page-with-ai-replacing-a-65k-saas-product",
+     "media_status": "link_only",
+     "media_reason": "cross_site_host"
+    },
+    {
+     "type": "figure",
+     "id": "b-45a758aff2e0",
+     "src": "https://cdn.prod.website-files.com/6130fa1501794e37c21867cf/6a76408aa19f154a264dd99a_Screenshot%202026-08-07%20at%204.31.03%E2%80%AFPM.png",
+     "alt": "",
+     "caption": "",
+     "source_url": "https://www.fivetran.com/blog/we-built-our-own-status-page-with-ai-replacing-a-65k-saas-product",
+     "media_status": "link_only",
+     "media_reason": "cross_site_host"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-1c01b237af63",
+     "children": [
+      {
+       "type": "text",
+       "text": "Mike Gordon",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.fivetran.com/people/mike-gordon"
+        }
+       ],
+       "id": "t-5c34d9fe064b"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-1c71829806f5",
+     "children": [
+      {
+       "type": "text",
+       "text": "平台工程副总裁",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.fivetran.com/people/mike-gordon"
+        }
+       ],
+       "id": "t-d7f12d1fac8a"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-9113eb01351d",
+     "children": [
+      {
+       "type": "text",
+       "text": "，",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.fivetran.com/people/mike-gordon"
+        }
+       ],
+       "id": "t-6d2284c4e4f0"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-57a0cdbd8c4f",
+     "children": [
+      {
+       "type": "text",
+       "text": "Fivetran",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.fivetran.com/people/mike-gordon"
+        }
+       ],
+       "id": "t-d7e0dede223d"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-c4e367b12a7e",
+     "children": [
+      {
+       "type": "text",
+       "text": "锚点链接",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.fivetran.com/blog/we-built-our-own-status-page-with-ai-replacing-a-65k-saas-product"
+        }
+       ],
+       "id": "t-2547e8647c1d"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-a1a44db34506",
+     "children": [
+      {
+       "type": "text",
+       "text": "分享",
+       "marks": [],
+       "id": "t-7b7283181b45"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-37836dadfc78",
+     "children": [
+      {
+       "type": "text",
+       "text": "两位工程师使用AI编码代理设计、构建并交付了一个生产就绪的状态页面——以下是有效的做法、无效的做法以及我们本可以做得更好的地方。",
+       "marks": [],
+       "id": "t-bdbe29d150d1"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-58d1a25fd267",
+     "children": [
+      {
+       "type": "text",
+       "text": "在约4个月的时间里，Fivetran的两位工程师——Valentina Mačković和Jelena Kostic——设计、构建并交付了一个替代每年花费65,000美元的SaaS产品的方案，",
+       "marks": [],
+       "id": "t-13ab44f36cbf"
+      },
+      {
+       "type": "text",
+       "text": "使用AI",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.fivetran.com/blog/how-to-build-your-first-ai-agent"
+        }
+       ],
+       "id": "t-464beeed774d"
+      },
+      {
+       "type": "text",
+       "text": "编码代理，从需求到生产。现在它为Fivetran的",
+       "marks": [],
+       "id": "t-752cf745f6e1"
+      },
+      {
+       "type": "text",
+       "text": "公共状态页面",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://status.fivetran.com/"
+        }
+       ],
+       "id": "t-de4f3b481dac"
+      },
+      {
+       "type": "text",
+       "text": "以及大约26,000名通知订阅者提供服务。这是实际花费、实际有效的内容以及我们犯的错误。",
+       "marks": [],
+       "id": "t-dfcf2e8cf7ad"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-22c09a312ef7",
+     "children": [
+      {
+       "type": "text",
+       "text": "背景：我们要替换的是什么",
+       "marks": [],
+       "id": "t-f165d99e2e8b"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-56c10ab85b75",
+     "children": [
+      {
+       "type": "text",
+       "text": "Fivetran的状态页面是一个在Atlassian Statuspage上运行的深度定制应用程序。它完成了设计的目标，但我们的使用方式已经远远超出了Statuspage框架的原生能力。我们的状态页面显示大量单独监控的服务，我们希望为每个服务提供单独的状态和正常运行时间。这种形态是托管产品从未真正围绕其构建的。因此，我们在其上叠加了定制：Google Cloud Functions从我们的",
+       "marks": [],
+       "id": "t-5b1f6aac2bbf"
+      },
+      {
+       "type": "text",
+       "text": "BigQuery",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.fivetran.com/connectors/google-bigquery"
+        }
+       ],
+       "id": "t-87071751589b"
+      },
+      {
+       "type": "text",
+       "text": "数据仓库计算正常运行时间，一个同步状态的事件跟踪器，以及将自动化接入我们事件管理流程的机制。",
+       "marks": [],
+       "id": "t-f452b5e0fc88"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-8cb3c728c2e1",
+     "children": [
+      {
+       "type": "text",
+       "text": "结果是，该系统在两个方面都产生了实际的运营成本：",
+       "marks": [],
+       "id": "t-11709b046b66"
+      }
+     ]
+    },
+    {
+     "type": "list",
+     "id": "b-c8ddc96acdfa",
+     "ordered": false,
+     "items": [
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "金钱：",
+         "marks": [
+          "strong"
+         ],
+         "id": "t-9228419ab278"
+        },
+        {
+         "type": "text",
+         "text": "每年约",
+         "marks": [],
+         "id": "t-5296c5065392"
+        },
+        {
+         "type": "text",
+         "text": "65,000美元",
+         "marks": [
+          "strong"
+         ],
+         "id": "t-f9b85dc64cfe"
+        },
+        {
+         "type": "text",
+         "text": "，主要因为每个通知订阅者都需要计费。我们约有26,000个订阅者。",
+         "marks": [],
+         "id": "t-31933d012f32"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "时间",
+         "marks": [
+          "strong"
+         ],
+         "id": "t-10bf4ccd3192"
+        },
+        {
+         "type": "text",
+         "text": "：我们花费了大量",
+         "marks": [],
+         "id": "t-bd765507b59f"
+        },
+        {
+         "type": "text",
+         "text": "小时",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.fivetran.com/blog/what-wasting-data-engineering-talent-really-costs-you"
+          }
+         ],
+         "id": "t-5f4853c028e5"
+        },
+        {
+         "type": "text",
+         "text": "来管理、排查和修复状态页面，加起来每年",
+         "marks": [],
+         "id": "t-06508eb3cb1a"
+        },
+        {
+         "type": "text",
+         "text": "至少10,000美元",
+         "marks": [
+          "strong"
+         ],
+         "id": "t-bda2277207d9"
+        },
+        {
+         "type": "text",
+         "text": "的工程师时间。",
+         "marks": [],
+         "id": "t-5fef0a6eba44"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "性能：",
+         "marks": [
+          "strong"
+         ],
+         "id": "t-3ba14945feda"
+        },
+        {
+         "type": "text",
+         "text": "页面加载缓慢，有时首次加载失败。对于一个其全部目的就是在其他一切不可用时保持可用的页面来说，这是一个严重的失败模式。",
+         "marks": [],
+         "id": "t-b01878fcd548"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "静默失败：",
+         "marks": [
+          "strong"
+         ],
+         "id": "t-e1837c8f1eb1"
+        },
+        {
+         "type": "text",
+         "text": "我们遇到了更新未传播且未检测到缺陷的情况。",
+         "marks": [],
+         "id": "t-cdf5b7d56d23"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "速率限制：",
+         "marks": [
+          "strong"
+         ],
+         "id": "t-ddf10d96b866"
+        },
+        {
+         "type": "text",
+         "text": "我们自己的自动化遇到了供应商的API",
+         "marks": [],
+         "id": "t-7bad8c92d024"
+        },
+        {
+         "type": "text",
+         "text": "速率限制",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.fivetran.com/blog/you-cant-build-ai-in-a-walled-garden"
+          }
+         ],
+         "id": "t-28985020a332"
+        },
+        {
+         "type": "text",
+         "text": "。",
+         "marks": [],
+         "id": "t-fe2612fed223"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-a238388cc199",
+     "children": [
+      {
+       "type": "text",
+       "text": "公平地说，对Atlassian而言，这一切都不是什么丑闻。当你把通用产品远远推向其预期形态时，就会发生这种情况，而且按照每个订阅者26,000个订阅者的定价计算，这也是普通的算术。在这篇文章中，我们将展示如何使用AI来替换一个已经超出其需求范围的系统。",
+       "marks": [],
+       "id": "t-367e3b3a7147"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-4fbae7f73356",
+     "children": [
+      {
+       "type": "text",
+       "text": "[CTA_MODULE]",
+       "marks": [],
+       "id": "t-990c267bae25"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-462af94f226f",
+     "children": [
+      {
+       "type": "text",
+       "text": "我们为何决定迁移",
+       "marks": [],
+       "id": "t-a01c7e782e78"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-0a98232a707f",
+     "children": [
+      {
+       "type": "text",
+       "text": "状态页面处于一个不寻常的位置。它是一个小型应用程序——少量读取端点、一个管理面板、一个电子邮件队列——但它承载着生产规模的后果。当Fivetran遇到糟糕的一天时，它是成千上万客户查看的工件，而大规模通知事件可能意味着超过50,000封电子邮件。低复杂性，高风险。",
+       "marks": [],
+       "id": "t-0af1d76ef092"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-9ab2a579ee8f",
+     "children": [
+      {
+       "type": "text",
+       "text": "这种组合正是它有趣的原因。一年前，自建状态页面会是个简单的“不”：工程成本远超许可证费用。改变的是，AI将这条线向某类软件移动了——定义明确、复杂性适中、重新实现成本高昂。",
+       "marks": [],
+       "id": "t-e1fc5a5bea52"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-b508175c3021",
+     "children": [
+      {
+       "type": "text",
+       "text": "Wha",
+       "marks": [],
+       "id": "t-a405fbba955f"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "table",
+     "id": "b-eaeabaa51030",
+     "rows": [
+      {
+       "cells": [
+        {
+         "header": true,
+         "children": [
+          {
+           "type": "text",
+           "text": "Agent role",
+           "marks": [],
+           "id": "t-a9c0c186e8f0"
+          }
+         ]
+        },
+        {
+         "header": true,
+         "children": [
+          {
+           "type": "text",
+           "text": "Owns",
+           "marks": [],
+           "id": "t-8cd7b14b13ca"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Project lead",
+           "marks": [],
+           "id": "t-c8a2c80d3fca"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Delegation and sequencing; never writes code or documents",
+           "marks": [],
+           "id": "t-765205d458d0"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Product manager",
+           "marks": [],
+           "id": "t-e91fc122bf3c"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Scope, requirements, task breakdown, approvals",
+           "marks": [],
+           "id": "t-137da1c038cc"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Software architect",
+           "marks": [],
+           "id": "t-2a8f4668375a"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Technical design, API contracts, code review, merges",
+           "marks": [],
+           "id": "t-7688b5c10c4e"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Software engineer (BE / FE)",
+           "marks": [],
+           "id": "t-d9d57bd02bb0"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Java backend and React/TypeScript frontend implementation",
+           "marks": [],
+           "id": "t-7f5cdd78a999"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "QA engineer",
+           "marks": [],
+           "id": "t-8744f0834257"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "End-to-end tests, bug triage",
+           "marks": [],
+           "id": "t-c06b7e67ffaa"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "SRE engineer",
+           "marks": [],
+           "id": "t-8a973a418763"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Deployment, monitoring, GCP operations",
+           "marks": [],
+           "id": "t-63081fdd89d7"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "table",
+     "id": "b-1c6ebf3f3135",
+     "rows": [
+      {
+       "cells": [
+        {
+         "header": true,
+         "children": [
+          {
+           "type": "text",
+           "text": "Work",
+           "marks": [],
+           "id": "t-d8bdb4c453e8"
+          }
+         ]
+        },
+        {
+         "header": true,
+         "children": [
+          {
+           "type": "text",
+           "text": "Estimated hours",
+           "marks": [],
+           "id": "t-55f9a4e88a06"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Requirements and design (PRD, TDD)",
+           "marks": [],
+           "id": "t-faea939e2a69"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "52",
+           "marks": [],
+           "id": "t-8d6d5deaafdc"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Specification prep for agents (context docs, OpenAPI, design assets)",
+           "marks": [],
+           "id": "t-ec5619a288ea"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "88",
+           "marks": [],
+           "id": "t-35d7f22cac5d"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Agent tooling and orchestration (roles, skills, CI/CD, process)",
+           "marks": [],
+           "id": "t-7140d28c27d5"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "160",
+           "marks": [],
+           "id": "t-a8705e657fee"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": true,
+         "children": [
+          {
+           "type": "text",
+           "text": "Total invested before feature work",
+           "marks": [],
+           "id": "t-271b93e42cf5"
+          }
+         ]
+        },
+        {
+         "header": true,
+         "children": [
+          {
+           "type": "text",
+           "text": "300",
+           "marks": [],
+           "id": "t-f9f9b7406c5d"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Producing the MVP itself",
+           "marks": [],
+           "id": "t-62c9ca451eb6"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "162",
+           "marks": [],
+           "id": "t-bc4e007feb2b"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "table",
+     "id": "b-6bf37aca1245",
+     "rows": [
+      {
+       "cells": [
+        {
+         "header": true,
+         "children": [
+          {
+           "type": "text",
+           "text": "Phase",
+           "marks": [],
+           "id": "t-31bc797413b6"
+          }
+         ]
+        },
+        {
+         "header": true,
+         "children": [
+          {
+           "type": "text",
+           "text": "Hours",
+           "marks": [],
+           "id": "t-210f864d5cc6"
+          }
+         ]
+        },
+        {
+         "header": true,
+         "children": [
+          {
+           "type": "text",
+           "text": "Share",
+           "marks": [],
+           "id": "t-d8abcfd9756f"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Requirements and design (PRD, TDD)",
+           "marks": [],
+           "id": "t-5365e401e068"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "52",
+           "marks": [],
+           "id": "t-ff251f6012ff"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "5%",
+           "marks": [],
+           "id": "t-39cc112dd15e"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Specification prep for agents",
+           "marks": [],
+           "id": "t-b2362fed5eb8"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "88",
+           "marks": [],
+           "id": "t-103c4f8ea7d3"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "8%",
+           "marks": [],
+           "id": "t-7996bdf87bd8"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Agent tooling and orchestration",
+           "marks": [],
+           "id": "t-361fee2b6b05"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "160",
+           "marks": [],
+           "id": "t-33733077eed5"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "15%",
+           "marks": [],
+           "id": "t-6263b896fcf7"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "AI-generated MVP",
+           "marks": [],
+           "id": "t-6a72117d0ebf"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "162",
+           "marks": [],
+           "id": "t-9fea14524edc"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "16%",
+           "marks": [],
+           "id": "t-d39a7a0acfcd"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Product hardening and rollout",
+           "marks": [],
+           "id": "t-4897d7054498"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "537",
+           "marks": [],
+           "id": "t-033acaa1f118"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "51%",
+           "marks": [],
+           "id": "t-700b521fc329"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Pre-release bug fixing",
+           "marks": [],
+           "id": "t-652e844e6d82"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "50",
+           "marks": [],
+           "id": "t-abc910d0210b"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "5%",
+           "marks": [],
+           "id": "t-fab0ab68ff07"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": true,
+         "children": [
+          {
+           "type": "text",
+           "text": "Total to production",
+           "marks": [],
+           "id": "t-9a35b0e72953"
+          }
+         ]
+        },
+        {
+         "header": true,
+         "children": [
+          {
+           "type": "text",
+           "text": "~1,050",
+           "marks": [],
+           "id": "t-8baf55715f01"
+          }
+         ]
+        },
+        {
+         "header": true,
+         "children": [
+          {
+           "type": "text",
+           "text": "100%",
+           "marks": [],
+           "id": "t-e10fd3009c5e"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "table",
+     "id": "b-e60b64c1fb6b",
+     "rows": [
+      {
+       "cells": [
+        {
+         "header": true,
+         "children": [
+          {
+           "type": "text",
+           "text": "Component",
+           "marks": [],
+           "id": "t-d4e444a85f50"
+          }
+         ]
+        },
+        {
+         "header": true,
+         "children": [
+          {
+           "type": "text",
+           "text": "Annual",
+           "marks": [],
+           "id": "t-ae6d1fe251bc"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Infrastructure (GCP: cluster, CloudSQL, egress)",
+           "marks": [],
+           "id": "t-481421e60dd1"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "~$2,400 – $4,800",
+           "marks": [],
+           "id": "t-ced140241af4"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Ongoing engineering (~0.1 FTE for maintenance and improvements)",
+           "marks": [],
+           "id": "t-f31bf0a45b73"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "~$10,000",
+           "marks": [],
+           "id": "t-0d6b0630a4ec"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": true,
+         "children": [
+          {
+           "type": "text",
+           "text": "Annual forecast run rate",
+           "marks": [],
+           "id": "t-f9b625d3596a"
+          }
+         ]
+        },
+        {
+         "header": true,
+         "children": [
+          {
+           "type": "text",
+           "text": "~$12,400 – $25,000",
+           "marks": [],
+           "id": "t-7a8072de108b"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "figure",
+     "id": "b-c2d51948401d",
+     "src": "https://cdn.prod.website-files.com/6130fa1501794ed4d11867ba/67225f8f401494dcf70bd69a_intercom.svg",
+     "alt": "",
+     "caption": "",
+     "source_url": "https://www.fivetran.com/blog/we-built-our-own-status-page-with-ai-replacing-a-65k-saas-product",
+     "media_status": "link_only",
+     "media_reason": "cross_site_host"
+    }
+   ],
+   "content_format": "blocks-v1",
+   "body_chars": 2334,
+   "content_level": "standard",
+   "content_parse": {
+    "run_id": "github-31557779986-1",
+    "processor_version": "blocks-v2",
+    "attempted_at": "2026-08-12T10:44:23.194949+08:00",
+    "status": "ready",
+    "source": "Fivetran Blog",
+    "strategy": "largest_content",
+    "blocks": 96,
+    "text_chars": 19603,
+    "figures": 3,
+    "tables": 4,
+    "figures_discovered": 10,
+    "figures_selected": 3,
+    "figures_rejected": 7,
+    "media": {
+     "figures": 3,
+     "cached": 0,
+     "link_only": 3,
+     "reasons": {
+      "cross_site_host": 3
+     }
+    }
+   }
   },
   {
    "event_id": "936ffec3ab32",
@@ -10149,7 +11448,7 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 60,
+   "heat": 59,
    "star": true,
    "importance": 85,
    "signal": 0,
@@ -11249,7 +12548,7 @@
    "zh_title": "多智能体协调五种模式及选用时机",
    "zh_summary": "Anthropic 发布博客文章，介绍多智能体协调的五种模式：生成器-验证器、编排者-子智能体、智能体团队、消息总线、共享状态。文章强调从最简单模式开始，根据问题演进。适合已决定使用多智能体系统的团队参考。",
    "reason": "多智能体协调是 Data Agent 领域的核心工程问题，本文提供了可操作的模式选择框架，帮助数据从业者设计分析 Agent 的协作架构。",
-   "full_zh": "Anthropic 于 2026 年 4 月 10 日发表博客文章，讨论多智能体协调的五种模式及其权衡。文章指出，在前一篇内容中已探讨了多智能体系统何时有价值，而本文面向那些已决定使用多智能体、但需要选择合适协调模式的团队。\n\n作者观察到，许多团队根据听起来是否高级来选择模式，而不是根据实际问题。文章建议，先从最简单可行的模式开始，观察其失效点，然后逐步演进。文中详细分析了五种模式：生成器-验证器（Generator-verifier）、编排者-子智能体（Orchestrator-subagent）、智能体团队（Agent teams）、消息总线（Message bus）、共享状态（Shared-state）。\n\n生成器-验证器是最简单的多智能体模式，也是部署最广泛的模式之一。它适用于有明确评估标准、对输出质量要求高的场景。在该模式中，一个智能体负责生成结果，另一个智能体负责验证，从而提升整体质量。上一篇博客中称之为验证子智能体模式，本文采用更广的生成器-验证器框架，因为生成者不一定需要由编排者驱动。\n\n编排者-子智能体模式适用于任务分解清晰、子任务边界有界的情况。一个中央编排者负责任务拆分、分配和汇总，子智能体专注执行独立子任务。消息总线模式则适用于事件驱动、智能体生态不断增长的环境，各智能体通过总线异步通信，降低耦合。共享状态模式适合需要多个智能体基于彼此发现进行协作的场景。\n\n文章强调，没有万能模式，团队应理解每种模式的机制与局限，并结合自身问题的复杂度、并行需求、演进路径来决策。该文属于方法论型内容，对构建企业级 Data Agent（如 ChatBI、文本转 SQL 分析助手）的架构师具有直接参考价值。",
+   "full_zh": "多智能体协调模式：五种方法及适用场景\n\n五种多智能体协调模式、它们的权衡，以及何时从一种模式演进到另一种。\n\n类别智能体产品Claude 平台日期：2026年4月10日阅读时间：5分钟分享复制链接https://claude.com/blog/multi-agent-coordination-patterns\n\n在之前的文章中，我们探讨了多智能体系统何时提供价值，以及何时选择单一智能体更合适。本文面向那些已做出决策、现在需要决定哪种协调模式适合其问题的团队。\n\n我们看到团队根据听起来是否高级而非问题本身来选择模式。我们建议从最简单的可行模式开始，观察它在哪里遇到困难，然后从那里演进。本文考察了五种模式的机制和局限性：\n\n生成器-验证器，适用于有明确评估标准的高质量输出编排器-子智能体，适用于具有有界子任务的清晰任务分解智能体团队，适用于并行、独立、长期运行的子任务消息总线，适用于事件驱动管道和不断增长的智能体生态系统共享状态，适用于智能体基于彼此发现进行协作的工作\n\n模式1：生成器-验证器\n\n这是最简单的多智能体模式，也是部署最广泛的模式之一。我们在之前的文章中将其作为验证子智能体模式引入，这里我们使用更广泛的生成器-验证器框架，因为生成器不一定是编排器。\n\n工作原理\n\n‍\n\n生成器接收任务并产生初始输出，然后将其传递给验证器进行评估。验证器检查输出是否满足所需标准，要么接受它作为完成，要么拒绝并附带反馈。如果被拒绝，该反馈会路由回生成器，生成器利用反馈生成修订尝试。此循环持续，直到验证器接受输出或达到最大迭代次数。\n\n适用场景\n\n考虑一个生成客户工单邮件回复的支持系统。生成器使用产品文档和工单上下文生成初始回复。验证器根据知识库检查准确性，根据品牌指南评估语气，并确认回复解决了每个提出的问题。检查失败时，返回给生成器的反馈会明确指出具体问题，例如将功能错误归因于错误的价格层级，或工单问题未得到回答。\n\n当输出质量至关重要且评估标准可以明确时，使用此模式。它适用于代码生成（一个智能体编写代码，另一个编写并运行测试）、事实核查、基于标准的评分、合规验证，以及任何错误输出成本高于额外生成周期的领域。\n\n不足之处\n\n验证器的好坏取决于其标准。如果只告诉验证器检查输出是否良好，而没有进一步的标准，它只会盖章通过生成器的输出。团队最常见的失败在于实现了循环却没有定义验证的含义，这造成了质量控制的外表而没有实质。（我们在之前的文章中讨论过这个早期胜利问题。）\n\nSituationPatternQuality-critical output, explicit evaluation criteriaGenerator-VerifierClear task decomposition, bounded subtasksOrchestrator-SubagentParallel workload, independent long-running subtasksAgent TeamsEvent-driven pipeline, growing agent ecosystemMessage BusCollaborative research, agents share discoveriesShared StateNo single point of failure requiredShared State",
    "category": "agent",
    "category_label": "Data Agent",
    "vendors": [
@@ -11284,7 +12583,619 @@
      "ingested_at": "2026-08-10T10:34:20.934560+08:00"
     }
    ],
-   "first_seen": "2026-08-10T09:48:06.984083+08:00"
+   "first_seen": "2026-08-10T09:48:06.984083+08:00",
+   "content_blocks": [
+    {
+     "type": "figure",
+     "id": "b-f168f005cbc7",
+     "src": "https://cdn.prod.website-files.com/68a44d4040f98a4adf2207b6/6903d22562f020146c9ec973_f8f4644253bde2f901550431b871b6dcf91e5d9d-1000x1000.svg",
+     "alt": "",
+     "caption": "",
+     "source_url": "https://claude.com/blog/multi-agent-coordination-patterns",
+     "media_status": "link_only",
+     "media_reason": "cross_site_host"
+    },
+    {
+     "type": "heading",
+     "id": "b-3248eb122420",
+     "children": [
+      {
+       "type": "text",
+       "text": "多智能体协调模式：五种方法及适用场景",
+       "marks": [],
+       "id": "t-bf81c721b15a"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-134f49d43e77",
+     "children": [
+      {
+       "type": "text",
+       "text": "五种多智能体协调模式、它们的权衡，以及何时从一种模式演进到另一种。",
+       "marks": [],
+       "id": "t-a0d224e0ddb6"
+      }
+     ]
+    },
+    {
+     "type": "list",
+     "id": "b-ab38ab89eb1d",
+     "ordered": false,
+     "items": [
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "类别",
+         "marks": [],
+         "id": "t-e507f9f18f03"
+        },
+        {
+         "type": "text",
+         "text": "智能体",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://claude.com/blog/category/agents"
+          }
+         ],
+         "id": "t-7af70e3a8ecf"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "产品",
+         "marks": [],
+         "id": "t-e1fb2d65b826"
+        },
+        {
+         "type": "text",
+         "text": "Claude 平台",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://claude.com/platform/api"
+          }
+         ],
+         "id": "t-0ede4de91939"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "日期：2026年4月10日",
+         "marks": [],
+         "id": "t-cae7ddae1460"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "阅读时间：5分钟",
+         "marks": [],
+         "id": "t-ce388c867a5f"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "分享",
+         "marks": [],
+         "id": "t-47fb2af07524"
+        },
+        {
+         "type": "text",
+         "text": "复制链接",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://claude.com/blog/multi-agent-coordination-patterns"
+          }
+         ],
+         "id": "t-f8986354a9a3"
+        },
+        {
+         "type": "text",
+         "text": "https://claude.com/blog/multi-agent-coordination-patterns",
+         "marks": [],
+         "id": "t-7fa3e38a609f"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-e8f0b4e80d36",
+     "children": [
+      {
+       "type": "text",
+       "text": "在之前的文章中，我们探讨了多智能体系统何时提供价值，以及何时选择单一智能体更合适。本文面向那些已做出决策、现在需要决定哪种协调模式适合其问题的团队。",
+       "marks": [],
+       "id": "t-443a8836e0f0"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-9bb9350e3dd6",
+     "children": [
+      {
+       "type": "text",
+       "text": "我们看到团队根据听起来是否高级而非问题本身来选择模式。我们建议从最简单的可行模式开始，观察它在哪里遇到困难，然后从那里演进。本文考察了五种模式的机制和局限性：",
+       "marks": [],
+       "id": "t-0db590b97645"
+      }
+     ]
+    },
+    {
+     "type": "list",
+     "id": "b-567c52beb088",
+     "ordered": false,
+     "items": [
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "生成器-验证器",
+         "marks": [
+          "strong"
+         ],
+         "id": "t-688805bbc0c3"
+        },
+        {
+         "type": "text",
+         "text": "，适用于有明确评估标准的高质量输出",
+         "marks": [],
+         "id": "t-7fa48eb9e1d4"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "编排器-子智能体",
+         "marks": [
+          "strong"
+         ],
+         "id": "t-d17cba14aaf3"
+        },
+        {
+         "type": "text",
+         "text": "，适用于具有有界子任务的清晰任务分解",
+         "marks": [],
+         "id": "t-ef2dd7e39def"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "智能体团队",
+         "marks": [
+          "strong"
+         ],
+         "id": "t-02fae15ea832"
+        },
+        {
+         "type": "text",
+         "text": "，适用于并行、独立、长期运行的子任务",
+         "marks": [],
+         "id": "t-aa3ae609dd4c"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "消息总线",
+         "marks": [
+          "strong"
+         ],
+         "id": "t-0e26bd59d751"
+        },
+        {
+         "type": "text",
+         "text": "，适用于事件驱动管道和不断增长的智能体生态系统",
+         "marks": [],
+         "id": "t-6b6138f59bac"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "共享状态",
+         "marks": [
+          "strong"
+         ],
+         "id": "t-4d1da758cc5d"
+        },
+        {
+         "type": "text",
+         "text": "，适用于智能体基于彼此发现进行协作的工作",
+         "marks": [],
+         "id": "t-635b40e8e2f2"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-9924c728d8da",
+     "children": [
+      {
+       "type": "text",
+       "text": "模式1：生成器-验证器",
+       "marks": [],
+       "id": "t-1bbc878fbdd1"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-c595b3c17947",
+     "children": [
+      {
+       "type": "text",
+       "text": "这是最简单的多智能体模式，也是部署最广泛的模式之一。我们在之前的文章中将其作为验证子智能体模式引入，这里我们使用更广泛的生成器-验证器框架，因为生成器不一定是编排器。",
+       "marks": [],
+       "id": "t-1be99234f34f"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-be14762c0a25",
+     "children": [
+      {
+       "type": "text",
+       "text": "工作原理",
+       "marks": [],
+       "id": "t-b237de8dd89e"
+      }
+     ],
+     "level": 3
+    },
+    {
+     "type": "figure",
+     "id": "b-60718c393593",
+     "src": "https://cdn.prod.website-files.com/68a44d4040f98a4adf2207b6/69d901978c5cc197e3f1c1c7_1b56c9bc.png",
+     "alt": "",
+     "caption": "",
+     "source_url": "https://claude.com/blog/multi-agent-coordination-patterns",
+     "media_status": "link_only",
+     "media_reason": "cross_site_host"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-3daa38ca8f4c",
+     "children": [
+      {
+       "type": "text",
+       "text": "‍",
+       "marks": [],
+       "id": "t-bba8ecba8ee6"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-f40246be202f",
+     "children": [
+      {
+       "type": "text",
+       "text": "生成器接收任务并产生初始输出，然后将其传递给验证器进行评估。验证器检查输出是否满足所需标准，要么接受它作为完成，要么拒绝并附带反馈。如果被拒绝，该反馈会路由回生成器，生成器利用反馈生成修订尝试。此循环持续，直到验证器接受输出或达到最大迭代次数。",
+       "marks": [],
+       "id": "t-26eb064d033b"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-f5c6bb97399c",
+     "children": [
+      {
+       "type": "text",
+       "text": "适用场景",
+       "marks": [],
+       "id": "t-0942f70e4ef9"
+      }
+     ],
+     "level": 3
+    },
+    {
+     "type": "paragraph",
+     "id": "b-a957d8eaa25c",
+     "children": [
+      {
+       "type": "text",
+       "text": "考虑一个生成客户工单邮件回复的支持系统。生成器使用产品文档和工单上下文生成初始回复。验证器根据知识库检查准确性，根据品牌指南评估语气，并确认回复解决了每个提出的问题。检查失败时，返回给生成器的反馈会明确指出具体问题，例如将功能错误归因于错误的价格层级，或工单问题未得到回答。",
+       "marks": [],
+       "id": "t-7d9648be7d96"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-880be84cdcb0",
+     "children": [
+      {
+       "type": "text",
+       "text": "当输出质量至关重要且评估标准可以明确时，使用此模式。它适用于代码生成（一个智能体编写代码，另一个编写并运行测试）、事实核查、基于标准的评分、合规验证，以及任何错误输出成本高于额外生成周期的领域。",
+       "marks": [],
+       "id": "t-1fb57b9d263e"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-7be1c6af8047",
+     "children": [
+      {
+       "type": "text",
+       "text": "不足之处",
+       "marks": [],
+       "id": "t-8d662c01fb6f"
+      }
+     ],
+     "level": 3
+    },
+    {
+     "type": "paragraph",
+     "id": "b-b175584f0ecc",
+     "children": [
+      {
+       "type": "text",
+       "text": "验证器的好坏取决于其标准。如果只告诉验证器检查输出是否良好，而没有进一步的标准，它只会盖章通过生成器的输出。团队最常见的失败在于实现了循环却没有定义验证的含义，这造成了质量控制的外表而没有实质。（我们在之前的文章中讨论过这个早期胜利问题。）",
+       "marks": [],
+       "id": "t-92a7323297ac"
+      }
+     ]
+    },
+    {
+     "type": "figure",
+     "id": "b-51c6dc621a32",
+     "src": "https://cdn.prod.website-files.com/68a44d4040f98a4adf2207b6/69d901978c5cc197e3f1c1c4_76abfe32.png",
+     "alt": "",
+     "caption": "",
+     "source_url": "https://claude.com/blog/multi-agent-coordination-patterns",
+     "media_status": "link_only",
+     "media_reason": "cross_site_host"
+    },
+    {
+     "type": "table",
+     "id": "b-9d943290df80",
+     "rows": [
+      {
+       "cells": [
+        {
+         "header": true,
+         "children": [
+          {
+           "type": "text",
+           "text": "Situation",
+           "marks": [],
+           "id": "t-1459e72915df"
+          }
+         ]
+        },
+        {
+         "header": true,
+         "children": [
+          {
+           "type": "text",
+           "text": "Pattern",
+           "marks": [],
+           "id": "t-48b48ab885a0"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Quality-critical output, explicit evaluation criteria",
+           "marks": [],
+           "id": "t-6f0e0f83321f"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Generator-Verifier",
+           "marks": [],
+           "id": "t-7458fa36714c"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Clear task decomposition, bounded subtasks",
+           "marks": [],
+           "id": "t-5920ed4c4155"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Orchestrator-Subagent",
+           "marks": [],
+           "id": "t-62daa5f8332a"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Parallel workload, independent long-running subtasks",
+           "marks": [],
+           "id": "t-4df8b4f6faa0"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Agent Teams",
+           "marks": [],
+           "id": "t-b0c666713aa2"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Event-driven pipeline, growing agent ecosystem",
+           "marks": [],
+           "id": "t-e5c38e4d0f29"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Message Bus",
+           "marks": [],
+           "id": "t-b840c1fe35a1"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Collaborative research, agents share discoveries",
+           "marks": [],
+           "id": "t-aa2a13271f25"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Shared State",
+           "marks": [],
+           "id": "t-d5f9b88585b8"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "No single point of failure required",
+           "marks": [],
+           "id": "t-93ef6b70c9fe"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": "Shared State",
+           "marks": [],
+           "id": "t-242298fae3c2"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "content_format": "blocks-v1",
+   "body_chars": 1420,
+   "content_level": "standard",
+   "content_parse": {
+    "run_id": "github-31557779986-1",
+    "processor_version": "blocks-v2",
+    "attempted_at": "2026-08-12T10:44:13.232828+08:00",
+    "status": "ready",
+    "source": "Claude 官方博客",
+    "strategy": "main",
+    "blocks": 131,
+    "text_chars": 19566,
+    "figures": 3,
+    "tables": 1,
+    "figures_discovered": 17,
+    "figures_selected": 3,
+    "figures_rejected": 14,
+    "media": {
+     "figures": 3,
+     "cached": 0,
+     "link_only": 3,
+     "reasons": {
+      "cross_site_host": 3
+     }
+    }
+   }
   },
   {
    "event_id": "d145e4d3307d",
@@ -11972,7 +13883,7 @@
    "vendors": [
     "Anthropic"
    ],
-   "heat": 62,
+   "heat": 61,
    "star": true,
    "importance": 85,
    "signal": 0,
@@ -14802,7 +16713,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:224m_remaining",
+   "skip_reason": "frequency_gate:193m_remaining",
    "control": {
     "tier": "default",
     "fetch_interval_hours": 6.0,
@@ -14818,7 +16729,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1400m_remaining",
+   "skip_reason": "frequency_gate:1408m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -14834,7 +16745,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1400m_remaining",
+   "skip_reason": "frequency_gate:1408m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -14850,7 +16761,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:224m_remaining",
+   "skip_reason": "frequency_gate:193m_remaining",
    "control": {
     "tier": "structured_high",
     "fetch_interval_hours": 6.0,
@@ -14866,7 +16777,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:224m_remaining",
+   "skip_reason": "frequency_gate:193m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -14882,7 +16793,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:224m_remaining",
+   "skip_reason": "frequency_gate:193m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -14898,7 +16809,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:224m_remaining",
+   "skip_reason": "frequency_gate:193m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -14914,7 +16825,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:224m_remaining",
+   "skip_reason": "frequency_gate:193m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -14930,7 +16841,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:224m_remaining",
+   "skip_reason": "frequency_gate:193m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -14949,7 +16860,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:224m_remaining",
+   "skip_reason": "frequency_gate:193m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -14967,7 +16878,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:224m_remaining",
+   "skip_reason": "frequency_gate:193m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -14983,7 +16894,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:224m_remaining",
+   "skip_reason": "frequency_gate:193m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -14999,7 +16910,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:224m_remaining",
+   "skip_reason": "frequency_gate:193m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -15015,7 +16926,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:224m_remaining",
+   "skip_reason": "frequency_gate:193m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -15031,7 +16942,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1400m_remaining",
+   "skip_reason": "frequency_gate:1408m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -15049,7 +16960,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:224m_remaining",
+   "skip_reason": "frequency_gate:193m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -15067,7 +16978,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1400m_remaining",
+   "skip_reason": "frequency_gate:1408m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -15083,7 +16994,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1400m_remaining",
+   "skip_reason": "frequency_gate:1408m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -15099,7 +17010,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1400m_remaining",
+   "skip_reason": "frequency_gate:1408m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -15115,7 +17026,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1400m_remaining",
+   "skip_reason": "frequency_gate:1408m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -15131,7 +17042,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:141m_remaining",
+   "skip_reason": "frequency_gate:109m_remaining",
    "control": {
     "tier": "media_targeted",
     "fetch_interval_hours": 12.0,
@@ -15147,7 +17058,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1400m_remaining",
+   "skip_reason": "frequency_gate:1408m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -15163,7 +17074,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1400m_remaining",
+   "skip_reason": "frequency_gate:1408m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -15179,7 +17090,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:141m_remaining",
+   "skip_reason": "frequency_gate:109m_remaining",
    "control": {
     "tier": "community_targeted",
     "fetch_interval_hours": 12.0,
@@ -15195,7 +17106,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:141m_remaining",
+   "skip_reason": "frequency_gate:109m_remaining",
    "control": {
     "tier": "community_targeted",
     "fetch_interval_hours": 12.0,
@@ -15211,7 +17122,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:224m_remaining",
+   "skip_reason": "frequency_gate:193m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -15229,7 +17140,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:224m_remaining",
+   "skip_reason": "frequency_gate:193m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -15247,7 +17158,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:141m_remaining",
+   "skip_reason": "frequency_gate:109m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -15266,7 +17177,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:141m_remaining",
+   "skip_reason": "frequency_gate:109m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -15285,7 +17196,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:141m_remaining",
+   "skip_reason": "frequency_gate:109m_remaining",
    "control": {
     "tier": "engineering_targeted",
     "fetch_interval_hours": 12.0,
@@ -15303,7 +17214,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:224m_remaining",
+   "skip_reason": "frequency_gate:193m_remaining",
    "control": {
     "tier": "structured_high",
     "fetch_interval_hours": 6.0,
@@ -15322,7 +17233,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:141m_remaining",
+   "skip_reason": "frequency_gate:109m_remaining",
    "control": {
     "tier": "structured_high",
     "fetch_interval_hours": 12.0,
@@ -15341,7 +17252,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:141m_remaining",
+   "skip_reason": "frequency_gate:109m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -15361,7 +17272,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:224m_remaining",
+   "skip_reason": "frequency_gate:193m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -15380,7 +17291,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:141m_remaining",
+   "skip_reason": "frequency_gate:109m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 12.0,
@@ -15398,7 +17309,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:141m_remaining",
+   "skip_reason": "frequency_gate:109m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -15417,7 +17328,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:141m_remaining",
+   "skip_reason": "frequency_gate:109m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -15434,31 +17345,31 @@
   }
  ],
  "structured_content": {
-  "run_id": "github-31556105319-1",
+  "run_id": "github-31557779986-1",
   "attempted": 2,
   "ready": 2,
   "figures": 6,
-  "tables": 3,
+  "tables": 5,
   "media_cached": 0,
   "media_link_only": 6,
   "strategies": {
-   "article": 1,
-   "semantic_container": 1
+   "largest_content": 1,
+   "main": 1
   },
   "fallbacks": {},
   "by_source": {
-   "AWS Big Data Blog": {
+   "Fivetran Blog": {
     "attempted": 1,
     "ready": 1,
     "figures": 3,
-    "tables": 3,
+    "tables": 4,
     "media_cached": 0
    },
-   "人人都是产品经理": {
+   "Claude 官方博客": {
     "attempted": 1,
     "ready": 1,
     "figures": 3,
-    "tables": 0,
+    "tables": 1,
     "media_cached": 0
    }
   },

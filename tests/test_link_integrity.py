@@ -102,16 +102,19 @@ class BuildPathRegressionTests(unittest.TestCase):
         self.assertEqual(primary.count("<a "), 3)
         self.assertEqual(primary.count("<button "), 1)
         self.assertIn("<span>热榜</span>", primary)
-        self.assertIn("<span>周报</span>", primary)
         self.assertIn("<span>主题</span>", primary)
+        self.assertIn("<span>收藏</span>", primary)
         self.assertIn("<span>更多</span>", primary)
-        for label in ("完整榜单", "典藏", "我的收藏", "信源", "隐私说明"):
+        for label in ("每周简报", "完整榜单", "典藏", "信源", "隐私说明"):
             self.assertIn(label, markup)
 
     def test_more_pages_highlight_more_tab(self):
+        classics = build_site.tabbar("classics")
+        self.assertIn('class="tabbar-more on"', classics)
+        self.assertIn('class="more-link on" href="classics.html"', classics)
         favorites = build_site.tabbar("favorites")
-        self.assertIn('class="tabbar-more on"', favorites)
-        self.assertIn('class="more-link on" href="favorites.html"', favorites)
+        self.assertNotIn('class="tabbar-more on"', favorites)
+        self.assertIn('href="favorites.html" class="on"', favorites)
         self.assertNotIn('class="tabbar-more on"', build_site.tabbar("home"))
 
     def test_section_and_detail_use_shared_navigation_shells(self):

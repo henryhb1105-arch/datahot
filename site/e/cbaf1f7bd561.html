@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob: https://api.qrserver.com; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-HDR1zT4BWnfEVDTS5MYq6fIYecqNPvC312xtzHZgjEI=' 'sha256-nKwTiHZ7By+9fjdN3NzfUA/QgGUJhowNRUuEXx18JoA=' 'sha256-zTbqoLXOVJ6Y7bxwX42flzVUMpf3rgsI16LDibNF8HY='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob: https://api.qrserver.com; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-dEqzyIsZKRzPqrDF3XPFtBfGxtLKcY8hHsS5nHCigLc=' 'sha256-nKwTiHZ7By+9fjdN3NzfUA/QgGUJhowNRUuEXx18JoA=' 'sha256-zTbqoLXOVJ6Y7bxwX42flzVUMpf3rgsI16LDibNF8HY='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>2026年提示工程最佳实践 | Claude by Anthropic · DataHot</title>
@@ -127,6 +127,20 @@ aside .card{padding:14px 16px}
   .section-title{display:flex;align-items:baseline;gap:10px;margin:6px 0 14px}
   .section-title h2{font-size:19px;font-weight:800}
   .section-title span{font-size:12px;color:var(--sub)}
+  .timeline-toolbar{align-items:center}
+  .timeline-toolbar h2,.timeline-toolbar .timeline-meta,.timeline-toolbar .timeline-count{white-space:nowrap}
+  .timeline-searchbox{display:flex;align-items:center;min-width:0;margin-left:auto}
+  .timeline-searchbox .tlsearch{margin-left:0;min-width:0;flex:1 1 0}
+  .timeline-clear{cursor:pointer;color:var(--sub);margin-left:6px}
+  .timeline-count{font-size:11px;color:var(--sub)}
+  @media(max-width:600px){
+    .timeline-toolbar{display:grid;grid-template-columns:max-content minmax(0,1fr) max-content;column-gap:8px;row-gap:10px}
+    .timeline-toolbar h2{grid-column:1}
+    .timeline-meta{grid-column:2;font-size:11px!important}
+    .timeline-count{grid-column:3}
+    .timeline-searchbox{grid-column:1/-1;grid-row:2;width:100%;margin-left:0}
+    .timeline-searchbox .tlsearch,.timeline-searchbox .tlsearch:focus{width:100%}
+  }
   .hotlist{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:30px}
   @media(max-width:960px){.hotlist{grid-template-columns:1fr}}
   .hot{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;position:relative;transition:.15s;cursor:pointer}
@@ -152,6 +166,7 @@ aside .card{padding:14px 16px}
   .b-platform{background:#ecfdf5;color:var(--green)}
   .b-bi{background:#f5f3ff;color:var(--purple)}
   .b-product{background:#fef7e8;color:var(--amber)}
+  .b-insight{background:#fff1f2;color:#be123c}
   .star{color:var(--accent);font-weight:700}
   .item .heatnum{margin-left:auto;font-weight:800;color:var(--accent);font-size:13px}
   .item h3{font-size:16px;font-weight:700;margin:8px 0 6px;line-height:1.55}
@@ -198,6 +213,10 @@ main,.layout>*,.hotlist>*{min-width:0}
 .chiprow::-webkit-scrollbar{display:none}
 .chiprow .fchip{flex-shrink:0;font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
 .chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
+@media(max-width:600px){
+  .chiprow{gap:6px}
+  .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:32px;display:inline-flex;align-items:center}
+}
 @media (prefers-color-scheme: dark){
   .chip{background:rgba(110,168,255,.16);color:#6ea8ff}
   .chip:hover{background:rgba(110,168,255,.26)}
@@ -258,6 +277,7 @@ a.source-name:hover{color:var(--accent)}
 .privacy-btn{border:none;background:var(--accent);color:#fff;border-radius:99px;padding:9px 16px;font-size:12.5px;font-weight:650;cursor:pointer;margin:4px 6px 4px 0}
 .privacy-btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .load-more{display:block;margin:18px auto 4px;border:1px solid var(--line);background:var(--card);color:var(--txt2);border-radius:99px;padding:9px 22px;font-size:12.5px;font-weight:650;cursor:pointer}
+.load-more[hidden]{display:none}
 .load-more:hover{border-color:var(--accent);color:var(--accent)}
 .load-more[disabled]{opacity:.65;cursor:default}
 .weekly-teaser{display:block;background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border-radius:var(--radius);padding:18px 22px;margin-bottom:22px;text-decoration:none;position:relative;overflow:hidden}
@@ -450,7 +470,8 @@ a.source-name:hover{color:var(--accent)}
 @media(prefers-reduced-motion:reduce){.tts-player *{scroll-behavior:auto!important;transition:none!important}}
 .disclaimer{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}
 .disclaimer a{color:var(--accent)}
-</style></head><body class="mobile-detail" data-page="detail" data-event-id="cbaf1f7bd561" data-category="agent" data-source="Claude 官方博客">
+</style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="cbaf1f7bd561" data-category="agent" data-source="Claude 官方博客">
+<aside class="sidebar"><div class="slogo"><a href="../index.html" aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><a class="mi on" href="../index.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>每周简报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>我的收藏</a><a class="mi" href="../classics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg>典藏</a><a class="mi" href="../hot.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>完整榜单</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>
 <header class="detail-brand-header"><div class="wrap nav">
   <div class="logo"><a href="../index.html">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
@@ -460,9 +481,9 @@ a.source-name:hover{color:var(--accent)}
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="cbaf1f7bd561" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
 
-      <a class="sbtn ghost" href="https://claude.com/blog/best-practices-for-prompt-engineering" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Claude 官方博客"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
-      <button class="sbtn ghost" type="button" data-share-action="poster"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
-      <button class="sbtn" type="button" data-share-action="open"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
+      <a class="sbtn ghost" href="https://claude.com/blog/best-practices-for-prompt-engineering" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Claude 官方博客">原文</a>
+      <button class="sbtn ghost" type="button" data-share-action="poster">海报</button>
+      <button class="sbtn" type="button" data-share-action="open">分享</button>
     </span>
   </div>
   <div class="meta">
@@ -471,7 +492,7 @@ a.source-name:hover{color:var(--accent)}
     
     <span title="发布时间">发布 2026-08-10 09:48</span>
     
-    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 46</span>
+    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 45</span>
   </div>
   <h1>2026年提示工程最佳实践 | Claude by Anthropic</h1>
 
@@ -479,22 +500,22 @@ a.source-name:hover{color:var(--accent)}
   <div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>提示工程是构建Data Agent、ChatBI等数据应用的底层能力，掌握Anthropic团队的方法论有助于提升数据产品的交互效果与准确率。</span></div>
   <div class="vendors" style="margin-top:14px"><a class="chip" href="../topics/data-agent.html">Data Agent</a><span class="vtag">Anthropic</span><span class="vtag">Claude</span></div>
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
-  <div class="fulltext"><p>Anthropic团队于2025年11月10日在Claude官方博客发布了《2026年提示工程最佳实践》指南，文章被归类于Agents类别，阅读时间约5分钟。该指南汇集了Claude团队在提示工程方面的实践经验，旨在帮助用户从AI模型中获得更高质量的输出。</p><p>提示工程是一种结构化指令设计方法，它通过措辞、风格指定、上下文提供以及行为引导，让模型更好地理解并完成目标。一篇精心设计的提示与含糊的提示之间的差异，往往决定了输出结果是泛泛而谈还是精准契合需求。低质量的提示可能需要多轮来回澄清，而高质量的提示可以一次到位。</p><p>文章指出，提示工程也是上下文工程的基础构建模块。随着模型发展，提示工程正与上下文工程不断融合，尤其是对于Claude 5一代模型而言，趋势是更少的脚手架、更多的内容策展。这意味着用户不再需要堆砌大量指令模板，而应更专注于选择和组织关键上下文信息。</p><p>为了让不同阶段的用户都能受益，指南从简单易用的日常习惯入手，逐步扩展到面向复杂项目的高级方法。这些实用技巧无需额外工具，可以立即应用到现有工作流中。对于数据领域从业者而言，提示工程能力直接影响ChatBI、Text-to-SQL、分析Agent等应用的交互质量，值得深入学习。</p></div>
+  <div class="fulltext"><figure class="cb-figure"><div class="cb-media-placeholder" role="img" aria-label="图片未缓存">图片未缓存，可前往来源查看</div><figcaption><span class="cb-media-meta"><span class="cb-media-source">来源：<a href="https://claude.com/blog/best-practices-for-prompt-engineering" target="_blank" rel="noopener noreferrer nofollow">claude.com</a></span><a href="https://cdn.prod.website-files.com/68a44d4040f98a4adf2207b6/6909386cc7ad3ed2a7ec8eed_Object-ThoughtBubble.svg" target="_blank" rel="noopener noreferrer nofollow">查看原图 ↗</a></span></figcaption></figure><h2 class="cb-heading">2026年提示工程最佳实践</h2><p>通过Claude团队提供的提示工程技术，获得更好的AI结果。</p><ul><li>类别<a href="https://claude.com/blog/category/agents" target="_blank" rel="noopener noreferrer nofollow">智能体</a></li><li>产品Claude应用</li><li>日期2025年11月10日</li><li>阅读时间5分钟</li><li>分享<a href="https://claude.com/blog/best-practices-for-prompt-engineering" target="_blank" rel="noopener noreferrer nofollow">复制链接</a>https://claude.com/blog/best-practices-for-prompt-engineering</li></ul><h2 class="cb-heading">什么是提示工程？</h2><p><a href="https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices" target="_blank" rel="noopener noreferrer nofollow">提示工程</a>是构建指令以从AI模型获得更好输出的技巧。它涉及你如何组织查询、指定风格、提供上下文以及引导模型行为以实现你的目标。</p><p>模糊指令与精心设计的提示之间的差异可能意味着泛泛输出与恰好所需之间的差距。一个结构不佳的提示可能需要多次来回交流才能澄清意图，而精心设计的提示则能一次性达成目标。</p><p>它也是<a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" target="_blank" rel="noopener noreferrer nofollow">上下文工程</a>的基本构建块，而上下文工程已成为与LLM协作中日益重要的一部分。一个结构不佳的提示可能需要多次来回交流才能澄清意图，而精心设计的提示则能一次性达成目标。然而，提示正与<a href="https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models" target="_blank" rel="noopener noreferrer nofollow">Claude 5代模型的上下文工程</a>趋于融合——更少的脚手架，更多的策展。</p><p>为了帮助你入门，我们汇编了我们团队的一些最佳实践，包括旨在立即改善你结果的实用方法。我们将从今天可用的简单习惯开始，然后扩展到复杂项目的高级方法。</p><h2 class="cb-heading">如何使用提示工程</h2><p>在最基本的层面，提示工程只是修改你传递给LLM的查询。通常只是在提出实际请求之前向查询添加信息——但知道<em>哪些</em>信息是<em>正确</em>的分享信息，是设计出优秀且有效提示的秘诀。</p><h3 class="cb-heading">核心技巧</h3><p>这些提示工程技术构成了有效AI交互的基础。持续使用它们，你会立刻看到响应质量的提升。</p><h4 class="cb-heading">明确清晰</h4><p>现代AI模型对清晰、明确的指令反应异常良好。不要假设模型会推断你的需求——直接说明。使用简单的语言，确切表达你的需求，避免歧义。</p><p><strong>关键原则</strong>：告诉模型你确切希望看到什么。如果你想要全面的输出，就明确要求。如果你想要特定功能，就列出它们。像Claude这样的现代模型尤其受益于明确的指示。</p><p><strong>示例：创建分析仪表板</strong></p><p><strong>模糊</strong>：“创建一个分析仪表板”</p><p><strong>明确</strong>：“创建一个分析仪表板。尽可能包含相关功能和交互。超越基础，创建一个功能完备的实现。”</p><p>第二个版本明确要求全面的功能，并表明你希望模型超越最低要求。</p><p><strong>最佳实践</strong>：</p><ul><li>以直接的动作动词开头：“写”、“分析”、“生成”、“创建”</li><li>跳过前言，直接提出请求</li><li>说明你希望输出中包含什么，而不仅仅是处理什么</li><li>具体说明质量和深度期望</li></ul><h4 class="cb-heading">提供上下文和动机</h4><p>解释某事<em>为何</em>重要，有助于AI模型更好地理解你的目标，并给出更有针对性的响应</p><div class="cb-table" role="region" aria-label="原文表格" tabindex="0"><table><tr><th>If you need...</th><th>Use...</th></tr><tr><td>Specific output format</td><td>Examples, prefilling, or explicit format instructions</td></tr><tr><td>Step-by-step reasoning</td><td>Extended thinking (Claude 4.x) or chain of thought</td></tr><tr><td>Complex multi-stage task</td><td>Prompt chaining</td></tr><tr><td>Transparent reasoning</td><td>Chain of thought with structured output</td></tr><tr><td>To prevent hallucinations</td><td>Permission to say &quot;I don&#x27;t know&quot;</td></tr></table></div><figure class="cb-figure"><div class="cb-media-placeholder" role="img" aria-label="图片未缓存">图片未缓存，可前往来源查看</div><figcaption><span class="cb-media-meta"><span class="cb-media-source">来源：<a href="https://claude.com/blog/best-practices-for-prompt-engineering" target="_blank" rel="noopener noreferrer nofollow">claude.com</a></span><a href="https://cdn.prod.website-files.com/6889473510b50328dbb70ae6/6889473610b50328dbb70b58_placeholder.svg" target="_blank" rel="noopener noreferrer nofollow">查看原图 ↗</a></span></figcaption></figure><figure class="cb-figure"><div class="cb-media-placeholder" role="img" aria-label="图片未缓存">图片未缓存，可前往来源查看</div><figcaption><span class="cb-media-meta"><span class="cb-media-source">来源：<a href="https://claude.com/blog/best-practices-for-prompt-engineering" target="_blank" rel="noopener noreferrer nofollow">claude.com</a></span><a href="https://cdn.prod.website-files.com/68a44d4040f98a4adf2207b6/6903d223e0a787df988a824b_39db33950eb113e504a5b9fc56db490a64673e96-1000x1000.svg" target="_blank" rel="noopener noreferrer nofollow">查看原图 ↗</a></span></figcaption></figure></div>
   <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://claude.com/blog/best-practices-for-prompt-engineering" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Claude 官方博客">查看原文 ↗</a></div>
 </div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/097d6cd340b4.html"><span class="n">›</span>Anthropic多智能体研究系统从原型到生产的工程实践<span class="count">54</span></a><a class="vendor-row" href="../e/d4f17e123698.html"><span class="n">›</span>构建高效AI代理：Anthropic的实用指南<span class="count">61</span></a><a class="vendor-row" href="../e/d145e4d3307d.html"><span class="n">›</span>Anthropic API新增四项Agent构建能力<span class="count">52</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/097d6cd340b4.html"><span class="n">›</span>Anthropic多智能体研究系统从原型到生产的工程实践<span class="count">53</span></a><a class="vendor-row" href="../e/d4f17e123698.html"><span class="n">›</span>构建高效AI代理：Anthropic的实用指南<span class="count">61</span></a><a class="vendor-row" href="../e/d145e4d3307d.html"><span class="n">›</span>Anthropic API新增四项Agent构建能力<span class="count">51</span></a></div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 <nav class="tabbar" aria-label="移动端主导航">
-  <a href="../index.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../weekly.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span>周报</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a>
+  <a href="../index.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>
   <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
 </nav>
 <div class="more-mask" data-more-mask></div>
 <section class="more-sheet" id="mobileMoreSheet" aria-label="更多导航" aria-hidden="true">
   <div class="more-handle" aria-hidden="true"></div>
   <div class="more-head"><h2>更多</h2><button class="more-close" type="button" data-more-close aria-label="关闭更多导航">×</button></div>
-  <div class="more-grid"><a class="more-link" href="../hot.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></span><span>完整榜单</span></a><a class="more-link" href="../classics.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></span><span>典藏</span></a><a class="more-link" href="../favorites.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>我的收藏</span></a><a class="more-link" href="../sources.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span><span>信源</span></a><a class="more-link" href="../privacy.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg></span><span>隐私说明</span></a></div>
+  <div class="more-grid"><a class="more-link" href="../weekly.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span>每周简报</span></a><a class="more-link" href="../hot.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></span><span>完整榜单</span></a><a class="more-link" href="../classics.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></span><span>典藏</span></a><a class="more-link" href="../sources.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span><span>信源</span></a><a class="more-link" href="../privacy.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg></span><span>隐私说明</span></a></div>
 </section>
 <script>
 (function(){
@@ -524,7 +545,6 @@ a.source-name:hover{color:var(--accent)}
   <div class="sh-group">
     <div class="sh-title">分享这条资讯</div>
     <button class="sh-opt" type="button" data-share-action="copy"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 复制链接</button>
-    <button class="sh-opt" type="button" data-share-action="poster"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 分享海报</button>
     <button class="sh-opt" type="button" data-share-action="native"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 系统分享…</button>
   </div>
   <button class="sh-cancel" type="button" data-share-action="close">取消</button>
@@ -557,22 +577,17 @@ a.source-name:hover{color:var(--accent)}
 .sharebtns .sbtn{padding:7px 11px}
 .sharebtns::-webkit-scrollbar{display:none}
 }
-@media (prefers-color-scheme: dark){
-.sh-group,.sh-cancel{background:rgba(30,33,38,.97)}
-.sh-opt{color:var(--ink);border-bottom-color:var(--line)}
-.sh-title{border-bottom-color:var(--line)}
-}
 .sh-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.25s;z-index:80}
 .sh-mask.show{opacity:1;pointer-events:auto}
 .sh-sheet{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(110%);transition:transform .3s cubic-bezier(.32,.72,.35,1);padding:0 10px calc(10px + env(safe-area-inset-bottom))}
 .sh-sheet.show{transform:translateY(0)}
 .sh-panel{max-width:430px;margin:0 auto}
-.sh-group{background:rgba(255,255,255,.97);border-radius:16px;overflow:hidden;margin-bottom:8px}
+.sh-group{background:var(--card);border-radius:16px;overflow:hidden;margin-bottom:8px}
 .sh-title{font-size:12px;color:var(--sub);text-align:center;padding:12px;border-bottom:.5px solid var(--line)}
 .sh-opt{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px;font-size:16px;font-weight:500;border:none;border-bottom:.5px solid var(--line);cursor:pointer;background:none;width:100%;color:var(--ink)}
 .sh-opt:last-child{border-bottom:none}
-.sh-opt:active{background:#f0f1f3}
-.sh-cancel{background:rgba(255,255,255,.97);border-radius:16px;padding:15px;text-align:center;font-size:16px;font-weight:600;color:var(--blue);cursor:pointer;width:100%;border:none}
+.sh-opt:active{background:var(--hover)}
+.sh-cancel{background:var(--card);border-radius:16px;padding:15px;text-align:center;font-size:16px;font-weight:600;color:var(--blue);cursor:pointer;width:100%;border:none}
 .sh-poster-modal{position:fixed;inset:0;z-index:95;background:rgba(15,17,20,.92);display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px}
 .sh-poster-modal.show{display:flex}
 .sh-poster-wrap{width:min(340px,86vw);border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
@@ -602,7 +617,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title":"2026年提示工程最佳实践 | Claude by Anthropic","summary":"Anthropic团队在Claude官方博客发布2026年提示工程最佳实践指南。文章归类为Agents，指出提示工程是构建更好AI输出的关键，并与上下文工程加速融合。相比含糊的提示，经过精心设计的提示能将目标一次到位，减少多轮澄清成本。文章提供了从日常简单习惯到复杂项目高级方法的实用技巧。","reason":"提示工程是构建Data Agent、ChatBI等数据应用的底层能力，掌握Anthropic团队的方法论有助于提升数据产品的交互效果与准确率。","topic":"Data Agent","heat":46,"source":"Claude 官方博客","date":"2026-08-10","url":"https://henryhb1105-arch.github.io/datahot/e/cbaf1f7bd561.html"};
+var SH_EV = {"title":"2026年提示工程最佳实践 | Claude by Anthropic","summary":"Anthropic团队在Claude官方博客发布2026年提示工程最佳实践指南。文章归类为Agents，指出提示工程是构建更好AI输出的关键，并与上下文工程加速融合。相比含糊的提示，经过精心设计的提示能将目标一次到位，减少多轮澄清成本。文章提供了从日常简单习惯到复杂项目高级方法的实用技巧。","reason":"提示工程是构建Data Agent、ChatBI等数据应用的底层能力，掌握Anthropic团队的方法论有助于提升数据产品的交互效果与准确率。","topic":"Data Agent","heat":45,"source":"Claude 官方博客","date":"2026-08-10","url":"https://henryhb1105-arch.github.io/datahot/e/cbaf1f7bd561.html"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

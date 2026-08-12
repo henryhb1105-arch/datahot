@@ -349,8 +349,9 @@ def sidebar(active, gen=None, prefix=""):
     if weekly_brief_enabled():
         items.append(("每周简报", "calendar", "weekly.html", "weekly"))
     items += [("主题", "map", "topics.html", "topics"),
+             ("我的收藏", "star", "favorites.html", "favorites"),
              ("典藏", "bookmark", "classics.html", "classics"), ("完整榜单", "list", "hot.html", "hot"),
-             ("我的收藏", "star", "favorites.html", "favorites"), ("信源", "rss", "sources.html", "sources")]
+             ("信源", "rss", "sources.html", "sources")]
     menu = "".join(
         f'<a class="mi{" on" if k == active else ""}" href="{prefix}{u}">{ic(i,16)}{n}</a>'
         for n, i, u, k in items)
@@ -445,17 +446,18 @@ def weekly_brief_enabled():
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
 def tabbar(active, prefix=""):
-    items = [("热榜", ic("flame",20), "index.html", "home")]
-    if weekly_brief_enabled():
-        items.append(("周报", ic("calendar",20), "weekly.html", "weekly"))
-    items.append(("主题", ic("map",20), "topics.html", "topics"))
+    items = [("热榜", ic("flame",20), "index.html", "home"),
+             ("主题", ic("map",20), "topics.html", "topics"),
+             ("收藏", ic("star",20), "favorites.html", "favorites")]
     primary = "".join(
         f'<a href="{prefix}{u}" class="{"on" if k == active else ""}"><span class="ico">{i}</span><span>{n}</span></a>'
         for n, i, u, k in items)
-    more_items = [
+    more_items = []
+    if weekly_brief_enabled():
+        more_items.append(("每周简报", "calendar", "weekly.html", "weekly"))
+    more_items += [
         ("完整榜单", "list", "hot.html", "hot"),
         ("典藏", "bookmark", "classics.html", "classics"),
-        ("我的收藏", "star", "favorites.html", "favorites"),
         ("信源", "rss", "sources.html", "sources"),
         ("隐私说明", "file", "privacy.html", "privacy"),
     ]
@@ -846,7 +848,7 @@ def render_detail(e, all_events, css, tts_item=None):
     )
     original_button = (
         f'<a class="sbtn ghost" href="{main_link}" target="_blank" rel="noopener noreferrer" '
-        f'data-analytics="outbound" data-source="{main_src}">{ic("arrow",13)} 查看原文</a>'
+        f'data-analytics="outbound" data-source="{main_src}">原文</a>'
         if main_url else ''
     )
     # blocks-v1 先经本地白名单清洗再渲染；异常或旧数据安全降级到 full_zh。
@@ -989,8 +991,8 @@ def render_detail(e, all_events, css, tts_item=None):
       <button class="sbtn ghost favbtn" data-fav="{event_id}" title="收藏">{ic("star",13)}</button>
 {("      " + tts_button) if tts_button else ""}
       {original_button}
-      <button class="sbtn ghost" type="button" data-share-action="poster">{ic("image",13)} 海报</button>
-      <button class="sbtn" type="button" data-share-action="open">{ic("share",13)} 分享</button>
+      <button class="sbtn ghost" type="button" data-share-action="poster">海报</button>
+      <button class="sbtn" type="button" data-share-action="open">分享</button>
     </span>
   </div>
   <div class="meta">
@@ -1032,7 +1034,6 @@ def share_ui(e, page_url):
   <div class="sh-group">
     <div class="sh-title">分享这条资讯</div>
     <button class="sh-opt" type="button" data-share-action="copy"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 复制链接</button>
-    <button class="sh-opt" type="button" data-share-action="poster"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 分享海报</button>
     <button class="sh-opt" type="button" data-share-action="native"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 系统分享…</button>
   </div>
   <button class="sh-cancel" type="button" data-share-action="close">取消</button>
@@ -1065,22 +1066,17 @@ def share_ui(e, page_url):
 .sharebtns .sbtn{padding:7px 11px}
 .sharebtns::-webkit-scrollbar{display:none}
 }
-@media (prefers-color-scheme: dark){
-.sh-group,.sh-cancel{background:rgba(30,33,38,.97)}
-.sh-opt{color:var(--ink);border-bottom-color:var(--line)}
-.sh-title{border-bottom-color:var(--line)}
-}
 .sh-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.25s;z-index:80}
 .sh-mask.show{opacity:1;pointer-events:auto}
 .sh-sheet{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(110%);transition:transform .3s cubic-bezier(.32,.72,.35,1);padding:0 10px calc(10px + env(safe-area-inset-bottom))}
 .sh-sheet.show{transform:translateY(0)}
 .sh-panel{max-width:430px;margin:0 auto}
-.sh-group{background:rgba(255,255,255,.97);border-radius:16px;overflow:hidden;margin-bottom:8px}
+.sh-group{background:var(--card);border-radius:16px;overflow:hidden;margin-bottom:8px}
 .sh-title{font-size:12px;color:var(--sub);text-align:center;padding:12px;border-bottom:.5px solid var(--line)}
 .sh-opt{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px;font-size:16px;font-weight:500;border:none;border-bottom:.5px solid var(--line);cursor:pointer;background:none;width:100%;color:var(--ink)}
 .sh-opt:last-child{border-bottom:none}
-.sh-opt:active{background:#f0f1f3}
-.sh-cancel{background:rgba(255,255,255,.97);border-radius:16px;padding:15px;text-align:center;font-size:16px;font-weight:600;color:var(--blue);cursor:pointer;width:100%;border:none}
+.sh-opt:active{background:var(--hover)}
+.sh-cancel{background:var(--card);border-radius:16px;padding:15px;text-align:center;font-size:16px;font-weight:600;color:var(--blue);cursor:pointer;width:100%;border:none}
 .sh-poster-modal{position:fixed;inset:0;z-index:95;background:rgba(15,17,20,.92);display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px}
 .sh-poster-modal.show{display:flex}
 .sh-poster-wrap{width:min(340px,86vw);border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}

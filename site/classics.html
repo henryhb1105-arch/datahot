@@ -119,6 +119,20 @@ aside .card{padding:14px 16px}
   .section-title{display:flex;align-items:baseline;gap:10px;margin:6px 0 14px}
   .section-title h2{font-size:19px;font-weight:800}
   .section-title span{font-size:12px;color:var(--sub)}
+  .timeline-toolbar{align-items:center}
+  .timeline-toolbar h2,.timeline-toolbar .timeline-meta,.timeline-toolbar .timeline-count{white-space:nowrap}
+  .timeline-searchbox{display:flex;align-items:center;min-width:0;margin-left:auto}
+  .timeline-searchbox .tlsearch{margin-left:0;min-width:0;flex:1 1 0}
+  .timeline-clear{cursor:pointer;color:var(--sub);margin-left:6px}
+  .timeline-count{font-size:11px;color:var(--sub)}
+  @media(max-width:600px){
+    .timeline-toolbar{display:grid;grid-template-columns:max-content minmax(0,1fr) max-content;column-gap:8px;row-gap:10px}
+    .timeline-toolbar h2{grid-column:1}
+    .timeline-meta{grid-column:2;font-size:11px!important}
+    .timeline-count{grid-column:3}
+    .timeline-searchbox{grid-column:1/-1;grid-row:2;width:100%;margin-left:0}
+    .timeline-searchbox .tlsearch,.timeline-searchbox .tlsearch:focus{width:100%}
+  }
   .hotlist{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:30px}
   @media(max-width:960px){.hotlist{grid-template-columns:1fr}}
   .hot{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;position:relative;transition:.15s;cursor:pointer}
@@ -144,6 +158,7 @@ aside .card{padding:14px 16px}
   .b-platform{background:#ecfdf5;color:var(--green)}
   .b-bi{background:#f5f3ff;color:var(--purple)}
   .b-product{background:#fef7e8;color:var(--amber)}
+  .b-insight{background:#fff1f2;color:#be123c}
   .star{color:var(--accent);font-weight:700}
   .item .heatnum{margin-left:auto;font-weight:800;color:var(--accent);font-size:13px}
   .item h3{font-size:16px;font-weight:700;margin:8px 0 6px;line-height:1.55}
@@ -190,6 +205,10 @@ main,.layout>*,.hotlist>*{min-width:0}
 .chiprow::-webkit-scrollbar{display:none}
 .chiprow .fchip{flex-shrink:0;font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
 .chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
+@media(max-width:600px){
+  .chiprow{gap:6px}
+  .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:32px;display:inline-flex;align-items:center}
+}
 @media (prefers-color-scheme: dark){
   .chip{background:rgba(110,168,255,.16);color:#6ea8ff}
   .chip:hover{background:rgba(110,168,255,.26)}
@@ -250,6 +269,7 @@ a.source-name:hover{color:var(--accent)}
 .privacy-btn{border:none;background:var(--accent);color:#fff;border-radius:99px;padding:9px 16px;font-size:12.5px;font-weight:650;cursor:pointer;margin:4px 6px 4px 0}
 .privacy-btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .load-more{display:block;margin:18px auto 4px;border:1px solid var(--line);background:var(--card);color:var(--txt2);border-radius:99px;padding:9px 22px;font-size:12.5px;font-weight:650;cursor:pointer}
+.load-more[hidden]{display:none}
 .load-more:hover{border-color:var(--accent);color:var(--accent)}
 .load-more[disabled]{opacity:.65;cursor:default}
 .weekly-teaser{display:block;background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border-radius:var(--radius);padding:18px 22px;margin-bottom:22px;text-decoration:none;position:relative;overflow:hidden}
@@ -368,7 +388,7 @@ a.source-name:hover{color:var(--accent)}
 .tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 </style></head><body class="has-sb mobile-section" data-nav-active="classics">
-<aside class="sidebar"><div class="slogo"><a href="index.html" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><a class="mi" href="index.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>每周简报</a><a class="mi" href="topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi on" href="classics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg>典藏</a><a class="mi" href="hot.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>完整榜单</a><a class="mi" href="favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>我的收藏</a><a class="mi" href="sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>
+<aside class="sidebar"><div class="slogo"><a href="index.html" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><a class="mi" href="index.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>每周简报</a><a class="mi" href="topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>我的收藏</a><a class="mi on" href="classics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg>典藏</a><a class="mi" href="hot.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>完整榜单</a><a class="mi" href="sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>
 <header class="section-brand-header"><div class="wrap nav">
   <div class="logo"><a href="index.html" style="text-decoration:none">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
@@ -376,7 +396,7 @@ a.source-name:hover{color:var(--accent)}
 <div class="wrap" style="padding:28px 20px 60px;max-width:900px">
   <div class="section-title"><h2><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg> 典藏</h2><span>穿越时间的内容 · 方法论 / 框架 / 深度实践</span></div>
   <div class="scard" style="font-size:13px;color:var(--txt2);line-height:1.8">
-    这里收录<b>不随时间贬值</b>的内容：经典方法论、框架指南、深度实践。AI 初筛 + 主编人工策展，永久沉淀，按主题分组。共 41 篇。
+    这里收录<b>不随时间贬值</b>的内容：经典方法论、框架指南、深度实践。AI 初筛 + 主编人工策展，永久沉淀，按主题分组。共 61 篇。
   </div>
   <div class="scard"><h4 style="margin-bottom:6px"><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg> ChatBI <span style="font-size:11px;color:var(--sub);font-weight:400">4 篇</span></h4><a class="crow" href="e/3bb9e34e59c3.html">
   <span class="cpin">📌</span>
@@ -394,7 +414,7 @@ a.source-name:hover{color:var(--accent)}
   <span class="cpin"></span>
   <span class="ctitle">Databricks解读AI助手：从SQL生成到数据治理</span>
   <span class="cmeta">Databricks Blog · 2026-08-07</span>
-</a></div><div class="scard"><h4 style="margin-bottom:6px"><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg> Data Agent <span style="font-size:11px;color:var(--sub);font-weight:400">26 篇</span></h4><a class="crow" href="e/d4f17e123698.html">
+</a></div><div class="scard"><h4 style="margin-bottom:6px"><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg> Data Agent <span style="font-size:11px;color:var(--sub);font-weight:400">28 篇</span></h4><a class="crow" href="e/d4f17e123698.html">
   <span class="cpin">📌</span>
   <span class="ctitle">构建高效AI代理：Anthropic的实用指南</span>
   <span class="cmeta">主编收录 · 2024-12-19</span>
@@ -426,6 +446,10 @@ a.source-name:hover{color:var(--accent)}
   <span class="cpin"></span>
   <span class="ctitle">如何在保留治理的同时将Genie Agents接地到结构化数据与文档</span>
   <span class="cmeta">Databricks Blog · 2026-08-11</span>
+</a><a class="crow" href="e/5c4d28e53f75.html">
+  <span class="cpin"></span>
+  <span class="ctitle">Agentic AI 架构为何需要数据库，不只是向量存储</span>
+  <span class="cmeta">TiDB Blog · 2026-08-10</span>
 </a><a class="crow" href="e/07887457a24c.html">
   <span class="cpin"></span>
   <span class="ctitle">多智能体协调五种模式及选用时机</span>
@@ -450,6 +474,10 @@ a.source-name:hover{color:var(--accent)}
   <span class="cpin"></span>
   <span class="ctitle">MCP是什么？连接AI与世界的开放协议</span>
   <span class="cmeta">Claude 官方博客 · 2026-08-10</span>
+</a><a class="crow" href="e/b4ff3df743a4.html">
+  <span class="cpin"></span>
+  <span class="ctitle">爱分析发布2026中国本体平台市场洞察报告</span>
+  <span class="cmeta">爱分析 · 2026-08-12</span>
 </a><a class="crow" href="e/f70f3be61bc1.html">
   <span class="cpin"></span>
   <span class="ctitle">数据分析Skill设计指南：从问题定义到流程拆解</span>
@@ -498,10 +526,18 @@ a.source-name:hover{color:var(--accent)}
   <span class="cpin"></span>
   <span class="ctitle">RAG和Reference都叫知识库？搭Skill别选错</span>
   <span class="cmeta">人人都是产品经理 · 2026-08-09</span>
-</a></div><div class="scard"><h4 style="margin-bottom:6px"><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg> 语义层 <span style="font-size:11px;color:var(--sub);font-weight:400">4 篇</span></h4><a class="crow" href="e/ac7c75fedd0b.html">
+</a></div><div class="scard"><h4 style="margin-bottom:6px"><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg> 语义层 <span style="font-size:11px;color:var(--sub);font-weight:400">6 篇</span></h4><a class="crow" href="e/ac7c75fedd0b.html">
   <span class="cpin">📌</span>
   <span class="ctitle">一招教你鉴定真假Data Agent</span>
   <span class="cmeta">微信公众号 · 2026-08-10</span>
+</a><a class="crow" href="e/b4ff3df743a4.html">
+  <span class="cpin"></span>
+  <span class="ctitle">爱分析发布2026中国本体平台市场洞察报告</span>
+  <span class="cmeta">爱分析 · 2026-08-12</span>
+</a><a class="crow" href="e/de330de1394c.html">
+  <span class="cpin"></span>
+  <span class="ctitle">AI时代，数据中台焕发新生？</span>
+  <span class="cmeta">爱分析 · 2026-08-12</span>
 </a><a class="crow" href="e/460d5283bb04.html">
   <span class="cpin"></span>
   <span class="ctitle">开放数据基础设施需用上下文工程统一数据用例</span>
@@ -514,10 +550,22 @@ a.source-name:hover{color:var(--accent)}
   <span class="cpin"></span>
   <span class="ctitle">编码智能体的价值取决于它对数据的了解程度</span>
   <span class="cmeta">Snowflake Engineering（Medium） · 2026-08-05</span>
-</a></div><div class="scard"><h4 style="margin-bottom:6px"><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg> 平台AI化 <span style="font-size:11px;color:var(--sub);font-weight:400">2 篇</span></h4><a class="crow" href="e/036431034b26.html">
+</a></div><div class="scard"><h4 style="margin-bottom:6px"><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg> 平台AI化 <span style="font-size:11px;color:var(--sub);font-weight:400">5 篇</span></h4><a class="crow" href="e/ddcb4a5b6b52.html">
+  <span class="cpin"></span>
+  <span class="ctitle">开源数据层将赢得AI未来</span>
+  <span class="cmeta">TiDB Blog · 2026-08-06</span>
+</a><a class="crow" href="e/036431034b26.html">
   <span class="cpin"></span>
   <span class="ctitle">构建医疗AI无需重建数据平台</span>
   <span class="cmeta">Fivetran Blog · 2026-08-10</span>
+</a><a class="crow" href="e/de330de1394c.html">
+  <span class="cpin"></span>
+  <span class="ctitle">AI时代，数据中台焕发新生？</span>
+  <span class="cmeta">爱分析 · 2026-08-12</span>
+</a><a class="crow" href="e/341ca51f8349.html">
+  <span class="cpin"></span>
+  <span class="ctitle">完整Agent状态栈：内存、文件与Serverless数据库持久化</span>
+  <span class="cmeta">TiDB Blog · 2026-08-07</span>
 </a><a class="crow" href="e/05b5c328b16d.html">
   <span class="cpin"></span>
   <span class="ctitle">Databricks谈大规模AI编码成本管理</span>
@@ -530,10 +578,22 @@ a.source-name:hover{color:var(--accent)}
   <span class="cpin"></span>
   <span class="ctitle">SageMaker Unified Studio与Lake Formation实现湖仓细粒度访问控制</span>
   <span class="cmeta">AWS Big Data Blog · 2026-08-07</span>
-</a></div><div class="scard"><h4 style="margin-bottom:6px"><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg> 实时分析 <span style="font-size:11px;color:var(--sub);font-weight:400">1 篇</span></h4><a class="crow" href="e/852499f0cb49.html">
+</a></div><div class="scard"><h4 style="margin-bottom:6px"><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg> 实时分析 <span style="font-size:11px;color:var(--sub);font-weight:400">4 篇</span></h4><a class="crow" href="e/852499f0cb49.html">
   <span class="cpin"></span>
   <span class="ctitle">Epic Games如何调优OpenSearch支撑Fortnite分析</span>
   <span class="cmeta">AWS Big Data Blog · 2026-08-11</span>
+</a><a class="crow" href="e/4c404bb47e34.html">
+  <span class="cpin"></span>
+  <span class="ctitle">现代风险要求实时数据基础：CRO的使命</span>
+  <span class="cmeta">Databricks Blog · 2026-08-11</span>
+</a><a class="crow" href="e/190e28d13cb4.html">
+  <span class="cpin"></span>
+  <span class="ctitle">Netflix实时分布式图查询实践：gRPC执行API</span>
+  <span class="cmeta">Netflix Technology Blog · 2026-08-08</span>
+</a><a class="crow" href="e/a09c3221be78.html">
+  <span class="cpin"></span>
+  <span class="ctitle">使用Debezium CDC将实时数据迁移到TiDB</span>
+  <span class="cmeta">TiDB Blog · 2026-08-04</span>
 </a></div><div class="scard"><h4 style="margin-bottom:6px"><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg> 数据人 <span style="font-size:11px;color:var(--sub);font-weight:400">6 篇</span></h4><a class="crow" href="e/852499f0cb49.html">
   <span class="cpin"></span>
   <span class="ctitle">Epic Games如何调优OpenSearch支撑Fortnite分析</span>
@@ -558,10 +618,58 @@ a.source-name:hover{color:var(--accent)}
   <span class="cpin"></span>
   <span class="ctitle">Fivetran用AI构建状态页，替换6.5万美元SaaS</span>
   <span class="cmeta">Fivetran Blog · 2026-08-10</span>
-</a></div><div class="scard"><h4 style="margin-bottom:6px"><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg> 综合 <span style="font-size:11px;color:var(--sub);font-weight:400">7 篇</span></h4><a class="crow" href="e/65c35101abc1.html">
+</a></div><div class="scard"><h4 style="margin-bottom:6px"><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg> 组织人才 <span style="font-size:11px;color:var(--sub);font-weight:400">8 篇</span></h4><a class="crow" href="e/fde18bebfbc0.html">
+  <span class="cpin"></span>
+  <span class="ctitle">SHRM调查：HR中的AI仍集中在招聘与流程自动化</span>
+  <span class="cmeta">SHRM · 2026-03-31</span>
+</a><a class="crow" href="e/875c99b3755b.html">
+  <span class="cpin"></span>
+  <span class="ctitle">Mercer：AI转型正在倒逼岗位重构与技能再配置</span>
+  <span class="cmeta">Mercer · 2026-02-25</span>
+</a><a class="crow" href="e/01bd33c269e9.html">
+  <span class="cpin"></span>
+  <span class="ctitle">LINE Yahoo将生成式AI系统性引入人事全流程</span>
+  <span class="cmeta">LINE Yahoo · 2026-02-10</span>
+</a><a class="crow" href="e/bb45de9b3b4f.html">
+  <span class="cpin"></span>
+  <span class="ctitle">ADP全球调查揭示AI使用、生产力感受与岗位焦虑错位</span>
+  <span class="cmeta">ADP Research · 2026-03-25</span>
+</a><a class="crow" href="e/8f1a098ff064.html">
+  <span class="cpin"></span>
+  <span class="ctitle">Gartner：管理者是员工有效使用AI的关键中间层</span>
+  <span class="cmeta">Gartner · 2026-03-04</span>
+</a><a class="crow" href="e/849a2dcfc7c0.html">
+  <span class="cpin"></span>
+  <span class="ctitle">Workday：AI缓解倦怠的同时可能加深职场连接缺失</span>
+  <span class="cmeta">Workday · 2026-05-27</span>
+</a><a class="crow" href="e/d44afcf41d63.html">
+  <span class="cpin"></span>
+  <span class="ctitle">评估人员分析与劳动力智能方案的9条标准</span>
+  <span class="cmeta">Visier Blog · 2026-07-29</span>
+</a><a class="crow" href="e/d5b1f80826c9.html">
+  <span class="cpin"></span>
+  <span class="ctitle">劳动力分析：是什么、如何运作及为何重要</span>
+  <span class="cmeta">Visier Blog · 2026-07-28</span>
+</a></div><div class="scard"><h4 style="margin-bottom:6px"><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg> 综合 <span style="font-size:11px;color:var(--sub);font-weight:400">11 篇</span></h4><a class="crow" href="e/65c35101abc1.html">
   <span class="cpin"></span>
   <span class="ctitle">跨100+ AWS账户的集中CloudTrail监控</span>
   <span class="cmeta">AWS Big Data Blog · 2026-08-11</span>
+</a><a class="crow" href="e/0faa3f1f97f8.html">
+  <span class="cpin"></span>
+  <span class="ctitle">数据复制工具指南：8款主流方案对比</span>
+  <span class="cmeta">Fivetran Blog · 2026-08-11</span>
+</a><a class="crow" href="e/2db4b086244c.html">
+  <span class="cpin"></span>
+  <span class="ctitle">Snowflake性能技巧与调优实践（第5部分）</span>
+  <span class="cmeta">Snowflake Engineering（Medium） · 2026-08-11</span>
+</a><a class="crow" href="e/f9d8ce10886b.html">
+  <span class="cpin"></span>
+  <span class="ctitle">AI将实验推向业务关键地位</span>
+  <span class="cmeta">Amplitude Blog · 2026-08-08</span>
+</a><a class="crow" href="e/9f8ca8dc2ec6.html">
+  <span class="cpin"></span>
+  <span class="ctitle">Netflix设备能力建模与分析实践</span>
+  <span class="cmeta">Netflix Technology Blog · 2026-08-01</span>
 </a><a class="crow" href="e/017baad77d72.html">
   <span class="cpin"></span>
   <span class="ctitle">Amazon MWAA与Airflow 3.0实现事件驱动跨账户编排</span>
@@ -590,14 +698,14 @@ a.source-name:hover{color:var(--accent)}
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 <nav class="tabbar" aria-label="移动端主导航">
-  <a href="index.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="weekly.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span>周报</span></a><a href="topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a>
+  <a href="index.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a href="favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>
   <button class="tabbar-more on" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
 </nav>
 <div class="more-mask" data-more-mask></div>
 <section class="more-sheet" id="mobileMoreSheet" aria-label="更多导航" aria-hidden="true">
   <div class="more-handle" aria-hidden="true"></div>
   <div class="more-head"><h2>更多</h2><button class="more-close" type="button" data-more-close aria-label="关闭更多导航">×</button></div>
-  <div class="more-grid"><a class="more-link" href="hot.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></span><span>完整榜单</span></a><a class="more-link on" href="classics.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></span><span>典藏</span></a><a class="more-link" href="favorites.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>我的收藏</span></a><a class="more-link" href="sources.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span><span>信源</span></a><a class="more-link" href="privacy.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg></span><span>隐私说明</span></a></div>
+  <div class="more-grid"><a class="more-link" href="weekly.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span>每周简报</span></a><a class="more-link" href="hot.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></span><span>完整榜单</span></a><a class="more-link on" href="classics.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></span><span>典藏</span></a><a class="more-link" href="sources.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span><span>信源</span></a><a class="more-link" href="privacy.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg></span><span>隐私说明</span></a></div>
 </section>
 <script>
 (function(){

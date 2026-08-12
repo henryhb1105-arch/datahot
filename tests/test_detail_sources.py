@@ -51,7 +51,7 @@ class DetailSourceRenderingTests(unittest.TestCase):
         )
         page = build_site.render_detail(detail_event([item]), [detail_event([item])], "")
 
-        self.assertIn("查看原文</a>", page)
+        self.assertIn(">原文</a>", page)
         self.assertNotIn("补充来源", page)
         self.assertNotIn('class="source-section"', page)
         self.assertNotIn("家报道", page)

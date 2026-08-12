@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob: https://api.qrserver.com; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-/mt/voiWPZzXPwAcescJDHx+i0JmN5twDJrTqPN4Dk8=' 'sha256-F5pMCSx2TztXijWXUhksRL53lne9cth6wGt8lErEQEE=' 'sha256-zTbqoLXOVJ6Y7bxwX42flzVUMpf3rgsI16LDibNF8HY='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob: https://api.qrserver.com; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-F5pMCSx2TztXijWXUhksRL53lne9cth6wGt8lErEQEE=' 'sha256-j7Pb29Y2dokhsP8QVN9r1ECt3LzsoPk5W/HWCrm6WPw=' 'sha256-zTbqoLXOVJ6Y7bxwX42flzVUMpf3rgsI16LDibNF8HY='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>ClickStack 6-7月更新：追踪导航与Prometheus集成 · DataHot</title>
@@ -213,6 +213,10 @@ main,.layout>*,.hotlist>*{min-width:0}
 .chiprow::-webkit-scrollbar{display:none}
 .chiprow .fchip{flex-shrink:0;font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
 .chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
+@media(max-width:600px){
+  .chiprow{gap:6px}
+  .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:32px;display:inline-flex;align-items:center}
+}
 @media (prefers-color-scheme: dark){
   .chip{background:rgba(110,168,255,.16);color:#6ea8ff}
   .chip:hover{background:rgba(110,168,255,.26)}
@@ -488,7 +492,7 @@ a.source-name:hover{color:var(--accent)}
     
     <span title="发布时间">发布 2026-08-10 08:00</span>
     <span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 08-11</span>
-    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 47</span>
+    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 46</span>
   </div>
   <h1>ClickStack 6-7月更新：追踪导航与Prometheus集成</h1>
 
@@ -619,7 +623,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title":"ClickStack 6-7月更新：追踪导航与Prometheus集成","summary":"ClickStack 发布六月至七月合并更新，重点改进追踪功能，包括按服务着色瀑布图、迷你地图和OpenTelemetry span链接。指标方面新增指数直方图分位数支持，并支持连接外部Prometheus兼容端点。仪表盘筛选支持分面搜索，过滤值获取改用ClickHouse文本索引以提升性能。","reason":"ClickStack 作为 ClickHouse 生态的可观测性平台，其追踪与指标能力更新对数据平台工程师和可观测性实践者有直接参考价值。","topic":"","heat":47,"source":"ClickHouse Blog","date":"2026-08-10","url":"https://henryhb1105-arch.github.io/datahot/e/d8009f6c6475.html"};
+var SH_EV = {"title":"ClickStack 6-7月更新：追踪导航与Prometheus集成","summary":"ClickStack 发布六月至七月合并更新，重点改进追踪功能，包括按服务着色瀑布图、迷你地图和OpenTelemetry span链接。指标方面新增指数直方图分位数支持，并支持连接外部Prometheus兼容端点。仪表盘筛选支持分面搜索，过滤值获取改用ClickHouse文本索引以提升性能。","reason":"ClickStack 作为 ClickHouse 生态的可观测性平台，其追踪与指标能力更新对数据平台工程师和可观测性实践者有直接参考价值。","topic":"","heat":46,"source":"ClickHouse Blog","date":"2026-08-10","url":"https://henryhb1105-arch.github.io/datahot/e/d8009f6c6475.html"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

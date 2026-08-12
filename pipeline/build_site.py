@@ -339,6 +339,19 @@ def render_home_brand_update(gen):
   </details>'''
 
 
+def render_timeline_toolbar(total_count):
+    """首页时间轴工具栏：窄屏时标题元信息与搜索分成受控的两行。"""
+    return f'''<div class="section-title timeline-toolbar">
+  <h2>{ic("calendar",18)} 时间轴</h2>
+  <span class="timeline-meta">不限时间 · 每批 {DEFAULT_PAGE_SIZE} 条</span>
+  <div class="timeline-searchbox">
+    <input id="q" class="tlsearch" placeholder="搜索全部在站事件" title="搜索范围：全部在站时间轴的标题、摘要与标签">
+    <span id="qClear" class="timeline-clear" style="display:none" title="清除搜索">✕</span>
+  </div>
+  <span class="timeline-count">（<span id="rCount">{total_count}</span>）</span>
+</div>'''
+
+
 def home_update_info_script():
     return '''<script>
 (function(){
@@ -1922,9 +1935,7 @@ def main():
   {weekly_teaser}
   <div class="section-title"><h2>{ic("flame",18)} 本期热点</h2><span>多信源聚簇 · 按热度排序</span><a href="hot.html" style="margin-left:auto;font-size:12.5px;color:var(--accent);font-weight:600">完整榜单 →</a></div>
   <div class="hotlist">{hot_cards}</div>
-  <div class="section-title" style="align-items:center"><h2>{ic("calendar",18)} 时间轴</h2><span>不限时间 · 每批 {DEFAULT_PAGE_SIZE} 条</span>
-    <input id="q" class="tlsearch" placeholder="搜索全部在站事件" title="搜索范围：全部在站时间轴的标题、摘要与标签"><span id="qClear" style="display:none;cursor:pointer;color:var(--sub);margin-left:6px" title="清除搜索">✕</span><span style="font-size:11px;color:var(--sub)">（<span id="rCount">{len(timeline_events)}</span>）</span>
-  </div>
+  {render_timeline_toolbar(len(timeline_events))}
   <div class="chiprow" id="chiprow">
     <span class="fchip on" data-topic="all">全部</span>
     {topic_fchips}

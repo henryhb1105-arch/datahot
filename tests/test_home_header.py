@@ -42,6 +42,31 @@ class HomeHeaderTests(unittest.TestCase):
     def test_completed_progressive_timeline_hides_load_more_button(self):
         self.assertIn(".load-more[hidden]{display:none}", build_site.SHARED_CSS)
 
+    def test_mobile_timeline_toolbar_uses_controlled_grid_without_text_wrapping(self):
+        toolbar = build_site.render_timeline_toolbar(126)
+        css = build_site.load_css()
+        self.assertIn('class="section-title timeline-toolbar"', toolbar)
+        self.assertIn('class="timeline-meta"', toolbar)
+        self.assertIn('class="timeline-searchbox"', toolbar)
+        self.assertIn('class="timeline-count"', toolbar)
+        self.assertNotIn('style="align-items:center"', toolbar)
+        self.assertIn(
+            ".timeline-toolbar h2,.timeline-toolbar .timeline-meta,.timeline-toolbar .timeline-count{white-space:nowrap}",
+            css,
+        )
+        self.assertIn(
+            ".timeline-toolbar{display:grid;grid-template-columns:max-content minmax(0,1fr) max-content",
+            css,
+        )
+        self.assertIn(
+            ".timeline-searchbox .tlsearch,.timeline-searchbox .tlsearch:focus{width:100%}",
+            css,
+        )
+        self.assertIn(
+            ".timeline-searchbox .tlsearch{margin-left:0;min-width:0;flex:1 1 0}",
+            css,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

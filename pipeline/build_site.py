@@ -6,6 +6,7 @@ from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 from urllib.parse import urlparse
+from agent_page import AGENT_PAGE_CSS, publish_skill_bundle, render_agent_body
 from content_blocks import blocks_plain_text, render_blocks_html, sanitize_blocks, sanitize_url
 from check_links import check_site_links, format_broken_links
 from feed import build_atom_feed, validate_atom_feed
@@ -353,7 +354,8 @@ def sidebar(active, gen=None, prefix=""):
     items += [("主题", "map", "topics.html", "topics"),
              ("我的收藏", "star", "favorites.html", "favorites"),
              ("典藏", "bookmark", "classics.html", "classics"), ("完整榜单", "list", "hot.html", "hot"),
-             ("信源", "rss", "sources.html", "sources")]
+             ("信源", "rss", "sources.html", "sources"),
+             ("接入 Agent", "sparkle", "agent.html", "agent")]
     menu = "".join(
         f'<a class="mi{" on" if k == active else ""}" href="{prefix}{u}">{ic(i,16)}{n}</a>'
         for n, i, u, k in items)
@@ -375,12 +377,11 @@ def render_home_brand_update(gen):
 
 
 def render_timeline_toolbar(total_count):
-    """首页时间轴工具栏：窄屏时标题元信息与搜索分成受控的两行。"""
+    """首页时间轴工具栏：标题、搜索与数量在窄屏保持单行。"""
     return f'''<div class="section-title timeline-toolbar">
   <h2>{ic("calendar",18)} 时间轴</h2>
-  <span class="timeline-meta">不限时间 · 每批 {DEFAULT_PAGE_SIZE} 条</span>
   <div class="timeline-searchbox">
-    <input id="q" class="tlsearch" placeholder="搜索全部在站事件" title="搜索范围：全部在站时间轴的标题、摘要与标签">
+    <input id="q" class="tlsearch" placeholder="搜索" title="搜索范围：全部在站时间轴的标题、摘要与标签">
     <span id="qClear" class="timeline-clear" style="display:none" title="清除搜索">✕</span>
   </div>
   <span class="timeline-count">（<span id="rCount">{total_count}</span>）</span>
@@ -461,6 +462,7 @@ def tabbar(active, prefix=""):
         ("完整榜单", "list", "hot.html", "hot"),
         ("典藏", "bookmark", "classics.html", "classics"),
         ("信源", "rss", "sources.html", "sources"),
+        ("接入 Agent", "sparkle", "agent.html", "agent"),
         ("隐私说明", "file", "privacy.html", "privacy"),
     ]
     more_keys = {item[3] for item in more_items if item[3] != "hot"}
@@ -2153,6 +2155,18 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
         if weekly_path.name not in valid_weekly_pages:
             weekly_path.unlink()
     (SITE / "privacy.html").write_text(render_privacy_page(css), encoding="utf-8")
+    (SITE / "agent.html").write_text(
+        page_shell(
+            "接入 Agent · DataHot",
+            "安装 DataHot Skill，让支持 Skills 的 Agent 持续读取最新数据与 AI 资讯。",
+            css + AGENT_PAGE_CSS,
+            render_agent_body(),
+            tabbar("agent"),
+            active="agent",
+        ),
+        encoding="utf-8",
+    )
+    publish_skill_bundle(ROOT / "skills" / "datahot-news", SITE / "datahot-skill")
 
     out = SITE / "index.html"
     out.write_text(page, encoding="utf-8")

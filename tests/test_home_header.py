@@ -31,11 +31,11 @@ class HomeHeaderTests(unittest.TestCase):
         self.assertIn("event.key!=='Escape'", script)
         self.assertIn("info.contains(event.target)", script)
 
-    def test_home_build_declares_unbounded_progressive_timeline_and_insight_chip(self):
+    def test_home_build_uses_compact_timeline_copy_and_insight_chip(self):
         source = (ROOT / "pipeline" / "build_site.py").read_text(encoding="utf-8")
-        self.assertIn("不限时间 · 每批 {DEFAULT_PAGE_SIZE} 条", source)
+        self.assertNotIn("不限时间 · 每批 {DEFAULT_PAGE_SIZE} 条", source)
         self.assertIn('data-category="insight">AI分析</span>', source)
-        self.assertIn('placeholder="搜索全部在站事件"', source)
+        self.assertIn('placeholder="搜索"', source)
 
     def test_completed_progressive_timeline_hides_load_more_button(self):
         self.assertIn(".load-more[hidden]{display:none}", build_site.SHARED_CSS)
@@ -84,22 +84,25 @@ class HomeHeaderTests(unittest.TestCase):
             build_site.SHARED_CSS,
         )
 
-    def test_mobile_timeline_toolbar_uses_controlled_grid_without_text_wrapping(self):
+    def test_mobile_timeline_toolbar_stays_on_one_compact_line(self):
         toolbar = build_site.render_timeline_toolbar(126)
         css = build_site.load_css()
         self.assertIn('class="section-title timeline-toolbar"', toolbar)
-        self.assertIn('class="timeline-meta"', toolbar)
+        self.assertNotIn('class="timeline-meta"', toolbar)
         self.assertIn('class="timeline-searchbox"', toolbar)
         self.assertIn('class="timeline-count"', toolbar)
+        self.assertIn('placeholder="搜索"', toolbar)
+        self.assertNotIn("不限时间", toolbar)
         self.assertNotIn('style="align-items:center"', toolbar)
         self.assertIn(
-            ".timeline-toolbar h2,.timeline-toolbar .timeline-meta,.timeline-toolbar .timeline-count{white-space:nowrap}",
+            ".timeline-toolbar h2,.timeline-toolbar .timeline-count{white-space:nowrap}",
             css,
         )
         self.assertIn(
-            ".timeline-toolbar{display:grid;grid-template-columns:max-content minmax(0,1fr) max-content",
+            ".timeline-toolbar{align-items:center;flex-wrap:nowrap}",
             css,
         )
+        self.assertIn(".timeline-searchbox{width:min(120px,34vw)}", css)
         self.assertIn(
             ".timeline-searchbox .tlsearch,.timeline-searchbox .tlsearch:focus{width:100%}",
             css,

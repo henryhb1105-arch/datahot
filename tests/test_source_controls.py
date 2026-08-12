@@ -47,6 +47,16 @@ class SourceSchedulingTests(unittest.TestCase):
         self.assertTrue(due)
         self.assertEqual(reason, "forced")
 
+    def test_failed_source_retries_before_normal_interval(self):
+        due, reason = source_due(
+            {"fetch_interval_hours": 48},
+            {"last_attempt": NOW.isoformat(), "ok": True, "fails": 1},
+            NOW,
+            environ={},
+        )
+        self.assertTrue(due)
+        self.assertEqual(reason, "retry_after_failure")
+
     def test_each_source_limit_and_defaults_are_independent(self):
         self.assertEqual(source_candidate_limit({"max_candidates_per_run": 4}), 4)
         self.assertEqual(source_candidate_limit({}), 20)

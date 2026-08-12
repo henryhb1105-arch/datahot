@@ -40,6 +40,8 @@ def source_due(source, state, now, environ=None):
     interval_hours = _number(source.get("fetch_interval_hours", 6), 6)
     if _truthy(environ.get("FORCE_SOURCE_FETCH")) or interval_hours == 0:
         return True, "forced" if _truthy(environ.get("FORCE_SOURCE_FETCH")) else "every_run"
+    if _number(state.get("fails", 0), 0) > 0:
+        return True, "retry_after_failure"
     last_value = (
         state.get("last_attempt")
         or state.get("last_fetch")

@@ -13,9 +13,15 @@ import socket
 import urllib.request
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 
-from content_blocks import sanitize_blocks, sanitize_url
+from content_blocks import sanitize_blocks, sanitize_cached_media_path, sanitize_url
+
+
+MEDIA_CACHE_POLICY_VERSION = "source-cdn-v1"
+RETRYABLE_MEDIA_REASONS = frozenset({
+    "cross_site_host", "redirected_cross_site", "download_failed", "event_limit",
+})
 
 
 INPUT_MIME_BY_FORMAT = {
@@ -82,6 +88,11 @@ def same_site_media(media_url, article_url, allowed_hosts=None):
             item.strip().casefold() for item in os.getenv("MEDIA_ALLOWED_HOSTS", "").split(",")
             if item.strip()
         }
+    else:
+        configured = {
+            str(item).strip().casefold().rstrip(".") for item in configured
+            if str(item).strip()
+        }
     if any(media_host == allowed or media_host.endswith("." + allowed) for allowed in configured):
         return True
     return (
@@ -111,19 +122,36 @@ def _assert_public_host(host):
         raise MediaRejected("private_host")
 
 
-def download_media(url, maximum_bytes, timeout=12, allowed_article_url=""):
+def _https_url(value):
+    parsed = urlparse(value)
+    if parsed.scheme != "http":
+        return value
+    return urlunparse(parsed._replace(scheme="https"))
+
+
+def download_media(
+    url, maximum_bytes, timeout=12, allowed_article_url="", *,
+    allowed_hosts=None, referer_url="",
+):
     safe = sanitize_url(url)
     if not safe:
         raise MediaRejected("invalid_url")
+    safe = _https_url(safe)
     _assert_public_host(_host(safe))
-    request = urllib.request.Request(safe, headers=MEDIA_UA)
+    headers = dict(MEDIA_UA)
+    referer = sanitize_url(referer_url)
+    if referer:
+        headers["Referer"] = referer
+    request = urllib.request.Request(safe, headers=headers)
     class SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
         def redirect_request(self, req, fp, code, msg, headers, newurl):
             redirected = sanitize_url(newurl)
             if not redirected:
                 raise MediaRejected("invalid_redirect")
             _assert_public_host(_host(redirected))
-            if allowed_article_url and not same_site_media(redirected, allowed_article_url):
+            if allowed_article_url and not same_site_media(
+                redirected, allowed_article_url, allowed_hosts=allowed_hosts,
+            ):
                 raise MediaRejected("redirected_cross_site")
             return super().redirect_request(req, fp, code, msg, headers, redirected)
 
@@ -280,7 +308,10 @@ def _safe_event_id(event_id):
     return event_id or hashlib.sha256(str(event_id).encode()).hexdigest()[:12]
 
 
-def cache_event_media(blocks, event_id, article_url, site_root, *, fetcher=None, enabled=None):
+def cache_event_media(
+    blocks, event_id, article_url, site_root, *, fetcher=None, enabled=None,
+    allowed_hosts=None, send_referer=False,
+):
     """Cache safe figure files and preserve a link-only block for every rejection."""
     enabled = media_enabled() if enabled is None else bool(enabled)
     maximum_bytes = _env_int("MEDIA_MAX_BYTES", 5_000_000, maximum=10_000_000)
@@ -292,21 +323,41 @@ def cache_event_media(blocks, event_id, article_url, site_root, *, fetcher=None,
     cache_maximum = _env_int("MEDIA_CACHE_MAX_BYTES", 250_000_000, maximum=1_000_000_000)
     safe_blocks = sanitize_blocks(blocks, article_url)
     event_dir = Path(site_root) / "media" / _safe_event_id(event_id)
-    report = {"figures": 0, "cached": 0, "link_only": 0, "bytes": 0, "reasons": {}}
+    report = {
+        "figures": 0, "cached": 0, "link_only": 0, "bytes": 0, "reasons": {},
+        "policy_version": MEDIA_CACHE_POLICY_VERSION,
+    }
     custom_fetcher = fetcher
+    expected_cached_prefix = f"../media/{event_dir.name}/"
 
     for block in safe_blocks:
         if block.get("type") != "figure":
             continue
         report["figures"] += 1
+        cached_src = sanitize_cached_media_path(block.get("cached_src"))
+        if cached_src and cached_src.startswith(expected_cached_prefix):
+            cached_path = Path(site_root) / cached_src.removeprefix("../")
+            if cached_path.is_file():
+                block["media_status"] = "cached"
+                block.pop("media_reason", None)
+                report["cached"] += 1
+                report["bytes"] += cached_path.stat().st_size
+                continue
+        block.pop("cached_src", None)
         reason = ""
         if block.get("media_reason") == "rights_restricted":
             reason = "rights_restricted"
+        elif (
+            block.get("media_status") == "link_only"
+            and block.get("media_reason")
+            and block.get("media_reason") not in RETRYABLE_MEDIA_REASONS
+        ):
+            reason = block["media_reason"]
         elif not enabled:
             reason = "disabled"
         elif report["cached"] >= maximum_items:
             reason = "event_limit"
-        elif not same_site_media(block["src"], article_url):
+        elif not same_site_media(block["src"], article_url, allowed_hosts=allowed_hosts):
             reason = "cross_site_host"
         try:
             if reason:
@@ -316,12 +367,20 @@ def cache_event_media(blocks, event_id, article_url, site_root, *, fetcher=None,
                 if custom_fetcher is not None
                 else download_media(
                     block["src"], maximum_bytes, allowed_article_url=article_url,
+                    allowed_hosts=allowed_hosts,
+                    referer_url=(
+                        article_url
+                        if send_referer and not same_site_media(
+                            block["src"], article_url, allowed_hosts=(),
+                        )
+                        else ""
+                    ),
                 )
             )
             if not isinstance(downloaded, tuple) or len(downloaded) != 3:
                 raise MediaRejected("download_failed")
             raw, content_type, final_url = downloaded
-            if not same_site_media(final_url, article_url):
+            if not same_site_media(final_url, article_url, allowed_hosts=allowed_hosts):
                 raise MediaRejected("redirected_cross_site")
             clean, mime, extension, width, height = sanitize_media(
                 raw, content_type, min_width=min_width, min_height=min_height,

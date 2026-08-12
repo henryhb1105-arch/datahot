@@ -203,6 +203,22 @@ class ProductionSourceConfigurationTests(unittest.TestCase):
             self.assertTrue(source["include_keywords"])
             self.assertLessEqual(source["max_candidates_per_run"], 5)
 
+    def test_official_media_cdns_are_source_bound(self):
+        expected = {
+            "爱分析": "ifenxi-csp.oss-cn-beijing.aliyuncs.com",
+            "Claude 官方博客": "cdn.prod.website-files.com",
+            "AWS Big Data Blog": "d2908q01vomqb2.cloudfront.net",
+            "Fivetran Blog": "cdn.prod.website-files.com",
+            "Visier Blog": "images.ctfassets.net",
+            "InfoQ 中文": "static001.geekbang.org",
+        }
+        for source_name, host in expected.items():
+            source = self.by_name[source_name]
+            self.assertIn(host, source["media_hosts"])
+            self.assertEqual(source["media_referer"], "article")
+            self.assertTrue(all("/" not in item and ":" not in item for item in source["media_hosts"]))
+        self.assertNotIn("media_hosts", self.by_name["人人都是产品经理"])
+
     def test_visier_uses_bounded_official_rss_for_insight_candidates(self):
         source = self.by_name["Visier Blog"]
         self.assertEqual(source["url"], "https://www.visier.com/blog/rss.xml")

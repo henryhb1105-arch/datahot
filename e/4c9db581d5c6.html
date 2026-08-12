@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob: https://api.qrserver.com; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-JQItg0oaX2/4bsBi2T73JCrM4CqUd4Wa27lQkCUe14I=' 'sha256-pO+wcz+jKzHTlpw4yT0eUh7gbIp3KisPy+G0dD+BWdE=' 'sha256-zTbqoLXOVJ6Y7bxwX42flzVUMpf3rgsI16LDibNF8HY='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>从毫秒到微秒：Valkey架构模式助力现代AI数据层 · DataHot</title>
 <meta name="description" content="Dumanshu Goyal在演讲中讨论了如何为AI特征存储等低延迟工作负载优化数据层。他借鉴NASA航天飞机的经验，指出代理架构会带来隐藏CPU成本、尾部延迟升高和爆炸半径风险。他展示了直接访问型Valkey架构如何实现微秒级延迟、提升弹性并大幅降低基础设施成本。">
@@ -16,7 +18,7 @@
 <link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://henryhb1105-arch.github.io/datahot/feed.xml">
 <meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="henryhb1105-arch.github.io">
 <script defer src="../analytics.js"></script>
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "NewsArticle", "headline": "从毫秒到微秒：Valkey架构模式助力现代AI数据层", "description": "Dumanshu Goyal在演讲中讨论了如何为AI特征存储等低延迟工作负载优化数据层。他借鉴NASA航天飞机的经验，指出代理架构会带来隐藏CPU成本、尾部延迟升高和爆炸半径风险。他展示了直接访问型Valkey架构如何实现微秒级延迟、提升弹性并大幅降低基础设施成本。", "datePublished": "2026-08-06T17:34:00+08:00", "inLanguage": "zh-CN", "isBasedOn": "https://www.infoq.com/presentations/valkey-architecture-patterns/?utm_campaign=infoq_content&utm_source=infoq&utm_medium=feed&utm_term=AI%2C+ML+%26+Data+Engineering", "publisher": {"@type": "Organization", "name": "DataHot"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"从毫秒到微秒：Valkey架构模式助力现代AI数据层","description":"Dumanshu Goyal在演讲中讨论了如何为AI特征存储等低延迟工作负载优化数据层。他借鉴NASA航天飞机的经验，指出代理架构会带来隐藏CPU成本、尾部延迟升高和爆炸半径风险。他展示了直接访问型Valkey架构如何实现微秒级延迟、提升弹性并大幅降低基础设施成本。","datePublished":"2026-08-06T17:34:00+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://www.infoq.com/presentations/valkey-architecture-patterns/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=AI%2C+ML+%26+Data+Engineering"}</script>
 <style>
   :root{
     color-scheme: light dark;
@@ -458,9 +460,9 @@ a.source-name:hover{color:var(--accent)}
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="4c9db581d5c6" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
 
-      <a class="sbtn ghost" href="https://www.infoq.com/presentations/valkey-architecture-patterns/?utm_campaign=infoq_content&amp;utm_source=infoq&amp;utm_medium=feed&amp;utm_term=AI%2C+ML+%26+Data+Engineering" target="_blank" rel="noopener" data-analytics="outbound" data-source="InfoQ（AI/数据工程）"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
-      <button class="sbtn ghost" onclick="openPoster()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
-      <button class="sbtn" onclick="openSheet()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
+      <a class="sbtn ghost" href="https://www.infoq.com/presentations/valkey-architecture-patterns/?utm_campaign=infoq_content&amp;utm_source=infoq&amp;utm_medium=feed&amp;utm_term=AI%2C+ML+%26+Data+Engineering" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="InfoQ（AI/数据工程）"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
+      <button class="sbtn ghost" type="button" data-share-action="poster"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
+      <button class="sbtn" type="button" data-share-action="open"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
     </span>
   </div>
   <div class="meta">
@@ -469,7 +471,7 @@ a.source-name:hover{color:var(--accent)}
     
     <span title="发布时间">发布 2026-08-06 17:34</span>
     
-    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 34</span>
+    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 33</span>
   </div>
   <h1>从毫秒到微秒：Valkey架构模式助力现代AI数据层</h1>
 
@@ -478,12 +480,12 @@ a.source-name:hover{color:var(--accent)}
   
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
   <div class="fulltext"><p>在近期的一场技术分享中，Dumanshu Goyal围绕开源内存数据存储Valkey的架构模式展开了深入讨论，主题聚焦于如何为现代AI工作负载构建低延迟的数据层。演讲标题为“从毫秒到微秒：面向现代AI的OSS Valkey架构模式”，其核心关注点在于AI特征存储等对延迟极为敏感的场景。</p><p>Goyal首先提出了一个关键问题：当AI应用需要快速访问大量特征数据时，传统的数据访问架构是否还能胜任？他观察到，许多团队在构建数据层时习惯性地引入代理层，但这往往导致系统复杂度上升，并引入额外的性能损耗。他认为，这种设计虽然在运维管理上有一定便利，却与AI推理对极致延迟的追求背道而驰。</p><p>为了形象地说明这一点，Goyal从NASA航天飞机的设计经验中汲取了类比。航天飞机在极端环境下的系统设计强调可靠性和最小化故障影响范围，这对于数据系统同样适用。代理架构在数据路径中增加了额外的跳转和排队环节，不仅会产生隐藏的CPU开销，还会在高并发场景下造成显著的尾部延迟，同时将故障爆炸半径扩大——一旦代理出现问题，所有依赖它的数据访问都将受到影响。</p><p>作为对比，Goyal提出了一种直接访问型的Valkey架构。在这种模式中，客户端直接与Valkey节点通信，绕开中间代理层。这样做的优势是显而易见的：数据路径更短，网络和CPU消耗更低，整体延迟可以压缩到微秒级。同时，由于没有单点代理的瓶颈，系统的弹性也得到提升，单个节点的故障不会导致全局性的服务中断，从而缩小了爆炸半径。</p><p>此外，Goyal还强调了这种架构在成本上的收益。通过消除代理层，可以减少额外的服务器和网络资源消耗，降低基础设施的总体拥有成本。对于运行大规模AI特征存储或实时推荐系统的企业来说，这种优化具备实际的经济意义。</p><p>演讲中，Goyal并没有回避直接访问架构带来的挑战，例如客户端需要具备更精细的连接管理和故障处理能力。但他认为，在AI场景对延迟和可靠性要求日益严苛的今天，重新审视数据接入层架构，选择更轻量、更直接的路径，是值得投入的工程方向。这场分享为正在构建或优化AI数据基础设施的团队提供了可借鉴的思路。</p></div>
-  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://www.infoq.com/presentations/valkey-architecture-patterns/?utm_campaign=infoq_content&amp;utm_source=infoq&amp;utm_medium=feed&amp;utm_term=AI%2C+ML+%26+Data+Engineering" target="_blank" rel="noopener" data-analytics="outbound" data-source="InfoQ（AI/数据工程）">查看原文 ↗</a></div>
+  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://www.infoq.com/presentations/valkey-architecture-patterns/?utm_campaign=infoq_content&amp;utm_source=infoq&amp;utm_medium=feed&amp;utm_term=AI%2C+ML+%26+Data+Engineering" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="InfoQ（AI/数据工程）">查看原文 ↗</a></div>
 </div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/8f797762a332.html"><span class="n">›</span>华为重定义存储：推AI数据中心五层架构<span class="count">55</span></a><a class="vendor-row" href="../e/caa8145425d1.html"><span class="n">›</span>Snowflake AIM：将数据迁移从数年缩短至数周<span class="count">51</span></a><a class="vendor-row" href="../e/036431034b26.html"><span class="n">›</span>构建医疗AI无需重建数据平台<span class="count">52</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/8f797762a332.html"><span class="n">›</span>华为重定义存储：推AI数据中心五层架构<span class="count">54</span></a><a class="vendor-row" href="../e/ddcb4a5b6b52.html"><span class="n">›</span>开源数据层将赢得AI未来<span class="count">55</span></a><a class="vendor-row" href="../e/5c4d28e53f75.html"><span class="n">›</span>Agentic AI 架构为何需要数据库，不只是向量存储<span class="count">57</span></a></div>
 </div>
-<footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
+<footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 <nav class="tabbar" aria-label="移动端主导航">
   <a href="../index.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../weekly.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span>周报</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a>
   <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
@@ -517,21 +519,21 @@ a.source-name:hover{color:var(--accent)}
 </script>
 
 
-<div class="sh-mask" id="shMask" onclick="shClose()"></div>
+<div class="sh-mask" id="shMask" data-share-action="close"></div>
 <div class="sh-sheet" id="shSheet"><div class="sh-panel">
   <div class="sh-group">
     <div class="sh-title">分享这条资讯</div>
-    <button class="sh-opt" onclick="shCopy()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 复制链接</button>
-    <button class="sh-opt" onclick="shClose();openPoster()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 分享海报</button>
-    <button class="sh-opt" onclick="shNative()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 系统分享…</button>
+    <button class="sh-opt" type="button" data-share-action="copy"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 复制链接</button>
+    <button class="sh-opt" type="button" data-share-action="poster"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 分享海报</button>
+    <button class="sh-opt" type="button" data-share-action="native"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 系统分享…</button>
   </div>
-  <button class="sh-cancel" onclick="shClose()">取消</button>
+  <button class="sh-cancel" type="button" data-share-action="close">取消</button>
 </div></div>
 <div class="sh-poster-modal" id="shPoster">
   <div class="sh-poster-wrap"><img id="shPosterImg" alt="分享海报"></div>
   <div class="sh-poster-actions">
-    <a class="sh-save" id="shSave" href="#" onclick="shSaveClick(event)">保存图片</a>
-    <button class="sh-close" onclick="shClose()">关闭</button>
+    <a class="sh-save" id="shSave" href="#" data-share-action="save">保存图片</a>
+    <button class="sh-close" type="button" data-share-action="close">关闭</button>
   </div>
   <div class="sh-poster-tip">iOS 也可以长按图片保存</div>
 </div>
@@ -600,7 +602,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title": "从毫秒到微秒：Valkey架构模式助力现代AI数据层", "summary": "Dumanshu Goyal在演讲中讨论了如何为AI特征存储等低延迟工作负载优化数据层。他借鉴NASA航天飞机的经验，指出代理架构会带来隐藏CPU成本、尾部延迟升高和爆炸半径风险。他展示了直接访问型Valkey架构如何实现微秒级延迟、提升弹性并大幅降低基础设施成本。", "reason": "Valkey作为Redis的开源替代，其架构模式直接关系到AI特征存储等数据基础设施的性能与成本，值得数据从业者关注。", "topic": "", "heat": 34, "source": "InfoQ (AI/数据工程)", "date": "2026-08-06", "url": "https://henryhb1105-arch.github.io/datahot/e/4c9db581d5c6.html"};
+var SH_EV = {"title":"从毫秒到微秒：Valkey架构模式助力现代AI数据层","summary":"Dumanshu Goyal在演讲中讨论了如何为AI特征存储等低延迟工作负载优化数据层。他借鉴NASA航天飞机的经验，指出代理架构会带来隐藏CPU成本、尾部延迟升高和爆炸半径风险。他展示了直接访问型Valkey架构如何实现微秒级延迟、提升弹性并大幅降低基础设施成本。","reason":"Valkey作为Redis的开源替代，其架构模式直接关系到AI特征存储等数据基础设施的性能与成本，值得数据从业者关注。","topic":"","heat":33,"source":"InfoQ (AI/数据工程)","date":"2026-08-06","url":"https://henryhb1105-arch.github.io/datahot/e/4c9db581d5c6.html"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');
@@ -758,6 +760,17 @@ function dataToBlob(d){
 function showPoster(){
   document.getElementById('shPosterImg').src=posterURL;
   var a=document.getElementById('shSave');
-  a.href=URL.createObjectURL(dataToBlob(posterURL)); a.target='_blank';
+  a.href=URL.createObjectURL(dataToBlob(posterURL)); a.target='_blank';a.rel='noopener noreferrer';
 }
+document.querySelectorAll('[data-share-action]').forEach(function(control){
+  control.addEventListener('click',function(event){
+    var action=control.dataset.shareAction;
+    if(action==='open'){openSheet();}
+    else if(action==='close'){shClose();}
+    else if(action==='copy'){shCopy();}
+    else if(action==='poster'){shClose();openPoster();}
+    else if(action==='native'){shNative();}
+    else if(action==='save'){shSaveClick(event);}
+  });
+});
 </script></body></html>

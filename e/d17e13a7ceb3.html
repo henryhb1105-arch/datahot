@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob: https://api.qrserver.com; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-f2zzFzb5/cFtAaQPh8SsmhZwL4wwryhLXNHiFY1nN5w=' 'sha256-xFnLZyIwuZgNYDJ1jDIswp/9LzRR8ZFriu02naLejsg=' 'sha256-zTbqoLXOVJ6Y7bxwX42flzVUMpf3rgsI16LDibNF8HY='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>用MCP构建可达生产系统的Agent · DataHot</title>
 <meta name="description" content="Anthropic官方博客探讨如何让Agent连接外部生产系统，总结直接API调用、CLI与MCP三种主流路径。文章指出，直接API调用在集成数量增多后会面临M×N集成难题，而MCP作为通用协议层，能减少定制化成本，因此成为生产级Agent落地的关键方向。">
@@ -16,7 +18,7 @@
 <link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://henryhb1105-arch.github.io/datahot/feed.xml">
 <meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="henryhb1105-arch.github.io">
 <script defer src="../analytics.js"></script>
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "NewsArticle", "headline": "用MCP构建可达生产系统的Agent", "description": "Anthropic官方博客探讨如何让Agent连接外部生产系统，总结直接API调用、CLI与MCP三种主流路径。文章指出，直接API调用在集成数量增多后会面临M×N集成难题，而MCP作为通用协议层，能减少定制化成本，因此成为生产级Agent落地的关键方向。", "datePublished": "2026-08-10T09:48:06.984083+08:00", "inLanguage": "zh-CN", "isBasedOn": "https://claude.com/blog/building-agents-that-reach-production-systems-with-mcp", "publisher": {"@type": "Organization", "name": "DataHot"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"用MCP构建可达生产系统的Agent","description":"Anthropic官方博客探讨如何让Agent连接外部生产系统，总结直接API调用、CLI与MCP三种主流路径。文章指出，直接API调用在集成数量增多后会面临M×N集成难题，而MCP作为通用协议层，能减少定制化成本，因此成为生产级Agent落地的关键方向。","datePublished":"2026-08-10T09:48:06.984083+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://claude.com/blog/building-agents-that-reach-production-systems-with-mcp"}</script>
 <style>
   :root{
     color-scheme: light dark;
@@ -458,9 +460,9 @@ a.source-name:hover{color:var(--accent)}
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="d17e13a7ceb3" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
 
-      <a class="sbtn ghost" href="https://claude.com/blog/building-agents-that-reach-production-systems-with-mcp" target="_blank" rel="noopener" data-analytics="outbound" data-source="Claude 官方博客"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
-      <button class="sbtn ghost" onclick="openPoster()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
-      <button class="sbtn" onclick="openSheet()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
+      <a class="sbtn ghost" href="https://claude.com/blog/building-agents-that-reach-production-systems-with-mcp" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Claude 官方博客"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
+      <button class="sbtn ghost" type="button" data-share-action="poster"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
+      <button class="sbtn" type="button" data-share-action="open"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
     </span>
   </div>
   <div class="meta">
@@ -478,12 +480,12 @@ a.source-name:hover{color:var(--accent)}
   <div class="vendors" style="margin-top:14px"><a class="chip" href="../topics/data-agent.html">Data Agent</a><span class="vtag">Anthropic</span><span class="vtag">Claude</span></div>
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
   <div class="fulltext"><p>Anthropic 在 Claude 官方博客发布文章《Building agents that reach production systems with MCP》，发布于2026年4月22日，讨论如何让 AI Agent 真正触达企业生产系统。文章开篇提出一个核心观点：Agent 的价值取决于它能连接多少系统。团队在构建 Agent 时，通常会收敛到三种连接外部系统的方式——直接 API 调用、命令行工具（CLI）和 MCP（Model Context Protocol）。</p><p>直接 API 调用是最常见的起步方式。Agent 可以通过在代码执行沙箱中编写 HTTP 请求代码，或者通过通用的函数调用工具直接调用服务端 API。这种方式在“一个 Agent 对接一个服务”或少数几个集成场景下工作良好，也是大多数团队的起点。然而，随着集成规模扩大，问题逐渐显现：由于 Agent 与服务之间没有公共层，每一对组合都变成一次定制集成，需要单独处理认证、工具描述和各种边界情况。这正是典型的 M×N 集成问题，维护成本会随连接数量快速上升。</p><p>CLI 路径则让 Agent 在沙箱中直接运行命令行工具。这种方式保留了现有 CLI 工具的易用性和脚本化能力，适合那些已经具备成熟命令行接口的系统。不过，CLI 通常缺少标准化描述和自动发现机制，Agent 需要提前了解每个工具的参数和输出结构，因此在大规模跨平台复用上也存在局限。</p><p>MCP 提供了第三种路径：在 Agent 与服务之间引入一个公共协议层。通过统一的接口描述、认证和工具注册机制，MCP 让同一个 Agent 能够以标准方式接入多个外部系统，从而避免为每个服务编写独立的适配逻辑。文章强调，生产环境中的 Agent 之所以倾向于采用 MCP，是因为它能够显著降低集成复杂度，并让集成能力在不同 Agent 平台之间复用。</p><p>文章最后总结了构建有效 MCP 集成的主要模式。对于数据团队而言，MCP 的意义在于它为“数据 Agent”访问数据仓库、语义层和 BI 工具提供了标准化的连接方式，使得 ChatBI、Text-to-SQL 等场景可以更稳定地触达生产环境。这篇来自 Anthropic 的官方技术实践，值得所有关注 Data Agent 架构的工程师参考。</p></div>
-  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://claude.com/blog/building-agents-that-reach-production-systems-with-mcp" target="_blank" rel="noopener" data-analytics="outbound" data-source="Claude 官方博客">查看原文 ↗</a></div>
+  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://claude.com/blog/building-agents-that-reach-production-systems-with-mcp" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Claude 官方博客">查看原文 ↗</a></div>
 </div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/95de2946ad51.html"><span class="n">›</span>Claude托管Agent更新：支持自托管沙盒与MCP隧道<span class="count">58</span></a><a class="vendor-row" href="../e/d145e4d3307d.html"><span class="n">›</span>Anthropic API新增四项Agent构建能力<span class="count">52</span></a><a class="vendor-row" href="../e/3bb9e34e59c3.html"><span class="n">›</span>构建企业级数据分析助手：Data Agent开发实践<span class="count">58</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/95de2946ad51.html"><span class="n">›</span>Claude托管Agent更新：支持自托管沙盒与MCP隧道<span class="count">58</span></a><a class="vendor-row" href="../e/d145e4d3307d.html"><span class="n">›</span>Anthropic API新增四项Agent构建能力<span class="count">52</span></a><a class="vendor-row" href="../e/3bb9e34e59c3.html"><span class="n">›</span>构建企业级数据分析助手：Data Agent开发实践<span class="count">57</span></a></div>
 </div>
-<footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
+<footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 <nav class="tabbar" aria-label="移动端主导航">
   <a href="../index.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../weekly.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span>周报</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a>
   <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
@@ -517,21 +519,21 @@ a.source-name:hover{color:var(--accent)}
 </script>
 
 
-<div class="sh-mask" id="shMask" onclick="shClose()"></div>
+<div class="sh-mask" id="shMask" data-share-action="close"></div>
 <div class="sh-sheet" id="shSheet"><div class="sh-panel">
   <div class="sh-group">
     <div class="sh-title">分享这条资讯</div>
-    <button class="sh-opt" onclick="shCopy()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 复制链接</button>
-    <button class="sh-opt" onclick="shClose();openPoster()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 分享海报</button>
-    <button class="sh-opt" onclick="shNative()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 系统分享…</button>
+    <button class="sh-opt" type="button" data-share-action="copy"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 复制链接</button>
+    <button class="sh-opt" type="button" data-share-action="poster"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 分享海报</button>
+    <button class="sh-opt" type="button" data-share-action="native"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 系统分享…</button>
   </div>
-  <button class="sh-cancel" onclick="shClose()">取消</button>
+  <button class="sh-cancel" type="button" data-share-action="close">取消</button>
 </div></div>
 <div class="sh-poster-modal" id="shPoster">
   <div class="sh-poster-wrap"><img id="shPosterImg" alt="分享海报"></div>
   <div class="sh-poster-actions">
-    <a class="sh-save" id="shSave" href="#" onclick="shSaveClick(event)">保存图片</a>
-    <button class="sh-close" onclick="shClose()">关闭</button>
+    <a class="sh-save" id="shSave" href="#" data-share-action="save">保存图片</a>
+    <button class="sh-close" type="button" data-share-action="close">关闭</button>
   </div>
   <div class="sh-poster-tip">iOS 也可以长按图片保存</div>
 </div>
@@ -600,7 +602,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title": "用MCP构建可达生产系统的Agent", "summary": "Anthropic官方博客探讨如何让Agent连接外部生产系统，总结直接API调用、CLI与MCP三种主流路径。文章指出，直接API调用在集成数量增多后会面临M×N集成难题，而MCP作为通用协议层，能减少定制化成本，因此成为生产级Agent落地的关键方向。", "reason": "MCP是Data Agent连接数据平台与外部系统的关键协议，数据从业者需要理解其技术选型与集成模式。", "topic": "Data Agent", "heat": 51, "source": "Claude 官方博客", "date": "2026-08-10", "url": "https://henryhb1105-arch.github.io/datahot/e/d17e13a7ceb3.html"};
+var SH_EV = {"title":"用MCP构建可达生产系统的Agent","summary":"Anthropic官方博客探讨如何让Agent连接外部生产系统，总结直接API调用、CLI与MCP三种主流路径。文章指出，直接API调用在集成数量增多后会面临M×N集成难题，而MCP作为通用协议层，能减少定制化成本，因此成为生产级Agent落地的关键方向。","reason":"MCP是Data Agent连接数据平台与外部系统的关键协议，数据从业者需要理解其技术选型与集成模式。","topic":"Data Agent","heat":51,"source":"Claude 官方博客","date":"2026-08-10","url":"https://henryhb1105-arch.github.io/datahot/e/d17e13a7ceb3.html"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');
@@ -758,6 +760,17 @@ function dataToBlob(d){
 function showPoster(){
   document.getElementById('shPosterImg').src=posterURL;
   var a=document.getElementById('shSave');
-  a.href=URL.createObjectURL(dataToBlob(posterURL)); a.target='_blank';
+  a.href=URL.createObjectURL(dataToBlob(posterURL)); a.target='_blank';a.rel='noopener noreferrer';
 }
+document.querySelectorAll('[data-share-action]').forEach(function(control){
+  control.addEventListener('click',function(event){
+    var action=control.dataset.shareAction;
+    if(action==='open'){openSheet();}
+    else if(action==='close'){shClose();}
+    else if(action==='copy'){shCopy();}
+    else if(action==='poster'){shClose();openPoster();}
+    else if(action==='native'){shNative();}
+    else if(action==='save'){shSaveClick(event);}
+  });
+});
 </script></body></html>

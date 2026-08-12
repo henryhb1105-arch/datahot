@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob: https://api.qrserver.com; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-19YeJMY9PYfwIdByTYA4v+fWTQCcPeqh9SN0vMQgFB4=' 'sha256-HxgzozPqOqZCYEx9nvs/fl6LfYmzuvYEWJYgD0jaJjo=' 'sha256-zTbqoLXOVJ6Y7bxwX42flzVUMpf3rgsI16LDibNF8HY='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>ClickHouse 26.7发布：性能大幅优化，新增多项查询能力 · DataHot</title>
 <meta name="description" content="ClickHouse 26.7版本于2026年8月6日发布，包含61项新特性、112项性能优化和329项Bug修复。重点改进包括GROUP BY...ORDER BY...LIMIT加速、三项JOIN优化、四项向量搜索改进、位置感知短语搜索、EXPLAIN ANALYZE以及统一URL访问。该版本还">
@@ -16,7 +18,7 @@
 <link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://henryhb1105-arch.github.io/datahot/feed.xml">
 <meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="henryhb1105-arch.github.io">
 <script defer src="../analytics.js"></script>
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "NewsArticle", "headline": "ClickHouse 26.7发布：性能大幅优化，新增多项查询能力", "description": "ClickHouse 26.7版本于2026年8月6日发布，包含61项新特性、112项性能优化和329项Bug修复。重点改进包括GROUP BY...ORDER BY...LIMIT加速、三项JOIN优化、四项向量搜索改进、位置感知短语搜索、EXPLAIN ANALYZE以及统一URL访问。该版本还", "datePublished": "2026-08-06T08:00:00+08:00", "inLanguage": "zh-CN", "isBasedOn": "https://clickhouse.com/blog/clickhouse-release-26-07", "publisher": {"@type": "Organization", "name": "DataHot"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"ClickHouse 26.7发布：性能大幅优化，新增多项查询能力","description":"ClickHouse 26.7版本于2026年8月6日发布，包含61项新特性、112项性能优化和329项Bug修复。重点改进包括GROUP BY...ORDER BY...LIMIT加速、三项JOIN优化、四项向量搜索改进、位置感知短语搜索、EXPLAIN ANALYZE以及统一URL访问。该版本还","datePublished":"2026-08-06T08:00:00+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://clickhouse.com/blog/clickhouse-release-26-07"}</script>
 <style>
   :root{
     color-scheme: light dark;
@@ -458,9 +460,9 @@ a.source-name:hover{color:var(--accent)}
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="f24d7f17e186" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
 
-      <a class="sbtn ghost" href="https://clickhouse.com/blog/clickhouse-release-26-07" target="_blank" rel="noopener" data-analytics="outbound" data-source="ClickHouse Blog"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
-      <button class="sbtn ghost" onclick="openPoster()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
-      <button class="sbtn" onclick="openSheet()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
+      <a class="sbtn ghost" href="https://clickhouse.com/blog/clickhouse-release-26-07" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="ClickHouse Blog"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
+      <button class="sbtn ghost" type="button" data-share-action="poster"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
+      <button class="sbtn" type="button" data-share-action="open"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
     </span>
   </div>
   <div class="meta">
@@ -478,12 +480,12 @@ a.source-name:hover{color:var(--accent)}
   <div class="vendors" style="margin-top:14px"><a class="chip" href="../topics/realtime.html">实时分析</a><span class="vtag">ClickHouse</span></div>
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
   <div class="fulltext"><p>ClickHouse于2026年8月6日正式发布26.7版本。官方博客表示，这又是一个月度的例行更新，但内容相当丰富：共包含61项新特性、112项性能优化以及329项Bug修复。</p><p>本次版本最值得关注的改进之一是GROUP BY...ORDER BY...LIMIT组合查询的加速。这类Top-N查询在业务报表和分析场景中极为常见，由Konstantin Bogdanov和Nihal Z. Miaji贡献，能够显著降低此类查询的响应时间。</p><p>JOIN能力同样获得三项改进，进一步提升了多表关联查询的效率和易用性。与此同时，向量搜索功能迎来四项优化，特别是在QBit支持下实现了更快的向量检索，这对于AI数据平台中的相似性搜索场景具有直接价值。</p><p>全文搜索方面，新版本引入了位置感知的短语搜索（position-aware phrase search），能够更精确地匹配短语中词语的相对位置，改善文本分析体验。此外，EXPLAIN ANALYZE功能让用户可以直接查看查询执行计划的实际执行细节，有助于性能调优。</p><p>统一URL访问（unified URL access）也是一项重要更新，它简化了通过URL访问外部数据源的配置方式，使集成外部数据更加便捷。</p><p>除了功能改进，26.7版本还欢迎了大量新贡献者。官方列出了数十位新贡献者名单，包括Aditya Kumar、Ali Ayman、Andre Murbach Maidl等，社区参与度持续提升。ClickHouse团队也在博客中附上了贡献者名单生成方式的说明以及相关演示文稿链接。</p><p>整体来看，ClickHouse 26.7在分析查询性能、多表关联、向量检索和全文搜索等方向上均有实质增强，适合数据平台与AI应用开发者升级评估。</p></div>
-  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://clickhouse.com/blog/clickhouse-release-26-07" target="_blank" rel="noopener" data-analytics="outbound" data-source="ClickHouse Blog">查看原文 ↗</a></div>
+  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://clickhouse.com/blog/clickhouse-release-26-07" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="ClickHouse Blog">查看原文 ↗</a></div>
 </div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/e7420873acde.html"><span class="n">›</span>ClickHouse成立基础数据库研究团队ClickHouse Labs<span class="count">67</span></a><a class="vendor-row" href="../e/87c9acba5c38.html"><span class="n">›</span>pg_clickhouse 0.10增强查询下推，TPC-H Q17降至37毫秒<span class="count">64</span></a><a class="vendor-row" href="../e/fda342751ac4.html"><span class="n">›</span>ClickHouse托管Postgres更新：通知、可观测性、备份等<span class="count">35</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/e7420873acde.html"><span class="n">›</span>ClickHouse成立基础数据库研究团队ClickHouse Labs<span class="count">66</span></a><a class="vendor-row" href="../e/87c9acba5c38.html"><span class="n">›</span>pg_clickhouse 0.10增强查询下推，TPC-H Q17降至37毫秒<span class="count">63</span></a><a class="vendor-row" href="../e/fda342751ac4.html"><span class="n">›</span>ClickHouse托管Postgres更新：通知、可观测性、备份等<span class="count">35</span></a></div>
 </div>
-<footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
+<footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 <nav class="tabbar" aria-label="移动端主导航">
   <a href="../index.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../weekly.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span>周报</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a>
   <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
@@ -517,21 +519,21 @@ a.source-name:hover{color:var(--accent)}
 </script>
 
 
-<div class="sh-mask" id="shMask" onclick="shClose()"></div>
+<div class="sh-mask" id="shMask" data-share-action="close"></div>
 <div class="sh-sheet" id="shSheet"><div class="sh-panel">
   <div class="sh-group">
     <div class="sh-title">分享这条资讯</div>
-    <button class="sh-opt" onclick="shCopy()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 复制链接</button>
-    <button class="sh-opt" onclick="shClose();openPoster()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 分享海报</button>
-    <button class="sh-opt" onclick="shNative()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 系统分享…</button>
+    <button class="sh-opt" type="button" data-share-action="copy"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 复制链接</button>
+    <button class="sh-opt" type="button" data-share-action="poster"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 分享海报</button>
+    <button class="sh-opt" type="button" data-share-action="native"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 系统分享…</button>
   </div>
-  <button class="sh-cancel" onclick="shClose()">取消</button>
+  <button class="sh-cancel" type="button" data-share-action="close">取消</button>
 </div></div>
 <div class="sh-poster-modal" id="shPoster">
   <div class="sh-poster-wrap"><img id="shPosterImg" alt="分享海报"></div>
   <div class="sh-poster-actions">
-    <a class="sh-save" id="shSave" href="#" onclick="shSaveClick(event)">保存图片</a>
-    <button class="sh-close" onclick="shClose()">关闭</button>
+    <a class="sh-save" id="shSave" href="#" data-share-action="save">保存图片</a>
+    <button class="sh-close" type="button" data-share-action="close">关闭</button>
   </div>
   <div class="sh-poster-tip">iOS 也可以长按图片保存</div>
 </div>
@@ -600,7 +602,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title": "ClickHouse 26.7发布：性能大幅优化，新增多项查询能力", "summary": "ClickHouse 26.7版本于2026年8月6日发布，包含61项新特性、112项性能优化和329项Bug修复。重点改进包括GROUP BY...ORDER BY...LIMIT加速、三项JOIN优化、四项向量搜索改进、位置感知短语搜索、EXPLAIN ANALYZE以及统一URL访问。该版本还迎来大量新贡献者，社区持续壮大。", "reason": "ClickHouse是主流的开源分析型数据库，其版本更新直接影响数据平台工程师的查询性能和功能选型，值得关注。", "topic": "实时分析", "heat": 33, "source": "ClickHouse Blog", "date": "2026-08-06", "url": "https://henryhb1105-arch.github.io/datahot/e/f24d7f17e186.html"};
+var SH_EV = {"title":"ClickHouse 26.7发布：性能大幅优化，新增多项查询能力","summary":"ClickHouse 26.7版本于2026年8月6日发布，包含61项新特性、112项性能优化和329项Bug修复。重点改进包括GROUP BY...ORDER BY...LIMIT加速、三项JOIN优化、四项向量搜索改进、位置感知短语搜索、EXPLAIN ANALYZE以及统一URL访问。该版本还迎来大量新贡献者，社区持续壮大。","reason":"ClickHouse是主流的开源分析型数据库，其版本更新直接影响数据平台工程师的查询性能和功能选型，值得关注。","topic":"实时分析","heat":33,"source":"ClickHouse Blog","date":"2026-08-06","url":"https://henryhb1105-arch.github.io/datahot/e/f24d7f17e186.html"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');
@@ -758,6 +760,17 @@ function dataToBlob(d){
 function showPoster(){
   document.getElementById('shPosterImg').src=posterURL;
   var a=document.getElementById('shSave');
-  a.href=URL.createObjectURL(dataToBlob(posterURL)); a.target='_blank';
+  a.href=URL.createObjectURL(dataToBlob(posterURL)); a.target='_blank';a.rel='noopener noreferrer';
 }
+document.querySelectorAll('[data-share-action]').forEach(function(control){
+  control.addEventListener('click',function(event){
+    var action=control.dataset.shareAction;
+    if(action==='open'){openSheet();}
+    else if(action==='close'){shClose();}
+    else if(action==='copy'){shCopy();}
+    else if(action==='poster'){shClose();openPoster();}
+    else if(action==='native'){shNative();}
+    else if(action==='save'){shSaveClick(event);}
+  });
+});
 </script></body></html>

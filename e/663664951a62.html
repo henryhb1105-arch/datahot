@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob: https://api.qrserver.com; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-byF486tD5YJilDZBNJccwtXKmwNczR012BwRx1Bz/zQ=' 'sha256-oNT6jTWa9qMkg7SbIZNKwZaYIZ+NzT74permi4rYNQ4=' 'sha256-zTbqoLXOVJ6Y7bxwX42flzVUMpf3rgsI16LDibNF8HY='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Delivery Hero迁移至OpenSearch Service：径向搜索优化语义检索 · DataHot</title>
 <meta name="description" content="Delivery Hero自2024年起将语义搜索用于杂货垂直领域，从基于SpringBoot和Lucene 9.9的原型系统迁移至Amazon OpenSearch Service。他们采用径向搜索替代传统k-NN搜索，并与词法检索结合，构建高性能、低成本且灵活的混合搜索系统。该方案在Kubern">
@@ -16,7 +18,7 @@
 <link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://henryhb1105-arch.github.io/datahot/feed.xml">
 <meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="henryhb1105-arch.github.io">
 <script defer src="../analytics.js"></script>
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "NewsArticle", "headline": "Delivery Hero迁移至OpenSearch Service：径向搜索优化语义检索", "description": "Delivery Hero自2024年起将语义搜索用于杂货垂直领域，从基于SpringBoot和Lucene 9.9的原型系统迁移至Amazon OpenSearch Service。他们采用径向搜索替代传统k-NN搜索，并与词法检索结合，构建高性能、低成本且灵活的混合搜索系统。该方案在Kubern", "datePublished": "2026-08-04T23:55:01+08:00", "inLanguage": "zh-CN", "isBasedOn": "https://aws.amazon.com/blogs/big-data/transforming-search-at-delivery-hero-a-migration-journey-to-opensearch-service-with-radial-search/", "publisher": {"@type": "Organization", "name": "DataHot"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"Delivery Hero迁移至OpenSearch Service：径向搜索优化语义检索","description":"Delivery Hero自2024年起将语义搜索用于杂货垂直领域，从基于SpringBoot和Lucene 9.9的原型系统迁移至Amazon OpenSearch Service。他们采用径向搜索替代传统k-NN搜索，并与词法检索结合，构建高性能、低成本且灵活的混合搜索系统。该方案在Kubern","datePublished":"2026-08-04T23:55:01+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://aws.amazon.com/blogs/big-data/transforming-search-at-delivery-hero-a-migration-journey-to-opensearch-service-with-radial-search/"}</script>
 <style>
   :root{
     color-scheme: light dark;
@@ -458,9 +460,9 @@ a.source-name:hover{color:var(--accent)}
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="663664951a62" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
 
-      <a class="sbtn ghost" href="https://aws.amazon.com/blogs/big-data/transforming-search-at-delivery-hero-a-migration-journey-to-opensearch-service-with-radial-search/" target="_blank" rel="noopener" data-analytics="outbound" data-source="AWS Big Data Blog"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
-      <button class="sbtn ghost" onclick="openPoster()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
-      <button class="sbtn" onclick="openSheet()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
+      <a class="sbtn ghost" href="https://aws.amazon.com/blogs/big-data/transforming-search-at-delivery-hero-a-migration-journey-to-opensearch-service-with-radial-search/" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="AWS Big Data Blog"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
+      <button class="sbtn ghost" type="button" data-share-action="poster"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
+      <button class="sbtn" type="button" data-share-action="open"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
     </span>
   </div>
   <div class="meta">
@@ -478,12 +480,12 @@ a.source-name:hover{color:var(--accent)}
   <div class="vendors" style="margin-top:14px"><span class="vtag">AWS</span><span class="vtag">Amazon OpenSearch Service</span></div>
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
   <div class="fulltext"><p>在在线生鲜与杂货购物中，用户输入“低脂酸奶”时，搜索引擎往往能返回“希腊酸奶”或“0.5%脂肪酸奶”等语义相关而非字面匹配的结果。这种体验背后是语义搜索与词法搜索的混合检索系统，它同时兼顾了结果的精确性与召回率。Delivery Hero作为全球领先的在线食品配送平台，自2024年起就在杂货垂直领域探索语义搜索，并逐步从原型验证演进为生产级系统。</p><p>该系统最初构建为一个独立服务，基于SpringBoot和Apache Lucene 9.9，部署在Kubernetes上。检索流程是：用户发起搜索后，系统先从静态内存Lucene索引中获取前50个最近邻候选结果，然后通过过滤层剔除缺货商品，最后将与语义结果并行的词法检索结果合并输出。这一方案虽然可行，但在扩展性、成本效率和实验灵活性方面存在限制。</p><p>为了进一步优化，Delivery Hero决定将语义搜索基础设施迁移到Amazon OpenSearch Service。他们放弃了传统的k近邻（k-NN）搜索，转而采用径向搜索（radial search）。径向搜索能更高效地处理向量检索，尤其适合在保持准确性的同时降低计算与存储开销。该迁移使得系统能够更方便地进行实验和调整，例如改变向量维度或距离阈值，而无需重写整个检索链路。</p><p>新系统结合了径向向量检索与传统词法检索，形成混合搜索架构。这种架构既能理解用户意图，又能精确匹配品牌、品类等关键属性，从而在大规模商品数据上提供高相关性的搜索结果。Delivery Hero的搜索团队通过这一迁移，实现了更快的响应速度、更低的运营成本，并为后续的算法迭代保留了充分的灵活性。</p><p>该案例来自AWS大数据博客，详细展示了从基于Lucene的独立服务迁移到托管式OpenSearch Service的完整路径。尽管迁移过程涉及复杂的基础设施改造，但最终效果显著。对于同样面临语义搜索规模挑战的团队而言，Delivery Hero的经验提供了有价值的参考：在向量检索方案选型时，径向搜索可能比传统k-NN更适配某些使用场景。</p><p>值得注意的是，该迁移并非简单的替换，而是对整个检索架构的再设计。通过将候选生成、过滤与合并逻辑重新映射到OpenSearch Service的能力上，Delivery Hero消除了自建索引的运维负担，同时获得了云上托管的弹性与可观测性。这标志着他们在搜索技术路线上的一次重要升级，也为后续引入更多机器学习模型奠定了数据基础。</p></div>
-  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://aws.amazon.com/blogs/big-data/transforming-search-at-delivery-hero-a-migration-journey-to-opensearch-service-with-radial-search/" target="_blank" rel="noopener" data-analytics="outbound" data-source="AWS Big Data Blog">查看原文 ↗</a></div>
+  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://aws.amazon.com/blogs/big-data/transforming-search-at-delivery-hero-a-migration-journey-to-opensearch-service-with-radial-search/" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="AWS Big Data Blog">查看原文 ↗</a></div>
 </div>
 
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/fbbccffba47d.html"><span class="n">›</span>Amazon OpenSearch Service延长旧版引擎支持周期<span class="count">36</span></a><a class="vendor-row" href="../e/f4a8cf5520c4.html"><span class="n">›</span>How Anthropic&#x27;s finance team uses Claude to shape the narrative behind the numbers | Claude by Anthropic<span class="count">43</span></a><a class="vendor-row" href="../e/f5f77fd32d06.html"><span class="n">›</span>Product development in the agentic era | Claude by Anthropic<span class="count">43</span></a></div>
 </div>
-<footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
+<footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 <nav class="tabbar" aria-label="移动端主导航">
   <a href="../index.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../weekly.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span>周报</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a>
   <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
@@ -517,21 +519,21 @@ a.source-name:hover{color:var(--accent)}
 </script>
 
 
-<div class="sh-mask" id="shMask" onclick="shClose()"></div>
+<div class="sh-mask" id="shMask" data-share-action="close"></div>
 <div class="sh-sheet" id="shSheet"><div class="sh-panel">
   <div class="sh-group">
     <div class="sh-title">分享这条资讯</div>
-    <button class="sh-opt" onclick="shCopy()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 复制链接</button>
-    <button class="sh-opt" onclick="shClose();openPoster()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 分享海报</button>
-    <button class="sh-opt" onclick="shNative()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 系统分享…</button>
+    <button class="sh-opt" type="button" data-share-action="copy"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 复制链接</button>
+    <button class="sh-opt" type="button" data-share-action="poster"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 分享海报</button>
+    <button class="sh-opt" type="button" data-share-action="native"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 系统分享…</button>
   </div>
-  <button class="sh-cancel" onclick="shClose()">取消</button>
+  <button class="sh-cancel" type="button" data-share-action="close">取消</button>
 </div></div>
 <div class="sh-poster-modal" id="shPoster">
   <div class="sh-poster-wrap"><img id="shPosterImg" alt="分享海报"></div>
   <div class="sh-poster-actions">
-    <a class="sh-save" id="shSave" href="#" onclick="shSaveClick(event)">保存图片</a>
-    <button class="sh-close" onclick="shClose()">关闭</button>
+    <a class="sh-save" id="shSave" href="#" data-share-action="save">保存图片</a>
+    <button class="sh-close" type="button" data-share-action="close">关闭</button>
   </div>
   <div class="sh-poster-tip">iOS 也可以长按图片保存</div>
 </div>
@@ -600,7 +602,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title": "Delivery Hero迁移至OpenSearch Service：径向搜索优化语义检索", "summary": "Delivery Hero自2024年起将语义搜索用于杂货垂直领域，从基于SpringBoot和Lucene 9.9的原型系统迁移至Amazon OpenSearch Service。他们采用径向搜索替代传统k-NN搜索，并与词法检索结合，构建高性能、低成本且灵活的混合搜索系统。该方案在Kubernetes上实现生产级部署，支持大规模产品相关性检索。", "reason": "该案例展示了数据平台中语义搜索与向量检索的工程实践，对使用OpenSearch或关注检索基础设施的从业者具有参考价值。", "topic": "", "heat": 31, "source": "AWS Big Data Blog", "date": "2026-08-04", "url": "https://henryhb1105-arch.github.io/datahot/e/663664951a62.html"};
+var SH_EV = {"title":"Delivery Hero迁移至OpenSearch Service：径向搜索优化语义检索","summary":"Delivery Hero自2024年起将语义搜索用于杂货垂直领域，从基于SpringBoot和Lucene 9.9的原型系统迁移至Amazon OpenSearch Service。他们采用径向搜索替代传统k-NN搜索，并与词法检索结合，构建高性能、低成本且灵活的混合搜索系统。该方案在Kubernetes上实现生产级部署，支持大规模产品相关性检索。","reason":"该案例展示了数据平台中语义搜索与向量检索的工程实践，对使用OpenSearch或关注检索基础设施的从业者具有参考价值。","topic":"","heat":31,"source":"AWS Big Data Blog","date":"2026-08-04","url":"https://henryhb1105-arch.github.io/datahot/e/663664951a62.html"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');
@@ -758,6 +760,17 @@ function dataToBlob(d){
 function showPoster(){
   document.getElementById('shPosterImg').src=posterURL;
   var a=document.getElementById('shSave');
-  a.href=URL.createObjectURL(dataToBlob(posterURL)); a.target='_blank';
+  a.href=URL.createObjectURL(dataToBlob(posterURL)); a.target='_blank';a.rel='noopener noreferrer';
 }
+document.querySelectorAll('[data-share-action]').forEach(function(control){
+  control.addEventListener('click',function(event){
+    var action=control.dataset.shareAction;
+    if(action==='open'){openSheet();}
+    else if(action==='close'){shClose();}
+    else if(action==='copy'){shCopy();}
+    else if(action==='poster'){shClose();openPoster();}
+    else if(action==='native'){shNative();}
+    else if(action==='save'){shSaveClick(event);}
+  });
+});
 </script></body></html>

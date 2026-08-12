@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob: https://api.qrserver.com; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-p071lnbUuRn0OqZvsNRyTll/7TyCSBkZbgZTb1j0Dwk=' 'sha256-zTbqoLXOVJ6Y7bxwX42flzVUMpf3rgsI16LDibNF8HY=' 'sha256-zUkozvPWo02LdCjiEGtIdcqIHf4i7W43eYzeXIQUNa4='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>编码智能体的价值取决于它对数据的了解程度 · DataHot</title>
 <meta name="description" content="数据工程师尝试用编码智能体处理SQL时，确实能获得帮助：样板代码被削减，脚手架搭建更快。但一个更棘手的 frustration 是，智能体生成的代码看似正确——语法有效、符合惯例——却不适用于实际环境。它不知道哪些表是生产表、哪些 schema 受治理、RBAC 结构如何，导致产出仍需人工重塑。">
@@ -16,7 +18,7 @@
 <link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://henryhb1105-arch.github.io/datahot/feed.xml">
 <meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="henryhb1105-arch.github.io">
 <script defer src="../analytics.js"></script>
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "NewsArticle", "headline": "编码智能体的价值取决于它对数据的了解程度", "description": "数据工程师尝试用编码智能体处理SQL时，确实能获得帮助：样板代码被削减，脚手架搭建更快。但一个更棘手的 frustration 是，智能体生成的代码看似正确——语法有效、符合惯例——却不适用于实际环境。它不知道哪些表是生产表、哪些 schema 受治理、RBAC 结构如何，导致产出仍需人工重塑。", "datePublished": "2026-08-05T04:56:04+08:00", "inLanguage": "zh-CN", "isBasedOn": "https://medium.com/snowflake/your-coding-agent-is-only-as-useful-as-what-it-knows-about-your-data-7da50cd93a15?source=rss----34b6daafc07---4", "publisher": {"@type": "Organization", "name": "DataHot"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"编码智能体的价值取决于它对数据的了解程度","description":"数据工程师尝试用编码智能体处理SQL时，确实能获得帮助：样板代码被削减，脚手架搭建更快。但一个更棘手的 frustration 是，智能体生成的代码看似正确——语法有效、符合惯例——却不适用于实际环境。它不知道哪些表是生产表、哪些 schema 受治理、RBAC 结构如何，导致产出仍需人工重塑。","datePublished":"2026-08-05T04:56:04+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://medium.com/snowflake/your-coding-agent-is-only-as-useful-as-what-it-knows-about-your-data-7da50cd93a15?source=rss----34b6daafc07---4"}</script>
 <style>
   :root{
     color-scheme: light dark;
@@ -458,9 +460,9 @@ a.source-name:hover{color:var(--accent)}
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="5ce50d8a33b1" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
 
-      <a class="sbtn ghost" href="https://medium.com/snowflake/your-coding-agent-is-only-as-useful-as-what-it-knows-about-your-data-7da50cd93a15?source=rss----34b6daafc07---4" target="_blank" rel="noopener" data-analytics="outbound" data-source="Snowflake Engineering（Medium）"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
-      <button class="sbtn ghost" onclick="openPoster()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
-      <button class="sbtn" onclick="openSheet()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
+      <a class="sbtn ghost" href="https://medium.com/snowflake/your-coding-agent-is-only-as-useful-as-what-it-knows-about-your-data-7da50cd93a15?source=rss----34b6daafc07---4" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Snowflake Engineering（Medium）"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
+      <button class="sbtn ghost" type="button" data-share-action="poster"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
+      <button class="sbtn" type="button" data-share-action="open"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
     </span>
   </div>
   <div class="meta">
@@ -478,12 +480,12 @@ a.source-name:hover{color:var(--accent)}
   <div class="vendors" style="margin-top:14px"><a class="chip" href="../topics/data-agent.html">Data Agent</a><a class="chip" href="../topics/semantic-layer.html">语义层</a><span class="vtag">Snowflake</span></div>
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
   <div class="fulltext"><p>许多数据工程师都曾尝试将编码智能体指向自己的 SQL 代码库，最终也确实得到了一些有价值的结果。重复的样板代码被大幅削减，脚手架搭建速度明显提升。这些初步体验传递出一个清晰信号：智能体与数据工作确实存在契合点。</p><p>然而，随着使用深入，一种比“幻觉”或“错误查询”更难言明的挫败感开始浮现。智能体产出的代码看起来没什么问题——语法完全有效，也遵循了常见的编码规范——但放到实际运行环境中却不匹配。它无法判断哪些表属于生产环境，哪些 Schema 是受治理的，你的 RBAC 权限结构又是什么样子。</p><p>这种“表面正确”的代码往往需要被重新塑造才能使用。工程师不得不逐段检查、手动修正那些因环境感知缺失而引入的潜在风险，比如误读了表权限、错误地假设了数据血缘，或者忽略了列级安全策略。原本期望节省的时间，又被这类隐性成本抵消了一部分。</p><p>问题的本质在于，编码智能体对“数据”的理解停留在语法与模式层面，而没有深入到语义与治理层面。它知道怎么写 SQL，却不知道什么数据可以用、谁可以用、怎么用才合规。这暴露了当前 Agent 在数据领域落地时的一个关键短板：缺少对数据资产上下文的结构化理解。</p><p>要真正释放编码智能体在数据工作流中的价值，不能只给它代码仓库，还要让它“看见”数据目录、治理策略、权限模型和血缘关系。只有当它理解了这些环境约束，生成的代码才可能从“看起来对”进化为“真的能用”。这也给数据平台团队提出了新的要求——为 Agent 提供可消费的上下文，而不只是数据库连接。</p></div>
-  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://medium.com/snowflake/your-coding-agent-is-only-as-useful-as-what-it-knows-about-your-data-7da50cd93a15?source=rss----34b6daafc07---4" target="_blank" rel="noopener" data-analytics="outbound" data-source="Snowflake Engineering（Medium）">查看原文 ↗</a></div>
+  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://medium.com/snowflake/your-coding-agent-is-only-as-useful-as-what-it-knows-about-your-data-7da50cd93a15?source=rss----34b6daafc07---4" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Snowflake Engineering（Medium）">查看原文 ↗</a></div>
 </div>
 
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/5f8de8bd22e1.html"><span class="n">›</span>OpenAI自研数据智能体：内部600PB数据查询从几天缩至几分钟<span class="count">53</span></a><a class="vendor-row" href="../e/07887457a24c.html"><span class="n">›</span>多智能体协调五种模式及选用时机<span class="count">57</span></a><a class="vendor-row" href="../e/097d6cd340b4.html"><span class="n">›</span>Anthropic多智能体研究系统从原型到生产的工程实践<span class="count">54</span></a></div>
 </div>
-<footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
+<footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 <nav class="tabbar" aria-label="移动端主导航">
   <a href="../index.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../weekly.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span>周报</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a>
   <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
@@ -517,21 +519,21 @@ a.source-name:hover{color:var(--accent)}
 </script>
 
 
-<div class="sh-mask" id="shMask" onclick="shClose()"></div>
+<div class="sh-mask" id="shMask" data-share-action="close"></div>
 <div class="sh-sheet" id="shSheet"><div class="sh-panel">
   <div class="sh-group">
     <div class="sh-title">分享这条资讯</div>
-    <button class="sh-opt" onclick="shCopy()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 复制链接</button>
-    <button class="sh-opt" onclick="shClose();openPoster()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 分享海报</button>
-    <button class="sh-opt" onclick="shNative()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 系统分享…</button>
+    <button class="sh-opt" type="button" data-share-action="copy"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 复制链接</button>
+    <button class="sh-opt" type="button" data-share-action="poster"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 分享海报</button>
+    <button class="sh-opt" type="button" data-share-action="native"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 系统分享…</button>
   </div>
-  <button class="sh-cancel" onclick="shClose()">取消</button>
+  <button class="sh-cancel" type="button" data-share-action="close">取消</button>
 </div></div>
 <div class="sh-poster-modal" id="shPoster">
   <div class="sh-poster-wrap"><img id="shPosterImg" alt="分享海报"></div>
   <div class="sh-poster-actions">
-    <a class="sh-save" id="shSave" href="#" onclick="shSaveClick(event)">保存图片</a>
-    <button class="sh-close" onclick="shClose()">关闭</button>
+    <a class="sh-save" id="shSave" href="#" data-share-action="save">保存图片</a>
+    <button class="sh-close" type="button" data-share-action="close">关闭</button>
   </div>
   <div class="sh-poster-tip">iOS 也可以长按图片保存</div>
 </div>
@@ -600,7 +602,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title": "编码智能体的价值取决于它对数据的了解程度", "summary": "数据工程师尝试用编码智能体处理SQL时，确实能获得帮助：样板代码被削减，脚手架搭建更快。但一个更棘手的 frustration 是，智能体生成的代码看似正确——语法有效、符合惯例——却不适用于实际环境。它不知道哪些表是生产表、哪些 schema 受治理、RBAC 结构如何，导致产出仍需人工重塑。", "reason": "数据从业者应关注：这直击 Data Agent 落地的核心瓶颈——智能体对数据环境上下文的理解不足，影响生成代码的可交付性。", "topic": "Data Agent", "heat": 31, "source": "Snowflake Engineering (Medium)", "date": "2026-08-05", "url": "https://henryhb1105-arch.github.io/datahot/e/5ce50d8a33b1.html"};
+var SH_EV = {"title":"编码智能体的价值取决于它对数据的了解程度","summary":"数据工程师尝试用编码智能体处理SQL时，确实能获得帮助：样板代码被削减，脚手架搭建更快。但一个更棘手的 frustration 是，智能体生成的代码看似正确——语法有效、符合惯例——却不适用于实际环境。它不知道哪些表是生产表、哪些 schema 受治理、RBAC 结构如何，导致产出仍需人工重塑。","reason":"数据从业者应关注：这直击 Data Agent 落地的核心瓶颈——智能体对数据环境上下文的理解不足，影响生成代码的可交付性。","topic":"Data Agent","heat":31,"source":"Snowflake Engineering (Medium)","date":"2026-08-05","url":"https://henryhb1105-arch.github.io/datahot/e/5ce50d8a33b1.html"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');
@@ -758,6 +760,17 @@ function dataToBlob(d){
 function showPoster(){
   document.getElementById('shPosterImg').src=posterURL;
   var a=document.getElementById('shSave');
-  a.href=URL.createObjectURL(dataToBlob(posterURL)); a.target='_blank';
+  a.href=URL.createObjectURL(dataToBlob(posterURL)); a.target='_blank';a.rel='noopener noreferrer';
 }
+document.querySelectorAll('[data-share-action]').forEach(function(control){
+  control.addEventListener('click',function(event){
+    var action=control.dataset.shareAction;
+    if(action==='open'){openSheet();}
+    else if(action==='close'){shClose();}
+    else if(action==='copy'){shCopy();}
+    else if(action==='poster'){shClose();openPoster();}
+    else if(action==='native'){shNative();}
+    else if(action==='save'){shSaveClick(event);}
+  });
+});
 </script></body></html>

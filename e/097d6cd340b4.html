@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob: https://api.qrserver.com; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-K07GnU39ESDUmsvXUJ3sSKvK/iDxICssP2ERxxnJ5i4=' 'sha256-cRuBmy6mFgQsMxJdsbRbTvy7z4rLL3RKhzg7l/U3hnM=' 'sha256-zTbqoLXOVJ6Y7bxwX42flzVUMpf3rgsI16LDibNF8HY='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Anthropic多智能体研究系统从原型到生产的工程实践 · DataHot</title>
 <meta name="description" content="Anthropic工程团队分享了构建Claude Research多智能体系统的历程与经验。该系统利用多个Claude代理并行探索复杂主题，解决了开放研究任务中无法预定义路径的难题。文章深入剖析了多智能体系统在协调、评估和可靠性方面面临的挑战，并总结了关键技术决策。">
@@ -16,7 +18,7 @@
 <link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://henryhb1105-arch.github.io/datahot/feed.xml">
 <meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="henryhb1105-arch.github.io">
 <script defer src="../analytics.js"></script>
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "NewsArticle", "headline": "Anthropic多智能体研究系统从原型到生产的工程实践", "description": "Anthropic工程团队分享了构建Claude Research多智能体系统的历程与经验。该系统利用多个Claude代理并行探索复杂主题，解决了开放研究任务中无法预定义路径的难题。文章深入剖析了多智能体系统在协调、评估和可靠性方面面临的挑战，并总结了关键技术决策。", "datePublished": "2025-06-13T00:00:00+08:00", "inLanguage": "zh-CN", "isBasedOn": "https://www.anthropic.com/engineering/multi-agent-research-system", "publisher": {"@type": "Organization", "name": "DataHot"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"Anthropic多智能体研究系统从原型到生产的工程实践","description":"Anthropic工程团队分享了构建Claude Research多智能体系统的历程与经验。该系统利用多个Claude代理并行探索复杂主题，解决了开放研究任务中无法预定义路径的难题。文章深入剖析了多智能体系统在协调、评估和可靠性方面面临的挑战，并总结了关键技术决策。","datePublished":"2025-06-13T00:00:00+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://www.anthropic.com/engineering/multi-agent-research-system"}</script>
 <style>
   :root{
     color-scheme: light dark;
@@ -458,9 +460,9 @@ a.source-name:hover{color:var(--accent)}
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="097d6cd340b4" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
 
-      <a class="sbtn ghost" href="https://www.anthropic.com/engineering/multi-agent-research-system" target="_blank" rel="noopener" data-analytics="outbound" data-source="主编收录"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
-      <button class="sbtn ghost" onclick="openPoster()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
-      <button class="sbtn" onclick="openSheet()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
+      <a class="sbtn ghost" href="https://www.anthropic.com/engineering/multi-agent-research-system" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="主编收录"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
+      <button class="sbtn ghost" type="button" data-share-action="poster"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
+      <button class="sbtn" type="button" data-share-action="open"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
     </span>
   </div>
   <div class="meta">
@@ -478,12 +480,12 @@ a.source-name:hover{color:var(--accent)}
   <div class="vendors" style="margin-top:14px"><a class="chip" href="../topics/data-agent.html">Data Agent</a><span class="vtag">Anthropic</span></div>
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 全文编译 <span style="font-size:11px;color:var(--sub);font-weight:400">AI 基于原文编译</span></h4>
   <div class="fulltext"><p>Claude现在具有<a href="https://www.anthropic.com/news/research" target="_blank" rel="noopener noreferrer nofollow">研究能力</a>，使其能够搜索网络、Google Workspace以及任何集成，以完成复杂任务。</p><p>这个多智能体系统从原型到生产的旅程教会了我们关于系统架构、工具设计和提示工程的宝贵经验。多智能体系统由多个智能体（在循环中自主使用工具的LLM）协同工作组成。我们的研究功能涉及一个智能体，它根据用户查询规划研究过程，然后使用工具创建并行智能体同时搜索信息。具有多个智能体的系统在智能体协调、评估和可靠性方面引入了新的挑战。</p><p>这篇文章分解了对我们有效的原则——希望你在构建自己的多智能体系统时发现它们有用。</p><h3 class="cb-heading">多智能体系统的优势</h3><p>研究工作涉及开放性问题，很难提前预测所需步骤。你无法为探索复杂主题硬编码固定路径，因为过程本质上是动态的且依赖于路径。当人们进行研究时，他们倾向于根据发现不断调整方法，跟随调查过程中出现的线索。</p><p>这种不可预测性使得AI智能体特别适合研究任务。研究需要灵活性，以便在调查展开时转向或探索横向联系。模型必须自主运行多轮，根据中间发现决定追求哪些方向。线性的一次性管道无法处理这些任务。</p><p>搜索的本质是压缩：从庞大的语料库中提炼见解。子智能体通过并行运行各自上下文窗口来促进压缩，同时探索问题的不同方面，然后为主研究智能体浓缩最重要的令牌。每个子智能体还提供关注点分离——不同的工具、提示和探索轨迹——这减少了路径依赖性，并实现了彻底、独立的调查。</p><p>一旦智能达到阈值，多智能体系统就成为扩展性能的重要方式。例如，尽管个体人类在过去10万年中变得更聪明，但人类社会在信息时代变得<em>指数级地</em>更有能力，因为我们拥有<em>集体</em>智慧和协调能力。即使是通用智能体在作为个体运行时也会面临限制；智能体群体可以完成更多。</p><p>我们的内部评估表明，多智能体研究系统特别擅长广度优先的查询，涉及同时追求多个独立方向。我们发现，以Claude Opus 4为主智能体和Claude Sonnet 4为子智能体的多智能体系统，在内部研究评估中比单智能体Claude Opus 4高出90.2%。例如，当被要求识别信息科技标普500指数中公司的所有董事会成员时，多智能体系统通过将任务分解给子智能体找到了正确答案，而单智能体系统未能找到答案，导致</p><figure class="cb-figure"><a class="cb-media-link" href="https://www.anthropic.com/_next/image?url=https%3A%2F%2Fwww-cdn.anthropic.com%2Fimages%2F4zrzovbb%2Fwebsite%2F1198befc0b33726c45692ac40f764022f4de1bf2-4584x2579.png&amp;w=3840&amp;q=75" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/097d6cd340b4/3fe930142dd8ec8588b69501.webp" alt="" loading="lazy" decoding="async" width="2400" height="1350"></a><figcaption><span>The multi-agent architecture in action: user queries flow through a lead agent that creates specialized subagents to search for different aspects in parallel.</span><span class="cb-media-meta"><span class="cb-media-source">来源：<a href="https://www.anthropic.com/engineering/multi-agent-research-system" target="_blank" rel="noopener noreferrer nofollow">www.anthropic.com</a></span><a href="https://www.anthropic.com/_next/image?url=https%3A%2F%2Fwww-cdn.anthropic.com%2Fimages%2F4zrzovbb%2Fwebsite%2F1198befc0b33726c45692ac40f764022f4de1bf2-4584x2579.png&amp;w=3840&amp;q=75" target="_blank" rel="noopener noreferrer nofollow">查看原图 ↗</a></span></figcaption></figure><figure class="cb-figure"><a class="cb-media-link" href="https://www-cdn.anthropic.com/images/4zrzovbb/website/43abe7e54b56a891e74a8542944dfbd33f07f49c-1000x1000.svg" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/097d6cd340b4/d60558d3b05846b44ee87195.svg" alt="Interlocking puzzle piece with complex geometric shape and detailed surface texture" loading="lazy" decoding="async" width="1000" height="1000"></a><figcaption><span>Interlocking puzzle piece with complex geometric shape and detailed surface texture</span><span class="cb-media-meta"><span class="cb-media-source">来源：<a href="https://www.anthropic.com/engineering/multi-agent-research-system" target="_blank" rel="noopener noreferrer nofollow">www.anthropic.com</a></span><a href="https://www-cdn.anthropic.com/images/4zrzovbb/website/43abe7e54b56a891e74a8542944dfbd33f07f49c-1000x1000.svg" target="_blank" rel="noopener noreferrer nofollow">查看原图 ↗</a></span></figcaption></figure></div>
-  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://www.anthropic.com/engineering/multi-agent-research-system" target="_blank" rel="noopener" data-analytics="outbound" data-source="主编收录">查看原文 ↗</a></div>
+  <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://www.anthropic.com/engineering/multi-agent-research-system" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="主编收录">查看原文 ↗</a></div>
 </div>
 
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/cbaf1f7bd561.html"><span class="n">›</span>2026年提示工程最佳实践 | Claude by Anthropic<span class="count">46</span></a><a class="vendor-row" href="../e/d4f17e123698.html"><span class="n">›</span>构建高效AI代理：Anthropic的实用指南<span class="count">61</span></a><a class="vendor-row" href="../e/d145e4d3307d.html"><span class="n">›</span>Anthropic API新增四项Agent构建能力<span class="count">52</span></a></div>
 </div>
-<footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
+<footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 <nav class="tabbar" aria-label="移动端主导航">
   <a href="../index.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../weekly.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span>周报</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a>
   <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
@@ -517,21 +519,21 @@ a.source-name:hover{color:var(--accent)}
 </script>
 
 
-<div class="sh-mask" id="shMask" onclick="shClose()"></div>
+<div class="sh-mask" id="shMask" data-share-action="close"></div>
 <div class="sh-sheet" id="shSheet"><div class="sh-panel">
   <div class="sh-group">
     <div class="sh-title">分享这条资讯</div>
-    <button class="sh-opt" onclick="shCopy()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 复制链接</button>
-    <button class="sh-opt" onclick="shClose();openPoster()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 分享海报</button>
-    <button class="sh-opt" onclick="shNative()"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 系统分享…</button>
+    <button class="sh-opt" type="button" data-share-action="copy"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 复制链接</button>
+    <button class="sh-opt" type="button" data-share-action="poster"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 分享海报</button>
+    <button class="sh-opt" type="button" data-share-action="native"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 系统分享…</button>
   </div>
-  <button class="sh-cancel" onclick="shClose()">取消</button>
+  <button class="sh-cancel" type="button" data-share-action="close">取消</button>
 </div></div>
 <div class="sh-poster-modal" id="shPoster">
   <div class="sh-poster-wrap"><img id="shPosterImg" alt="分享海报"></div>
   <div class="sh-poster-actions">
-    <a class="sh-save" id="shSave" href="#" onclick="shSaveClick(event)">保存图片</a>
-    <button class="sh-close" onclick="shClose()">关闭</button>
+    <a class="sh-save" id="shSave" href="#" data-share-action="save">保存图片</a>
+    <button class="sh-close" type="button" data-share-action="close">关闭</button>
   </div>
   <div class="sh-poster-tip">iOS 也可以长按图片保存</div>
 </div>
@@ -600,7 +602,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title": "Anthropic多智能体研究系统从原型到生产的工程实践", "summary": "Anthropic工程团队分享了构建Claude Research多智能体系统的历程与经验。该系统利用多个Claude代理并行探索复杂主题，解决了开放研究任务中无法预定义路径的难题。文章深入剖析了多智能体系统在协调、评估和可靠性方面面临的挑战，并总结了关键技术决策。", "reason": "多智能体系统是数据代理领域的前沿方向，Anthropic的工程经验对构建同类系统具有直接参考价值。", "topic": "Data Agent", "heat": 54, "source": "DataHot 精选", "date": "2025-06-13", "url": "https://henryhb1105-arch.github.io/datahot/e/097d6cd340b4.html"};
+var SH_EV = {"title":"Anthropic多智能体研究系统从原型到生产的工程实践","summary":"Anthropic工程团队分享了构建Claude Research多智能体系统的历程与经验。该系统利用多个Claude代理并行探索复杂主题，解决了开放研究任务中无法预定义路径的难题。文章深入剖析了多智能体系统在协调、评估和可靠性方面面临的挑战，并总结了关键技术决策。","reason":"多智能体系统是数据代理领域的前沿方向，Anthropic的工程经验对构建同类系统具有直接参考价值。","topic":"Data Agent","heat":54,"source":"DataHot 精选","date":"2025-06-13","url":"https://henryhb1105-arch.github.io/datahot/e/097d6cd340b4.html"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');
@@ -758,6 +760,17 @@ function dataToBlob(d){
 function showPoster(){
   document.getElementById('shPosterImg').src=posterURL;
   var a=document.getElementById('shSave');
-  a.href=URL.createObjectURL(dataToBlob(posterURL)); a.target='_blank';
+  a.href=URL.createObjectURL(dataToBlob(posterURL)); a.target='_blank';a.rel='noopener noreferrer';
 }
+document.querySelectorAll('[data-share-action]').forEach(function(control){
+  control.addEventListener('click',function(event){
+    var action=control.dataset.shareAction;
+    if(action==='open'){openSheet();}
+    else if(action==='close'){shClose();}
+    else if(action==='copy'){shCopy();}
+    else if(action==='poster'){shClose();openPoster();}
+    else if(action==='native'){shNative();}
+    else if(action==='save'){shSaveClick(event);}
+  });
+});
 </script></body></html>

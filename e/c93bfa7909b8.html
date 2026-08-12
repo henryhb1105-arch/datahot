@@ -354,6 +354,24 @@ main,.layout>*,.hotlist>*{min-width:0}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
 .article .vendor-row{text-decoration:none}
+.source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
+.source-heading{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.source-heading h4{margin:0}
+.source-summary{font-size:11.5px;color:var(--sub)}
+.source-group{padding:10px 0;border-bottom:1px solid var(--soft)}
+.source-group-head{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txt3);margin-bottom:2px}
+.source-group-head b{font-weight:700}
+.source-group-head span{font-size:10.5px;color:var(--sub)}
+.source-report{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:14px;padding:4px 0;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.55}
+.source-report:hover .source-report-title{color:var(--accent)}
+.source-report-title{min-width:0;overflow-wrap:anywhere}
+.source-report-date{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}
+.source-more{padding-top:8px}
+.source-more>summary{width:max-content;max-width:100%;font-size:12px;color:var(--accent);cursor:pointer;list-style:none;padding:4px 0}
+.source-more>summary::-webkit-details-marker{display:none}
+.source-more>summary::after{content:" ↓"}
+.source-more[open]>summary::after{content:" ↑"}
+@media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
 .fulltext .cb-heading{font-size:17px;line-height:1.55;margin:24px 0 10px;color:var(--ink)}
 .fulltext p{margin:0 0 14px}
 .fulltext strong{font-weight:750;color:var(--ink)}
@@ -412,7 +430,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="c93bfa7909b8" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
 
-      <a class="sbtn ghost" href="https://claude.com/blog/how-anthropic-enables-self-service-data-analytics-with-claude" target="_blank" rel="noopener" data-analytics="outbound" data-source="主编收录"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 原文</a>
+      <a class="sbtn ghost" href="https://claude.com/blog/how-anthropic-enables-self-service-data-analytics-with-claude" target="_blank" rel="noopener" data-analytics="outbound" data-source="主编收录"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
       <button class="sbtn ghost" onclick="openPoster()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
       <button class="sbtn" onclick="openSheet()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
     </span>
@@ -434,7 +452,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="fulltext"><p>自服务业务分析一直是数据团队的痛点。为了向不太懂技术的同事开放数据，团队通常会建立宽表、做反规范化处理，但随着业务扩展，这些视图往往定义不一致，甚至互相重叠；而建立隔离的查询环境，又难以覆盖长尾业务问题，最终导致指标和仪表板泛滥，团队各自为政。</p><p>大语言模型（LLM）的兴起提供了另一条路径。但直接把Claude指向数据仓库并让其执行查询，可能会产生“精确的错觉”。当利益相关者不再接触底层基础设施、文档和专业知识时，他们很容易被看似精准的结果误导，而这些结果背后是缺乏对数据血缘、指标定义的理解。</p><p>Anthropic在内部实践了另一种方法。目前，Claude已经自动化了公司95%的业务分析查询，总体准确率约95%。通过将这些往往是重复、机械的分析工作交给Claude，数据科学团队得以腾出精力，专注于更具战略性的工作。</p><p>这一成果的关键在于，Anthropic并没有让Claude“裸奔”在数仓之上。相反，他们确保Claude在运行时能够利用已有的基础设施、文档和专家知识，将LLM与精心管理的数据环境结合，从而避免生成不可靠的结果。</p><p>事实上，95%的自动化率并不意味着数据团队无事可做。相反，团队可以投入更多时间改进数据模型、构建新数据产品、支持复杂的深度分析，以及监督和优化自动分析管道的质量。这正好解决了传统自助分析中“放权”与“管控”的矛盾。</p><p>Anthropic的实践表明，LLM驱动的自助分析并非一句空话。只要与基础设施、文档和专业知识恰当地结合，Claude这样的AI助手就能成为数据团队真正可依赖的成员，而非一个“看起来聪明”的黑盒。</p></div>
   <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://claude.com/blog/how-anthropic-enables-self-service-data-analytics-with-claude" target="_blank" rel="noopener" data-analytics="outbound" data-source="主编收录">查看原文 ↗</a></div>
 </div>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://claude.com/blog/how-anthropic-enables-self-service-data-analytics-with-claude" target="_blank" rel="noopener" data-analytics="outbound" data-source="主编收录">DataHot 精选</a><span class="src more">首发</span><span class="count">2026-06-03 00:00</span></div></div>
+
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/0d806b883e87.html"><span class="n">›</span>百亿美元赛道开启，AI数据服务迎来战略拐点-爱分析<span class="count">59</span></a><a class="vendor-row" href="../e/11bd570decd5.html"><span class="n">›</span>银行目标部门分析筛选：乙方视角的部门墙拆解<span class="count">48</span></a><a class="vendor-row" href="../e/b4ff3df743a4.html"><span class="n">›</span>2026爱分析发布中国本体平台市场洞察报告<span class="count">53</span></a></div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>

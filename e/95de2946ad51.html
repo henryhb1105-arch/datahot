@@ -354,6 +354,24 @@ main,.layout>*,.hotlist>*{min-width:0}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
 .article .vendor-row{text-decoration:none}
+.source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
+.source-heading{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.source-heading h4{margin:0}
+.source-summary{font-size:11.5px;color:var(--sub)}
+.source-group{padding:10px 0;border-bottom:1px solid var(--soft)}
+.source-group-head{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txt3);margin-bottom:2px}
+.source-group-head b{font-weight:700}
+.source-group-head span{font-size:10.5px;color:var(--sub)}
+.source-report{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:14px;padding:4px 0;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.55}
+.source-report:hover .source-report-title{color:var(--accent)}
+.source-report-title{min-width:0;overflow-wrap:anywhere}
+.source-report-date{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}
+.source-more{padding-top:8px}
+.source-more>summary{width:max-content;max-width:100%;font-size:12px;color:var(--accent);cursor:pointer;list-style:none;padding:4px 0}
+.source-more>summary::-webkit-details-marker{display:none}
+.source-more>summary::after{content:" ↓"}
+.source-more[open]>summary::after{content:" ↑"}
+@media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
 .fulltext .cb-heading{font-size:17px;line-height:1.55;margin:24px 0 10px;color:var(--ink)}
 .fulltext p{margin:0 0 14px}
 .fulltext strong{font-weight:750;color:var(--ink)}
@@ -412,7 +430,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="95de2946ad51" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
       <button class="sbtn ghost tts-open" type="button" data-tts-open aria-expanded="false" aria-controls="ttsPlayer"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><path d="M18 19h1a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-1v6zM6 19H5a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h1v6z"/></svg> <span data-tts-open-label>听这篇</span></button>
-      <a class="sbtn ghost" href="https://claude.com/blog/claude-managed-agents-updates" target="_blank" rel="noopener" data-analytics="outbound" data-source="Claude 官方博客"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 原文</a>
+      <a class="sbtn ghost" href="https://claude.com/blog/claude-managed-agents-updates" target="_blank" rel="noopener" data-analytics="outbound" data-source="Claude 官方博客"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
       <button class="sbtn ghost" onclick="openPoster()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
       <button class="sbtn" onclick="openSheet()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
     </span>
@@ -443,7 +461,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="fulltext"><p>自2026年5月19日起，Claude托管Agent（Claude Managed Agents）可以在你控制的沙盒中运行，并连接你的私有Model Context Protocol（MCP）服务器。Agent执行工具所用的沙盒，以及它所触达的各项服务，都将运行在你企业既定的边界之内，处于你的安全与运行时管控之下。沙盒可以运行在你自己的基础设施上，也可以借助Cloudflare、Daytona、Modal或Vercel等托管提供商来处理计算与隔离。在Claude平台上，自托管沙盒以公开测试版（public beta）形式提供，MCP隧道则以研究预览版（research preview）形式提供（需申请访问权限）。</p><h5 class="fh">自托管沙盒：将Agent执行保留在企业边界内</h5><p>自托管沙盒让Claude托管Agent能够在你控制的基础设施上执行工具，或借助托管沙盒提供商来执行。代码执行、敏感文件、软件包、服务和数据都将保留在你的企业边界之内，处于你的安全与运行时管控之下。</p><p>有了自托管沙盒，你可以把敏感文件、软件包和服务保留在自有基础设施中，或交给托管的沙盒提供商。负责编排、上下文管理和错误恢复的Agent主循环仍留在Anthropic的基础设施上，而工具执行则转移到你自己配置的环境中。在你的边界内部，网络策略、审计日志和安全工具已经就位，文件和代码仓库不会外泄。</p><p>同时，计算资源也由你掌控：资源配置大小和运行时镜像均由你方设定，因此执行长时构建、图像生成等计算密集型任务的Agent，能够获得任务所需的CPU、内存与容量。</p><h5 class="fh">选择你的沙盒客户端</h5><p>你可以接入任意你想用的沙盒客户端，也可以从受支持的提供商之一开始：</p><p>**Cloudflare**：Cloudflare使用微虚拟机（microVMs）和更轻量的隔离环境大规模运行沙盒。通过零信任机密注入、可自定义的代理（用于审计、重路由或修改出口流量），以及通过Cloudflare网络连接内部服务的能力，出站网络请求完全由你掌控。Amplitude正在基于Managed Agents与Cloudflare构建Design Agent——一个用于制作符合品牌规范的生产级UI和营销设计的内部工具，以获得更强的可观测性与控制力。</p><p>**Daytona**：Daytona沙盒是完整的可组合计算机，支持长时运行且有状态。同一个原语既可以承载快速突发任务，也可以支撑运行数小时的Agent。会话运行期间，可通过SSH或经过身份验证的预览URL持续访问沙盒，也可以暂停并在完整保留状态的情况下恢复。Clay的GTM工程Agent Sculptor正在Managed Agents与Daytona上自主构建、测试并监控工作流。</p><h5 class="fh">Claude 托管 Agent 更新：支持自托管沙盒与 MCP 隧道</h5><p>如需开始使用 MCP 隧道，请申请访问权限。查阅我们的文档以了解更多，按照我们的 cookbooks 设置你的沙盒提供商，或在 Claude Console 中部署你的第一个 Agent。</p><p>常见问题：无相关内容。</p></div>
   <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://claude.com/blog/claude-managed-agents-updates" target="_blank" rel="noopener" data-analytics="outbound" data-source="Claude 官方博客">查看原文 ↗</a></div>
 </div>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://claude.com/blog/claude-managed-agents-updates" target="_blank" rel="noopener" data-analytics="outbound" data-source="Claude 官方博客">Claude 官方博客（英文）</a><span class="src more">首发</span><span class="count">未知</span></div></div>
+
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/2487cf99c276.html"><span class="n">›</span>Claude托管Agent新增计划调度与Vault环境变量功能<span class="count">41</span></a><a class="vendor-row" href="../e/4743ed63baad.html"><span class="n">›</span>Claude推出MCP Apps交互式连接器<span class="count">50</span></a><a class="vendor-row" href="../e/d17e13a7ceb3.html"><span class="n">›</span>用MCP构建可达生产系统的Agent<span class="count">51</span></a></div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>

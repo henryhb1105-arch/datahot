@@ -354,6 +354,24 @@ main,.layout>*,.hotlist>*{min-width:0}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
 .article .vendor-row{text-decoration:none}
+.source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
+.source-heading{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.source-heading h4{margin:0}
+.source-summary{font-size:11.5px;color:var(--sub)}
+.source-group{padding:10px 0;border-bottom:1px solid var(--soft)}
+.source-group-head{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txt3);margin-bottom:2px}
+.source-group-head b{font-weight:700}
+.source-group-head span{font-size:10.5px;color:var(--sub)}
+.source-report{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:14px;padding:4px 0;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.55}
+.source-report:hover .source-report-title{color:var(--accent)}
+.source-report-title{min-width:0;overflow-wrap:anywhere}
+.source-report-date{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}
+.source-more{padding-top:8px}
+.source-more>summary{width:max-content;max-width:100%;font-size:12px;color:var(--accent);cursor:pointer;list-style:none;padding:4px 0}
+.source-more>summary::-webkit-details-marker{display:none}
+.source-more>summary::after{content:" ↓"}
+.source-more[open]>summary::after{content:" ↑"}
+@media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
 .fulltext .cb-heading{font-size:17px;line-height:1.55;margin:24px 0 10px;color:var(--ink)}
 .fulltext p{margin:0 0 14px}
 .fulltext strong{font-weight:750;color:var(--ink)}
@@ -412,7 +430,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="1f6b975a6a4f" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
 
-      <a class="sbtn ghost" href="https://claude.com/blog/what-is-model-context-protocol" target="_blank" rel="noopener" data-analytics="outbound" data-source="Claude 官方博客"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 原文</a>
+      <a class="sbtn ghost" href="https://claude.com/blog/what-is-model-context-protocol" target="_blank" rel="noopener" data-analytics="outbound" data-source="Claude 官方博客"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
       <button class="sbtn ghost" onclick="openPoster()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
       <button class="sbtn" onclick="openSheet()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
     </span>
@@ -434,7 +452,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="fulltext"><p>AI模型的效果，在很大程度上取决于提供给它的上下文。像Claude这样的AI助手，虽然能够回答问题并执行大量任务，但若无法访问所需的数据或工具，它能为你做的事情就会非常有限。通常，你需要通过在不同页面之间复制粘贴来补充上下文：从Google Drive里编辑文档，到Slack中回复消息，再到IDE内更新代码，整个过程都在手动搬运信息。这种做法不仅缓慢、繁琐，而且很容易遗漏关键的上下文信息。</p><p>Model Context Protocol（简称MCP）提供了一种开放且广泛可用的解决方案，适用于所有AI应用和助手。正如其副标题所强调的，MCP让你无需为每个工具单独开发自定义集成，就能将AI助手与你的工具连接起来。这意味着，过去那种“一对一”的定制开发模式，有望被一种通用的连接方式所取代。</p><p>MCP本身是一个开放标准，定义了大型语言模型与外部系统之间的通信方式。你可以把MCP理解为“LLM的USB-C”：正如USB-C为手机、笔记本电脑和其他设备提供了通用连接口，MCP也为大模型连接外部系统提供了一种通用格式。这种类比直观地揭示了MCP的核心价值——通用性、标准化、即插即用。</p><p>这篇文章将帮助你理解MCP是什么、如何工作、为什么重要，以及它适合谁。你还会看到MCP在实际场景中的应用示例，并了解如何从今天开始使用或基于MCP进行开发。对于数据从业者而言，MCP所代表的标准化连接方式，预示着AI与数据工具之间的集成将告别点对点定制，走向更高效、更可复用的新范式。</p><p>当AI助手能够无缝访问数据仓库、语义层和各类数据平台时，数据分析的智能化程度将大幅提升。MCP作为这一连接的底层协议，其重要性不亚于USB-C对硬件生态的贡献。无论是构建分析Agent，还是推动平台AI化，理解MCP都将成为数据技术栈中不可忽视的一环。</p></div>
   <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://claude.com/blog/what-is-model-context-protocol" target="_blank" rel="noopener" data-analytics="outbound" data-source="Claude 官方博客">查看原文 ↗</a></div>
 </div>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://claude.com/blog/what-is-model-context-protocol" target="_blank" rel="noopener" data-analytics="outbound" data-source="Claude 官方博客">Claude 官方博客（英文）</a><span class="src more">首发</span><span class="count">2026-08-10 09:13</span></div></div>
+
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/4743ed63baad.html"><span class="n">›</span>Claude推出MCP Apps交互式连接器<span class="count">50</span></a><a class="vendor-row" href="../e/d17e13a7ceb3.html"><span class="n">›</span>用MCP构建可达生产系统的Agent<span class="count">51</span></a><a class="vendor-row" href="../e/1526c962704f.html"><span class="n">›</span>Data Agent：超越BI与AI的边界<span class="count">55</span></a></div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>

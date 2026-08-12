@@ -354,6 +354,24 @@ main,.layout>*,.hotlist>*{min-width:0}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
 .article .vendor-row{text-decoration:none}
+.source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
+.source-heading{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.source-heading h4{margin:0}
+.source-summary{font-size:11.5px;color:var(--sub)}
+.source-group{padding:10px 0;border-bottom:1px solid var(--soft)}
+.source-group-head{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txt3);margin-bottom:2px}
+.source-group-head b{font-weight:700}
+.source-group-head span{font-size:10.5px;color:var(--sub)}
+.source-report{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:14px;padding:4px 0;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.55}
+.source-report:hover .source-report-title{color:var(--accent)}
+.source-report-title{min-width:0;overflow-wrap:anywhere}
+.source-report-date{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}
+.source-more{padding-top:8px}
+.source-more>summary{width:max-content;max-width:100%;font-size:12px;color:var(--accent);cursor:pointer;list-style:none;padding:4px 0}
+.source-more>summary::-webkit-details-marker{display:none}
+.source-more>summary::after{content:" ↓"}
+.source-more[open]>summary::after{content:" ↑"}
+@media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
 .fulltext .cb-heading{font-size:17px;line-height:1.55;margin:24px 0 10px;color:var(--ink)}
 .fulltext p{margin:0 0 14px}
 .fulltext strong{font-weight:750;color:var(--ink)}
@@ -412,7 +430,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="4c9db581d5c6" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
 
-      <a class="sbtn ghost" href="https://www.infoq.com/presentations/valkey-architecture-patterns/?utm_campaign=infoq_content&amp;utm_source=infoq&amp;utm_medium=feed&amp;utm_term=AI%2C+ML+%26+Data+Engineering" target="_blank" rel="noopener" data-analytics="outbound" data-source="InfoQ（AI/数据工程）"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 原文</a>
+      <a class="sbtn ghost" href="https://www.infoq.com/presentations/valkey-architecture-patterns/?utm_campaign=infoq_content&amp;utm_source=infoq&amp;utm_medium=feed&amp;utm_term=AI%2C+ML+%26+Data+Engineering" target="_blank" rel="noopener" data-analytics="outbound" data-source="InfoQ（AI/数据工程）"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
       <button class="sbtn ghost" onclick="openPoster()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
       <button class="sbtn" onclick="openSheet()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
     </span>
@@ -434,7 +452,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="fulltext"><p>在近期的一场技术分享中，Dumanshu Goyal围绕开源内存数据存储Valkey的架构模式展开了深入讨论，主题聚焦于如何为现代AI工作负载构建低延迟的数据层。演讲标题为“从毫秒到微秒：面向现代AI的OSS Valkey架构模式”，其核心关注点在于AI特征存储等对延迟极为敏感的场景。</p><p>Goyal首先提出了一个关键问题：当AI应用需要快速访问大量特征数据时，传统的数据访问架构是否还能胜任？他观察到，许多团队在构建数据层时习惯性地引入代理层，但这往往导致系统复杂度上升，并引入额外的性能损耗。他认为，这种设计虽然在运维管理上有一定便利，却与AI推理对极致延迟的追求背道而驰。</p><p>为了形象地说明这一点，Goyal从NASA航天飞机的设计经验中汲取了类比。航天飞机在极端环境下的系统设计强调可靠性和最小化故障影响范围，这对于数据系统同样适用。代理架构在数据路径中增加了额外的跳转和排队环节，不仅会产生隐藏的CPU开销，还会在高并发场景下造成显著的尾部延迟，同时将故障爆炸半径扩大——一旦代理出现问题，所有依赖它的数据访问都将受到影响。</p><p>作为对比，Goyal提出了一种直接访问型的Valkey架构。在这种模式中，客户端直接与Valkey节点通信，绕开中间代理层。这样做的优势是显而易见的：数据路径更短，网络和CPU消耗更低，整体延迟可以压缩到微秒级。同时，由于没有单点代理的瓶颈，系统的弹性也得到提升，单个节点的故障不会导致全局性的服务中断，从而缩小了爆炸半径。</p><p>此外，Goyal还强调了这种架构在成本上的收益。通过消除代理层，可以减少额外的服务器和网络资源消耗，降低基础设施的总体拥有成本。对于运行大规模AI特征存储或实时推荐系统的企业来说，这种优化具备实际的经济意义。</p><p>演讲中，Goyal并没有回避直接访问架构带来的挑战，例如客户端需要具备更精细的连接管理和故障处理能力。但他认为，在AI场景对延迟和可靠性要求日益严苛的今天，重新审视数据接入层架构，选择更轻量、更直接的路径，是值得投入的工程方向。这场分享为正在构建或优化AI数据基础设施的团队提供了可借鉴的思路。</p></div>
   <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://www.infoq.com/presentations/valkey-architecture-patterns/?utm_campaign=infoq_content&amp;utm_source=infoq&amp;utm_medium=feed&amp;utm_term=AI%2C+ML+%26+Data+Engineering" target="_blank" rel="noopener" data-analytics="outbound" data-source="InfoQ（AI/数据工程）">查看原文 ↗</a></div>
 </div>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://www.infoq.com/presentations/valkey-architecture-patterns/?utm_campaign=infoq_content&amp;utm_source=infoq&amp;utm_medium=feed&amp;utm_term=AI%2C+ML+%26+Data+Engineering" target="_blank" rel="noopener" data-analytics="outbound" data-source="InfoQ（AI/数据工程）">InfoQ (AI/数据工程)</a><span class="src more">首发</span><span class="count">2026-08-06 17:34</span></div></div>
+
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/8f797762a332.html"><span class="n">›</span>华为重定义存储：推AI数据中心五层架构<span class="count">55</span></a><a class="vendor-row" href="../e/ddcb4a5b6b52.html"><span class="n">›</span>开源数据层将赢得AI未来<span class="count">58</span></a><a class="vendor-row" href="../e/5c4d28e53f75.html"><span class="n">›</span>Agentic AI架构需要数据库而非仅向量库<span class="count">57</span></a></div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>

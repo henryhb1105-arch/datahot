@@ -354,6 +354,24 @@ main,.layout>*,.hotlist>*{min-width:0}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
 .article .vendor-row{text-decoration:none}
+.source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
+.source-heading{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.source-heading h4{margin:0}
+.source-summary{font-size:11.5px;color:var(--sub)}
+.source-group{padding:10px 0;border-bottom:1px solid var(--soft)}
+.source-group-head{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txt3);margin-bottom:2px}
+.source-group-head b{font-weight:700}
+.source-group-head span{font-size:10.5px;color:var(--sub)}
+.source-report{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:14px;padding:4px 0;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.55}
+.source-report:hover .source-report-title{color:var(--accent)}
+.source-report-title{min-width:0;overflow-wrap:anywhere}
+.source-report-date{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}
+.source-more{padding-top:8px}
+.source-more>summary{width:max-content;max-width:100%;font-size:12px;color:var(--accent);cursor:pointer;list-style:none;padding:4px 0}
+.source-more>summary::-webkit-details-marker{display:none}
+.source-more>summary::after{content:" ↓"}
+.source-more[open]>summary::after{content:" ↑"}
+@media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
 .fulltext .cb-heading{font-size:17px;line-height:1.55;margin:24px 0 10px;color:var(--ink)}
 .fulltext p{margin:0 0 14px}
 .fulltext strong{font-weight:750;color:var(--ink)}
@@ -412,7 +430,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="2a6cb6153284" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
 
-      <a class="sbtn ghost" href="https://motherduck.com/docs/key-tasks/guides/" target="_blank" rel="noopener" data-analytics="outbound" data-source="主编收录"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 原文</a>
+      <a class="sbtn ghost" href="https://motherduck.com/docs/key-tasks/guides/" target="_blank" rel="noopener" data-analytics="outbound" data-source="主编收录"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
       <button class="sbtn ghost" onclick="openPoster()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
       <button class="sbtn" onclick="openSheet()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
     </span>
@@ -434,7 +452,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="fulltext"><h5 class="fh">关键事实</h5><p>MotherDuck推出Guides，允许团队把指标口径、表之间的关系、迁移历史、数据陷阱和输出风格写成Markdown式说明，并作为数仓对象管理。Guides可被搜索、查询和版本控制，Agent只在任务需要时加载相关上下文。</p><h5 class="fh">行业影响</h5><p>数据库schema只能描述字段和类型，无法告诉Agent某张表是否已停更、某个指标为何要去重，或团队默认采用哪套业务定义。把非结构化知识放回数据平台，有助于让Agent的答案可复用、可治理。</p><h5 class="fh">实践要点</h5><p>落地时应先整理高频指标、关键join关系和已知数据陷阱，明确所有者与更新流程；Guides不是一次性文档，而是需要与数据模型一起持续维护的生产资产。</p></div>
   <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://motherduck.com/docs/key-tasks/guides/" target="_blank" rel="noopener" data-analytics="outbound" data-source="主编收录">查看原文 ↗</a></div>
 </div>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（2 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://motherduck.com/docs/key-tasks/guides/" target="_blank" rel="noopener" data-analytics="outbound" data-source="主编收录">DataHot 精选</a><span class="src more">首发</span><span class="count">2026-08-11 22:03</span></div><div class="vendor-row"><span class="n">↗</span><a href="https://x.com/motherduck/status/2087177975166902737" target="_blank" rel="noopener" data-analytics="outbound" data-source="X 线索·@motherduck">X 线索·@motherduck（英文）</a><span class="count">2026-08-11 22:03</span></div></div>
+<section class="source-section" aria-labelledby="supplementSourcesTitle"><div class="source-heading"><h4 id="supplementSourcesTitle">补充来源</h4><span class="source-summary">1 个信源 · 1 篇报道</span></div><div class="source-group"><div class="source-group-head"><b>X 线索·@motherduck</b></div><a class="source-report" href="https://x.com/motherduck/status/2087177975166902737" target="_blank" rel="noopener" data-analytics="outbound" data-source="X 线索·@motherduck"><span class="source-report-title">X 原帖：MotherDuck用Guides补齐Data Agent看不到的业务上下文 <span aria-hidden="true">↗</span></span><span class="source-report-date">2026-08-11 22:03</span></a></div></section>
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/ac7c75fedd0b.html"><span class="n">›</span>一招教你鉴定真假Data Agent<span class="count">51</span></a><a class="vendor-row" href="../e/1526c962704f.html"><span class="n">›</span>Data Agent：超越BI与AI的边界<span class="count">55</span></a><a class="vendor-row" href="../e/203a40c0d09f.html"><span class="n">›</span>Aloudata Agent 分析技能详解：从业务问题到可用分析<span class="count">56</span></a></div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>

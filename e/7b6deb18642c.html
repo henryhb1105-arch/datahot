@@ -354,6 +354,24 @@ main,.layout>*,.hotlist>*{min-width:0}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
 .article .vendor-row{text-decoration:none}
+.source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
+.source-heading{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.source-heading h4{margin:0}
+.source-summary{font-size:11.5px;color:var(--sub)}
+.source-group{padding:10px 0;border-bottom:1px solid var(--soft)}
+.source-group-head{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txt3);margin-bottom:2px}
+.source-group-head b{font-weight:700}
+.source-group-head span{font-size:10.5px;color:var(--sub)}
+.source-report{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:14px;padding:4px 0;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.55}
+.source-report:hover .source-report-title{color:var(--accent)}
+.source-report-title{min-width:0;overflow-wrap:anywhere}
+.source-report-date{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}
+.source-more{padding-top:8px}
+.source-more>summary{width:max-content;max-width:100%;font-size:12px;color:var(--accent);cursor:pointer;list-style:none;padding:4px 0}
+.source-more>summary::-webkit-details-marker{display:none}
+.source-more>summary::after{content:" ↓"}
+.source-more[open]>summary::after{content:" ↑"}
+@media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
 .fulltext .cb-heading{font-size:17px;line-height:1.55;margin:24px 0 10px;color:var(--ink)}
 .fulltext p{margin:0 0 14px}
 .fulltext strong{font-weight:750;color:var(--ink)}
@@ -412,7 +430,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="7b6deb18642c" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
 
-      <a class="sbtn ghost" href="https://docs.cloud.google.com/looker/docs/release-notes#August_06_2026" target="_blank" rel="noopener" data-analytics="outbound" data-source="Google Looker Release Notes"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 原文</a>
+      <a class="sbtn ghost" href="https://docs.cloud.google.com/looker/docs/release-notes#August_06_2026" target="_blank" rel="noopener" data-analytics="outbound" data-source="Google Looker Release Notes"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg> 查看原文</a>
       <button class="sbtn ghost" onclick="openPoster()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg> 海报</button>
       <button class="sbtn" onclick="openSheet()"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 分享</button>
     </span>
@@ -434,7 +452,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="fulltext"><h5 class="fh">关键事实</h5><p>Google Cloud 于 2026 年 8 月 6 日发布 Looker 26.14 版本说明。该版本计划于 8 月 10 日（周一）开始向 Looker (original) 实例部署，预计最终部署与下载开放时间为 8 月 23 日（周日）。Looker (Google Cloud core) 与 Looker (original) 均包含多项修复与改进。</p><p>核心变化包括：可视化编辑器的 Y 轴“Axis Order”选项支持键盘输入，并修复了屏幕阅读器无法访问该项的问题；Conversational Analytics 数据代理的编辑器现可控制是否显示思考或调试信息，且代理在思考中展示查询结果，而非最终回复；该功能查询超时从两分钟延长至五分钟（此条更新于 8 月 7 日）。修复内容涉及 Snowflake 大查询 SSL 握手错误、仪表板字符串过滤器无限旋转、LookML 钻取链接与 Liquid 变量渲染、二级 Y 轴位置重置、空 value_format 参数导致 500 错误、表格计算无法命中缓存、嵌入式无 Cookie 场景下合并结果页 403、HTML 实体错误显示、电子表格自助 Explore 生成错误 SQL、非管理员 OAuth 令牌在数据库连接参数更新后仍有效、LookML 仪表板项目名超 64 字符部署失败等。此外，Looker 26.12 实例自 8 月 3 日至 5 日自动启用了多项功能，包括自定义日历和 Expression Assistant 正式可用、Looker CI 支持邮件告警、LookML Projects 页改为三标签页布局、管理员可强制邮箱密码登录启用多因素认证（默认开启），以及 8 月 1 日后新建的 Looker (Google Cloud core) 实例不再提供 Data Studio Pro 赠阅许可。</p><h5 class="fh">行业影响</h5><p>本次发布体现了 Looker 在稳定性、安全性与可访问性上的持续投入。大量修复集中于查询执行、OAuth 连接、缓存机制和仪表板渲染等数据工作流关键环节，直接降低企业用户在生产环境中遇到故障的概率。Conversational Analytics 超时延长至五分钟，反映生成式 AI 辅助分析场景对更长推理时间的现实需求，同时也提示 BI 平台正在从“查询工具”转向“对话式分析代理”的竞争维度。MFA 默认开启、BYOID 调度任务修复等安全相关改动，则顺应了企业级数据分析对身份治理和合规审计的更高要求。对于依赖 Looker 进行嵌入式分析、大规模仪表板共享或多云数据连接的组织而言，26.14 的发布进一步巩固了 Google Cloud 在受管 BI 领域的可靠性预期。</p><h5 class="fh">实践要点</h5></div>
   <div class="disclaimer">本内容由 AI 基于原文编译生成，仅供参考，版权归原作者与原发布方所有 · <a href="https://docs.cloud.google.com/looker/docs/release-notes#August_06_2026" target="_blank" rel="noopener" data-analytics="outbound" data-source="Google Looker Release Notes">查看原文 ↗</a></div>
 </div>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 信源（1 家报道 · 按时间排序）</h4><div class="vendor-row"><span class="n">↗</span><a href="https://docs.cloud.google.com/looker/docs/release-notes#August_06_2026" target="_blank" rel="noopener" data-analytics="outbound" data-source="Google Looker Release Notes">Google Looker Release Notes（英文）</a><span class="src more">首发</span><span class="count">2026-08-06 15:00</span></div></div>
+
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/37d58f2d9863.html"><span class="n">›</span>Metabase发布安全更新，请立即升级<span class="count">33</span></a><a class="vendor-row" href="../e/9653f52649c8.html"><span class="n">›</span>Tableau Agent进入Dashboard，提供受治理的对话式分析<span class="count">64</span></a><a class="vendor-row" href="../e/1a5723bd7772.html"><span class="n">›</span>CWT如何将AI分析转化为数百万美元资产<span class="count">54</span></a></div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>

@@ -34,13 +34,49 @@ class HomeHeaderTests(unittest.TestCase):
     def test_home_build_declares_unbounded_progressive_timeline_and_insight_chip(self):
         source = (ROOT / "pipeline" / "build_site.py").read_text(encoding="utf-8")
         self.assertIn("不限时间 · 每批 {DEFAULT_PAGE_SIZE} 条", source)
-        semantic = source.index('topic["name"] == "语义层"')
-        insight = source.index('data-category="insight"', semantic)
-        self.assertGreater(insight, semantic)
+        self.assertIn('data-category="insight">AI分析</span>', source)
         self.assertIn('placeholder="搜索全部在站事件"', source)
 
     def test_completed_progressive_timeline_hides_load_more_button(self):
         self.assertIn(".load-more[hidden]{display:none}", build_site.SHARED_CSS)
+
+    def test_home_filter_chips_use_short_labels_and_stable_order(self):
+        events = [{"topics": [
+            "ChatBI", "Data Agent", "语义层", "平台AI化", "BI变局",
+            "湖仓", "实时分析", "数据人", "组织人才", "财务经营",
+        ]}]
+        chips = build_site.render_home_filter_chips(events)
+        ordered_markup = [
+            'data-category="insight">AI分析</span>',
+            'data-topic="Data Agent">Agent</span>',
+            'data-topic="平台AI化">AI平台</span>',
+            'data-topic="语义层">语义层</span>',
+            'data-topic="实时分析">实时</span>',
+            'data-topic="ChatBI">ChatBI</span>',
+            'data-topic="湖仓">湖仓</span>',
+            'data-topic="BI变局">BI变局</span>',
+            'data-topic="数据人">数据人</span>',
+            'data-topic="组织人才">组织人才</span>',
+            'data-topic="财务经营">财务经营</span>',
+        ]
+        positions = [chips.index(markup) for markup in ordered_markup]
+        self.assertEqual(positions, sorted(positions))
+        self.assertNotIn("AI 分析与洞察", chips)
+
+    def test_home_filter_chips_keep_canonical_topic_values_for_urls(self):
+        chips = build_site.render_home_filter_chips([
+            {"topics": ["Data Agent", "平台AI化", "实时分析"]},
+        ])
+        self.assertIn('data-topic="Data Agent">Agent</span>', chips)
+        self.assertIn('data-topic="平台AI化">AI平台</span>', chips)
+        self.assertIn('data-topic="实时分析">实时</span>', chips)
+
+    def test_mobile_filter_chips_use_compact_readable_spacing(self):
+        self.assertIn("@media(max-width:600px){\n  .chiprow{gap:6px}", build_site.SHARED_CSS)
+        self.assertIn(
+            ".chiprow .fchip{font-size:12px;padding:4px 12px;min-height:32px",
+            build_site.SHARED_CSS,
+        )
 
     def test_mobile_timeline_toolbar_uses_controlled_grid_without_text_wrapping(self):
         toolbar = build_site.render_timeline_toolbar(126)

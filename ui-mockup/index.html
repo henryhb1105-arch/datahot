@@ -142,6 +142,16 @@
   .day-head .date{font-size:17px;font-weight:800}
   .day-head .info{font-size:12px;color:var(--sub)}
   .day-head::after{content:"";flex:1;height:1px;background:var(--line)}
+  .back-to-top{display:none}
+  @media(max-width:600px){
+    .home-page .home-header{position:static}
+    .home-page #timeline .day-head{position:sticky;top:0;z-index:35;min-height:40px;margin:18px -14px 12px;padding:0 14px;justify-content:space-between;background:var(--bg);border-bottom:1px solid var(--line)}
+    .home-page #timeline .day-head .date,.home-page #timeline .day-head .info{white-space:nowrap}
+    .home-page #timeline .day-head::after{display:none}
+    .back-to-top{position:fixed;right:16px;bottom:calc(70px + env(safe-area-inset-bottom));z-index:69;width:44px;height:44px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;background:var(--ink);color:var(--bg);box-shadow:0 6px 20px rgba(0,0,0,.18);font-size:22px;line-height:1;cursor:pointer;touch-action:manipulation;opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .18s ease,transform .18s ease}
+    .back-to-top.show{opacity:1;transform:translateY(0);pointer-events:auto}
+    .back-to-top:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+  }
   .item{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin-bottom:12px;transition:.15s;cursor:pointer}
   @media(hover:hover) and (pointer:fine){
     .update-info:hover .upd-time,.tab:hover{background:var(--hover);color:var(--ink)}

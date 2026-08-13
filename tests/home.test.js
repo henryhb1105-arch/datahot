@@ -41,6 +41,34 @@ test("home position belongs to the current history entry and matching filter sta
   assert.equal(home.snapshotFromHistory(null, state), null);
 });
 
+test("mobile back-to-top appears only after a meaningful scroll distance", () => {
+  assert.equal(home.shouldShowBackToTop(720, 400), false);
+  assert.equal(home.shouldShowBackToTop(721, 400), true);
+  assert.equal(home.shouldShowBackToTop(1266, 844), false);
+  assert.equal(home.shouldShowBackToTop(1267, 844), true);
+});
+
+test("home-top request is one-shot and safe when storage is unavailable", () => {
+  const values = new Map([["datahotForceHomeTop", "1"]]);
+  const sessionStorage = {
+    getItem: (key) => values.get(key) || null,
+    removeItem: (key) => values.delete(key)
+  };
+  assert.equal(home.consumeHomeTopRequest({ sessionStorage }), true);
+  assert.equal(home.consumeHomeTopRequest({ sessionStorage }), false);
+  assert.equal(home.consumeHomeTopRequest({
+    get sessionStorage() { throw new Error("blocked"); }
+  }), false);
+});
+
+test("scroll behavior honors reduced motion and modified clicks remain native", () => {
+  assert.equal(home.preferredScrollBehavior({ matchMedia: () => ({ matches: false }) }), "smooth");
+  assert.equal(home.preferredScrollBehavior({ matchMedia: () => ({ matches: true }) }), "auto");
+  assert.equal(home.isPlainPrimaryClick({ button: 0 }), true);
+  assert.equal(home.isPlainPrimaryClick({ button: 0, metaKey: true }), false);
+  assert.equal(home.isPlainPrimaryClick({ button: 1 }), false);
+});
+
 test("detail return uses history only for a same-tab visit from the DataHot home page", () => {
   const current = "https://example.com/datahot/e/89e262591ce7.html";
   assert.equal(detail.shouldUseHistoryBack(
@@ -133,6 +161,17 @@ test("payload order is explicit and rendering escapes untrusted text", () => {
   const html = home.renderTimeline(ordered);
   assert.doesNotMatch(html, /<script>alert/);
   assert.match(html, /&lt;script&gt;alert/);
+  assert.match(html, /data-day-key="2026-08-11"/);
+  assert.match(html, /data-date-base="8月11日"/);
+});
+
+test("timeline grouping uses publication date before ingestion date", () => {
+  const item = event(4);
+  item.published = "2026-08-10T23:00:00+08:00";
+  item.first_seen = "2026-08-11T09:00:00+08:00";
+  const html = home.renderTimeline([item]);
+  assert.match(html, /data-day-key="2026-08-10"/);
+  assert.doesNotMatch(html, /data-day-key="2026-08-11"/);
 });
 
 test("filter failure view never presents stale results as filtered content", () => {

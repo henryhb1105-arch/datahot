@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-Nayvs/SzwZzo7cVhwCa6GrXzWEW5SAV9rP01XTJ9MPw=' 'sha256-zM7KKso1kxiKrij8thP7S/i3tivFamUyc5mzjAIiaS8='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-TtY3OWub5vdbUjwPZ5h1w2qdH0dLnQJKcyAQJTJ8KDw=' 'sha256-zM7KKso1kxiKrij8thP7S/i3tivFamUyc5mzjAIiaS8='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Kepler如何用Claude构建金融可验证AI · DataHot</title>
@@ -97,7 +97,7 @@
     .item{padding:14px 16px;border-radius:12px}
     .item h3{font-size:15px;overflow-wrap:anywhere}
     .item .sum{font-size:13px;line-height:1.7;overflow-wrap:anywhere}
-    .item .top{font-size:11px;gap:6px}
+    .item .top{font-size:11px;gap:4px}
     .heatnum{font-size:12px}
     .why{font-size:12.5px;line-height:1.7}
     .brief{padding:16px 18px}
@@ -182,7 +182,10 @@
   @media(prefers-reduced-motion:reduce){
     *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   }
-  .item .top{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub);flex-wrap:wrap}
+  .item .top{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub)}
+  .card-source{display:flex;align-items:center;gap:6px;min-width:0;flex:1 1 auto;overflow:hidden;white-space:nowrap}
+  .card-source-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;color:var(--txt3)}
+  .card-time{flex:0 0 auto;white-space:nowrap}
   .badge{font-weight:600;border-radius:6px;padding:1px 8px;font-size:11px}
   .b-agent{background:#eef2ff;color:var(--blue)}
   .b-platform{background:#ecfdf5;color:var(--green)}
@@ -190,7 +193,8 @@
   .b-product{background:#fef7e8;color:var(--amber)}
   .b-insight{background:#fff1f2;color:#be123c}
   .star{color:var(--accent);font-weight:700}
-  .item .heatnum{margin-left:auto;font-weight:800;color:var(--accent);font-size:13px}
+  .item .heatnum{flex:0 0 auto;white-space:nowrap;font-weight:800;color:var(--accent);font-size:13px}
+  .item .heatnum.is-featured{padding:2px 7px;border-radius:99px;background:var(--accent-soft)}
   .item h3{font-size:16px;font-weight:700;margin:8px 0 6px;line-height:1.55}
   .item .sum{font-size:13.5px;color:var(--txt2);line-height:1.75}
   .item .also{margin-top:10px;font-size:12px;color:var(--sub)}
@@ -524,7 +528,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     
     <span title="发布时间">发布 2026-08-10 09:13</span>
     
-    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 44</span>
+    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 43</span>
   </div>
   <h1>Kepler如何用Claude构建金融可验证AI</h1>
 
@@ -679,7 +683,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title":"Kepler如何用Claude构建金融可验证AI","summary":"Kepler是一家成立于2025年的金融AI创企，其平台在不到三个月内索引了2600万份SEC文件、5000万份公共文档和100万份私有文档，覆盖1.4万家公司和27个全球市场。该平台利用Claude构建可验证AI，确保金融报告中的每个数字都能追溯到原始文件、页面和行项目。创始人Vinoo Ganesh和John McRaven采用AWS、Rust、Python等技术栈，解决了金融行业对审计和问责的严格需求。","reason":"数据从业者应关注如何用大模型构建可溯源、可审计的数据验证层，这对金融及企业数据治理有直接借鉴意义。","topic":"","heat":44,"source":"Claude 官方博客","date":"2026-08-10","url":"https://henryhb1105-arch.github.io/datahot/e/25285fab60b3.html","qr":"../qr/25285fab60b3.png"};
+var SH_EV = {"title":"Kepler如何用Claude构建金融可验证AI","summary":"Kepler是一家成立于2025年的金融AI创企，其平台在不到三个月内索引了2600万份SEC文件、5000万份公共文档和100万份私有文档，覆盖1.4万家公司和27个全球市场。该平台利用Claude构建可验证AI，确保金融报告中的每个数字都能追溯到原始文件、页面和行项目。创始人Vinoo Ganesh和John McRaven采用AWS、Rust、Python等技术栈，解决了金融行业对审计和问责的严格需求。","reason":"数据从业者应关注如何用大模型构建可溯源、可审计的数据验证层，这对金融及企业数据治理有直接借鉴意义。","topic":"","heat":43,"source":"Claude 官方博客","date":"2026-08-10","url":"https://henryhb1105-arch.github.io/datahot/e/25285fab60b3.html","qr":"../qr/25285fab60b3.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

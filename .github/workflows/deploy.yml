@@ -9,7 +9,27 @@ on:
       - "site/audio/**"
       - "site/data/tts-manifest.json"
   workflow_dispatch:
+    inputs:
+      release_issue:
+        description: "本次发布关联的 #Issue；正常发布可留空"
+        required: false
+        default: "manual"
+        type: string
+      allow_shrink:
+        description: "允许显式删除事件/详情；必须同时填写 #Issue"
+        required: false
+        default: false
+        type: boolean
   workflow_call:
+    inputs:
+      release_issue:
+        required: false
+        default: "automatic"
+        type: string
+      allow_shrink:
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -26,6 +46,17 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
+
+      - name: 读取当前线上发布基线
+        run: |
+          git fetch origin gh-pages:refs/remotes/origin/gh-pages
+          baseline="$RUNNER_TEMP/datahot-release-baseline"
+          mkdir -p "$baseline"
+          git show origin/gh-pages:data/latest.json > "$baseline/latest.json"
+          git ls-tree -r --name-only origin/gh-pages -- e/ > "$baseline/details.txt"
+          if git cat-file -e origin/gh-pages:data/release.json 2>/dev/null; then
+            git show origin/gh-pages:data/release.json > "$baseline/release.json"
+          fi
 
       - name: 密钥泄露扫描
         run: |
@@ -62,8 +93,36 @@ jobs:
           python3 pipeline/build_site.py
           python3 pipeline/check_links.py site
 
+      - name: 发布前数据防缩水与 manifest
+        id: release_guard
+        env:
+          RELEASE_ISSUE: ${{ inputs.release_issue || github.event.head_commit.message || github.event_name }}
+          ALLOW_SHRINK: ${{ inputs.allow_shrink || 'false' }}
+        run: |
+          baseline="$RUNNER_TEMP/datahot-release-baseline"
+          args=(
+            --baseline-latest "$baseline/latest.json"
+            --baseline-details "$baseline/details.txt"
+            --baseline-manifest "$baseline/release.json"
+            --candidate-site site
+            --source-sha "$(git rev-parse HEAD)"
+            --run-id "${{ github.run_id }}"
+            --issue "$RELEASE_ISSUE"
+            --output site/data/release.json
+            --github-output "$GITHUB_OUTPUT"
+          )
+          if [ "$ALLOW_SHRINK" = "true" ]; then
+            args+=(--allow-shrink)
+          fi
+          python3 pipeline/release_guard.py "${args[@]}"
+
       - name: 发布到 GitHub Pages
+        if: steps.release_guard.outputs.should_publish == 'true'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./site
+
+      - name: 相同 source SHA 跳过重复发布
+        if: steps.release_guard.outputs.should_publish != 'true'
+        run: echo "当前 main SHA 已在线，无需重复写入 gh-pages"

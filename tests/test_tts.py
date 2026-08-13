@@ -176,6 +176,7 @@ class TTSWorkflowTests(unittest.TestCase):
         deploy_workflow = (ROOT / ".github" / "workflows" / "deploy.yml").read_text()
         self.assertIn("for attempt in 1 2 3", tts_workflow)
         self.assertIn('echo "changed=true" >> "$GITHUB_OUTPUT"', tts_workflow)
+        self.assertIn("feat: update DataHot narration audio [skip ci]", tts_workflow)
         self.assertIn("uses: ./.github/workflows/deploy.yml", tts_workflow)
         self.assertIn("workflow_call:", deploy_workflow)
         self.assertIn("ref: main", deploy_workflow)

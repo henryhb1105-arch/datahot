@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-1hSayJD90OkbIfjuFucj8zLJmQcsZ3s8KamE+Aasb/A=' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-XBAvFmjBqO9PPsS/4IvE76hVWaXcCQEWZM+9vM+k6k0='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-1hSayJD90OkbIfjuFucj8zLJmQcsZ3s8KamE+Aasb/A=' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-pnfvvnTwa5apesXlTm1nhfxW6h1Zko8WHzWUSC32wBU='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Hebbia如何用Claude打造滴水不漏的金融尽职调查AI · DataHot</title>
@@ -371,6 +371,40 @@ main,.layout>*,.hotlist>*{min-width:0}
 .hrow .rk{font-size:15px;font-weight:800;color:var(--accent);width:26px;flex-shrink:0;text-align:center}
 .hrow .ht{flex:1;font-size:14px;font-weight:600;line-height:1.5}
 .hrow .hm{font-size:11px;color:var(--sub);white-space:nowrap}
+.rank-page{padding:28px 20px 60px;max-width:900px}
+.rank-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.rank-head h1{display:flex;align-items:center;gap:7px;font-size:20px;line-height:1.4;margin:0}
+.rank-head p{font-size:12px;color:var(--sub);margin:0}
+.rank-list{padding:6px 18px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+.rank-row{display:grid;grid-template-columns:26px minmax(0,1fr) minmax(150px,auto);align-items:center;gap:12px;min-height:48px;padding:12px 0;border-bottom:1px solid var(--soft);color:var(--ink);text-decoration:none}
+.rank-row:last-child{border-bottom:none}
+.rank-no{font-size:14px;font-weight:750;color:var(--sub);font-variant-numeric:tabular-nums;text-align:center}
+.rank-no.is-top{color:var(--accent);font-size:16px;font-weight:850}
+.rank-title{min-width:0;font-size:14px;font-weight:650;line-height:1.5}
+.rank-meta{display:flex;align-items:center;justify-content:flex-end;gap:9px;min-width:0;max-width:280px;color:var(--sub);font-size:11px}
+.rank-source{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank-heat{display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;color:var(--accent);font-weight:700;white-space:nowrap}
+.rank-note{margin-top:8px;color:var(--sub);font-size:12px}
+.rank-note summary{display:flex;align-items:center;width:max-content;max-width:100%;min-height:44px;cursor:pointer;list-style:none}
+.rank-note summary::-webkit-details-marker{display:none}
+.rank-note summary::after{content:" ↓";margin-left:4px}
+.rank-note[open] summary::after{content:" ↑"}
+.rank-note p{margin:0 0 8px;line-height:1.7}
+@media(max-width:600px){
+  .rank-page{padding:18px 14px calc(32px + env(safe-area-inset-bottom))}
+  .rank-head{display:block;margin-bottom:14px}
+  .rank-head h1{font-size:22px}
+  .rank-head p{margin-top:4px;font-size:12px}
+  .rank-list{display:grid;gap:10px;padding:0;background:transparent;border:0;border-radius:0}
+  .rank-row{grid-template-columns:30px minmax(0,1fr);grid-template-rows:auto auto;align-items:start;gap:5px 10px;min-height:76px;padding:13px 14px;background:var(--card);border:1px solid var(--line);border-radius:12px}
+  .rank-row:last-child{border-bottom:1px solid var(--line)}
+  .rank-no{grid-row:1/3;padding-top:1px;font-size:14px;text-align:left}
+  .rank-no.is-top{font-size:17px}
+  .rank-title{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;font-size:15px;line-height:1.5}
+  .rank-meta{grid-column:2;justify-content:flex-start;max-width:none;width:100%;gap:8px}
+  .rank-source{flex:1}
+  .rank-note{margin-top:4px}
+}
 .srcbadge{font-size:10px;border:1px solid var(--line);border-radius:5px;padding:0 5px;color:var(--sub);flex-shrink:0;line-height:1.6}
 .sidebar{display:none}
 @media(min-width:1200px){
@@ -411,7 +445,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
   body.more-open{overflow:hidden}
 }
-.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.rank-row:focus-visible,.rank-note summary:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:600px){.favbtn{min-width:44px;min-height:44px}}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
@@ -425,7 +459,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(hover:hover) and (pointer:fine){
   .chip:hover{background:#dbe4ff}
-  a.source-name:hover,.crow:hover .ctitle,.fav-entry:hover,.weekly-evidence-row:hover span:first-child,.hrow:hover .ht{color:var(--accent)}
+  a.source-name:hover,.crow:hover .ctitle,.fav-entry:hover,.weekly-evidence-row:hover span:first-child,.hrow:hover .ht,.rank-row:hover .rank-title{color:var(--accent)}
   .source-cta:hover{opacity:.86}
   .load-more:hover,.weekly-archive a:hover{border-color:var(--accent);color:var(--accent)}
   .weekly-strip:hover{border-color:var(--accent)}
@@ -534,7 +568,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     
     <span title="发布时间">发布 2026-08-10 10:34</span>
     
-    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 49</span>
+    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 48</span>
   </div>
   <h1>Hebbia如何用Claude打造滴水不漏的金融尽职调查AI</h1>
 
@@ -546,7 +580,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="disclaimer">AI 仅用于按原文顺序逐段翻译；正文结构、事实、表格和图表沿用原文 · <a href="https://claude.com/blog/working-at-the-frontier-how-hebbia-builds-ai-for-financial-diligence-that-cant-miss-a-detail" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Claude 官方博客">查看原文 ↗</a></div>
 </div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/25af7ba405b5.html"><span class="n">›</span>合作伙伴如何用Claude Opus强化网络安全防御<span class="count">51</span></a><a class="vendor-row" href="../e/0bf14bafc948.html"><span class="n">›</span>Anthropic团队如何使用Claude Code<span class="count">26</span></a><a class="vendor-row" href="../e/1c7118c0179d.html"><span class="n">›</span>Outtake基于Claude构建网络调查Agent<span class="count">21</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/25af7ba405b5.html"><span class="n">›</span>合作伙伴如何用Claude Opus强化网络安全防御<span class="count">50</span></a><a class="vendor-row" href="../e/0bf14bafc948.html"><span class="n">›</span>Anthropic团队如何使用Claude Code<span class="count">25</span></a><a class="vendor-row" href="../e/1c7118c0179d.html"><span class="n">›</span>Outtake基于Claude构建网络调查Agent<span class="count">20</span></a></div>
   </main>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
@@ -689,7 +723,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title":"Hebbia如何用Claude打造滴水不漏的金融尽职调查AI","summary":"Hebbia为金融机构构建AI尽职调查软件，客户覆盖Top50资产管理公司中超过三分之一及顶级投行和律所。其meta-prompting技术将自然语言请求转化为提示，由Claude逐步执行。在最新测试中，Claude Fable 5取得了研究团队记录的最大准确率提升，并能追踪此前模型遗漏的复杂查询。创始产品经理Divya Mehta约一半时间用于服务核心客户。","reason":"金融尽职调查涉及海量文档与多步推理，Hebbia的meta-prompting实践展示了如何利用大模型降低漏查风险，对构建分析型Data Agent有直接参考价值。","topic":"Data Agent","heat":49,"source":"Claude 官方博客","date":"2026-08-10","url":"https://henryhb1105-arch.github.io/datahot/e/b07c642afcbe.html","qr":"../qr/b07c642afcbe.png"};
+var SH_EV = {"title":"Hebbia如何用Claude打造滴水不漏的金融尽职调查AI","summary":"Hebbia为金融机构构建AI尽职调查软件，客户覆盖Top50资产管理公司中超过三分之一及顶级投行和律所。其meta-prompting技术将自然语言请求转化为提示，由Claude逐步执行。在最新测试中，Claude Fable 5取得了研究团队记录的最大准确率提升，并能追踪此前模型遗漏的复杂查询。创始产品经理Divya Mehta约一半时间用于服务核心客户。","reason":"金融尽职调查涉及海量文档与多步推理，Hebbia的meta-prompting实践展示了如何利用大模型降低漏查风险，对构建分析型Data Agent有直接参考价值。","topic":"Data Agent","heat":48,"source":"Claude 官方博客","date":"2026-08-10","url":"https://henryhb1105-arch.github.io/datahot/e/b07c642afcbe.html","qr":"../qr/b07c642afcbe.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

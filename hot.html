@@ -362,6 +362,40 @@ main,.layout>*,.hotlist>*{min-width:0}
 .hrow .rk{font-size:15px;font-weight:800;color:var(--accent);width:26px;flex-shrink:0;text-align:center}
 .hrow .ht{flex:1;font-size:14px;font-weight:600;line-height:1.5}
 .hrow .hm{font-size:11px;color:var(--sub);white-space:nowrap}
+.rank-page{padding:28px 20px 60px;max-width:900px}
+.rank-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.rank-head h1{display:flex;align-items:center;gap:7px;font-size:20px;line-height:1.4;margin:0}
+.rank-head p{font-size:12px;color:var(--sub);margin:0}
+.rank-list{padding:6px 18px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+.rank-row{display:grid;grid-template-columns:26px minmax(0,1fr) minmax(150px,auto);align-items:center;gap:12px;min-height:48px;padding:12px 0;border-bottom:1px solid var(--soft);color:var(--ink);text-decoration:none}
+.rank-row:last-child{border-bottom:none}
+.rank-no{font-size:14px;font-weight:750;color:var(--sub);font-variant-numeric:tabular-nums;text-align:center}
+.rank-no.is-top{color:var(--accent);font-size:16px;font-weight:850}
+.rank-title{min-width:0;font-size:14px;font-weight:650;line-height:1.5}
+.rank-meta{display:flex;align-items:center;justify-content:flex-end;gap:9px;min-width:0;max-width:280px;color:var(--sub);font-size:11px}
+.rank-source{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank-heat{display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;color:var(--accent);font-weight:700;white-space:nowrap}
+.rank-note{margin-top:8px;color:var(--sub);font-size:12px}
+.rank-note summary{display:flex;align-items:center;width:max-content;max-width:100%;min-height:44px;cursor:pointer;list-style:none}
+.rank-note summary::-webkit-details-marker{display:none}
+.rank-note summary::after{content:" ↓";margin-left:4px}
+.rank-note[open] summary::after{content:" ↑"}
+.rank-note p{margin:0 0 8px;line-height:1.7}
+@media(max-width:600px){
+  .rank-page{padding:18px 14px calc(32px + env(safe-area-inset-bottom))}
+  .rank-head{display:block;margin-bottom:14px}
+  .rank-head h1{font-size:22px}
+  .rank-head p{margin-top:4px;font-size:12px}
+  .rank-list{display:grid;gap:10px;padding:0;background:transparent;border:0;border-radius:0}
+  .rank-row{grid-template-columns:30px minmax(0,1fr);grid-template-rows:auto auto;align-items:start;gap:5px 10px;min-height:76px;padding:13px 14px;background:var(--card);border:1px solid var(--line);border-radius:12px}
+  .rank-row:last-child{border-bottom:1px solid var(--line)}
+  .rank-no{grid-row:1/3;padding-top:1px;font-size:14px;text-align:left}
+  .rank-no.is-top{font-size:17px}
+  .rank-title{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;font-size:15px;line-height:1.5}
+  .rank-meta{grid-column:2;justify-content:flex-start;max-width:none;width:100%;gap:8px}
+  .rank-source{flex:1}
+  .rank-note{margin-top:4px}
+}
 .srcbadge{font-size:10px;border:1px solid var(--line);border-radius:5px;padding:0 5px;color:var(--sub);flex-shrink:0;line-height:1.6}
 .sidebar{display:none}
 @media(min-width:1200px){
@@ -402,7 +436,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
   body.more-open{overflow:hidden}
 }
-.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.rank-row:focus-visible,.rank-note summary:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:600px){.favbtn{min-width:44px;min-height:44px}}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
@@ -416,7 +450,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(hover:hover) and (pointer:fine){
   .chip:hover{background:#dbe4ff}
-  a.source-name:hover,.crow:hover .ctitle,.fav-entry:hover,.weekly-evidence-row:hover span:first-child,.hrow:hover .ht{color:var(--accent)}
+  a.source-name:hover,.crow:hover .ctitle,.fav-entry:hover,.weekly-evidence-row:hover span:first-child,.hrow:hover .ht,.rank-row:hover .rank-title{color:var(--accent)}
   .source-cta:hover{opacity:.86}
   .load-more:hover,.weekly-archive a:hover{border-color:var(--accent);color:var(--accent)}
   .weekly-strip:hover{border-color:var(--accent)}
@@ -434,47 +468,47 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="logo"><a href="index.html" style="text-decoration:none">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
 
-<div class="wrap" style="padding:28px 20px 60px;max-width:900px">
-  <div class="section-title"><h2><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 完整榜单</h2><span>近 7 天 · 热度 TOP 9 · 同源最多 2 条</span></div>
-  <div class="scard" style="padding:6px 18px"><a class="hrow" href="e/477745cf963d.html">
-  <span class="rk">1</span>
-  <span class="ht">ElectricSQL加入Databricks，为AI Agent沙箱带来WASM Postgres</span>
-  <span class="hm"><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 65 · 主编收录 · 另有1家</span>
-</a><a class="hrow" href="e/44517f2e6a68.html">
-  <span class="rk">2</span>
-  <span class="ht">Databricks称专用数据Agent比通用Coding Agent更准更省</span>
-  <span class="hm"><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 63 · 主编收录 · 另有1家</span>
-</a><a class="hrow" href="e/cf462f603c77.html">
-  <span class="rk">3</span>
-  <span class="ht">Databricks重构无服务器网络配置交付：延迟降低97.5%</span>
-  <span class="hm"><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 61 · Databricks Blog</span>
-</a><a class="hrow" href="e/0b602400e43b.html">
-  <span class="rk">4</span>
-  <span class="ht">Apache Iceberg Variant类型：半结构化数据新解法</span>
-  <span class="hm"><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 61 · Apache Iceberg Blog</span>
-</a><a class="hrow" href="e/5b66bceba7c5.html">
-  <span class="rk">5</span>
-  <span class="ht">Amtrak 构建铁路智能平台，用 Databricks 统一数据骨干</span>
-  <span class="hm"><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 59 · Databricks Blog</span>
-</a><a class="hrow" href="e/dfb9071b69e0.html">
-  <span class="rk">6</span>
-  <span class="ht">BigQuery支持Gemini 3.1 Flash Lite与3.5 Flash GA模型</span>
-  <span class="hm"><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 59 · Google BigQuery Release Notes · 另有2家</span>
-</a><a class="hrow" href="e/ba8377c644db.html">
-  <span class="rk">7</span>
-  <span class="ht">扩展Claude能力：Skills与MCP协同构建智能体</span>
-  <span class="hm"><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 58 · Claude 官方博客</span>
-</a><a class="hrow" href="e/16934756bbd8.html">
-  <span class="rk">8</span>
-  <span class="ht">Cortex Analyst与Snowflake Agents：打造生产级分析服务指南</span>
-  <span class="hm"><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 58 · Snowflake Engineering（Medium）</span>
-</a><a class="hrow" href="e/8633caa1093d.html">
-  <span class="rk">9</span>
-  <span class="ht">MCP转向无状态，开发者质疑是否只是变回API</span>
-  <span class="hm"><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 58 · InfoQ（AI/数据工程）</span>
+<main class="wrap rank-page">
+  <header class="rank-head"><h1><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 完整榜单</h1><p>近 7 天 · TOP 9 · 同源最多 2 条</p></header>
+  <div class="rank-list"><a class="rank-row" href="e/477745cf963d.html">
+  <span class="rank-no is-top">1</span>
+  <span class="rank-title">ElectricSQL加入Databricks，为AI Agent沙箱带来WASM Postgres</span>
+  <span class="rank-meta"><span class="rank-source">DataHot 精选 · 另有1家</span><span class="rank-heat"><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 65</span></span>
+</a><a class="rank-row" href="e/44517f2e6a68.html">
+  <span class="rank-no is-top">2</span>
+  <span class="rank-title">Databricks称专用数据Agent比通用Coding Agent更准更省</span>
+  <span class="rank-meta"><span class="rank-source">DataHot 精选 · 另有1家</span><span class="rank-heat"><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 63</span></span>
+</a><a class="rank-row" href="e/ded49e4ed330.html">
+  <span class="rank-no is-top">3</span>
+  <span class="rank-title">语义层方案如何选型？五级分层与三条分界线</span>
+  <span class="rank-meta"><span class="rank-source">Aloudata 博客</span><span class="rank-heat"><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 61</span></span>
+</a><a class="rank-row" href="e/0b602400e43b.html">
+  <span class="rank-no">4</span>
+  <span class="rank-title">Apache Iceberg Variant类型：半结构化数据新解法</span>
+  <span class="rank-meta"><span class="rank-source">Apache Iceberg Blog</span><span class="rank-heat"><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 61</span></span>
+</a><a class="rank-row" href="e/cf462f603c77.html">
+  <span class="rank-no">5</span>
+  <span class="rank-title">Databricks重构无服务器网络配置交付：延迟降低97.5%</span>
+  <span class="rank-meta"><span class="rank-source">Databricks Blog</span><span class="rank-heat"><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 60</span></span>
+</a><a class="rank-row" href="e/5422d3495b2d.html">
+  <span class="rank-no">6</span>
+  <span class="rank-title">ThoughtSpot AgentQL：SQL形态意图，不直接生成SQL的工程路线</span>
+  <span class="rank-meta"><span class="rank-source">ThoughtSpot Blog</span><span class="rank-heat"><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 59</span></span>
+</a><a class="rank-row" href="e/5b0f19a6ef69.html">
+  <span class="rank-no">7</span>
+  <span class="rank-title">下一个“过半”的，会是数据分析吗？</span>
+  <span class="rank-meta"><span class="rank-source">Aloudata 博客</span><span class="rank-heat"><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 59</span></span>
+</a><a class="rank-row" href="e/dfb9071b69e0.html">
+  <span class="rank-no">8</span>
+  <span class="rank-title">BigQuery支持Gemini 3.1 Flash Lite与3.5 Flash GA模型</span>
+  <span class="rank-meta"><span class="rank-source">Google BigQuery Release Notes · 另有2家</span><span class="rank-heat"><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 59</span></span>
+</a><a class="rank-row" href="e/ba8377c644db.html">
+  <span class="rank-no">9</span>
+  <span class="rank-title">扩展Claude能力：Skills与MCP协同构建智能体</span>
+  <span class="rank-meta"><span class="rank-source">Claude 官方博客</span><span class="rank-heat"><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 58</span></span>
 </a></div>
-  <div style="font-size:12px;color:var(--sub);margin-top:8px">热度 = AI重要性50% + 新鲜度20% + 社区信号15%(封顶) + 多信源15%；相邻位置优先保持信源多样性</div>
-</div>
+  <details class="rank-note"><summary>热度如何计算</summary><p>AI重要性50% + 新鲜度20% + 社区信号15%(封顶) + 多信源15%；相邻位置优先保持信源多样性。</p></details>
+</main>
 <footer>DataHot，数据领域AI资讯分享 · <a href="privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 <nav class="tabbar" aria-label="移动端主导航">
   <a href="index.html" class="on" data-home-top><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a href="favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>

@@ -362,6 +362,40 @@ main,.layout>*,.hotlist>*{min-width:0}
 .hrow .rk{font-size:15px;font-weight:800;color:var(--accent);width:26px;flex-shrink:0;text-align:center}
 .hrow .ht{flex:1;font-size:14px;font-weight:600;line-height:1.5}
 .hrow .hm{font-size:11px;color:var(--sub);white-space:nowrap}
+.rank-page{padding:28px 20px 60px;max-width:900px}
+.rank-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.rank-head h1{display:flex;align-items:center;gap:7px;font-size:20px;line-height:1.4;margin:0}
+.rank-head p{font-size:12px;color:var(--sub);margin:0}
+.rank-list{padding:6px 18px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+.rank-row{display:grid;grid-template-columns:26px minmax(0,1fr) minmax(150px,auto);align-items:center;gap:12px;min-height:48px;padding:12px 0;border-bottom:1px solid var(--soft);color:var(--ink);text-decoration:none}
+.rank-row:last-child{border-bottom:none}
+.rank-no{font-size:14px;font-weight:750;color:var(--sub);font-variant-numeric:tabular-nums;text-align:center}
+.rank-no.is-top{color:var(--accent);font-size:16px;font-weight:850}
+.rank-title{min-width:0;font-size:14px;font-weight:650;line-height:1.5}
+.rank-meta{display:flex;align-items:center;justify-content:flex-end;gap:9px;min-width:0;max-width:280px;color:var(--sub);font-size:11px}
+.rank-source{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank-heat{display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;color:var(--accent);font-weight:700;white-space:nowrap}
+.rank-note{margin-top:8px;color:var(--sub);font-size:12px}
+.rank-note summary{display:flex;align-items:center;width:max-content;max-width:100%;min-height:44px;cursor:pointer;list-style:none}
+.rank-note summary::-webkit-details-marker{display:none}
+.rank-note summary::after{content:" ↓";margin-left:4px}
+.rank-note[open] summary::after{content:" ↑"}
+.rank-note p{margin:0 0 8px;line-height:1.7}
+@media(max-width:600px){
+  .rank-page{padding:18px 14px calc(32px + env(safe-area-inset-bottom))}
+  .rank-head{display:block;margin-bottom:14px}
+  .rank-head h1{font-size:22px}
+  .rank-head p{margin-top:4px;font-size:12px}
+  .rank-list{display:grid;gap:10px;padding:0;background:transparent;border:0;border-radius:0}
+  .rank-row{grid-template-columns:30px minmax(0,1fr);grid-template-rows:auto auto;align-items:start;gap:5px 10px;min-height:76px;padding:13px 14px;background:var(--card);border:1px solid var(--line);border-radius:12px}
+  .rank-row:last-child{border-bottom:1px solid var(--line)}
+  .rank-no{grid-row:1/3;padding-top:1px;font-size:14px;text-align:left}
+  .rank-no.is-top{font-size:17px}
+  .rank-title{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;font-size:15px;line-height:1.5}
+  .rank-meta{grid-column:2;justify-content:flex-start;max-width:none;width:100%;gap:8px}
+  .rank-source{flex:1}
+  .rank-note{margin-top:4px}
+}
 .srcbadge{font-size:10px;border:1px solid var(--line);border-radius:5px;padding:0 5px;color:var(--sub);flex-shrink:0;line-height:1.6}
 .sidebar{display:none}
 @media(min-width:1200px){
@@ -402,7 +436,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
   body.more-open{overflow:hidden}
 }
-.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.rank-row:focus-visible,.rank-note summary:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:600px){.favbtn{min-width:44px;min-height:44px}}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
@@ -416,7 +450,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(hover:hover) and (pointer:fine){
   .chip:hover{background:#dbe4ff}
-  a.source-name:hover,.crow:hover .ctitle,.fav-entry:hover,.weekly-evidence-row:hover span:first-child,.hrow:hover .ht{color:var(--accent)}
+  a.source-name:hover,.crow:hover .ctitle,.fav-entry:hover,.weekly-evidence-row:hover span:first-child,.hrow:hover .ht,.rank-row:hover .rank-title{color:var(--accent)}
   .source-cta:hover{opacity:.86}
   .load-more:hover,.weekly-archive a:hover{border-color:var(--accent);color:var(--accent)}
   .weekly-strip:hover{border-color:var(--accent)}
@@ -439,15 +473,15 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="tgrid"><a class="tcard" href="topics/chatbi.html">
   <h3>ChatBI</h3>
   <div class="td">对话式分析、NL2SQL、取数助手——从 demo 到生产的落地竞赛</div>
-  <div class="tn">8 个事件 →</div><div class="tt">· Hex 推出 Evals：评估与分析 Agent 性能</div><div class="tt">· Tableau Agent进入Dashboard，提供受治理的对话式分析</div><div class="tt">· Anthropic法务团队用Claude将审查时间从数天缩短至数小时</div>
+  <div class="tn">9 个事件 →</div><div class="tt">· ThoughtSpot AgentQL：SQL形态意图，不直接生成SQL</div><div class="tt">· Hex 推出 Evals：评估与分析 Agent 性能</div><div class="tt">· Tableau Agent进入Dashboard，提供受治理的对话式分析</div>
 </a><a class="tcard" href="topics/data-agent.html">
   <h3>Data Agent</h3>
   <div class="td">分析 Agent 框架、工具调用与评估——从玩具到生产的工程化</div>
-  <div class="tn">60 个事件 →</div><div class="tt">· iFood 用 ClickHouse Cloud 构建智能体安全平台</div><div class="tt">· MCP转向无状态，开发者质疑是否只是变回API</div><div class="tt">· Hex 推出 Evals：评估与分析 Agent 性能</div>
+  <div class="tn">61 个事件 →</div><div class="tt">· ThoughtSpot AgentQL：SQL形态意图，不直接生成SQL</div><div class="tt">· iFood 用 ClickHouse Cloud 构建智能体安全平台</div><div class="tt">· MCP转向无状态，开发者质疑是否只是变回API</div>
 </a><a class="tcard" href="topics/semantic-layer.html">
   <h3>语义层</h3>
   <div class="td">指标平台、语义模型与口径治理——从 BI 配件到 Agent 的数据入口</div>
-  <div class="tn">10 个事件 →</div><div class="tt">· Cortex Analyst与Snowflake Agents：打造生产</div><div class="tt">· 爱分析发布2026中国本体平台市场洞察报告</div><div class="tt">· AI时代，数据中台焕发新生？</div>
+  <div class="tn">11 个事件 →</div><div class="tt">· 语义层方案如何选型？五级分层与三条分界线</div><div class="tt">· Cortex Analyst与Snowflake Agents：打造生产</div><div class="tt">· 爱分析发布2026中国本体平台市场洞察报告</div>
 </a><a class="tcard" href="topics/platform-ai.html">
   <h3>平台AI化</h3>
   <div class="td">模型网关、AI 内建功能与治理合并——AI 从外挂变成平台地基</div>
@@ -455,11 +489,11 @@ main,.layout>*,.hotlist>*{min-width:0}
 </a><a class="tcard" href="topics/bi-shift.html">
   <h3>BI变局</h3>
   <div class="td">传统 BI 的转型、并购与 AI 改造——报表时代的终局与整合潮</div>
-  <div class="tn">2 个事件 →</div><div class="tt">· Looker 26.14版本更新发布</div><div class="tt">· Tableau Agent进入Dashboard，提供受治理的对话式分析</div>
+  <div class="tn">3 个事件 →</div><div class="tt">· 下一个“过半”的，会是数据分析吗？</div><div class="tt">· Looker 26.14版本更新发布</div><div class="tt">· Tableau Agent进入Dashboard，提供受治理的对话式分析</div>
 </a><a class="tcard" href="topics/lakehouse.html">
   <h3>湖仓</h3>
   <div class="td">Iceberg/Delta、存算分离与半结构化——架构之争的下一站</div>
-  <div class="tn">14 个事件 →</div><div class="tt">· Apache Iceberg Variant类型：半结构化数据新解法</div><div class="tt">· Amtrak 构建铁路智能平台，用 Databricks 统一数据骨干</div><div class="tt">· 加拿大大型铁路用Databricks Genie Code将管道创建自动</div>
+  <div class="tn">15 个事件 →</div><div class="tt">· Fivetran推出托管数据湖写入凭证功能</div><div class="tt">· Apache Iceberg Variant类型：半结构化数据新解法</div><div class="tt">· Amtrak 构建铁路智能平台，用 Databricks 统一数据骨干</div>
 </a><a class="tcard" href="topics/realtime.html">
   <h3>实时分析</h3>
   <div class="td">OLAP、性能优化与降本案例——性能竞赛进入成本阶段</div>

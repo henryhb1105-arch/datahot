@@ -966,7 +966,8 @@ def render_detail(e, all_events, css, tts_item=None):
 <script type="application/ld+json">{jsonld}</script>
 <style>{css}
 {SHARED_CSS}
-.article{{max-width:760px;margin:0 auto;padding:36px 20px 60px}}
+.article{{max-width:1040px;margin:0 auto;padding:36px 20px 60px}}
+.article-content{{max-width:840px;margin:0 auto}}
 .article .back{{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}}
 .article h1{{font-size:24px;font-weight:800;line-height:1.5;margin:12px 0 16px}}
 .article .meta{{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}}
@@ -1046,7 +1047,7 @@ def render_detail(e, all_events, css, tts_item=None):
 </div></header>
 <div class="article">
   <div class="topbar detail-context">
-    <a class="back" href="../index.html" data-smart-back style="margin-bottom:0">← 返回</a>
+    <a class="back" href="../index.html" data-smart-back>← 返回</a>
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" data-fav="{event_id}" title="收藏">{ic("star",13)}</button>
 {("      " + tts_button) if tts_button else ""}
@@ -1055,6 +1056,7 @@ def render_detail(e, all_events, css, tts_item=None):
       <button class="sbtn" type="button" data-share-action="open">分享</button>
     </span>
   </div>
+  <main class="article-content">
   <div class="meta">
     <span class="srcbadge">{src_badge(main_src_name)}</span>
     <span style="font-weight:600;color:var(--txt3)">{esc(src_display(main_src_name))}</span>
@@ -1071,6 +1073,7 @@ def render_detail(e, all_events, css, tts_item=None):
   {full_block}
 {supplement_sources}
   <div class="card"><h4>{ic("list")} 相关事件</h4>{rel_html}</div>
+  </main>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 {tabbar("home", "../")}
@@ -1116,13 +1119,14 @@ def share_ui(e, page_url):
 .sbtn svg{flex:0 0 auto}
 .sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .sbtn:active{transform:scale(.95)}
-@media(max-width:1199px){
 .topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-.topbar.detail-context .back{font-size:14px;font-weight:650;color:var(--ink)}
-}
+.topbar.detail-context .back{display:inline-flex;align-items:center;justify-content:center;align-self:center;min-width:88px;min-height:44px;margin-bottom:0;padding:0 14px;border-radius:99px;font-size:14px;font-weight:650;color:var(--ink);text-decoration:none}
+.topbar.detail-context .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:600px){
+.article{padding:20px 14px 48px}
 .topbar{align-items:stretch;flex-direction:column;gap:10px}
 .topbar.detail-context{margin:-20px -14px 14px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
+.topbar.detail-context .back{align-self:flex-start}
 .sharebtns{width:100%;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .sharebtns .sbtn{padding:7px 11px}
 .sharebtns::-webkit-scrollbar{display:none}

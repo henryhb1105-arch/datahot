@@ -165,6 +165,22 @@ test("payload order is explicit and rendering escapes untrusted text", () => {
   assert.match(html, /data-date-base="8月11日"/);
 });
 
+test("dynamic cards keep one-line source metadata, combined featured heat and bookmark action", () => {
+  const item = event(20, "Agent", "Google BigQuery Release Notes With A Very Long Name");
+  item.star = true;
+  item.heat = 59;
+  item.source_badge = "RSS";
+  const html = home.renderTimeline([item]);
+  assert.match(html, /class="top card-meta"/);
+  assert.match(html, /class="card-source"/);
+  assert.match(html, /class="card-source-name">Google BigQuery Release Notes/);
+  assert.match(html, /class="srcbadge">RSS<\/span>/);
+  assert.match(html, /class="heatnum is-featured"[^>]*><svg[^>]*>.*精选 59<\/span>/);
+  assert.match(html, /class="favbtn"[^>]*aria-label="收藏" aria-pressed="false"><svg/);
+  assert.doesNotMatch(html, />☆<\/button>/);
+  assert.doesNotMatch(html, /<span class="star">精选<\/span>/);
+});
+
 test("timeline grouping uses publication date before ingestion date", () => {
   const item = event(4);
   item.published = "2026-08-10T23:00:00+08:00";

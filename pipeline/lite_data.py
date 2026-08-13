@@ -9,6 +9,9 @@ from datetime import datetime, timezone
 
 
 LITE_SCHEMA_VERSION = 1
+LITE_SOURCE_BADGES = frozenset({
+    "公众号", "X 线索", "收录", "Bluesky", "HN", "官网", "社区", "RSS",
+})
 DEFAULT_PAGE_SIZE = 20
 DEFAULT_VENDOR_CAP = 4
 DEFAULT_CATEGORY_SOFT_CAP = 12
@@ -310,8 +313,11 @@ def rank_hot_events(events, *, limit=9, source_cap=2):
     return selected
 
 
-def lite_event(event):
+def lite_event(event, *, source_badge=None):
     """Project one event to the documented non-body field allowlist."""
+    primary_source_badge = str(source_badge or "RSS")
+    if primary_source_badge not in LITE_SOURCE_BADGES:
+        primary_source_badge = "RSS"
     return {
         "event_id": event.get("event_id", ""),
         "zh_title": event.get("zh_title", ""),
@@ -336,10 +342,14 @@ def lite_event(event):
             {"source": item.get("source", "")}
             for item in (event.get("items") or []) if item.get("source")
         ],
+        "source_badge": primary_source_badge,
     }
 
 
-def build_lite_payload(events, generated_at, *, ranking=None, page_size=DEFAULT_PAGE_SIZE):
+def build_lite_payload(
+    events, generated_at, *, ranking=None, page_size=DEFAULT_PAGE_SIZE,
+    source_badge_resolver=None,
+):
     if ranking is None:
         ranking = rank_timeline_events(events, page_size=page_size)
     return {
@@ -347,7 +357,16 @@ def build_lite_payload(events, generated_at, *, ranking=None, page_size=DEFAULT_
         "generated_at": generated_at,
         "page_size": page_size,
         "home_event_ids": [event["event_id"] for event in ranking],
-        "events": [lite_event(event) for event in events],
+        "events": [
+            lite_event(
+                event,
+                source_badge=(
+                    source_badge_resolver(_primary_source(event))
+                    if source_badge_resolver else None
+                ),
+            )
+            for event in events
+        ],
     }
 
 

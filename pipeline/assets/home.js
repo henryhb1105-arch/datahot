@@ -200,6 +200,7 @@
 
   function renderCard(event) {
     var source = event.items && event.items[0] ? event.items[0].source : "";
+    var sourceBadge = event.source_badge || "RSS";
     var topics = (event.topics || []).map(function (topic) {
       return '<span class="chip">' + escapeHtml(topic) + "</span>";
     }).join("");
@@ -210,16 +211,21 @@
       escapeHtml(cleanReason(event.reason)) + "</span></div>" : "";
     var also = (event.items || []).length > 1 ? '<div class="also">另有 <b>' +
       ((event.items || []).length - 1) + " 家信源</b>报道</div>" : "";
-    var star = event.star ? '<span class="star">精选</span>' : "";
+    var status = event.star ? "精选" : "";
+    var heat = Number(event.heat || 0);
+    var heatLabel = status ? status + " " + heat : String(heat);
+    var flameIcon = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"></path></svg>';
+    var bookmarkIcon = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"></path></svg>';
     var url = "e/" + encodeURIComponent(event.event_id) + ".html";
     return '<div class="item" data-cat="' + escapeHtml(event.category) + '" data-topics="' +
       escapeHtml((event.topics || []).join("|")) + '" data-link="' + url +
       '" data-analytics-list="1" data-event-id="' + escapeHtml(event.event_id) +
       '" data-category="' + escapeHtml(event.category) + '" data-source="' + escapeHtml(source) + '">' +
-      '<div class="top"><span class="srcbadge">信源</span><span style="font-weight:600;color:var(--txt3)">' +
-      escapeHtml(source) + "</span><span>" + escapeHtml(cardTime(event)) + "</span>" + star +
-      '<button class="favbtn" data-fav="' + escapeHtml(event.event_id) + '" title="收藏">☆</button>' +
-      '<span class="heatnum">热 ' + Number(event.heat || 0) + "</span></div>" +
+      '<div class="top card-meta"><span class="card-source"><span class="srcbadge">' + escapeHtml(sourceBadge) +
+      '</span><span class="card-source-name">' + escapeHtml(source) + '</span><span class="card-time">' +
+      escapeHtml(cardTime(event)) + '</span></span><span class="heatnum' + (status ? ' is-featured' : '') +
+      '" title="热度分">' + flameIcon + ' ' + escapeHtml(heatLabel) + '</span><button class="favbtn" data-fav="' +
+      escapeHtml(event.event_id) + '" title="收藏" aria-label="收藏" aria-pressed="false">' + bookmarkIcon + '</button></div>' +
       '<h3><a href="' + url + '">' + escapeHtml(event.zh_title) + "</a></h3>" +
       '<p class="sum">' + escapeHtml(event.zh_summary) + "</p>" + also + reason +
       ((topics || vendors) ? '<div class="vendors">' + topics + vendors + "</div>" : "") + "</div>";

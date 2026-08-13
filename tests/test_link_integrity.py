@@ -73,6 +73,20 @@ class LinkCheckerTests(unittest.TestCase):
             (site / "index.html").write_text('<a href="target.html">Wrong case</a>', encoding="utf-8")
             self.assertEqual(len(check_site_links(site)), 1)
 
+    def test_checker_validates_local_poster_qr_assets(self):
+        with tempfile.TemporaryDirectory() as directory:
+            site = Path(directory)
+            (site / "e").mkdir()
+            (site / "qr").mkdir()
+            detail = site / "e" / "event.html"
+            detail.write_text(
+                '<button data-poster-qr-src="../qr/event.png">海报</button>',
+                encoding="utf-8",
+            )
+            self.assertEqual(len(check_site_links(site)), 1)
+            (site / "qr" / "event.png").write_bytes(b"png")
+            self.assertEqual(check_site_links(site), [])
+
 
 class BuildPathRegressionTests(unittest.TestCase):
     def test_source_public_url_only_allows_web_links(self):
@@ -139,6 +153,33 @@ class BuildPathRegressionTests(unittest.TestCase):
         self.assertEqual(detail.count('<aside class="sidebar">'), 1)
         self.assertIn('class="mi on" href="../index.html"', detail)
         self.assertIn('class="mi" href="../topics.html"', detail)
+        self.assertGreaterEqual(detail.count("data-smart-home-return"), 4)
+        self.assertIn('data-poster-qr-src="../qr/detail-event.png"', detail)
+        self.assertNotIn("api.qrserver.com", detail)
+
+    def test_build_generates_one_same_origin_qr_per_detail_and_removes_stale_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            qr_dir = Path(directory) / "qr"
+            qr_dir.mkdir()
+            (qr_dir / "stale.png").write_bytes(b"stale")
+            generated = build_site.write_qr_assets(
+                [event("detail-event")], qr_dir=qr_dir,
+                site_base="https://example.com/datahot",
+            )
+            self.assertEqual(generated, {"detail-event.png"})
+            payload = (qr_dir / "detail-event.png").read_bytes()
+            self.assertTrue(payload.startswith(b"\x89PNG\r\n\x1a\n"))
+            self.assertGreater(len(payload), 100)
+            self.assertFalse((qr_dir / "stale.png").exists())
+
+    def test_share_copy_and_poster_fail_closed(self):
+        detail = build_site.render_detail(event("share-event"), [event("share-event")], "")
+        self.assertIn("then(function(){return true},function(){return fallbackCopy(SH_EV.url)})", detail)
+        self.assertIn("ok?'链接已复制，去粘贴吧':'复制失败，请手动复制链接'", detail)
+        self.assertIn("qr.src=SH_EV.qr", detail)
+        self.assertIn("海报生成失败，请稍后重试", detail)
+        self.assertNotIn("drawPoster(null", detail)
+        self.assertNotIn("api.qrserver.com", detail)
 
     def test_nested_page_sidebar_uses_page_prefix(self):
         page = build_site.page_shell(

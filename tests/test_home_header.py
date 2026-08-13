@@ -112,6 +112,71 @@ class HomeHeaderTests(unittest.TestCase):
             css,
         )
 
+    def test_card_feedback_uses_hover_only_for_fine_pointers(self):
+        css = build_site.load_css()
+        self.assertIn("@media(hover:hover) and (pointer:fine){", css)
+        self.assertIn(
+            ".hot:hover,.item:hover{border-color:#d1d5db;"
+            "box-shadow:0 4px 16px rgba(0,0,0,.05)}",
+            css,
+        )
+        self.assertIn(".hot a:hover,.item a:hover{color:var(--accent)}", css)
+        self.assertIn("@media(hover:none) and (pointer:coarse){", css)
+        self.assertIn(
+            ".hot:active,.item:active{border-color:#d1d5db;"
+            "box-shadow:0 2px 8px rgba(0,0,0,.04)}",
+            css,
+        )
+        self.assertNotIn("\n  .hot:hover{", css)
+        self.assertNotIn("\n  .item:hover{", css)
+
+        builder = (ROOT / "pipeline" / "build_site.py").read_text(encoding="utf-8")
+        self.assertNotIn(".item a:hover{{", builder)
+        self.assertNotIn(".hot a:hover{{", builder)
+
+    def test_all_visual_hover_feedback_is_scoped_by_input_capability(self):
+        css = build_site.load_css()
+        shared = build_site.SHARED_CSS
+        agent_css = (ROOT / "pipeline" / "agent_page.py").read_text(encoding="utf-8")
+        builder = (ROOT / "pipeline" / "build_site.py").read_text(encoding="utf-8")
+
+        self.assertIn(
+            "@media(hover:hover) and (pointer:fine){\n"
+            "    .update-info:hover .upd-time,.tab:hover",
+            css,
+        )
+        self.assertIn(
+            "@media(hover:hover) and (pointer:fine){\n"
+            "  .chip:hover{background:#dbe4ff}",
+            shared,
+        )
+        for selector in (
+            "a.source-name:hover", ".crow:hover .ctitle", ".fav-entry:hover",
+            ".weekly-evidence-row:hover", ".hrow:hover .ht", ".source-cta:hover",
+            ".load-more:hover", ".weekly-waiting:hover", ".weekly-archive a:hover",
+            ".weekly-teaser:hover", ".sidebar a.mi:hover", ".tcard:hover",
+        ):
+            self.assertIn(selector, shared)
+        self.assertIn(
+            "@media(hover:hover) and (pointer:fine){.agent-copy:hover",
+            agent_css,
+        )
+        self.assertIn(
+            "@media(hover:hover) and (pointer:fine){{\n"
+            "  .article .back:hover,.source-report:hover",
+            builder,
+        )
+
+        for unscoped_rule in (
+            "\n.chip:hover{", "\na.source-name:hover{", "\n.source-cta:hover{",
+            "\n.crow:hover", "\n.fav-entry:hover{", "\n.load-more:hover{",
+            "\n.weekly-teaser:hover{", "\n.weekly-waiting:hover{",
+            "\n.weekly-evidence-row:hover", "\n.hrow:hover", "\n.tcard:hover{",
+            "\n.agent-copy:hover{", "\n.article .back:hover{{",
+            "\n.source-report:hover", "\n.cta:hover{{",
+        ):
+            self.assertNotIn(unscoped_rule, builder + agent_css)
+
 
 if __name__ == "__main__":
     unittest.main()

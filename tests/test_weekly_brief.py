@@ -189,6 +189,23 @@ def evidence_context(events, week_id="2026-W32"):
     return rows, {row["event_id"]: row for row in rows}
 
 
+def weekly_snapshot_events(week_id):
+    """Rehydrate the immutable weekly input used by historical regressions."""
+    snapshot = json.loads(
+        (ROOT / f"site/data/weekly_inputs/{week_id}.json").read_text(encoding="utf-8")
+    )
+    return [
+        {
+            **row,
+            "zh_title": row["title"],
+            "zh_summary": row["summary"],
+            "first_seen": row["published"],
+            "items": [{"source": row["source"], "link": row["source_url"]}],
+        }
+        for row in snapshot["items"]
+    ]
+
+
 def w32_public_response():
     return {
         "weekly_judgement": (
@@ -460,8 +477,7 @@ class WeeklyBriefGenerationTests(unittest.TestCase):
         self.assertTrue(valid_brief(first))
 
     def test_w32_regression_keeps_two_themes_and_drops_infra_composite(self):
-        payload = json.loads((ROOT / "site/data/latest.json").read_text(encoding="utf-8"))
-        events = payload["events"]
+        events = weekly_snapshot_events("2026-W32")
         signals = w32_public_response()
 
         def callback(_prompt, *, item_id):

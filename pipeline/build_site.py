@@ -156,7 +156,6 @@ main,.layout>*,.hotlist>*{min-width:0}
 .d-only{display:inline-block}
 @media(max-width:960px){.d-only{display:none}}
 .chip{display:inline-block;font-size:11px;background:#eef2ff;color:var(--blue);border-radius:99px;padding:1px 10px;text-decoration:none}
-.chip:hover{background:#dbe4ff}
 .tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
 .tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
 .chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px;position:relative}
@@ -170,7 +169,6 @@ main,.layout>*,.hotlist>*{min-width:0}
 }
 @media (prefers-color-scheme: dark){
   .chip{background:rgba(110,168,255,.16);color:#6ea8ff}
-  .chip:hover{background:rgba(110,168,255,.26)}
   .chiprow .fchip.on{background:var(--ink);color:#121417;border-color:var(--ink)}
   .chiprow .fchip{background:var(--card);color:var(--sub);border-color:var(--line)}
 }
@@ -187,7 +185,6 @@ main,.layout>*,.hotlist>*{min-width:0}
 .source-group-head span{font-size:11.5px;color:var(--sub)}
 .source-row{display:flex;align-items:center;gap:12px;min-height:49px;border-bottom:1px solid var(--soft)}
 .source-name{display:inline-flex;align-items:center;gap:4px;min-width:0;color:var(--ink);font-size:13.5px;font-weight:650;line-height:1.5;text-decoration:none}
-a.source-name:hover{color:var(--accent)}
 .source-name svg{flex:0 0 auto}
 .source-focus{margin-left:auto;color:var(--sub);font-size:11.5px;line-height:1.45;text-align:right}
 .source-health{color:var(--amber);font-size:11.5px;white-space:nowrap}
@@ -200,7 +197,6 @@ a.source-name:hover{color:var(--accent)}
 .source-contribute h2{font-size:15px;margin:0 0 4px}
 .source-contribute p{font-size:12.5px;line-height:1.6;color:var(--sub);margin:0}
 .source-cta{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border-radius:99px;background:var(--ink);color:var(--bg);padding:8px 14px;font-size:12px;font-weight:650;text-decoration:none}
-.source-cta:hover{opacity:.86}
 .source-principle{font-size:12px;line-height:1.75;color:var(--sub);margin:0}
 @media(max-width:600px){
   .source-page{padding:22px 18px 52px}
@@ -215,7 +211,6 @@ a.source-name:hover{color:var(--accent)}
 }
 .crow{display:flex;align-items:baseline;gap:8px;padding:9px 0;border-bottom:1px solid var(--soft);text-decoration:none;color:var(--ink)}
 .crow:last-child{border-bottom:none}
-.crow:hover .ctitle{color:var(--accent)}
 .cpin{width:18px;flex-shrink:0;font-size:12px}
 .ctitle{font-size:13.5px;font-weight:600;line-height:1.55;flex:1}
 .cmeta{font-size:11px;color:var(--sub);white-space:nowrap}
@@ -224,21 +219,17 @@ a.source-name:hover{color:var(--accent)}
 .favbtn.on svg{fill:currentColor}
 .favbtn svg{pointer-events:none}
 .fav-entry{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--sub);white-space:nowrap;text-decoration:none}
-.fav-entry:hover{color:var(--accent)}
 .privacy-btn{border:none;background:var(--accent);color:#fff;border-radius:99px;padding:9px 16px;font-size:12.5px;font-weight:650;cursor:pointer;margin:4px 6px 4px 0}
 .privacy-btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .load-more{display:block;margin:18px auto 4px;border:1px solid var(--line);background:var(--card);color:var(--txt2);border-radius:99px;padding:9px 22px;font-size:12.5px;font-weight:650;cursor:pointer}
 .load-more[hidden]{display:none}
-.load-more:hover{border-color:var(--accent);color:var(--accent)}
 .load-more[disabled]{opacity:.65;cursor:default}
 .weekly-teaser{display:block;background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border-radius:var(--radius);padding:18px 22px;margin-bottom:22px;text-decoration:none;position:relative;overflow:hidden}
-.weekly-teaser:hover{transform:translateY(-1px)}
 .weekly-teaser .weekly-kicker{font-size:11px;letter-spacing:1.5px;color:#f5b48a;font-weight:750;margin-bottom:6px}
 .weekly-teaser h2{font-size:19px;line-height:1.45;margin:0 0 5px}
 .weekly-teaser p{font-size:12.5px;line-height:1.7;color:#e5e7eb;margin:0;max-width:720px}
 .weekly-teaser .weekly-meta{font-size:11px;color:#aeb4be;margin-top:8px}
 .weekly-waiting{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:10px 14px;margin-bottom:18px;color:var(--txt2);font-size:12.5px;text-decoration:none}
-.weekly-waiting:hover{border-color:var(--accent);color:var(--accent)}
 .weekly-waiting b{color:var(--ink);font-size:13px}
 .weekly-waiting span:last-child{margin-left:auto;color:var(--sub);font-size:11.5px}
 .weekly-summary{background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border:0;padding:20px 22px}
@@ -268,12 +259,11 @@ a.source-name:hover{color:var(--accent)}
 .weekly-evidence{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:0 18px}
 .weekly-evidence summary{cursor:pointer;padding:15px 0;font-size:13px;font-weight:700;color:var(--ink)}
 .weekly-evidence-row{display:flex;gap:12px;align-items:baseline;padding:11px 0;border-top:1px solid var(--soft);text-decoration:none;color:var(--ink)}
-.weekly-evidence-row:hover span:first-child{color:var(--accent)}
 .weekly-evidence-row span:first-child{font-size:13px;line-height:1.55;flex:1}
 .weekly-evidence-row span:last-child{font-size:10.5px;color:var(--sub);white-space:nowrap}
 .weekly-archive{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 22px}
 .weekly-archive a{font-size:12px;color:var(--sub);border:1px solid var(--line);border-radius:99px;padding:5px 10px;text-decoration:none}
-.weekly-archive a:hover,.weekly-archive a.on{border-color:var(--accent);color:var(--accent)}
+.weekly-archive a.on{border-color:var(--accent);color:var(--accent)}
 @media (prefers-color-scheme: dark){
   .weekly-pill.priority-now{border-color:#ef7b7b;color:#ffaaaa;background:rgba(220,38,38,.14)}
   .weekly-pill.priority-test{border-color:#d89a3d;color:#f2bd70;background:rgba(217,119,6,.14)}
@@ -294,7 +284,6 @@ a.source-name:hover{color:var(--accent)}
 .hrow:last-child{border-bottom:none}
 .hrow .rk{font-size:15px;font-weight:800;color:var(--accent);width:26px;flex-shrink:0;text-align:center}
 .hrow .ht{flex:1;font-size:14px;font-weight:600;line-height:1.5}
-.hrow:hover .ht{color:var(--accent)}
 .hrow .hm{font-size:11px;color:var(--sub);white-space:nowrap}
 .srcbadge{font-size:10px;border:1px solid var(--line);border-radius:5px;padding:0 5px;color:var(--sub);flex-shrink:0;line-height:1.6}
 .sidebar{display:none}
@@ -305,7 +294,6 @@ a.source-name:hover{color:var(--accent)}
   .sidebar .slogo{font-size:20px;font-weight:800;margin-bottom:26px}
   .sidebar .slogo em{font-style:normal;color:var(--accent)}
   .sidebar a.mi{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:14px;color:var(--sub);text-decoration:none;margin-bottom:2px}
-  .sidebar a.mi:hover{background:var(--hover);color:var(--ink)}
   .sidebar a.mi.on{background:var(--ink);color:var(--bg);font-weight:600}
   .sidebar .sfoot{margin-top:auto;font-size:11.5px;color:var(--sub);line-height:1.8}
 }
@@ -340,11 +328,22 @@ a.source-name:hover{color:var(--accent)}
 .tgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
 @media(max-width:960px){.tgrid{grid-template-columns:1fr}}
 .tcard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;text-decoration:none;display:block;transition:.15s}
-.tcard:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
 .tcard h3{font-size:17px;font-weight:800;margin-bottom:6px}
 .tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:10px}
 .tcard .tn{font-size:12px;color:var(--accent);font-weight:700}
 .tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(hover:hover) and (pointer:fine){
+  .chip:hover{background:#dbe4ff}
+  a.source-name:hover,.crow:hover .ctitle,.fav-entry:hover,.weekly-evidence-row:hover span:first-child,.hrow:hover .ht{color:var(--accent)}
+  .source-cta:hover{opacity:.86}
+  .load-more:hover,.weekly-waiting:hover,.weekly-archive a:hover{border-color:var(--accent);color:var(--accent)}
+  .weekly-teaser:hover{transform:translateY(-1px)}
+  .sidebar a.mi:hover{background:var(--hover);color:var(--ink)}
+  .tcard:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+}
+@media(prefers-color-scheme:dark) and (hover:hover) and (pointer:fine){
+  .chip:hover{background:rgba(110,168,255,.26)}
+}
 """
 
 def sidebar(active, gen=None, prefix=""):
@@ -943,7 +942,6 @@ def render_detail(e, all_events, css, tts_item=None):
 {SHARED_CSS}
 .article{{max-width:760px;margin:0 auto;padding:36px 20px 60px}}
 .article .back{{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}}
-.article .back:hover{{color:var(--accent)}}
 .article h1{{font-size:24px;font-weight:800;line-height:1.5;margin:12px 0 16px}}
 .article .meta{{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}}
 .article .body{{font-size:15.5px;line-height:1.9;color:var(--txt3);margin:20px 0}}
@@ -961,7 +959,6 @@ def render_detail(e, all_events, css, tts_item=None):
 .source-group-head b{{font-weight:700}}
 .source-group-head span{{font-size:10.5px;color:var(--sub)}}
 .source-report{{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:14px;padding:4px 0;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.55}}
-.source-report:hover .source-report-title{{color:var(--accent)}}
 .source-report-title{{min-width:0;overflow-wrap:anywhere}}
 .source-report-date{{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}}
 .source-more{{padding-top:8px}}
@@ -995,7 +992,6 @@ def render_detail(e, all_events, css, tts_item=None):
 .tone-accent{{color:var(--accent);font-weight:650}}.tone-warning{{color:var(--amber);font-weight:650}}
 .tone-positive{{color:var(--green);font-weight:650}}.tone-info{{color:var(--blue);font-weight:650}}.tone-emphasis{{color:var(--ink);font-weight:650}}
 .cta{{display:inline-block;background:var(--accent);color:#fff;font-size:14px;font-weight:700;border-radius:10px;padding:11px 26px;margin:6px 0 4px}}
-.cta:hover{{opacity:.9}}
 .fulltext h5.fh{{font-size:15px;font-weight:800;color:var(--ink);margin:20px 0 8px;padding-left:10px;border-left:3px solid var(--accent)}}
 .fulltext p.fwarn{{font-size:12.5px;color:var(--amber);background:var(--accent-soft);border-radius:8px;padding:8px 12px}}
 .fulltext p{{font-size:15px;line-height:1.95;color:var(--txt3);margin:0 0 14px}}
@@ -1011,6 +1007,10 @@ def render_detail(e, all_events, css, tts_item=None):
 .tts-rate-label select{{border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--ink);font-size:11px;padding:4px 5px}}
 @media(max-width:600px){{.tts-player{{grid-template-columns:1fr auto auto;gap:9px;padding:11px 12px}}.tts-copy{{grid-column:1/-1;grid-row:1;flex-direction:row;align-items:baseline;gap:8px}}.tts-toggle{{grid-column:1;grid-row:2}}.tts-time{{grid-column:2;grid-row:2}}.tts-rate-label{{grid-column:3;grid-row:2}}.tts-progress{{grid-column:1/-1;grid-row:3}}}}
 @media(prefers-reduced-motion:reduce){{.tts-player *{{scroll-behavior:auto!important;transition:none!important}}}}
+@media(hover:hover) and (pointer:fine){{
+  .article .back:hover,.source-report:hover .source-report-title{{color:var(--accent)}}
+  .cta:hover{{opacity:.9}}
+}}
 .disclaimer{{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}}
 .disclaimer a{{color:var(--accent)}}
 </style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="{event_id}" data-category="{esc(e["category"])}" data-source="{main_src}">
@@ -1969,8 +1969,6 @@ def main():
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>{css}
 {SHARED_CSS}
-.item a:hover{{color:var(--accent)}}
-.hot a:hover{{color:var(--accent)}}
 #ptr{{position:fixed;top:0;left:0;right:0;height:0;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;background:var(--bg);z-index:60;transition:height .12s ease-out}}
 #ptr span{{font-size:12.5px;color:var(--sub);padding-bottom:8px}}
 </style></head><body class="has-sb home-page" data-page="home">

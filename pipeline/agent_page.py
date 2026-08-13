@@ -62,7 +62,6 @@ AGENT_PAGE_CSS = """
 .agent-code{margin:0;padding:14px 15px;border-radius:10px;background:var(--soft);color:var(--ink);font-size:12.5px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}
 .agent-actions{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
 .agent-copy{appearance:none;border:0;border-radius:99px;background:var(--ink);color:var(--bg);padding:9px 15px;font-size:12.5px;font-weight:700;cursor:pointer}
-.agent-copy:hover{opacity:.86}
 .agent-copy:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .agent-feedback{min-height:20px;color:var(--accent);font-size:12px}
 .agent-status{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}
@@ -76,6 +75,7 @@ AGENT_PAGE_CSS = """
 .agent-tech summary{padding:14px 0;cursor:pointer;color:var(--ink);font-size:13px;font-weight:700}
 .agent-tech-body{padding:0 0 15px;color:var(--txt2);font-size:12px;line-height:1.8}
 .agent-tech-body a{color:var(--accent);overflow-wrap:anywhere}
+@media(hover:hover) and (pointer:fine){.agent-copy:hover{opacity:.86}}
 @media(max-width:600px){
   .agent-page{padding:24px 18px 58px}
   .agent-hero h1{font-size:25px}

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob: https://api.qrserver.com; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-5ae4U6yhYKX9Ves91y6yPzR6eLFrVr/DFjgWuWnPBzQ=' 'sha256-loFOFFutRRjB9WGfaVd012HuHWNEyhLkdQj5xPFnbWw=' 'sha256-zTbqoLXOVJ6Y7bxwX42flzVUMpf3rgsI16LDibNF8HY='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-5ae4U6yhYKX9Ves91y6yPzR6eLFrVr/DFjgWuWnPBzQ=' 'sha256-gAXP0DXoDqCTLDy+dWhtlLyV2smnbWWXFWrPR64UykA=' 'sha256-u5lt/tyCN4EDIaeYaY3CAFOT5IFnQYt+1XnVX7DJvAQ='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Epic Games如何调优OpenSearch支撑Fortnite分析 · DataHot</title>
@@ -72,10 +72,10 @@
   .btn-sub{background:var(--accent);color:#fff;border-radius:99px;padding:7px 16px;font-size:13px;font-weight:600;white-space:nowrap}
 
   .layout{display:grid;grid-template-columns:1fr 320px;gap:24px;padding:28px 0 60px}
-  @media(max-width:960px){.layout{grid-template-columns:1fr}}
+  @media(max-width:1199px){.layout{grid-template-columns:1fr}}
 
   /* ── 移动端导航适配 ── */
-  @media(max-width:960px){
+  @media(max-width:1199px){
     .nav{flex-wrap:wrap;height:auto;padding:8px 0;gap:10px;min-height:52px}
     .logo{font-size:19px}
     .logo .tag{display:none}
@@ -102,12 +102,13 @@
     .why{font-size:12.5px;line-height:1.7}
     .brief{padding:16px 18px}
     .brief p{font-size:13.5px}
-    .chiprow{gap:6px}
-    .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:32px;display:inline-flex;align-items:center}
+    .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-right:28px}
+    .chiprow::after{display:block;content:"";position:sticky;right:0;flex:0 0 28px;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+    .chiprow::-webkit-scrollbar{display:none}
+    .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:44px;display:inline-flex;align-items:center}
     .tab,.fchip,.chip{touch-action:manipulation}
     aside{align-self:start;position:sticky;top:20px}
-@media(min-width:1280px){.wrap{max-width:1320px}}
-aside .card{padding:14px 16px}
+    aside .card{padding:14px 16px}
     .article{padding:20px 14px 48px}
     .article h1{font-size:20px}
     .article .body{font-size:14.5px}
@@ -115,6 +116,7 @@ aside .card{padding:14px 16px}
     .cta{width:100%;text-align:center;padding:13px 0;font-size:15px}
     .day-head .date{font-size:15px}
   }
+  @media(min-width:1280px){.wrap{max-width:1320px}}
 
   /* ── 每周简报 ── */
   .brief{background:linear-gradient(135deg,#1a1d23 0%,#2b2418 60%,#3d2412 100%);color:#fff;border-radius:var(--radius);padding:22px 26px;margin-bottom:22px;position:relative;overflow:hidden}
@@ -131,15 +133,17 @@ aside .card{padding:14px 16px}
   .timeline-toolbar h2,.timeline-toolbar .timeline-count{white-space:nowrap}
   .timeline-searchbox{display:flex;align-items:center;min-width:0;width:min(150px,40vw);margin-left:auto}
   .timeline-searchbox .tlsearch{margin-left:0;min-width:0;flex:1 1 0}
-  .timeline-clear{cursor:pointer;color:var(--sub);margin-left:6px}
+  .timeline-clear{appearance:none;display:inline-grid;place-items:center;min-width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:var(--sub);cursor:pointer;margin-left:4px;font:inherit}
   .timeline-count{font-size:11px;color:var(--sub)}
   @media(max-width:600px){
     .timeline-toolbar{gap:8px}
     .timeline-searchbox{width:min(120px,34vw)}
     .timeline-searchbox .tlsearch,.timeline-searchbox .tlsearch:focus{width:100%}
+    .timeline-clear{min-width:44px;height:44px}
   }
   .hotlist{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:30px}
-  @media(max-width:960px){.hotlist{grid-template-columns:1fr}}
+  @media(max-width:600px){.hotlist{grid-template-columns:1fr;gap:10px}}
+  @media(max-width:1399px) and (min-width:601px){.hotlist{grid-template-columns:repeat(2,minmax(0,1fr))}}
   .hot{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;position:relative;transition:.15s;cursor:pointer}
   .hot .rank{position:absolute;top:-1px;left:16px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:0 0 8px 8px}
   .hot .heat{position:absolute;top:12px;right:16px;font-size:12px;color:var(--accent);font-weight:700}
@@ -163,6 +167,10 @@ aside .card{padding:14px 16px}
   }
   @media(hover:none) and (pointer:coarse){
     .hot:active,.item:active{border-color:#d1d5db;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+  }
+  .fchip:focus-visible,.timeline-clear:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   }
   .item .top{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub);flex-wrap:wrap}
   .badge{font-weight:600;border-radius:6px;padding:1px 8px;font-size:11px}
@@ -207,18 +215,19 @@ aside .card{padding:14px 16px}
 body{overflow-x:clip}
 main,.layout>*,.hotlist>*{min-width:0}
 .d-only{display:inline-block}
-@media(max-width:960px){.d-only{display:none}}
+@media(max-width:1199px){.d-only{display:none}}
 .chip{display:inline-block;font-size:11px;background:#eef2ff;color:var(--blue);border-radius:99px;padding:1px 10px;text-decoration:none}
 .tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
 .tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
-.chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px;position:relative}
-.chiprow::after{content:"";position:sticky;right:0;flex-shrink:0;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+.chiprow{display:flex;flex-wrap:wrap;gap:8px;overflow:visible;padding:4px 0 12px;margin-bottom:4px;position:relative}
+.chiprow::after{display:none;content:"";position:sticky;right:0;flex:0 0 28px;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
 .chiprow::-webkit-scrollbar{display:none}
-.chiprow .fchip{flex-shrink:0;font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
+.chiprow .fchip{appearance:none;flex-shrink:0;min-height:36px;font:inherit;font-size:12.5px;line-height:1.4;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
 .chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
 @media(max-width:600px){
-  .chiprow{gap:6px}
-  .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:32px;display:inline-flex;align-items:center}
+  .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-right:28px}
+  .chiprow::after{display:block}
+  .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:44px;display:inline-flex;align-items:center}
 }
 @media (prefers-color-scheme: dark){
   .chip{background:rgba(110,168,255,.16);color:#6ea8ff}
@@ -256,7 +265,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   .source-intro{margin-bottom:25px}
   .source-intro h1{font-size:24px}
   .source-row{gap:8px}
-  .source-name{font-size:13px}
+  .source-name{font-size:13px;min-height:44px}
   .source-focus{max-width:45%;font-size:11px}
   .source-disabled .source-row{display:block}
   .source-disabled-reason{max-width:none;margin:4px 0 0;text-align:left}
@@ -267,16 +276,21 @@ main,.layout>*,.hotlist>*{min-width:0}
 .cpin{width:18px;flex-shrink:0;font-size:12px}
 .ctitle{font-size:13.5px;font-weight:600;line-height:1.55;flex:1}
 .cmeta{font-size:11px;color:var(--sub);white-space:nowrap}
-.favbtn{border:none;background:none;color:var(--sub);cursor:pointer;padding:2px;display:inline-flex;align-items:center}
+.favbtn{appearance:none;min-width:36px;min-height:36px;border:none;background:none;color:var(--sub);cursor:pointer;padding:6px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%}
 .favbtn.on{color:var(--accent)}
 .favbtn.on svg{fill:currentColor}
 .favbtn svg{pointer-events:none}
 .fav-entry{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--sub);white-space:nowrap;text-decoration:none}
-.privacy-btn{border:none;background:var(--accent);color:#fff;border-radius:99px;padding:9px 16px;font-size:12.5px;font-weight:650;cursor:pointer;margin:4px 6px 4px 0}
+.privacy-btn{min-height:44px;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:9px 16px;font-size:12.5px;font-weight:650;cursor:pointer;margin:4px 6px 4px 0}
 .privacy-btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .load-more{display:block;margin:18px auto 4px;border:1px solid var(--line);background:var(--card);color:var(--txt2);border-radius:99px;padding:9px 22px;font-size:12.5px;font-weight:650;cursor:pointer}
 .load-more[hidden]{display:none}
 .load-more[disabled]{opacity:.65;cursor:default}
+.filter-error b{display:block;margin-bottom:5px;color:var(--ink);font-size:14px}
+.filter-error p{margin:0;color:var(--sub);font-size:12.5px;line-height:1.7}
+.filter-error-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.filter-error-actions button{min-height:44px;border:1px solid var(--line);border-radius:99px;padding:8px 15px;background:var(--card);color:var(--ink);font:inherit;font-size:12.5px;font-weight:650;cursor:pointer}
+.filter-error-actions button:first-child{border-color:var(--accent);background:var(--accent);color:#fff}
 .weekly-teaser{display:block;background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border-radius:var(--radius);padding:18px 22px;margin-bottom:22px;text-decoration:none;position:relative;overflow:hidden}
 .weekly-teaser .weekly-kicker{font-size:11px;letter-spacing:1.5px;color:#f5b48a;font-weight:750;margin-bottom:6px}
 .weekly-teaser h2{font-size:19px;line-height:1.45;margin:0 0 5px}
@@ -340,7 +354,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .hrow .hm{font-size:11px;color:var(--sub);white-space:nowrap}
 .srcbadge{font-size:10px;border:1px solid var(--line);border-radius:5px;padding:0 5px;color:var(--sub);flex-shrink:0;line-height:1.6}
 .sidebar{display:none}
-@media(min-width:961px){
+@media(min-width:1200px){
   body.has-sb{padding-left:224px}
   body.has-sb>header{display:none}
   .sidebar{display:flex;position:fixed;left:0;top:0;bottom:0;width:224px;flex-direction:column;background:var(--card);border-right:1px solid var(--line);padding:22px 16px;z-index:40}
@@ -354,7 +368,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .hot .htime{margin-left:auto;font-size:11px;color:var(--sub)}
 .tabbar{display:none}
 .more-mask,.more-sheet{display:none}
-@media(max-width:960px){
+@media(max-width:1199px){
   body{padding-bottom:64px}
   footer{padding-bottom:96px}
   body.mobile-section{padding-top:env(safe-area-inset-top)}
@@ -370,13 +384,18 @@ main,.layout>*,.hotlist>*{min-width:0}
   .more-handle{width:36px;height:4px;border-radius:99px;background:var(--line);margin:2px auto 12px}
   .more-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
   .more-head h2{font-size:18px}
-  .more-close{appearance:none;border:0;background:var(--soft);color:var(--sub);width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer}
+  .more-close{appearance:none;border:0;background:var(--soft);color:var(--sub);width:44px;height:44px;border-radius:50%;font-size:18px;cursor:pointer}
   .more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .more-link{display:flex;align-items:center;gap:11px;min-height:58px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);text-decoration:none;color:var(--ink)}
   .more-link .more-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent);flex:0 0 auto}
   .more-link span:last-child{min-width:0;font-size:13px;font-weight:650}
   .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
   body.more-open{overflow:hidden}
+}
+.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.load-more:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:600px){.favbtn{min-width:44px;min-height:44px}}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
 .tgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
 @media(max-width:960px){.tgrid{grid-template-columns:1fr}}
@@ -458,7 +477,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .tts-copy{display:flex;flex-direction:column;min-width:112px;line-height:1.35}
 .tts-copy b{font-size:12.5px;color:var(--ink)}
 .tts-copy span{font-size:10.5px;color:var(--sub);margin-top:2px}
-.tts-toggle{border:0;border-radius:99px;background:var(--ink);color:var(--card);font-size:12px;font-weight:750;padding:7px 13px;cursor:pointer;min-width:58px}
+.tts-toggle{min-width:58px;min-height:44px;border:0;border-radius:99px;background:var(--ink);color:var(--card);font-size:12px;font-weight:750;padding:7px 13px;cursor:pointer}
 .tts-progress{width:100%;accent-color:var(--accent);cursor:pointer}
 .tts-time{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}
 .tts-rate-label{font-size:10.5px;color:var(--sub);display:flex;align-items:center;gap:4px}
@@ -472,9 +491,9 @@ main,.layout>*,.hotlist>*{min-width:0}
 .disclaimer{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}
 .disclaimer a{color:var(--accent)}
 </style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="852499f0cb49" data-category="platform" data-source="AWS Big Data Blog">
-<aside class="sidebar"><div class="slogo"><a href="../index.html" aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><a class="mi on" href="../index.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>每周简报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>我的收藏</a><a class="mi" href="../classics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg>典藏</a><a class="mi" href="../hot.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>完整榜单</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>
+<aside class="sidebar"><div class="slogo"><a href="../index.html" data-smart-home-return aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><a class="mi on" href="../index.html" data-smart-home-return><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>每周简报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>我的收藏</a><a class="mi" href="../classics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg>典藏</a><a class="mi" href="../hot.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>完整榜单</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>
 <header class="detail-brand-header"><div class="wrap nav">
-  <div class="logo"><a href="../index.html">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
+  <div class="logo"><a href="../index.html" data-smart-home-return>Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
 <div class="article">
   <div class="topbar detail-context">
@@ -483,7 +502,7 @@ main,.layout>*,.hotlist>*{min-width:0}
       <button class="sbtn ghost favbtn" data-fav="852499f0cb49" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
       <button class="sbtn ghost tts-open" type="button" data-tts-open aria-expanded="false" aria-controls="ttsPlayer"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><path d="M18 19h1a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-1v6zM6 19H5a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h1v6z"/></svg> <span data-tts-open-label>听这篇</span></button>
       <a class="sbtn ghost" href="https://aws.amazon.com/blogs/big-data/how-a-team-at-epic-games-tuned-amazon-opensearch-service-for-fortnite-analytics/" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="AWS Big Data Blog">原文</a>
-      <button class="sbtn ghost" type="button" data-share-action="poster">海报</button>
+      <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/852499f0cb49.png">海报</button>
       <button class="sbtn" type="button" data-share-action="open">分享</button>
     </span>
   </div>
@@ -509,8 +528,8 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="body">Epic Games与AWS合作，对其Amazon OpenSearch Service集群进行优化，用于Fortnite游戏遥测数据的存储与分析。团队通过调整实例规格、重新平衡分片、优化索引映射以及升级引擎和Graviton版本，在降低运营成本的同时显著提升了查询延迟和吞吐量。该实践支撑了数十亿级遥测事件的处理，帮助Epic识别玩法趋势并辅助实时运营决策。</div>
   <div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>聚焦游戏数据分析场景下的OpenSearch调优实践，涉及大规模遥测处理、查询性能与成本优化，对数据平台从业者有直接参考价值。</span></div>
   <div class="vendors" style="margin-top:14px"><a class="chip" href="../topics/realtime.html">实时分析</a><a class="chip" href="../topics/data-people.html">数据人</a><span class="vtag">AWS</span></div>
-  <div class="card content-card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 原文</h4>
-  <div class="fulltext"><p>Since the launch of Fortnite in 2017, <a href="https://www.epicgames.com/site/home?sessionInvalidated=true" target="_blank" rel="noopener noreferrer nofollow">Epic Games</a> has reached hundreds of millions of players worldwide. <a href="https://aws.amazon.com/solutions/case-studies/innovators/epic-games/" target="_blank" rel="noopener noreferrer nofollow">Fortnite runs on Amazon Web Services (AWS)</a>, and takes advantage of services such as <a href="https://aws.amazon.com/opensearch-service/" target="_blank" rel="noopener noreferrer nofollow">Amazon OpenSearch Service</a> to power certain internal analytics and drive decision making at scale.</p><p>Amazon OpenSearch Service has been helpful in understanding the game ecosystem. OpenSearch Service powers two types of use cases: search workloads and analytics workloads. A team at Epic Games had a use case for storing and analyzing a sliding window of game event data. This involves supporting complex queries and multilayered aggregations that feed analytical results into other internal systems, helping them power an evolving player experience. At the scale of a game like Fortnite with a large player base, these queries run against a significant volume of incoming data.</p><p>These insights help identify emerging gameplay trends, understand how players engage with new content, and reveal more about the Fortnite ecosystem. They inform live operation decisions and help surface relevant content to players based on aggregated activity across the community.</p><p>As Epic Games’ infrastructure handles billions of telemetry events, the team identified opportunities to optimize their OpenSearch Service cluster for better performance and cost efficiency. This post details how Epic Games partnered with AWS to transform their OpenSearch Service deployment, achieving significant improvements in query latency and resource utilization while reducing operational costs.</p><h2 class="cb-heading">The challenge</h2><p>Epic Games runs an OpenSearch Service domain that handles continuous high-volume writes alongside CPU-intensive batch aggregation jobs. Ideally, these aggregation jobs would run more frequently to keep analytics fresh. Shorter job intervals mean fresher data for identifying gameplay trends, detecting anomalies, and informing live operations decisions. But the existing configuration couldn’t support this without scaling the domain beyond what the workload justified, driving up costs. Epic Games worked with AWS to identify where improvements could be made, focusing on areas such as hardware utilization, sharding strategy, index mappings, and query behavior.</p><h2 class="cb-heading">Observations</h2><p>The cluster was running on r7g memory-optimized data nodes, with 48 vCPUs and 384 GiB of memory per node. Of each node’s available memory, only a fraction (32 GiB) was allocated to Java Virtual Machine (JVM) heap, set at the maximum recommended for <a href="https://www.baeldung.com/jvm-compressed-oops" target="_blank" rel="noopener noreferrer nofollow">compressed oops</a>. The remainder (off-heap memory) was used for the filesystem cache and the operating system. System memory was not fully utilized across the data nodes (Figure 1).</p><p>Figure 1: System memory utilization across data nodes</p><p>As shown in the preceding figure, utilization stays well below 100% throughout the observation period, confirming that much of the off-heap memory allocated to these nodes goes unused. The excess capacity could be safely exchanged for additional compute resources.</p><p>JVM memory pressure is shown in Figure 2, and the correlating garbage collection metrics (both count and time) are shown in Figure 3.</p><p>Figure 2: JVM memory pressure</p><figure class="cb-figure"><a class="cb-media-link" href="https://d2908q01vomqb2.cloudfront.net/b6692ea5df920cad691c20319a6fffd7a4a766b8/2026/08/04/image-jvm-3.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/852499f0cb49/c40b5e85fa4b758f9d2d6232.png" alt="" loading="lazy" decoding="async" width="2400" height="722"></a></figure><p>Figure 3: JVM garbage collection metrics, count (top) and time (bottom)</p><p>These charts show that JVM memory pressure remains below critical thresholds, and both garbage collection count and time are low and stable, indicating healthy JVM utilization across the domain.</p><p>While cluster-level CPU metrics appeared healthy at first glance (Figure 4), zooming into node-level metrics revealed clear node hotspots. The root cause of the node hotspots was the cluster’s sharding strategy.</p><p>Figure 4: Cluster-level CPU utilization</p><p>The cluster had data nodes distributed across multiple Availability Zones. Each index used a set number of primary shards with replicas, rolling over after shards reached a certain size. At first glance, the configuration appeared well-balanced, with shard copies distributed across Availability Zones and each node holding a manageable share of the data.</p><p>However, the primary shard count was lower than the total data node count. This meant that searches targeting the latest data, which is the most common access pattern, would only execute across a subset of available nodes. As a result, some nodes developed consistent CPU-based hotspots while the rest remained underutilized (Figure 5).</p><p>Figure 5: Node-level CPU utilization showing hotspots</p><p>As shown in the preceding figure, some nodes reach as high as 90 percent CPU utilization while several others remain under 20 percent, highlighting the uneven distribution of query execution across the cluster.</p><h2 class="cb-heading">Recommendations and implementation</h2><p>Based on these observations, AWS worked together with Epic Games on a set of targeted optimizations spanning hardware selection, sharding strategy, index mappings, and query behavior. The following sections detail each recommendation and how it was implemented.</p><h3 class="cb-heading">Right-sizing the cluster</h3><p>Because aggregation queries are CPU-intensive by nature and the cluster’s JVM memory pressure was well within acceptable ranges, AWS recommended migrating from memory-optimized r7g instances to compute-optimized c7g instances. The c7g family offers a higher ratio of vCPU to RAM, which is better suited for workloads where processing power rather than memory capacity is the binding constraint.</p><p>The proposed architecture called for a larger number of c7g nodes than the existing r7g count. This migration achieved approximately 33 percent more aggregate CPU capacity across the cluster while operating with two-thirds of the original memory. The net effect was a meaningful cost reduction of approximately 10 percent, delivering more processing power at lower cost by aligning the instance profile with the actual nature of the workload (Table 1).</p><p> </p><div class="cb-table" role="region" aria-label="原文表格" tabindex="0"><table><tr><td><strong>R7g (Before)</strong></td><td><strong>c7g (After)</strong></td><td><strong>Net Impact</strong></td></tr><tr><td><strong>Instance Family</strong></td><td>Memory Optimized</td><td>Compute Optimized</td><td>Better CPU-to-RAM alignment for aggregation workloads</td></tr><tr><td><strong>vCPUs per Node</strong></td><td>Same</td><td>Same</td><td>Same per-node CPU. More nodes = higher aggregate CPU</td></tr><tr><td><strong>Memory per Node</strong></td><td>Higher</td><td>Lower</td><td>Reduced unused memory; JVM heap unchanged</td></tr><tr><td><strong>Aggregate CPU</strong></td><td>Baseline</td><td>+33% more total vCPUs</td><td>Distributed more evenly across higher node count</td></tr><tr><td><strong>Cost</strong></td><td>Baseline</td><td>~10% reduction</td><td>More performance per dollar spent</td></tr></table></div><p><em>Table 1: Instance migration comparison, r7g compared to c7g</em></p><h3 class="cb-heading">Sharding strategy</h3><p>To support the new cluster sizing, the Epic Games team changed the sharding strategy so that the number of primary shards matches the data node count, with 1 replica. This distributes both the write-heavy load and the batch aggregation search query load evenly on all the available data nodes.</p><p>The team employed <a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/ism.html" target="_blank" rel="noopener noreferrer nofollow">ISM</a> (Index State Management) policies to manage shard sizing through rollover, targeting shard sizes within recommended bounds using <code>min_primary_shard_size</code>. This kept shard counts bounded and predictable, providing a clear scaling pattern: adjust the node count, then update the ISM policy accordingly.</p><p>After implementation, node-level CPU utilization showed a much more even distribution (Figure 6).</p><p>Figure 6: Node-level CPU utilization after sharding optimization</p><p>As shown in Figure 6, all nodes in the domain are working at similar CPU utilization levels, confirming that data and traffic are well distributed across the cluster with no node hotspots.</p><h3 class="cb-heading">Mapping optimization</h3><p>The index mappings had both <code>text</code> and <code>keyword</code> field types enabled on many fields, even though access patterns showed those fields were only used for aggregation, sorting, or filter context, and never for full-text match queries. Removing the redundant <code>text</code> field type reduced storage overhead and improved query performance by eliminating unnecessary analysis at index time.</p><p>For high-cardinality string fields, the <code>murmur3</code> field type does a compute-once-and-store optimization for cardinality aggregation. Instead of hashing keyword values at query time, <code>murmur3</code> computes the hash once at index time and stores it as a numeric <code>doc_value</code>, so the aggregation can skip the expensive string hashing step at query time (the cardinality estimate itself is still computed at query time).</p><p>The following example illustrates the mapping changes:</p><pre><code class="language-">&quot;some_field&quot;: {
+  <div class="card content-card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 译文 <span class="content-origin-badge">AI 逐段翻译</span></h4>
+  <div class="fulltext"><h2 class="cb-heading">Epic Games 的一个团队如何为 Fortnite 分析调优 Amazon OpenSearch Service</h2><p>自 2017 年 Fortnite 发布以来，<a href="https://www.epicgames.com/site/home?sessionInvalidated=true" target="_blank" rel="noopener noreferrer nofollow">Epic Games</a>已覆盖全球数亿玩家。<a href="https://aws.amazon.com/solutions/case-studies/innovators/epic-games/" target="_blank" rel="noopener noreferrer nofollow">Fortnite 运行在 Amazon Web Services (AWS) 上</a>，并利用诸如<a href="https://aws.amazon.com/opensearch-service/" target="_blank" rel="noopener noreferrer nofollow">Amazon OpenSearch Service</a>等服务来驱动某些内部分析，并在大规模决策中发挥作用。</p><p>Amazon OpenSearch Service 在理解游戏生态系统方面一直很有帮助。OpenSearch Service 支持两种类型的用例：搜索工作负载和分析工作负载。Epic Games 的一个团队有一个用例，用于存储和分析滑动窗口的游戏事件数据。这涉及到支持复杂的查询和多层聚合，这些聚合将分析结果反馈到其他内部系统，帮助他们推动不断发展的玩家体验。在像 Fortnite 这样拥有庞大玩家基础的游戏规模下，这些查询要处理大量的传入数据。</p><p>这些见解有助于识别新兴的游戏趋势，了解玩家如何与新内容互动，并揭示更多关于 Fortnite 生态系统的信息。它们为实时运营决策提供信息，并根据社区中的聚合活动向玩家展示相关内容。</p><p>随着 Epic Games 的基础设施处理数十亿遥测事件，该团队发现了优化其 OpenSearch Service 集群以提升性能和成本效率的机会。本文详细介绍了 Epic Games 如何与 AWS 合作改造其 OpenSearch Service 部署，在降低运营成本的同时，实现了查询延迟和资源利用率的显著改善。</p><h2 class="cb-heading">挑战</h2><p>Epic Games 运行着一个 OpenSearch Service 域，该域处理持续的高容量写入以及 CPU 密集型的批处理聚合作业。理想情况下，这些聚合作业应该更频繁地运行，以保持分析的新鲜度。较短的任务间隔意味着更新鲜的数据，用于识别游戏趋势、检测异常和指导实时运营决策。但现有的配置无法在不扩大域规模超出工作负载合理需求的情况下支持这一点，从而推高了成本。Epic Games 与 AWS 合作，以确定可以改进的地方，重点关注硬件利用率、分片策略、索引映射和查询行为等领域。</p><h2 class="cb-heading">观察</h2><p>该集群运行在 r7g 内存优化数据节点上，每个节点具有 48 个 vCPU 和 384 GiB 内存。每个节点的可用内存中，只有一小部分（32 GiB）分配给 Java 虚拟机（JVM）堆，设置为压缩普通对象指针的最大推荐值。<a href="https://www.baeldung.com/jvm-compressed-oops" target="_blank" rel="noopener noreferrer nofollow">压缩普通对象指针</a>其余部分（堆外内存）用于文件系统缓存和操作系统。数据节点的系统内存并未充分利用（图 1）。</p><p>图 1：跨数据节点的系统内存利用率</p><p>如上图所示，在观察期间利用率远低于 100%，确认分配给这些节点的大量堆外内存未使用。多余容量可以安全地换取额外的计算资源。</p><p>JVM 内存压力如图 2 所示，相关的垃圾收集指标（计数和时间）如图 3 所示。</p><p>图 2：JVM 内存压力</p><figure class="cb-figure"><a class="cb-media-link" href="https://d2908q01vomqb2.cloudfront.net/b6692ea5df920cad691c20319a6fffd7a4a766b8/2026/08/04/image-jvm-3.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/852499f0cb49/c40b5e85fa4b758f9d2d6232.png" alt="" loading="lazy" decoding="async" width="2400" height="722"></a></figure><p>图 3：JVM 垃圾收集指标，计数（上）和时间（下）</p><p>这些图表显示，JVM 内存压力保持在临界阈值以下，垃圾收集计数和时间都较低且稳定，表明整个域的 JVM 利用率健康。</p><p>虽然集群级 CPU 指标乍一看很健康（图 4），但放大节点级指标揭示了明显的节点热点。节点热点的根本原因是集群的分片策略。</p><p>图 4：集群级 CPU 利用率</p><p>该集群的数据节点分布在多个可用区。每个索引使用一定数量的主分片和副本，当分片达到一定大小后进行滚动。乍一看，配置似乎很均衡，分片副本分布在可用区之间，每个节点持有合理的数据份额。</p><p>然而，主分片数低于数据节点总数。这意味着针对最新数据的搜索（这是最常见的访问模式）只会在可用节点的子集上执行。结果，一些节点出现持续的 CPU 热点，而其余节点则利用不足（图 5）。</p><p>图 5：节点级 CPU 利用率显示热点</p><p>如上图所示，一些节点的 CPU 利用率高达 90%，而其他一些节点则低于 20%，突出了查询执行在集群中的不均匀分布。</p><h2 class="cb-heading">建议和实施</h2><p>基于这些观察，AWS 与 Epic Games 合作，实施了一系列有针对性的优化，涵盖硬件选择、分片策略、索引映射和查询行为。以下部分详细介绍了每项建议及其实现方式。</p><h3 class="cb-heading">调整集群规模</h3><p>由于聚合查询本质上是 CPU 密集型的，并且集群的 JVM 内存压力远在可接受范围内，AWS 建议从内存优化的 r7g 实例迁移到计算优化的 c7g 实例。c7g 系列提供更高的 vCPU 与内存比例，更适合处理能力而非内存容量是限制因素的工作负载。</p><p>提议的架构要求比现有 r7g 数量更多的 c7g 节点。此次迁移在仅使用原始内存三分之二的情况下，跨集群实现了约 33% 的聚合 CPU 容量提升。净效果是成本降低了约 10%，通过使实例类型与实际工作负载性质对齐，以更低的成本提供了更多的处理能力（表 1）。</p><p> </p><div class="cb-table" role="region" aria-label="原文表格" tabindex="0"><table><tr><td><strong>R7g（之前）</strong></td><td><strong>c7g（之后）</strong></td><td><strong>净影响</strong></td></tr><tr><td><strong>实例系列</strong></td><td>内存优化</td><td>计算优化</td><td>更好的 CPU 与内存比例，适用于聚合工作负载</td></tr><tr><td><strong>每个节点的vCPU数</strong></td><td>相同</td><td>相同</td><td>每节点CPU相同。节点越多，总CPU越高</td></tr><tr><td><strong>每个节点的内存</strong></td><td>更高</td><td>更低</td><td>减少未使用的内存；JVM堆不变</td></tr><tr><td><strong>总CPU</strong></td><td>基准</td><td>总vCPU增加33%</td><td>在更高的节点数上更均匀地分布</td></tr><tr><td><strong>成本</strong></td><td>基准</td><td>约降低10%</td><td>每美元获得更多性能</td></tr></table></div><p><em>表1：实例迁移对比，r7g与c7g</em></p><h3 class="cb-heading">分片策略</h3><p>为了支持新的集群规模，Epic Games团队改变了分片策略，使主分片数量与数据节点数相匹配，并设置1个副本。这将写密集负载和批量聚合搜索查询负载均匀分布在所有可用数据节点上。</p><p>团队采用了<a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/ism.html" target="_blank" rel="noopener noreferrer nofollow">ISM</a>（索引状态管理）策略，通过滚动管理分片大小，使用<code>min_primary_shard_size</code>将分片大小控制在建议范围内。这保持了分片数量的有界和可预测性，提供了清晰的扩展模式：调整节点数，然后相应更新ISM策略。</p><p>实施后，节点级CPU利用率显示出更均匀的分布（图6）。</p><p>图6：分片优化后的节点级CPU利用率</p><p>如图6所示，域中的所有节点都在相似的CPU利用率水平上工作，确认数据和流量在集群中分布良好，没有节点热点。</p><h3 class="cb-heading">映射优化</h3><p>索引映射在许多字段上同时启用了<code>text</code>和<code>keyword</code>字段类型，即使访问模式显示这些字段仅用于聚合、排序或过滤上下文，从未用于全文匹配查询。删除冗余的<code>text</code>字段类型减少了存储开销，并通过消除索引时不必要的分析提高了查询性能。</p><p>对于高基数字符串字段，<code>murmur3</code>字段类型在索引时计算一次并存储，用于基数聚合。它不是每次查询时对关键字值进行哈希，而是<code>murmur3</code>在索引时计算一次哈希，并将其存储为数值<code>doc_value</code>，这样聚合可以跳过查询时昂贵的字符串哈希步骤（基数估计本身仍在查询时计算）。</p><p>以下示例说明了映射更改：</p><pre><code class="language-">&quot;some_field&quot;: {
   &quot;type&quot;: &quot;text&quot;,
   &quot;fields&quot;: {
     &quot;keyword&quot;: {
@@ -549,21 +568,21 @@ main,.layout>*,.hotlist>*{min-width:0}
       &quot;type&quot;: &quot;murmur3&quot;
     }
   }
-},</code></pre><div class="cb-table" role="region" aria-label="原文表格" tabindex="0"><table><tr><td>Before:</td><td>After:</td></tr><tr><td>   </td><td>   </td></tr></table></div><p>These mapping changes reduced overall storage, lowered shard count (which reduced CPU requirements), and reduced cluster manager node state size.</p><h3 class="cb-heading">Index optimization</h3><p>Additional index-level optimizations were applied to improve query performance and reduce overhead. Index sorting was configured to default to the primary date field, which improves performance for time-based access patterns by aligning the physical data layout with the most common query order. The ISM policy was updated to <a href="https://docs.opensearch.org/latest/im-plugin/ism/policies/#force_merge" target="_blank" rel="noopener noreferrer nofollow">force merge</a> indices down to 1 segment after rollover, reducing segment overhead on read-only indices. Finally, the refresh interval was tuned to balance indexing throughput with search freshness.</p><h3 class="cb-heading">Upgrading from OpenSearch Service 2.17 to 3.1</h3><p>The domain was upgraded from OpenSearch Service 2.17 to 3.1, which reduced error counts and improved throughput at the Amazon OpenSearch Ingestion pipeline level. The performance gains were notable: p99 latency on sum aggregations dropped by 40–50 percent after the upgrade alone, and large 96-hour cardinality aggregations saw p95 drop over 40 percent. General query performance improved across all query types, and thread pool pressure was reduced significantly, leading to far fewer 429 errors (Figure 7).</p><figure class="cb-figure"><a class="cb-media-link" href="https://d2908q01vomqb2.cloudfront.net/b6692ea5df920cad691c20319a6fffd7a4a766b8/2026/08/04/image-40.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/852499f0cb49/b2dd5e358c767a1f8f498eff.png" alt="" loading="lazy" decoding="async" width="1694" height="265"></a></figure><p>Figure 7: Query performance before and after the OpenSearch Service 3.1 upgrade</p><h3 class="cb-heading">Upgrading from Graviton 3 to Graviton 4</h3><p>The instance types were upgraded from c7g (Graviton 3) to c8g (Graviton 4). The performance gains were immediate:</p><ul><li>p99 on all queries: 380 ms to 250 ms.</li><li>p95 on all queries: 245 ms to 230 ms.</li><li>p90 on all queries: 225 ms to 200 ms.</li><li>p50 on all queries: 100 ms to 70 ms.</li></ul><p>Date-windowed cardinality queries saw their p99 halved from 220 ms to 98 ms, with sum-based aggregations experiencing similar gains. Overall throughput increased by 16 percent.</p><h3 class="cb-heading">Tiered caching</h3><p>With the upgrade to OpenSearch Service 3.1, the team enabled <a href="https://opensearch.org/docs/latest/search-plugins/caching/tiered-cache/" target="_blank" rel="noopener noreferrer nofollow">tiered caching</a>. Tiered caching extends the default on-heap request cache with a disk-based tier. When items are evicted from the on-heap cache, they spill into a larger disk cache on the node’s local SSD rather than being discarded. This allows the cluster to retain cached results for a much larger set of queries without increasing JVM heap usage.</p><p>The batch aggregation jobs in Epic Games’ workload issue repeated queries over overlapping time windows. The on-heap cache alone was too small to retain results across successive job runs, so expensive aggregations were recomputed each time. With the disk tier enabled, results from longer time-window aggregations (such as the 96-hour cardinality queries) persisted between runs. This produced more consistent and faster results on some of the larger aggregation queries, particularly those spanning longer time windows.</p><h2 class="cb-heading">Results summary</h2><p>The following table summarizes the impact of each optimization.</p><div class="cb-table" role="region" aria-label="原文表格" tabindex="0"><table><tr><td><strong>Optimization Strategy</strong></td><td><strong>Impact</strong></td></tr><tr><td>Right-sizing (r7g to c7g)</td><td>33% more CPU, 10% cost reduction</td></tr><tr><td>Sharding rebalance</td><td>Eliminated CPU hotspots across nodes</td></tr><tr><td>Mapping optimization</td><td>Reduced storage, shard count, and cluster state size</td></tr><tr><td>OpenSearch Service 2.17 to 3.1</td><td>p99 sum aggs reduced 40-50%, fewer 429 errors</td></tr><tr><td>Graviton 3 to Graviton 4</td><td>p99 380 ms to 250 ms, 16% higher throughput</td></tr><tr><td>Tiered caching</td><td>More consistent results on large aggregation queries</td></tr></table></div><p><em>Table 2: Results summary</em></p><h2 class="cb-heading">Conclusion</h2><p>By optimizing their OpenSearch Service deployment, a team at Epic Games reduced p99 query latency from 380 ms to 250 ms, increased throughput by 16 percent, and lowered costs by 10 percent. These gains came from aligning instance types, sharding strategy, mappings, and engine versions with the workload’s actual demands.</p><p>To learn more about optimizing Amazon OpenSearch Service for your workloads, see <a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/bp.html" target="_blank" rel="noopener noreferrer nofollow">Best practices for Amazon OpenSearch Service</a>. For details on supported instance types, see <a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/supported-instance-types.html" target="_blank" rel="noopener noreferrer nofollow">Supported instance types in Amazon OpenSearch Service</a>.</p><h2 class="cb-heading">About the authors</h2></div>
-  <div class="disclaimer">当前直接显示原文，自动翻译暂不可用；未进行 AI 摘写或重组 · <a href="https://aws.amazon.com/blogs/big-data/how-a-team-at-epic-games-tuned-amazon-opensearch-service-for-fortnite-analytics/" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="AWS Big Data Blog">查看原文 ↗</a></div>
+},</code></pre><div class="cb-table" role="region" aria-label="原文表格" tabindex="0"><table><tr><td>之前：</td><td>之后：</td></tr><tr><td>   </td><td>   </td></tr></table></div><p>这些映射更改减少了总体存储，降低了分片数量（从而减少了CPU需求），并减少了集群管理器节点状态大小。</p><h3 class="cb-heading">索引优化</h3><p>还应用了额外的索引级优化以提高查询性能并减少开销。索引排序配置为默认为主日期字段，通过将物理数据布局与最常见的查询顺序对齐，提高了基于时间的访问模式的性能。ISM策略更新为在滚动后对索引进行<a href="https://docs.opensearch.org/latest/im-plugin/ism/policies/#force_merge" target="_blank" rel="noopener noreferrer nofollow">force merge</a>到1个段，减少了只读索引上的段开销。最后，调整了刷新间隔以平衡索引吞吐量与搜索新鲜度。</p><h3 class="cb-heading">从OpenSearch Service 2.17升级到3.1</h3><p>域从OpenSearch Service 2.17升级到3.1，减少了错误计数并提高了Amazon OpenSearch Ingestion管道级别的吞吐量。性能提升显著：仅升级后，sum聚合的p99延迟就下降了40-50%，大型96小时基数聚合的p95下降了超过40%。所有查询类型的通用查询性能都有所提高，线程池压力显著降低，导致429错误大幅减少（图7）。</p><figure class="cb-figure"><a class="cb-media-link" href="https://d2908q01vomqb2.cloudfront.net/b6692ea5df920cad691c20319a6fffd7a4a766b8/2026/08/04/image-40.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/852499f0cb49/b2dd5e358c767a1f8f498eff.png" alt="" loading="lazy" decoding="async" width="1694" height="265"></a></figure><p>图7：OpenSearch Service 3.1升级前后的查询性能</p><h3 class="cb-heading">从Graviton 3升级到Graviton 4</h3><p>实例类型从c7g（Graviton 3）升级到c8g（Graviton 4）。性能提升立竿见影：</p><ul><li>所有查询的p99：380毫秒降至250毫秒。</li><li>所有查询的p95：245毫秒降至230毫秒。</li><li>所有查询的p90：225毫秒降至200毫秒。</li><li>所有查询的p50：100毫秒降至70毫秒。</li></ul><p>日期窗口基数查询的p99从220毫秒降至98毫秒，总和聚合也有类似提升。总体吞吐量提高了16%。</p><h3 class="cb-heading">分层缓存</h3><p>随着升级到OpenSearch Service 3.1，团队启用了<a href="https://opensearch.org/docs/latest/search-plugins/caching/tiered-cache/" target="_blank" rel="noopener noreferrer nofollow">tiered caching</a>。分层缓存扩展了默认的堆上请求缓存，增加了基于磁盘的层。当项目从堆上缓存中逐出时，它们会溢出到节点本地SSD上的更大磁盘缓存中，而不是被丢弃。这使集群能够为更大的查询集保留缓存结果，而不会增加JVM堆使用量。</p><p>Epic Games工作负载中的批量聚合作业会在重叠的时间窗口内重复查询。仅靠堆上缓存太小，无法在连续作业运行之间保留结果，因此每次都会重新计算昂贵的聚合。启用磁盘层后，较长时间窗口聚合（如96小时基数查询）的结果在运行之间得以保留。这为一些较大的聚合查询（尤其是跨越较长时间窗口的查询）带来了更一致和更快的结果。</p><h2 class="cb-heading">结果总结</h2><p>下表总结了每项优化的影响。</p><div class="cb-table" role="region" aria-label="原文表格" tabindex="0"><table><tr><td><strong>优化策略</strong></td><td><strong>影响</strong></td></tr><tr><td>合理调整大小（r7g到c7g）</td><td>CPU增加33%，成本降低10%</td></tr><tr><td>分片重新平衡</td><td>消除了节点上的CPU热点</td></tr><tr><td>映射优化</td><td>减少存储、分片数量和集群状态大小</td></tr><tr><td>OpenSearch Service 2.17到3.1</td><td>p99总和聚合减少40-50%，429错误减少</td></tr><tr><td>Graviton 3到Graviton 4</td><td>p99从380毫秒降至250毫秒，吞吐量提高16%</td></tr><tr><td>分层缓存</td><td>大型聚合查询结果更一致</td></tr></table></div><p><em>表2：结果总结</em></p><h2 class="cb-heading">结论</h2><p>通过优化其OpenSearch Service部署，Epic Games的一个团队将p99查询延迟从380毫秒降至250毫秒，吞吐量提高了16%，成本降低了10%。这些收益来自于将实例类型、分片策略、映射和引擎版本与实际工作负载需求对齐。</p><p>要了解更多关于为工作负载优化Amazon OpenSearch Service的信息，请参阅<a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/bp.html" target="_blank" rel="noopener noreferrer nofollow">Amazon OpenSearch Service最佳实践</a>。有关支持的实例类型的详细信息，请参阅<a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/supported-instance-types.html" target="_blank" rel="noopener noreferrer nofollow">Amazon OpenSearch Service 支持的实例类型</a>。</p><h2 class="cb-heading">关于作者</h2></div>
+  <div class="disclaimer">AI 仅用于按原文顺序逐段翻译；正文结构、事实、表格和图表沿用原文 · <a href="https://aws.amazon.com/blogs/big-data/how-a-team-at-epic-games-tuned-amazon-opensearch-service-for-fortnite-analytics/" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="AWS Big Data Blog">查看原文 ↗</a></div>
 </div>
 
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/fbbccffba47d.html"><span class="n">›</span>Amazon OpenSearch Service延长旧版引擎支持周期<span class="count">34</span></a><a class="vendor-row" href="../e/7d9e75201502.html"><span class="n">›</span>GPU加速在Amazon OpenSearch Service上构建十亿级向量索引<span class="count">53</span></a><a class="vendor-row" href="../e/4ddbc71c2038.html"><span class="n">›</span>How enterprises are driving AI transformation with Claude | Claude by Anthropic<span class="count">41</span></a></div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 <nav class="tabbar" aria-label="移动端主导航">
-  <a href="../index.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>
+  <a href="../index.html" class="on" data-smart-home-return><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>
   <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
 </nav>
-<div class="more-mask" data-more-mask></div>
-<section class="more-sheet" id="mobileMoreSheet" aria-label="更多导航" aria-hidden="true">
+<div class="more-mask" data-more-mask aria-hidden="true"></div>
+<section class="more-sheet" id="mobileMoreSheet" role="dialog" aria-modal="true" aria-labelledby="mobileMoreTitle" aria-hidden="true">
   <div class="more-handle" aria-hidden="true"></div>
-  <div class="more-head"><h2>更多</h2><button class="more-close" type="button" data-more-close aria-label="关闭更多导航">×</button></div>
+  <div class="more-head"><h2 id="mobileMoreTitle">更多</h2><button class="more-close" type="button" data-more-close aria-label="关闭更多导航">×</button></div>
   <div class="more-grid"><a class="more-link" href="../weekly.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span>每周简报</span></a><a class="more-link" href="../hot.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></span><span>完整榜单</span></a><a class="more-link" href="../classics.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></span><span>典藏</span></a><a class="more-link" href="../sources.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span><span>信源</span></a><a class="more-link" href="../agent.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg></span><span>接入 Agent</span></a><a class="more-link" href="../privacy.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg></span><span>隐私说明</span></a></div>
 </section>
 <script>
@@ -573,18 +592,29 @@ main,.layout>*,.hotlist>*{min-width:0}
   var mask=document.querySelector('[data-more-mask]');
   var closeBtn=document.querySelector('[data-more-close]');
   if(!trigger||!sheet||!mask||!closeBtn) return;
+  var background=Array.from(document.body.children).filter(function(node){return node!==sheet&&node!==mask&&node.tagName!=='SCRIPT'});
   function setMore(open){
+    if(!open) background.forEach(function(node){node.removeAttribute('inert')});
     trigger.setAttribute('aria-expanded',open?'true':'false');
     sheet.setAttribute('aria-hidden',open?'false':'true');
     sheet.classList.toggle('show',open);
     mask.classList.toggle('show',open);
     document.body.classList.toggle('more-open',open);
-    if(open) closeBtn.focus(); else trigger.focus();
+    if(open){background.forEach(function(node){node.setAttribute('inert','')});closeBtn.focus()}else trigger.focus();
   }
   trigger.addEventListener('click',function(){setMore(true)});
   closeBtn.addEventListener('click',function(){setMore(false)});
   mask.addEventListener('click',function(){setMore(false)});
-  document.addEventListener('keydown',function(event){if(event.key==='Escape'&&sheet.classList.contains('show')) setMore(false)});
+  document.addEventListener('keydown',function(event){
+    if(!sheet.classList.contains('show')) return;
+    if(event.key==='Escape'){setMore(false);return}
+    if(event.key!=='Tab') return;
+    var focusable=Array.from(sheet.querySelectorAll('a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])'));
+    if(!focusable.length) return;
+    var first=focusable[0],last=focusable[focusable.length-1];
+    if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+    else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+  });
 })();
 </script>
 <script defer src="../tts-player.js"></script>
@@ -611,11 +641,11 @@ main,.layout>*,.hotlist>*{min-width:0}
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;margin-bottom:14px}
 .topbar .back{flex:0 0 auto;white-space:nowrap}
 .sharebtns{display:flex;gap:8px;min-width:0;max-width:100%}
-.sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
+.sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-height:44px;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
 .sbtn svg{flex:0 0 auto}
 .sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .sbtn:active{transform:scale(.95)}
-@media(max-width:960px){
+@media(max-width:1199px){
 .topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .topbar.detail-context .back{font-size:14px;font-weight:650;color:var(--ink)}
 }
@@ -642,7 +672,8 @@ main,.layout>*,.hotlist>*{min-width:0}
 .sh-poster-wrap{width:min(340px,86vw);border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
 .sh-poster-wrap img{width:100%;display:block}
 .sh-poster-actions{margin-top:18px;display:flex;gap:10px}
-.sh-save,.sh-close{border:none;border-radius:99px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
+.sh-save,.sh-close{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:none;border-radius:99px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
+.sbtn:focus-visible,.sh-opt:focus-visible,.sh-cancel:focus-visible,.sh-save:focus-visible,.sh-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .sh-save{background:var(--accent);color:#fff}
 .sh-close{background:rgba(255,255,255,.15);color:#fff}
 .sh-poster-tip{margin-top:10px;font-size:11px;color:#8b919b}
@@ -666,7 +697,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title":"Epic Games如何调优OpenSearch支撑Fortnite分析","summary":"Epic Games与AWS合作，对其Amazon OpenSearch Service集群进行优化，用于Fortnite游戏遥测数据的存储与分析。团队通过调整实例规格、重新平衡分片、优化索引映射以及升级引擎和Graviton版本，在降低运营成本的同时显著提升了查询延迟和吞吐量。该实践支撑了数十亿级遥测事件的处理，帮助Epic识别玩法趋势并辅助实时运营决策。","reason":"聚焦游戏数据分析场景下的OpenSearch调优实践，涉及大规模遥测处理、查询性能与成本优化，对数据平台从业者有直接参考价值。","topic":"实时分析","heat":54,"source":"AWS Big Data Blog","date":"2026-08-11","url":"https://henryhb1105-arch.github.io/datahot/e/852499f0cb49.html"};
+var SH_EV = {"title":"Epic Games如何调优OpenSearch支撑Fortnite分析","summary":"Epic Games与AWS合作，对其Amazon OpenSearch Service集群进行优化，用于Fortnite游戏遥测数据的存储与分析。团队通过调整实例规格、重新平衡分片、优化索引映射以及升级引擎和Graviton版本，在降低运营成本的同时显著提升了查询延迟和吞吐量。该实践支撑了数十亿级遥测事件的处理，帮助Epic识别玩法趋势并辅助实时运营决策。","reason":"聚焦游戏数据分析场景下的OpenSearch调优实践，涉及大规模遥测处理、查询性能与成本优化，对数据平台从业者有直接参考价值。","topic":"实时分析","heat":54,"source":"AWS Big Data Blog","date":"2026-08-11","url":"https://henryhb1105-arch.github.io/datahot/e/852499f0cb49.html","qr":"../qr/852499f0cb49.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');
@@ -682,9 +713,14 @@ function shToast(t){
 }
 function shCopy(){
   shClose();
-  function done(){shToast('链接已复制，去粘贴吧');}
-  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(SH_EV.url).then(done,done);}
-  else{var i=document.createElement('input');i.value=SH_EV.url;document.body.appendChild(i);i.select();try{document.execCommand('copy');}catch(e){} i.remove();done();}
+  function fallbackCopy(text){
+    var i=document.createElement('input');i.value=text;i.setAttribute('readonly','');document.body.appendChild(i);i.select();
+    var ok=false;try{ok=document.execCommand('copy');}catch(e){ok=false}i.remove();return ok;
+  }
+  var copied=navigator.clipboard&&navigator.clipboard.writeText
+    ?navigator.clipboard.writeText(SH_EV.url).then(function(){return true},function(){return fallbackCopy(SH_EV.url)})
+    :Promise.resolve(fallbackCopy(SH_EV.url));
+  copied.then(function(ok){shToast(ok?'链接已复制，去粘贴吧':'复制失败，请手动复制链接');});
 }
 function shSaveClick(ev){
   ev.preventDefault();
@@ -788,8 +824,7 @@ function posterLayout(x,W,P,qrImg){
   x.beginPath();x.moveTo(64,y);x.lineTo(W-64,y);x.stroke();x.setLineDash([]);
   x.fillStyle=P.qrBox;x.beginPath();x.roundRect(64,y+36,150,150,14);x.fill();
   if(P.qrBorder){x.strokeStyle=P.qrBorder;x.lineWidth=2;x.beginPath();x.roundRect(64,y+36,150,150,14);x.stroke();}
-  if(qrImg){x.drawImage(qrImg,74,y+46,130,130);}
-  else{x.fillStyle='#666';x.font='400 22px sans-serif';x.fillText('扫码访问',88,y+118);}
+  x.drawImage(qrImg,74,y+46,130,130);
   x.fillStyle=P.name;x.font='700 30px -apple-system,PingFang SC,sans-serif';
   x.fillText('扫码阅读全文或忠实译文',240,y+60);
   x.fillStyle=P.foot;x.font='400 24px -apple-system,PingFang SC,sans-serif';
@@ -805,16 +840,20 @@ function drawPoster(qrImg,dark){
   posterLayout(c.getContext('2d'),W,P,qrImg);
   return c.toDataURL('image/png');
 }
-var posterURL=null,posterDark=null;
+var posterURL=null,posterDark=null,posterLoading=false;
 function openPoster(){
-  document.getElementById('shPoster').classList.add('show');
   var dark=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches;
-  if(posterURL&&posterDark===dark){return;}
+  if(posterURL&&posterDark===dark){showPoster();return;}
+  if(posterLoading){return;}
+  posterLoading=true;
   posterDark=dark;
-  var qr=new Image();qr.crossOrigin='anonymous';
-  qr.onload=function(){posterURL=drawPoster(qr,dark);showPoster();};
-  qr.onerror=function(){posterURL=drawPoster(null,dark);showPoster();};
-  qr.src='https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=0&data='+encodeURIComponent(SH_EV.url);
+  var qr=new Image();
+  qr.onload=function(){
+    try{posterURL=drawPoster(qr,dark);posterLoading=false;showPoster();}
+    catch(error){posterLoading=false;posterURL=null;shToast('海报生成失败，请稍后重试');}
+  };
+  qr.onerror=function(){posterLoading=false;posterURL=null;shToast('海报生成失败，请稍后重试');};
+  qr.src=SH_EV.qr;
 }
 function dataToBlob(d){
   var p=d.split(','),m=p[0].match(/:(.*?);/)[1],b=atob(p[1]),a=new Uint8Array(b.length);
@@ -825,6 +864,7 @@ function showPoster(){
   document.getElementById('shPosterImg').src=posterURL;
   var a=document.getElementById('shSave');
   a.href=URL.createObjectURL(dataToBlob(posterURL)); a.target='_blank';a.rel='noopener noreferrer';
+  document.getElementById('shPoster').classList.add('show');
 }
 document.querySelectorAll('[data-share-action]').forEach(function(control){
   control.addEventListener('click',function(event){

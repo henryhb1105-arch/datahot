@@ -125,6 +125,21 @@
     };
   }
 
+  function hasActiveFilter(state) {
+    return Boolean(
+      String(state && state.q || "") ||
+      String(state && state.topic || "all") !== "all" ||
+      normalizedCategory(state && state.category)
+    );
+  }
+
+  function renderLoadFailure() {
+    return '<div class="scard filter-error" role="status">' +
+      '<b>筛选结果加载失败</b><p>当前没有展示未筛选的旧内容，请重试或清除筛选。</p>' +
+      '<div class="filter-error-actions"><button type="button" data-filter-retry>重试</button>' +
+      '<button type="button" data-filter-clear>清除筛选</button></div></div>';
+  }
+
   function dateParts(value) {
     var date = new Date(value || 0);
     if (Number.isNaN(date.getTime())) return { key: "unknown", head: "未知日期", label: "" };
@@ -212,6 +227,9 @@
     var payloadPromise = null;
     var allEvents = null;
     var restoredSnapshot = false;
+    var initialTimeline = root.innerHTML;
+    var initialMoreText = more ? more.textContent : "";
+    var initialMoreHidden = more ? more.hidden : true;
 
     if ("scrollRestoration" in win.history) win.history.scrollRestoration = "manual";
 
@@ -268,13 +286,34 @@
       }
       return payloadPromise;
     }
+    function restoreInitialTimeline() {
+      state = { q: "", topic: "all", category: "", page: 1 };
+      if (qInput) qInput.value = "";
+      if (qClear) qClear.style.display = "none";
+      root.innerHTML = initialTimeline;
+      if (count) count.textContent = String(total);
+      if (more) {
+        more.disabled = false;
+        more.hidden = initialMoreHidden;
+        more.textContent = initialMoreText;
+      }
+      syncChips();
+      persistUrl();
+      if (typeof win.dhInitFav === "function") win.dhInitFav();
+    }
     function refresh() {
+      var filteredRequest = hasActiveFilter(state);
+      if (!allEvents && filteredRequest) {
+        root.innerHTML = '<div class="scard" role="status" style="color:var(--sub)">正在加载筛选结果…</div>';
+        if (more) more.hidden = true;
+      }
       return fetchEvents().then(function (events) {
         var result = visibleEvents(events, state, pageSize);
         root.innerHTML = renderTimeline(result.visible) || '<div class="scard" style="color:var(--sub)">没有匹配的事件</div>';
         count.textContent = String(result.filtered.length);
         if (qClear) qClear.style.display = state.q ? "" : "none";
         if (more) {
+          more.disabled = false;
           more.hidden = result.visible.length >= result.filtered.length;
           more.textContent = "加载更多（" + result.visible.length + "/" + result.filtered.length + "）";
         }
@@ -285,7 +324,17 @@
         persistUrl();
         return result;
       }).catch(function () {
-        if (more) { more.hidden = false; more.disabled = true; more.textContent = "加载失败，请稍后重试"; }
+        payloadPromise = null;
+        allEvents = null;
+        if (hasActiveFilter(state)) {
+          root.innerHTML = renderLoadFailure();
+          if (count) count.textContent = "—";
+          if (more) more.hidden = true;
+          persistUrl();
+        } else if (more) {
+          more.hidden = false; more.disabled = true; more.textContent = "加载失败，请稍后重试";
+        }
+        return null;
       });
     }
 
@@ -300,6 +349,7 @@
             ? chip.dataset.category === state.category
             : chip.dataset.topic === state.topic);
         chip.classList.toggle("on", selected);
+        chip.setAttribute("aria-pressed", selected ? "true" : "false");
       });
     }
     doc.querySelectorAll("#chiprow .fchip").forEach(function (chip) {
@@ -323,6 +373,15 @@
       qInput.value = ""; state.q = ""; state.page = 1; refresh(); qInput.focus();
     });
     if (more) more.addEventListener("click", function () { state.page += 1; refresh(); });
+
+    root.addEventListener("click", function (event) {
+      if (event.target.closest && event.target.closest("[data-filter-retry]")) {
+        refresh();
+      } else if (event.target.closest && event.target.closest("[data-filter-clear]")) {
+        restoreInitialTimeline();
+        if (qInput) qInput.focus();
+      }
+    });
 
     doc.addEventListener("click", function (event) {
       var card = event.target.closest && event.target.closest(".item,.hot");
@@ -363,6 +422,8 @@
     orderedEvents: orderedEvents,
     filterEvents: filterEvents,
     visibleEvents: visibleEvents,
+    hasActiveFilter: hasActiveFilter,
+    renderLoadFailure: renderLoadFailure,
     renderTimeline: renderTimeline,
     boot: boot
   };

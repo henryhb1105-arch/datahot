@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob: https://api.qrserver.com; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-PLN4EJpjmAN1bf3oLbY2xb0NA/Sy1DjJttG5I94cq3k=' 'sha256-X1jGzhJH7xiW+VgZLk0W5HjMzDm40oWG5nNdCDTIIYk=' 'sha256-zTbqoLXOVJ6Y7bxwX42flzVUMpf3rgsI16LDibNF8HY='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-PLN4EJpjmAN1bf3oLbY2xb0NA/Sy1DjJttG5I94cq3k=' 'sha256-bvfh7YNpEQTwRNPiJF2n2WB89P2FZQy5fbPGxIdoulg=' 'sha256-u5lt/tyCN4EDIaeYaY3CAFOT5IFnQYt+1XnVX7DJvAQ='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>ADP全球调查揭示AI使用、生产力感受与岗位焦虑错位 · DataHot</title>
@@ -72,10 +72,10 @@
   .btn-sub{background:var(--accent);color:#fff;border-radius:99px;padding:7px 16px;font-size:13px;font-weight:600;white-space:nowrap}
 
   .layout{display:grid;grid-template-columns:1fr 320px;gap:24px;padding:28px 0 60px}
-  @media(max-width:960px){.layout{grid-template-columns:1fr}}
+  @media(max-width:1199px){.layout{grid-template-columns:1fr}}
 
   /* ── 移动端导航适配 ── */
-  @media(max-width:960px){
+  @media(max-width:1199px){
     .nav{flex-wrap:wrap;height:auto;padding:8px 0;gap:10px;min-height:52px}
     .logo{font-size:19px}
     .logo .tag{display:none}
@@ -102,12 +102,13 @@
     .why{font-size:12.5px;line-height:1.7}
     .brief{padding:16px 18px}
     .brief p{font-size:13.5px}
-    .chiprow{gap:6px}
-    .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:32px;display:inline-flex;align-items:center}
+    .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-right:28px}
+    .chiprow::after{display:block;content:"";position:sticky;right:0;flex:0 0 28px;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+    .chiprow::-webkit-scrollbar{display:none}
+    .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:44px;display:inline-flex;align-items:center}
     .tab,.fchip,.chip{touch-action:manipulation}
     aside{align-self:start;position:sticky;top:20px}
-@media(min-width:1280px){.wrap{max-width:1320px}}
-aside .card{padding:14px 16px}
+    aside .card{padding:14px 16px}
     .article{padding:20px 14px 48px}
     .article h1{font-size:20px}
     .article .body{font-size:14.5px}
@@ -115,6 +116,7 @@ aside .card{padding:14px 16px}
     .cta{width:100%;text-align:center;padding:13px 0;font-size:15px}
     .day-head .date{font-size:15px}
   }
+  @media(min-width:1280px){.wrap{max-width:1320px}}
 
   /* ── 每周简报 ── */
   .brief{background:linear-gradient(135deg,#1a1d23 0%,#2b2418 60%,#3d2412 100%);color:#fff;border-radius:var(--radius);padding:22px 26px;margin-bottom:22px;position:relative;overflow:hidden}
@@ -131,15 +133,17 @@ aside .card{padding:14px 16px}
   .timeline-toolbar h2,.timeline-toolbar .timeline-count{white-space:nowrap}
   .timeline-searchbox{display:flex;align-items:center;min-width:0;width:min(150px,40vw);margin-left:auto}
   .timeline-searchbox .tlsearch{margin-left:0;min-width:0;flex:1 1 0}
-  .timeline-clear{cursor:pointer;color:var(--sub);margin-left:6px}
+  .timeline-clear{appearance:none;display:inline-grid;place-items:center;min-width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:var(--sub);cursor:pointer;margin-left:4px;font:inherit}
   .timeline-count{font-size:11px;color:var(--sub)}
   @media(max-width:600px){
     .timeline-toolbar{gap:8px}
     .timeline-searchbox{width:min(120px,34vw)}
     .timeline-searchbox .tlsearch,.timeline-searchbox .tlsearch:focus{width:100%}
+    .timeline-clear{min-width:44px;height:44px}
   }
   .hotlist{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:30px}
-  @media(max-width:960px){.hotlist{grid-template-columns:1fr}}
+  @media(max-width:600px){.hotlist{grid-template-columns:1fr;gap:10px}}
+  @media(max-width:1399px) and (min-width:601px){.hotlist{grid-template-columns:repeat(2,minmax(0,1fr))}}
   .hot{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;position:relative;transition:.15s;cursor:pointer}
   .hot .rank{position:absolute;top:-1px;left:16px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:0 0 8px 8px}
   .hot .heat{position:absolute;top:12px;right:16px;font-size:12px;color:var(--accent);font-weight:700}
@@ -163,6 +167,10 @@ aside .card{padding:14px 16px}
   }
   @media(hover:none) and (pointer:coarse){
     .hot:active,.item:active{border-color:#d1d5db;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+  }
+  .fchip:focus-visible,.timeline-clear:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   }
   .item .top{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub);flex-wrap:wrap}
   .badge{font-weight:600;border-radius:6px;padding:1px 8px;font-size:11px}
@@ -207,18 +215,19 @@ aside .card{padding:14px 16px}
 body{overflow-x:clip}
 main,.layout>*,.hotlist>*{min-width:0}
 .d-only{display:inline-block}
-@media(max-width:960px){.d-only{display:none}}
+@media(max-width:1199px){.d-only{display:none}}
 .chip{display:inline-block;font-size:11px;background:#eef2ff;color:var(--blue);border-radius:99px;padding:1px 10px;text-decoration:none}
 .tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
 .tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
-.chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px;position:relative}
-.chiprow::after{content:"";position:sticky;right:0;flex-shrink:0;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+.chiprow{display:flex;flex-wrap:wrap;gap:8px;overflow:visible;padding:4px 0 12px;margin-bottom:4px;position:relative}
+.chiprow::after{display:none;content:"";position:sticky;right:0;flex:0 0 28px;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
 .chiprow::-webkit-scrollbar{display:none}
-.chiprow .fchip{flex-shrink:0;font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
+.chiprow .fchip{appearance:none;flex-shrink:0;min-height:36px;font:inherit;font-size:12.5px;line-height:1.4;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
 .chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
 @media(max-width:600px){
-  .chiprow{gap:6px}
-  .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:32px;display:inline-flex;align-items:center}
+  .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-right:28px}
+  .chiprow::after{display:block}
+  .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:44px;display:inline-flex;align-items:center}
 }
 @media (prefers-color-scheme: dark){
   .chip{background:rgba(110,168,255,.16);color:#6ea8ff}
@@ -256,7 +265,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   .source-intro{margin-bottom:25px}
   .source-intro h1{font-size:24px}
   .source-row{gap:8px}
-  .source-name{font-size:13px}
+  .source-name{font-size:13px;min-height:44px}
   .source-focus{max-width:45%;font-size:11px}
   .source-disabled .source-row{display:block}
   .source-disabled-reason{max-width:none;margin:4px 0 0;text-align:left}
@@ -267,16 +276,21 @@ main,.layout>*,.hotlist>*{min-width:0}
 .cpin{width:18px;flex-shrink:0;font-size:12px}
 .ctitle{font-size:13.5px;font-weight:600;line-height:1.55;flex:1}
 .cmeta{font-size:11px;color:var(--sub);white-space:nowrap}
-.favbtn{border:none;background:none;color:var(--sub);cursor:pointer;padding:2px;display:inline-flex;align-items:center}
+.favbtn{appearance:none;min-width:36px;min-height:36px;border:none;background:none;color:var(--sub);cursor:pointer;padding:6px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%}
 .favbtn.on{color:var(--accent)}
 .favbtn.on svg{fill:currentColor}
 .favbtn svg{pointer-events:none}
 .fav-entry{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--sub);white-space:nowrap;text-decoration:none}
-.privacy-btn{border:none;background:var(--accent);color:#fff;border-radius:99px;padding:9px 16px;font-size:12.5px;font-weight:650;cursor:pointer;margin:4px 6px 4px 0}
+.privacy-btn{min-height:44px;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:9px 16px;font-size:12.5px;font-weight:650;cursor:pointer;margin:4px 6px 4px 0}
 .privacy-btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .load-more{display:block;margin:18px auto 4px;border:1px solid var(--line);background:var(--card);color:var(--txt2);border-radius:99px;padding:9px 22px;font-size:12.5px;font-weight:650;cursor:pointer}
 .load-more[hidden]{display:none}
 .load-more[disabled]{opacity:.65;cursor:default}
+.filter-error b{display:block;margin-bottom:5px;color:var(--ink);font-size:14px}
+.filter-error p{margin:0;color:var(--sub);font-size:12.5px;line-height:1.7}
+.filter-error-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.filter-error-actions button{min-height:44px;border:1px solid var(--line);border-radius:99px;padding:8px 15px;background:var(--card);color:var(--ink);font:inherit;font-size:12.5px;font-weight:650;cursor:pointer}
+.filter-error-actions button:first-child{border-color:var(--accent);background:var(--accent);color:#fff}
 .weekly-teaser{display:block;background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border-radius:var(--radius);padding:18px 22px;margin-bottom:22px;text-decoration:none;position:relative;overflow:hidden}
 .weekly-teaser .weekly-kicker{font-size:11px;letter-spacing:1.5px;color:#f5b48a;font-weight:750;margin-bottom:6px}
 .weekly-teaser h2{font-size:19px;line-height:1.45;margin:0 0 5px}
@@ -340,7 +354,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .hrow .hm{font-size:11px;color:var(--sub);white-space:nowrap}
 .srcbadge{font-size:10px;border:1px solid var(--line);border-radius:5px;padding:0 5px;color:var(--sub);flex-shrink:0;line-height:1.6}
 .sidebar{display:none}
-@media(min-width:961px){
+@media(min-width:1200px){
   body.has-sb{padding-left:224px}
   body.has-sb>header{display:none}
   .sidebar{display:flex;position:fixed;left:0;top:0;bottom:0;width:224px;flex-direction:column;background:var(--card);border-right:1px solid var(--line);padding:22px 16px;z-index:40}
@@ -354,7 +368,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .hot .htime{margin-left:auto;font-size:11px;color:var(--sub)}
 .tabbar{display:none}
 .more-mask,.more-sheet{display:none}
-@media(max-width:960px){
+@media(max-width:1199px){
   body{padding-bottom:64px}
   footer{padding-bottom:96px}
   body.mobile-section{padding-top:env(safe-area-inset-top)}
@@ -370,13 +384,18 @@ main,.layout>*,.hotlist>*{min-width:0}
   .more-handle{width:36px;height:4px;border-radius:99px;background:var(--line);margin:2px auto 12px}
   .more-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
   .more-head h2{font-size:18px}
-  .more-close{appearance:none;border:0;background:var(--soft);color:var(--sub);width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer}
+  .more-close{appearance:none;border:0;background:var(--soft);color:var(--sub);width:44px;height:44px;border-radius:50%;font-size:18px;cursor:pointer}
   .more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .more-link{display:flex;align-items:center;gap:11px;min-height:58px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);text-decoration:none;color:var(--ink)}
   .more-link .more-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent);flex:0 0 auto}
   .more-link span:last-child{min-width:0;font-size:13px;font-weight:650}
   .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
   body.more-open{overflow:hidden}
+}
+.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.load-more:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:600px){.favbtn{min-width:44px;min-height:44px}}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
 .tgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
 @media(max-width:960px){.tgrid{grid-template-columns:1fr}}
@@ -458,7 +477,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .tts-copy{display:flex;flex-direction:column;min-width:112px;line-height:1.35}
 .tts-copy b{font-size:12.5px;color:var(--ink)}
 .tts-copy span{font-size:10.5px;color:var(--sub);margin-top:2px}
-.tts-toggle{border:0;border-radius:99px;background:var(--ink);color:var(--card);font-size:12px;font-weight:750;padding:7px 13px;cursor:pointer;min-width:58px}
+.tts-toggle{min-width:58px;min-height:44px;border:0;border-radius:99px;background:var(--ink);color:var(--card);font-size:12px;font-weight:750;padding:7px 13px;cursor:pointer}
 .tts-progress{width:100%;accent-color:var(--accent);cursor:pointer}
 .tts-time{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}
 .tts-rate-label{font-size:10.5px;color:var(--sub);display:flex;align-items:center;gap:4px}
@@ -472,9 +491,9 @@ main,.layout>*,.hotlist>*{min-width:0}
 .disclaimer{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}
 .disclaimer a{color:var(--accent)}
 </style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="bb45de9b3b4f" data-category="insight" data-source="ADP Research">
-<aside class="sidebar"><div class="slogo"><a href="../index.html" aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><a class="mi on" href="../index.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>每周简报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>我的收藏</a><a class="mi" href="../classics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg>典藏</a><a class="mi" href="../hot.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>完整榜单</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>
+<aside class="sidebar"><div class="slogo"><a href="../index.html" data-smart-home-return aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><a class="mi on" href="../index.html" data-smart-home-return><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>每周简报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>我的收藏</a><a class="mi" href="../classics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg>典藏</a><a class="mi" href="../hot.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>完整榜单</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>
 <header class="detail-brand-header"><div class="wrap nav">
-  <div class="logo"><a href="../index.html">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
+  <div class="logo"><a href="../index.html" data-smart-home-return>Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
 <div class="article">
   <div class="topbar detail-context">
@@ -483,7 +502,7 @@ main,.layout>*,.hotlist>*{min-width:0}
       <button class="sbtn ghost favbtn" data-fav="bb45de9b3b4f" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
 
       <a class="sbtn ghost" href="https://mediacenter.adp.com/2026-03-25-ADP-Research-Only-22-of-Workers-Confident-Their-Job-is-Safe-from-Elimination%2C-Underscoring-the-Importance-of-Talent-Strategies-that-Prepare-Employees-for-the-Future%2C1" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="ADP Research">原文</a>
-      <button class="sbtn ghost" type="button" data-share-action="poster">海报</button>
+      <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/bb45de9b3b4f.png">海报</button>
       <button class="sbtn" type="button" data-share-action="open">分享</button>
     </span>
   </div>
@@ -500,22 +519,22 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="body">ADP Research覆盖36个市场、39,000多名员工的调查显示，只有22%的员工强烈认同自己的岗位不会被淘汰。频繁使用AI并不自动转化为更好的生产力感受：每天使用AI的人反而更可能认为自己没有达到应有的生产力水平。不同年龄层对AI的期待也存在明显差异。</div>
   <div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>这份员工侧研究提醒HR不能只用登录量或使用频率判断AI成功，还要同时观察岗位安全感、敬业度、学习支持与真实工作结果。</span></div>
   <div class="vendors" style="margin-top:14px"><a class="chip" href="../topics/people-insights.html">组织人才</a><span class="vtag">ADP</span></div>
-  <div class="card content-card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 原文</h4>
-  <div class="fulltext"><p>Press Releases</p><p>Share to:</p><ul><li> <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fmediacenter.adp.com%2Findex.php%3Fs%3D20295%26item%3D123586" target="_blank" rel="noopener noreferrer nofollow">   </a> </li><li> <a href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3A%2F%2Fmediacenter.adp.com%2Findex.php%3Fs%3D20295%26item%3D123586" target="_blank" rel="noopener noreferrer nofollow">   </a> </li><li> <a href="https://twitter.com/share?url=https%3A%2F%2Fmediacenter.adp.com%2Findex.php%3Fs%3D20295%26item%3D123586" target="_blank" rel="noopener noreferrer nofollow">   </a> </li></ul><p><a href="https://mediacenter.adp.com/news" target="_blank" rel="noopener noreferrer nofollow">News</a> &gt;<a href="https://mediacenter.adp.com/press-releases" target="_blank" rel="noopener noreferrer nofollow">Press Releases</a> </p><p>ADP Research: Only 22% of Workers Confident Their Job is Safe from Elimination, Underscoring the Importance of Talent Strategies that Prepare Employees for the Future</p><p><a href="https://mediacenter.adp.com/2026-03-25-ADP-Research-Only-22-of-Workers-Confident-Their-Job-is-Safe-from-Elimination,-Underscoring-the-Importance-of-Talent-Strategies-that-Prepare-Employees-for-the-Future,1?asPDF" target="_blank" rel="noopener noreferrer nofollow">ADP Research: Only 22% of Workers Confident Their Job is Safe from Elimination, Underscoring the Importance of Talent Strategies that Prepare Employees for the Future</a></p><p>Mar 25, 2026</p><ul><li> </li></ul><figure class="cb-figure"><a class="cb-media-link" href="https://mma.prnewswire.com/media/2941658/Today_at_Work_2026_Issue_1.jpg?w=600" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/bb45de9b3b4f/7787f15b9b12e527741aa80e.jpg" alt="" loading="lazy" decoding="async" width="546" height="707"></a></figure><ul><li>          <a href="https://mediacenter.adp.com/2026-03-25-ADP-Research-Only-22-of-Workers-Confident-Their-Job-is-Safe-from-Elimination,-Underscoring-the-Importance-of-Talent-Strategies-that-Prepare-Employees-for-the-Future,1#assets_117:19566" target="_blank" rel="noopener noreferrer nofollow">View File</a> <a href="https://mma.prnewswire.com/media/2941658/Today_at_Work_2026_Issue_1.jpg?p=original" target="_blank" rel="noopener noreferrer nofollow">Download File</a>    Today at Work 2026 Issue 1   </li></ul><p><em>Latest issue of Today at Work captures the pulse of global workforce sentiment to uncover how AI advances and changing demographics offer new challenges and opportunities for workers and employers alike</em></p><ul><li><strong>Workforce Insights from Engagement to Artificial Intelligence: </strong>ADP Research&#x27;s most recent issue of <em>Today at Work </em>reveals the global state of worker engagement, job security, AI sentiment, skills confidence, and work-life balance.</li><li><strong>Informing Talent Strategies: </strong>Turning insight into action, <em>Today at Work </em>helps businesses understand current worker sentiment to drive engagement, productivity, and retention through data-driven talent strategies.</li><li><strong>Global Reach, Local Expertise: </strong><em>Today at Work </em>2026, Issue 1 is built on ADP Research&#x27;s Global Workforce Survey, which captures responses from over 39,000 workers in 36 markets to understand the world of work at large and gauge worker sentiment.</li></ul><p>ROSELAND, N.J., March 25, 2026 /<a href="http://www.prnewswire.com/" target="_blank" rel="noopener noreferrer nofollow">PRNewswire</a>/ -- Only 22% of global workers strongly agreed their job was safe from elimination according to <em><a href="https://www.adpresearch.com/today-at-work/issue1-2026/?utm_source=PRnewsroom&amp;utm_medium=pressrelease&amp;utm_campaign=todayatwork26issue1&amp;utm_content=prrelease032526link1" target="_blank" rel="noopener noreferrer nofollow">Today at Work 2026</a></em><a href="https://www.adpresearch.com/today-at-work/issue1-2026/?utm_source=PRnewsroom&amp;utm_medium=pressrelease&amp;utm_campaign=todayatwork26issue1&amp;utm_content=prrelease032526link1" target="_blank" rel="noopener noreferrer nofollow">, Issue 1 from ADP Research</a>. Anxiety over job security was particularly acute among lower-paid, repetitive task workers and people at the bottom of the management hierarchy. These findings, among others, emphasize the opportunity for employers to reimagine their talent strategies and provide clarity to their employees as advances in artificial intelligence and changing demographics bring new challenges and opportunities to the workforce.</p><p>&quot;Despite three years of historically low global unemployment and steady economic growth, our data reveals widespread job insecurity expressed by workers worldwide,&quot; said Dr. Nela Richardson, chief economist, ADP. &quot;For employers, the worker sentiment findings from <em>Today at Work </em>can help inform new talent management practices rooted in powering skills development, building trust, leveraging cross-generational mentorship, and nurturing employee engagement.&quot;</p><p><em><strong><a href="https://www.adpresearch.com/today-at-work/issue1-2026/?utm_source=PRnewsroom&amp;utm_medium=pressrelease&amp;utm_campaign=todayatwork26issue1&amp;utm_content=prrelease032526link2" target="_blank" rel="noopener noreferrer nofollow">Today at Work </a></strong></em><strong><a href="https://www.adpresearch.com/today-at-work/issue1-2026/?utm_source=PRnewsroom&amp;utm_medium=pressrelease&amp;utm_campaign=todayatwork26issue1&amp;utm_content=prrelease032526link2" target="_blank" rel="noopener noreferrer nofollow">2026, Issue 1</a></strong></p><p>This issue of <em>Today at Work </em>takes a global approach and features survey findings derived from ADP Research&#x27;s annual Global Workforce Survey of more than 39,000 working adults in 36 markets. The findings reveal key insights into how workers really feel about AI, current workforce engagement levels, the challenges and opportunities a multi-generational workforce offers, and trends in unpaid hours.</p><p><em>&quot;Today at Work </em>meets this moment of structural change with data-driven insights that leaders can leverage to craft a modern talent strategy,&quot; said Jay Caldwell, chief talent officer, ADP. &quot;Workers who clearly see the role their existing skillsets will play in an organization&#x27;s future and investment by their employers in helping them develop skills of the future will be more engaged, productive and have the confidence to thrive in this next era of work.&quot;</p><p><strong>Clarity is Key: </strong>Workers worldwide are anxious about their jobs. Even with <a href="https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS" target="_blank" rel="noopener noreferrer nofollow">worldwide unemployment</a> at its lowest level in decades, fewer than 1 in 4 workers (22%) confidently said they believe their job is safe. In fact, people who fear losing their job are less engaged at work, more stressed, less productive, and much more likely to be spending time and energy looking for work elsewhere.</p><ul><li>Workers who felt their jobs were safe were six times more likely to be fully engaged on the job, 3.3 times more likely to say they were highly productive, and two times more likely to say they have no intention of leaving.</li><li>Breaking it down further by job level, 18% of individual contributors and 21% of frontline managers strongly agreed their job was safe from elimination, though that confidence increases as employees rise through the ranks of middle managers (23%), upper managers (31%), and C-suite executives (35%).</li><li><strong>Talent Takeaway: </strong>As the world of work changes at breakneck pace, bringing clarity to workers via consistent communication is essential. Remove ambiguity and help workers visualize how their role can flourish in the future of work, including how AI will be a teammate that augments their work.</li></ul><p><strong>Integrating AI at Work: </strong>Workers who use AI frequently were more likely to say with confidence their job was safe from elimination. <em>Today at Work </em>also found 53% of workers were fully engaged when they strongly agreed their employer was investing in them, while only 12% were fully engaged if they didn&#x27;t feel the same level of employer investment. Employers have an opportunity to be more intentional by providing supportive means to AI proficiency to ensure workers have the skills needed to thrive in this new world of work.</p><ul><li>Unchanged from last year, the report found 19% of workers reported full engagement on the job in 2025, indicating over 80% of workers aren&#x27;t giving it their all at work.</li><li>Workers who find meaning in their jobs are 12.5 times more likely to be fully engaged than workers who don&#x27;t.</li><li><strong>Talent Takeaway: </strong>Engagement increases dramatically when workers trust their leaders. Specific investment in AI skills development will help workers see their future role at the organization, as well as help boost engagement.</li></ul><p><strong>Capitalize on a Multi-Generational Workforce: </strong>For the first time ever, five generations are working together in the workplace, from teenagers to great-grandparents. <em>Today at Work</em> found only 18% of workers aged 55 to 64 and 19% of workers 65+ strongly agreed they have the skills needed to advance, compared to younger workers aged 18 to 26 years old (29%) and workers aged 27 to 39 years old (30%).</p><ul><li>12% of workers aged 55 to 64 and 65+ strongly agreed their employer invests in the skills they need compared to 21% of workers aged 18 to 26 and aged 27 to 39.</li><li>One fifth (20%) of workers aged 18 to 26 strongly agree AI will positively impact their job in the next year. That sentiment decreases as workers get older, with 15% of workers aged 40 to 54, and 10% of workers aged 55 to 64 reporting AI will positively impact their job in the next year.</li><li>Despite their poor sentiment when it comes to career development and on-the-job support, people aged 55 and older are just as likely as those in other age groups to find meaning in their work. They&#x27;re just as likely to be fully engaged on the job and they&#x27;re the least likely of any group, by far, with plans to quit.</li><li><strong>Talent Takeaway: </strong>Leverage this multi-generational workforce to facilitate cross-generational mentorship opportunities where skills and knowledge flow in both directions. Organizations can pair AI-native, tech-savvy junior workers with the judgement and experience of senior workers to produce responsible AI inputs and outputs that drive impactful business outcomes. Connecting enthusiasm with experience can yield big results.</li></ul><p><strong>Redefining Productivity in the Age of AI: </strong><em>Today at Work </em>found daily users of AI were four times more likely than non-users to say they were feeling less productive than they could be. Understanding how AI changes the nature of work and feelings of productivity will be essential for organizations looking to accurately gauge worker outcomes in the future of work.</p><ul><li>20% of workers say they use AI nearly every day, while 30% use it multiple times a week, and 15% of workers have never used it.</li><li>30% of workers who use AI daily in their work were fully engaged, compared to only 14% of those who never use AI.</li><li>Only 11% of daily AI users reported feeling overloaded, or experiencing negative work stress, compared to 23% of non-adopters.</li><li><strong>Talent Takeaway: </strong>As more checklist work is delegated to AI and workers transition to longer-term, strategic projects, reevaluating how productivity is tracked at work will be required. Rather than measuring the completion of tasks quickly and efficiently, productivity will shift to judgement, creativity, and long-term impact. Measuring outcomes over inputs and decision quality over task volume are examples for shifting how organizations measure productivity.</li></ul><p><strong>Setting Clear Expectations to Drive Efficiency: </strong>ADP Research&#x27;s new analysis found 62% of workers worldwide put in up to five hours of unpaid work each week, while 38% put in six hours or more.</p><ul><li>Workers who reported the highest amount of unpaid work – 16 hours or more – were the most likely to be fully engaged and to say they find meaning in their jobs, a pattern that held across all job levels within the organization.</li><li>These same workers who put in 16 or more unpaid hours were more likely to report feeling unproductive at work, and more likely to admit they are actively looking or interviewing for a new job.</li><li><strong>Talent Takeaway: </strong>Provide clear expectations. Respondents who indicated they put in five or fewer unpaid hours each week were more likely than heavy off-the-clock users to say they clearly understood what&#x27;s expected of them. Knowing the key priorities that need to be accomplished can help workers be more efficient and productive with their time.</li></ul><p>&quot;From job security to engagement and artificial intelligence, Issue 1 of <em>Today at Work </em>2026 captures the pulse of global workforce sentiment,&quot; said Dr. Mary Hayes, director of people and performance, ADP Research. &quot;Our Global Workforce Survey takes these sentiment trends layers deeper to understand how they vary according to industry, education, work type, work environment, and seniority level. This level of granularity can help employers of all sizes around the world better understand what makes workers tick and how slight tweaks in strategy can lead to big performance optimizations.&quot;</p><p><strong>Global Workforce Survey Methodology </strong><em>Today at Work </em>2026<em>, </em>Issue 1 features survey findings derived from ADP Research&#x27;s annual Global Workforce Survey of more than 39,000 working adults in 36 markets to uncover global workforce sentiment, an examination of how people are navigating the complexities of a changing world. The report presents worker sentiment data sifted by geography, job type, and other dimensions, providing employers with a fine-tuned and granular view of the global workforce that can be used to better understand their workforce and drive growth through data-driven talent decisions.</p><p>The 2025 Global Workforce Survey collected responses between July 21 and August 4, 2025, from a random sample, stratified by age and gender, of more than 39,000 working adults in 36 markets, to provide regional and market comparisons of worker sentiment. Respondents come from a wide variety of industries, educational backgrounds, on-site and remote work environments, work types, and skill sets. They represent a range of management and individual contributor roles, working for employers of all sizes.</p><p>To view the latest <em>Today at Work 2026 </em>Issue 1, in addition to previous versions, visit here: <a href="https://www.adpresearch.com/today-at-work/?utm_source=PRnewsroom&amp;utm_medium=pressrelease&amp;utm_campaign=todayatwork26issue1&amp;utm_content=prrelease032526link3" target="_blank" rel="noopener noreferrer nofollow">https://www.adpresearch.com/today-at-work/</a></p><p><strong>About ADP Research </strong>The mission of ADP Research is to make the future of work more productive through data-driven discovery. Companies, workers, and policy makers rely on our finely tuned data and unique perspective to make informed decisions that impact workplaces around the world. To subscribe to monthly email alerts or obtain additional information about ADP Research, including employment and pay data, methodology, and a calendar of release dates, please visit <a href="https://www.adpresearch.com/?utm_source=PRnewsroom&amp;utm_medium=pressrelease&amp;utm_campaign=todayatwork26issue1&amp;utm_content=prrelease032526link4" target="_blank" rel="noopener noreferrer nofollow">https://www.adpresearch.com</a>.</p><p><strong>About ADP (NASDAQ: ADP) </strong>ADP has been shaping the world of work with innovation and expertise for more than 75 years. As a global leader in HR and payroll solutions, ADP continuously works to solve business challenges for our clients and their workers, from simple, easy-to-use tools for small businesses to fully integrated platforms for global enterprises – and everything in between. Always Designing for People means we&#x27;re focused on just that – people. We use our unmatched AI-driven insights and proven expertise to design innovative solutions that help people achieve greater success at work. More than 1.1 million clients across 140+ countries rely on ADP&#x27;s exceptional service to support their people and drive their business forward. HR, Talent, Time Management, Benefits, Compliance, and Payroll. Learn more at <a href="https://www.adp.com/?utm_source=PRnewsroom&amp;utm_medium=pressrelease&amp;utm_campaign=todayatwork26issue1&amp;utm_content=prrelease032526link5" target="_blank" rel="noopener noreferrer nofollow">ADP.com</a>.</p><p><em>ADP, the ADP logo, and Always Designing for People, ADP National Employment Report, and ADP Research are registered trademarks of ADP, Inc. All other marks are the property of their respective owners.</em></p><p><em>Copyright © 2026 ADP, Inc. All rights reserved.</em></p><p> </p><p> </p><p> <a href="https://mma.prnewswire.com/media/2497479/ADP_Research_Logo.html" target="_blank" rel="noopener noreferrer nofollow"> </a></p><p>SOURCE ADP, Inc.</p><ul><li> <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fmediacenter.adp.com%2Findex.php%3Fs%3D20295%26item%3D123586" target="_blank" rel="noopener noreferrer nofollow">   </a> </li><li> <a href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3A%2F%2Fmediacenter.adp.com%2Findex.php%3Fs%3D20295%26item%3D123586" target="_blank" rel="noopener noreferrer nofollow">   </a> </li><li> <a href="https://twitter.com/share?url=https%3A%2F%2Fmediacenter.adp.com%2Findex.php%3Fs%3D20295%26item%3D123586" target="_blank" rel="noopener noreferrer nofollow">   </a> </li></ul><p>For further information: Michael Brown, ADP, Inc., (862) 399-6556, Michael.a.Brown@adp.com</p><p>Find Us on Social</p><ul><li><a href="https://www.facebook.com/AutomaticDataProcessing" target="_blank" rel="noopener noreferrer nofollow">Facebook</a></li><li><a href="https://twitter.com/adp" target="_blank" rel="noopener noreferrer nofollow">X</a></li><li><a href="https://www.youtube.com/user/adp" target="_blank" rel="noopener noreferrer nofollow">YouTube</a></li><li><a href="https://www.linkedin.com/company/adp" target="_blank" rel="noopener noreferrer nofollow">LinkedIn</a></li></ul><p>Contact Media Relations</p><p>For media inquiries, connect with our media relations team for press materials, interviews and expert commentary or reach out directly to a member of our <a href="https://mediacenter.adp.com/contact-us" target="_blank" rel="noopener noreferrer nofollow">team</a>.</p><p>Email Media Relations</p><p>Email Alerts</p><p>Stay informed! Sign up for email notifications to receive updates from our Newsroom.</p><p><a href="https://mediacenter.adp.com/email-alerts" target="_blank" rel="noopener noreferrer nofollow">Subscribe</a></p></div>
-  <div class="disclaimer">当前直接显示原文，自动翻译暂不可用；未进行 AI 摘写或重组 · <a href="https://mediacenter.adp.com/2026-03-25-ADP-Research-Only-22-of-Workers-Confident-Their-Job-is-Safe-from-Elimination%2C-Underscoring-the-Importance-of-Talent-Strategies-that-Prepare-Employees-for-the-Future%2C1" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="ADP Research">查看原文 ↗</a></div>
+  <div class="card content-card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 译文 <span class="content-origin-badge">AI 逐段翻译</span></h4>
+  <div class="fulltext"><p>新闻稿</p><p>分享至：</p><ul><li> <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fmediacenter.adp.com%2Findex.php%3Fs%3D20295%26item%3D123586" target="_blank" rel="noopener noreferrer nofollow">   </a> </li><li> <a href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3A%2F%2Fmediacenter.adp.com%2Findex.php%3Fs%3D20295%26item%3D123586" target="_blank" rel="noopener noreferrer nofollow">   </a> </li><li> <a href="https://twitter.com/share?url=https%3A%2F%2Fmediacenter.adp.com%2Findex.php%3Fs%3D20295%26item%3D123586" target="_blank" rel="noopener noreferrer nofollow">   </a> </li></ul><p><a href="https://mediacenter.adp.com/news" target="_blank" rel="noopener noreferrer nofollow">新闻</a> &gt;<a href="https://mediacenter.adp.com/press-releases" target="_blank" rel="noopener noreferrer nofollow">新闻稿</a> </p><p>ADP研究：仅22%的员工确信自己的工作不会被淘汰，凸显为员工未来做好准备的人才战略的重要性</p><p><a href="https://mediacenter.adp.com/2026-03-25-ADP-Research-Only-22-of-Workers-Confident-Their-Job-is-Safe-from-Elimination,-Underscoring-the-Importance-of-Talent-Strategies-that-Prepare-Employees-for-the-Future,1?asPDF" target="_blank" rel="noopener noreferrer nofollow">ADP研究：仅22%的员工确信自己的工作不会被淘汰，凸显为员工未来做好准备的人才战略的重要性</a></p><p>2026年3月25日</p><ul><li> </li></ul><figure class="cb-figure"><a class="cb-media-link" href="https://mma.prnewswire.com/media/2941658/Today_at_Work_2026_Issue_1.jpg?w=600" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/bb45de9b3b4f/7787f15b9b12e527741aa80e.jpg" alt="" loading="lazy" decoding="async" width="546" height="707"></a></figure><ul><li>          <a href="https://mediacenter.adp.com/2026-03-25-ADP-Research-Only-22-of-Workers-Confident-Their-Job-is-Safe-from-Elimination,-Underscoring-the-Importance-of-Talent-Strategies-that-Prepare-Employees-for-the-Future,1#assets_117:19566" target="_blank" rel="noopener noreferrer nofollow">查看文件</a> <a href="https://mma.prnewswire.com/media/2941658/Today_at_Work_2026_Issue_1.jpg?p=original" target="_blank" rel="noopener noreferrer nofollow">下载文件</a>   2026年今日职场 第1期   </li></ul><p><em>最新一期《今日职场》捕捉全球劳动力情绪脉搏，揭示人工智能进步和人口结构变化如何为员工和雇主带来新的挑战与机遇</em></p><ul><li><strong>从员工敬业度到人工智能的劳动力洞察：</strong>ADP研究最新一期的<em>《今日职场》</em>揭示了全球员工敬业度、工作安全感、对人工智能的态度、技能信心以及工作与生活平衡的状况。</li><li><strong>为人才战略提供信息：</strong>将洞察转化为行动，<em>《今日职场》</em>帮助企业了解当前员工情绪，通过数据驱动的人才战略提升敬业度、生产力和员工留存率。</li><li><strong>全球覆盖，本地专长：</strong><em>《今日职场》</em>2026年第1期基于ADP研究的全球劳动力调查，该调查收集了36个市场超过39,000名工人的反馈，以了解整体工作世界并衡量员工情绪。</li></ul><p>美国新泽西州罗斯兰，2026年3月25日 /<a href="http://www.prnewswire.com/" target="_blank" rel="noopener noreferrer nofollow">美通社</a>/ -- 根据ADP研究发布的<em><a href="https://www.adpresearch.com/today-at-work/issue1-2026/?utm_source=PRnewsroom&amp;utm_medium=pressrelease&amp;utm_campaign=todayatwork26issue1&amp;utm_content=prrelease032526link1" target="_blank" rel="noopener noreferrer nofollow">《2026年今日职场》</a></em><a href="https://www.adpresearch.com/today-at-work/issue1-2026/?utm_source=PRnewsroom&amp;utm_medium=pressrelease&amp;utm_campaign=todayatwork26issue1&amp;utm_content=prrelease032526link1" target="_blank" rel="noopener noreferrer nofollow">第1期，全球仅有22%的工人强烈同意自己的工作不会被淘汰</a>。对工作安全的焦虑在低薪、重复性任务工人和管理层级底层人员中尤为严重。这些发现及其他结果强调了雇主有机会重新构想其人才战略，并为员工提供清晰指引，因为人工智能的进步和人口结构变化为劳动力带来了新的挑战和机遇。</p><p>&quot;尽管全球失业率三年来处于历史低位，经济稳步增长，但我们的数据显示全球工人普遍表达了工作不安全感，&quot;ADP首席经济学家内拉·理查森博士表示。&quot;对于雇主而言，来自《今日职场》的员工情绪发现可以帮助制定新的人才管理实践，这些实践植根于推动技能发展、建立信任、利用跨代指导以及培育员工敬业度。&quot;<em>今日职场</em>可以为新的人才管理实践提供信息，这些实践植根于推动技能发展、建立信任、利用跨代指导以及培养员工敬业度。</p><p><em><strong><a href="https://www.adpresearch.com/today-at-work/issue1-2026/?utm_source=PRnewsroom&amp;utm_medium=pressrelease&amp;utm_campaign=todayatwork26issue1&amp;utm_content=prrelease032526link2" target="_blank" rel="noopener noreferrer nofollow">《今日职场》</a></strong></em><strong><a href="https://www.adpresearch.com/today-at-work/issue1-2026/?utm_source=PRnewsroom&amp;utm_medium=pressrelease&amp;utm_campaign=todayatwork26issue1&amp;utm_content=prrelease032526link2" target="_blank" rel="noopener noreferrer nofollow">2026年第1期</a></strong></p><p>本期的<em>《今日职场》</em>采用全球视角，展示了ADP研究年度全球劳动力调查的发现，该调查覆盖36个市场的超过39,000名在职成年人。调查结果揭示了工人对人工智能的真实感受、当前员工敬业度水平、多代劳动力带来的挑战与机遇，以及无薪工时的趋势等关键洞察。</p><p><em>&quot;《今日职场》以数据驱动的洞察回应了这一结构性变革时刻，领导者可以利用这些洞察来制定现代人才战略，&quot;ADP首席人才官杰伊·考德威尔表示。&quot;能够清楚看到自己现有技能在未来组织中将发挥的作用，并得到雇主在帮助其发展未来技能方面的投资，这样的员工将更加敬业、高效，并有信心在下一个工作时代茁壮成长。&quot;</em>以数据驱动的见解来应对这一结构性变革时刻，领导者可以利用这些见解来制定现代人才战略，&quot;ADP首席人才官Jay Caldwell表示。&quot;那些清楚看到自己现有技能在未来组织中将发挥什么作用，并且看到雇主投资于帮助他们发展未来技能的员工，将更加投入、高效，并有信心在下一个工作时代中茁壮成长。&quot;</p><p><strong>清晰沟通是关键：</strong>全球工人对自己的工作感到焦虑。即使<a href="https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS" target="_blank" rel="noopener noreferrer nofollow">全球失业率</a>处于几十年来最低水平，但只有不到四分之一的工人（22%）自信地表示相信自己的工作安全。事实上，担心失业的人在工作中投入度更低、压力更大、生产力更低，并且更可能花费时间和精力在其他地方寻找工作。</p><ul><li>认为工作安全的员工全身心投入工作的可能性高出六倍，表示自己高效率工作的可能性高出3.3倍，表示无离职意愿的可能性高出两倍。</li><li>按职位级别进一步细分，18%的个人贡献者和21%的一线管理人员强烈同意自己的工作不会被淘汰，但这一信心随着员工晋升到中层管理人员（23%）、高层管理人员（31%）和最高管理层（35%）而增加。</li><li><strong>人才启示：</strong>随着工作世界以极快的速度变化，通过持续沟通为员工提供清晰指引至关重要。消除模糊性，帮助员工设想他们的角色在未来工作中如何发展，包括人工智能将如何作为增强其工作的队友。</li></ul><p><strong>在工作中整合人工智能：</strong>频繁使用人工智能的工人更有可能自信地表示自己的工作不会被淘汰。<em>《今日职场》</em>还发现，在强烈同意雇主对自己进行投资的情况下，53%的工人完全投入工作，而在感受不到同等程度雇主投资的情况下，只有12%完全投入。雇主有机会通过提供支持性手段来提高人工智能熟练度，确保工人具备在这个新工作世界中茁壮成长所需的技能。</p><ul><li>与去年持平，报告发现2025年有19%的工人报告完全投入工作，表明超过80%的工人并未全力以赴。</li><li>在工作中找到意义的工人完全投入工作的可能性是不找到意义工人的12.5倍。</li><li><strong>人才启示：</strong>当工人信任领导者时，敬业度会显著提高。在人工智能技能发展方面进行具体投资将有助于工人看到自己在组织中的未来角色，同时也有助于提升敬业度。</li></ul><p><strong>利用多代劳动力：</strong>有史以来第一次，五代人同时在职场工作，从青少年到曾祖父母。<em>《今日职场》</em>发现55至64岁的工人中仅18%和65岁以上的工人中19%强烈同意自己具备晋升所需技能，而18至26岁的年轻工人为29%，27至39岁的工人为30%。</p><ul><li>12%的55至64岁及65岁以上的工人强烈同意他们的雇主投资于他们所需的技能，而18至26岁和27至39岁的工人中这一比例为21%。</li><li>五分之一（20%）的18至26岁工人强烈同意人工智能将在明年对他们的工作产生积极影响。随着年龄的增长，这种情绪逐渐减弱，40至54岁的工人中有15%，55至64岁的工人中有10%表示人工智能将在明年对他们的工作产生积极影响。</li><li>尽管55岁及以上的人在职业发展和在职支持方面情绪不佳，但他们与其他年龄段的人一样可能在工作找到意义。他们同样可能在工作上完全投入，并且到目前为止，他们是最不可能有离职计划的群体。</li><li><strong>人才启示：</strong>利用这支多代际劳动大军，促进跨代际指导机会，使技能和知识双向流动。组织可以将天生精通人工智能的年轻员工与资深员工的判断力和经验配对，产生负责任的人工智能输入和输出，从而推动有影响力的业务成果。将热情与经验相结合可以产生巨大的成果。</li></ul><p><strong>在人工智能时代重新定义生产力：</strong><em>《今日职场》发现，日常使用人工智能的人认为自己的生产力低于应有水平的可能性是非使用者的四倍。了解人工智能如何改变工作性质和生产力感受，对于组织在未来工作中准确衡量员工成果至关重要。</em>发现日常使用人工智能的人表示自己效率低于应有水平的可能性是非使用者的四倍。理解人工智能如何改变工作性质和生产力感受，对于组织准确评估未来工作中的员工成果至关重要。</p><ul><li>20%的工人表示他们几乎每天使用人工智能，而30%的人每周使用多次，15%的工人从未使用过。</li><li>每天在工作中使用人工智能的工人中，有30%完全投入工作，而从不使用人工智能的工人中只有14%。</li><li>每天使用人工智能的人中，只有11%表示感到过载或经历消极的工作压力，而非使用者中这一比例为23%。</li><li><strong>人才启示：</strong>随着越来越多的清单式工作被委托给人工智能，工人转向长期战略项目，重新评估如何跟踪工作生产力将是必要的。生产力将不再是快速高效地完成任务，而是转向判断力、创造力和长期影响。衡量结果而非投入，衡量决策质量而非任务数量，是改变组织衡量生产力方式的例子。</li></ul><p><strong>设定明确期望以提高效率：</strong>ADP Research的新分析发现，全球62%的工人每周无偿工作长达5小时，而38%的工人每周无偿工作6小时或更多。</p><ul><li>报告无偿工作时间最多（16小时或更多）的工人最有可能完全投入工作并说他们在工作中找到意义，这一模式在组织内所有职位级别都成立。</li><li>这些投入16小时或更多无偿时间的工人更有可能报告在工作中感到不高效，也更有可能承认他们正在积极寻找或面试新工作。</li><li><strong>人才启示：</strong>提供明确期望。表示每周无偿工作时间不超过5小时的受访者，比无偿工作时间长的受访者更有可能说他们清楚了解对自己的期望。了解需要完成的关键优先级可以帮助工人更有效地利用时间，提高生产力。</li></ul><p>&quot;从工作安全感、敬业度到人工智能，《今日职场》<em>2026</em>第1期捕捉了全球劳动力的脉搏，&quot;ADP Research人员与绩效总监Mary Hayes博士说。&quot;我们的全球劳动力调查将这些情绪趋势深入分析，以了解它们如何因行业、教育、工作类型、工作环境和资历级别而异。这种细粒度有助于世界各地各种规模的企业更好地理解员工的动机，以及战略上的微调如何带来巨大的绩效优化。&quot;</p><p><strong>全球劳动力调查方法论</strong><em>《今日职场》</em>2026<em>，</em>第1期收录了ADP Research年度全球劳动力调查的发现，该调查覆盖36个市场的超过39,000名在职成年人，旨在揭示全球劳动力情绪，探讨人们如何应对不断变化的世界的复杂性。报告按地域、工作类型和其他维度筛选呈现了员工情绪数据，为雇主提供了精细且细粒度的全球劳动力视图，可用于更好地了解其劳动力，并通过数据驱动的人才决策推动增长。</p><p>2025年全球劳动力调查于2025年7月21日至8月4日期间收集了来自36个市场超过39,000名在职成年人的随机样本（按年龄和性别分层）的回复，以提供员工情绪的区域和市场比较。受访者来自广泛的行业、教育背景、现场和远程工作环境、工作类型和技能组合。他们代表了各种管理层级和个人贡献者角色，为各种规模的企业工作。</p><p>要查看最新的<em>《今日职场 2026》</em>第1期，以及之前的版本，请访问此处：<a href="https://www.adpresearch.com/today-at-work/?utm_source=PRnewsroom&amp;utm_medium=pressrelease&amp;utm_campaign=todayatwork26issue1&amp;utm_content=prrelease032526link3" target="_blank" rel="noopener noreferrer nofollow">https://www.adpresearch.com/today-at-work/</a></p><p><strong>关于ADP Research</strong>ADP Research的使命是通过数据驱动的发现，让未来的工作更高效。公司、员工和政策制定者依赖我们精细的数据和独特的视角做出明智决策，这些决策影响全球的工作场所。要订阅每月电子邮件提醒或获取关于ADP Research的更多信息，包括就业和薪酬数据、方法论以及发布日期日历，请访问<a href="https://www.adpresearch.com/?utm_source=PRnewsroom&amp;utm_medium=pressrelease&amp;utm_campaign=todayatwork26issue1&amp;utm_content=prrelease032526link4" target="_blank" rel="noopener noreferrer nofollow">https://www.adpresearch.com</a>。</p><p><strong>关于ADP（纳斯达克：ADP）</strong>ADP 已通过创新和专业经验塑造职场世界超过 75 年。作为人力资源和薪酬解决方案的全球领导者，ADP 不断致力于解决客户及其员工面临的业务挑战，从面向小型企业的简单易用工具到面向全球企业的集成平台——以及介于两者之间的一切。始终以人为本的设计意味着我们关注的正是人本身。我们利用无与伦比的 AI 驱动洞察力和经过验证的专业知识，设计创新解决方案，帮助人们在工作中取得更大成功。140 多个国家的超过 110 万客户依赖 ADP 的卓越服务来支持他们的员工并推动业务发展。人力资源、人才、时间管理、福利、合规和薪酬。了解更多信息请访问<a href="https://www.adp.com/?utm_source=PRnewsroom&amp;utm_medium=pressrelease&amp;utm_campaign=todayatwork26issue1&amp;utm_content=prrelease032526link5" target="_blank" rel="noopener noreferrer nofollow">ADP.com</a>。</p><p><em>ADP、ADP 徽标、Always Designing for People、ADP National Employment Report 和 ADP Research 是 ADP, Inc. 的注册商标。所有其他商标均为其各自所有者的财产。</em></p><p><em>版权所有 © 2026 ADP, Inc. 保留所有权利。</em></p><p> </p><p> </p><p> <a href="https://mma.prnewswire.com/media/2497479/ADP_Research_Logo.html" target="_blank" rel="noopener noreferrer nofollow"> </a></p><p>来源：ADP, Inc.</p><ul><li> <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fmediacenter.adp.com%2Findex.php%3Fs%3D20295%26item%3D123586" target="_blank" rel="noopener noreferrer nofollow">   </a> </li><li> <a href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3A%2F%2Fmediacenter.adp.com%2Findex.php%3Fs%3D20295%26item%3D123586" target="_blank" rel="noopener noreferrer nofollow">   </a> </li><li> <a href="https://twitter.com/share?url=https%3A%2F%2Fmediacenter.adp.com%2Findex.php%3Fs%3D20295%26item%3D123586" target="_blank" rel="noopener noreferrer nofollow">   </a> </li></ul><p>如需更多信息，请联系：Michael Brown, ADP, Inc., (862) 399-6556, Michael.a.Brown@adp.com</p><p>在社交平台上找到我们</p><ul><li><a href="https://www.facebook.com/AutomaticDataProcessing" target="_blank" rel="noopener noreferrer nofollow">Facebook</a></li><li><a href="https://twitter.com/adp" target="_blank" rel="noopener noreferrer nofollow">X</a></li><li><a href="https://www.youtube.com/user/adp" target="_blank" rel="noopener noreferrer nofollow">YouTube</a></li><li><a href="https://www.linkedin.com/company/adp" target="_blank" rel="noopener noreferrer nofollow">LinkedIn</a></li></ul><p>联系媒体关系部</p><p>如需媒体咨询，请联系我们的媒体关系团队获取新闻资料、采访和专家评论，或直接联系我们的<a href="https://mediacenter.adp.com/contact-us" target="_blank" rel="noopener noreferrer nofollow">团队成员</a>。</p><p>给媒体关系部发邮件</p><p>邮件通知</p><p>随时了解最新信息！注册邮件通知，接收来自我们新闻编辑室的更新。</p><p><a href="https://mediacenter.adp.com/email-alerts" target="_blank" rel="noopener noreferrer nofollow">订阅</a></p></div>
+  <div class="disclaimer">AI 仅用于按原文顺序逐段翻译；正文结构、事实、表格和图表沿用原文 · <a href="https://mediacenter.adp.com/2026-03-25-ADP-Research-Only-22-of-Workers-Confident-Their-Job-is-Safe-from-Elimination%2C-Underscoring-the-Importance-of-Talent-Strategies-that-Prepare-Employees-for-the-Future%2C1" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="ADP Research">查看原文 ↗</a></div>
 </div>
 
   <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/fde18bebfbc0.html"><span class="n">›</span>SHRM调查：HR中的AI仍集中在招聘与流程自动化<span class="count">65</span></a><a class="vendor-row" href="../e/875c99b3755b.html"><span class="n">›</span>Mercer：AI转型正在倒逼岗位重构与技能再配置<span class="count">68</span></a><a class="vendor-row" href="../e/8f1a098ff064.html"><span class="n">›</span>Gartner：管理者是员工有效使用AI的关键中间层<span class="count">62</span></a></div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 <nav class="tabbar" aria-label="移动端主导航">
-  <a href="../index.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>
+  <a href="../index.html" class="on" data-smart-home-return><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>
   <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
 </nav>
-<div class="more-mask" data-more-mask></div>
-<section class="more-sheet" id="mobileMoreSheet" aria-label="更多导航" aria-hidden="true">
+<div class="more-mask" data-more-mask aria-hidden="true"></div>
+<section class="more-sheet" id="mobileMoreSheet" role="dialog" aria-modal="true" aria-labelledby="mobileMoreTitle" aria-hidden="true">
   <div class="more-handle" aria-hidden="true"></div>
-  <div class="more-head"><h2>更多</h2><button class="more-close" type="button" data-more-close aria-label="关闭更多导航">×</button></div>
+  <div class="more-head"><h2 id="mobileMoreTitle">更多</h2><button class="more-close" type="button" data-more-close aria-label="关闭更多导航">×</button></div>
   <div class="more-grid"><a class="more-link" href="../weekly.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span>每周简报</span></a><a class="more-link" href="../hot.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></span><span>完整榜单</span></a><a class="more-link" href="../classics.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></span><span>典藏</span></a><a class="more-link" href="../sources.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span><span>信源</span></a><a class="more-link" href="../agent.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg></span><span>接入 Agent</span></a><a class="more-link" href="../privacy.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg></span><span>隐私说明</span></a></div>
 </section>
 <script>
@@ -525,18 +544,29 @@ main,.layout>*,.hotlist>*{min-width:0}
   var mask=document.querySelector('[data-more-mask]');
   var closeBtn=document.querySelector('[data-more-close]');
   if(!trigger||!sheet||!mask||!closeBtn) return;
+  var background=Array.from(document.body.children).filter(function(node){return node!==sheet&&node!==mask&&node.tagName!=='SCRIPT'});
   function setMore(open){
+    if(!open) background.forEach(function(node){node.removeAttribute('inert')});
     trigger.setAttribute('aria-expanded',open?'true':'false');
     sheet.setAttribute('aria-hidden',open?'false':'true');
     sheet.classList.toggle('show',open);
     mask.classList.toggle('show',open);
     document.body.classList.toggle('more-open',open);
-    if(open) closeBtn.focus(); else trigger.focus();
+    if(open){background.forEach(function(node){node.setAttribute('inert','')});closeBtn.focus()}else trigger.focus();
   }
   trigger.addEventListener('click',function(){setMore(true)});
   closeBtn.addEventListener('click',function(){setMore(false)});
   mask.addEventListener('click',function(){setMore(false)});
-  document.addEventListener('keydown',function(event){if(event.key==='Escape'&&sheet.classList.contains('show')) setMore(false)});
+  document.addEventListener('keydown',function(event){
+    if(!sheet.classList.contains('show')) return;
+    if(event.key==='Escape'){setMore(false);return}
+    if(event.key!=='Tab') return;
+    var focusable=Array.from(sheet.querySelectorAll('a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])'));
+    if(!focusable.length) return;
+    var first=focusable[0],last=focusable[focusable.length-1];
+    if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+    else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+  });
 })();
 </script>
 
@@ -563,11 +593,11 @@ main,.layout>*,.hotlist>*{min-width:0}
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;margin-bottom:14px}
 .topbar .back{flex:0 0 auto;white-space:nowrap}
 .sharebtns{display:flex;gap:8px;min-width:0;max-width:100%}
-.sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
+.sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-height:44px;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
 .sbtn svg{flex:0 0 auto}
 .sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .sbtn:active{transform:scale(.95)}
-@media(max-width:960px){
+@media(max-width:1199px){
 .topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .topbar.detail-context .back{font-size:14px;font-weight:650;color:var(--ink)}
 }
@@ -594,7 +624,8 @@ main,.layout>*,.hotlist>*{min-width:0}
 .sh-poster-wrap{width:min(340px,86vw);border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
 .sh-poster-wrap img{width:100%;display:block}
 .sh-poster-actions{margin-top:18px;display:flex;gap:10px}
-.sh-save,.sh-close{border:none;border-radius:99px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
+.sh-save,.sh-close{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:none;border-radius:99px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
+.sbtn:focus-visible,.sh-opt:focus-visible,.sh-cancel:focus-visible,.sh-save:focus-visible,.sh-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .sh-save{background:var(--accent);color:#fff}
 .sh-close{background:rgba(255,255,255,.15);color:#fff}
 .sh-poster-tip{margin-top:10px;font-size:11px;color:#8b919b}
@@ -618,7 +649,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title":"ADP全球调查揭示AI使用、生产力感受与岗位焦虑错位","summary":"ADP Research覆盖36个市场、39,000多名员工的调查显示，只有22%的员工强烈认同自己的岗位不会被淘汰。频繁使用AI并不自动转化为更好的生产力感受：每天使用AI的人反而更可能认为自己没有达到应有的生产力水平。不同年龄层对AI的期待也存在明显差异。","reason":"这份员工侧研究提醒HR不能只用登录量或使用频率判断AI成功，还要同时观察岗位安全感、敬业度、学习支持与真实工作结果。","topic":"组织人才","heat":63,"source":"ADP Research","date":"2026-03-25","url":"https://henryhb1105-arch.github.io/datahot/e/bb45de9b3b4f.html"};
+var SH_EV = {"title":"ADP全球调查揭示AI使用、生产力感受与岗位焦虑错位","summary":"ADP Research覆盖36个市场、39,000多名员工的调查显示，只有22%的员工强烈认同自己的岗位不会被淘汰。频繁使用AI并不自动转化为更好的生产力感受：每天使用AI的人反而更可能认为自己没有达到应有的生产力水平。不同年龄层对AI的期待也存在明显差异。","reason":"这份员工侧研究提醒HR不能只用登录量或使用频率判断AI成功，还要同时观察岗位安全感、敬业度、学习支持与真实工作结果。","topic":"组织人才","heat":63,"source":"ADP Research","date":"2026-03-25","url":"https://henryhb1105-arch.github.io/datahot/e/bb45de9b3b4f.html","qr":"../qr/bb45de9b3b4f.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');
@@ -634,9 +665,14 @@ function shToast(t){
 }
 function shCopy(){
   shClose();
-  function done(){shToast('链接已复制，去粘贴吧');}
-  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(SH_EV.url).then(done,done);}
-  else{var i=document.createElement('input');i.value=SH_EV.url;document.body.appendChild(i);i.select();try{document.execCommand('copy');}catch(e){} i.remove();done();}
+  function fallbackCopy(text){
+    var i=document.createElement('input');i.value=text;i.setAttribute('readonly','');document.body.appendChild(i);i.select();
+    var ok=false;try{ok=document.execCommand('copy');}catch(e){ok=false}i.remove();return ok;
+  }
+  var copied=navigator.clipboard&&navigator.clipboard.writeText
+    ?navigator.clipboard.writeText(SH_EV.url).then(function(){return true},function(){return fallbackCopy(SH_EV.url)})
+    :Promise.resolve(fallbackCopy(SH_EV.url));
+  copied.then(function(ok){shToast(ok?'链接已复制，去粘贴吧':'复制失败，请手动复制链接');});
 }
 function shSaveClick(ev){
   ev.preventDefault();
@@ -740,8 +776,7 @@ function posterLayout(x,W,P,qrImg){
   x.beginPath();x.moveTo(64,y);x.lineTo(W-64,y);x.stroke();x.setLineDash([]);
   x.fillStyle=P.qrBox;x.beginPath();x.roundRect(64,y+36,150,150,14);x.fill();
   if(P.qrBorder){x.strokeStyle=P.qrBorder;x.lineWidth=2;x.beginPath();x.roundRect(64,y+36,150,150,14);x.stroke();}
-  if(qrImg){x.drawImage(qrImg,74,y+46,130,130);}
-  else{x.fillStyle='#666';x.font='400 22px sans-serif';x.fillText('扫码访问',88,y+118);}
+  x.drawImage(qrImg,74,y+46,130,130);
   x.fillStyle=P.name;x.font='700 30px -apple-system,PingFang SC,sans-serif';
   x.fillText('扫码阅读全文或忠实译文',240,y+60);
   x.fillStyle=P.foot;x.font='400 24px -apple-system,PingFang SC,sans-serif';
@@ -757,16 +792,20 @@ function drawPoster(qrImg,dark){
   posterLayout(c.getContext('2d'),W,P,qrImg);
   return c.toDataURL('image/png');
 }
-var posterURL=null,posterDark=null;
+var posterURL=null,posterDark=null,posterLoading=false;
 function openPoster(){
-  document.getElementById('shPoster').classList.add('show');
   var dark=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches;
-  if(posterURL&&posterDark===dark){return;}
+  if(posterURL&&posterDark===dark){showPoster();return;}
+  if(posterLoading){return;}
+  posterLoading=true;
   posterDark=dark;
-  var qr=new Image();qr.crossOrigin='anonymous';
-  qr.onload=function(){posterURL=drawPoster(qr,dark);showPoster();};
-  qr.onerror=function(){posterURL=drawPoster(null,dark);showPoster();};
-  qr.src='https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=0&data='+encodeURIComponent(SH_EV.url);
+  var qr=new Image();
+  qr.onload=function(){
+    try{posterURL=drawPoster(qr,dark);posterLoading=false;showPoster();}
+    catch(error){posterLoading=false;posterURL=null;shToast('海报生成失败，请稍后重试');}
+  };
+  qr.onerror=function(){posterLoading=false;posterURL=null;shToast('海报生成失败，请稍后重试');};
+  qr.src=SH_EV.qr;
 }
 function dataToBlob(d){
   var p=d.split(','),m=p[0].match(/:(.*?);/)[1],b=atob(p[1]),a=new Uint8Array(b.length);
@@ -777,6 +816,7 @@ function showPoster(){
   document.getElementById('shPosterImg').src=posterURL;
   var a=document.getElementById('shSave');
   a.href=URL.createObjectURL(dataToBlob(posterURL)); a.target='_blank';a.rel='noopener noreferrer';
+  document.getElementById('shPoster').classList.add('show');
 }
 document.querySelectorAll('[data-share-action]').forEach(function(control){
   control.addEventListener('click',function(event){

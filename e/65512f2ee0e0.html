@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob: https://api.qrserver.com; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-ALj8haSgrLMWvVI6VCuTgQ2FPO66WNR4KYDkAhIzt3M=' 'sha256-DC7SqORVhb9OdKwBrDR58XnB4s2TefJ7CmjwsifhY5U=' 'sha256-zTbqoLXOVJ6Y7bxwX42flzVUMpf3rgsI16LDibNF8HY='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-6dz6yhi79buRuty3pU2NXeAk1cPIbiGuKscCkGcUXRQ=' 'sha256-ALj8haSgrLMWvVI6VCuTgQ2FPO66WNR4KYDkAhIzt3M=' 'sha256-u5lt/tyCN4EDIaeYaY3CAFOT5IFnQYt+1XnVX7DJvAQ='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Please tell me “industrial warehouse” does not mean “data center” 😬
@@ -80,10 +80,10 @@ www.federalwaymirror.com/2026/0">
   .btn-sub{background:var(--accent);color:#fff;border-radius:99px;padding:7px 16px;font-size:13px;font-weight:600;white-space:nowrap}
 
   .layout{display:grid;grid-template-columns:1fr 320px;gap:24px;padding:28px 0 60px}
-  @media(max-width:960px){.layout{grid-template-columns:1fr}}
+  @media(max-width:1199px){.layout{grid-template-columns:1fr}}
 
   /* ── 移动端导航适配 ── */
-  @media(max-width:960px){
+  @media(max-width:1199px){
     .nav{flex-wrap:wrap;height:auto;padding:8px 0;gap:10px;min-height:52px}
     .logo{font-size:19px}
     .logo .tag{display:none}
@@ -110,12 +110,13 @@ www.federalwaymirror.com/2026/0">
     .why{font-size:12.5px;line-height:1.7}
     .brief{padding:16px 18px}
     .brief p{font-size:13.5px}
-    .chiprow{gap:6px}
-    .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:32px;display:inline-flex;align-items:center}
+    .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-right:28px}
+    .chiprow::after{display:block;content:"";position:sticky;right:0;flex:0 0 28px;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+    .chiprow::-webkit-scrollbar{display:none}
+    .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:44px;display:inline-flex;align-items:center}
     .tab,.fchip,.chip{touch-action:manipulation}
     aside{align-self:start;position:sticky;top:20px}
-@media(min-width:1280px){.wrap{max-width:1320px}}
-aside .card{padding:14px 16px}
+    aside .card{padding:14px 16px}
     .article{padding:20px 14px 48px}
     .article h1{font-size:20px}
     .article .body{font-size:14.5px}
@@ -123,6 +124,7 @@ aside .card{padding:14px 16px}
     .cta{width:100%;text-align:center;padding:13px 0;font-size:15px}
     .day-head .date{font-size:15px}
   }
+  @media(min-width:1280px){.wrap{max-width:1320px}}
 
   /* ── 每周简报 ── */
   .brief{background:linear-gradient(135deg,#1a1d23 0%,#2b2418 60%,#3d2412 100%);color:#fff;border-radius:var(--radius);padding:22px 26px;margin-bottom:22px;position:relative;overflow:hidden}
@@ -139,15 +141,17 @@ aside .card{padding:14px 16px}
   .timeline-toolbar h2,.timeline-toolbar .timeline-count{white-space:nowrap}
   .timeline-searchbox{display:flex;align-items:center;min-width:0;width:min(150px,40vw);margin-left:auto}
   .timeline-searchbox .tlsearch{margin-left:0;min-width:0;flex:1 1 0}
-  .timeline-clear{cursor:pointer;color:var(--sub);margin-left:6px}
+  .timeline-clear{appearance:none;display:inline-grid;place-items:center;min-width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:var(--sub);cursor:pointer;margin-left:4px;font:inherit}
   .timeline-count{font-size:11px;color:var(--sub)}
   @media(max-width:600px){
     .timeline-toolbar{gap:8px}
     .timeline-searchbox{width:min(120px,34vw)}
     .timeline-searchbox .tlsearch,.timeline-searchbox .tlsearch:focus{width:100%}
+    .timeline-clear{min-width:44px;height:44px}
   }
   .hotlist{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:30px}
-  @media(max-width:960px){.hotlist{grid-template-columns:1fr}}
+  @media(max-width:600px){.hotlist{grid-template-columns:1fr;gap:10px}}
+  @media(max-width:1399px) and (min-width:601px){.hotlist{grid-template-columns:repeat(2,minmax(0,1fr))}}
   .hot{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;position:relative;transition:.15s;cursor:pointer}
   .hot .rank{position:absolute;top:-1px;left:16px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:0 0 8px 8px}
   .hot .heat{position:absolute;top:12px;right:16px;font-size:12px;color:var(--accent);font-weight:700}
@@ -171,6 +175,10 @@ aside .card{padding:14px 16px}
   }
   @media(hover:none) and (pointer:coarse){
     .hot:active,.item:active{border-color:#d1d5db;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+  }
+  .fchip:focus-visible,.timeline-clear:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   }
   .item .top{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub);flex-wrap:wrap}
   .badge{font-weight:600;border-radius:6px;padding:1px 8px;font-size:11px}
@@ -215,18 +223,19 @@ aside .card{padding:14px 16px}
 body{overflow-x:clip}
 main,.layout>*,.hotlist>*{min-width:0}
 .d-only{display:inline-block}
-@media(max-width:960px){.d-only{display:none}}
+@media(max-width:1199px){.d-only{display:none}}
 .chip{display:inline-block;font-size:11px;background:#eef2ff;color:var(--blue);border-radius:99px;padding:1px 10px;text-decoration:none}
 .tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
 .tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
-.chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px;position:relative}
-.chiprow::after{content:"";position:sticky;right:0;flex-shrink:0;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+.chiprow{display:flex;flex-wrap:wrap;gap:8px;overflow:visible;padding:4px 0 12px;margin-bottom:4px;position:relative}
+.chiprow::after{display:none;content:"";position:sticky;right:0;flex:0 0 28px;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
 .chiprow::-webkit-scrollbar{display:none}
-.chiprow .fchip{flex-shrink:0;font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
+.chiprow .fchip{appearance:none;flex-shrink:0;min-height:36px;font:inherit;font-size:12.5px;line-height:1.4;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
 .chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
 @media(max-width:600px){
-  .chiprow{gap:6px}
-  .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:32px;display:inline-flex;align-items:center}
+  .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-right:28px}
+  .chiprow::after{display:block}
+  .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:44px;display:inline-flex;align-items:center}
 }
 @media (prefers-color-scheme: dark){
   .chip{background:rgba(110,168,255,.16);color:#6ea8ff}
@@ -264,7 +273,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   .source-intro{margin-bottom:25px}
   .source-intro h1{font-size:24px}
   .source-row{gap:8px}
-  .source-name{font-size:13px}
+  .source-name{font-size:13px;min-height:44px}
   .source-focus{max-width:45%;font-size:11px}
   .source-disabled .source-row{display:block}
   .source-disabled-reason{max-width:none;margin:4px 0 0;text-align:left}
@@ -275,16 +284,21 @@ main,.layout>*,.hotlist>*{min-width:0}
 .cpin{width:18px;flex-shrink:0;font-size:12px}
 .ctitle{font-size:13.5px;font-weight:600;line-height:1.55;flex:1}
 .cmeta{font-size:11px;color:var(--sub);white-space:nowrap}
-.favbtn{border:none;background:none;color:var(--sub);cursor:pointer;padding:2px;display:inline-flex;align-items:center}
+.favbtn{appearance:none;min-width:36px;min-height:36px;border:none;background:none;color:var(--sub);cursor:pointer;padding:6px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%}
 .favbtn.on{color:var(--accent)}
 .favbtn.on svg{fill:currentColor}
 .favbtn svg{pointer-events:none}
 .fav-entry{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--sub);white-space:nowrap;text-decoration:none}
-.privacy-btn{border:none;background:var(--accent);color:#fff;border-radius:99px;padding:9px 16px;font-size:12.5px;font-weight:650;cursor:pointer;margin:4px 6px 4px 0}
+.privacy-btn{min-height:44px;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:9px 16px;font-size:12.5px;font-weight:650;cursor:pointer;margin:4px 6px 4px 0}
 .privacy-btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .load-more{display:block;margin:18px auto 4px;border:1px solid var(--line);background:var(--card);color:var(--txt2);border-radius:99px;padding:9px 22px;font-size:12.5px;font-weight:650;cursor:pointer}
 .load-more[hidden]{display:none}
 .load-more[disabled]{opacity:.65;cursor:default}
+.filter-error b{display:block;margin-bottom:5px;color:var(--ink);font-size:14px}
+.filter-error p{margin:0;color:var(--sub);font-size:12.5px;line-height:1.7}
+.filter-error-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.filter-error-actions button{min-height:44px;border:1px solid var(--line);border-radius:99px;padding:8px 15px;background:var(--card);color:var(--ink);font:inherit;font-size:12.5px;font-weight:650;cursor:pointer}
+.filter-error-actions button:first-child{border-color:var(--accent);background:var(--accent);color:#fff}
 .weekly-teaser{display:block;background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border-radius:var(--radius);padding:18px 22px;margin-bottom:22px;text-decoration:none;position:relative;overflow:hidden}
 .weekly-teaser .weekly-kicker{font-size:11px;letter-spacing:1.5px;color:#f5b48a;font-weight:750;margin-bottom:6px}
 .weekly-teaser h2{font-size:19px;line-height:1.45;margin:0 0 5px}
@@ -348,7 +362,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .hrow .hm{font-size:11px;color:var(--sub);white-space:nowrap}
 .srcbadge{font-size:10px;border:1px solid var(--line);border-radius:5px;padding:0 5px;color:var(--sub);flex-shrink:0;line-height:1.6}
 .sidebar{display:none}
-@media(min-width:961px){
+@media(min-width:1200px){
   body.has-sb{padding-left:224px}
   body.has-sb>header{display:none}
   .sidebar{display:flex;position:fixed;left:0;top:0;bottom:0;width:224px;flex-direction:column;background:var(--card);border-right:1px solid var(--line);padding:22px 16px;z-index:40}
@@ -362,7 +376,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .hot .htime{margin-left:auto;font-size:11px;color:var(--sub)}
 .tabbar{display:none}
 .more-mask,.more-sheet{display:none}
-@media(max-width:960px){
+@media(max-width:1199px){
   body{padding-bottom:64px}
   footer{padding-bottom:96px}
   body.mobile-section{padding-top:env(safe-area-inset-top)}
@@ -378,13 +392,18 @@ main,.layout>*,.hotlist>*{min-width:0}
   .more-handle{width:36px;height:4px;border-radius:99px;background:var(--line);margin:2px auto 12px}
   .more-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
   .more-head h2{font-size:18px}
-  .more-close{appearance:none;border:0;background:var(--soft);color:var(--sub);width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer}
+  .more-close{appearance:none;border:0;background:var(--soft);color:var(--sub);width:44px;height:44px;border-radius:50%;font-size:18px;cursor:pointer}
   .more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .more-link{display:flex;align-items:center;gap:11px;min-height:58px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);text-decoration:none;color:var(--ink)}
   .more-link .more-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent);flex:0 0 auto}
   .more-link span:last-child{min-width:0;font-size:13px;font-weight:650}
   .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
   body.more-open{overflow:hidden}
+}
+.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.load-more:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:600px){.favbtn{min-width:44px;min-height:44px}}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
 .tgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
 @media(max-width:960px){.tgrid{grid-template-columns:1fr}}
@@ -466,7 +485,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .tts-copy{display:flex;flex-direction:column;min-width:112px;line-height:1.35}
 .tts-copy b{font-size:12.5px;color:var(--ink)}
 .tts-copy span{font-size:10.5px;color:var(--sub);margin-top:2px}
-.tts-toggle{border:0;border-radius:99px;background:var(--ink);color:var(--card);font-size:12px;font-weight:750;padding:7px 13px;cursor:pointer;min-width:58px}
+.tts-toggle{min-width:58px;min-height:44px;border:0;border-radius:99px;background:var(--ink);color:var(--card);font-size:12px;font-weight:750;padding:7px 13px;cursor:pointer}
 .tts-progress{width:100%;accent-color:var(--accent);cursor:pointer}
 .tts-time{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}
 .tts-rate-label{font-size:10.5px;color:var(--sub);display:flex;align-items:center;gap:4px}
@@ -480,9 +499,9 @@ main,.layout>*,.hotlist>*{min-width:0}
 .disclaimer{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}
 .disclaimer a{color:var(--accent)}
 </style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="65512f2ee0e0" data-category="platform" data-source="Bluesky 数据社区">
-<aside class="sidebar"><div class="slogo"><a href="../index.html" aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><a class="mi on" href="../index.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>每周简报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>我的收藏</a><a class="mi" href="../classics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg>典藏</a><a class="mi" href="../hot.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>完整榜单</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>
+<aside class="sidebar"><div class="slogo"><a href="../index.html" data-smart-home-return aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><a class="mi on" href="../index.html" data-smart-home-return><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>每周简报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>我的收藏</a><a class="mi" href="../classics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg>典藏</a><a class="mi" href="../hot.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>完整榜单</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>
 <header class="detail-brand-header"><div class="wrap nav">
-  <div class="logo"><a href="../index.html">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
+  <div class="logo"><a href="../index.html" data-smart-home-return>Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
 <div class="article">
   <div class="topbar detail-context">
@@ -491,7 +510,7 @@ main,.layout>*,.hotlist>*{min-width:0}
       <button class="sbtn ghost favbtn" data-fav="65512f2ee0e0" title="收藏"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></button>
 
       <a class="sbtn ghost" href="https://www.federalwaymirror.com/2026/05/28/giant-warehouse-planned-for-wild-waves-property-in-federal-way/" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Bluesky 数据社区">原文</a>
-      <button class="sbtn ghost" type="button" data-share-action="poster">海报</button>
+      <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/65512f2ee0e0.png">海报</button>
       <button class="sbtn" type="button" data-share-action="open">分享</button>
     </span>
   </div>
@@ -514,17 +533,17 @@ www.federalwaymirror.com/2026/05/28/g... · 原帖 https://bsky.app/profile/base
   
   
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/0e0f08b2f54d.html"><span class="n">›</span>It&#x27;s now a giant-warehouse AI data centre &quot;campus&quot;, per ABC News this morning. Are we really all thi<span class="count">47</span></a><a class="vendor-row" href="../e/715600789bbc.html"><span class="n">›</span>Planned Amazon data center could become the biggest climate polluter in the US<span class="count">41</span></a><a class="vendor-row" href="../e/506288aa097e.html"><span class="n">›</span>Just read “pile of cash set on fire for nothing” or “ future abandoned warehouse” for each instance <span class="count">47</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/0e0f08b2f54d.html"><span class="n">›</span>It&#x27;s now a giant-warehouse AI data centre &quot;campus&quot;, per ABC News this morning. Are we really all thi<span class="count">46</span></a><a class="vendor-row" href="../e/715600789bbc.html"><span class="n">›</span>Planned Amazon data center could become the biggest climate polluter in the US<span class="count">41</span></a><a class="vendor-row" href="../e/506288aa097e.html"><span class="n">›</span>Just read “pile of cash set on fire for nothing” or “ future abandoned warehouse” for each instance <span class="count">47</span></a></div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 <nav class="tabbar" aria-label="移动端主导航">
-  <a href="../index.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>
+  <a href="../index.html" class="on" data-smart-home-return><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>
   <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
 </nav>
-<div class="more-mask" data-more-mask></div>
-<section class="more-sheet" id="mobileMoreSheet" aria-label="更多导航" aria-hidden="true">
+<div class="more-mask" data-more-mask aria-hidden="true"></div>
+<section class="more-sheet" id="mobileMoreSheet" role="dialog" aria-modal="true" aria-labelledby="mobileMoreTitle" aria-hidden="true">
   <div class="more-handle" aria-hidden="true"></div>
-  <div class="more-head"><h2>更多</h2><button class="more-close" type="button" data-more-close aria-label="关闭更多导航">×</button></div>
+  <div class="more-head"><h2 id="mobileMoreTitle">更多</h2><button class="more-close" type="button" data-more-close aria-label="关闭更多导航">×</button></div>
   <div class="more-grid"><a class="more-link" href="../weekly.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span>每周简报</span></a><a class="more-link" href="../hot.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></span><span>完整榜单</span></a><a class="more-link" href="../classics.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></span><span>典藏</span></a><a class="more-link" href="../sources.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span><span>信源</span></a><a class="more-link" href="../agent.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg></span><span>接入 Agent</span></a><a class="more-link" href="../privacy.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg></span><span>隐私说明</span></a></div>
 </section>
 <script>
@@ -534,18 +553,29 @@ www.federalwaymirror.com/2026/05/28/g... · 原帖 https://bsky.app/profile/base
   var mask=document.querySelector('[data-more-mask]');
   var closeBtn=document.querySelector('[data-more-close]');
   if(!trigger||!sheet||!mask||!closeBtn) return;
+  var background=Array.from(document.body.children).filter(function(node){return node!==sheet&&node!==mask&&node.tagName!=='SCRIPT'});
   function setMore(open){
+    if(!open) background.forEach(function(node){node.removeAttribute('inert')});
     trigger.setAttribute('aria-expanded',open?'true':'false');
     sheet.setAttribute('aria-hidden',open?'false':'true');
     sheet.classList.toggle('show',open);
     mask.classList.toggle('show',open);
     document.body.classList.toggle('more-open',open);
-    if(open) closeBtn.focus(); else trigger.focus();
+    if(open){background.forEach(function(node){node.setAttribute('inert','')});closeBtn.focus()}else trigger.focus();
   }
   trigger.addEventListener('click',function(){setMore(true)});
   closeBtn.addEventListener('click',function(){setMore(false)});
   mask.addEventListener('click',function(){setMore(false)});
-  document.addEventListener('keydown',function(event){if(event.key==='Escape'&&sheet.classList.contains('show')) setMore(false)});
+  document.addEventListener('keydown',function(event){
+    if(!sheet.classList.contains('show')) return;
+    if(event.key==='Escape'){setMore(false);return}
+    if(event.key!=='Tab') return;
+    var focusable=Array.from(sheet.querySelectorAll('a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])'));
+    if(!focusable.length) return;
+    var first=focusable[0],last=focusable[focusable.length-1];
+    if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+    else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+  });
 })();
 </script>
 
@@ -572,11 +602,11 @@ www.federalwaymirror.com/2026/05/28/g... · 原帖 https://bsky.app/profile/base
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;margin-bottom:14px}
 .topbar .back{flex:0 0 auto;white-space:nowrap}
 .sharebtns{display:flex;gap:8px;min-width:0;max-width:100%}
-.sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
+.sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-height:44px;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
 .sbtn svg{flex:0 0 auto}
 .sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .sbtn:active{transform:scale(.95)}
-@media(max-width:960px){
+@media(max-width:1199px){
 .topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .topbar.detail-context .back{font-size:14px;font-weight:650;color:var(--ink)}
 }
@@ -603,7 +633,8 @@ www.federalwaymirror.com/2026/05/28/g... · 原帖 https://bsky.app/profile/base
 .sh-poster-wrap{width:min(340px,86vw);border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
 .sh-poster-wrap img{width:100%;display:block}
 .sh-poster-actions{margin-top:18px;display:flex;gap:10px}
-.sh-save,.sh-close{border:none;border-radius:99px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
+.sh-save,.sh-close{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:none;border-radius:99px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
+.sbtn:focus-visible,.sh-opt:focus-visible,.sh-cancel:focus-visible,.sh-save:focus-visible,.sh-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .sh-save{background:var(--accent);color:#fff}
 .sh-close{background:rgba(255,255,255,.15);color:#fff}
 .sh-poster-tip{margin-top:10px;font-size:11px;color:#8b919b}
@@ -627,7 +658,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title":"Please tell me “industrial warehouse” does not mean “data center” 😬\n\nwww.federalwaymirror.com/2026/0","summary":"Bluesky 热帖 · @baseball-broad.bsky.social · 12 赞 · Please tell me “industrial warehouse” does not mean “data center” 😬\n\nwww.federalwaymirror.com/2026/05/28/g... · 原帖 https://bsky.app/profile/baseball-broad.bsky.social/post/3mshury5grs26","reason":"","topic":"","heat":46,"source":"Bluesky 数据社区","date":"2026-08-07","url":"https://henryhb1105-arch.github.io/datahot/e/65512f2ee0e0.html"};
+var SH_EV = {"title":"Please tell me “industrial warehouse” does not mean “data center” 😬\n\nwww.federalwaymirror.com/2026/0","summary":"Bluesky 热帖 · @baseball-broad.bsky.social · 12 赞 · Please tell me “industrial warehouse” does not mean “data center” 😬\n\nwww.federalwaymirror.com/2026/05/28/g... · 原帖 https://bsky.app/profile/baseball-broad.bsky.social/post/3mshury5grs26","reason":"","topic":"","heat":46,"source":"Bluesky 数据社区","date":"2026-08-07","url":"https://henryhb1105-arch.github.io/datahot/e/65512f2ee0e0.html","qr":"../qr/65512f2ee0e0.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');
@@ -643,9 +674,14 @@ function shToast(t){
 }
 function shCopy(){
   shClose();
-  function done(){shToast('链接已复制，去粘贴吧');}
-  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(SH_EV.url).then(done,done);}
-  else{var i=document.createElement('input');i.value=SH_EV.url;document.body.appendChild(i);i.select();try{document.execCommand('copy');}catch(e){} i.remove();done();}
+  function fallbackCopy(text){
+    var i=document.createElement('input');i.value=text;i.setAttribute('readonly','');document.body.appendChild(i);i.select();
+    var ok=false;try{ok=document.execCommand('copy');}catch(e){ok=false}i.remove();return ok;
+  }
+  var copied=navigator.clipboard&&navigator.clipboard.writeText
+    ?navigator.clipboard.writeText(SH_EV.url).then(function(){return true},function(){return fallbackCopy(SH_EV.url)})
+    :Promise.resolve(fallbackCopy(SH_EV.url));
+  copied.then(function(ok){shToast(ok?'链接已复制，去粘贴吧':'复制失败，请手动复制链接');});
 }
 function shSaveClick(ev){
   ev.preventDefault();
@@ -749,8 +785,7 @@ function posterLayout(x,W,P,qrImg){
   x.beginPath();x.moveTo(64,y);x.lineTo(W-64,y);x.stroke();x.setLineDash([]);
   x.fillStyle=P.qrBox;x.beginPath();x.roundRect(64,y+36,150,150,14);x.fill();
   if(P.qrBorder){x.strokeStyle=P.qrBorder;x.lineWidth=2;x.beginPath();x.roundRect(64,y+36,150,150,14);x.stroke();}
-  if(qrImg){x.drawImage(qrImg,74,y+46,130,130);}
-  else{x.fillStyle='#666';x.font='400 22px sans-serif';x.fillText('扫码访问',88,y+118);}
+  x.drawImage(qrImg,74,y+46,130,130);
   x.fillStyle=P.name;x.font='700 30px -apple-system,PingFang SC,sans-serif';
   x.fillText('扫码阅读全文或忠实译文',240,y+60);
   x.fillStyle=P.foot;x.font='400 24px -apple-system,PingFang SC,sans-serif';
@@ -766,16 +801,20 @@ function drawPoster(qrImg,dark){
   posterLayout(c.getContext('2d'),W,P,qrImg);
   return c.toDataURL('image/png');
 }
-var posterURL=null,posterDark=null;
+var posterURL=null,posterDark=null,posterLoading=false;
 function openPoster(){
-  document.getElementById('shPoster').classList.add('show');
   var dark=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches;
-  if(posterURL&&posterDark===dark){return;}
+  if(posterURL&&posterDark===dark){showPoster();return;}
+  if(posterLoading){return;}
+  posterLoading=true;
   posterDark=dark;
-  var qr=new Image();qr.crossOrigin='anonymous';
-  qr.onload=function(){posterURL=drawPoster(qr,dark);showPoster();};
-  qr.onerror=function(){posterURL=drawPoster(null,dark);showPoster();};
-  qr.src='https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=0&data='+encodeURIComponent(SH_EV.url);
+  var qr=new Image();
+  qr.onload=function(){
+    try{posterURL=drawPoster(qr,dark);posterLoading=false;showPoster();}
+    catch(error){posterLoading=false;posterURL=null;shToast('海报生成失败，请稍后重试');}
+  };
+  qr.onerror=function(){posterLoading=false;posterURL=null;shToast('海报生成失败，请稍后重试');};
+  qr.src=SH_EV.qr;
 }
 function dataToBlob(d){
   var p=d.split(','),m=p[0].match(/:(.*?);/)[1],b=atob(p[1]),a=new Uint8Array(b.length);
@@ -786,6 +825,7 @@ function showPoster(){
   document.getElementById('shPosterImg').src=posterURL;
   var a=document.getElementById('shSave');
   a.href=URL.createObjectURL(dataToBlob(posterURL)); a.target='_blank';a.rel='noopener noreferrer';
+  document.getElementById('shPoster').classList.add('show');
 }
 document.querySelectorAll('[data-share-action]').forEach(function(control){
   control.addEventListener('click',function(event){

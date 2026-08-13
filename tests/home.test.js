@@ -54,21 +54,40 @@ test("detail return uses history only for a same-tab visit from the DataHot home
 });
 
 test("smart detail return prevents the fallback link and goes back once", () => {
-  let clickHandler = null;
+  const clickHandlers = [];
   let backCalls = 0;
   let prevented = false;
-  const link = { addEventListener: (name, handler) => { if (name === "click") clickHandler = handler; } };
+  const links = [0, 1, 2, 3].map(() => ({
+    addEventListener: (name, handler) => { if (name === "click") clickHandlers.push(handler); }
+  }));
   detail.boot({
     document: {
       referrer: "https://example.com/datahot/index.html?topic=Data+Agent&page=3",
-      querySelector: () => link
+      querySelectorAll: () => links
     },
     location: { href: "https://example.com/datahot/e/89e262591ce7.html" },
     history: { length: 3, back: () => { backCalls += 1; } }
   });
-  clickHandler({ preventDefault: () => { prevented = true; } });
+  assert.equal(clickHandlers.length, 4);
+  clickHandlers[2]({ preventDefault: () => { prevented = true; } });
   assert.equal(prevented, true);
   assert.equal(backCalls, 1);
+});
+
+test("smart detail return preserves normal new-tab and modified clicks", () => {
+  let clickHandler = null;
+  let backCalls = 0;
+  detail.boot({
+    document: {
+      referrer: "https://example.com/datahot/index.html?topic=Data+Agent",
+      querySelectorAll: () => [{ addEventListener: (_name, handler) => { clickHandler = handler; } }]
+    },
+    location: { href: "https://example.com/datahot/e/89e262591ce7.html" },
+    history: { length: 3, back: () => { backCalls += 1; } }
+  });
+  clickHandler({ metaKey: true, preventDefault: () => assert.fail("must not prevent") });
+  clickHandler({ button: 1, preventDefault: () => assert.fail("must not prevent") });
+  assert.equal(backCalls, 0);
 });
 
 test("pagination and filtering operate on lite metadata", () => {
@@ -114,4 +133,79 @@ test("payload order is explicit and rendering escapes untrusted text", () => {
   const html = home.renderTimeline(ordered);
   assert.doesNotMatch(html, /<script>alert/);
   assert.match(html, /&lt;script&gt;alert/);
+});
+
+test("filter failure view never presents stale results as filtered content", () => {
+  assert.equal(home.hasActiveFilter({ q: "", topic: "all", category: "" }), false);
+  assert.equal(home.hasActiveFilter({ q: "", topic: "Data Agent", category: "" }), true);
+  const html = home.renderLoadFailure();
+  assert.match(html, /筛选结果加载失败/);
+  assert.match(html, /当前没有展示未筛选的旧内容/);
+  assert.match(html, /data-filter-retry/);
+  assert.match(html, /data-filter-clear/);
+});
+
+function failingHomeWindow() {
+  const listeners = {};
+  const elements = {
+    homeDataConfig: { dataset: { pageSize: "20", total: "3", liteUrl: "data/latest-lite.json" } },
+    timeline: {
+      innerHTML: "STATIC UNFILTERED CONTENT",
+      querySelectorAll: () => [],
+      addEventListener: (name, handler) => { listeners[name] = handler; }
+    },
+    loadMore: { hidden: false, disabled: false, textContent: "加载更多（20/3）", addEventListener() {} },
+    rCount: { textContent: "3" },
+    q: { value: "", addEventListener() {}, focus() { this.focused = true; } },
+    qClear: { style: {}, addEventListener() {} }
+  };
+  let rejectFetch = true;
+  const win = {
+    document: {
+      getElementById: (id) => elements[id],
+      querySelectorAll: () => [],
+      addEventListener() {}
+    },
+    location: { search: "?topic=Data+Agent", pathname: "/datahot/index.html", hash: "" },
+    history: { state: null, replaceState(state, _title, url) { this.state = state; this.url = url; } },
+    fetch() {
+      if (rejectFetch) return Promise.reject(new Error("offline"));
+      const item = event(1, "Data Agent");
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ events: [item], home_event_ids: [item.event_id] }) });
+    },
+    setTimeout, clearTimeout,
+    addEventListener() {},
+    scrollY: 0,
+    scrollTo() {},
+    requestAnimationFrame(callback) { callback(); }
+  };
+  return { win, elements, listeners, allowFetch() { rejectFetch = false; } };
+}
+
+test("failed filtered request replaces static list and retry can recover", async () => {
+  const fixture = failingHomeWindow();
+  home.boot(fixture.win);
+  await new Promise(setImmediate);
+  assert.doesNotMatch(fixture.elements.timeline.innerHTML, /STATIC UNFILTERED CONTENT/);
+  assert.match(fixture.elements.timeline.innerHTML, /筛选结果加载失败/);
+  assert.equal(fixture.elements.loadMore.hidden, true);
+  assert.equal(fixture.elements.rCount.textContent, "—");
+
+  fixture.allowFetch();
+  fixture.listeners.click({ target: { closest: (selector) => selector === "[data-filter-retry]" ? {} : null } });
+  await new Promise(setImmediate);
+  await new Promise(setImmediate);
+  assert.match(fixture.elements.timeline.innerHTML, /Title 1/);
+  assert.doesNotMatch(fixture.elements.timeline.innerHTML, /筛选结果加载失败/);
+});
+
+test("clear-filter recovery restores the known unfiltered first page", async () => {
+  const fixture = failingHomeWindow();
+  home.boot(fixture.win);
+  await new Promise(setImmediate);
+  fixture.listeners.click({ target: { closest: (selector) => selector === "[data-filter-clear]" ? {} : null } });
+  assert.equal(fixture.elements.timeline.innerHTML, "STATIC UNFILTERED CONTENT");
+  assert.equal(fixture.win.history.url, "/datahot/index.html");
+  assert.equal(fixture.elements.rCount.textContent, "3");
+  assert.equal(fixture.elements.q.focused, true);
 });

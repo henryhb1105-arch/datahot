@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """V1.1：读取 latest.json（事件结构），生成首页 + 每个事件的站内详情页（带 OG meta）"""
-import base64, hashlib, json, html, os, re, shutil
+import base64, hashlib, io, json, html, os, re, shutil
+import qrcode
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
@@ -22,6 +23,7 @@ from taxonomy import CATEGORY_LABELS, normalize_category_labels
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 DETAIL_DIR = SITE / "e"
+QR_DIR = SITE / "qr"
 TOPIC_DIR = SITE / "topics"
 WEEKLY_DIR = SITE / "weekly"
 ANALYTICS_ASSET = ROOT / "pipeline" / "assets" / "analytics.js"
@@ -225,6 +227,11 @@ main,.layout>*,.hotlist>*{min-width:0}
 .load-more{display:block;margin:18px auto 4px;border:1px solid var(--line);background:var(--card);color:var(--txt2);border-radius:99px;padding:9px 22px;font-size:12.5px;font-weight:650;cursor:pointer}
 .load-more[hidden]{display:none}
 .load-more[disabled]{opacity:.65;cursor:default}
+.filter-error b{display:block;margin-bottom:5px;color:var(--ink);font-size:14px}
+.filter-error p{margin:0;color:var(--sub);font-size:12.5px;line-height:1.7}
+.filter-error-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.filter-error-actions button{min-height:44px;border:1px solid var(--line);border-radius:99px;padding:8px 15px;background:var(--card);color:var(--ink);font:inherit;font-size:12.5px;font-weight:650;cursor:pointer}
+.filter-error-actions button:first-child{border-color:var(--accent);background:var(--accent);color:#fff}
 .weekly-teaser{display:block;background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border-radius:var(--radius);padding:18px 22px;margin-bottom:22px;text-decoration:none;position:relative;overflow:hidden}
 .weekly-teaser .weekly-kicker{font-size:11px;letter-spacing:1.5px;color:#f5b48a;font-weight:750;margin-bottom:6px}
 .weekly-teaser h2{font-size:19px;line-height:1.45;margin:0 0 5px}
@@ -363,12 +370,13 @@ def sidebar(active, gen=None, prefix=""):
              ("信源", "rss", "sources.html", "sources"),
              ("接入 Agent", "sparkle", "agent.html", "agent")]
     menu = "".join(
-        f'<a class="mi{" on" if k == active else ""}" href="{prefix}{u}">{ic(i,16)}{n}</a>'
+        f'<a class="mi{" on" if k == active else ""}" href="{prefix}{u}"'
+        f'{" data-smart-home-return" if k == "home" else ""}>{ic(i,16)}{n}</a>'
         for n, i, u, k in items)
     foot = f'更新 {gen.strftime("%m-%d %H:%M")}<br>' if gen else ""
     logo_label = ' aria-label="刷新 DataHot 首页" title="刷新首页"' if active == "home" else ""
     return ('<aside class="sidebar">'
-            f'<div class="slogo"><a href="{prefix}index.html"{logo_label} style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div>'
+            f'<div class="slogo"><a href="{prefix}index.html" data-smart-home-return{logo_label} style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div>'
             + menu +
             f'<div class="sfoot">{foot}每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>')
 
@@ -459,7 +467,8 @@ def tabbar(active, prefix=""):
              ("主题", ic("map",20), "topics.html", "topics"),
              ("收藏", ic("star",20), "favorites.html", "favorites")]
     primary = "".join(
-        f'<a href="{prefix}{u}" class="{"on" if k == active else ""}"><span class="ico">{i}</span><span>{n}</span></a>'
+        f'<a href="{prefix}{u}" class="{"on" if k == active else ""}"'
+        f'{" data-smart-home-return" if k == "home" else ""}><span class="ico">{i}</span><span>{n}</span></a>'
         for n, i, u, k in items)
     more_items = []
     if weekly_brief_enabled():
@@ -583,7 +592,7 @@ def finalize_html_security(document):
         "manifest-src 'self'",
         "font-src 'self' data:",
         "media-src 'self' blob:",
-        "img-src 'self' data: blob: https://api.qrserver.com",
+        "img-src 'self' data: blob:",
         "connect-src " + " ".join(connect_sources),
         "style-src 'self' 'unsafe-inline'",
         "script-src 'self'" + ((" " + " ".join(hashes)) if hashes else ""),
@@ -1033,7 +1042,7 @@ def render_detail(e, all_events, css, tts_item=None):
 </style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="{event_id}" data-category="{esc(e["category"])}" data-source="{main_src}">
 {sidebar("home", prefix="../")}
 <header class="detail-brand-header"><div class="wrap nav">
-  <div class="logo"><a href="../index.html">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
+  <div class="logo"><a href="../index.html" data-smart-home-return>Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
 <div class="article">
   <div class="topbar detail-context">
@@ -1042,7 +1051,7 @@ def render_detail(e, all_events, css, tts_item=None):
       <button class="sbtn ghost favbtn" data-fav="{event_id}" title="收藏">{ic("star",13)}</button>
 {("      " + tts_button) if tts_button else ""}
       {original_button}
-      <button class="sbtn ghost" type="button" data-share-action="poster">海报</button>
+      <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/{event_id}.png">海报</button>
       <button class="sbtn" type="button" data-share-action="open">分享</button>
     </span>
   </div>
@@ -1078,6 +1087,7 @@ def share_ui(e, page_url):
         "reason": e.get("reason", ""), "topic": (e.get("topics") or [""])[0],
         "heat": e["heat"], "source": src_display(detail_primary_item(e)["source"]),
         "date": (e.get("published") or e.get("first_seen") or "")[:10], "url": page_url,
+        "qr": f'../qr/{safe_event_id(e["event_id"])}.png',
     })
     return """
 <div class="sh-mask" id="shMask" data-share-action="close"></div>
@@ -1174,9 +1184,14 @@ function shToast(t){
 }
 function shCopy(){
   shClose();
-  function done(){shToast('链接已复制，去粘贴吧');}
-  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(SH_EV.url).then(done,done);}
-  else{var i=document.createElement('input');i.value=SH_EV.url;document.body.appendChild(i);i.select();try{document.execCommand('copy');}catch(e){} i.remove();done();}
+  function fallbackCopy(text){
+    var i=document.createElement('input');i.value=text;i.setAttribute('readonly','');document.body.appendChild(i);i.select();
+    var ok=false;try{ok=document.execCommand('copy');}catch(e){ok=false}i.remove();return ok;
+  }
+  var copied=navigator.clipboard&&navigator.clipboard.writeText
+    ?navigator.clipboard.writeText(SH_EV.url).then(function(){return true},function(){return fallbackCopy(SH_EV.url)})
+    :Promise.resolve(fallbackCopy(SH_EV.url));
+  copied.then(function(ok){shToast(ok?'链接已复制，去粘贴吧':'复制失败，请手动复制链接');});
 }
 function shSaveClick(ev){
   ev.preventDefault();
@@ -1280,8 +1295,7 @@ function posterLayout(x,W,P,qrImg){
   x.beginPath();x.moveTo(64,y);x.lineTo(W-64,y);x.stroke();x.setLineDash([]);
   x.fillStyle=P.qrBox;x.beginPath();x.roundRect(64,y+36,150,150,14);x.fill();
   if(P.qrBorder){x.strokeStyle=P.qrBorder;x.lineWidth=2;x.beginPath();x.roundRect(64,y+36,150,150,14);x.stroke();}
-  if(qrImg){x.drawImage(qrImg,74,y+46,130,130);}
-  else{x.fillStyle='#666';x.font='400 22px sans-serif';x.fillText('扫码访问',88,y+118);}
+  x.drawImage(qrImg,74,y+46,130,130);
   x.fillStyle=P.name;x.font='700 30px -apple-system,PingFang SC,sans-serif';
   x.fillText('扫码阅读全文或忠实译文',240,y+60);
   x.fillStyle=P.foot;x.font='400 24px -apple-system,PingFang SC,sans-serif';
@@ -1297,16 +1311,20 @@ function drawPoster(qrImg,dark){
   posterLayout(c.getContext('2d'),W,P,qrImg);
   return c.toDataURL('image/png');
 }
-var posterURL=null,posterDark=null;
+var posterURL=null,posterDark=null,posterLoading=false;
 function openPoster(){
-  document.getElementById('shPoster').classList.add('show');
   var dark=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches;
-  if(posterURL&&posterDark===dark){return;}
+  if(posterURL&&posterDark===dark){showPoster();return;}
+  if(posterLoading){return;}
+  posterLoading=true;
   posterDark=dark;
-  var qr=new Image();qr.crossOrigin='anonymous';
-  qr.onload=function(){posterURL=drawPoster(qr,dark);showPoster();};
-  qr.onerror=function(){posterURL=drawPoster(null,dark);showPoster();};
-  qr.src='https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=0&data='+encodeURIComponent(SH_EV.url);
+  var qr=new Image();
+  qr.onload=function(){
+    try{posterURL=drawPoster(qr,dark);posterLoading=false;showPoster();}
+    catch(error){posterLoading=false;posterURL=null;shToast('海报生成失败，请稍后重试');}
+  };
+  qr.onerror=function(){posterLoading=false;posterURL=null;shToast('海报生成失败，请稍后重试');};
+  qr.src=SH_EV.qr;
 }
 function dataToBlob(d){
   var p=d.split(','),m=p[0].match(/:(.*?);/)[1],b=atob(p[1]),a=new Uint8Array(b.length);
@@ -1317,6 +1335,7 @@ function showPoster(){
   document.getElementById('shPosterImg').src=posterURL;
   var a=document.getElementById('shSave');
   a.href=URL.createObjectURL(dataToBlob(posterURL)); a.target='_blank';a.rel='noopener noreferrer';
+  document.getElementById('shPoster').classList.add('show');
 }
 document.querySelectorAll('[data-share-action]').forEach(function(control){
   control.addEventListener('click',function(event){
@@ -1821,6 +1840,36 @@ def write_detail_pages(all_events, css, detail_dir=None, tts_manifest=None, site
     return valid_ids
 
 
+def write_qr_assets(all_events, qr_dir=None, site_base=SITE_BASE):
+    """Generate same-origin QR PNGs for every stable detail URL and remove stale assets."""
+    qr_dir = Path(qr_dir) if qr_dir is not None else QR_DIR
+    qr_dir.mkdir(parents=True, exist_ok=True)
+    valid_ids = set()
+    for event in all_events:
+        event_id = safe_event_id(event["event_id"])
+        filename = event_id + ".png"
+        valid_ids.add(filename)
+        detail_url = f'{site_base.rstrip("/")}/e/{event_id}.html'
+        code = qrcode.QRCode(
+            error_correction=qrcode.constants.ERROR_CORRECT_M,
+            box_size=5,
+            border=4,
+        )
+        code.add_data(detail_url)
+        code.make(fit=True)
+        image = code.make_image(fill_color="black", back_color="white")
+        output = io.BytesIO()
+        image.save(output, format="PNG", optimize=True)
+        payload = output.getvalue()
+        target = qr_dir / filename
+        if not target.exists() or target.read_bytes() != payload:
+            target.write_bytes(payload)
+    for path in qr_dir.glob("*.png"):
+        if path.name not in valid_ids:
+            path.unlink()
+    return valid_ids
+
+
 def main():
     SITE.mkdir(parents=True, exist_ok=True)
     if not all(asset.exists() for asset in (ANALYTICS_ASSET, HOME_ASSET, DETAIL_ASSET, TTS_ASSET)):
@@ -1875,10 +1924,14 @@ def main():
     reduction = round((1 - len(lite_bytes) / full_bytes) * 100, 1)
     print(f"[lite] latest.json {full_bytes:,} B → latest-lite.json {len(lite_bytes):,} B（减少 {reduction}%）")
 
-    # ── 详情页 ──
+    # ── 详情页及其同源海报二维码 ──
+    valid_qr_ids = write_qr_assets(all_events)
     valid_ids = write_detail_pages(
         all_events, css, tts_manifest=load_tts_manifest(), site_root=SITE,
     )
+    if {Path(name).stem for name in valid_qr_ids} != {Path(name).stem for name in valid_ids}:
+        raise RuntimeError("detail pages and local QR assets are inconsistent")
+    print(f"[qr] 本地二维码 {len(valid_qr_ids)} 个")
 
     # ── Atom 1.0 Feed：只包含 DataHot 摘要与稳定站内详情链接 ──
     feed_path = SITE / "feed.xml"

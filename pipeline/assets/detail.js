@@ -23,12 +23,14 @@
   }
 
   function boot(win) {
-    var link = win.document.querySelector("[data-smart-back]");
-    if (!link) return;
-    link.addEventListener("click", function (event) {
-      if (!shouldUseHistoryBack(win.document.referrer, win.location.href, win.history.length)) return;
-      event.preventDefault();
-      win.history.back();
+    var links = Array.from(win.document.querySelectorAll("[data-smart-back],[data-smart-home-return]"));
+    links.forEach(function (link) {
+      link.addEventListener("click", function (event) {
+        if (event.defaultPrevented || event.button > 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        if (!shouldUseHistoryBack(win.document.referrer, win.location.href, win.history.length)) return;
+        event.preventDefault();
+        win.history.back();
+      });
     });
   }
 

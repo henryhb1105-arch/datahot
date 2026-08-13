@@ -27,7 +27,7 @@ class LocalReferenceParser(HTMLParser):
     def _collect(self, attrs):
         line, _column = self.getpos()
         for name, value in attrs:
-            if name.casefold() in {"href", "src"} and value is not None:
+            if name.casefold() in {"href", "src", "data-poster-qr-src"} and value is not None:
                 self.references.append((line, value.strip()))
 
     def handle_starttag(self, tag, attrs):

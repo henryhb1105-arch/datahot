@@ -759,7 +759,15 @@ class WeeklyBriefBuildTests(unittest.TestCase):
         brief = self.make_brief(events)
         teaser = build_site.render_weekly_brief_teaser(brief)
         page = build_site.render_weekly_brief_page(brief, events, "", archives=[brief])
-        self.assertIn('href="weekly.html" data-analytics="weekly_brief"', teaser)
+        self.assertIn('class="weekly-strip"', teaser)
+        self.assertIn('data-week-id="2026-W32"', teaser)
+        self.assertIn('class="weekly-strip-link" href="weekly.html" data-analytics="weekly_brief"', teaser)
+        self.assertIn('class="weekly-strip-title"', teaser)
+        self.assertIn('id="weeklyDismiss"', teaser)
+        self.assertIn('aria-label="本周不再显示"', teaser)
+        self.assertNotIn(brief["bottom_line"], teaser)
+        self.assertNotIn(brief["period_start"], teaser)
+        self.assertNotIn("个信号", teaser)
         self.assertIn("2026-08-03 至 2026-08-09", page)
         self.assertIn('href="weekly/2026-W32.html"', page)
         self.assertEqual(page.count('class="weekly-theme"'), 2)
@@ -784,10 +792,9 @@ class WeeklyBriefBuildTests(unittest.TestCase):
         self.assertIn("原始信源 ↗", page)
         self.assertIn('href="2026-W32.html"', page)
 
-    def test_empty_teaser_and_pending_file_show_waiting_state(self):
+    def test_empty_teaser_and_pending_file_do_not_render_placeholder(self):
         teaser = build_site.render_weekly_brief_teaser(None)
-        self.assertIn('class="weekly-waiting"', teaser)
-        self.assertNotIn('class="weekly-teaser"', teaser)
+        self.assertEqual(teaser, "")
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "brief.json"
             path.write_text(json.dumps({

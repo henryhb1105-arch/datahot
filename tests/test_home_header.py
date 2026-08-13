@@ -250,8 +250,9 @@ class HomeHeaderTests(unittest.TestCase):
         for selector in (
             "a.source-name:hover", ".crow:hover .ctitle", ".fav-entry:hover",
             ".weekly-evidence-row:hover", ".hrow:hover .ht", ".source-cta:hover",
-            ".load-more:hover", ".weekly-waiting:hover", ".weekly-archive a:hover",
-            ".weekly-teaser:hover", ".sidebar a.mi:hover", ".tcard:hover",
+            ".load-more:hover", ".weekly-archive a:hover", ".weekly-strip:hover",
+            ".weekly-strip-link:hover", ".weekly-dismiss:hover",
+            ".sidebar a.mi:hover", ".tcard:hover",
         ):
             self.assertIn(selector, shared)
         self.assertIn(

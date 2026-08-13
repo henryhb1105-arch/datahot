@@ -68,6 +68,59 @@
 
   var HOME_HISTORY_KEY = "datahotHome";
   var HOME_TOP_SESSION_KEY = "datahotForceHomeTop";
+  var WEEKLY_DISMISS_KEY = "datahotWeeklyDismissedWeek";
+
+  function storageValue(win, storageName, key) {
+    try {
+      var storage = win && win[storageName];
+      return storage && typeof storage.getItem === "function" ? storage.getItem(key) : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function weeklyDismissed(win, weekId) {
+    var current = String(weekId || "");
+    if (!current) return false;
+    return storageValue(win, "localStorage", WEEKLY_DISMISS_KEY) === current ||
+      storageValue(win, "sessionStorage", WEEKLY_DISMISS_KEY) === current;
+  }
+
+  function rememberWeeklyDismissal(win, weekId) {
+    var current = String(weekId || "");
+    if (!current) return false;
+    for (var index = 0; index < 2; index += 1) {
+      var storageName = index === 0 ? "localStorage" : "sessionStorage";
+      try {
+        var storage = win && win[storageName];
+        if (!storage || typeof storage.setItem !== "function") continue;
+        storage.setItem(WEEKLY_DISMISS_KEY, current);
+        return true;
+      } catch (error) {}
+    }
+    return false;
+  }
+
+  function initWeeklyTeaser(win) {
+    var doc = win && win.document;
+    if (!doc || typeof doc.getElementById !== "function") return false;
+    var teaser = doc.getElementById("weeklyTeaser");
+    if (!teaser) return false;
+    var weekId = String(teaser.dataset && teaser.dataset.weekId || "");
+    if (weeklyDismissed(win, weekId)) {
+      teaser.hidden = true;
+      return true;
+    }
+    var dismiss = doc.getElementById("weeklyDismiss");
+    if (!dismiss || typeof dismiss.addEventListener !== "function") return true;
+    dismiss.addEventListener("click", function (event) {
+      if (event && typeof event.preventDefault === "function") event.preventDefault();
+      if (event && typeof event.stopPropagation === "function") event.stopPropagation();
+      rememberWeeklyDismissal(win, weekId);
+      teaser.hidden = true;
+    });
+    return true;
+  }
 
   function consumeHomeTopRequest(win) {
     try {
@@ -252,6 +305,7 @@
 
   function boot(win) {
     var doc = win.document;
+    initWeeklyTeaser(win);
     var config = doc.getElementById("homeDataConfig");
     if (!config) return;
     var root = doc.getElementById("timeline");
@@ -534,6 +588,9 @@
     filterEvents: filterEvents,
     visibleEvents: visibleEvents,
     hasActiveFilter: hasActiveFilter,
+    weeklyDismissed: weeklyDismissed,
+    rememberWeeklyDismissal: rememberWeeklyDismissal,
+    initWeeklyTeaser: initWeeklyTeaser,
     consumeHomeTopRequest: consumeHomeTopRequest,
     shouldShowBackToTop: shouldShowBackToTop,
     preferredScrollBehavior: preferredScrollBehavior,

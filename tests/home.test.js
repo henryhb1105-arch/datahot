@@ -61,6 +61,47 @@ test("home-top request is one-shot and safe when storage is unavailable", () => 
   }), false);
 });
 
+test("weekly dismissal applies only to the current week and falls back to session storage", () => {
+  const localValues = new Map();
+  const sessionValues = new Map();
+  const win = {
+    localStorage: {
+      getItem: (key) => localValues.get(key) || null,
+      setItem: () => { throw new Error("local storage blocked"); }
+    },
+    sessionStorage: {
+      getItem: (key) => sessionValues.get(key) || null,
+      setItem: (key, value) => sessionValues.set(key, value)
+    }
+  };
+  assert.equal(home.rememberWeeklyDismissal(win, "2026-W33"), true);
+  assert.equal(home.weeklyDismissed(win, "2026-W33"), true);
+  assert.equal(home.weeklyDismissed(win, "2026-W34"), false);
+});
+
+test("weekly close is isolated from navigation and hides safely without storage", () => {
+  let clickHandler = null;
+  let prevented = false;
+  let stopped = false;
+  const teaser = { dataset: { weekId: "2026-W33" }, hidden: false };
+  const dismiss = { addEventListener: (_name, handler) => { clickHandler = handler; } };
+  const win = {
+    document: {
+      getElementById: (id) => id === "weeklyTeaser" ? teaser : (id === "weeklyDismiss" ? dismiss : null)
+    },
+    get localStorage() { throw new Error("blocked"); },
+    get sessionStorage() { throw new Error("blocked"); }
+  };
+  assert.equal(home.initWeeklyTeaser(win), true);
+  clickHandler({
+    preventDefault: () => { prevented = true; },
+    stopPropagation: () => { stopped = true; }
+  });
+  assert.equal(prevented, true);
+  assert.equal(stopped, true);
+  assert.equal(teaser.hidden, true);
+});
+
 test("scroll behavior honors reduced motion and modified clicks remain native", () => {
   assert.equal(home.preferredScrollBehavior({ matchMedia: () => ({ matches: false }) }), "smooth");
   assert.equal(home.preferredScrollBehavior({ matchMedia: () => ({ matches: true }) }), "auto");

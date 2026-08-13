@@ -65,6 +65,7 @@ ICONS = {
  "star": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>',
  "bookmark": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg>',
  "headphones": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><path d="M18 19h1a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-1v6zM6 19H5a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h1v6z"/></svg>',
+ "x": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
 }
 def ic(name, size=15):
     return ICONS[name].replace("<svg ", '<svg width="{}" height="{}" style="vertical-align:-2px" aria-hidden="true" '.format(size, size))
@@ -232,14 +233,19 @@ main,.layout>*,.hotlist>*{min-width:0}
 .filter-error-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
 .filter-error-actions button{min-height:44px;border:1px solid var(--line);border-radius:99px;padding:8px 15px;background:var(--card);color:var(--ink);font:inherit;font-size:12.5px;font-weight:650;cursor:pointer}
 .filter-error-actions button:first-child{border-color:var(--accent);background:var(--accent);color:#fff}
-.weekly-teaser{display:block;background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border-radius:var(--radius);padding:18px 22px;margin-bottom:22px;text-decoration:none;position:relative;overflow:hidden}
-.weekly-teaser .weekly-kicker{font-size:11px;letter-spacing:1.5px;color:#f5b48a;font-weight:750;margin-bottom:6px}
-.weekly-teaser h2{font-size:19px;line-height:1.45;margin:0 0 5px}
-.weekly-teaser p{font-size:12.5px;line-height:1.7;color:#e5e7eb;margin:0;max-width:720px}
-.weekly-teaser .weekly-meta{font-size:11px;color:#aeb4be;margin-top:8px}
-.weekly-waiting{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:10px 14px;margin-bottom:18px;color:var(--txt2);font-size:12.5px;text-decoration:none}
-.weekly-waiting b{color:var(--ink);font-size:13px}
-.weekly-waiting span:last-child{margin-left:auto;color:var(--sub);font-size:11.5px}
+.weekly-strip{display:flex;align-items:stretch;min-height:52px;margin-bottom:16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);overflow:hidden}
+.weekly-strip[hidden]{display:none}
+.weekly-strip-link{display:flex;align-items:center;gap:10px;min-width:0;min-height:52px;flex:1;padding:0 4px 0 14px;color:var(--ink);text-decoration:none}
+.weekly-strip-label{flex:0 0 auto;border-radius:99px;padding:3px 8px;background:var(--accent-soft);color:var(--accent);font-size:11px;font-weight:750;white-space:nowrap}
+.weekly-strip-title{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:700}
+.weekly-strip-view{flex:0 0 auto;color:var(--accent);font-size:12px;font-weight:700;white-space:nowrap}
+.weekly-dismiss{appearance:none;display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;min-height:44px;margin:4px;border:0;border-radius:50%;background:transparent;color:var(--sub);cursor:pointer}
+.weekly-dismiss svg{pointer-events:none}
+@media(max-width:360px){
+  .weekly-strip-link{gap:7px;padding-left:10px}
+  .weekly-strip-label{padding:3px 7px}
+  .weekly-strip-view-arrow{display:none}
+}
 .weekly-summary{background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border:0;padding:20px 22px}
 .weekly-summary h1{font-size:25px;line-height:1.4;margin:4px 0 8px}
 .weekly-summary p{font-size:14px;line-height:1.75;color:#e5e7eb;margin:0}
@@ -333,7 +339,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
   body.more-open{overflow:hidden}
 }
-.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.load-more:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:600px){.favbtn{min-width:44px;min-height:44px}}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
@@ -349,8 +355,9 @@ main,.layout>*,.hotlist>*{min-width:0}
   .chip:hover{background:#dbe4ff}
   a.source-name:hover,.crow:hover .ctitle,.fav-entry:hover,.weekly-evidence-row:hover span:first-child,.hrow:hover .ht{color:var(--accent)}
   .source-cta:hover{opacity:.86}
-  .load-more:hover,.weekly-waiting:hover,.weekly-archive a:hover{border-color:var(--accent);color:var(--accent)}
-  .weekly-teaser:hover{transform:translateY(-1px)}
+  .load-more:hover,.weekly-archive a:hover{border-color:var(--accent);color:var(--accent)}
+  .weekly-strip:hover{border-color:var(--accent)}
+  .weekly-strip-link:hover .weekly-strip-title,.weekly-dismiss:hover{color:var(--accent)}
   .sidebar a.mi:hover{background:var(--hover);color:var(--ink)}
   .tcard:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
 }
@@ -1665,16 +1672,17 @@ def load_weekly_archive(path=None):
 
 def render_weekly_brief_teaser(brief):
     if not brief:
-        return '''<a class="weekly-waiting" href="weekly.html" data-analytics="weekly_brief">
-  <b>每周简报整理中</b>
-  <span>首页与热榜可正常浏览 →</span>
-</a>'''
-    return f'''<a class="weekly-teaser" href="weekly.html" data-analytics="weekly_brief">
-  <div class="weekly-kicker">WEEKLY BRIEF · 每周精选</div>
-  <h2>{esc(brief.get("title"))}</h2>
-  <p>{esc(brief.get("bottom_line"))}</p>
-  <div class="weekly-meta">{esc(brief.get("period_start"))} 至 {esc(brief.get("period_end"))} · {len(brief.get("for_you", []))} 个信号 · 约 3 分钟读完 →</div>
-</a>'''
+        return ""
+    return f'''<div class="weekly-strip" id="weeklyTeaser" data-week-id="{esc(brief.get("week_id"))}">
+  <a class="weekly-strip-link" href="weekly.html" data-analytics="weekly_brief">
+    <span class="weekly-strip-label">每周精选</span>
+    <span class="weekly-strip-title">{esc(brief.get("title"))}</span>
+    <span class="weekly-strip-view">查看<span class="weekly-strip-view-arrow" aria-hidden="true"> →</span></span>
+  </a>
+  <button class="weekly-dismiss" id="weeklyDismiss" type="button" aria-label="本周不再显示" title="本周不再显示">
+    {ic("x", 16)}
+  </button>
+</div>'''
 
 
 def _weekly_archive_nav(archives, current_week_id, *, archive_prefix):
@@ -2042,7 +2050,7 @@ def main():
         f'加载更多（{len(home_first_page)}/{len(timeline_events)}）</button>'
         if lite_enabled else ""
     )
-    home_asset = '<script defer src="home.js"></script>' if lite_enabled else ""
+    home_asset = '<script defer src="home.js"></script>'
 
     page = f'''<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">

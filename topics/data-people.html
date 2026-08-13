@@ -19,6 +19,7 @@
     --blue:#2563eb; --green:#0f9d6c; --purple:#7c3aed; --amber:#b45309;
     --txt2:#4b5563; --txt3:#374151; --soft:#f3f4f6; --hover:#f0f1f3;
     --header-bg:rgba(255,255,255,.92); --tabbar-bg:rgba(255,255,255,.95);
+    --mobile-page-left:14px; --mobile-page-right:14px;
     --radius:14px;
   }
   @media (prefers-color-scheme: dark){
@@ -79,6 +80,7 @@
 
   /* ── iPhone 体验适配 ── */
   @media(max-width:600px){
+    :root{--mobile-page-left:max(14px,env(safe-area-inset-left));--mobile-page-right:max(14px,env(safe-area-inset-right))}
     body{-webkit-tap-highlight-color:transparent;overflow-x:hidden}
     .wrap{padding:0 14px}
     .section-title h2{font-size:17px}
@@ -93,8 +95,8 @@
     .why{font-size:12.5px;line-height:1.7}
     .brief{padding:16px 18px}
     .brief p{font-size:13.5px}
-    .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-right:28px}
-    .chiprow::after{display:block;content:"";position:sticky;right:0;flex:0 0 28px;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+    .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-left:calc(-1 * var(--mobile-page-left));margin-right:calc(-1 * var(--mobile-page-right));padding:4px calc(var(--mobile-page-right) + 18px) 12px var(--mobile-page-left);scroll-padding-left:var(--mobile-page-left);scroll-padding-right:var(--mobile-page-right)}
+    .chiprow::after{display:block;content:"";position:sticky;right:0;flex:0 0 18px;width:18px;margin-left:-18px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
     .chiprow::-webkit-scrollbar{display:none}
     .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:44px;display:inline-flex;align-items:center}
     .tab,.fchip,.chip{touch-action:manipulation}
@@ -225,12 +227,13 @@ main,.layout>*,.hotlist>*{min-width:0}
 .tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
 .tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
 .chiprow{display:flex;flex-wrap:wrap;gap:8px;overflow:visible;padding:4px 0 12px;margin-bottom:4px;position:relative}
-.chiprow::after{display:none;content:"";position:sticky;right:0;flex:0 0 28px;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+.chiprow::after{display:none;content:"";position:sticky;right:0;flex:0 0 18px;width:18px;margin-left:-18px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
 .chiprow::-webkit-scrollbar{display:none}
 .chiprow .fchip{appearance:none;flex-shrink:0;min-height:36px;font:inherit;font-size:12.5px;line-height:1.4;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
 .chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
 @media(max-width:600px){
-  .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-right:28px}
+  .home-page>.wrap{padding-left:var(--mobile-page-left);padding-right:var(--mobile-page-right)}
+  .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-left:calc(-1 * var(--mobile-page-left));margin-right:calc(-1 * var(--mobile-page-right));padding:4px calc(var(--mobile-page-right) + 18px) 12px var(--mobile-page-left);scroll-padding-left:var(--mobile-page-left);scroll-padding-right:var(--mobile-page-right)}
   .chiprow::after{display:block}
   .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:44px;display:inline-flex;align-items:center}
 }
@@ -441,13 +444,15 @@ main,.layout>*,.hotlist>*{min-width:0}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
-.tgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
-@media(max-width:960px){.tgrid{grid-template-columns:1fr}}
-.tcard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;text-decoration:none;display:block;transition:.15s}
+.topic-map-page{max-width:900px;padding-top:28px;padding-bottom:60px}
+.tgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;min-width:0}
+@media(max-width:960px){.tgrid{grid-template-columns:minmax(0,1fr)}}
+.tcard{min-width:0;width:100%;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;text-decoration:none;display:block;transition:.15s}
 .tcard h3{font-size:17px;font-weight:800;margin-bottom:6px}
 .tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:10px}
 .tcard .tn{font-size:12px;color:var(--accent);font-weight:700}
 .tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:600px){.topic-map-page{padding-top:18px;padding-right:var(--mobile-page-right);padding-left:var(--mobile-page-left)}}
 @media(hover:hover) and (pointer:fine){
   .chip:hover{background:#dbe4ff}
   a.source-name:hover,.crow:hover .ctitle,.fav-entry:hover,.weekly-evidence-row:hover span:first-child,.hrow:hover .ht,.rank-row:hover .rank-title{color:var(--accent)}
@@ -476,7 +481,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="vendors" style="margin-bottom:18px"><span class="vtag">AWS</span><span class="vtag">Anthropic</span><span class="vtag">Blend</span><span class="vtag">Claude</span><span class="vtag">ClickHouse</span><span class="vtag">Databricks</span><span class="vtag">Fivetran</span><span class="vtag">Glassbox</span><span class="vtag">PostgreSQL</span><span class="vtag">Snowflake</span><span class="vtag">ThoughtSpot</span></div>
   <div class="scard" style="margin-bottom:18px"><h4 style="margin-bottom:6px"><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg> 本主题必读</h4><a class="crow" href="../e/5b66bceba7c5.html"><span class="cpin"></span><span class="ctitle">Amtrak 构建铁路智能平台，用 Databricks 统一数据骨干</span><span class="cmeta">2026-08-13</span></a><a class="crow" href="../e/852499f0cb49.html"><span class="cpin"></span><span class="ctitle">Epic Games如何调优OpenSearch支撑Fortnite分析</span><span class="cmeta">2026-08-11</span></a><a class="crow" href="../e/1a5723bd7772.html"><span class="cpin"></span><span class="ctitle">CWT如何将AI分析转化为数百万美元资产</span><span class="cmeta">2026-08-11</span></a><a class="crow" href="../e/f4962a2fa921.html"><span class="cpin"></span><span class="ctitle">AI秒级出报表，为何业务仍来不及？</span><span class="cmeta">2026-08-08</span></a><a class="crow" href="../e/474a4fade92e.html"><span class="cpin"></span><span class="ctitle">AI如何改写数据分析师的职责</span><span class="cmeta">2026-08-12</span></a><a class="crow" href="../e/f70f3be61bc1.html"><span class="cpin"></span><span class="ctitle">数据分析Skill设计指南：从问题定义到流程拆解</span><span class="cmeta">2026-08-10</span></a><a class="crow" href="../e/11bd570decd5.html"><span class="cpin"></span><span class="ctitle">银行目标部门分析筛选：乙方视角的部门墙拆解</span><span class="cmeta">2026-08-10</span></a><a class="crow" href="../e/9e059ac6ed28.html"><span class="cpin"></span><span class="ctitle">Fivetran用AI构建状态页，替换6.5万美元SaaS</span><span class="cmeta">2026-08-10</span></a></div>
   <div class="day"><div class="day-head"><span class="date">8月13日</span><span class="info">1 个事件</span></div><div class="item" data-cat="platform" data-topics="湖仓|数据人" data-link="../e/5b66bceba7c5.html" data-analytics-list="1" data-event-id="5b66bceba7c5" data-category="platform" data-source="Databricks Blog">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Databricks Blog</span><span class="card-time">18 小时前</span></span>
+      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Databricks Blog</span><span class="card-time">22 小时前</span></span>
       <span class="heatnum is-featured" title="热度分：AI重要性50% + 新鲜度20% + 社区信号15%(封顶) + 多信源15%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 精选 58</span>
       <button class="favbtn" data-fav="5b66bceba7c5" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
       <h3><a href="../e/5b66bceba7c5.html">Amtrak 构建铁路智能平台，用 Databricks 统一数据骨干</a></h3>
@@ -490,7 +495,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     </div>
 <div class="item" data-cat="platform" data-topics="数据人|平台AI化" data-link="../e/e7420873acde.html" data-analytics-list="1" data-event-id="e7420873acde" data-category="platform" data-source="主编收录">
       <div class="top card-meta"><span class="card-source"><span class="srcbadge">收录</span><span class="card-source-name">DataHot 精选</span><span class="card-time">08-03</span></span>
-      <span class="heatnum" title="热度分：AI重要性50% + 新鲜度20% + 社区信号15%(封顶) + 多信源15%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 64</span>
+      <span class="heatnum" title="热度分：AI重要性50% + 新鲜度20% + 社区信号15%(封顶) + 多信源15%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 63</span>
       <button class="favbtn" data-fav="e7420873acde" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
       <h3><a href="../e/e7420873acde.html">ClickHouse成立基础数据库研究团队ClickHouse Labs</a></h3>
       <p class="sum">数据库研究者Andy Pavlo加入ClickHouse并担任数据库研究副总裁，ClickHouse同时成立ClickHouse Labs。团队计划把研究成果放到ClickHouse、PostgreSQL等真实负载中验证，并以论文和开源成果的形式公开。</p><div class="also">另有 <b>1 家信源</b>报道：X 线索·@ClickHouseDB</div><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据库厂商重新建立面向基础研究的长期团队，可能影响查询优化、存储引擎和AI时代数据库架构的演进。</span></div><div class="vendors"><a class="chip" href="../topics/data-people.html">数据人</a><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">ClickHouse</span><span class="vtag">PostgreSQL</span></div>
@@ -516,14 +521,14 @@ main,.layout>*,.hotlist>*{min-width:0}
       <p class="sum">Epic Games与AWS合作，对其Amazon OpenSearch Service集群进行优化，用于Fortnite游戏遥测数据的存储与分析。团队通过调整实例规格、重新平衡分片、优化索引映射以及升级引擎和Graviton版本，在降低运营成本的同时显著提升了查询延迟和吞吐量。该实践支撑了数十亿级遥测事件的处理，帮助Epic识别玩法趋势并辅助实时运营决策。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>聚焦游戏数据分析场景下的OpenSearch调优实践，涉及大规模遥测处理、查询性能与成本优化，对数据平台从业者有直接参考价值。</span></div><div class="vendors"><a class="chip" href="../topics/realtime.html">实时分析</a><a class="chip" href="../topics/data-people.html">数据人</a><span class="vtag">AWS</span></div>
     </div></div><div class="day"><div class="day-head"><span class="date">8月10日</span><span class="info">3 个事件</span></div><div class="item" data-cat="platform" data-topics="数据人" data-link="../e/9e059ac6ed28.html" data-analytics-list="1" data-event-id="9e059ac6ed28" data-category="platform" data-source="Fivetran Blog">
       <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Fivetran Blog</span><span class="card-time">周一 21:52</span></span>
-      <span class="heatnum" title="热度分：AI重要性50% + 新鲜度20% + 社区信号15%(封顶) + 多信源15%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 48</span>
+      <span class="heatnum" title="热度分：AI重要性50% + 新鲜度20% + 社区信号15%(封顶) + 多信源15%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 47</span>
       <button class="favbtn" data-fav="9e059ac6ed28" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
       <h3><a href="../e/9e059ac6ed28.html">Fivetran用AI构建状态页，替换6.5万美元SaaS</a></h3>
       <p class="sum">Fivetran的两名工程师使用AI编码代理，在约4个月内设计、构建并上线了公司公开状态页的替代方案，替代了每年花费6.5万美元的Atlassian Statuspage。该系统现服务约2.6万名通知订阅者。文章详细介绍了实际成本、有效做法以及过程中出现的失误。</p><div class="also">另有 <b>1 家信源</b>报道：X 线索·@fivetran</div><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>Fivetran作为数据基础设施厂商，公开分享用AI编码代理替代昂贵SaaS的工程实践，对数据从业者评估AI开发效率与成本控制有参考价值。</span></div><div class="vendors"><a class="chip" href="../topics/data-people.html">数据人</a><span class="vtag">Fivetran</span></div>
     </div>
 <div class="item" data-cat="agent" data-topics="Data Agent|数据人" data-link="../e/f70f3be61bc1.html" data-analytics-list="1" data-event-id="f70f3be61bc1" data-category="agent" data-source="人人都是产品经理">
       <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">人人都是产品经理</span><span class="card-time">周一 16:44</span></span>
-      <span class="heatnum" title="热度分：AI重要性50% + 新鲜度20% + 社区信号15%(封顶) + 多信源15%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 48</span>
+      <span class="heatnum" title="热度分：AI重要性50% + 新鲜度20% + 社区信号15%(封顶) + 多信源15%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 47</span>
       <button class="favbtn" data-fav="f70f3be61bc1" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
       <h3><a href="../e/f70f3be61bc1.html">数据分析Skill设计指南：从问题定义到流程拆解</a></h3>
       <p class="sum">文章提出数据分析Skill本质是操作流程，需先明确问题、数据底表、操作步骤和输出成果，再借助Codex、Claude Code、Trae等AI工具生成。强调放弃通用Skill，按业务场景拆分，并给出指标异动、用户行为、效果评估、预测、策略优化五大问题类型及各自解法。最后指出AI不能替代数据治理和业务沟通，底表设计和业务假设仍需人工把控。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>面向数据分析Agent的Skill设计方法论，帮助数据从业者系统化拆解分析场景并落地AI辅助分析。</span></div><div class="vendors"><a class="chip" href="../topics/data-agent.html">Data Agent</a><a class="chip" href="../topics/data-people.html">数据人</a></div>

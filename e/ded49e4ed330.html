@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-/CX+b4IgbBLBzUI6qXc+72MJj6jPlC7knaulSWkKpW4=' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-mMcr0sUPkjg9/PDDhHepea2EGjTEhe7rOJv+WPm+MhE='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-/CX+b4IgbBLBzUI6qXc+72MJj6jPlC7knaulSWkKpW4=' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-BYkHLS3fliNgV5BLOcDHWQFuDcQs4lcXMvzYU1HSVxI='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>语义层方案如何选型？五级分层与三条分界线 · DataHot</title>
@@ -28,6 +28,7 @@
     --blue:#2563eb; --green:#0f9d6c; --purple:#7c3aed; --amber:#b45309;
     --txt2:#4b5563; --txt3:#374151; --soft:#f3f4f6; --hover:#f0f1f3;
     --header-bg:rgba(255,255,255,.92); --tabbar-bg:rgba(255,255,255,.95);
+    --mobile-page-left:14px; --mobile-page-right:14px;
     --radius:14px;
   }
   @media (prefers-color-scheme: dark){
@@ -88,6 +89,7 @@
 
   /* ── iPhone 体验适配 ── */
   @media(max-width:600px){
+    :root{--mobile-page-left:max(14px,env(safe-area-inset-left));--mobile-page-right:max(14px,env(safe-area-inset-right))}
     body{-webkit-tap-highlight-color:transparent;overflow-x:hidden}
     .wrap{padding:0 14px}
     .section-title h2{font-size:17px}
@@ -102,8 +104,8 @@
     .why{font-size:12.5px;line-height:1.7}
     .brief{padding:16px 18px}
     .brief p{font-size:13.5px}
-    .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-right:28px}
-    .chiprow::after{display:block;content:"";position:sticky;right:0;flex:0 0 28px;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+    .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-left:calc(-1 * var(--mobile-page-left));margin-right:calc(-1 * var(--mobile-page-right));padding:4px calc(var(--mobile-page-right) + 18px) 12px var(--mobile-page-left);scroll-padding-left:var(--mobile-page-left);scroll-padding-right:var(--mobile-page-right)}
+    .chiprow::after{display:block;content:"";position:sticky;right:0;flex:0 0 18px;width:18px;margin-left:-18px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
     .chiprow::-webkit-scrollbar{display:none}
     .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:44px;display:inline-flex;align-items:center}
     .tab,.fchip,.chip{touch-action:manipulation}
@@ -234,12 +236,13 @@ main,.layout>*,.hotlist>*{min-width:0}
 .tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
 .tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
 .chiprow{display:flex;flex-wrap:wrap;gap:8px;overflow:visible;padding:4px 0 12px;margin-bottom:4px;position:relative}
-.chiprow::after{display:none;content:"";position:sticky;right:0;flex:0 0 28px;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+.chiprow::after{display:none;content:"";position:sticky;right:0;flex:0 0 18px;width:18px;margin-left:-18px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
 .chiprow::-webkit-scrollbar{display:none}
 .chiprow .fchip{appearance:none;flex-shrink:0;min-height:36px;font:inherit;font-size:12.5px;line-height:1.4;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
 .chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
 @media(max-width:600px){
-  .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-right:28px}
+  .home-page>.wrap{padding-left:var(--mobile-page-left);padding-right:var(--mobile-page-right)}
+  .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-left:calc(-1 * var(--mobile-page-left));margin-right:calc(-1 * var(--mobile-page-right));padding:4px calc(var(--mobile-page-right) + 18px) 12px var(--mobile-page-left);scroll-padding-left:var(--mobile-page-left);scroll-padding-right:var(--mobile-page-right)}
   .chiprow::after{display:block}
   .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:44px;display:inline-flex;align-items:center}
 }
@@ -450,13 +453,15 @@ main,.layout>*,.hotlist>*{min-width:0}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
-.tgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
-@media(max-width:960px){.tgrid{grid-template-columns:1fr}}
-.tcard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;text-decoration:none;display:block;transition:.15s}
+.topic-map-page{max-width:900px;padding-top:28px;padding-bottom:60px}
+.tgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;min-width:0}
+@media(max-width:960px){.tgrid{grid-template-columns:minmax(0,1fr)}}
+.tcard{min-width:0;width:100%;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;text-decoration:none;display:block;transition:.15s}
 .tcard h3{font-size:17px;font-weight:800;margin-bottom:6px}
 .tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:10px}
 .tcard .tn{font-size:12px;color:var(--accent);font-weight:700}
 .tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:600px){.topic-map-page{padding-top:18px;padding-right:var(--mobile-page-right);padding-left:var(--mobile-page-left)}}
 @media(hover:hover) and (pointer:fine){
   .chip:hover{background:#dbe4ff}
   a.source-name:hover,.crow:hover .ctitle,.fav-entry:hover,.weekly-evidence-row:hover span:first-child,.hrow:hover .ht,.rank-row:hover .rank-title{color:var(--accent)}
@@ -568,7 +573,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="star">精选</span>
     <span title="发布时间">发布 2026-08-13 10:53</span>
     
-    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 61</span>
+    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 60</span>
   </div>
   <h1>语义层方案如何选型？五级分层与三条分界线</h1>
   <section class="tts-player" id="ttsPlayer" data-tts-player data-duration="63" hidden aria-label="文章精华朗读">
@@ -732,7 +737,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title":"语义层方案如何选型？五级分层与三条分界线","summary":"本文提出语义层五级能力模型，从L0提示词语义到L4过程语义，并指出L1到L2是质变：语义从辅助模型猜测变为无需猜测的约束。作者引用Cube配对实验数据，仅提供schema时前沿模型准确率在45.5%-50.5%，补充4KB手写语义说明文档后升至67.7%-68.7%。文章通过三条分界线为语义层选型提供衡量标尺，帮助从业者识别方案真实上限。","reason":"语义层是当前数据平台与AI分析的热点，本文提供可操作的分级框架和实证数据，便于从业者在概念泛滥时理性选型。","topic":"语义层","heat":61,"source":"Aloudata 博客","date":"2026-08-13","url":"https://henryhb1105-arch.github.io/datahot/e/ded49e4ed330.html","qr":"../qr/ded49e4ed330.png"};
+var SH_EV = {"title":"语义层方案如何选型？五级分层与三条分界线","summary":"本文提出语义层五级能力模型，从L0提示词语义到L4过程语义，并指出L1到L2是质变：语义从辅助模型猜测变为无需猜测的约束。作者引用Cube配对实验数据，仅提供schema时前沿模型准确率在45.5%-50.5%，补充4KB手写语义说明文档后升至67.7%-68.7%。文章通过三条分界线为语义层选型提供衡量标尺，帮助从业者识别方案真实上限。","reason":"语义层是当前数据平台与AI分析的热点，本文提供可操作的分级框架和实证数据，便于从业者在概念泛滥时理性选型。","topic":"语义层","heat":60,"source":"Aloudata 博客","date":"2026-08-13","url":"https://henryhb1105-arch.github.io/datahot/e/ded49e4ed330.html","qr":"../qr/ded49e4ed330.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

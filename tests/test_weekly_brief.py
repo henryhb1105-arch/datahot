@@ -14,7 +14,7 @@ import build_site  # noqa: E402
 from check_weekly_brief import inspect_weekly_brief  # noqa: E402
 import run_update  # noqa: E402
 from weekly_brief import (  # noqa: E402
-    BASELINE_WEEKS, PROMPT_VERSION, _personal_prompt, _personal_prose_length,
+    BASELINE_WEEKS, PROMPT_VERSION, _baseline_context, _personal_prompt, _personal_prose_length,
     _stable_items,
     brief_cache_key, brief_input_hash, completed_week, generate_weekly_brief,
     select_weekly_events, select_weekly_evidence, validate_personal_response,
@@ -464,17 +464,21 @@ class WeeklyBriefGenerationTests(unittest.TestCase):
                 model="deepseek-v4", llm_generate=callback,
                 cache_path=cache, output_path=output, archive_dir=archive,
             )
+            snapshot_path = archive.parent / "weekly_inputs/2026-W32.json"
+            original_snapshot = snapshot_path.read_text(encoding="utf-8")
             events[0]["zh_summary"] = "同周后续回填改变了输入"
             second, second_status = generate_weekly_brief(
                 events, now=datetime(2026, 8, 16, 8, tzinfo=timezone.utc),
                 model="deepseek-v4", llm_generate=callback,
                 cache_path=cache, output_path=output, archive_dir=archive,
             )
+            final_snapshot = snapshot_path.read_text(encoding="utf-8")
         self.assertEqual(status, "generated_ai")
         self.assertEqual(second_status, "weekly_cache_hit")
         self.assertEqual(calls, ["2026-W32:signals", "2026-W32:personal"])
         self.assertEqual(first["content_fingerprint"], second["content_fingerprint"])
         self.assertTrue(valid_brief(first))
+        self.assertEqual(final_snapshot, original_snapshot)
 
     def test_w32_regression_keeps_two_themes_and_drops_infra_composite(self):
         events = weekly_snapshot_events("2026-W32")
@@ -651,6 +655,28 @@ class WeeklyBriefGenerationTests(unittest.TestCase):
             self.assertTrue((archive / "2026-W33.json").exists())
         self.assertEqual(status, "generated_ai")
         self.assertEqual(brief["baseline"]["available_weeks"], 1)
+
+    def test_baseline_prefers_archived_snapshot_over_changed_live_events(self):
+        week_32 = [event(i) for i in range(10)]
+        week_33 = [event(20 + i, seen="2026-08-12T08:00:00+08:00") for i in range(10)]
+        with tempfile.TemporaryDirectory() as tmp:
+            cache, output, archive = self.paths(tmp)
+            generate_weekly_brief(
+                week_32, now=datetime(2026, 8, 11, 2, tzinfo=timezone.utc),
+                model="", llm_generate=None,
+                cache_path=cache, output_path=output, archive_dir=archive,
+            )
+            week_32[0]["zh_summary"] = "不应进入历史基线的新摘要"
+            baseline = _baseline_context(
+                week_32 + week_33,
+                completed_week(datetime(2026, 8, 18, 2, tzinfo=timezone.utc)),
+                archive.parent / "weekly_inputs",
+            )
+        self.assertEqual(baseline["available_week_ids"], ["2026-W32"])
+        self.assertNotIn(
+            "不应进入历史基线的新摘要",
+            {item["summary"] for item in baseline["items"]},
+        )
 
     def test_monday_waits_until_publish_time_then_stays_pending_without_ai(self):
         events = [event(20 + i, seen="2026-08-12T08:00:00+08:00") for i in range(10)]

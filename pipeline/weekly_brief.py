@@ -346,17 +346,18 @@ def _baseline_context(events, week, input_archive_dir):
         start = week["period_start"] - timedelta(days=7 * offset)
         prior = _week_for_dates(start)
         desired.append(prior["week_id"])
-        selected = select_weekly_evidence(
-            events, prior["period_start"], prior["period_end"],
-        )
         document = None
-        if selected:
-            prior_hash = brief_input_hash(selected)
-            document = _evidence_snapshot(selected, prior, prior_hash)
-        elif input_archive_dir:
+        if input_archive_dir:
             candidate = _load_json(Path(input_archive_dir) / f"{prior['week_id']}.json", {})
             if _valid_evidence_snapshot(candidate, prior["week_id"]):
                 document = candidate
+        if document is None:
+            selected = select_weekly_evidence(
+                events, prior["period_start"], prior["period_end"],
+            )
+            if selected:
+                prior_hash = brief_input_hash(selected)
+                document = _evidence_snapshot(selected, prior, prior_hash)
         if document:
             documents.append(document)
 
@@ -925,12 +926,6 @@ def generate_weekly_brief(
     if not _publication_ready(local_now):
         return None, "before_publish_time"
     week = completed_week(local_now)
-    selected = select_weekly_evidence(
-        events, week["period_start"], week["period_end"],
-    )
-    if len(selected) < MIN_ITEMS:
-        return None, "insufficient_items"
-
     cache_path = Path(cache_path)
     output_path = Path(output_path)
     archive_dir = Path(archive_dir) if archive_dir else None
@@ -945,10 +940,21 @@ def generate_weekly_brief(
     )
 
     week_id = week["week_id"]
-    input_hash = brief_input_hash(selected)
-    current_snapshot = _evidence_snapshot(selected, week, input_hash)
-    if input_archive_dir:
-        _atomic_json(input_archive_dir / f"{week_id}.json", current_snapshot)
+    snapshot_path = input_archive_dir / f"{week_id}.json" if input_archive_dir else None
+    current_snapshot = _load_json(snapshot_path, {}) if snapshot_path else None
+    if not _valid_evidence_snapshot(current_snapshot, week_id):
+        selected = select_weekly_evidence(
+            events, week["period_start"], week["period_end"],
+        )
+        if len(selected) < MIN_ITEMS:
+            return None, "insufficient_items"
+        input_hash = brief_input_hash(selected)
+        current_snapshot = _evidence_snapshot(selected, week, input_hash)
+        if snapshot_path:
+            _atomic_json(snapshot_path, current_snapshot)
+    else:
+        input_hash = current_snapshot["input_hash"]
+    selected = current_snapshot["items"]
     baseline = _baseline_context(events, week, input_archive_dir)
     baseline_hash = _fingerprint({
         "requested": baseline["requested_week_ids"],

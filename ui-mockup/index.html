@@ -12,6 +12,7 @@
     --blue:#2563eb; --green:#0f9d6c; --purple:#7c3aed; --amber:#b45309;
     --txt2:#4b5563; --txt3:#374151; --soft:#f3f4f6; --hover:#f0f1f3;
     --header-bg:rgba(255,255,255,.92); --tabbar-bg:rgba(255,255,255,.95);
+    --mobile-page-left:14px; --mobile-page-right:14px;
     --radius:14px;
   }
   @media (prefers-color-scheme: dark){
@@ -72,6 +73,7 @@
 
   /* ── iPhone 体验适配 ── */
   @media(max-width:600px){
+    :root{--mobile-page-left:max(14px,env(safe-area-inset-left));--mobile-page-right:max(14px,env(safe-area-inset-right))}
     body{-webkit-tap-highlight-color:transparent;overflow-x:hidden}
     .wrap{padding:0 14px}
     .section-title h2{font-size:17px}
@@ -86,8 +88,8 @@
     .why{font-size:12.5px;line-height:1.7}
     .brief{padding:16px 18px}
     .brief p{font-size:13.5px}
-    .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-right:28px}
-    .chiprow::after{display:block;content:"";position:sticky;right:0;flex:0 0 28px;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+    .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-left:calc(-1 * var(--mobile-page-left));margin-right:calc(-1 * var(--mobile-page-right));padding:4px calc(var(--mobile-page-right) + 18px) 12px var(--mobile-page-left);scroll-padding-left:var(--mobile-page-left);scroll-padding-right:var(--mobile-page-right)}
+    .chiprow::after{display:block;content:"";position:sticky;right:0;flex:0 0 18px;width:18px;margin-left:-18px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
     .chiprow::-webkit-scrollbar{display:none}
     .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:44px;display:inline-flex;align-items:center}
     .tab,.fchip,.chip{touch-action:manipulation}

@@ -83,10 +83,42 @@ class HomeHeaderTests(unittest.TestCase):
             ".chiprow{display:flex;flex-wrap:wrap;gap:8px;overflow:visible",
             build_site.SHARED_CSS,
         )
-        self.assertIn("@media(max-width:600px){\n  .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto", build_site.SHARED_CSS)
+        self.assertIn(
+            ".chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto",
+            build_site.SHARED_CSS,
+        )
         self.assertIn(".chiprow::after{display:block}", build_site.SHARED_CSS)
         self.assertIn(
+            "margin-left:calc(-1 * var(--mobile-page-left));margin-right:calc(-1 * var(--mobile-page-right))",
+            build_site.SHARED_CSS,
+        )
+        self.assertIn(
+            "padding:4px calc(var(--mobile-page-right) + 18px) 12px var(--mobile-page-left)",
+            build_site.SHARED_CSS,
+        )
+        self.assertNotIn("padding-right:28px", build_site.SHARED_CSS)
+        self.assertIn(
             ".chiprow .fchip{font-size:12px;padding:4px 12px;min-height:44px",
+            build_site.SHARED_CSS,
+        )
+
+    def test_topic_map_cards_shrink_to_the_ios_content_width(self):
+        page = build_site.render_topics_map([
+            {"topics": ["Data Agent"], "zh_title": "很长的主题事件标题" * 8},
+        ], build_site.load_css())
+        self.assertIn('class="wrap topic-map-page"', page)
+        self.assertNotIn('style="padding:28px 20px 60px;max-width:900px"', page)
+        self.assertIn(
+            ".tgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))",
+            build_site.SHARED_CSS,
+        )
+        self.assertIn(
+            "@media(max-width:960px){.tgrid{grid-template-columns:minmax(0,1fr)}}",
+            build_site.SHARED_CSS,
+        )
+        self.assertIn(".tcard{min-width:0;width:100%;overflow:hidden", build_site.SHARED_CSS)
+        self.assertIn(
+            ".topic-map-page{padding-top:18px;padding-right:var(--mobile-page-right)",
             build_site.SHARED_CSS,
         )
 

@@ -162,12 +162,13 @@ main,.layout>*,.hotlist>*{min-width:0}
 .tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
 .tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
 .chiprow{display:flex;flex-wrap:wrap;gap:8px;overflow:visible;padding:4px 0 12px;margin-bottom:4px;position:relative}
-.chiprow::after{display:none;content:"";position:sticky;right:0;flex:0 0 28px;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+.chiprow::after{display:none;content:"";position:sticky;right:0;flex:0 0 18px;width:18px;margin-left:-18px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
 .chiprow::-webkit-scrollbar{display:none}
 .chiprow .fchip{appearance:none;flex-shrink:0;min-height:36px;font:inherit;font-size:12.5px;line-height:1.4;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
 .chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
 @media(max-width:600px){
-  .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-right:28px}
+  .home-page>.wrap{padding-left:var(--mobile-page-left);padding-right:var(--mobile-page-right)}
+  .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-left:calc(-1 * var(--mobile-page-left));margin-right:calc(-1 * var(--mobile-page-right));padding:4px calc(var(--mobile-page-right) + 18px) 12px var(--mobile-page-left);scroll-padding-left:var(--mobile-page-left);scroll-padding-right:var(--mobile-page-right)}
   .chiprow::after{display:block}
   .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:44px;display:inline-flex;align-items:center}
 }
@@ -378,13 +379,15 @@ main,.layout>*,.hotlist>*{min-width:0}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
-.tgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
-@media(max-width:960px){.tgrid{grid-template-columns:1fr}}
-.tcard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;text-decoration:none;display:block;transition:.15s}
+.topic-map-page{max-width:900px;padding-top:28px;padding-bottom:60px}
+.tgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;min-width:0}
+@media(max-width:960px){.tgrid{grid-template-columns:minmax(0,1fr)}}
+.tcard{min-width:0;width:100%;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;text-decoration:none;display:block;transition:.15s}
 .tcard h3{font-size:17px;font-weight:800;margin-bottom:6px}
 .tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:10px}
 .tcard .tn{font-size:12px;color:var(--accent);font-weight:700}
 .tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:600px){.topic-map-page{padding-top:18px;padding-right:var(--mobile-page-right);padding-left:var(--mobile-page-left)}}
 @media(hover:hover) and (pointer:fine){
   .chip:hover{background:#dbe4ff}
   a.source-name:hover,.crow:hover .ctitle,.fav-entry:hover,.weekly-evidence-row:hover span:first-child,.hrow:hover .ht,.rank-row:hover .rank-title{color:var(--accent)}
@@ -1426,7 +1429,7 @@ def render_topics_map(events, css):
   <div class="tn">{len(evs)} 个事件 →</div>{latest}
 </a>'''
     return page_shell("主题地图 · DataHot", "按主题看数据领域持续演进的技术与业务叙事", css, f'''
-<div class="wrap" style="padding:28px 20px 60px;max-width:900px">
+<div class="wrap topic-map-page">
   <div class="section-title"><h2>{ic("map",18)} 主题地图</h2><span>按议题看数据领域 · 持续更新</span></div>
   <div class="tgrid">{cards}</div>
 </div>''', tabbar("topics"), active="topics")

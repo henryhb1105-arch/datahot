@@ -157,6 +157,32 @@ class HomeHeaderTests(unittest.TestCase):
             css,
         )
 
+    def test_mobile_timeline_has_sticky_dates_and_accessible_back_to_top(self):
+        css = build_site.load_css()
+        source = (ROOT / "pipeline" / "build_site.py").read_text(encoding="utf-8")
+        home_js = (ROOT / "pipeline" / "assets" / "home.js").read_text(encoding="utf-8")
+        self.assertIn(
+            ".home-page #timeline .day-head{position:sticky;top:0;z-index:35",
+            css,
+        )
+        self.assertIn(".home-page .home-header{position:static}", css)
+        self.assertIn(".back-to-top{position:fixed;right:16px", css)
+        self.assertIn("width:44px;height:44px", css)
+        self.assertIn("bottom:calc(70px + env(safe-area-inset-bottom))", css)
+        self.assertIn('id="backToTop"', source)
+        self.assertIn('aria-label="回到顶部"', source)
+        self.assertIn('aria-hidden="true" tabindex="-1"', source)
+        self.assertIn('doc.querySelectorAll("[data-home-top]")', home_js)
+        self.assertIn('scrollHomeToTop(preferredScrollBehavior(win))', home_js)
+
+    def test_mobile_home_tab_has_distinct_go_home_top_semantics(self):
+        markup = build_site.tabbar("home")
+        primary = markup.split("</nav>", 1)[0]
+        self.assertIn('href="index.html" class="on" data-home-top', primary)
+        self.assertNotIn("data-smart-home-return", primary)
+        self.assertIn("datahotForceHomeTop", markup)
+        self.assertIn("window.history.back()", markup)
+
     def test_card_feedback_uses_hover_only_for_fine_pointers(self):
         css = build_site.load_css()
         self.assertIn("@media(hover:hover) and (pointer:fine){", css)

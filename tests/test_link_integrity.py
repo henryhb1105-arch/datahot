@@ -170,7 +170,8 @@ class BuildPathRegressionTests(unittest.TestCase):
         self.assertEqual(detail.count('<aside class="sidebar">'), 1)
         self.assertIn('class="mi on" href="../index.html"', detail)
         self.assertIn('class="mi" href="../topics.html"', detail)
-        self.assertGreaterEqual(detail.count("data-smart-home-return"), 4)
+        self.assertGreaterEqual(detail.count("data-smart-home-return"), 3)
+        self.assertIn('href="../index.html" class="on" data-home-top', detail)
         self.assertIn('data-poster-qr-src="../qr/detail-event.png"', detail)
         self.assertNotIn("api.qrserver.com", detail)
 

@@ -67,6 +67,37 @@
   }
 
   var HOME_HISTORY_KEY = "datahotHome";
+  var HOME_TOP_SESSION_KEY = "datahotForceHomeTop";
+
+  function consumeHomeTopRequest(win) {
+    try {
+      var storage = win && win.sessionStorage;
+      if (!storage || storage.getItem(HOME_TOP_SESSION_KEY) !== "1") return false;
+      storage.removeItem(HOME_TOP_SESSION_KEY);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function shouldShowBackToTop(scrollY, viewportHeight) {
+    var height = Math.max(1, Number(viewportHeight) || 0);
+    return Math.max(0, Number(scrollY) || 0) > Math.max(720, height * 1.5);
+  }
+
+  function preferredScrollBehavior(win) {
+    try {
+      return win.matchMedia && win.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+    } catch (error) {
+      return "auto";
+    }
+  }
+
+  function isPlainPrimaryClick(event) {
+    if (!event || event.defaultPrevented) return false;
+    var button = event.button == null ? 0 : event.button;
+    return button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
+  }
 
   function historyStateWithSnapshot(currentHistoryState, state, position) {
     var next = currentHistoryState && typeof currentHistoryState === "object"
@@ -197,7 +228,7 @@
   function renderTimeline(events) {
     var groups = [], byKey = new Map();
     events.forEach(function (event) {
-      var parts = dateParts(event.first_seen || event.published);
+      var parts = dateParts(event.published || event.first_seen);
       if (!byKey.has(parts.key)) {
         var group = { parts: parts, events: [] };
         byKey.set(parts.key, group); groups.push(group);
@@ -206,7 +237,8 @@
     });
     groups.sort(function (left, right) { return right.parts.key.localeCompare(left.parts.key); });
     return groups.map(function (group) {
-      return '<div class="day"><div class="day-head"><span class="date">' + escapeHtml(group.parts.head) +
+      return '<div class="day" data-day-key="' + escapeHtml(group.parts.key) +
+        '"><div class="day-head"><span class="date" data-date-base="' + escapeHtml(group.parts.head) + '">' + escapeHtml(group.parts.head) +
         '</span><span class="info">' + escapeHtml(group.parts.label) + " · " + group.events.length +
         " 个事件</span></div>" + group.events.map(renderCard).join("") + "</div>";
     }).join("");
@@ -221,6 +253,7 @@
     var count = doc.getElementById("rCount");
     var qInput = doc.getElementById("q");
     var qClear = doc.getElementById("qClear");
+    var backToTop = doc.getElementById("backToTop");
     var pageSize = Math.max(1, parseInt(config.dataset.pageSize || "20", 10));
     var total = Math.max(0, parseInt(config.dataset.total || "0", 10));
     var state = stateFromSearch(win.location.search);
@@ -230,6 +263,7 @@
     var initialTimeline = root.innerHTML;
     var initialMoreText = more ? more.textContent : "";
     var initialMoreHidden = more ? more.hidden : true;
+    var forceTopAtBoot = consumeHomeTopRequest(win);
 
     if ("scrollRestoration" in win.history) win.history.scrollRestoration = "manual";
 
@@ -241,6 +275,52 @@
         delete historyState[HOME_HISTORY_KEY];
       }
       win.history.replaceState(historyState, "", win.location.pathname + query + win.location.hash);
+    }
+    function syncTodayLabels() {
+      if (!root || typeof root.querySelectorAll !== "function") return;
+      var todayKey = dateParts(new Date()).key;
+      root.querySelectorAll(".day[data-day-key]").forEach(function (day) {
+        var date = day.querySelector && day.querySelector(".date");
+        if (!date) return;
+        var base = String(date.dataset.dateBase || date.textContent || "").replace(/^今天\s*·\s*/, "");
+        date.dataset.dateBase = base;
+        date.textContent = (day.dataset.dayKey === todayKey ? "今天 · " : "") + base;
+      });
+    }
+    function setBackToTopVisible(visible) {
+      if (!backToTop) return;
+      backToTop.classList.toggle("show", visible);
+      backToTop.setAttribute("aria-hidden", visible ? "false" : "true");
+      backToTop.tabIndex = visible ? 0 : -1;
+    }
+    function syncBackToTop() {
+      var mobile = true;
+      try { if (win.matchMedia) mobile = win.matchMedia("(max-width: 600px)").matches; } catch (error) {}
+      setBackToTopVisible(mobile && shouldShowBackToTop(win.scrollY, win.innerHeight));
+    }
+    var backToTopFramePending = false;
+    function queueBackToTopSync() {
+      if (backToTopFramePending) return;
+      backToTopFramePending = true;
+      win.requestAnimationFrame(function () {
+        backToTopFramePending = false;
+        syncBackToTop();
+      });
+    }
+    function scrollHomeToTop(behavior) {
+      var historyState = historyStateWithSnapshot(
+        win.history.state, state, { y: 0, anchor: "", anchorOffset: 0 }
+      );
+      win.history.replaceState(
+        historyState, "", win.location.pathname + searchForState(state) + win.location.hash
+      );
+      try {
+        win.scrollTo({ top: 0, left: 0, behavior: behavior || preferredScrollBehavior(win) });
+      } catch (error) {
+        win.scrollTo(0, 0);
+      }
+      setBackToTopVisible(false);
+      if (backToTop && doc.activeElement === backToTop && typeof backToTop.blur === "function") backToTop.blur();
     }
     function positionForCard(card) {
       var anchorCard = card;
@@ -275,6 +355,7 @@
         }
         win.scrollTo(0, Math.max(0, y));
         restoredSnapshot = true;
+        syncBackToTop();
       };
       win.requestAnimationFrame(function () { win.requestAnimationFrame(apply); });
     }
@@ -291,6 +372,7 @@
       if (qInput) qInput.value = "";
       if (qClear) qClear.style.display = "none";
       root.innerHTML = initialTimeline;
+      syncTodayLabels();
       if (count) count.textContent = String(total);
       if (more) {
         more.disabled = false;
@@ -310,6 +392,7 @@
       return fetchEvents().then(function (events) {
         var result = visibleEvents(events, state, pageSize);
         root.innerHTML = renderTimeline(result.visible) || '<div class="scard" style="color:var(--sub)">没有匹配的事件</div>';
+        syncTodayLabels();
         count.textContent = String(result.filtered.length);
         if (qClear) qClear.style.display = state.q ? "" : "none";
         if (more) {
@@ -373,6 +456,20 @@
       qInput.value = ""; state.q = ""; state.page = 1; refresh(); qInput.focus();
     });
     if (more) more.addEventListener("click", function () { state.page += 1; refresh(); });
+    doc.querySelectorAll("[data-home-top]").forEach(function (link) {
+      link.addEventListener("click", function (event) {
+        if (!isPlainPrimaryClick(event)) return;
+        event.preventDefault();
+        scrollHomeToTop(preferredScrollBehavior(win));
+      });
+    });
+    if (backToTop) backToTop.addEventListener("click", function () {
+      scrollHomeToTop(preferredScrollBehavior(win));
+    });
+    win.addEventListener("scroll", queueBackToTopSync, { passive: true });
+    win.addEventListener("resize", queueBackToTopSync);
+    syncTodayLabels();
+    syncBackToTop();
 
     root.addEventListener("click", function (event) {
       if (event.target.closest && event.target.closest("[data-filter-retry]")) {
@@ -400,11 +497,19 @@
       if (typeof win.requestIdleCallback === "function") win.requestIdleCallback(prefetch, { timeout: 1500 });
       else win.setTimeout(prefetch, 500);
     }
-    if (initialSnapshot) {
+    if (forceTopAtBoot) {
+      if (initialRender) initialRender.then(function () { scrollHomeToTop("auto"); });
+      else scrollHomeToTop("auto");
+    } else if (initialSnapshot) {
       if (initialRender) initialRender.then(function () { restoreHomePosition(initialSnapshot); });
       else restoreHomePosition(initialSnapshot);
     }
     win.addEventListener("pageshow", function (event) {
+      if (consumeHomeTopRequest(win)) {
+        restoredSnapshot = false;
+        scrollHomeToTop("auto");
+        return;
+      }
       if (!event.persisted) return;
       restoredSnapshot = false;
       var snapshot = snapshotFromHistory(win.history.state, state);
@@ -423,6 +528,10 @@
     filterEvents: filterEvents,
     visibleEvents: visibleEvents,
     hasActiveFilter: hasActiveFilter,
+    consumeHomeTopRequest: consumeHomeTopRequest,
+    shouldShowBackToTop: shouldShowBackToTop,
+    preferredScrollBehavior: preferredScrollBehavior,
+    isPlainPrimaryClick: isPlainPrimaryClick,
     renderLoadFailure: renderLoadFailure,
     renderTimeline: renderTimeline,
     boot: boot

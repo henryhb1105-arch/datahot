@@ -468,7 +468,7 @@ def tabbar(active, prefix=""):
              ("收藏", ic("star",20), "favorites.html", "favorites")]
     primary = "".join(
         f'<a href="{prefix}{u}" class="{"on" if k == active else ""}"'
-        f'{" data-smart-home-return" if k == "home" else ""}><span class="ico">{i}</span><span>{n}</span></a>'
+        f'{" data-home-top" if k == "home" else ""}><span class="ico">{i}</span><span>{n}</span></a>'
         for n, i, u, k in items)
     more_items = []
     if weekly_brief_enabled():
@@ -498,6 +498,22 @@ def tabbar(active, prefix=""):
 </section>
 <script>
 (function(){{
+  var homeLink=document.querySelector('[data-home-top]');
+  if(homeLink) homeLink.addEventListener('click',function(event){{
+    if(document.body&&document.body.classList.contains('home-page')) return;
+    var button=event.button==null?0:event.button;
+    if(event.defaultPrevented||button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey) return;
+    try{{
+      var current=new URL(window.location.href);
+      var target=new URL(homeLink.href,current);
+      var source=new URL(document.referrer,current);
+      var targetRoot=target.pathname.replace(/index\.html$/,'');
+      var sourceIsHome=source.origin===target.origin&&(source.pathname===target.pathname||source.pathname===targetRoot);
+      if(!sourceIsHome||window.history.length<=1) return;
+      window.sessionStorage.setItem('datahotForceHomeTop','1');
+      event.preventDefault();window.history.back();
+    }}catch(error){{}}
+  }});
   var trigger=document.querySelector('[data-more-open]');
   var sheet=document.getElementById('mobileMoreSheet');
   var mask=document.querySelector('[data-more-mask]');
@@ -1982,10 +1998,14 @@ def main():
         if timestamp:
             days[timestamp.astimezone(TZ).date()].append(e)
     timeline = ""
+    today = gen.astimezone(TZ).date()
     for d in sorted(days, reverse=True):
         head = f'{d.month}月{d.day}日'
+        visible_head = f'今天 · {head}' if d == today else head
         info = f'星期{WEEK_CN[d.weekday()]} · {len(days[d])} 个事件'
-        timeline += f'<div class="day"><div class="day-head"><span class="date">{head}</span><span class="info">{info}</span></div>'
+        timeline += (f'<div class="day" data-day-key="{d.isoformat()}"><div class="day-head">'
+                     f'<span class="date" data-date-base="{head}">{visible_head}</span>'
+                     f'<span class="info">{info}</span></div>')
         timeline += "\n".join(render_card(e) for e in days[d])
         timeline += "</div>"
 
@@ -2088,6 +2108,7 @@ def main():
 </div></div>
 
 <footer>DataHot，数据领域AI资讯分享 · <a href="privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
+<button id="backToTop" class="back-to-top" type="button" aria-label="回到顶部" title="回到顶部" aria-hidden="true" tabindex="-1"><span aria-hidden="true">↑</span></button>
 {tabbar("home")}
 
 <script>

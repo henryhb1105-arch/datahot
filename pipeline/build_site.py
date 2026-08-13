@@ -127,7 +127,7 @@ def src_badge(source_name):
     if kind in ("sitemap", "snowflake_rn"):
         return "官网"
     if stype == "vendor":
-        return "官网·RSS"
+        return "RSS"
     if stype == "community":
         return "社区"
     return "RSS"
@@ -697,10 +697,11 @@ def is_classic_review(e):
 
 def render_card(e, prefix=""):
     event_id = safe_event_id(e["event_id"])
-    star = '<span class="star">精选</span>' if e.get("star") else ""
-    if is_classic_review(e):
-        star += '<span class="star" style="color:var(--purple)">经典回顾</span>'
-    star += f'<span title="热度分={HEAT_FORMULA}，满分100">{""}</span>'
+    status_label = "精选" if e.get("star") else ""
+    if not status_label and is_classic_review(e):
+        status_label = "经典回顾"
+    status_class = " is-featured" if status_label else ""
+    status_text = f"{status_label} {e['heat']}" if status_label else str(e["heat"])
     n = len(e["items"])
     also = ""
     if n > 1:
@@ -715,9 +716,9 @@ def render_card(e, prefix=""):
     vbox = f'<div class="vendors">{tchips}{vtags}</div>' if (tchips or vtags) else ""
     url = prefix + detail_url(e)
     return f'''<div class="item" data-cat="{esc(e["category"])}" data-topics="{esc("|".join(e.get("topics", [])))}" data-link="{url}" data-analytics-list="1" data-event-id="{event_id}" data-category="{esc(e["category"])}" data-source="{esc(e["items"][0]["source"])}">
-      <div class="top"><span class="srcbadge">{src_badge(e["items"][0]["source"])}</span><span style="font-weight:600;color:var(--txt3)">{esc(src_display(e["items"][0]["source"]))}</span><span>{card_time(e)}</span>{star}
-      <button class="favbtn" data-fav="{event_id}" title="收藏">{ic("star",15)}</button>
-      <span class="heatnum" title="热度分：{HEAT_FORMULA}">{ic("flame",13)} {e["heat"]}</span></div>
+      <div class="top card-meta"><span class="card-source"><span class="srcbadge">{src_badge(e["items"][0]["source"])}</span><span class="card-source-name">{esc(src_display(e["items"][0]["source"]))}</span><span class="card-time">{card_time(e)}</span></span>
+      <span class="heatnum{status_class}" title="热度分：{HEAT_FORMULA}">{ic("flame",13)} {esc(status_text)}</span>
+      <button class="favbtn" data-fav="{event_id}" title="收藏" aria-label="收藏" aria-pressed="false">{ic("bookmark",15)}</button></div>
       <h3><a href="{url}">{esc(e["zh_title"])}</a></h3>
       <p class="sum">{esc(e["zh_summary"])}</p>{also}{reason}{vbox}
     </div>'''
@@ -1931,6 +1932,7 @@ def main():
     home_first_page = home_ranking[:DEFAULT_PAGE_SIZE]
     lite_payload = build_lite_payload(
         all_events, payload["generated_at"], ranking=home_ranking, page_size=DEFAULT_PAGE_SIZE,
+        source_badge_resolver=src_badge,
     )
     violations = find_forbidden_fields(lite_payload)
     if violations:
@@ -2125,10 +2127,12 @@ function dhInitFav(){{
     if(b.dataset.favBound==='1') return;
     b.dataset.favBound='1';
     if(favs.includes(b.dataset.fav)) b.classList.add('on');
+    b.setAttribute('aria-pressed',b.classList.contains('on')?'true':'false');
     b.addEventListener('click',ev=>{{
       ev.stopPropagation();
       let f=dhFavs();const id=b.dataset.fav;const i=f.indexOf(id);
       if(i>=0){{f.splice(i,1);b.classList.remove('on');showFavTp('已取消收藏');}}else{{f.push(id);b.classList.add('on');showFavTp('已收藏 · 底部「收藏」Tab 可见');}}
+      b.setAttribute('aria-pressed',b.classList.contains('on')?'true':'false');
       localStorage.setItem('dh_favs',JSON.stringify(f));
     }});
   }});

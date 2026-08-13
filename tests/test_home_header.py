@@ -129,6 +129,32 @@ class HomeHeaderTests(unittest.TestCase):
         self.assertIn("@media(prefers-reduced-motion:reduce)", build_site.SHARED_CSS)
         self.assertIn(".agent-copy{appearance:none;min-height:44px", build_site.AGENT_PAGE_CSS)
 
+    def test_timeline_card_metadata_is_compact_and_semantically_unambiguous(self):
+        item = {
+            "event_id": "123456789abc", "zh_title": "标题", "zh_summary": "摘要",
+            "reason": "理由", "category": "platform", "topics": [], "vendors": [],
+            "heat": 59, "star": True, "shelf": "news",
+            "published": "2026-08-13T12:00:00+08:00", "first_seen": "2026-08-13T12:00:00+08:00",
+            "items": [{"source": "Google BigQuery Release Notes"}],
+        }
+        card = build_site.render_card(item)
+        css = build_site.load_css()
+        self.assertIn('class="top card-meta"', card)
+        self.assertIn('class="srcbadge">RSS</span>', card)
+        self.assertIn('class="card-source-name">Google BigQuery Release Notes</span>', card)
+        self.assertIn('class="heatnum is-featured"', card)
+        self.assertIn("精选 59", card)
+        self.assertIn('aria-label="收藏"', card)
+        self.assertIn('aria-pressed="false"', card)
+        self.assertIn('M19 21l-7-4.5L5 21', card)
+        self.assertNotIn("官网·RSS", card)
+        self.assertNotIn('<span class="star">精选</span>', card)
+        self.assertIn(".card-source-name{min-width:0;overflow:hidden;text-overflow:ellipsis", css)
+        self.assertIn(".item .top{display:flex;align-items:center;gap:8px", css)
+        self.assertNotIn(".item .top{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub);flex-wrap:wrap}", css)
+        source = (ROOT / "pipeline" / "build_site.py").read_text(encoding="utf-8")
+        self.assertIn("b.setAttribute('aria-pressed',b.classList.contains('on')?'true':'false')", source)
+
     def test_mobile_timeline_toolbar_stays_on_one_compact_line(self):
         toolbar = build_site.render_timeline_toolbar(126)
         css = build_site.load_css()

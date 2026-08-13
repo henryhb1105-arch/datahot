@@ -45,6 +45,18 @@ class LitePayloadTests(unittest.TestCase):
         self.assertNotIn("forbidden full body", encoded)
         self.assertNotIn("https://example.com", encoded)
 
+    def test_payload_carries_a_safe_primary_source_badge_for_dynamic_cards(self):
+        payload = build_lite_payload(
+            [event(1)], "2026-08-11T12:00:00+08:00",
+            source_badge_resolver=lambda _source: "官网",
+        )
+        self.assertEqual(payload["events"][0]["source_badge"], "官网")
+        fallback = build_lite_payload(
+            [event(2)], "2026-08-11T12:00:00+08:00",
+            source_badge_resolver=lambda _source: "unexpected",
+        )
+        self.assertEqual(fallback["events"][0]["source_badge"], "RSS")
+
     def test_explicit_empty_home_ranking_does_not_fall_back_to_all_events(self):
         payload = build_lite_payload([event(1)], "2026-08-11T12:00:00+08:00", ranking=[])
         self.assertEqual(payload["home_event_ids"], [])

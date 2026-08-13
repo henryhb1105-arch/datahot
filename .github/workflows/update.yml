@@ -19,7 +19,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: datahot-publish
+  group: datahot-update
   cancel-in-progress: false
 
 jobs:
@@ -45,6 +45,13 @@ jobs:
 
       - name: 安装图片安全处理依赖
         run: python3 -m pip install --require-hashes -r requirements.txt
+
+      - name: 保存本轮主线数据基线
+        run: |
+          baseline="$RUNNER_TEMP/datahot-main-baseline"
+          mkdir -p "$baseline"
+          cp site/data/latest.json "$baseline/latest.json"
+          jq -r '.events[].event_id | "e/\(.).html"' site/data/latest.json > "$baseline/details.txt"
 
       - name: 回归测试（Python + 浏览器事件客户端）
         run: |
@@ -96,14 +103,28 @@ jobs:
         continue-on-error: true
         run: python3 pipeline/check_weekly_brief.py site/data/weekly_brief.json --expect-ai
 
+      - name: 主线数据回写前防缩水
+        run: |
+          baseline="$RUNNER_TEMP/datahot-main-baseline"
+          python3 pipeline/release_guard.py \
+            --baseline-latest "$baseline/latest.json" \
+            --baseline-details "$baseline/details.txt" \
+            --candidate-site site \
+            --source-sha "${{ github.sha }}" \
+            --run-id "update-${{ github.run_id }}" \
+            --issue "automatic update" \
+            --output "$RUNNER_TEMP/datahot-main-guard.json"
+
       - name: 数据回写仓库（跨次累积去重）
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: 定时更新数据 [skip ci]"
           file_pattern: "site/data/** site/media/**"
 
-      - name: 发布到 GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./site
+  publish:
+    name: 请求统一 Pages 发布
+    needs: update
+    uses: ./.github/workflows/deploy.yml
+    with:
+      release_issue: ${{ github.event.head_commit.message || github.event_name }}
+    secrets: inherit

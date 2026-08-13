@@ -150,6 +150,23 @@ class BuildPathRegressionTests(unittest.TestCase):
         self.assertIn('class="has-sb mobile-detail"', detail)
         self.assertIn('class="detail-brand-header"', detail)
         self.assertIn('class="topbar detail-context"', detail)
+        self.assertIn('class="article-content"', detail)
+        self.assertIn(".article{max-width:1040px", detail)
+        self.assertIn(".article-content{max-width:840px;margin:0 auto}", detail)
+        self.assertIn(
+            ".topbar.detail-context{position:sticky;top:0;z-index:55",
+            detail,
+        )
+        self.assertIn(
+            ".topbar.detail-context .back{display:inline-flex;"
+            "align-items:center;justify-content:center;align-self:center;"
+            "min-width:88px;min-height:44px",
+            detail,
+        )
+        self.assertNotIn(
+            "@media(max-width:1199px){\n.topbar.detail-context{position:sticky",
+            detail,
+        )
         self.assertEqual(detail.count('<aside class="sidebar">'), 1)
         self.assertIn('class="mi on" href="../index.html"', detail)
         self.assertIn('class="mi" href="../topics.html"', detail)

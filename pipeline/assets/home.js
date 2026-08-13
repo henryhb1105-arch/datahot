@@ -300,6 +300,7 @@
             ? chip.dataset.category === state.category
             : chip.dataset.topic === state.topic);
         chip.classList.toggle("on", selected);
+        chip.setAttribute("aria-pressed", selected ? "true" : "false");
       });
     }
     doc.querySelectorAll("#chiprow .fchip").forEach(function (chip) {

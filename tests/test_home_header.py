@@ -34,7 +34,7 @@ class HomeHeaderTests(unittest.TestCase):
     def test_home_build_uses_compact_timeline_copy_and_insight_chip(self):
         source = (ROOT / "pipeline" / "build_site.py").read_text(encoding="utf-8")
         self.assertNotIn("不限时间 · 每批 {DEFAULT_PAGE_SIZE} 条", source)
-        self.assertIn('data-category="insight">AI分析</span>', source)
+        self.assertIn('data-category="insight">AI分析</button>', source)
         self.assertIn('placeholder="搜索"', source)
 
     def test_completed_progressive_timeline_hides_load_more_button(self):
@@ -47,17 +47,17 @@ class HomeHeaderTests(unittest.TestCase):
         ]}]
         chips = build_site.render_home_filter_chips(events)
         ordered_markup = [
-            'data-topic="Data Agent">Agent</span>',
-            'data-category="insight">AI分析</span>',
-            'data-topic="平台AI化">AI平台</span>',
-            'data-topic="语义层">语义层</span>',
-            'data-topic="实时分析">实时</span>',
-            'data-topic="ChatBI">ChatBI</span>',
-            'data-topic="湖仓">湖仓</span>',
-            'data-topic="BI变局">BI变局</span>',
-            'data-topic="数据人">数据人</span>',
-            'data-topic="组织人才">组织人才</span>',
-            'data-topic="财务经营">财务经营</span>',
+            'data-topic="Data Agent">Agent</button>',
+            'data-category="insight">AI分析</button>',
+            'data-topic="平台AI化">AI平台</button>',
+            'data-topic="语义层">语义层</button>',
+            'data-topic="实时分析">实时</button>',
+            'data-topic="ChatBI">ChatBI</button>',
+            'data-topic="湖仓">湖仓</button>',
+            'data-topic="BI变局">BI变局</button>',
+            'data-topic="数据人">数据人</button>',
+            'data-topic="组织人才">组织人才</button>',
+            'data-topic="财务经营">财务经营</button>',
         ]
         positions = [chips.index(markup) for markup in ordered_markup]
         self.assertEqual(positions, sorted(positions))
@@ -66,23 +66,68 @@ class HomeHeaderTests(unittest.TestCase):
     def test_insight_chip_stays_available_when_agent_topic_is_inactive(self):
         chips = build_site.render_home_filter_chips([{"topics": ["语义层"]}])
         self.assertTrue(chips.startswith(
-            '<span class="fchip" data-category="insight">AI分析</span>'
+            '<button class="fchip" type="button" aria-pressed="false" '
+            'data-category="insight">AI分析</button>'
         ))
 
     def test_home_filter_chips_keep_canonical_topic_values_for_urls(self):
         chips = build_site.render_home_filter_chips([
             {"topics": ["Data Agent", "平台AI化", "实时分析"]},
         ])
-        self.assertIn('data-topic="Data Agent">Agent</span>', chips)
-        self.assertIn('data-topic="平台AI化">AI平台</span>', chips)
-        self.assertIn('data-topic="实时分析">实时</span>', chips)
+        self.assertIn('data-topic="Data Agent">Agent</button>', chips)
+        self.assertIn('data-topic="平台AI化">AI平台</button>', chips)
+        self.assertIn('data-topic="实时分析">实时</button>', chips)
 
-    def test_mobile_filter_chips_use_compact_readable_spacing(self):
-        self.assertIn("@media(max-width:600px){\n  .chiprow{gap:6px}", build_site.SHARED_CSS)
+    def test_filter_chips_wrap_on_desktop_and_scroll_with_affordance_on_mobile(self):
         self.assertIn(
-            ".chiprow .fchip{font-size:12px;padding:4px 12px;min-height:32px",
+            ".chiprow{display:flex;flex-wrap:wrap;gap:8px;overflow:visible",
             build_site.SHARED_CSS,
         )
+        self.assertIn("@media(max-width:600px){\n  .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto", build_site.SHARED_CSS)
+        self.assertIn(".chiprow::after{display:block}", build_site.SHARED_CSS)
+        self.assertIn(
+            ".chiprow .fchip{font-size:12px;padding:4px 12px;min-height:44px",
+            build_site.SHARED_CSS,
+        )
+
+    def test_filter_chips_are_semantic_toggle_buttons(self):
+        chips = build_site.render_home_filter_chips([{"topics": ["Data Agent"]}])
+        self.assertIn('<button class="fchip" type="button" aria-pressed="false"', chips)
+        source = (ROOT / "pipeline" / "build_site.py").read_text(encoding="utf-8")
+        self.assertIn('role="group" aria-label="筛选时间轴"', source)
+        self.assertIn('aria-pressed="true" data-topic="all"', source)
+        home_js = (ROOT / "pipeline" / "assets" / "home.js").read_text(encoding="utf-8")
+        self.assertIn('chip.setAttribute("aria-pressed", selected ? "true" : "false")', home_js)
+
+    def test_responsive_shell_avoids_mid_width_three_column_squeeze(self):
+        css = build_site.load_css()
+        self.assertIn("@media(max-width:1199px){.layout{grid-template-columns:1fr}}", css)
+        self.assertIn("@media(max-width:600px){.hotlist{grid-template-columns:1fr;gap:10px}}", css)
+        self.assertIn(
+            "@media(max-width:1399px) and (min-width:601px){.hotlist{grid-template-columns:repeat(2,minmax(0,1fr))}}",
+            css,
+        )
+        self.assertIn("@media(min-width:1200px){", build_site.SHARED_CSS)
+        self.assertIn("@media(max-width:1199px){\n  body{padding-bottom:64px}", build_site.SHARED_CSS)
+
+    def test_more_navigation_is_a_focus_trapped_modal(self):
+        markup = build_site.tabbar("home")
+        self.assertIn('role="dialog" aria-modal="true"', markup)
+        self.assertIn('aria-labelledby="mobileMoreTitle"', markup)
+        self.assertIn("node.setAttribute('inert','')", markup)
+        self.assertIn("node.removeAttribute('inert')", markup)
+        self.assertIn("event.key!=='Tab'", markup)
+        self.assertIn("event.preventDefault();last.focus()", markup)
+        self.assertIn("event.preventDefault();first.focus()", markup)
+
+    def test_core_controls_have_touch_targets_focus_and_reduced_motion(self):
+        toolbar = build_site.render_timeline_toolbar(12)
+        self.assertIn('<button id="qClear"', toolbar)
+        self.assertIn('aria-label="清除搜索"', toolbar)
+        self.assertIn(".more-close{appearance:none;border:0", build_site.SHARED_CSS)
+        self.assertIn("width:44px;height:44px", build_site.SHARED_CSS)
+        self.assertIn("@media(prefers-reduced-motion:reduce)", build_site.SHARED_CSS)
+        self.assertIn(".agent-copy{appearance:none;min-height:44px", build_site.AGENT_PAGE_CSS)
 
     def test_mobile_timeline_toolbar_stays_on_one_compact_line(self):
         toolbar = build_site.render_timeline_toolbar(126)

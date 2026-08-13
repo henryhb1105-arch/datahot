@@ -61,7 +61,7 @@ AGENT_PAGE_CSS = """
 .agent-card>p{margin:0 0 15px;color:var(--sub);font-size:12.5px;line-height:1.7}
 .agent-code{margin:0;padding:14px 15px;border-radius:10px;background:var(--soft);color:var(--ink);font-size:12.5px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}
 .agent-actions{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
-.agent-copy{appearance:none;border:0;border-radius:99px;background:var(--ink);color:var(--bg);padding:9px 15px;font-size:12.5px;font-weight:700;cursor:pointer}
+.agent-copy{appearance:none;min-height:44px;border:0;border-radius:99px;background:var(--ink);color:var(--bg);padding:9px 15px;font-size:12.5px;font-weight:700;cursor:pointer}
 .agent-copy:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .agent-feedback{min-height:20px;color:var(--accent);font-size:12px}
 .agent-status{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}

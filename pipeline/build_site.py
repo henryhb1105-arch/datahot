@@ -99,13 +99,13 @@ def render_home_filter_chips(timeline_events):
     parts = []
     for name in (*preferred, *remaining):
         parts.append(
-            f'<span class="fchip" data-topic="{esc(name)}">'
-            f'{esc(HOME_FILTER_TOPIC_LABELS.get(name, name))}</span>'
+            f'<button class="fchip" type="button" aria-pressed="false" data-topic="{esc(name)}">'
+            f'{esc(HOME_FILTER_TOPIC_LABELS.get(name, name))}</button>'
         )
         if name == "Data Agent":
-            parts.append('<span class="fchip" data-category="insight">AI分析</span>')
+            parts.append('<button class="fchip" type="button" aria-pressed="false" data-category="insight">AI分析</button>')
     if "Data Agent" not in active_topics:
-        parts.insert(0, '<span class="fchip" data-category="insight">AI分析</span>')
+        parts.insert(0, '<button class="fchip" type="button" aria-pressed="false" data-category="insight">AI分析</button>')
     return "".join(parts)
 
 def src_badge(source_name):
@@ -154,18 +154,19 @@ SHARED_CSS = """
 body{overflow-x:clip}
 main,.layout>*,.hotlist>*{min-width:0}
 .d-only{display:inline-block}
-@media(max-width:960px){.d-only{display:none}}
+@media(max-width:1199px){.d-only{display:none}}
 .chip{display:inline-block;font-size:11px;background:#eef2ff;color:var(--blue);border-radius:99px;padding:1px 10px;text-decoration:none}
 .tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
 .tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
-.chiprow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 12px;margin-bottom:4px;position:relative}
-.chiprow::after{content:"";position:sticky;right:0;flex-shrink:0;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+.chiprow{display:flex;flex-wrap:wrap;gap:8px;overflow:visible;padding:4px 0 12px;margin-bottom:4px;position:relative}
+.chiprow::after{display:none;content:"";position:sticky;right:0;flex:0 0 28px;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
 .chiprow::-webkit-scrollbar{display:none}
-.chiprow .fchip{flex-shrink:0;font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
+.chiprow .fchip{appearance:none;flex-shrink:0;min-height:36px;font:inherit;font-size:12.5px;line-height:1.4;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
 .chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
 @media(max-width:600px){
-  .chiprow{gap:6px}
-  .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:32px;display:inline-flex;align-items:center}
+  .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-right:28px}
+  .chiprow::after{display:block}
+  .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:44px;display:inline-flex;align-items:center}
 }
 @media (prefers-color-scheme: dark){
   .chip{background:rgba(110,168,255,.16);color:#6ea8ff}
@@ -203,7 +204,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   .source-intro{margin-bottom:25px}
   .source-intro h1{font-size:24px}
   .source-row{gap:8px}
-  .source-name{font-size:13px}
+  .source-name{font-size:13px;min-height:44px}
   .source-focus{max-width:45%;font-size:11px}
   .source-disabled .source-row{display:block}
   .source-disabled-reason{max-width:none;margin:4px 0 0;text-align:left}
@@ -214,12 +215,12 @@ main,.layout>*,.hotlist>*{min-width:0}
 .cpin{width:18px;flex-shrink:0;font-size:12px}
 .ctitle{font-size:13.5px;font-weight:600;line-height:1.55;flex:1}
 .cmeta{font-size:11px;color:var(--sub);white-space:nowrap}
-.favbtn{border:none;background:none;color:var(--sub);cursor:pointer;padding:2px;display:inline-flex;align-items:center}
+.favbtn{appearance:none;min-width:36px;min-height:36px;border:none;background:none;color:var(--sub);cursor:pointer;padding:6px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%}
 .favbtn.on{color:var(--accent)}
 .favbtn.on svg{fill:currentColor}
 .favbtn svg{pointer-events:none}
 .fav-entry{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--sub);white-space:nowrap;text-decoration:none}
-.privacy-btn{border:none;background:var(--accent);color:#fff;border-radius:99px;padding:9px 16px;font-size:12.5px;font-weight:650;cursor:pointer;margin:4px 6px 4px 0}
+.privacy-btn{min-height:44px;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:9px 16px;font-size:12.5px;font-weight:650;cursor:pointer;margin:4px 6px 4px 0}
 .privacy-btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .load-more{display:block;margin:18px auto 4px;border:1px solid var(--line);background:var(--card);color:var(--txt2);border-radius:99px;padding:9px 22px;font-size:12.5px;font-weight:650;cursor:pointer}
 .load-more[hidden]{display:none}
@@ -287,7 +288,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .hrow .hm{font-size:11px;color:var(--sub);white-space:nowrap}
 .srcbadge{font-size:10px;border:1px solid var(--line);border-radius:5px;padding:0 5px;color:var(--sub);flex-shrink:0;line-height:1.6}
 .sidebar{display:none}
-@media(min-width:961px){
+@media(min-width:1200px){
   body.has-sb{padding-left:224px}
   body.has-sb>header{display:none}
   .sidebar{display:flex;position:fixed;left:0;top:0;bottom:0;width:224px;flex-direction:column;background:var(--card);border-right:1px solid var(--line);padding:22px 16px;z-index:40}
@@ -301,7 +302,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .hot .htime{margin-left:auto;font-size:11px;color:var(--sub)}
 .tabbar{display:none}
 .more-mask,.more-sheet{display:none}
-@media(max-width:960px){
+@media(max-width:1199px){
   body{padding-bottom:64px}
   footer{padding-bottom:96px}
   body.mobile-section{padding-top:env(safe-area-inset-top)}
@@ -317,13 +318,18 @@ main,.layout>*,.hotlist>*{min-width:0}
   .more-handle{width:36px;height:4px;border-radius:99px;background:var(--line);margin:2px auto 12px}
   .more-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
   .more-head h2{font-size:18px}
-  .more-close{appearance:none;border:0;background:var(--soft);color:var(--sub);width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer}
+  .more-close{appearance:none;border:0;background:var(--soft);color:var(--sub);width:44px;height:44px;border-radius:50%;font-size:18px;cursor:pointer}
   .more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .more-link{display:flex;align-items:center;gap:11px;min-height:58px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);text-decoration:none;color:var(--ink)}
   .more-link .more-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent);flex:0 0 auto}
   .more-link span:last-child{min-width:0;font-size:13px;font-weight:650}
   .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
   body.more-open{overflow:hidden}
+}
+.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.load-more:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:600px){.favbtn{min-width:44px;min-height:44px}}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
 .tgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
 @media(max-width:960px){.tgrid{grid-template-columns:1fr}}
@@ -347,7 +353,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 """
 
 def sidebar(active, gen=None, prefix=""):
-    """桌面端左侧菜单栏（≥961px 显示，移动端隐藏，由底部 Tab 承担导航）"""
+    """桌面端左侧菜单栏（≥1200px 显示，窄屏由底部 Tab 承担导航）"""
     items = [("热榜", "flame", "index.html", "home")]
     if weekly_brief_enabled():
         items.append(("每周简报", "calendar", "weekly.html", "weekly"))
@@ -381,8 +387,8 @@ def render_timeline_toolbar(total_count):
     return f'''<div class="section-title timeline-toolbar">
   <h2>{ic("calendar",18)} 时间轴</h2>
   <div class="timeline-searchbox">
-    <input id="q" class="tlsearch" placeholder="搜索" title="搜索范围：全部在站时间轴的标题、摘要与标签">
-    <span id="qClear" class="timeline-clear" style="display:none" title="清除搜索">✕</span>
+    <input id="q" class="tlsearch" placeholder="搜索" aria-label="搜索时间轴" title="搜索范围：全部在站时间轴的标题、摘要与标签">
+    <button id="qClear" class="timeline-clear" type="button" style="display:none" aria-label="清除搜索" title="清除搜索">✕</button>
   </div>
   <span class="timeline-count">（<span id="rCount">{total_count}</span>）</span>
 </div>'''
@@ -475,10 +481,10 @@ def tabbar(active, prefix=""):
   {primary}
   <button class="tabbar-more{" on" if more_on else ""}" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico">{ic("more",20)}</span><span>更多</span></button>
 </nav>
-<div class="more-mask" data-more-mask></div>
-<section class="more-sheet" id="mobileMoreSheet" aria-label="更多导航" aria-hidden="true">
+<div class="more-mask" data-more-mask aria-hidden="true"></div>
+<section class="more-sheet" id="mobileMoreSheet" role="dialog" aria-modal="true" aria-labelledby="mobileMoreTitle" aria-hidden="true">
   <div class="more-handle" aria-hidden="true"></div>
-  <div class="more-head"><h2>更多</h2><button class="more-close" type="button" data-more-close aria-label="关闭更多导航">×</button></div>
+  <div class="more-head"><h2 id="mobileMoreTitle">更多</h2><button class="more-close" type="button" data-more-close aria-label="关闭更多导航">×</button></div>
   <div class="more-grid">{more_links}</div>
 </section>
 <script>
@@ -488,18 +494,29 @@ def tabbar(active, prefix=""):
   var mask=document.querySelector('[data-more-mask]');
   var closeBtn=document.querySelector('[data-more-close]');
   if(!trigger||!sheet||!mask||!closeBtn) return;
+  var background=Array.from(document.body.children).filter(function(node){{return node!==sheet&&node!==mask&&node.tagName!=='SCRIPT'}});
   function setMore(open){{
+    if(!open) background.forEach(function(node){{node.removeAttribute('inert')}});
     trigger.setAttribute('aria-expanded',open?'true':'false');
     sheet.setAttribute('aria-hidden',open?'false':'true');
     sheet.classList.toggle('show',open);
     mask.classList.toggle('show',open);
     document.body.classList.toggle('more-open',open);
-    if(open) closeBtn.focus(); else trigger.focus();
+    if(open){{background.forEach(function(node){{node.setAttribute('inert','')}});closeBtn.focus()}}else trigger.focus();
   }}
   trigger.addEventListener('click',function(){{setMore(true)}});
   closeBtn.addEventListener('click',function(){{setMore(false)}});
   mask.addEventListener('click',function(){{setMore(false)}});
-  document.addEventListener('keydown',function(event){{if(event.key==='Escape'&&sheet.classList.contains('show')) setMore(false)}});
+  document.addEventListener('keydown',function(event){{
+    if(!sheet.classList.contains('show')) return;
+    if(event.key==='Escape'){{setMore(false);return}}
+    if(event.key!=='Tab') return;
+    var focusable=Array.from(sheet.querySelectorAll('a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])'));
+    if(!focusable.length) return;
+    var first=focusable[0],last=focusable[focusable.length-1];
+    if(event.shiftKey&&document.activeElement===first){{event.preventDefault();last.focus()}}
+    else if(!event.shiftKey&&document.activeElement===last){{event.preventDefault();first.focus()}}
+  }});
 }})();
 </script>'''
 
@@ -1000,7 +1017,7 @@ def render_detail(e, all_events, css, tts_item=None):
 .tts-copy{{display:flex;flex-direction:column;min-width:112px;line-height:1.35}}
 .tts-copy b{{font-size:12.5px;color:var(--ink)}}
 .tts-copy span{{font-size:10.5px;color:var(--sub);margin-top:2px}}
-.tts-toggle{{border:0;border-radius:99px;background:var(--ink);color:var(--card);font-size:12px;font-weight:750;padding:7px 13px;cursor:pointer;min-width:58px}}
+.tts-toggle{{min-width:58px;min-height:44px;border:0;border-radius:99px;background:var(--ink);color:var(--card);font-size:12px;font-weight:750;padding:7px 13px;cursor:pointer}}
 .tts-progress{{width:100%;accent-color:var(--accent);cursor:pointer}}
 .tts-time{{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}}
 .tts-rate-label{{font-size:10.5px;color:var(--sub);display:flex;align-items:center;gap:4px}}
@@ -1085,11 +1102,11 @@ def share_ui(e, page_url):
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;margin-bottom:14px}
 .topbar .back{flex:0 0 auto;white-space:nowrap}
 .sharebtns{display:flex;gap:8px;min-width:0;max-width:100%}
-.sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
+.sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-height:44px;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
 .sbtn svg{flex:0 0 auto}
 .sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .sbtn:active{transform:scale(.95)}
-@media(max-width:960px){
+@media(max-width:1199px){
 .topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .topbar.detail-context .back{font-size:14px;font-weight:650;color:var(--ink)}
 }
@@ -1116,7 +1133,8 @@ def share_ui(e, page_url):
 .sh-poster-wrap{width:min(340px,86vw);border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
 .sh-poster-wrap img{width:100%;display:block}
 .sh-poster-actions{margin-top:18px;display:flex;gap:10px}
-.sh-save,.sh-close{border:none;border-radius:99px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
+.sh-save,.sh-close{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:none;border-radius:99px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
+.sbtn:focus-visible,.sh-opt:focus-visible,.sh-cancel:focus-visible,.sh-save:focus-visible,.sh-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .sh-save{background:var(--accent);color:#fff}
 .sh-close{background:rgba(255,255,255,.15);color:#fff}
 .sh-poster-tip{margin-top:10px;font-size:11px;color:#8b919b}
@@ -1987,8 +2005,8 @@ def main():
   <div class="section-title"><h2>{ic("flame",18)} 本期热点</h2><span>多信源聚簇 · 按热度排序</span><a href="hot.html" style="margin-left:auto;font-size:12.5px;color:var(--accent);font-weight:600">完整榜单 →</a></div>
   <div class="hotlist">{hot_cards}</div>
   {render_timeline_toolbar(len(timeline_events))}
-  <div class="chiprow" id="chiprow">
-    <span class="fchip on" data-topic="all">全部</span>
+  <div class="chiprow" id="chiprow" role="group" aria-label="筛选时间轴">
+    <button class="fchip on" type="button" aria-pressed="true" data-topic="all">全部</button>
     {topic_fchips}
   </div>
   {timeline_html}
@@ -2061,13 +2079,15 @@ function applyFilter(pred){{
 // 主题筛选条（支持再点取消）
 document.querySelectorAll('#chiprow .fchip').forEach(c=>c.addEventListener('click',()=>{{
   const wasOn=c.classList.contains('on');
-  document.querySelectorAll('#chiprow .fchip').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('#chiprow .fchip').forEach(x=>{{x.classList.remove('on');x.setAttribute('aria-pressed','false');}});
   if(!wasOn&&c.dataset.topic!=='all'){{
     c.classList.add('on');
+    c.setAttribute('aria-pressed','true');
     const t=c.dataset.topic;
     applyFilter(el=>(el.dataset.topics||'').split('|').includes(t));
   }}else{{
     document.querySelector('[data-topic="all"]').classList.add('on');
+    document.querySelector('[data-topic="all"]').setAttribute('aria-pressed','true');
     applyFilter(()=>true);
   }}
 }}));

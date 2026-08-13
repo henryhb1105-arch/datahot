@@ -56,10 +56,10 @@
   .btn-sub{background:var(--accent);color:#fff;border-radius:99px;padding:7px 16px;font-size:13px;font-weight:600;white-space:nowrap}
 
   .layout{display:grid;grid-template-columns:1fr 320px;gap:24px;padding:28px 0 60px}
-  @media(max-width:960px){.layout{grid-template-columns:1fr}}
+  @media(max-width:1199px){.layout{grid-template-columns:1fr}}
 
   /* ── 移动端导航适配 ── */
-  @media(max-width:960px){
+  @media(max-width:1199px){
     .nav{flex-wrap:wrap;height:auto;padding:8px 0;gap:10px;min-height:52px}
     .logo{font-size:19px}
     .logo .tag{display:none}
@@ -86,12 +86,13 @@
     .why{font-size:12.5px;line-height:1.7}
     .brief{padding:16px 18px}
     .brief p{font-size:13.5px}
-    .chiprow{gap:6px}
-    .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:32px;display:inline-flex;align-items:center}
+    .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-right:28px}
+    .chiprow::after{display:block;content:"";position:sticky;right:0;flex:0 0 28px;width:28px;margin-left:-28px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+    .chiprow::-webkit-scrollbar{display:none}
+    .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:44px;display:inline-flex;align-items:center}
     .tab,.fchip,.chip{touch-action:manipulation}
     aside{align-self:start;position:sticky;top:20px}
-@media(min-width:1280px){.wrap{max-width:1320px}}
-aside .card{padding:14px 16px}
+    aside .card{padding:14px 16px}
     .article{padding:20px 14px 48px}
     .article h1{font-size:20px}
     .article .body{font-size:14.5px}
@@ -99,6 +100,7 @@ aside .card{padding:14px 16px}
     .cta{width:100%;text-align:center;padding:13px 0;font-size:15px}
     .day-head .date{font-size:15px}
   }
+  @media(min-width:1280px){.wrap{max-width:1320px}}
 
   /* ── 每周简报 ── */
   .brief{background:linear-gradient(135deg,#1a1d23 0%,#2b2418 60%,#3d2412 100%);color:#fff;border-radius:var(--radius);padding:22px 26px;margin-bottom:22px;position:relative;overflow:hidden}
@@ -115,15 +117,17 @@ aside .card{padding:14px 16px}
   .timeline-toolbar h2,.timeline-toolbar .timeline-count{white-space:nowrap}
   .timeline-searchbox{display:flex;align-items:center;min-width:0;width:min(150px,40vw);margin-left:auto}
   .timeline-searchbox .tlsearch{margin-left:0;min-width:0;flex:1 1 0}
-  .timeline-clear{cursor:pointer;color:var(--sub);margin-left:6px}
+  .timeline-clear{appearance:none;display:inline-grid;place-items:center;min-width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:var(--sub);cursor:pointer;margin-left:4px;font:inherit}
   .timeline-count{font-size:11px;color:var(--sub)}
   @media(max-width:600px){
     .timeline-toolbar{gap:8px}
     .timeline-searchbox{width:min(120px,34vw)}
     .timeline-searchbox .tlsearch,.timeline-searchbox .tlsearch:focus{width:100%}
+    .timeline-clear{min-width:44px;height:44px}
   }
   .hotlist{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:30px}
-  @media(max-width:960px){.hotlist{grid-template-columns:1fr}}
+  @media(max-width:600px){.hotlist{grid-template-columns:1fr;gap:10px}}
+  @media(max-width:1399px) and (min-width:601px){.hotlist{grid-template-columns:repeat(2,minmax(0,1fr))}}
   .hot{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;position:relative;transition:.15s;cursor:pointer}
   .hot .rank{position:absolute;top:-1px;left:16px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:0 0 8px 8px}
   .hot .heat{position:absolute;top:12px;right:16px;font-size:12px;color:var(--accent);font-weight:700}
@@ -147,6 +151,10 @@ aside .card{padding:14px 16px}
   }
   @media(hover:none) and (pointer:coarse){
     .hot:active,.item:active{border-color:#d1d5db;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+  }
+  .fchip:focus-visible,.timeline-clear:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   }
   .item .top{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub);flex-wrap:wrap}
   .badge{font-weight:600;border-radius:6px;padding:1px 8px;font-size:11px}
@@ -246,9 +254,9 @@ aside .card{padding:14px 16px}
   </div>
 
   <!-- 时间轴 -->
-  <div class="section-title timeline-toolbar"><h2>📅 时间轴</h2><div class="timeline-searchbox"><input class="tlsearch" placeholder="搜索"></div><span class="timeline-count">（126）</span></div>
-  <div class="chiprow">
-    <span class="fchip on">全部</span><span class="fchip">Agent</span><span class="fchip">AI分析</span><span class="fchip">AI平台</span><span class="fchip">语义层</span><span class="fchip">实时</span><span class="fchip">ChatBI</span><span class="fchip">湖仓</span><span class="fchip">BI变局</span><span class="fchip">数据人</span><span class="fchip">组织人才</span>
+  <div class="section-title timeline-toolbar"><h2>📅 时间轴</h2><div class="timeline-searchbox"><input class="tlsearch" placeholder="搜索" aria-label="搜索时间轴"><button class="timeline-clear" type="button" aria-label="清除搜索">✕</button></div><span class="timeline-count">（126）</span></div>
+  <div class="chiprow" role="group" aria-label="筛选时间轴">
+    <button class="fchip on" type="button" aria-pressed="true">全部</button><button class="fchip" type="button" aria-pressed="false">Agent</button><button class="fchip" type="button" aria-pressed="false">AI分析</button><button class="fchip" type="button" aria-pressed="false">AI平台</button><button class="fchip" type="button" aria-pressed="false">语义层</button><button class="fchip" type="button" aria-pressed="false">实时</button><button class="fchip" type="button" aria-pressed="false">ChatBI</button><button class="fchip" type="button" aria-pressed="false">湖仓</button><button class="fchip" type="button" aria-pressed="false">BI变局</button><button class="fchip" type="button" aria-pressed="false">数据人</button><button class="fchip" type="button" aria-pressed="false">组织人才</button>
   </div>
 
   <div class="day">

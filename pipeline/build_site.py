@@ -932,13 +932,11 @@ def render_detail(e, all_events, css, tts_item=None):
     main_link = esc(main_url)
     main_src_name = primary_item["source"]
     main_src = esc(main_src_name)
-    original_button = (
-        f'<a class="sbtn ghost" href="{main_link}" target="_blank" rel="noopener noreferrer" '
-        f'data-analytics="outbound" data-source="{main_src}" title="原文" aria-label="原文">'
-        f'{ic("arrow",15)}<span class="sbtn-label">原文</span></a>'
-        if main_url else
-        f'<span class="sbtn ghost is-disabled" title="原文链接不可用" aria-label="原文链接不可用">'
-        f'{ic("arrow",15)}<span class="sbtn-label">原文</span></span>'
+    original_footer_link = (
+        f'<a class="original-footer-link" href="{main_link}" target="_blank" '
+        f'rel="noopener noreferrer" data-analytics="outbound" data-source="{main_src}">'
+        f'<span>查看原文</span>{ic("arrow",14)}</a>'
+        if main_url else ""
     )
     # blocks-v1 先经本地白名单清洗再渲染；异常或旧数据安全降级到 full_zh。
     safe_blocks = sanitize_blocks(e.get("content_blocks", []), main_url)
@@ -991,9 +989,13 @@ def render_detail(e, all_events, css, tts_item=None):
             content_note = "这是改版前生成的历史 AI 编译内容，后续将由原文或忠实译文替换"
         badge_html = f' <span class="content-origin-badge">{content_badge}</span>' if content_badge else ""
         note_html = f'<div class="disclaimer">{content_note}</div>' if content_note else ""
+        footer_html = (
+            f'<div class="content-footer">{note_html}{original_footer_link}</div>'
+            if note_html or original_footer_link else ""
+        )
         full_block = f'''<div class="card content-card"><h4>{ic("file")} {content_title}{badge_html}</h4>
   <div class="fulltext">{full_paras}</div>
-  {note_html}
+  {footer_html}
 </div>'''
     page_url = f"{SITE_BASE}/e/{event_id}.html"
     jsonld_payload = {
@@ -1095,11 +1097,14 @@ def render_detail(e, all_events, css, tts_item=None):
 @media(max-width:600px){{.tts-player{{grid-template-columns:1fr auto auto;gap:9px;padding:11px 12px}}.tts-copy{{grid-column:1/-1;grid-row:1;flex-direction:row;align-items:baseline;gap:8px}}.tts-toggle{{grid-column:1;grid-row:2}}.tts-time{{grid-column:2;grid-row:2}}.tts-rate-label{{grid-column:3;grid-row:2}}.tts-progress{{grid-column:1/-1;grid-row:3}}}}
 @media(prefers-reduced-motion:reduce){{.tts-player *{{scroll-behavior:auto!important;transition:none!important}}}}
 @media(hover:hover) and (pointer:fine){{
-  .article .back:hover,.source-report:hover .source-report-title{{color:var(--accent)}}
+  .article .back:hover,.source-report:hover .source-report-title,.original-footer-link:hover{{color:var(--accent)}}
   .cta:hover{{opacity:.9}}
 }}
-.disclaimer{{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}}
-.disclaimer a{{color:var(--accent)}}
+.content-footer{{display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}}
+.disclaimer{{flex:1;font-size:12px;color:var(--sub)}}
+.original-footer-link{{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:7px 12px;border-radius:99px;color:var(--blue);font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap}}
+.original-footer-link:focus-visible{{outline:2px solid var(--accent);outline-offset:2px}}
+@media(max-width:600px){{.content-footer{{align-items:flex-start;flex-direction:column;gap:4px}}.original-footer-link{{align-self:flex-end}}}}
 </style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="{event_id}" data-category="{esc(e["category"])}" data-source="{main_src}">
 {sidebar("home", prefix="../")}
 <header class="detail-brand-header"><div class="wrap nav">
@@ -1111,7 +1116,6 @@ def render_detail(e, all_events, css, tts_item=None):
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" type="button" data-fav="{event_id}" title="收藏" aria-label="收藏" aria-pressed="false">{ic("bookmark",15)}<span class="sbtn-label">收藏</span></button>
 {("      " + tts_button) if tts_button else ""}
-      {original_button}
       <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/{event_id}.png" title="海报" aria-label="海报">{ic("image",15)}<span class="sbtn-label">海报</span></button>
       <button class="sbtn" type="button" data-share-action="open" title="分享" aria-label="分享">{ic("share",15)}<span class="sbtn-label">分享</span></button>
     </span>
@@ -1179,7 +1183,6 @@ def share_ui(e, page_url):
 .sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-height:44px;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
 .sbtn svg{flex:0 0 auto}
 .sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
-.sbtn.is-disabled{opacity:.45;cursor:not-allowed}
 .sbtn:active{transform:scale(.95)}
 .topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .topbar.detail-context .back{display:inline-flex;align-items:center;justify-content:center;align-self:center;min-width:88px;min-height:44px;margin-bottom:0;padding:0 14px;border-radius:99px;font-size:14px;font-weight:650;color:var(--ink);text-decoration:none}
@@ -1191,8 +1194,8 @@ def share_ui(e, page_url):
 .topbar.detail-context{margin:-20px -14px 14px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
 .topbar.detail-context .back{align-self:center}
 .sharebtns{width:auto;gap:4px;overflow:visible;padding-bottom:0}
-.sharebtns .sbtn{width:44px;min-width:44px;height:44px;padding:0}
-.sharebtns .sbtn-label{display:none}
+.sharebtns .sbtn{width:56px;min-width:56px;height:44px;padding:0 6px;font-size:12px}
+.sharebtns .sbtn-label{display:inline}
 }
 @media(max-width:359px){
 .topbar.detail-context .back{width:44px;min-width:44px;padding:0}

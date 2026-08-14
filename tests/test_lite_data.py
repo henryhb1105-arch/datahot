@@ -2,6 +2,7 @@ import json
 import sys
 import unittest
 from collections import Counter
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 
@@ -217,6 +218,32 @@ class LitePayloadTests(unittest.TestCase):
         self.assertEqual(
             [item["event_id"] for item in ranked],
             [top["event_id"], runner_up["event_id"], lower["event_id"]],
+        )
+
+    def test_hot_list_uses_a_true_seven_day_publication_window(self):
+        reference = datetime(2026, 8, 14, 12, 0, tzinfo=timezone.utc)
+        fresh = event(201, heat=60)
+        fresh["published"] = (reference - timedelta(days=1)).isoformat()
+        boundary = event(202, heat=59)
+        boundary["published"] = (reference - timedelta(days=7)).isoformat()
+        historical_backfill = event(203, heat=99)
+        historical_backfill["published"] = (reference - timedelta(days=100)).isoformat()
+        historical_backfill["first_seen"] = reference.isoformat()
+        historical_backfill["shelf"] = "evergreen"
+        future = event(204, heat=100)
+        future["published"] = (reference + timedelta(hours=1)).isoformat()
+        for item in (fresh, boundary, historical_backfill, future):
+            item["zh_title"] = f"数据平台热榜事件 {item['event_id']}"
+            item["zh_summary"] = "经过中文编辑的完整摘要。"
+
+        ranked = rank_hot_events(
+            [historical_backfill, future, boundary, fresh],
+            reference_time=reference,
+        )
+
+        self.assertEqual(
+            [item["event_id"] for item in ranked],
+            [fresh["event_id"], boundary["event_id"]],
         )
 
 

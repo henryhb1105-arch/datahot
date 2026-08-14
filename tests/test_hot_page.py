@@ -66,6 +66,13 @@ class HotPageTests(unittest.TestCase):
         self.assertIn('<details class="rank-note"><summary>热度如何计算</summary>', page)
         self.assertNotIn('<details class="rank-note" open', page)
 
+    def test_hot_page_explains_the_current_ranking_formula(self):
+        page = build_site.render_hot_page([hot_event(1)], "")
+
+        self.assertIn("内容重要性45%", page)
+        self.assertIn("新鲜度35%（48小时半衰）", page)
+        self.assertIn("按热度降序，同一信源最多 2 条", page)
+
 
 if __name__ == "__main__":
     unittest.main()

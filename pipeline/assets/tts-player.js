@@ -53,7 +53,10 @@
     function updateState(label, message) {
       toggle.textContent = label;
       toggle.setAttribute("aria-label", label + "朗读");
-      if (openLabel) openLabel.textContent = label === "暂停" ? "暂停" : (label === "继续" ? "继续听" : "听这篇");
+      var actionLabel = label === "播放" ? "速听" : label;
+      if (openLabel) openLabel.textContent = actionLabel;
+      openButton.setAttribute("aria-label", actionLabel);
+      openButton.setAttribute("title", actionLabel);
       status.textContent = message;
     }
     function showPlayer() {

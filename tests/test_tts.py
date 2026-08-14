@@ -147,6 +147,9 @@ class TTSDetailRenderingTests(unittest.TestCase):
         self.assertIn("../audio/2026/08/0123456789ab-aaaaaaaaaaaa.mp3", page)
         self.assertIn('src="../tts-player.js"', page)
         self.assertIn("aria-label=\"文章精华朗读\"", page)
+        self.assertIn('aria-label="速听" title="速听"', page)
+        self.assertIn('class="sbtn-label" data-tts-open-label>速听</span>', page)
+        self.assertNotIn("听这篇", page)
 
     def test_missing_or_unsafe_audio_hides_player(self):
         page = build_site.render_detail(event_fixture(), [event_fixture()], "")
@@ -155,7 +158,7 @@ class TTSDetailRenderingTests(unittest.TestCase):
         page = build_site.render_detail(event_fixture(), [event_fixture()], "", tts_item=unsafe)
         self.assertNotIn("data-tts-open", page)
 
-    def test_narrow_detail_actions_stay_single_line_and_scroll(self):
+    def test_detail_actions_are_consistent_and_mobile_toolbar_stays_single_line(self):
         item = {
             "status": "ready",
             "audio_path": "audio/2026/08/0123456789ab-aaaaaaaaaaaa.mp3",
@@ -164,10 +167,21 @@ class TTSDetailRenderingTests(unittest.TestCase):
         page = build_site.render_detail(event_fixture(), [event_fixture()], "", tts_item=item)
         self.assertIn(".topbar .back{flex:0 0 auto;white-space:nowrap}", page)
         self.assertIn("flex:0 0 auto;white-space:nowrap", page)
-        self.assertIn(".topbar{align-items:stretch;flex-direction:column;gap:10px}", page)
-        self.assertIn(".sharebtns{width:100%;gap:6px;overflow-x:auto", page)
-        self.assertIn(".sharebtns .sbtn{padding:7px 11px}", page)
-        self.assertIn(".sharebtns::-webkit-scrollbar{display:none}", page)
+        self.assertIn(".sharebtns .sbtn{min-width:76px}", page)
+        self.assertIn(".topbar{align-items:center;flex-direction:row;gap:8px}", page)
+        self.assertIn(".sharebtns{width:auto;gap:4px;overflow:visible;padding-bottom:0}", page)
+        self.assertIn(".sharebtns .sbtn{width:44px;min-width:44px;height:44px;padding:0}", page)
+        self.assertIn(".sharebtns .sbtn-label{display:none}", page)
+        self.assertNotIn(".sharebtns::-webkit-scrollbar", page)
+        self.assertIn('aria-label="收藏" aria-pressed="false"', page)
+        self.assertIn('class="sbtn-label">收藏</span>', page)
+        self.assertIn('aria-label="海报"', page)
+        self.assertIn('class="sbtn-label">海报</span>', page)
+        self.assertIn('aria-label="分享"', page)
+        self.assertIn('class="sbtn-label">分享</span>', page)
+        self.assertEqual(page.count('class="sbtn-label"'), 4)
+        self.assertNotIn('class="sbtn ghost" href="https://example.com/article"', page)
+        self.assertIn('class="meta-original" href="https://example.com/article"', page)
 
 
 class TTSWorkflowTests(unittest.TestCase):

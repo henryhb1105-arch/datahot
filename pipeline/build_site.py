@@ -824,8 +824,8 @@ def render_tts_ui(item):
         duration = 0
     button = (
         '<button class="sbtn ghost tts-open" type="button" data-tts-open '
-        'aria-expanded="false" aria-controls="ttsPlayer">'
-        f'{ic("headphones",13)} <span data-tts-open-label>听这篇</span></button>'
+        'aria-expanded="false" aria-controls="ttsPlayer" aria-label="速听" title="速听">'
+        f'{ic("headphones",15)} <span class="sbtn-label" data-tts-open-label>速听</span></button>'
     )
     player = f'''<section class="tts-player" id="ttsPlayer" data-tts-player data-duration="{duration}" hidden aria-label="文章精华朗读">
   <audio data-tts-audio preload="metadata" src="../{esc(audio_path)}"></audio>
@@ -937,9 +937,9 @@ def render_detail(e, all_events, css, tts_item=None):
         f'data-analytics="outbound" data-source="{main_src}">查看原文 ↗</a>'
         if main_url else '<span class="source-link-unavailable">原文链接不可用</span>'
     )
-    original_button = (
-        f'<a class="sbtn ghost" href="{main_link}" target="_blank" rel="noopener noreferrer" '
-        f'data-analytics="outbound" data-source="{main_src}">原文</a>'
+    original_meta_link = (
+        f'<a class="meta-original" href="{main_link}" target="_blank" rel="noopener noreferrer" '
+        f'data-analytics="outbound" data-source="{main_src}">原文 ↗</a>'
         if main_url else ''
     )
     # blocks-v1 先经本地白名单清洗再渲染；异常或旧数据安全降级到 full_zh。
@@ -1032,6 +1032,7 @@ def render_detail(e, all_events, css, tts_item=None):
 .article .back{{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}}
 .article h1{{font-size:24px;font-weight:800;line-height:1.5;margin:12px 0 16px}}
 .article .meta{{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}}
+.meta-original{{color:var(--blue);font-weight:650;text-decoration:none;white-space:nowrap}}
 .article .body{{font-size:15.5px;line-height:1.9;color:var(--txt3);margin:20px 0}}
 .article .card{{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}}
 .article h4{{font-size:14px;font-weight:800;margin-bottom:10px}}
@@ -1096,7 +1097,7 @@ def render_detail(e, all_events, css, tts_item=None):
 @media(max-width:600px){{.tts-player{{grid-template-columns:1fr auto auto;gap:9px;padding:11px 12px}}.tts-copy{{grid-column:1/-1;grid-row:1;flex-direction:row;align-items:baseline;gap:8px}}.tts-toggle{{grid-column:1;grid-row:2}}.tts-time{{grid-column:2;grid-row:2}}.tts-rate-label{{grid-column:3;grid-row:2}}.tts-progress{{grid-column:1/-1;grid-row:3}}}}
 @media(prefers-reduced-motion:reduce){{.tts-player *{{scroll-behavior:auto!important;transition:none!important}}}}
 @media(hover:hover) and (pointer:fine){{
-  .article .back:hover,.source-report:hover .source-report-title{{color:var(--accent)}}
+  .article .back:hover,.source-report:hover .source-report-title,.meta-original:hover{{color:var(--accent)}}
   .cta:hover{{opacity:.9}}
 }}
 .disclaimer{{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}}
@@ -1110,17 +1111,17 @@ def render_detail(e, all_events, css, tts_item=None):
   <div class="topbar detail-context">
     <a class="back" href="../index.html" data-smart-back>← 返回</a>
     <span class="sharebtns">
-      <button class="sbtn ghost favbtn" data-fav="{event_id}" title="收藏">{ic("star",13)}</button>
+      <button class="sbtn ghost favbtn" type="button" data-fav="{event_id}" title="收藏" aria-label="收藏" aria-pressed="false">{ic("bookmark",15)}<span class="sbtn-label">收藏</span></button>
 {("      " + tts_button) if tts_button else ""}
-      {original_button}
-      <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/{event_id}.png">海报</button>
-      <button class="sbtn" type="button" data-share-action="open">分享</button>
+      <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/{event_id}.png" title="海报" aria-label="海报">{ic("image",15)}<span class="sbtn-label">海报</span></button>
+      <button class="sbtn" type="button" data-share-action="open" title="分享" aria-label="分享">{ic("share",15)}<span class="sbtn-label">分享</span></button>
     </span>
   </div>
   <main class="article-content">
   <div class="meta">
     <span class="srcbadge">{src_badge(main_src_name)}</span>
     <span style="font-weight:600;color:var(--txt3)">{esc(src_display(main_src_name))}</span>
+    {original_meta_link}
     {'<span class="star">精选</span>' if e.get("star") else ''}
     <span title="发布时间">{("发布 " + fmt_date(e["published"])) if e.get("published") else "收录 " + fmt_date(e.get("first_seen"))}</span>
     {f'<span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 {md(e.get("first_seen"))}</span>' if e.get("published") and e.get("first_seen") and e["published"][:10] != e["first_seen"][:10] else ""}
@@ -1175,7 +1176,8 @@ def share_ui(e, page_url):
 <style>
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;margin-bottom:14px}
 .topbar .back{flex:0 0 auto;white-space:nowrap}
-.sharebtns{display:flex;gap:8px;min-width:0;max-width:100%}
+.sharebtns{display:flex;justify-content:flex-end;gap:8px;min-width:0;max-width:100%;margin-left:auto}
+.sharebtns .sbtn{min-width:76px}
 .sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-height:44px;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
 .sbtn svg{flex:0 0 auto}
 .sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
@@ -1185,12 +1187,12 @@ def share_ui(e, page_url):
 .topbar.detail-context .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:600px){
 .article{padding:20px 14px 48px}
-.topbar{align-items:stretch;flex-direction:column;gap:10px}
+.topbar{align-items:center;flex-direction:row;gap:8px}
 .topbar.detail-context{margin:-20px -14px 14px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
-.topbar.detail-context .back{align-self:flex-start}
-.sharebtns{width:100%;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.sharebtns .sbtn{padding:7px 11px}
-.sharebtns::-webkit-scrollbar{display:none}
+.topbar.detail-context .back{align-self:center}
+.sharebtns{width:auto;gap:4px;overflow:visible;padding-bottom:0}
+.sharebtns .sbtn{width:44px;min-width:44px;height:44px;padding:0}
+.sharebtns .sbtn-label{display:none}
 }
 .sh-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.25s;z-index:80}
 .sh-mask.show{opacity:1;pointer-events:auto}
@@ -1224,11 +1226,11 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
 (function(){
   var favs=dhFavs();
   document.querySelectorAll('[data-fav]').forEach(function(b){
-    if(favs.indexOf(b.dataset.fav)>=0) b.classList.add('on');
+    if(favs.indexOf(b.dataset.fav)>=0){b.classList.add('on');b.setAttribute('aria-pressed','true');}
     b.addEventListener('click',function(ev){
       ev.stopPropagation();
       var f=dhFavs(),id=b.dataset.fav,i=f.indexOf(id);
-      if(i>=0){f.splice(i,1);b.classList.remove('on');}else{f.push(id);b.classList.add('on');}
+      if(i>=0){f.splice(i,1);b.classList.remove('on');b.setAttribute('aria-pressed','false');}else{f.push(id);b.classList.add('on');b.setAttribute('aria-pressed','true');}
       localStorage.setItem('dh_favs',JSON.stringify(f));
     });
   });

@@ -481,7 +481,6 @@ main,.layout>*,.hotlist>*{min-width:0}
 .article .back{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}
 .article h1{font-size:24px;font-weight:800;line-height:1.5;margin:12px 0 16px}
 .article .meta{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
-.meta-original{color:var(--blue);font-weight:650;text-decoration:none;white-space:nowrap}
 .article .body{font-size:15.5px;line-height:1.9;color:var(--txt3);margin:20px 0}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
@@ -546,7 +545,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 @media(max-width:600px){.tts-player{grid-template-columns:1fr auto auto;gap:9px;padding:11px 12px}.tts-copy{grid-column:1/-1;grid-row:1;flex-direction:row;align-items:baseline;gap:8px}.tts-toggle{grid-column:1;grid-row:2}.tts-time{grid-column:2;grid-row:2}.tts-rate-label{grid-column:3;grid-row:2}.tts-progress{grid-column:1/-1;grid-row:3}}
 @media(prefers-reduced-motion:reduce){.tts-player *{scroll-behavior:auto!important;transition:none!important}}
 @media(hover:hover) and (pointer:fine){
-  .article .back:hover,.source-report:hover .source-report-title,.meta-original:hover{color:var(--accent)}
+  .article .back:hover,.source-report:hover .source-report-title{color:var(--accent)}
   .cta:hover{opacity:.9}
 }
 .disclaimer{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}
@@ -558,10 +557,11 @@ main,.layout>*,.hotlist>*{min-width:0}
 </div></header>
 <div class="article">
   <div class="topbar detail-context">
-    <a class="back" href="../index.html" data-smart-back>← 返回</a>
+    <a class="back" href="../index.html" data-smart-back aria-label="返回"><span aria-hidden="true">←</span><span class="back-label">返回</span></a>
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" type="button" data-fav="a64173b0e40c" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg><span class="sbtn-label">收藏</span></button>
 
+      <a class="sbtn ghost" href="https://aws.amazon.com/blogs/big-data/scaling-fine-grained-access-control-for-enterprise-lakehouse-using-sagemaker-unified-studio-and-aws-lake-formation/" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="AWS Big Data Blog" title="原文" aria-label="原文"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg><span class="sbtn-label">原文</span></a>
       <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/a64173b0e40c.png" title="海报" aria-label="海报"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg><span class="sbtn-label">海报</span></button>
       <button class="sbtn" type="button" data-share-action="open" title="分享" aria-label="分享"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span class="sbtn-label">分享</span></button>
     </span>
@@ -570,7 +570,6 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="meta">
     <span class="srcbadge">RSS</span>
     <span style="font-weight:600;color:var(--txt3)">AWS Big Data Blog</span>
-    <a class="meta-original" href="https://aws.amazon.com/blogs/big-data/scaling-fine-grained-access-control-for-enterprise-lakehouse-using-sagemaker-unified-studio-and-aws-lake-formation/" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="AWS Big Data Blog">原文 ↗</a>
     
     <span title="发布时间">发布 2026-08-07 00:17</span>
     
@@ -659,10 +658,10 @@ python3 lambda_function.py regulatory-permissions.json</code></pre><pre><code cl
     --identity-store-id d-xxxxxxxxxx \
     --user-id &lt;USER_UUID_FROM_EVENT&gt; \
     --region us-east-1</code></pre><p>This audit capability provides the detailed access logs required for HIPAA, GDPR, and FDA compliance, showing exactly which users accessed which data and when. Learn about configuring CloudTrail for Lake Formation in <a href="https://docs.aws.amazon.com/lake-formation/latest/dg/logging-using-cloudtrail.html" target="_blank" rel="noopener noreferrer nofollow">Logging Lake Formation API calls with CloudTrail</a>.</p><h2 class="cb-heading">Cleanup</h2><p>Run <code>cdk destroy --all</code> to remove all stacks. Manually delete the retained S3 data buckets (<code>datalake-raw-data-*</code> and <code>datalake-curated-data-*</code>) and revoke any remaining Lake Formation permissions. For detailed cleanup steps, see the <a href="https://github.com/aws-samples/sample-aws-smus-governance-automation#cleanup" target="_blank" rel="noopener noreferrer nofollow">repository README</a>.</p><h2 class="cb-heading">Conclusion</h2><p>In this post, we showed you how to implement scalable fine-grained access control for an enterprise lakehouse by combining AWS Lake Formation tag-based access control, IAM Identity Center, and trusted identity propagation in SageMaker Unified Studio. The four-dimension LF-Tag taxonomy, hybrid RBAC + ABAC governance model, and metadata-driven Lambda automation together create a governance architecture where new datasets automatically inherit access policies through tag inheritance, permissions scale without per-table grants, and every data access event is auditable to the individual user through CloudTrail.</p><p>To extend this solution, consider adding new business domains, implementing column-level security with LF-Tags, scaling to multi-account architectures with <a href="https://docs.aws.amazon.com/lake-formation/latest/dg/cross-account-permissions.html" target="_blank" rel="noopener noreferrer nofollow">Lake Formation cross-account sharing</a>, or integrating additional analytics services such as <a href="https://docs.aws.amazon.com/redshift/latest/dg/c-using-spectrum.html" target="_blank" rel="noopener noreferrer nofollow">Amazon Redshift Spectrum</a> or Amazon EMR.</p><p>Get started by deploying the CDK stacks from the <a href="https://github.com/aws-samples/sample-aws-smus-governance-automation" target="_blank" rel="noopener noreferrer nofollow">accompanying repository</a>. To learn more:</p><ul><li><a href="https://docs.aws.amazon.com/lake-formation/latest/dg/tag-based-access-control.html" target="_blank" rel="noopener noreferrer nofollow">Lake Formation tag-based access control documentation</a></li><li><a href="https://docs.aws.amazon.com/sagemaker-unified-studio/latest/adminguide/trusted-identity-propagation.html" target="_blank" rel="noopener noreferrer nofollow">IAM Identity Center trusted identity propagation guide</a></li><li><a href="https://docs.aws.amazon.com/sagemaker-unified-studio/latest/userguide/what-is-sagemaker-unified-studio.html" target="_blank" rel="noopener noreferrer nofollow">Amazon SageMaker Unified Studio documentation</a></li><li><a href="https://docs.aws.amazon.com/lake-formation/latest/dg/TBAC-best-practices.html" target="_blank" rel="noopener noreferrer nofollow">Lake Formation TBAC best practices</a></li></ul><h2 class="cb-heading">Related posts</h2><ul><li><a href="https://aws.amazon.com/blogs/big-data/the-amazon-sagemaker-lakehouse-architecture-now-supports-tag-based-access-control-for-federated-catalogs/" target="_blank" rel="noopener noreferrer nofollow">The Amazon SageMaker Lakehouse Architecture now supports Tag-Based Access Control for federated catalogs</a></li><li><a href="https://aws.amazon.com/blogs/big-data/accelerate-your-analytics-with-amazon-s3-tables-and-amazon-sagemaker-lakehouse/" target="_blank" rel="noopener noreferrer nofollow">Accelerate your analytics with Amazon S3 Tables and Amazon SageMaker Lakehouse</a></li><li><a href="https://aws.amazon.com/blogs/big-data/getting-started-with-aws-lake-formation/" target="_blank" rel="noopener noreferrer nofollow">Getting started with AWS Lake Formation</a></li><li><a href="https://docs.aws.amazon.com/lake-formation/latest/dg/managing-dl-tutorial.html" target="_blank" rel="noopener noreferrer nofollow">Managing a data lake using Lake Formation tag-based access control</a></li></ul><h2 class="cb-heading">About the authors</h2></div>
-  <div class="disclaimer">当前直接显示原文，自动翻译暂不可用；未进行 AI 摘写或重组 · <a href="https://aws.amazon.com/blogs/big-data/scaling-fine-grained-access-control-for-enterprise-lakehouse-using-sagemaker-unified-studio-and-aws-lake-formation/" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="AWS Big Data Blog">查看原文 ↗</a></div>
+  <div class="disclaimer">当前直接显示原文，自动翻译暂不可用；未进行 AI 摘写或重组</div>
 </div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/279df62df1c6.html"><span class="n">›</span>Presentation: Leveraging Adversary Emulation for GenAI Red Teaming<span class="count">31</span></a><a class="vendor-row" href="../e/fc1ed813ad68.html"><span class="n">›</span>Working at the frontier: How Thomson Reuters builds AI for high- stakes professional work | Claude by Anthropic<span class="count">34</span></a><a class="vendor-row" href="../e/bea4846629a2.html"><span class="n">›</span>Workload Identity Federation (WIF) is now generally available on the Claude Platform. | Claude by Anthropic<span class="count">34</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/279df62df1c6.html"><span class="n">›</span>Presentation: Leveraging Adversary Emulation for GenAI Red Teaming<span class="count">31</span></a><a class="vendor-row" href="../e/fc1ed813ad68.html"><span class="n">›</span>Working at the frontier: How Thomson Reuters builds AI for high- stakes professional work | Claude by Anthropic<span class="count">33</span></a><a class="vendor-row" href="../e/bea4846629a2.html"><span class="n">›</span>Workload Identity Federation (WIF) is now generally available on the Claude Platform. | Claude by Anthropic<span class="count">33</span></a></div>
   </main>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
@@ -752,9 +751,11 @@ python3 lambda_function.py regulatory-permissions.json</code></pre><pre><code cl
 .sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-height:44px;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
 .sbtn svg{flex:0 0 auto}
 .sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.sbtn.is-disabled{opacity:.45;cursor:not-allowed}
 .sbtn:active{transform:scale(.95)}
 .topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .topbar.detail-context .back{display:inline-flex;align-items:center;justify-content:center;align-self:center;min-width:88px;min-height:44px;margin-bottom:0;padding:0 14px;border-radius:99px;font-size:14px;font-weight:650;color:var(--ink);text-decoration:none}
+.topbar.detail-context .back{gap:5px}
 .topbar.detail-context .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:600px){
 .article{padding:20px 14px 48px}
@@ -764,6 +765,10 @@ python3 lambda_function.py regulatory-permissions.json</code></pre><pre><code cl
 .sharebtns{width:auto;gap:4px;overflow:visible;padding-bottom:0}
 .sharebtns .sbtn{width:44px;min-width:44px;height:44px;padding:0}
 .sharebtns .sbtn-label{display:none}
+}
+@media(max-width:359px){
+.topbar.detail-context .back{width:44px;min-width:44px;padding:0}
+.topbar.detail-context .back-label{display:none}
 }
 .sh-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.25s;z-index:80}
 .sh-mask.show{opacity:1;pointer-events:auto}

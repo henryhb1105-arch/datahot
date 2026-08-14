@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-S6NjRYgyvWdq8WnEwkzcza7fmBQuvXZbpZelSyDD28U=' 'sha256-UzyHivWXBppFjwm95Nny8EForFVqC1XSdfiru1TMtzk='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-S6NjRYgyvWdq8WnEwkzcza7fmBQuvXZbpZelSyDD28U=' 'sha256-wYhSMP7h+vE6BHjUVyie7e8Si1YSsXS/eBwv9cWZ2xE='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>ThoughtSpot AgentQL：SQL形态意图，不直接生成SQL的工程路线 · DataHot</title>
@@ -481,7 +481,6 @@ main,.layout>*,.hotlist>*{min-width:0}
 .article .back{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}
 .article h1{font-size:24px;font-weight:800;line-height:1.5;margin:12px 0 16px}
 .article .meta{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
-.meta-original{color:var(--blue);font-weight:650;text-decoration:none;white-space:nowrap}
 .article .body{font-size:15.5px;line-height:1.9;color:var(--txt3);margin:20px 0}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
@@ -546,7 +545,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 @media(max-width:600px){.tts-player{grid-template-columns:1fr auto auto;gap:9px;padding:11px 12px}.tts-copy{grid-column:1/-1;grid-row:1;flex-direction:row;align-items:baseline;gap:8px}.tts-toggle{grid-column:1;grid-row:2}.tts-time{grid-column:2;grid-row:2}.tts-rate-label{grid-column:3;grid-row:2}.tts-progress{grid-column:1/-1;grid-row:3}}
 @media(prefers-reduced-motion:reduce){.tts-player *{scroll-behavior:auto!important;transition:none!important}}
 @media(hover:hover) and (pointer:fine){
-  .article .back:hover,.source-report:hover .source-report-title,.meta-original:hover{color:var(--accent)}
+  .article .back:hover,.source-report:hover .source-report-title{color:var(--accent)}
   .cta:hover{opacity:.9}
 }
 .disclaimer{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}
@@ -558,10 +557,11 @@ main,.layout>*,.hotlist>*{min-width:0}
 </div></header>
 <div class="article">
   <div class="topbar detail-context">
-    <a class="back" href="../index.html" data-smart-back>← 返回</a>
+    <a class="back" href="../index.html" data-smart-back aria-label="返回"><span aria-hidden="true">←</span><span class="back-label">返回</span></a>
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" type="button" data-fav="5422d3495b2d" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg><span class="sbtn-label">收藏</span></button>
       <button class="sbtn ghost tts-open" type="button" data-tts-open aria-expanded="false" aria-controls="ttsPlayer" aria-label="速听" title="速听"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><path d="M18 19h1a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-1v6zM6 19H5a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h1v6z"/></svg> <span class="sbtn-label" data-tts-open-label>速听</span></button>
+      <a class="sbtn ghost" href="https://www.thoughtspot.com/blog/agentql-sql-shaped-intent" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="ThoughtSpot Blog" title="原文" aria-label="原文"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg><span class="sbtn-label">原文</span></a>
       <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/5422d3495b2d.png" title="海报" aria-label="海报"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg><span class="sbtn-label">海报</span></button>
       <button class="sbtn" type="button" data-share-action="open" title="分享" aria-label="分享"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span class="sbtn-label">分享</span></button>
     </span>
@@ -570,11 +570,10 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="meta">
     <span class="srcbadge">RSS</span>
     <span style="font-weight:600;color:var(--txt3)">ThoughtSpot Blog</span>
-    <a class="meta-original" href="https://www.thoughtspot.com/blog/agentql-sql-shaped-intent" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="ThoughtSpot Blog">原文 ↗</a>
     <span class="star">精选</span>
     <span title="发布时间">发布 2026-08-13 13:23</span>
     
-    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 59</span>
+    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 57</span>
   </div>
   <h1>ThoughtSpot AgentQL：SQL形态意图，不直接生成SQL的工程路线</h1>
   <section class="tts-player" id="ttsPlayer" data-tts-player data-duration="56" hidden aria-label="文章精华朗读">
@@ -596,10 +595,10 @@ main,.layout>*,.hotlist>*{min-width:0}
        SUM(&quot;t1&quot;.&quot;Return Amount&quot;) AS &quot;Total Returns&quot;
 FROM &quot;Retail Sales&quot; AS &quot;t1&quot;
 GROUP BY &quot;t1&quot;.&quot;Product Category&quot;</code></pre><p>该语句永远不会运行，而且它隐藏了一个陷阱。在模型背后，销售额和退货额位于两个独立的事实表中，它们共享产品维度：<a href="https://www.thoughtspot.com/fact-and-dimension/schemas-scale-how-avoid-common-data-modeling-traps" target="_blank" rel="noopener noreferrer nofollow">一个典型的鸿沟陷阱</a>。</p><p>手写 SQL 直接连接它们会使行扇出并悄悄膨胀两个总数。编译器更懂，因为模型懂：它在合并之前以各自粒度聚合每个事实，解析声明的连接路径，并注入查询用户的<a href="https://docs.thoughtspot.com/cloud/26.5.0.cl/rls-rule-builder-reference" target="_blank" rel="noopener noreferrer nofollow">行级安全过滤</a>。你可以检查编译后的 SQL。意图只需几秒表达；它继承的语义我们花了十年工程。</p><p><strong>一个值得明确说明的后果：</strong>AgentQL 刻意不是 SQL 的全部。它是一个受限的方言，限制就是契约。语句必须能完全针对模型解析，因此编译器拒绝任何无法确定性治理的构造，从 SELECT * 到会绕过模型语义的构造。</p><p>我们限制方言不是因为解析完整 SQL 很难。我们限制是因为每个接受的语句都是一个承诺，即编译的查询是受治理的，而我们只接受我们能兑现承诺的语句。</p><h2 class="cb-heading">为什么我们拒绝让 LLM 做更多</h2><p>这是一个合理的问题：LLM 正在快速改进，那么为什么不让前沿 LLM 编写仓库 SQL 并事后验证呢？</p><p>因为我们多年工程化企业数据的实际情况，而这些情况对 LLM 都不友好。真实的数据模型不是平面表。它们是带有鸿沟陷阱和扇出陷阱的多星型模式，比如上面的销售和退货示例：连接模式中错误数字看起来完全合理。</p><p>能干的工程师也会弄错；我们目睹过。它们携带 PII，必须在每次查询中为每个用户保持安全。它们按业务单位运行不同的财务日历。它们定义半加性度量，如库存和账户余额，其中跨时间的简单 SUM 就是错误的答案。</p><p>让 LLM 在每次问题时概率性地重新推导所有这些，你只会得到两样东西：不确定性和一笔 token 账单。</p><p>我们的引擎已经编码了那些<a href="https://www.thoughtspot.com/blog/spotter-semantics" target="_blank" rel="noopener noreferrer nofollow">语义</a>。所以工程答案是显而易见的，并且它成为第二条原则：<strong>保持 LLM 的工作精简。</strong>理解问题，紧凑地表达，然后停止。所有决定数字是否<em>正确</em>的东西都通过构造从模型继承。</p><p>LLM无法忘记你的行级安全，因为它从不编写执行的查询。它不能选择错误的连接路径，因为模型的连接由编译器应用。它不能偏离你的收入定义，因为定义只有一个，并且每个查询都通过它编译。</p><p>失败模式同样重要，这是第三原则：<strong>一个糟糕的查询是编译错误，而不是事故。</strong>当LLM表达意图错误时，你会得到错误但受治理的答案或明确的验证错误：语句在编译时被拒绝并附有原因。</p><p>你永远不会得到一个触及数据的无治理查询。在文本到SQL系统中，幻觉是实时查询。在我们的系统中，它是编译错误。</p><p>这些原则还带来一件事，也是我们客户最关心的：信任。确定性编译器意味着相同的问题产生相同的查询规范、相同的编译SQL和相同的数字，无论哪个LLM表达意图或如何措辞。许多文本到SQL工具也会向你展示执行的SQL。</p><p>区别在于阅读它给你带来的价值。在那些工具中，你是在逐查询审计LLM的即兴发挥：它是否选择了正确的连接，应用了正确的安全，并使用了正确的收入定义？</p><p>在这里，SQL是从模型的受治理定义编译的，所以这些问题已经有了答案。验证答案意味着确认意图被理解，而不是手动重新推导正确性。</p><h2 class="cb-heading">结果：不按Token计费</h2><p>这种架构有一个副产品，它出现在账单上而不是演示中。因为LLM的角色刻意很小，繁重的工作由我们的确定性引擎完成，而不是按计量的推理。一个问题不会启动一个代理，燃烧<a href="https://www.thoughtspot.com/blog/token-maxxing-and-inference-ops-the-new-finops-frontier" target="_blank" rel="noopener noreferrer nofollow">token</a>重新推理你的模式。</p><p>这是公司在Spotter 3发布时做出决定背后的工程事实：<a href="https://www.thoughtspot.com/pricing" target="_blank" rel="noopener noreferrer nofollow">不按消耗的Token计费</a>。我们的架构使这一选择成为可能；企业选择将利益传递下去。</p><p>没有人希望每个问题在后台都有计费表在运行。有了这种架构，就不必如此。</p><h2 class="cb-heading">同样的赌注，加倍下注</h2><p>行业中的许多人押注，通过足够的提示、护栏和重试，LLM将编写可信的数据仓库SQL。我们在LLM存在之前多年就做出了相反的赌注。AgentQL加倍下注：LLM永远不应该编写执行的查询。LLM理解意图。受治理的引擎产生确定性答案。</p><p>对于Spotter用户来说，回报是立竿见影的：今天就能回答更广泛的分析问题，而无需等待token语法增长或Spotter对新能力进行再训练。如果引擎能回答，AgentQL现在就能提问。</p><p>AgentQL给了意图一种更丰富的语言。信任架构没有移动一英寸：它在引擎中，在模型中，在你手中去验证。这是设计驱动的工程，而不是妥协——所以<strong>你永远不必在速度和信任之间做出选择。</strong></p><p><a href="https://www.thoughtspot.com/demo" target="_blank" rel="noopener noreferrer nofollow">开始您的个性化演示</a>，看看如何。</p><h3 class="cb-heading">订阅我们的博客</h3></div>
-  <div class="disclaimer">AI 仅用于按原文顺序逐段翻译；正文结构、事实、表格和图表沿用原文 · <a href="https://www.thoughtspot.com/blog/agentql-sql-shaped-intent" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="ThoughtSpot Blog">查看原文 ↗</a></div>
+  
 </div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/477745cf963d.html"><span class="n">›</span>ElectricSQL加入Databricks，为AI Agent沙箱带来WASM Postgres<span class="count">57</span></a><a class="vendor-row" href="../e/1c7118c0179d.html"><span class="n">›</span>Outtake基于Claude构建网络调查Agent<span class="count">16</span></a><a class="vendor-row" href="../e/2a6cb6153284.html"><span class="n">›</span>MotherDuck用Guides补齐Data Agent看不到的业务上下文<span class="count">54</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/477745cf963d.html"><span class="n">›</span>ElectricSQL加入Databricks，为AI Agent沙箱带来WASM Postgres<span class="count">56</span></a><a class="vendor-row" href="../e/1c7118c0179d.html"><span class="n">›</span>Outtake基于Claude构建网络调查Agent<span class="count">15</span></a><a class="vendor-row" href="../e/2a6cb6153284.html"><span class="n">›</span>MotherDuck用Guides补齐Data Agent看不到的业务上下文<span class="count">53</span></a></div>
   </main>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
@@ -689,9 +688,11 @@ GROUP BY &quot;t1&quot;.&quot;Product Category&quot;</code></pre><p>该语句永
 .sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-height:44px;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
 .sbtn svg{flex:0 0 auto}
 .sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.sbtn.is-disabled{opacity:.45;cursor:not-allowed}
 .sbtn:active{transform:scale(.95)}
 .topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .topbar.detail-context .back{display:inline-flex;align-items:center;justify-content:center;align-self:center;min-width:88px;min-height:44px;margin-bottom:0;padding:0 14px;border-radius:99px;font-size:14px;font-weight:650;color:var(--ink);text-decoration:none}
+.topbar.detail-context .back{gap:5px}
 .topbar.detail-context .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:600px){
 .article{padding:20px 14px 48px}
@@ -701,6 +702,10 @@ GROUP BY &quot;t1&quot;.&quot;Product Category&quot;</code></pre><p>该语句永
 .sharebtns{width:auto;gap:4px;overflow:visible;padding-bottom:0}
 .sharebtns .sbtn{width:44px;min-width:44px;height:44px;padding:0}
 .sharebtns .sbtn-label{display:none}
+}
+@media(max-width:359px){
+.topbar.detail-context .back{width:44px;min-width:44px;padding:0}
+.topbar.detail-context .back-label{display:none}
 }
 .sh-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.25s;z-index:80}
 .sh-mask.show{opacity:1;pointer-events:auto}
@@ -743,7 +748,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title":"ThoughtSpot AgentQL：SQL形态意图，不直接生成SQL的工程路线","summary":"ThoughtSpot 工程博客介绍了 AgentQL——一种以 SQL 语法表达分析意图、但不用 LLM 直接生成 SQL 的能力。其背景是 Spotter 的搜索令牌(token)存在表达力缺口，无法覆盖多步对比、层级计算等复杂查询。AgentQL 选择 SQL 语法作为意图语言，同时拒绝 SQL 执行模型，以统一查询引擎执行。文章详述了背后的工程取舍与设计原则。","reason":"数据从业者可从中了解 ChatBI/Text-to-SQL 的一种架构思路：用 SQL 形状的中间意图而非直接生成 SQL，兼顾表达力与可执行性，对构建分析 Agent 有借鉴价值。","topic":"ChatBI","heat":59,"source":"ThoughtSpot Blog","date":"2026-08-13","url":"https://henryhb1105-arch.github.io/datahot/e/5422d3495b2d.html","qr":"../qr/5422d3495b2d.png"};
+var SH_EV = {"title":"ThoughtSpot AgentQL：SQL形态意图，不直接生成SQL的工程路线","summary":"ThoughtSpot 工程博客介绍了 AgentQL——一种以 SQL 语法表达分析意图、但不用 LLM 直接生成 SQL 的能力。其背景是 Spotter 的搜索令牌(token)存在表达力缺口，无法覆盖多步对比、层级计算等复杂查询。AgentQL 选择 SQL 语法作为意图语言，同时拒绝 SQL 执行模型，以统一查询引擎执行。文章详述了背后的工程取舍与设计原则。","reason":"数据从业者可从中了解 ChatBI/Text-to-SQL 的一种架构思路：用 SQL 形状的中间意图而非直接生成 SQL，兼顾表达力与可执行性，对构建分析 Agent 有借鉴价值。","topic":"ChatBI","heat":57,"source":"ThoughtSpot Blog","date":"2026-08-13","url":"https://henryhb1105-arch.github.io/datahot/e/5422d3495b2d.html","qr":"../qr/5422d3495b2d.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-8q9mBz+WRLEuCv6KT+C7QmwXw4XE/W+FKtyUY7GdwxA=' 'sha256-nOtWBHzif9Hf7bSy/zCIQlDF9ybqIVJfiX8IyQgSlxo='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-hPJMJnYt27KMtMiuP4+KRHl0oZefcgqwji+P2kT6XWM=' 'sha256-nOtWBHzif9Hf7bSy/zCIQlDF9ybqIVJfiX8IyQgSlxo='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Snowflake性能技巧与调优实践（第5部分） · DataHot</title>
@@ -481,7 +481,6 @@ main,.layout>*,.hotlist>*{min-width:0}
 .article .back{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}
 .article h1{font-size:24px;font-weight:800;line-height:1.5;margin:12px 0 16px}
 .article .meta{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
-.meta-original{color:var(--blue);font-weight:650;text-decoration:none;white-space:nowrap}
 .article .body{font-size:15.5px;line-height:1.9;color:var(--txt3);margin:20px 0}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
@@ -546,7 +545,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 @media(max-width:600px){.tts-player{grid-template-columns:1fr auto auto;gap:9px;padding:11px 12px}.tts-copy{grid-column:1/-1;grid-row:1;flex-direction:row;align-items:baseline;gap:8px}.tts-toggle{grid-column:1;grid-row:2}.tts-time{grid-column:2;grid-row:2}.tts-rate-label{grid-column:3;grid-row:2}.tts-progress{grid-column:1/-1;grid-row:3}}
 @media(prefers-reduced-motion:reduce){.tts-player *{scroll-behavior:auto!important;transition:none!important}}
 @media(hover:hover) and (pointer:fine){
-  .article .back:hover,.source-report:hover .source-report-title,.meta-original:hover{color:var(--accent)}
+  .article .back:hover,.source-report:hover .source-report-title{color:var(--accent)}
   .cta:hover{opacity:.9}
 }
 .disclaimer{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}
@@ -558,10 +557,11 @@ main,.layout>*,.hotlist>*{min-width:0}
 </div></header>
 <div class="article">
   <div class="topbar detail-context">
-    <a class="back" href="../index.html" data-smart-back>← 返回</a>
+    <a class="back" href="../index.html" data-smart-back aria-label="返回"><span aria-hidden="true">←</span><span class="back-label">返回</span></a>
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" type="button" data-fav="2db4b086244c" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg><span class="sbtn-label">收藏</span></button>
       <button class="sbtn ghost tts-open" type="button" data-tts-open aria-expanded="false" aria-controls="ttsPlayer" aria-label="速听" title="速听"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><path d="M18 19h1a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-1v6zM6 19H5a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h1v6z"/></svg> <span class="sbtn-label" data-tts-open-label>速听</span></button>
+      <a class="sbtn ghost" href="https://medium.com/snowflake/snowflake-performance-tips-and-tricks-part-5-3689d2384d3d?source=rss----34b6daafc07---4" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Snowflake Engineering（Medium）" title="原文" aria-label="原文"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg><span class="sbtn-label">原文</span></a>
       <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/2db4b086244c.png" title="海报" aria-label="海报"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg><span class="sbtn-label">海报</span></button>
       <button class="sbtn" type="button" data-share-action="open" title="分享" aria-label="分享"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span class="sbtn-label">分享</span></button>
     </span>
@@ -570,11 +570,10 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="meta">
     <span class="srcbadge">RSS</span>
     <span style="font-weight:600;color:var(--txt3)">Snowflake Engineering (Medium)</span>
-    <a class="meta-original" href="https://medium.com/snowflake/snowflake-performance-tips-and-tricks-part-5-3689d2384d3d?source=rss----34b6daafc07---4" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Snowflake Engineering（Medium）">原文 ↗</a>
     
     <span title="发布时间">发布 2026-08-11 22:01</span>
     <span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 08-12</span>
-    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 45</span>
+    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 44</span>
   </div>
   <h1>Snowflake性能技巧与调优实践（第5部分）</h1>
   <section class="tts-player" id="ttsPlayer" data-tts-player data-duration="50" hidden aria-label="文章精华朗读">
@@ -592,10 +591,10 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="vendors" style="margin-top:14px"><span class="vtag">Snowflake</span></div>
   <div class="card content-card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 历史编译稿 <span class="content-origin-badge">旧版 AI 基于原文编译</span></h4>
   <div class="fulltext"><h5 class="fh">关键事实</h5><p>Snowflake支持团队工程师于2026年7月末受邀在DataEngBytes 2026大会发表演讲，分享日常支持工作中积累的性能调优经验。这篇后续文章作为演讲内容的扩展，聚焦四个技术主题：仓库大小（Warehouse Sizes）、SELECT列表中的相关子查询（Correlated Subqueries in the SELECT list）、谓词转换（Predicate Transformations）以及并发查询踩踏（Concurrent Query Stampede）。文章为该系列第5部分，延续了此前多期性能技巧与调优实践的主题脉络。原文未披露具体调优参数或案例数据，但明确将上述四类问题列为影响Snowflake查询性能的关键场景。</p><h5 class="fh">行业影响</h5><p>Snowflake作为云原生数据仓库的代表性产品，其性能调优话题在数据工程社区持续受到高度关注。此次分享由官方支持团队输出，意味着这些主题直接来源于真实生产环境的故障排查与优化经验，而非理论推演。仓库大小配置直接影响计算成本与响应速度，相关子查询在SELECT列表中的处理方式关系到复杂查询的编写范式，谓词转换决定了查询优化器能否有效裁剪数据，并发查询踩踏则直指多用户场景下的资源竞争与稳定性问题。这些内容对使用Snowflake的企业数据团队具有直接参考价值，也反映了云数据仓库在规模化运维中面临的共性挑战。在DataEngBytes这类行业会议上分享，有助于推动最佳实践在社区内传播，促进用户更合理地设计查询与配置仓库资源。</p><h5 class="fh">实践要点</h5><p>对于正在使用Snowflake的数据工程师而言，围绕上述四个主题可形成初步的排查思路。仓库大小需根据负载特征动态调整，避免固定配置导致的资源浪费或性能瓶颈。SELECT列表中出现相关子查询时，应评估是否存在替代写法，或依赖优化器正确处理相关引用。谓词变换方面，关注查询条件能否被下推至底层存储，从而减少扫描量。并发查询踩踏则需要监控同时运行的查询数量与资源队列，必要时设置仓库级或多仓库策略以隔离负载。由于原文未给出具体操作细节，实际调优时建议结合Snowflake文档与系统视图（如QUERY_HISTORY、WAREHOUSE_METERING）进行针对性验证。后续若该系列发布更深入的案例研究，值得继续跟踪。</p></div>
-  <div class="disclaimer">这是改版前生成的历史 AI 编译内容，后续将由原文或忠实译文替换 · <a href="https://medium.com/snowflake/snowflake-performance-tips-and-tricks-part-5-3689d2384d3d?source=rss----34b6daafc07---4" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Snowflake Engineering（Medium）">查看原文 ↗</a></div>
+  <div class="disclaimer">这是改版前生成的历史 AI 编译内容，后续将由原文或忠实译文替换</div>
 </div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/c23dcf4cbf7b.html"><span class="n">›</span>Snowflake发布成本异常监控器预览<span class="count">63</span></a><a class="vendor-row" href="../e/8ddd604ceabf.html"><span class="n">›</span>Snowflake 10.28版本发布说明（预览）<span class="count">22</span></a><a class="vendor-row" href="../e/973421af8576.html"><span class="n">›</span>Snowflake 发布 10.26 版本更新说明<span class="count">34</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/c23dcf4cbf7b.html"><span class="n">›</span>Snowflake发布成本异常监控器预览<span class="count">61</span></a><a class="vendor-row" href="../e/8ddd604ceabf.html"><span class="n">›</span>Snowflake 10.28版本发布说明（预览）<span class="count">20</span></a><a class="vendor-row" href="../e/973421af8576.html"><span class="n">›</span>Snowflake 发布 10.26 版本更新说明<span class="count">34</span></a></div>
   </main>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
@@ -685,9 +684,11 @@ main,.layout>*,.hotlist>*{min-width:0}
 .sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-height:44px;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
 .sbtn svg{flex:0 0 auto}
 .sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.sbtn.is-disabled{opacity:.45;cursor:not-allowed}
 .sbtn:active{transform:scale(.95)}
 .topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .topbar.detail-context .back{display:inline-flex;align-items:center;justify-content:center;align-self:center;min-width:88px;min-height:44px;margin-bottom:0;padding:0 14px;border-radius:99px;font-size:14px;font-weight:650;color:var(--ink);text-decoration:none}
+.topbar.detail-context .back{gap:5px}
 .topbar.detail-context .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:600px){
 .article{padding:20px 14px 48px}
@@ -697,6 +698,10 @@ main,.layout>*,.hotlist>*{min-width:0}
 .sharebtns{width:auto;gap:4px;overflow:visible;padding-bottom:0}
 .sharebtns .sbtn{width:44px;min-width:44px;height:44px;padding:0}
 .sharebtns .sbtn-label{display:none}
+}
+@media(max-width:359px){
+.topbar.detail-context .back{width:44px;min-width:44px;padding:0}
+.topbar.detail-context .back-label{display:none}
 }
 .sh-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.25s;z-index:80}
 .sh-mask.show{opacity:1;pointer-events:auto}
@@ -739,7 +744,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title":"Snowflake性能技巧与调优实践（第5部分）","summary":"本文是Snowflake支持团队基于DataEngBytes 2026演讲扩展的性能调优系列第5篇，涵盖仓库大小选择、SELECT列表中的相关子查询、谓词转换以及并发查询拥塞等主题。内容来自数据领域厂商官方博客，属于数据库性能优化实践。","reason":"针对Snowflake真实场景的性能调优方法，对数据平台工程师优化查询与资源成本有直接参考价值。","topic":"","heat":45,"source":"Snowflake Engineering (Medium)","date":"2026-08-11","url":"https://henryhb1105-arch.github.io/datahot/e/2db4b086244c.html","qr":"../qr/2db4b086244c.png"};
+var SH_EV = {"title":"Snowflake性能技巧与调优实践（第5部分）","summary":"本文是Snowflake支持团队基于DataEngBytes 2026演讲扩展的性能调优系列第5篇，涵盖仓库大小选择、SELECT列表中的相关子查询、谓词转换以及并发查询拥塞等主题。内容来自数据领域厂商官方博客，属于数据库性能优化实践。","reason":"针对Snowflake真实场景的性能调优方法，对数据平台工程师优化查询与资源成本有直接参考价值。","topic":"","heat":44,"source":"Snowflake Engineering (Medium)","date":"2026-08-11","url":"https://henryhb1105-arch.github.io/datahot/e/2db4b086244c.html","qr":"../qr/2db4b086244c.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

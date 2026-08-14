@@ -481,7 +481,6 @@ main,.layout>*,.hotlist>*{min-width:0}
 .article .back{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}
 .article h1{font-size:24px;font-weight:800;line-height:1.5;margin:12px 0 16px}
 .article .meta{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
-.meta-original{color:var(--blue);font-weight:650;text-decoration:none;white-space:nowrap}
 .article .body{font-size:15.5px;line-height:1.9;color:var(--txt3);margin:20px 0}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
@@ -546,7 +545,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 @media(max-width:600px){.tts-player{grid-template-columns:1fr auto auto;gap:9px;padding:11px 12px}.tts-copy{grid-column:1/-1;grid-row:1;flex-direction:row;align-items:baseline;gap:8px}.tts-toggle{grid-column:1;grid-row:2}.tts-time{grid-column:2;grid-row:2}.tts-rate-label{grid-column:3;grid-row:2}.tts-progress{grid-column:1/-1;grid-row:3}}
 @media(prefers-reduced-motion:reduce){.tts-player *{scroll-behavior:auto!important;transition:none!important}}
 @media(hover:hover) and (pointer:fine){
-  .article .back:hover,.source-report:hover .source-report-title,.meta-original:hover{color:var(--accent)}
+  .article .back:hover,.source-report:hover .source-report-title{color:var(--accent)}
   .cta:hover{opacity:.9}
 }
 .disclaimer{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}
@@ -558,10 +557,11 @@ main,.layout>*,.hotlist>*{min-width:0}
 </div></header>
 <div class="article">
   <div class="topbar detail-context">
-    <a class="back" href="../index.html" data-smart-back>← 返回</a>
+    <a class="back" href="../index.html" data-smart-back aria-label="返回"><span aria-hidden="true">←</span><span class="back-label">返回</span></a>
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" type="button" data-fav="aa409ff1c354" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg><span class="sbtn-label">收藏</span></button>
 
+      <a class="sbtn ghost" href="https://www.fivetran.com/blog/introducing-fivetran-managed-data-lake-write-credentials" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Fivetran Blog" title="原文" aria-label="原文"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg><span class="sbtn-label">原文</span></a>
       <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/aa409ff1c354.png" title="海报" aria-label="海报"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg><span class="sbtn-label">海报</span></button>
       <button class="sbtn" type="button" data-share-action="open" title="分享" aria-label="分享"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span class="sbtn-label">分享</span></button>
     </span>
@@ -570,7 +570,6 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="meta">
     <span class="srcbadge">RSS</span>
     <span style="font-weight:600;color:var(--txt3)">Fivetran Blog</span>
-    <a class="meta-original" href="https://www.fivetran.com/blog/introducing-fivetran-managed-data-lake-write-credentials" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Fivetran Blog">原文 ↗</a>
     
     <span title="发布时间">发布 2026-08-07 00:10</span>
     <span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 08-13</span>
@@ -596,10 +595,10 @@ main,.layout>*,.hotlist>*{min-width:0}
   REFRESH_INTERVAL_SECONDS =60; -- Configurable: adjust this value to control how often Snowflake refreshes the catalog integration</code></pre><p>然后创建与目录关联的数据库 - 请注意，我将其命名为与只读版本相同，但附加了 _writable 后缀，以明确这是可写版本。目录是上述创建的目录。</p><pre><code class="language-">CREATE DATABASE jcole_catalog_int_mdls_writer 
   LINKED_CATALOG = (
     CATALOG =&#x27;jcole_catalog_int_mdls_writer&#x27;  );</code></pre><p>现在，针对 JCOLE_MDLS_MKTING_DB_WRITABLE 数据库运行的查询将接受更新和删除，并且更改也会反映在只读的 JCOLE_MDLS_MKTING_DB 数据库中。</p><p>让我们删除 OUTGOING 关税。</p><h3 class="cb-heading">修复数据</h3><p>第一部分 - 我需要使用 Fivetran 界面暂停连接，以免数据损坏：</p><figure class="cb-figure"><a class="cb-media-link" href="https://cdn.prod.website-files.com/6130fa1501794e37c21867cf/6a6ce7fdccc94c029b15e430_4c3b9706.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/aa409ff1c354/b85c23237a01acb6688700b6.png" alt="" loading="lazy" decoding="async" width="2048" height="493"></a></figure><p>让我们再次尝试 DELETE FROM 查询 - 这次更新为使用可写数据库：</p><figure class="cb-figure"><a class="cb-media-link" href="https://cdn.prod.website-files.com/6130fa1501794e37c21867cf/6a6ce7fdccc94c029b15e457_31ffcf4c.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/aa409ff1c354/1effcd22c95c3d0133bea950.png" alt="" loading="lazy" decoding="async" width="2046" height="680"></a></figure><p>‍<strong>注意</strong>：您可能需要等待目录刷新，以便更改可见。</p><p>好的 - 现在我将对原始只读数据库重新运行原始查询：</p><figure class="cb-figure"><a class="cb-media-link" href="https://cdn.prod.website-files.com/6130fa1501794e37c21867cf/6a6ce7fdccc94c029b15e454_4f3b2192.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/aa409ff1c354/5811296a25c3a8723226ae73.png" alt="" loading="lazy" decoding="async" width="2046" height="1466"></a></figure><p>无效记录已成功移除 - 只有 14 个不同的 tariff_code 值，且均不包含 OUTGOING </p><p>最后一步 - 重新启用连接器以进行更改并再次开始同步：</p><figure class="cb-figure"><a class="cb-media-link" href="https://cdn.prod.website-files.com/6130fa1501794e37c21867cf/6a6ce7fdccc94c029b15e451_4140e13a.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/aa409ff1c354/8fdab8f80a7578ed1f30855e.png" alt="" loading="lazy" decoding="async" width="1414" height="346"></a></figure><h2 class="cb-heading">结论</h2><p>在本文中，我们看到了 Write Credentials 的发布如何使写入和删除操作现在可用于 Fivetran Managed Data Lake 目标，从而能够将更多数据存储迁移到由 Fivetran 驱动的开放、可互操作且成本更低的开放数据基础设施架构中。</p><p>这意味着解锁了更多用例 - 您可能希望调查升级存储以获取<a href="https://www.fivetran.com/blog/a-blueprint-for-the-modern-ai-ready-lakehouse" target="_blank" rel="noopener noreferrer nofollow">优势</a>，这些优势来自于比单纯使用云数据仓库原生存储更具成本效益、开放且可互操作的存储！</p><p>[CTA_MODULE]</p><p>立即试用 Fivetran Managed Data Lake 服务。</p><p><a href="https://go.fivetran.com/signup/data-lakes" target="_blank" rel="noopener noreferrer nofollow">立即开始</a></p><p>不确定如何开始？</p><p><a href="https://go.fivetran.com/demo" target="_blank" rel="noopener noreferrer nofollow">与我们交谈</a></p><p>主题</p><p><a href="https://www.fivetran.com/blog-topics/data-lakes" target="_blank" rel="noopener noreferrer nofollow">数据湖</a></p><p>分享</p><h3 class="cb-heading">相关博客文章</h3><h3 class="cb-heading"><a href="https://www.fivetran.com/blog/introducing-fivetran-managed-data-lake-write-credentials" target="_blank" rel="noopener noreferrer nofollow">标题</a></h3><h2 class="cb-heading">免费开始</h2><p>加入使用 Fivetran 集中和转换数据的数千家公司。</p><p>谢谢！您的提交已收到！</p><p>哎呀！提交表单时出了点问题。</p><p><a href="https://go.fivetran.com/demo" target="_blank" rel="noopener noreferrer nofollow">获取演示</a></p></div>
-  <div class="disclaimer">AI 仅用于按原文顺序逐段翻译；正文结构、事实、表格和图表沿用原文 · <a href="https://www.fivetran.com/blog/introducing-fivetran-managed-data-lake-write-credentials" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Fivetran Blog">查看原文 ↗</a></div>
+  
 </div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/9e059ac6ed28.html"><span class="n">›</span>Fivetran用AI构建状态页，替换6.5万美元SaaS<span class="count">41</span></a><a class="vendor-row" href="../e/7dc53089a3b8.html"><span class="n">›</span>dbt State让Fivetran单个模型运行时间从40分钟降到40秒<span class="count">50</span></a><a class="vendor-row" href="../e/7f549614dfb2.html"><span class="n">›</span>The advisor strategy: Give Sonnet an intelligence boost with Opus | Claude by Anthropic<span class="count">34</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/9e059ac6ed28.html"><span class="n">›</span>Fivetran用AI构建状态页，替换6.5万美元SaaS<span class="count">40</span></a><a class="vendor-row" href="../e/7dc53089a3b8.html"><span class="n">›</span>dbt State让Fivetran单个模型运行时间从40分钟降到40秒<span class="count">49</span></a><a class="vendor-row" href="../e/7f549614dfb2.html"><span class="n">›</span>The advisor strategy: Give Sonnet an intelligence boost with Opus | Claude by Anthropic<span class="count">33</span></a></div>
   </main>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
@@ -689,9 +688,11 @@ main,.layout>*,.hotlist>*{min-width:0}
 .sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-height:44px;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
 .sbtn svg{flex:0 0 auto}
 .sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.sbtn.is-disabled{opacity:.45;cursor:not-allowed}
 .sbtn:active{transform:scale(.95)}
 .topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .topbar.detail-context .back{display:inline-flex;align-items:center;justify-content:center;align-self:center;min-width:88px;min-height:44px;margin-bottom:0;padding:0 14px;border-radius:99px;font-size:14px;font-weight:650;color:var(--ink);text-decoration:none}
+.topbar.detail-context .back{gap:5px}
 .topbar.detail-context .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:600px){
 .article{padding:20px 14px 48px}
@@ -701,6 +702,10 @@ main,.layout>*,.hotlist>*{min-width:0}
 .sharebtns{width:auto;gap:4px;overflow:visible;padding-bottom:0}
 .sharebtns .sbtn{width:44px;min-width:44px;height:44px;padding:0}
 .sharebtns .sbtn-label{display:none}
+}
+@media(max-width:359px){
+.topbar.detail-context .back{width:44px;min-width:44px;padding:0}
+.topbar.detail-context .back-label{display:none}
 }
 .sh-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.25s;z-index:80}
 .sh-mask.show{opacity:1;pointer-events:auto}

@@ -16,7 +16,7 @@ class AgentPageTests(unittest.TestCase):
         self.assertEqual(
             agent_page.INSTALL_PROMPT,
             "请安装 DataHot Skill："
-            "https://henryhb1105-arch.github.io/datahot/datahot-skill/README.md",
+            "https://datahot.xiahongbin.com/datahot-skill/README.md",
         )
         self.assertIn(agent_page.SKILL_URL, agent_page.INSTALL_README)
         self.assertIn(agent_page.FEED_URL, agent_page.INSTALL_README)

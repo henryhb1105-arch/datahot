@@ -100,7 +100,7 @@ Issue [#33](https://github.com/henryhb1105-arch/datahot/issues/33) 将周报拆�
 
 ### Atom Feed
 
-站点构建会生成 [`feed.xml`](https://henryhb1105-arch.github.io/datahot/feed.xml)，并在所有页面 `<head>` 声明 `application/atom+xml` 自动发现入口。每条 Feed 只包含 DataHot 标题、摘要、稳定详情链接、时间、分类和首要信源，不嵌入第三方全文、图片或任意 HTML。构建会校验 XML、HTTPS 绝对链接、稳定唯一 ID 和对应详情文件；设置 `FEED_ENABLED=false` 可停止生成并移除自动发现声明。
+站点构建会生成 [`feed.xml`](https://datahot.xiahongbin.com/feed.xml)，并在所有页面 `<head>` 声明 `application/atom+xml` 自动发现入口。每条 Feed 只包含 DataHot 标题、摘要、稳定详情链接、时间、分类和首要信源，不嵌入第三方全文、图片或任意 HTML。构建会校验 XML、HTTPS 绝对链接、稳定唯一 ID 和对应详情文件；设置 `FEED_ENABLED=false` 可停止生成并移除自动发现声明。
 
 ### 本地精华朗读
 

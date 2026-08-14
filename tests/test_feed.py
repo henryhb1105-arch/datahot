@@ -11,9 +11,10 @@ sys.path.insert(0, str(ROOT / "pipeline"))
 
 import build_site  # noqa: E402
 from feed import ATOM, build_atom_feed, validate_atom_feed  # noqa: E402
+from site_config import DEFAULT_SITE_BASE_URL  # noqa: E402
 
 
-SITE_BASE = "https://henryhb1105-arch.github.io/datahot"
+SITE_BASE = DEFAULT_SITE_BASE_URL
 NS = {"atom": ATOM}
 
 

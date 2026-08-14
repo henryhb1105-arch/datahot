@@ -6,8 +6,9 @@ import html
 import shutil
 from pathlib import Path
 
+from site_config import SITE_BASE_URL
 
-SITE_BASE = "https://henryhb1105-arch.github.io/datahot"
+SITE_BASE = SITE_BASE_URL
 INSTALL_URL = f"{SITE_BASE}/datahot-skill/README.md"
 SKILL_URL = f"{SITE_BASE}/datahot-skill/SKILL.md"
 OPENAI_YAML_URL = f"{SITE_BASE}/datahot-skill/agents/openai.yaml"

@@ -932,15 +932,13 @@ def render_detail(e, all_events, css, tts_item=None):
     main_link = esc(main_url)
     main_src_name = primary_item["source"]
     main_src = esc(main_src_name)
-    original_link = (
-        f'<a href="{main_link}" target="_blank" rel="noopener noreferrer" '
-        f'data-analytics="outbound" data-source="{main_src}">查看原文 ↗</a>'
-        if main_url else '<span class="source-link-unavailable">原文链接不可用</span>'
-    )
-    original_meta_link = (
-        f'<a class="meta-original" href="{main_link}" target="_blank" rel="noopener noreferrer" '
-        f'data-analytics="outbound" data-source="{main_src}">原文 ↗</a>'
-        if main_url else ''
+    original_button = (
+        f'<a class="sbtn ghost" href="{main_link}" target="_blank" rel="noopener noreferrer" '
+        f'data-analytics="outbound" data-source="{main_src}" title="原文" aria-label="原文">'
+        f'{ic("arrow",15)}<span class="sbtn-label">原文</span></a>'
+        if main_url else
+        f'<span class="sbtn ghost is-disabled" title="原文链接不可用" aria-label="原文链接不可用">'
+        f'{ic("arrow",15)}<span class="sbtn-label">原文</span></span>'
     )
     # blocks-v1 先经本地白名单清洗再渲染；异常或旧数据安全降级到 full_zh。
     safe_blocks = sanitize_blocks(e.get("content_blocks", []), main_url)
@@ -974,7 +972,7 @@ def render_detail(e, all_events, css, tts_item=None):
         if content_mode == "translated":
             content_title = "译文"
             content_badge = "AI 逐段翻译"
-            content_note = "AI 仅用于按原文顺序逐段翻译；正文结构、事实、表格和图表沿用原文"
+            content_note = ""
         elif content_mode == "original" and e.get("source_language") == "zh":
             content_title = "原文"
             content_badge = ""
@@ -992,9 +990,10 @@ def render_detail(e, all_events, css, tts_item=None):
             content_badge = "旧版 AI 基于原文编译"
             content_note = "这是改版前生成的历史 AI 编译内容，后续将由原文或忠实译文替换"
         badge_html = f' <span class="content-origin-badge">{content_badge}</span>' if content_badge else ""
+        note_html = f'<div class="disclaimer">{content_note}</div>' if content_note else ""
         full_block = f'''<div class="card content-card"><h4>{ic("file")} {content_title}{badge_html}</h4>
   <div class="fulltext">{full_paras}</div>
-  <div class="disclaimer">{content_note} · {original_link}</div>
+  {note_html}
 </div>'''
     page_url = f"{SITE_BASE}/e/{event_id}.html"
     jsonld_payload = {
@@ -1032,7 +1031,6 @@ def render_detail(e, all_events, css, tts_item=None):
 .article .back{{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}}
 .article h1{{font-size:24px;font-weight:800;line-height:1.5;margin:12px 0 16px}}
 .article .meta{{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}}
-.meta-original{{color:var(--blue);font-weight:650;text-decoration:none;white-space:nowrap}}
 .article .body{{font-size:15.5px;line-height:1.9;color:var(--txt3);margin:20px 0}}
 .article .card{{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}}
 .article h4{{font-size:14px;font-weight:800;margin-bottom:10px}}
@@ -1097,7 +1095,7 @@ def render_detail(e, all_events, css, tts_item=None):
 @media(max-width:600px){{.tts-player{{grid-template-columns:1fr auto auto;gap:9px;padding:11px 12px}}.tts-copy{{grid-column:1/-1;grid-row:1;flex-direction:row;align-items:baseline;gap:8px}}.tts-toggle{{grid-column:1;grid-row:2}}.tts-time{{grid-column:2;grid-row:2}}.tts-rate-label{{grid-column:3;grid-row:2}}.tts-progress{{grid-column:1/-1;grid-row:3}}}}
 @media(prefers-reduced-motion:reduce){{.tts-player *{{scroll-behavior:auto!important;transition:none!important}}}}
 @media(hover:hover) and (pointer:fine){{
-  .article .back:hover,.source-report:hover .source-report-title,.meta-original:hover{{color:var(--accent)}}
+  .article .back:hover,.source-report:hover .source-report-title{{color:var(--accent)}}
   .cta:hover{{opacity:.9}}
 }}
 .disclaimer{{font-size:12px;color:var(--sub);border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}}
@@ -1109,10 +1107,11 @@ def render_detail(e, all_events, css, tts_item=None):
 </div></header>
 <div class="article">
   <div class="topbar detail-context">
-    <a class="back" href="../index.html" data-smart-back>← 返回</a>
+    <a class="back" href="../index.html" data-smart-back aria-label="返回"><span aria-hidden="true">←</span><span class="back-label">返回</span></a>
     <span class="sharebtns">
       <button class="sbtn ghost favbtn" type="button" data-fav="{event_id}" title="收藏" aria-label="收藏" aria-pressed="false">{ic("bookmark",15)}<span class="sbtn-label">收藏</span></button>
 {("      " + tts_button) if tts_button else ""}
+      {original_button}
       <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/{event_id}.png" title="海报" aria-label="海报">{ic("image",15)}<span class="sbtn-label">海报</span></button>
       <button class="sbtn" type="button" data-share-action="open" title="分享" aria-label="分享">{ic("share",15)}<span class="sbtn-label">分享</span></button>
     </span>
@@ -1121,7 +1120,6 @@ def render_detail(e, all_events, css, tts_item=None):
   <div class="meta">
     <span class="srcbadge">{src_badge(main_src_name)}</span>
     <span style="font-weight:600;color:var(--txt3)">{esc(src_display(main_src_name))}</span>
-    {original_meta_link}
     {'<span class="star">精选</span>' if e.get("star") else ''}
     <span title="发布时间">{("发布 " + fmt_date(e["published"])) if e.get("published") else "收录 " + fmt_date(e.get("first_seen"))}</span>
     {f'<span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 {md(e.get("first_seen"))}</span>' if e.get("published") and e.get("first_seen") and e["published"][:10] != e["first_seen"][:10] else ""}
@@ -1181,9 +1179,11 @@ def share_ui(e, page_url):
 .sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-height:44px;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
 .sbtn svg{flex:0 0 auto}
 .sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.sbtn.is-disabled{opacity:.45;cursor:not-allowed}
 .sbtn:active{transform:scale(.95)}
 .topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .topbar.detail-context .back{display:inline-flex;align-items:center;justify-content:center;align-self:center;min-width:88px;min-height:44px;margin-bottom:0;padding:0 14px;border-radius:99px;font-size:14px;font-weight:650;color:var(--ink);text-decoration:none}
+.topbar.detail-context .back{gap:5px}
 .topbar.detail-context .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:600px){
 .article{padding:20px 14px 48px}
@@ -1193,6 +1193,10 @@ def share_ui(e, page_url):
 .sharebtns{width:auto;gap:4px;overflow:visible;padding-bottom:0}
 .sharebtns .sbtn{width:44px;min-width:44px;height:44px;padding:0}
 .sharebtns .sbtn-label{display:none}
+}
+@media(max-width:359px){
+.topbar.detail-context .back{width:44px;min-width:44px;padding:0}
+.topbar.detail-context .back-label{display:none}
 }
 .sh-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.25s;z-index:80}
 .sh-mask.show{opacity:1;pointer-events:auto}

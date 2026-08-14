@@ -179,9 +179,13 @@ class TTSDetailRenderingTests(unittest.TestCase):
         self.assertIn('class="sbtn-label">海报</span>', page)
         self.assertIn('aria-label="分享"', page)
         self.assertIn('class="sbtn-label">分享</span>', page)
-        self.assertEqual(page.count('class="sbtn-label"'), 4)
-        self.assertNotIn('class="sbtn ghost" href="https://example.com/article"', page)
-        self.assertIn('class="meta-original" href="https://example.com/article"', page)
+        self.assertIn('aria-label="原文"', page)
+        self.assertIn('class="sbtn-label">原文</span>', page)
+        self.assertEqual(page.count('class="sbtn-label"'), 5)
+        self.assertIn('class="sbtn ghost" href="https://example.com/article"', page)
+        self.assertNotIn('class="meta-original"', page)
+        self.assertIn("@media(max-width:359px)", page)
+        self.assertIn(".topbar.detail-context .back-label{display:none}", page)
 
 
 class TTSWorkflowTests(unittest.TestCase):

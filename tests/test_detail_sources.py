@@ -51,7 +51,10 @@ class DetailSourceRenderingTests(unittest.TestCase):
         )
         page = build_site.render_detail(detail_event([item]), [detail_event([item])], "")
 
-        self.assertIn(">原文</a>", page)
+        self.assertIn(
+            'class="meta-original" href="https://example.com/primary"', page,
+        )
+        self.assertIn(">原文 ↗</a>", page)
         self.assertNotIn("补充来源", page)
         self.assertNotIn('class="source-section"', page)
         self.assertNotIn("家报道", page)
@@ -72,8 +75,10 @@ class DetailSourceRenderingTests(unittest.TestCase):
         page = build_site.render_detail(event, [event], "")
 
         self.assertIn(
-            'class="sbtn ghost" href="https://example.com/primary"', page,
+            'class="meta-original" href="https://example.com/primary"', page,
         )
+        toolbar = page.split('<span class="sharebtns">', 1)[1].split("    </span>", 1)[0]
+        self.assertNotIn('href="https://example.com/primary"', toolbar)
         self.assertIn('data-source="Primary Source"', page)
         self.assertIn("补充来源", page)
         self.assertIn('href="https://example.com/older"', page)

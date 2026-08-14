@@ -52,9 +52,11 @@ class DetailSourceRenderingTests(unittest.TestCase):
         page = build_site.render_detail(detail_event([item]), [detail_event([item])], "")
 
         self.assertIn(
-            'class="meta-original" href="https://example.com/primary"', page,
+            'class="sbtn ghost" href="https://example.com/primary"', page,
         )
-        self.assertIn(">原文 ↗</a>", page)
+        self.assertIn('title="原文" aria-label="原文"', page)
+        self.assertIn('<span class="sbtn-label">原文</span>', page)
+        self.assertNotIn('class="meta-original"', page)
         self.assertNotIn("补充来源", page)
         self.assertNotIn('class="source-section"', page)
         self.assertNotIn("家报道", page)
@@ -75,15 +77,28 @@ class DetailSourceRenderingTests(unittest.TestCase):
         page = build_site.render_detail(event, [event], "")
 
         self.assertIn(
-            'class="meta-original" href="https://example.com/primary"', page,
+            'class="sbtn ghost" href="https://example.com/primary"', page,
         )
         toolbar = page.split('<span class="sharebtns">', 1)[1].split("    </span>", 1)[0]
-        self.assertNotIn('href="https://example.com/primary"', toolbar)
+        self.assertIn('href="https://example.com/primary"', toolbar)
         self.assertIn('data-source="Primary Source"', page)
         self.assertIn("补充来源", page)
         self.assertIn('href="https://example.com/older"', page)
         supplement = page.split('<section class="source-section"', 1)[1].split("</section>", 1)[0]
         self.assertNotIn('href="https://example.com/primary"', supplement)
+
+    def test_translated_detail_omits_redundant_ai_and_original_note(self):
+        item = source_item(
+            "primary", "Primary Source", "https://example.com/primary",
+            "Primary report", "2026-08-12T10:00:00+08:00",
+        )
+        event = detail_event([item])
+        event["content_mode"] = "translated"
+        page = build_site.render_detail(event, [event], "")
+
+        self.assertNotIn("AI 仅用于按原文顺序逐段翻译", page)
+        self.assertNotIn("查看原文 ↗", page)
+        self.assertNotIn('class="disclaimer"', page)
 
     def test_same_source_reports_remain_individually_reachable(self):
         items = [

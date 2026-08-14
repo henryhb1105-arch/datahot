@@ -152,6 +152,22 @@
     return button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
   }
 
+  function navigationType(win) {
+    try {
+      var entries = win.performance && typeof win.performance.getEntriesByType === "function"
+        ? win.performance.getEntriesByType("navigation") : [];
+      if (entries && entries[0] && entries[0].type) return entries[0].type;
+      if (win.performance && win.performance.navigation && win.performance.navigation.type === 2) {
+        return "back_forward";
+      }
+    } catch (error) {}
+    return "navigate";
+  }
+
+  function shouldRestoreInitialSnapshot(win) {
+    return navigationType(win) === "back_forward";
+  }
+
   function historyStateWithSnapshot(currentHistoryState, state, position) {
     var next = currentHistoryState && typeof currentHistoryState === "object"
       ? Object.assign({}, currentHistoryState) : {};
@@ -324,6 +340,7 @@
     var initialMoreText = more ? more.textContent : "";
     var initialMoreHidden = more ? more.hidden : true;
     var forceTopAtBoot = consumeHomeTopRequest(win);
+    var restoreInitialSnapshot = shouldRestoreInitialSnapshot(win);
 
     if ("scrollRestoration" in win.history) win.history.scrollRestoration = "manual";
 
@@ -549,7 +566,14 @@
       if (cardNavigation) win.location.href = card.dataset.link;
     });
 
-    var initialSnapshot = snapshotFromHistory(win.history.state, state);
+    var initialSnapshot = restoreInitialSnapshot ? snapshotFromHistory(win.history.state, state) : null;
+    if (!restoreInitialSnapshot && win.history.state && win.history.state[HOME_HISTORY_KEY]) {
+      var cleanHistoryState = Object.assign({}, win.history.state);
+      delete cleanHistoryState[HOME_HISTORY_KEY];
+      win.history.replaceState(
+        cleanHistoryState, "", win.location.pathname + searchForState(state) + win.location.hash
+      );
+    }
     var initialRender = null;
     if (state.q || state.topic !== "all" || state.category || state.page > 1) initialRender = refresh();
     else {
@@ -595,6 +619,8 @@
     shouldShowBackToTop: shouldShowBackToTop,
     preferredScrollBehavior: preferredScrollBehavior,
     isPlainPrimaryClick: isPlainPrimaryClick,
+    navigationType: navigationType,
+    shouldRestoreInitialSnapshot: shouldRestoreInitialSnapshot,
     renderLoadFailure: renderLoadFailure,
     renderTimeline: renderTimeline,
     boot: boot

@@ -110,6 +110,72 @@ test("scroll behavior honors reduced motion and modified clicks remain native", 
   assert.equal(home.isPlainPrimaryClick({ button: 1 }), false);
 });
 
+test("saved home position is eligible only for browser history traversal", () => {
+  assert.equal(home.shouldRestoreInitialSnapshot({
+    performance: { getEntriesByType: () => [{ type: "back_forward" }] }
+  }), true);
+  assert.equal(home.shouldRestoreInitialSnapshot({
+    performance: { getEntriesByType: () => [{ type: "reload" }] }
+  }), false);
+  assert.equal(home.shouldRestoreInitialSnapshot({
+    performance: { getEntriesByType: () => [{ type: "navigate" }] }
+  }), false);
+  assert.equal(home.shouldRestoreInitialSnapshot({
+    performance: { navigation: { type: 2 } }
+  }), true);
+});
+
+function scrollRestoreWindow(type) {
+  const timeline = {
+    innerHTML: "STATIC TIMELINE",
+    querySelectorAll: () => [],
+    addEventListener() {}
+  };
+  const state = home.historyStateWithSnapshot(
+    { unrelated: "kept" },
+    { q: "", topic: "all", category: "", page: 1 },
+    { y: 1480, anchor: "", anchorOffset: 0 }
+  );
+  const scrollCalls = [];
+  const win = {
+    document: {
+      getElementById: (id) => id === "homeDataConfig"
+        ? { dataset: { pageSize: "20", total: "3", liteUrl: "data/latest-lite.json" } }
+        : (id === "timeline" ? timeline : (id === "rCount" ? { textContent: "3" } : null)),
+      querySelectorAll: () => [],
+      addEventListener() {},
+      activeElement: null
+    },
+    location: { href: "https://example.com/datahot/index.html", search: "", pathname: "/datahot/index.html", hash: "" },
+    history: {
+      state,
+      scrollRestoration: "auto",
+      replaceState(next, _title, url) { this.state = next; this.url = url; }
+    },
+    performance: { getEntriesByType: () => [{ type }] },
+    requestIdleCallback() {},
+    requestAnimationFrame(callback) { callback(); },
+    addEventListener() {},
+    matchMedia: () => ({ matches: false }),
+    scrollY: 0,
+    innerHeight: 844,
+    scrollTo(...args) { scrollCalls.push(args); }
+  };
+  return { win, scrollCalls };
+}
+
+test("reload discards stale detail-return position while back-forward restores it", () => {
+  const reload = scrollRestoreWindow("reload");
+  home.boot(reload.win);
+  assert.deepEqual(reload.scrollCalls, []);
+  assert.equal(reload.win.history.state.datahotHome, undefined);
+  assert.equal(reload.win.history.state.unrelated, "kept");
+
+  const back = scrollRestoreWindow("back_forward");
+  home.boot(back.win);
+  assert.deepEqual(back.scrollCalls, [[0, 1480]]);
+});
+
 test("detail return uses history only for a same-tab visit from the DataHot home page", () => {
   const current = "https://example.com/datahot/e/89e262591ce7.html";
   assert.equal(detail.shouldUseHistoryBack(

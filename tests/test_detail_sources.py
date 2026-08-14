@@ -52,10 +52,9 @@ class DetailSourceRenderingTests(unittest.TestCase):
         page = build_site.render_detail(detail_event([item]), [detail_event([item])], "")
 
         self.assertIn(
-            'class="sbtn ghost" href="https://example.com/primary"', page,
+            'class="original-footer-link" href="https://example.com/primary"', page,
         )
-        self.assertIn('title="原文" aria-label="原文"', page)
-        self.assertIn('<span class="sbtn-label">原文</span>', page)
+        self.assertIn('<span>查看原文</span>', page)
         self.assertNotIn('class="meta-original"', page)
         self.assertNotIn("补充来源", page)
         self.assertNotIn('class="source-section"', page)
@@ -77,10 +76,10 @@ class DetailSourceRenderingTests(unittest.TestCase):
         page = build_site.render_detail(event, [event], "")
 
         self.assertIn(
-            'class="sbtn ghost" href="https://example.com/primary"', page,
+            'class="original-footer-link" href="https://example.com/primary"', page,
         )
         toolbar = page.split('<span class="sharebtns">', 1)[1].split("    </span>", 1)[0]
-        self.assertIn('href="https://example.com/primary"', toolbar)
+        self.assertNotIn('href="https://example.com/primary"', toolbar)
         self.assertIn('data-source="Primary Source"', page)
         self.assertIn("补充来源", page)
         self.assertIn('href="https://example.com/older"', page)
@@ -97,7 +96,8 @@ class DetailSourceRenderingTests(unittest.TestCase):
         page = build_site.render_detail(event, [event], "")
 
         self.assertNotIn("AI 仅用于按原文顺序逐段翻译", page)
-        self.assertNotIn("查看原文 ↗", page)
+        self.assertIn('<span>查看原文</span>', page)
+        self.assertIn('class="original-footer-link" href="https://example.com/primary"', page)
         self.assertNotIn('class="disclaimer"', page)
 
     def test_same_source_reports_remain_individually_reachable(self):

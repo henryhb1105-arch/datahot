@@ -114,7 +114,7 @@ class SecurityHardeningTests(unittest.TestCase):
         self.assert_csp_allows_only_hashed_inline_scripts(document)
         self.assertNotIn('<script>alert("xss")</script>', document)
         self.assertNotIn('href="javascript:', document.lower())
-        self.assertIn("原文链接不可用", document)
+        self.assertNotIn('class="original-footer-link"', document)
         self.assertIn("\\u003c/script\\u003e", document)
 
     def test_external_blank_links_are_isolated(self):

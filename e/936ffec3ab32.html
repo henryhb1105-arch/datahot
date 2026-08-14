@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-5J7kdg503tEOB+GsO+sVfd/juLEn3Z057rlKOjdAgkQ=' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-L8CUckowNCKaJ6tR+MzfROEzc5dnKpd+pMVjcdcZYWk='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-5J7kdg503tEOB+GsO+sVfd/juLEn3Z057rlKOjdAgkQ=' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-iu++eyt0ZMYlLgwq1NsxbKrVW8uMLYz4+xbPTZZWF7Q='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>当人类确认变“闭眼点击”，企业Agent安全靠谁？ · DataHot</title>
 <meta name="description" content="文章来自InfoQ，探讨企业Agent落地时的运行时安全风险，包括提示注入、工具滥用和数据泄露。三位专家提出以“护栏式安全”替代“刹车式管控”，强调human-in-the-loop并非万能解药，应聚焦关键决策点。文中还讨论了Agent权限管理、MCP认证及渐进式安全建设路径。">
-<link rel="canonical" href="https://henryhb1105-arch.github.io/datahot/e/936ffec3ab32.html">
+<link rel="canonical" href="https://datahot.xiahongbin.com/e/936ffec3ab32.html">
 <meta property="og:title" content="当人类确认变“闭眼点击”，企业Agent安全靠谁？">
 <meta property="og:description" content="文章来自InfoQ，探讨企业Agent落地时的运行时安全风险，包括提示注入、工具滥用和数据泄露。三位专家提出以“护栏式安全”替代“刹车式管控”，强调human-in-the-loop并非万能解药，应聚焦关键决策点。文中还讨论了Agent权限管理、MCP认证及渐进式安全建设路径。">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://henryhb1105-arch.github.io/datahot/e/936ffec3ab32.html">
+<meta property="og:url" content="https://datahot.xiahongbin.com/e/936ffec3ab32.html">
 <meta property="og:site_name" content="DataHot · 数据领域 AI 热榜">
 <link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 <meta name="theme-color" content="#1a1d23">
-<link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://henryhb1105-arch.github.io/datahot/feed.xml">
-<meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="henryhb1105-arch.github.io">
+<link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://datahot.xiahongbin.com/feed.xml">
+<meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
 <script defer src="../analytics.js"></script>
 <script defer src="../detail.js"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"当人类确认变“闭眼点击”，企业Agent安全靠谁？","description":"文章来自InfoQ，探讨企业Agent落地时的运行时安全风险，包括提示注入、工具滥用和数据泄露。三位专家提出以“护栏式安全”替代“刹车式管控”，强调human-in-the-loop并非万能解药，应聚焦关键决策点。文中还讨论了Agent权限管理、MCP认证及渐进式安全建设路径。","datePublished":"2026-08-11T01:29:12+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://www.infoq.cn/article/5qWsLD6JV8N2zDgGuhK9?utm_source=rss\u0026utm_medium=article"}</script>
@@ -596,7 +596,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="content-footer"><div class="disclaimer">正文来自 RSS 或原网页；DataHot 仅做安全清洗和版式整理，未使用 AI 改写</div><a class="original-footer-link" href="https://www.infoq.cn/article/5qWsLD6JV8N2zDgGuhK9?utm_source=rss&amp;utm_medium=article" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="InfoQ 中文"><span>查看原文</span><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div>
 </div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/3bb9e34e59c3.html"><span class="n">›</span>构建企业级数据分析助手：Data Agent开发实践<span class="count">38</span></a><a class="vendor-row" href="../e/ac7c75fedd0b.html"><span class="n">›</span>一招教你鉴定真假Data Agent<span class="count">39</span></a><a class="vendor-row" href="../e/d17e13a7ceb3.html"><span class="n">›</span>用MCP构建可达生产系统的Agent<span class="count">39</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/3bb9e34e59c3.html"><span class="n">›</span>构建企业级数据分析助手：Data Agent开发实践<span class="count">38</span></a><a class="vendor-row" href="../e/ac7c75fedd0b.html"><span class="n">›</span>一招教你鉴定真假Data Agent<span class="count">39</span></a><a class="vendor-row" href="../e/d17e13a7ceb3.html"><span class="n">›</span>用MCP构建可达生产系统的Agent<span class="count">38</span></a></div>
   </main>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
@@ -745,7 +745,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title":"当人类确认变“闭眼点击”，企业Agent安全靠谁？","summary":"文章来自InfoQ，探讨企业Agent落地时的运行时安全风险，包括提示注入、工具滥用和数据泄露。三位专家提出以“护栏式安全”替代“刹车式管控”，强调human-in-the-loop并非万能解药，应聚焦关键决策点。文中还讨论了Agent权限管理、MCP认证及渐进式安全建设路径。","reason":"企业Agent安全直接关系到数据访问与工具调用，数据从业者需关注其治理边界和人机协同设计。","topic":"","heat":41,"source":"InfoQ 中文","date":"2026-08-11","url":"https://henryhb1105-arch.github.io/datahot/e/936ffec3ab32.html","qr":"../qr/936ffec3ab32.png"};
+var SH_EV = {"title":"当人类确认变“闭眼点击”，企业Agent安全靠谁？","summary":"文章来自InfoQ，探讨企业Agent落地时的运行时安全风险，包括提示注入、工具滥用和数据泄露。三位专家提出以“护栏式安全”替代“刹车式管控”，强调human-in-the-loop并非万能解药，应聚焦关键决策点。文中还讨论了Agent权限管理、MCP认证及渐进式安全建设路径。","reason":"企业Agent安全直接关系到数据访问与工具调用，数据从业者需关注其治理边界和人机协同设计。","topic":"","heat":41,"source":"InfoQ 中文","date":"2026-08-11","url":"https://datahot.xiahongbin.com/e/936ffec3ab32.html","qr":"../qr/936ffec3ab32.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

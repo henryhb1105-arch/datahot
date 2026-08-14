@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-QC/j8ySf2G+Bjid/lJeK5nes7tS7U7ipHXc+faQhZ5I=' 'sha256-XnvAY/9Gsmb/H68Jm17GFKKmpKkamcdmvhasDVrYKaw='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-QC/j8ySf2G+Bjid/lJeK5nes7tS7U7ipHXc+faQhZ5I=' 'sha256-WtEMRd5pNZV+u6l5t6cPP0pKB7uO316q6NL86y3J+Fs='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>DuckDB引入异步I/O，适应云端远程数据读取 · DataHot</title>
 <meta name="description" content="DuckDB计划从v2.0开始支持Parquet和CSV异步读取，解决EC2/S3等计算存储分离环境中工作线程等待网络I/O的问题。随着DuckDB从本地SSD查询扩展到远程数据湖和服务化场景，异步请求有望更充分利用带宽。">
-<link rel="canonical" href="https://henryhb1105-arch.github.io/datahot/e/7e23299ee03d.html">
+<link rel="canonical" href="https://datahot.xiahongbin.com/e/7e23299ee03d.html">
 <meta property="og:title" content="DuckDB引入异步I/O，适应云端远程数据读取">
 <meta property="og:description" content="DuckDB计划从v2.0开始支持Parquet和CSV异步读取，解决EC2/S3等计算存储分离环境中工作线程等待网络I/O的问题。随着DuckDB从本地SSD查询扩展到远程数据湖和服务化场景，异步请求有望更充分利用带宽。">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://henryhb1105-arch.github.io/datahot/e/7e23299ee03d.html">
+<meta property="og:url" content="https://datahot.xiahongbin.com/e/7e23299ee03d.html">
 <meta property="og:site_name" content="DataHot · 数据领域 AI 热榜">
 <link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 <meta name="theme-color" content="#1a1d23">
-<link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://henryhb1105-arch.github.io/datahot/feed.xml">
-<meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="henryhb1105-arch.github.io">
+<link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://datahot.xiahongbin.com/feed.xml">
+<meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
 <script defer src="../analytics.js"></script>
 <script defer src="../detail.js"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"DuckDB引入异步I/O，适应云端远程数据读取","description":"DuckDB计划从v2.0开始支持Parquet和CSV异步读取，解决EC2/S3等计算存储分离环境中工作线程等待网络I/O的问题。随着DuckDB从本地SSD查询扩展到远程数据湖和服务化场景，异步请求有望更充分利用带宽。","datePublished":"2026-08-01T02:50:31+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://duckdb.org/2026/07/31/asynchronous-io.html"}</script>
@@ -587,7 +587,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="content-footer"><a class="original-footer-link" href="https://duckdb.org/2026/07/31/asynchronous-io.html" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="主编收录"><span>查看原文</span><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div>
 </div>
 <section class="source-section" aria-labelledby="supplementSourcesTitle"><div class="source-heading"><h4 id="supplementSourcesTitle">补充来源</h4><span class="source-summary">1 个信源 · 1 篇报道</span></div><div class="source-group"><div class="source-group-head"><b>X 线索·@duckdb</b></div><a class="source-report" href="https://x.com/duckdb/status/2083264058061713421" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="X 线索·@duckdb"><span class="source-report-title">X 原帖：DuckDB引入异步I/O，适应云端远程数据读取 <span aria-hidden="true">↗</span></span><span class="source-report-date">2026-08-01 02:50</span></a></div></section>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/e802165c0888.html"><span class="n">›</span>Introducing the Claude Team plan and iOS app | Claude by Anthropic<span class="count">33</span></a><a class="vendor-row" href="../e/a09c3221be78.html"><span class="n">›</span>使用Debezium CDC将实时数据迁移到TiDB<span class="count">32</span></a><a class="vendor-row" href="../e/e7420873acde.html"><span class="n">›</span>ClickHouse成立基础数据库研究团队ClickHouse Labs<span class="count">43</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/e802165c0888.html"><span class="n">›</span>Introducing the Claude Team plan and iOS app | Claude by Anthropic<span class="count">32</span></a><a class="vendor-row" href="../e/a09c3221be78.html"><span class="n">›</span>使用Debezium CDC将实时数据迁移到TiDB<span class="count">32</span></a><a class="vendor-row" href="../e/e7420873acde.html"><span class="n">›</span>ClickHouse成立基础数据库研究团队ClickHouse Labs<span class="count">43</span></a></div>
   </main>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
@@ -736,7 +736,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title":"DuckDB引入异步I/O，适应云端远程数据读取","summary":"DuckDB计划从v2.0开始支持Parquet和CSV异步读取，解决EC2/S3等计算存储分离环境中工作线程等待网络I/O的问题。随着DuckDB从本地SSD查询扩展到远程数据湖和服务化场景，异步请求有望更充分利用带宽。","reason":"异步I/O是DuckDB从嵌入式本地分析走向远程数据湖负载的重要架构变化，值得湖仓与查询引擎团队关注。","topic":"湖仓","heat":42,"source":"DataHot 精选","date":"2026-08-01","url":"https://henryhb1105-arch.github.io/datahot/e/7e23299ee03d.html","qr":"../qr/7e23299ee03d.png"};
+var SH_EV = {"title":"DuckDB引入异步I/O，适应云端远程数据读取","summary":"DuckDB计划从v2.0开始支持Parquet和CSV异步读取，解决EC2/S3等计算存储分离环境中工作线程等待网络I/O的问题。随着DuckDB从本地SSD查询扩展到远程数据湖和服务化场景，异步请求有望更充分利用带宽。","reason":"异步I/O是DuckDB从嵌入式本地分析走向远程数据湖负载的重要架构变化，值得湖仓与查询引擎团队关注。","topic":"湖仓","heat":42,"source":"DataHot 精选","date":"2026-08-01","url":"https://datahot.xiahongbin.com/e/7e23299ee03d.html","qr":"../qr/7e23299ee03d.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

@@ -4,9 +4,9 @@
 
 ## 安装前审阅
 
-- [SKILL.md](https://henryhb1105-arch.github.io/datahot/datahot-skill/SKILL.md)
-- [OpenAI UI metadata](https://henryhb1105-arch.github.io/datahot/datahot-skill/agents/openai.yaml)
-- [DataHot Atom Feed](https://henryhb1105-arch.github.io/datahot/feed.xml)
+- [SKILL.md](https://datahot.xiahongbin.com/datahot-skill/SKILL.md)
+- [OpenAI UI metadata](https://datahot.xiahongbin.com/datahot-skill/agents/openai.yaml)
+- [DataHot Atom Feed](https://datahot.xiahongbin.com/feed.xml)
 
 ## 让当前 Agent 安装
 

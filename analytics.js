@@ -89,7 +89,7 @@
       endpoint: meta.getAttribute("data-endpoint") || "",
       siteId: meta.getAttribute("data-site-id") || "datahot",
       environment: meta.getAttribute("data-environment") || "",
-      productionHost: meta.getAttribute("data-production-host") || "henryhb1105-arch.github.io"
+      productionHost: meta.getAttribute("data-production-host") || "datahot.xiahongbin.com"
     };
     var queue = [];
     var flushTimer = null;

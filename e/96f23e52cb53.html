@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-IeZ36ku4lLIvN+JBJMkX9ZOwbYLQigQja2cK1tzpd8I=' 'sha256-duNvbshRXJXksBkmWV/Uy/GlMomR/DlbGXIqWip2JhU='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-IeZ36ku4lLIvN+JBJMkX9ZOwbYLQigQja2cK1tzpd8I=' 'sha256-ZZbpDMXhbGoxYNhdG4+2J0rvZeXV23ZVQL+Xrb8/C54='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Claude skill-creator增强：测试、度量与优化Agent Skills · DataHot</title>
 <meta name="description" content="Anthropic为Claude Code等产品发布skill-creator增强功能，支持技能作者编写评估、运行基准测试，并在模型演进时保持技能持续有效。自去年十月推出Agent Skills以来，多数作者并非工程师，缺少工具判断技能是否兼容新模型、正确触发或改进有效。新功能将软件开发的测试、基准">
-<link rel="canonical" href="https://henryhb1105-arch.github.io/datahot/e/96f23e52cb53.html">
+<link rel="canonical" href="https://datahot.xiahongbin.com/e/96f23e52cb53.html">
 <meta property="og:title" content="Claude skill-creator增强：测试、度量与优化Agent Skills">
 <meta property="og:description" content="Anthropic为Claude Code等产品发布skill-creator增强功能，支持技能作者编写评估、运行基准测试，并在模型演进时保持技能持续有效。自去年十月推出Agent Skills以来，多数作者并非工程师，缺少工具判断技能是否兼容新模型、正确触发或改进有效。新功能将软件开发的测试、基准">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://henryhb1105-arch.github.io/datahot/e/96f23e52cb53.html">
+<meta property="og:url" content="https://datahot.xiahongbin.com/e/96f23e52cb53.html">
 <meta property="og:site_name" content="DataHot · 数据领域 AI 热榜">
 <link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 <meta name="theme-color" content="#1a1d23">
-<link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://henryhb1105-arch.github.io/datahot/feed.xml">
-<meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="henryhb1105-arch.github.io">
+<link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://datahot.xiahongbin.com/feed.xml">
+<meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
 <script defer src="../analytics.js"></script>
 <script defer src="../detail.js"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"Claude skill-creator增强：测试、度量与优化Agent Skills","description":"Anthropic为Claude Code等产品发布skill-creator增强功能，支持技能作者编写评估、运行基准测试，并在模型演进时保持技能持续有效。自去年十月推出Agent Skills以来，多数作者并非工程师，缺少工具判断技能是否兼容新模型、正确触发或改进有效。新功能将软件开发的测试、基准","datePublished":null,"inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://claude.com/blog/improving-skill-creator-test-measure-and-refine-agent-skills"}</script>
@@ -587,7 +587,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="content-footer"><a class="original-footer-link" href="https://claude.com/blog/improving-skill-creator-test-measure-and-refine-agent-skills" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Claude 官方博客"><span>查看原文</span><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div>
 </div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/42bfc0352255.html"><span class="n">›</span>Claude Skills 改进前端设计的最佳实践<span class="count">15</span></a><a class="vendor-row" href="../e/c759c2325b45.html"><span class="n">›</span>构建Claude Code的经验：我们如何使用skills<span class="count">44</span></a><a class="vendor-row" href="../e/ba8377c644db.html"><span class="n">›</span>扩展Claude能力：Skills与MCP协同构建智能体<span class="count">49</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/42bfc0352255.html"><span class="n">›</span>Claude Skills 改进前端设计的最佳实践<span class="count">14</span></a><a class="vendor-row" href="../e/c759c2325b45.html"><span class="n">›</span>构建Claude Code的经验：我们如何使用skills<span class="count">44</span></a><a class="vendor-row" href="../e/ba8377c644db.html"><span class="n">›</span>扩展Claude能力：Skills与MCP协同构建智能体<span class="count">48</span></a></div>
   </main>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
@@ -736,7 +736,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title":"Claude skill-creator增强：测试、度量与优化Agent Skills","summary":"Anthropic为Claude Code等产品发布skill-creator增强功能，支持技能作者编写评估、运行基准测试，并在模型演进时保持技能持续有效。自去年十月推出Agent Skills以来，多数作者并非工程师，缺少工具判断技能是否兼容新模型、正确触发或改进有效。新功能将软件开发的测试、基准测试和迭代改进引入技能创作，无需编写代码。","reason":"涉及Data Agent技能的可测试性与评估，对Agent构建与生产评估具有直接参考价值","topic":"Data Agent","heat":44,"source":"Claude 官方博客","date":"2026-08-11","url":"https://henryhb1105-arch.github.io/datahot/e/96f23e52cb53.html","qr":"../qr/96f23e52cb53.png"};
+var SH_EV = {"title":"Claude skill-creator增强：测试、度量与优化Agent Skills","summary":"Anthropic为Claude Code等产品发布skill-creator增强功能，支持技能作者编写评估、运行基准测试，并在模型演进时保持技能持续有效。自去年十月推出Agent Skills以来，多数作者并非工程师，缺少工具判断技能是否兼容新模型、正确触发或改进有效。新功能将软件开发的测试、基准测试和迭代改进引入技能创作，无需编写代码。","reason":"涉及Data Agent技能的可测试性与评估，对Agent构建与生产评估具有直接参考价值","topic":"Data Agent","heat":44,"source":"Claude 官方博客","date":"2026-08-11","url":"https://datahot.xiahongbin.com/e/96f23e52cb53.html","qr":"../qr/96f23e52cb53.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

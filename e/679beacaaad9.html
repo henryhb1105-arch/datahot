@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-P3FHzuXnHv+vO0+aGct3JC7ButCPoFmMK0oMYONwoT4=' 'sha256-SxeFNfgWXxODIrbxGMyhAv5A5a/6lbXO66rpGNBS2N0='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-SxeFNfgWXxODIrbxGMyhAv5A5a/6lbXO66rpGNBS2N0=' 'sha256-l4l6oeKpbms0wMQ9n6eqyq2hPZsSkZMRbHt0HXC9kwE='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Anthropic Claude Code团队详解Agent循环工程入门 · DataHot</title>
 <meta name="description" content="Claude Code团队在官方博客中定义了agentic循环的概念，即智能体重复工作周期直至满足停止条件，并依据触发方式、停止条件、所用Claude Code原语和适用任务类型，将循环分为基于turn、目标驱动、基于时间和主动式等几类。文章提供了从turn-based循环逐步过渡到更复杂循环的实践">
-<link rel="canonical" href="https://henryhb1105-arch.github.io/datahot/e/679beacaaad9.html">
+<link rel="canonical" href="https://datahot.xiahongbin.com/e/679beacaaad9.html">
 <meta property="og:title" content="Anthropic Claude Code团队详解Agent循环工程入门">
 <meta property="og:description" content="Claude Code团队在官方博客中定义了agentic循环的概念，即智能体重复工作周期直至满足停止条件，并依据触发方式、停止条件、所用Claude Code原语和适用任务类型，将循环分为基于turn、目标驱动、基于时间和主动式等几类。文章提供了从turn-based循环逐步过渡到更复杂循环的实践">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://henryhb1105-arch.github.io/datahot/e/679beacaaad9.html">
+<meta property="og:url" content="https://datahot.xiahongbin.com/e/679beacaaad9.html">
 <meta property="og:site_name" content="DataHot · 数据领域 AI 热榜">
 <link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 <meta name="theme-color" content="#1a1d23">
-<link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://henryhb1105-arch.github.io/datahot/feed.xml">
-<meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="henryhb1105-arch.github.io">
+<link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://datahot.xiahongbin.com/feed.xml">
+<meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
 <script defer src="../analytics.js"></script>
 <script defer src="../detail.js"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"Anthropic Claude Code团队详解Agent循环工程入门","description":"Claude Code团队在官方博客中定义了agentic循环的概念，即智能体重复工作周期直至满足停止条件，并依据触发方式、停止条件、所用Claude Code原语和适用任务类型，将循环分为基于turn、目标驱动、基于时间和主动式等几类。文章提供了从turn-based循环逐步过渡到更复杂循环的实践","datePublished":null,"inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://claude.com/blog/getting-started-with-loops"}</script>
@@ -607,7 +607,7 @@ If any step fails, fix the issue and rerun from step 1 — do not hand back part
   <div class="content-footer"><a class="original-footer-link" href="https://claude.com/blog/getting-started-with-loops" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Claude 官方博客"><span>查看原文</span><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div>
 </div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/0bf14bafc948.html"><span class="n">›</span>Anthropic团队如何使用Claude Code<span class="count">19</span></a><a class="vendor-row" href="../e/cdf4b94ba640.html"><span class="n">›</span>Anthropic 发布 Claude 桌面操作功能<span class="count">15</span></a><a class="vendor-row" href="../e/4802c1c96f07.html"><span class="n">›</span>Anthropic发布法律行业Claude部署指南<span class="count">15</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/0bf14bafc948.html"><span class="n">›</span>Anthropic团队如何使用Claude Code<span class="count">19</span></a><a class="vendor-row" href="../e/cdf4b94ba640.html"><span class="n">›</span>Anthropic 发布 Claude 桌面操作功能<span class="count">14</span></a><a class="vendor-row" href="../e/4802c1c96f07.html"><span class="n">›</span>Anthropic发布法律行业Claude部署指南<span class="count">14</span></a></div>
   </main>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
@@ -756,7 +756,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title":"Anthropic Claude Code团队详解Agent循环工程入门","summary":"Claude Code团队在官方博客中定义了agentic循环的概念，即智能体重复工作周期直至满足停止条件，并依据触发方式、停止条件、所用Claude Code原语和适用任务类型，将循环分为基于turn、目标驱动、基于时间和主动式等几类。文章提供了从turn-based循环逐步过渡到更复杂循环的实践指南，并讨论了在管理token消耗的同时保证代码质量的策略。作者强调并非所有任务都需要复杂循环，建议从最简单的方案开始，有选择地使用这些模式。","reason":"Agent循环设计是构建高效Data Agent的关键工程实践，来自Claude Code团队的官方定义与选型指南对数据领域的智能体开发有直接参考价值。","topic":"Data Agent","heat":44,"source":"Claude 官方博客","date":"2026-08-11","url":"https://henryhb1105-arch.github.io/datahot/e/679beacaaad9.html","qr":"../qr/679beacaaad9.png"};
+var SH_EV = {"title":"Anthropic Claude Code团队详解Agent循环工程入门","summary":"Claude Code团队在官方博客中定义了agentic循环的概念，即智能体重复工作周期直至满足停止条件，并依据触发方式、停止条件、所用Claude Code原语和适用任务类型，将循环分为基于turn、目标驱动、基于时间和主动式等几类。文章提供了从turn-based循环逐步过渡到更复杂循环的实践指南，并讨论了在管理token消耗的同时保证代码质量的策略。作者强调并非所有任务都需要复杂循环，建议从最简单的方案开始，有选择地使用这些模式。","reason":"Agent循环设计是构建高效Data Agent的关键工程实践，来自Claude Code团队的官方定义与选型指南对数据领域的智能体开发有直接参考价值。","topic":"Data Agent","heat":44,"source":"Claude 官方博客","date":"2026-08-11","url":"https://datahot.xiahongbin.com/e/679beacaaad9.html","qr":"../qr/679beacaaad9.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

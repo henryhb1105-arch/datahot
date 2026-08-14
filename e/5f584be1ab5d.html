@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-9LwWzEag78UnNX5h7fc/MuaHPzX8bXoy2F9GG8zDu6o=' 'sha256-H8UdEI1yVawTWHuWYleAeyS9a7Li+vXSdZg1mB7ZPhM='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-66V6KH1xeyuooZOlS+pskRsLzQKVMlYyL4uqO6Dhiw8=' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-9LwWzEag78UnNX5h7fc/MuaHPzX8bXoy2F9GG8zDu6o='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Amazon Redshift跨区域灾难恢复策略解析 · DataHot</title>
 <meta name="description" content="AWS官方博客介绍了Amazon Redshift跨区域灾难恢复（DR）的核心概念、需求评估框架，并深入探讨了三种主要DR策略：Active-Passive、Active-Active和混合方法。文章针对每种策略详细说明了架构、权衡、实施指导和成本考量，帮助企业根据工作负载做出明智决策。现代企业越来">
-<link rel="canonical" href="https://henryhb1105-arch.github.io/datahot/e/5f584be1ab5d.html">
+<link rel="canonical" href="https://datahot.xiahongbin.com/e/5f584be1ab5d.html">
 <meta property="og:title" content="Amazon Redshift跨区域灾难恢复策略解析">
 <meta property="og:description" content="AWS官方博客介绍了Amazon Redshift跨区域灾难恢复（DR）的核心概念、需求评估框架，并深入探讨了三种主要DR策略：Active-Passive、Active-Active和混合方法。文章针对每种策略详细说明了架构、权衡、实施指导和成本考量，帮助企业根据工作负载做出明智决策。现代企业越来">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://henryhb1105-arch.github.io/datahot/e/5f584be1ab5d.html">
+<meta property="og:url" content="https://datahot.xiahongbin.com/e/5f584be1ab5d.html">
 <meta property="og:site_name" content="DataHot · 数据领域 AI 热榜">
 <link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 <meta name="theme-color" content="#1a1d23">
-<link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://henryhb1105-arch.github.io/datahot/feed.xml">
-<meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="henryhb1105-arch.github.io">
+<link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://datahot.xiahongbin.com/feed.xml">
+<meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
 <script defer src="../analytics.js"></script>
 <script defer src="../detail.js"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"Amazon Redshift跨区域灾难恢复策略解析","description":"AWS官方博客介绍了Amazon Redshift跨区域灾难恢复（DR）的核心概念、需求评估框架，并深入探讨了三种主要DR策略：Active-Passive、Active-Active和混合方法。文章针对每种策略详细说明了架构、权衡、实施指导和成本考量，帮助企业根据工作负载做出明智决策。现代企业越来","datePublished":"2026-08-04T00:22:56+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://aws.amazon.com/blogs/big-data/amazon-redshift-multi-region-disaster-recovery/"}</script>
@@ -587,7 +587,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="content-footer"><a class="original-footer-link" href="https://aws.amazon.com/blogs/big-data/amazon-redshift-multi-region-disaster-recovery/" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="AWS Big Data Blog"><span>查看原文</span><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div>
 </div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/c3bb690c1f4e.html"><span class="n">›</span>Claude 3 Haiku可在Amazon Bedrock中微调<span class="count">42</span></a><a class="vendor-row" href="../e/10a590ba05c3.html"><span class="n">›</span>AppFolio借Amazon MSK Express重构实时数据流架构<span class="count">60</span></a><a class="vendor-row" href="../e/017baad77d72.html"><span class="n">›</span>Amazon MWAA与Airflow 3.0实现事件驱动跨账户编排<span class="count">25</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/c3bb690c1f4e.html"><span class="n">›</span>Claude 3 Haiku可在Amazon Bedrock中微调<span class="count">41</span></a><a class="vendor-row" href="../e/10a590ba05c3.html"><span class="n">›</span>AppFolio借Amazon MSK Express重构实时数据流架构<span class="count">59</span></a><a class="vendor-row" href="../e/017baad77d72.html"><span class="n">›</span>Amazon MWAA与Airflow 3.0实现事件驱动跨账户编排<span class="count">25</span></a></div>
   </main>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
@@ -736,7 +736,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title":"Amazon Redshift跨区域灾难恢复策略解析","summary":"AWS官方博客介绍了Amazon Redshift跨区域灾难恢复（DR）的核心概念、需求评估框架，并深入探讨了三种主要DR策略：Active-Passive、Active-Active和混合方法。文章针对每种策略详细说明了架构、权衡、实施指导和成本考量，帮助企业根据工作负载做出明智决策。现代企业越来越依赖Redshift处理关键分析负载，多区域DR已成为合规与业务连续性的重要要求。","reason":"数据平台工程师和架构师需了解Redshift跨区域容灾设计，以保障分析业务连续性与合规性。","topic":"","heat":23,"source":"AWS Big Data Blog","date":"2026-08-04","url":"https://henryhb1105-arch.github.io/datahot/e/5f584be1ab5d.html","qr":"../qr/5f584be1ab5d.png"};
+var SH_EV = {"title":"Amazon Redshift跨区域灾难恢复策略解析","summary":"AWS官方博客介绍了Amazon Redshift跨区域灾难恢复（DR）的核心概念、需求评估框架，并深入探讨了三种主要DR策略：Active-Passive、Active-Active和混合方法。文章针对每种策略详细说明了架构、权衡、实施指导和成本考量，帮助企业根据工作负载做出明智决策。现代企业越来越依赖Redshift处理关键分析负载，多区域DR已成为合规与业务连续性的重要要求。","reason":"数据平台工程师和架构师需了解Redshift跨区域容灾设计，以保障分析业务连续性与合规性。","topic":"","heat":23,"source":"AWS Big Data Blog","date":"2026-08-04","url":"https://datahot.xiahongbin.com/e/5f584be1ab5d.html","qr":"../qr/5f584be1ab5d.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

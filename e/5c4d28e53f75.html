@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-3TIpkvNVihBeq3rB8PhNjG7Z5ksK1C9ToGXTw+XlqJ0=' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-bfOzAcJmSvUGBqIjP23y6musAfCFAdwd/SqwPx5XlOo='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-3TIpkvNVihBeq3rB8PhNjG7Z5ksK1C9ToGXTw+XlqJ0=' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-Hcfu8Wfl+bbcOs2WQKaJSdjuoWn0IIGpoY9jL0f8Q5c='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Agentic AI 架构为何需要数据库，不只是向量存储 · DataHot</title>
 <meta name="description" content="TiDB工程师在SCaiLE Europe 2026上论述，单独的向量数据库并非AI应用的必要代价，而是数据同步约束下的变通方案。每个新增AI组件都会复制一份数据，带来独立的接入路径、运维和同步任务，导致栈越堆越复杂。TiDB通过同一Raft流同步行存储、列存储、向量索引和全文索引，由SQL优化器决">
-<link rel="canonical" href="https://henryhb1105-arch.github.io/datahot/e/5c4d28e53f75.html">
+<link rel="canonical" href="https://datahot.xiahongbin.com/e/5c4d28e53f75.html">
 <meta property="og:title" content="Agentic AI 架构为何需要数据库，不只是向量存储">
 <meta property="og:description" content="TiDB工程师在SCaiLE Europe 2026上论述，单独的向量数据库并非AI应用的必要代价，而是数据同步约束下的变通方案。每个新增AI组件都会复制一份数据，带来独立的接入路径、运维和同步任务，导致栈越堆越复杂。TiDB通过同一Raft流同步行存储、列存储、向量索引和全文索引，由SQL优化器决">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://henryhb1105-arch.github.io/datahot/e/5c4d28e53f75.html">
+<meta property="og:url" content="https://datahot.xiahongbin.com/e/5c4d28e53f75.html">
 <meta property="og:site_name" content="DataHot · 数据领域 AI 热榜">
 <link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 <meta name="theme-color" content="#1a1d23">
-<link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://henryhb1105-arch.github.io/datahot/feed.xml">
-<meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="henryhb1105-arch.github.io">
+<link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://datahot.xiahongbin.com/feed.xml">
+<meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
 <script defer src="../analytics.js"></script>
 <script defer src="../detail.js"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"Agentic AI 架构为何需要数据库，不只是向量存储","description":"TiDB工程师在SCaiLE Europe 2026上论述，单独的向量数据库并非AI应用的必要代价，而是数据同步约束下的变通方案。每个新增AI组件都会复制一份数据，带来独立的接入路径、运维和同步任务，导致栈越堆越复杂。TiDB通过同一Raft流同步行存储、列存储、向量索引和全文索引，由SQL优化器决","datePublished":"2026-07-31T00:31:33+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://www.pingcap.com/blog/agentic-ai-architecture/"}</script>
@@ -745,7 +745,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title":"Agentic AI 架构为何需要数据库，不只是向量存储","summary":"TiDB工程师在SCaiLE Europe 2026上论述，单独的向量数据库并非AI应用的必要代价，而是数据同步约束下的变通方案。每个新增AI组件都会复制一份数据，带来独立的接入路径、运维和同步任务，导致栈越堆越复杂。TiDB通过同一Raft流同步行存储、列存储、向量索引和全文索引，由SQL优化器决定查询走哪个存储。文章认为分布式SQL原生支持向量搜索与分析能力，可减少数据漂移和多系统运维成本。","reason":"数据从业者关注的多系统同步与数据一致性痛点，本文给出分布式数据库一体化方案，对构建Agentic AI数据栈有参考价值。","topic":"Data Agent","heat":38,"source":"TiDB Blog","date":"2026-07-31","url":"https://henryhb1105-arch.github.io/datahot/e/5c4d28e53f75.html","qr":"../qr/5c4d28e53f75.png"};
+var SH_EV = {"title":"Agentic AI 架构为何需要数据库，不只是向量存储","summary":"TiDB工程师在SCaiLE Europe 2026上论述，单独的向量数据库并非AI应用的必要代价，而是数据同步约束下的变通方案。每个新增AI组件都会复制一份数据，带来独立的接入路径、运维和同步任务，导致栈越堆越复杂。TiDB通过同一Raft流同步行存储、列存储、向量索引和全文索引，由SQL优化器决定查询走哪个存储。文章认为分布式SQL原生支持向量搜索与分析能力，可减少数据漂移和多系统运维成本。","reason":"数据从业者关注的多系统同步与数据一致性痛点，本文给出分布式数据库一体化方案，对构建Agentic AI数据栈有参考价值。","topic":"Data Agent","heat":38,"source":"TiDB Blog","date":"2026-07-31","url":"https://datahot.xiahongbin.com/e/5c4d28e53f75.html","qr":"../qr/5c4d28e53f75.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

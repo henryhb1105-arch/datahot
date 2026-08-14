@@ -38,7 +38,7 @@ CAT_BADGE = {
 }
 CAT_LABEL = CATEGORY_LABELS
 WEEK_CN = "一二三四五六日"
-HEAT_FORMULA = "AI重要性50% + 新鲜度20% + 社区信号15%(封顶) + 多信源15%"
+HEAT_FORMULA = "内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"
 UPDATE_MECHANISM = (
     "DataHot 通常在北京时间 02:17、08:17、14:17、20:17 自动启动更新。"
     "完成信源采集、筛选去重、AI 整理和静态发布后，页面时间才会变化，"
@@ -1591,9 +1591,11 @@ def render_sources_page(events, payload, css):
     return page_shell("信源 · DataHot", "DataHot 正在监控的公开信源与选源原则", css, body,
                       tabbar("sources"), prefix="", active="sources")
 
-def render_hot_page(events, css):
+def render_hot_page(events, css, reference_time=None):
     """完整榜单：热度 TOP 9"""
-    top = rank_hot_events(events, limit=9, source_cap=2)
+    top = rank_hot_events(
+        events, limit=9, source_cap=2, reference_time=reference_time,
+    )
     row_parts = []
     for i, event in enumerate(top, 1):
         source = src_display(event["items"][0]["source"])
@@ -1609,7 +1611,7 @@ def render_hot_page(events, css):
 <main class="wrap rank-page">
   <header class="rank-head"><h1>{ic("flame",20)} 完整榜单</h1><p>近 7 天 · TOP 9 · 同源最多 2 条</p></header>
   <div class="rank-list">{rows}</div>
-  <details class="rank-note"><summary>热度如何计算</summary><p>{HEAT_FORMULA}；相邻位置优先保持信源多样性。</p></details>
+  <details class="rank-note"><summary>热度如何计算</summary><p>{HEAT_FORMULA}；按热度降序，同一信源最多 2 条。</p></details>
 </main>"""
     return page_shell("完整榜单 · DataHot", "数据领域近 7 天热度 TOP 9", css, body, tabbar("home"), prefix="", active="hot")
 
@@ -1969,7 +1971,8 @@ def main():
     window_events = []
     for event in all_events:
         timestamp = event_timestamp(event)
-        if timestamp and gen - timestamp.astimezone(TZ) <= window:
+        age = gen - timestamp.astimezone(TZ) if timestamp else None
+        if age is not None and timedelta(0) <= age <= window:
             window_events.append(event)
     # 热点保持近 7 天；时间轴使用全部在站合格内容，避免旧洞察无法发现。
     hot_window_events = select_home_events(window_events)
@@ -2031,7 +2034,11 @@ def main():
 
     # ── 热点榜：继续使用近 7 天合格池和来源上限 ──
     hot_cards = ""
-    top_ids = [event["event_id"] for event in rank_hot_events(hot_window_events, limit=3, source_cap=2)]
+    top_ids = [
+        event["event_id"] for event in rank_hot_events(
+            hot_window_events, limit=3, source_cap=2, reference_time=gen,
+        )
+    ]
     payload["top"] = top_ids
     for n, eid in enumerate(top_ids, 1):
         e = next((x for x in hot_window_events if x["event_id"] == eid), None)
@@ -2275,7 +2282,9 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
     page = finalize_html_security(page)
     (SITE / "sources.html").write_text(render_sources_page(timeline_events, payload, css), encoding="utf-8")
     (SITE / "classics.html").write_text(render_classics_page(qualified_events, css), encoding="utf-8")
-    (SITE / "hot.html").write_text(render_hot_page(hot_window_events, css), encoding="utf-8")
+    (SITE / "hot.html").write_text(
+        render_hot_page(hot_window_events, css, reference_time=gen), encoding="utf-8",
+    )
     favorite_data_url = "data/latest-lite.json" if lite_enabled else "data/latest.json"
     (SITE / "favorites.html").write_text(render_favorites_page(css, favorite_data_url), encoding="utf-8")
     (SITE / "weekly.html").write_text(

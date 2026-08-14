@@ -81,6 +81,34 @@ def event(event_id, title="同一数据平台发布", **overrides):
 
 
 class EventFirstPipelineTests(unittest.TestCase):
+    def test_freshness_has_a_48_hour_half_life(self):
+        reference = datetime(2026, 8, 14, 12, 0, tzinfo=timezone.utc)
+        self.assertAlmostEqual(run_update.freshness(reference, reference), 1.0)
+        self.assertAlmostEqual(
+            run_update.freshness(reference - timedelta(hours=48), reference),
+            0.5,
+        )
+
+    def test_event_heat_prefers_publication_time_over_recent_ingestion(self):
+        reference = datetime(2026, 8, 14, 12, 0, tzinfo=timezone.utc)
+        historical = event(
+            "historical",
+            importance=95,
+            published=(reference - timedelta(days=100)).isoformat(),
+            first_seen=reference.isoformat(),
+        )
+        recent = event(
+            "recent",
+            importance=70,
+            published=(reference - timedelta(hours=2)).isoformat(),
+            first_seen=(reference - timedelta(hours=2)).isoformat(),
+        )
+
+        run_update.recalc_event_heat(historical, reference_time=reference)
+        run_update.recalc_event_heat(recent, reference_time=reference)
+
+        self.assertLess(historical["heat"], recent["heat"])
+
     def test_empty_snowflake_release_note_is_rejected_before_enrichment(self):
         empty = item(
             "snowflake-empty",

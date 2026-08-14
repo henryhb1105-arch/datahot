@@ -32,7 +32,10 @@ from work_tags import (
     TAXONOMY_VERSION as WORK_TAGS_VERSION,
     merge_work_tags, normalize_work_tags, prompt_instructions as work_tag_prompt,
 )
-from lite_data import DEFAULT_PAGE_SIZE, FIRST_PAGE_SOURCE_CAPS, rank_timeline_events
+from lite_data import (
+    DEFAULT_PAGE_SIZE, FIRST_PAGE_SOURCE_CAPS, rank_hot_events,
+    rank_timeline_events,
+)
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
@@ -193,12 +196,21 @@ def parse_feed(root_el, source):
 
 import math
 
-def freshness(published):
-    """时间新鲜度 0.3~1.0：7 天内线性衰减"""
+FRESHNESS_HALF_LIFE_HOURS = 48
+
+
+def freshness(published, reference_time=None):
+    """时间新鲜度 0~1：按真实发布时间以 48 小时为半衰期降温。"""
     if not published:
         return 0.5
-    age_h = (datetime.now(timezone.utc) - published.astimezone(timezone.utc)).total_seconds() / 3600
-    return max(0.3, 1 - age_h / (KEEP_DAYS * 24) * 0.7)
+    now = reference_time or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    age_h = max(
+        0,
+        (now.astimezone(timezone.utc) - published.astimezone(timezone.utc)).total_seconds() / 3600,
+    )
+    return 2 ** (-age_h / FRESHNESS_HALF_LIFE_HOURS)
 
 def community_score(signal):
     """社区信号（HN 赞数 / Bluesky 赞数）对数归一到 0-100，1000 赞 ≈ 满分"""
@@ -206,14 +218,23 @@ def community_score(signal):
         return 0
     return min(100, round(math.log1p(signal) / math.log1p(1000) * 100))
 
-def calc_heat(importance=50, published=None, signal=0, extra_sources=0):
-    """热度分 2.1：LLM重要性×0.5 + 新鲜度×0.2 + 社区信号×0.15(封顶12分) + 多信源×0.15，归一 0-100。
-    设计原则：社区信号只做加分项不做主驾驶；多信源交叉验证比点赞数更可信。"""
-    multi = min(100, 25 * extra_sources)
-    comm = min(12, 0.15 * community_score(signal))
-    return round(min(100,
-        0.5 * importance + 0.2 * freshness(published) * 100
-        + comm + 0.15 * multi))
+def calc_heat(
+    importance=50, published=None, signal=0, extra_sources=0,
+    reference_time=None,
+):
+    """热度分 3.0：重要性45% + 48小时半衰新鲜度35% + 社区10% + 多信源10%。
+
+    新鲜度负责让近期内容自然上浮；重要性仍是最大的单项信号。社区与
+    多信源只做可信度加分，避免点赞量或重复报道主导榜单。
+    """
+    multi = min(10, 4 * max(0, int(extra_sources or 0)))
+    comm = min(10, 0.1 * community_score(signal))
+    return round(min(
+        100,
+        0.45 * max(0, min(100, int(importance or 0)))
+        + 0.35 * freshness(published, reference_time=reference_time) * 100
+        + comm + multi,
+    ))
 
 # ── F5：HN 条目抓原文 ──────────────────────────────────────
 def extract_meta_date(html_txt):
@@ -1809,10 +1830,14 @@ def make_event(it):
             event[key] = it[key]
     return event
 
-def recalc_event_heat(e):
-    """事件热度 = calc_heat(最高重要性, 收录时间(新鲜度), 最强社区信号, 信源数-1)"""
-    pub = datetime.fromisoformat(e.get("first_seen") or e["published"])
-    e["heat"] = calc_heat(e.get("importance", 50), pub, e.get("signal", 0), len(e["items"]) - 1)
+def recalc_event_heat(e, reference_time=None):
+    """以真实发布时间计算事件热度；缺失时才回退首次收录时间。"""
+    published = e.get("published") or e.get("first_seen")
+    pub = datetime.fromisoformat(str(published).replace("Z", "+00:00"))
+    e["heat"] = calc_heat(
+        e.get("importance", 50), pub, e.get("signal", 0), len(e["items"]) - 1,
+        reference_time=reference_time,
+    )
 
 def merge_into(e, it):
     e["items"].append({"id": it["id"], "source": it["source"], "link": it["link"],
@@ -2384,11 +2409,15 @@ def main():
             f"{media_prune['removed_bytes']} bytes"
         )
 
-    # 热度分 2.0：全量重算（新鲜度随时间衰减，分数每天自然"降温"）
+    # 热度分 3.0：全量重算（按真实发布时间与 48 小时半衰期自然降温）
     for e in events:
-        recalc_event_heat(e)
+        recalc_event_heat(e, reference_time=now)
 
-    top = [e["event_id"] for e in sorted(events, key=lambda e: -e["heat"])[:3]]
+    top = [
+        e["event_id"] for e in rank_hot_events(
+            events, limit=3, source_cap=2, reference_time=now,
+        )
+    ]
     events.sort(key=lambda e: (e.get("first_seen") or e["published"] or ""), reverse=True)
 
     payload = {

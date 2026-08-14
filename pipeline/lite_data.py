@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import re
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 
 LITE_SCHEMA_VERSION = 1
@@ -276,8 +276,11 @@ def rank_timeline_events(
     return ranked
 
 
-def rank_hot_events(events, *, limit=9, source_cap=2):
-    """Rank a trustworthy hot list while preventing one publisher takeover.
+def rank_hot_events(
+    events, *, limit=9, source_cap=2, reference_time=None,
+    window_days=HOME_WINDOW_DAYS,
+):
+    """Rank a recent, trustworthy hot list while preventing publisher takeover.
 
     Selection is strictly heat-descending: every round picks the highest-heat
     remaining event whose source is still under the cap. A same-source
@@ -285,10 +288,30 @@ def rank_hot_events(events, *, limit=9, source_cap=2):
     one (issue #82); the source cap alone is enough to prevent a takeover,
     so the displayed order now always matches the shown heat values.
     """
+    eligible = [event for event in events if is_list_eligible(event)]
+    timestamps = [event_timestamp(event) for event in eligible]
+    timestamps = [timestamp for timestamp in timestamps if timestamp]
+    if reference_time is None:
+        reference_time = max(timestamps, default=datetime.now(timezone.utc))
+    elif isinstance(reference_time, str):
+        reference_time = datetime.fromisoformat(reference_time.replace("Z", "+00:00"))
+    if reference_time.tzinfo is None:
+        reference_time = reference_time.replace(tzinfo=timezone.utc)
+    reference_time = reference_time.astimezone(timezone.utc)
+    window = timedelta(days=max(0, float(window_days)))
+    recent = []
+    for event in eligible:
+        timestamp = event_timestamp(event)
+        if not timestamp:
+            continue
+        age = reference_time - timestamp.astimezone(timezone.utc)
+        if timedelta(0) <= age <= window:
+            recent.append(event)
+
     counts = Counter()
     selected = []
     remaining = sorted(
-        (event for event in events if is_list_eligible(event)),
+        recent,
         key=lambda event: (
             int(event.get("heat") or 0),
             int(event.get("importance") or 0),

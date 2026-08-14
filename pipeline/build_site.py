@@ -19,6 +19,7 @@ from lite_data import (
 )
 from weekly_brief import valid_brief as valid_weekly_brief
 from taxonomy import CATEGORY_LABELS, normalize_category_labels
+from site_config import SITE_BASE_URL, SITE_HOST
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
@@ -32,6 +33,7 @@ DETAIL_ASSET = ROOT / "pipeline" / "assets" / "detail.js"
 TTS_ASSET = ROOT / "pipeline" / "assets" / "tts-player.js"
 TTS_MANIFEST = SITE / "data" / "tts-manifest.json"
 TZ = timezone(timedelta(hours=8))
+SITE_BASE = SITE_BASE_URL
 CAT_BADGE = {
     "agent": "b-agent", "platform": "b-platform", "bi": "b-bi",
     "product": "b-product", "insight": "b-insight",
@@ -474,8 +476,8 @@ def analytics_head(prefix=""):
     endpoint = os.getenv("ANALYTICS_ENDPOINT", "").strip()
     environment = os.getenv("ANALYTICS_ENV", "production").strip().lower()
     site_id = re.sub(r"[^a-z0-9_-]", "", os.getenv("ANALYTICS_SITE_ID", "datahot").lower())[:40] or "datahot"
-    production_host = os.getenv("ANALYTICS_PRODUCTION_HOST", "henryhb1105-arch.github.io").strip().lower()
-    production_host = production_host if re.fullmatch(r"[a-z0-9.-]+", production_host) else "henryhb1105-arch.github.io"
+    production_host = os.getenv("ANALYTICS_PRODUCTION_HOST", SITE_HOST).strip().lower()
+    production_host = production_host if re.fullmatch(r"[a-z0-9.-]+", production_host) else SITE_HOST
     safe_https_endpoint = sanitize_url(endpoint)
     parsed = urlparse(safe_https_endpoint)
     endpoint_valid = bool(parsed.scheme == "https" and parsed.netloc)
@@ -766,8 +768,6 @@ def render_card(e, prefix=""):
       <h3><a href="{url}">{esc(e["zh_title"])}</a></h3>
       <p class="sum">{esc(e["zh_summary"])}</p>{also}{reason}{vbox}
     </div>'''
-
-SITE_BASE = "https://henryhb1105-arch.github.io/datahot"
 
 def title_bigrams(t):
     t = re.sub(r"[^\w一-鿿]+", "", (t or "").lower())

@@ -8,7 +8,7 @@
 - `ANALYTICS_ENDPOINT=https://...`（公开的 HTTPS 收集地址，不能包含用户名、密码或任何需要保密的 Token）
 - `ANALYTICS_SITE_ID=datahot`（可选）
 
-客户端只会在 `henryhb1105-arch.github.io` 的生产页面发送事件；localhost、文件预览、测试和其他域名不会发送。`Global Privacy Control`、`Do Not Track` 或本机 opt-out 任一生效都会停止采集并删除随机 ID。
+客户端只会在 `datahot.xiahongbin.com` 的生产页面发送事件；localhost、文件预览、测试和其他域名不会发送。`Global Privacy Control`、`Do Not Track` 或本机 opt-out 任一生效都会停止采集并删除随机 ID。
 
 接收端应接受 `text/plain` 的 JSON batch：
 

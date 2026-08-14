@@ -85,7 +85,8 @@ jobs:
           ANALYTICS_ENDPOINT: ${{ vars.ANALYTICS_ENDPOINT }}
           ANALYTICS_SITE_ID: ${{ vars.ANALYTICS_SITE_ID || 'datahot' }}
           ANALYTICS_ENV: "production"
-          ANALYTICS_PRODUCTION_HOST: "henryhb1105-arch.github.io"
+          ANALYTICS_PRODUCTION_HOST: "datahot.xiahongbin.com"
+          SITE_BASE_URL: "https://datahot.xiahongbin.com"
           WEEKLY_BRIEF_ENABLED: ${{ vars.WEEKLY_BRIEF_ENABLED || vars.DAILY_BRIEF_ENABLED || 'true' }}
           FEED_ENABLED: ${{ vars.FEED_ENABLED || 'true' }}
           LITE_HOME_ENABLED: ${{ vars.LITE_HOME_ENABLED || 'true' }}
@@ -122,6 +123,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./site
+          cname: datahot.xiahongbin.com
 
       - name: 相同 source SHA 跳过重复发布
         if: steps.release_guard.outputs.should_publish != 'true'

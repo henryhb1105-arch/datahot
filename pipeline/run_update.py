@@ -49,7 +49,7 @@ TZ = timezone(timedelta(hours=8))
 LLM_USAGE = LLMUsageTracker(DATA / "llm_usage.json")
 CANDIDATE_CACHE = CandidateCache(DATA / "candidate_cache.json")
 CLUSTER_CACHE = ClusterDecisionCache(DATA / "cluster_cache.json")
-CONTENT_BLOCKS_PROCESSOR_VERSION = "original-first-v3"
+CONTENT_BLOCKS_PROCESSOR_VERSION = "original-first-v4"
 TRANSLATION_RETRY_POLICY_VERSION = "faithful-translation-retry-v1"
 METADATA_TRANSLATION_POLICY_VERSION = "metadata-translation-backfill-v1"
 
@@ -976,6 +976,55 @@ def _content_hash(blocks, text=""):
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:24] if payload else ""
 
 
+def _aligned_translation_blocks(source_blocks, translated_blocks):
+    """Recover only a structurally proven translated span from an older parser."""
+    source = sanitize_blocks(source_blocks)
+    translated = sanitize_blocks(translated_blocks)
+    report = {
+        "status": "rejected", "reason": "missing_blocks", "anchors": 0,
+        "source_blocks": len(source), "stored_blocks": len(translated),
+        "source_anchor_ratio": 0.0, "dropped_prefix_blocks": 0,
+        "dropped_suffix_blocks": 0,
+    }
+    if not source or not translated:
+        return [], report
+    translated_positions = {
+        block.get("id"): index for index, block in enumerate(translated) if block.get("id")
+    }
+    pairs = [
+        (index, translated_positions[block.get("id")])
+        for index, block in enumerate(source)
+        if block.get("id") in translated_positions
+    ]
+    report["anchors"] = len(pairs)
+    report["source_anchor_ratio"] = round(len(pairs) / max(1, len(source)), 4)
+    minimum_anchors = min(len(source), max(3, (len(source) * 3 + 4) // 5))
+    if len(pairs) < minimum_anchors:
+        report["reason"] = "insufficient_stable_ids"
+        return [], report
+    if any(left[1] >= right[1] for left, right in zip(pairs, pairs[1:])):
+        report["reason"] = "anchor_order_changed"
+        return [], report
+    if pairs[0][0] > 2 or pairs[-1][0] < len(source) - 3:
+        report["reason"] = "source_boundaries_unproven"
+        return [], report
+    start, end = pairs[0][1], pairs[-1][1] + 1
+    aligned = translated[start:end]
+    if [block.get("type") for block in aligned] != [block.get("type") for block in source]:
+        report["reason"] = "block_shape_changed"
+        return [], report
+    aligned, quality = trim_article_blocks(aligned)
+    if quality.get("quality_status") != "pass" or len(aligned) != len(source):
+        report["reason"] = "aligned_span_not_clean"
+        return [], report
+    report.update({
+        "status": "aligned", "reason": "", "aligned_blocks": len(aligned),
+        "dropped_prefix_blocks": start,
+        "dropped_suffix_blocks": len(translated) - end,
+    })
+    return aligned, report
+
+
 def _translation_batches(nodes, maximum_chars=None):
     maximum_chars = maximum_chars or _bounded_env_int(
         "CONTENT_TRANSLATION_BATCH_CHARS", 6000, minimum=1000, maximum=12000,
@@ -1144,6 +1193,8 @@ def content_parse_record(report, *, status, source="", reason="", media_report=N
         "trimmed_tail_blocks", "trimmed_head_blocks", "trimmed_promotional_blocks",
         "selected_depth", "selected_raw_blocks", "selected_raw_text_chars",
         "broad_raw_blocks", "broad_raw_text_chars", "parent_extra_blocks",
+        "candidate_count_raw", "candidate_duplicates", "candidate_quality_rejected",
+        "duplicate_blocks",
     ):
         record[key] = max(0, int(report.get(key, 0) or 0))
     if report.get("selected_score") is not None:
@@ -1160,6 +1211,9 @@ def content_parse_record(report, *, status, source="", reason="", media_report=N
         record["selected_tag"] = str(report["selected_tag"])[:40]
     if report.get("focus_ratio") is not None:
         record["focus_ratio"] = round(float(report.get("focus_ratio") or 0), 4)
+    for key in ("link_ratio", "duplicate_ratio"):
+        if report.get(key) is not None:
+            record[key] = round(float(report.get(key) or 0), 4)
     selection_evidence = report.get("selection_evidence")
     if isinstance(selection_evidence, list) and selection_evidence:
         record["selection_evidence"] = [str(value)[:60] for value in selection_evidence[:8]]
@@ -1220,7 +1274,7 @@ def generate_event_body(
         content_hash and event.get("source_content_hash") == content_hash
         and (event.get("content_blocks") or event.get("full_zh"))
         and previous_record.get("processor_version") == CONTENT_BLOCKS_PROCESSOR_VERSION
-        and previous_record.get("quality_status") in {None, "", "unknown", "pass"}
+        and previous_record.get("quality_status") == "pass"
         and (
             event.get("content_mode") == "translated"
             and event.get("translation_status") == "complete"
@@ -1249,23 +1303,26 @@ def generate_event_body(
     translation_status = "not_needed" if language == "zh" else "unavailable"
     translation_error = ""
     translation_reused = ""
+    translation_alignment = {}
     if language != "zh":
-        previous_text = blocks_plain_text(previous_blocks)
+        aligned_translation, translation_alignment = _aligned_translation_blocks(
+            article_blocks, previous_blocks,
+        )
+        previous_text = blocks_plain_text(aligned_translation)
         can_reuse_previous_translation = bool(
-            article_blocks and previous_blocks and previous_quality.get("quality_status") == "pass"
+            article_blocks and aligned_translation
             and event.get("content_mode") == "translated"
             and event.get("translation_status") == "complete"
             and previous_record.get("processor_version") != CONTENT_BLOCKS_PROCESSOR_VERSION
-            and 0.25 <= len(previous_text) / max(1, len(original_text)) <= 3.0
         )
         if can_reuse_previous_translation:
             # Parser upgrades should not spend tokens retranslating a body that was
             # already translated faithfully. Apply the new deterministic boundary
             # to the stored blocks and retain that auditable translation.
-            display_blocks = previous_blocks
+            display_blocks = aligned_translation
             display_text = previous_text
             mode, translation_status = "translated", "complete"
-            translation_reused = "trimmed_stored_translation"
+            translation_reused = "aligned_stored_translation"
         try:
             if not translation_reused:
                 if cfg[0] and cfg[1] and cfg[2]:
@@ -1346,6 +1403,15 @@ def generate_event_body(
         if translation_reused:
             record["translation"]["reused"] = True
             record["translation"]["reuse_method"] = translation_reused
+            record["translation"]["alignment"] = {
+                key: translation_alignment[key]
+                for key in (
+                    "status", "anchors", "source_blocks", "stored_blocks",
+                    "source_anchor_ratio", "aligned_blocks",
+                    "dropped_prefix_blocks", "dropped_suffix_blocks",
+                )
+                if key in translation_alignment
+            }
             record["translation"]["trimmed_head_blocks"] = int(
                 previous_quality.get("trimmed_head_blocks", 0) or 0
             )
@@ -1536,7 +1602,7 @@ def backfill_structured_content(
         "foreign_limit": limit, "eligible": 0, "attempted": 0, "ready": 0,
         "original": 0, "translated": 0, "deferred_foreign": 0,
         "deferred_budget": 0, "stored_original_retries": 0,
-        "skipped": 0, "failed": 0,
+        "parser_debt_eligible": 0, "skipped": 0, "failed": 0,
     }
     requested_event_ids = {
         value.strip() for value in re.split(",|\n", os.getenv("CONTENT_BACKFILL_EVENT_IDS", ""))
@@ -1552,7 +1618,7 @@ def backfill_structured_content(
     retry_cutoff = now_utc - timedelta(days=7)
     eligible = []
     for event in events:
-        if _event_time(event) < now_utc - timedelta(days=lookback_days) or not event.get("items"):
+        if not event.get("items"):
             continue
         mode = event.get("content_mode")
         language = event.get("source_language")
@@ -1560,8 +1626,15 @@ def backfill_structured_content(
         previous = event.get("content_parse") if isinstance(event.get("content_parse"), dict) else {}
         processor_current = bool(
             previous.get("processor_version") == CONTENT_BLOCKS_PROCESSOR_VERSION
-            and previous.get("quality_status") in {None, "", "unknown", "pass"}
+            and previous.get("quality_status") == "pass"
         )
+        parser_debt = not processor_current and bool(event.get("content_blocks"))
+        within_window = _event_time(event) >= now_utc - timedelta(days=lookback_days)
+        evergreen_debt = event.get("shelf") == "evergreen" and parser_debt
+        if not within_window and not evergreen_debt:
+            continue
+        if evergreen_debt:
+            summary["parser_debt_eligible"] += 1
         if mode == "translated" and translation_status == "complete" and processor_current:
             continue
         if (
@@ -1607,8 +1680,19 @@ def backfill_structured_content(
             or quality.get("quality_status") != "pass"
         )
 
+    def parser_debt_priority(event):
+        previous = event.get("content_parse") if isinstance(event.get("content_parse"), dict) else {}
+        return int(
+            bool(event.get("content_blocks"))
+            and (
+                previous.get("processor_version") != CONTENT_BLOCKS_PROCESSOR_VERSION
+                or previous.get("quality_status") != "pass"
+            )
+        )
+
     eligible.sort(key=lambda event: (
         quality_refresh_priority(event),
+        parser_debt_priority(event),
         int(
             _metadata_translation_record(event).get("run_id") == LLM_USAGE.run_id
             and _metadata_translation_record(event).get("status") == "complete"
@@ -1633,7 +1717,17 @@ def backfill_structured_content(
             and event.get("translation_status") != "complete"
             and stored_text
         )
-        if stored_foreign:
+        stored_foreign_reusable = bool(
+            stored_foreign
+            and (
+                not stored_blocks
+                or (
+                    previous.get("processor_version") == CONTENT_BLOCKS_PROCESSOR_VERSION
+                    and previous.get("quality_status") == "pass"
+                )
+            )
+        )
+        if stored_foreign_reusable:
             text, blocks, parse_report = stored_text, stored_blocks, dict(previous)
             summary["stored_original_retries"] += 1
         else:
@@ -1659,8 +1753,12 @@ def backfill_structured_content(
             summary["skipped"] += 1
             continue
         language = detect_source_language(blocks_plain_text(blocks) if blocks else text)
+        trimmed_stored_blocks, _stored_quality = trim_article_blocks(stored_blocks)
+        aligned_translation, _alignment = _aligned_translation_blocks(
+            blocks, trimmed_stored_blocks,
+        )
         reusable_translation = bool(
-            language != "zh" and stored_blocks
+            language != "zh" and aligned_translation
             and event.get("content_mode") == "translated"
             and event.get("translation_status") == "complete"
             and previous.get("processor_version") != CONTENT_BLOCKS_PROCESSOR_VERSION
@@ -1676,7 +1774,7 @@ def backfill_structured_content(
                 summary["deferred_budget"] += 1
         if language != "zh" and not can_translate and not reusable_translation:
             summary["deferred_foreign"] += 1
-            if stored_foreign:
+            if stored_foreign_reusable:
                 continue
         if can_translate:
             foreign_used += 1
@@ -1797,7 +1895,9 @@ def structured_content_metrics(events, *, run_id=""):
         "run_id": run_id or LLM_USAGE.run_id,
         "attempted": 0, "ready": 0, "figures": 0, "tables": 0,
         "media_cached": 0, "media_link_only": 0,
-        "strategies": {}, "content_modes": {}, "fallbacks": {}, "by_source": {},
+        "candidate_duplicates": 0, "candidate_quality_rejected": 0,
+        "strategies": {}, "quality_statuses": {}, "content_modes": {},
+        "fallbacks": {}, "by_source": {},
     }
     for event in events:
         record = event.get("content_parse")
@@ -1811,6 +1911,14 @@ def structured_content_metrics(events, *, run_id=""):
         metrics["tables"] += int(record.get("tables", 0) or 0)
         strategy = str(record.get("strategy") or "unknown")
         metrics["strategies"][strategy] = metrics["strategies"].get(strategy, 0) + 1
+        quality_status = str(record.get("quality_status") or "unknown")
+        metrics["quality_statuses"][quality_status] = (
+            metrics["quality_statuses"].get(quality_status, 0) + 1
+        )
+        metrics["candidate_duplicates"] += int(record.get("candidate_duplicates", 0) or 0)
+        metrics["candidate_quality_rejected"] += int(
+            record.get("candidate_quality_rejected", 0) or 0
+        )
         mode = str(record.get("content_mode") or "unknown")
         metrics["content_modes"][mode] = metrics["content_modes"].get(mode, 0) + 1
         if status != "ready":
@@ -1831,6 +1939,43 @@ def structured_content_metrics(events, *, run_id=""):
     return metrics
 
 
+def catalog_content_metrics(events):
+    """Measure the reader-visible content catalog, including historical parser debt."""
+    metrics = {
+        "events": len(events), "structured": 0, "renderable": 0,
+        "current_pass": 0, "parser_debt": 0, "display_trimmed": 0,
+        "display_suspect": 0, "modes": {}, "processor_versions": {},
+    }
+    for event in events:
+        mode = str(event.get("content_mode") or "missing")
+        metrics["modes"][mode] = metrics["modes"].get(mode, 0) + 1
+        record = event.get("content_parse") if isinstance(event.get("content_parse"), dict) else {}
+        version = str(record.get("processor_version") or "missing")
+        metrics["processor_versions"][version] = metrics["processor_versions"].get(version, 0) + 1
+        blocks = sanitize_blocks(
+            event.get("content_blocks", []),
+            ((event.get("items") or [{}])[0].get("link", "") if event.get("items") else ""),
+        )
+        if not blocks:
+            continue
+        metrics["structured"] += 1
+        trimmed, quality = trim_article_blocks(blocks)
+        if len(blocks_plain_text(trimmed)) >= 120:
+            metrics["renderable"] += 1
+        if quality.get("quality_status") != "pass":
+            metrics["display_suspect"] += 1
+        if len(trimmed) != len(blocks):
+            metrics["display_trimmed"] += 1
+        if (
+            record.get("processor_version") == CONTENT_BLOCKS_PROCESSOR_VERSION
+            and record.get("quality_status") == "pass"
+        ):
+            metrics["current_pass"] += 1
+        else:
+            metrics["parser_debt"] += 1
+    return metrics
+
+
 def write_structured_content_summary(metrics):
     summary_path = str(os.getenv("GITHUB_STEP_SUMMARY", "")).strip()
     if not summary_path:
@@ -1843,6 +1988,11 @@ def write_structured_content_summary(metrics):
         f"- Attempted: **{metrics.get('attempted', 0)}**；ready: **{metrics.get('ready', 0)}**\n"
         f"- Figures: **{metrics.get('figures', 0)}**；tables: **{metrics.get('tables', 0)}**\n"
         f"- Media cached: **{metrics.get('media_cached', 0)}**；link only: **{metrics.get('media_link_only', 0)}**\n\n"
+        f"- Candidate duplicates removed: **{metrics.get('candidate_duplicates', 0)}**；"
+        f"quality rejected: **{metrics.get('candidate_quality_rejected', 0)}**\n"
+        f"- Catalog renderable: **{metrics.get('catalog', {}).get('renderable', 0)}** / "
+        f"**{metrics.get('catalog', {}).get('structured', 0)}**；parser debt: "
+        f"**{metrics.get('catalog', {}).get('parser_debt', 0)}**\n\n"
         "| Extraction strategy | Count |\n|---|---:|\n"
         f"{strategy_rows}\n"
     )
@@ -2419,6 +2569,7 @@ def main():
     )
     media_refresh_summary = refresh_media_cache(events, source_configs)
     run_structured = structured_content_metrics(events, run_id=LLM_USAGE.run_id)
+    run_structured["catalog"] = catalog_content_metrics(events)
     run_structured["metadata_backfill"] = metadata_backfill_summary
     run_structured["backfill"] = backfill_summary
     run_structured["media_refresh"] = media_refresh_summary

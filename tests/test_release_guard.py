@@ -26,6 +26,14 @@ def payload(*events):
     return {"events": list(events)}
 
 
+def with_article(item, text="这是经过清洗、能够稳定展示给读者的可信正文。"):
+    item["content_blocks"] = [{
+        "type": "paragraph",
+        "children": [{"type": "text", "text": text * 30, "marks": []}],
+    }]
+    return item
+
+
 def protected_events():
     return [event(event_id, days_ago=60) for event_id in sorted(PROTECTED_EVENT_IDS)]
 
@@ -53,6 +61,7 @@ class ReleaseGuardTests(unittest.TestCase):
         )
 
     def test_healthy_release_emits_manifest_and_publishes_new_sha(self):
+        self.baseline["events"][-1] = with_article(self.recent)
         candidate = payload(*self.protected, self.recent, event("recent-b"))
         manifest = self.assess(candidate)
         self.assertTrue(manifest["should_publish"])
@@ -61,6 +70,38 @@ class ReleaseGuardTests(unittest.TestCase):
         self.assertEqual(manifest["detail_count"], 4)
         self.assertEqual(manifest["overrides"], [])
         self.assertFalse(manifest["allow_shrink"])
+        self.assertEqual(
+            manifest["content_quality"],
+            {"structured": 1, "renderable": 1, "suspect": 0},
+        )
+
+    def test_existing_structured_article_cannot_lose_its_blocks(self):
+        with_article(self.recent)
+        candidate_recent = event("recent-a")
+        candidate = payload(*self.protected, candidate_recent)
+
+        with self.assertRaisesRegex(ReleaseGuardError, "lost blocks"):
+            self.assess(candidate)
+
+    def test_new_suspect_structured_article_is_blocked(self):
+        suspect = event("recent-b")
+        suspect["content_blocks"] = [
+            {
+                "type": "paragraph",
+                "children": [{"type": "text", "text": "View pricing", "marks": []}],
+            },
+            {
+                "type": "paragraph",
+                "children": [{
+                    "type": "text", "text": "Measured product results and technical facts. " * 30,
+                    "marks": [],
+                }],
+            },
+        ]
+        candidate = payload(*self.protected, self.recent, suspect)
+
+        with self.assertRaisesRegex(ReleaseGuardError, "new suspect structured"):
+            self.assess(candidate)
 
     def test_event_count_and_recent_event_regression_are_blocked(self):
         candidate = payload(*self.protected)

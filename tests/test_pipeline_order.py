@@ -446,7 +446,7 @@ class EventFirstPipelineTests(unittest.TestCase):
         self.assertEqual(summary["attempted"], 2)
         self.assertEqual(summary["ready"], 2)
         self.assertFalse(hasattr(translated, "called_item"))
-        self.assertEqual(same_site["content_parse"]["processor_version"], "original-first-v3")
+        self.assertEqual(same_site["content_parse"]["processor_version"], "original-first-v4")
         self.assertEqual(cross_site["content_mode"], "original")
 
     def test_media_refresh_retries_only_source_bound_recoverable_figures(self):
@@ -557,11 +557,66 @@ class EventFirstPipelineTests(unittest.TestCase):
         fetch.assert_not_called()
         translate.assert_called_once()
 
+    def test_old_structured_foreign_original_is_refetched_before_retry(self):
+        target = event("stored-old-parser", importance=91)
+        target.update({
+            "full_zh": "View pricing. See the product in action.",
+            "content_blocks": [{
+                "type": "paragraph",
+                "children": [{
+                    "type": "text", "text": "View pricing. See the product in action.",
+                    "marks": [],
+                }],
+            }],
+            "content_mode": "original", "source_language": "other",
+            "translation_status": "unavailable",
+            "content_parse": {
+                "processor_version": "original-first-v1", "quality_status": "suspect",
+                "status": "ready",
+            },
+        })
+        source_blocks = [{
+            "type": "paragraph",
+            "children": [{
+                "type": "text", "text": "Complete English article facts. " * 40, "marks": [],
+            }],
+        }]
+        report = {
+            "strategy": "semantic_container", "quality_status": "pass", "quality_flags": [],
+            "blocks": 1, "text_chars": 1280, "figures": 0, "tables": 0,
+            "figures_discovered": 0, "figures_selected": 0, "figures_rejected": 0,
+        }
+        with patch.object(
+            run_update, "fetch_article_content",
+            return_value=("Complete English article facts. " * 40, "", None, source_blocks, report),
+        ) as fetch, patch.object(
+            run_update, "cache_event_media",
+            side_effect=lambda blocks, *_args, **_kwargs: (
+                blocks, {"figures": 0, "cached": 0, "link_only": 0, "reasons": {}},
+            ),
+        ):
+            summary = run_update.backfill_structured_content(
+                [target], ("", "", ""), now=NOW, limit=0, lookback_days=30,
+            )
+
+        self.assertEqual(summary["ready"], 1)
+        self.assertEqual(summary["stored_original_retries"], 0)
+        self.assertEqual(target["content_mode"], "original")
+        self.assertEqual(target["content_parse"]["processor_version"], "original-first-v4")
+        self.assertEqual(target["content_parse"]["quality_status"], "pass")
+        self.assertIn("Complete English article facts", target["full_zh"])
+        self.assertNotIn("View pricing", target["full_zh"])
+        fetch.assert_called_once()
+
     def test_parser_upgrade_reuses_trimmed_translation_and_repairs_publish_date(self):
         target = event("upgrade", importance=95)
         translated_blocks = [{
             "type": "paragraph",
-            "children": [{"type": "text", "text": "忠实中文译文和数字 123。" * 75, "marks": []}],
+            "id": "b-111111111111",
+            "children": [{
+                "type": "text", "id": "t-111111111111",
+                "text": "忠实中文译文和数字 123。" * 75, "marks": [],
+            }],
         }, {
             "type": "paragraph",
             "children": [{"type": "text", "text": "未找到项目。", "marks": []}],
@@ -577,14 +632,16 @@ class EventFirstPipelineTests(unittest.TestCase):
             "translation_status": "complete",
             "source_content_hash": "old-parser-hash",
             "content_parse": {
-                "processor_version": "original-first-v2",
+                "processor_version": "original-first-v3",
                 "status": "ready",
                 "attempted_at": NOW.isoformat(),
             },
         })
         source_blocks = [{
             "type": "paragraph",
+            "id": "b-111111111111",
             "children": [{
+                "id": "t-111111111111",
                 "type": "text",
                 "text": "Faithful source facts and number 123. " * 32,
                 "marks": [],
@@ -613,14 +670,140 @@ class EventFirstPipelineTests(unittest.TestCase):
 
         self.assertEqual(summary["ready"], 1)
         self.assertEqual(summary["requested_event_ids"], ["upgrade"])
-        self.assertEqual(target["content_parse"]["processor_version"], "original-first-v3")
+        self.assertEqual(target["content_parse"]["processor_version"], "original-first-v4")
         self.assertTrue(target["content_parse"]["translation"]["reused"])
+        self.assertEqual(
+            target["content_parse"]["translation"]["reuse_method"],
+            "aligned_stored_translation",
+        )
+        self.assertEqual(
+            target["content_parse"]["translation"]["alignment"]["status"], "aligned",
+        )
         self.assertEqual(target["content_parse"]["translation"]["trimmed_tail_blocks"], 2)
         self.assertEqual(target["content_parse"]["translation"]["trimmed_promotional_blocks"], 0)
         self.assertEqual(target["content_parse"]["quality_status"], "pass")
         self.assertNotIn("未找到项目", target["full_zh"])
         self.assertTrue(target["published"].startswith("2026-05-22"))
         translate.assert_not_called()
+
+    def test_parser_upgrade_rejects_unaligned_stored_translation(self):
+        target = event("unaligned", importance=94)
+        target.update({
+            "full_zh": "与当前来源无结构对应关系的旧译文。" * 60,
+            "content_blocks": [{
+                "type": "paragraph", "id": "b-aaaaaaaaaaaa",
+                "children": [{
+                    "type": "text", "id": "t-aaaaaaaaaaaa",
+                    "text": "与当前来源无结构对应关系的旧译文。" * 60, "marks": [],
+                }],
+            }],
+            "content_mode": "translated", "source_language": "other",
+            "translation_status": "complete",
+            "content_parse": {"processor_version": "original-first-v3", "status": "ready"},
+        })
+        source_blocks = [{
+            "type": "paragraph", "id": "b-bbbbbbbbbbbb",
+            "children": [{
+                "type": "text", "id": "t-bbbbbbbbbbbb",
+                "text": "Current English source facts and measured results. " * 30, "marks": [],
+            }],
+        }]
+        report = {
+            "strategy": "article", "quality_status": "pass", "quality_flags": [],
+            "blocks": 1, "text_chars": 1530, "figures": 0, "tables": 0,
+            "figures_discovered": 0, "figures_selected": 0, "figures_rejected": 0,
+        }
+        with patch.object(
+            run_update, "fetch_article_content",
+            return_value=("Current English source facts. " * 50, "", None, source_blocks, report),
+        ), patch.object(
+            run_update, "cache_event_media",
+            side_effect=lambda blocks, *_args, **_kwargs: (
+                blocks, {"figures": 0, "cached": 0, "link_only": 0, "reasons": {}},
+            ),
+        ), patch.dict(run_update.os.environ, {"CONTENT_BACKFILL_EVENT_IDS": "unaligned"}):
+            summary = run_update.backfill_structured_content(
+                [target], ("", "", ""), now=NOW, limit=0, lookback_days=30,
+            )
+        self.assertEqual(summary["ready"], 1)
+        self.assertEqual(target["content_mode"], "original")
+        self.assertEqual(target["translation_status"], "unavailable")
+        self.assertIn("Current English source facts", target["full_zh"])
+        self.assertNotIn("reused", target["content_parse"]["translation"])
+
+    def test_old_evergreen_parser_debt_is_upgraded_outside_recent_window(self):
+        target = event("old-evergreen", importance=70)
+        old_time = NOW - timedelta(days=180)
+        target.update({
+            "published": old_time.isoformat(), "first_seen": old_time.isoformat(),
+            "shelf": "evergreen", "content_mode": "original", "source_language": "zh",
+            "translation_status": "not_needed",
+            "content_blocks": [{
+                "type": "paragraph",
+                "children": [{"type": "text", "text": "旧版正文。" * 90, "marks": []}],
+            }],
+            "content_parse": {"processor_version": "original-first-v1", "status": "ready"},
+        })
+        fresh_blocks = [{
+            "type": "paragraph",
+            "children": [{"type": "text", "text": "重新解析后的可信正文。" * 90, "marks": []}],
+        }]
+        report = {
+            "strategy": "article", "quality_status": "pass", "quality_flags": [],
+            "blocks": 1, "text_chars": 900, "figures": 0, "tables": 0,
+            "figures_discovered": 0, "figures_selected": 0, "figures_rejected": 0,
+        }
+        with patch.object(
+            run_update, "fetch_article_content",
+            return_value=("重新解析后的可信正文。" * 90, "", None, fresh_blocks, report),
+        ), patch.object(
+            run_update, "cache_event_media",
+            side_effect=lambda blocks, *_args, **_kwargs: (
+                blocks, {"figures": 0, "cached": 0, "link_only": 0, "reasons": {}},
+            ),
+        ):
+            summary = run_update.backfill_structured_content(
+                [target], ("", "", ""), now=NOW, limit=0, lookback_days=30,
+            )
+        self.assertEqual(summary["parser_debt_eligible"], 1)
+        self.assertEqual(summary["ready"], 1)
+        self.assertEqual(target["content_parse"]["processor_version"], "original-first-v4")
+        self.assertTrue(target["full_zh"].startswith("重新解析后的可信正文"))
+
+    def test_current_processor_with_unknown_quality_is_not_treated_as_complete(self):
+        target = event("unknown-quality", importance=75)
+        target.update({
+            "content_mode": "original", "source_language": "zh",
+            "translation_status": "not_needed",
+            "content_blocks": [{
+                "type": "paragraph",
+                "children": [{"type": "text", "text": "待复核正文。" * 90, "marks": []}],
+            }],
+            "content_parse": {
+                "processor_version": "original-first-v4", "quality_status": "unknown",
+                "status": "ready", "attempted_at": (NOW - timedelta(days=8)).isoformat(),
+            },
+        })
+        report = {
+            "strategy": "article", "quality_status": "pass", "quality_flags": [],
+            "blocks": 1, "text_chars": 900, "figures": 0, "tables": 0,
+            "figures_discovered": 0, "figures_selected": 0, "figures_rejected": 0,
+        }
+        with patch.object(
+            run_update, "fetch_article_content",
+            return_value=("质量已确认的正文。" * 90, "", None, target["content_blocks"], report),
+        ), patch.object(
+            run_update, "cache_event_media",
+            side_effect=lambda blocks, *_args, **_kwargs: (
+                blocks, {"figures": 0, "cached": 0, "link_only": 0, "reasons": {}},
+            ),
+        ) as cache:
+            summary = run_update.backfill_structured_content(
+                [target], ("", "", ""), now=NOW, limit=0, lookback_days=30,
+            )
+        self.assertEqual(summary["attempted"], 1)
+        self.assertEqual(target["content_parse"]["quality_status"], "pass")
+        cache.assert_called_once()
 
     def test_metadata_backfill_repairs_recent_event_and_records_token_purpose(self):
         target = event(
@@ -676,6 +859,38 @@ class EventFirstPipelineTests(unittest.TestCase):
         self.assertEqual(metrics["tables"], 1)
         self.assertEqual(metrics["media_cached"], 1)
         self.assertEqual(metrics["by_source"]["Feed"]["ready"], 1)
+
+    def test_catalog_metrics_expose_current_quality_and_parser_debt(self):
+        current = event("current")
+        current.update({
+            "content_mode": "original",
+            "content_blocks": [{
+                "type": "paragraph",
+                "children": [{"type": "text", "text": "可信正文。" * 80, "marks": []}],
+            }],
+            "content_parse": {
+                "processor_version": "original-first-v4", "quality_status": "pass",
+            },
+        })
+        debt = event("debt")
+        debt.update({
+            "content_mode": "translated",
+            "content_blocks": [{
+                "type": "paragraph",
+                "children": [{"type": "text", "text": "旧版正文。" * 80, "marks": []}],
+            }],
+            "content_parse": {
+                "processor_version": "original-first-v1", "quality_status": "unknown",
+            },
+        })
+
+        metrics = run_update.catalog_content_metrics([current, debt])
+
+        self.assertEqual(metrics["structured"], 2)
+        self.assertEqual(metrics["renderable"], 2)
+        self.assertEqual(metrics["current_pass"], 1)
+        self.assertEqual(metrics["parser_debt"], 1)
+        self.assertEqual(metrics["modes"], {"original": 1, "translated": 1})
 
 
 class ClusterCacheTests(unittest.TestCase):

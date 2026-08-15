@@ -192,7 +192,9 @@ class ContentBlockParsingTests(unittest.TestCase):
         plain = blocks_plain_text(blocks)
         self.assertEqual(report["strategy"], "nested_content")
         self.assertEqual(report["quality_status"], "pass")
-        self.assertGreaterEqual(report["candidate_count"], 2)
+        self.assertGreaterEqual(report["candidate_count"], 1)
+        self.assertGreaterEqual(report["candidate_count_raw"], 2)
+        self.assertGreaterEqual(report["candidate_duplicates"], 1)
         self.assertIn("nested_focus", report["selection_evidence"])
         self.assertEqual(report["trimmed_promotional_blocks"], 3)
         self.assertTrue(plain.startswith("Authoritative agent facts"))
@@ -203,6 +205,39 @@ class ContentBlockParsingTests(unittest.TestCase):
         ):
             self.assertNotIn(pollution, plain)
         self.assertEqual(report["figures_selected"], 0)
+
+    def test_first_class_token_is_recognized_as_semantic_article_content(self):
+        body = "Trusted source facts, chronology, and measured results. " * 40
+        markup = f'<div class="article-content"><p>{body}</p></div>'
+        blocks, report = parse_html_blocks_with_report(markup, "https://example.com/post")
+        self.assertEqual(report["strategy"], "semantic_container")
+        self.assertIn("Trusted source facts", blocks_plain_text(blocks))
+
+    def test_noisy_article_list_class_cannot_outrank_a_real_article(self):
+        noise = "Related card headline and marketing description. " * 120
+        body = "Actual source facts, chronology, and measured results. " * 35
+        markup = (
+            f'<div class="article-list"><p>{noise}</p></div>'
+            f'<article><p>{body}</p></article>'
+        )
+        blocks, report = parse_html_blocks_with_report(markup, "https://example.com/post")
+        plain = blocks_plain_text(blocks)
+        self.assertEqual(report["strategy"], "article")
+        self.assertIn("Actual source facts", plain)
+        self.assertNotIn("Related card headline", plain)
+
+    def test_pass_candidate_wins_and_suspect_candidate_is_audited(self):
+        noise = "Pricing links and marketing navigation. " * 120
+        body = "Audited article facts and measured evidence. " * 28
+        markup = (
+            f'<div class="article-content"><p>View pricing</p><p>{noise}</p></div>'
+            f'<article><p>{body}</p></article>'
+        )
+        blocks, report = parse_html_blocks_with_report(markup, "https://example.com/post")
+        self.assertEqual(report["strategy"], "article")
+        self.assertEqual(report["quality_status"], "pass")
+        self.assertGreaterEqual(report["candidate_quality_rejected"], 1)
+        self.assertNotIn("View pricing", blocks_plain_text(blocks))
 
     def test_block_cleanup_handles_breadcrumb_byline_repeated_promos_and_tail_cluster(self):
         def paragraph(text, href=""):
@@ -237,6 +272,28 @@ class ContentBlockParsingTests(unittest.TestCase):
         self.assertEqual(quality["trimmed_promotional_blocks"], 2)
         self.assertGreaterEqual(quality["trimmed_tail_blocks"], 4)
         self.assertEqual(quality["quality_status"], "pass")
+
+    def test_head_metadata_deep_after_a_hero_carousel_starts_the_real_body(self):
+        def paragraph(text):
+            return {"type": "paragraph", "children": [{"type": "text", "text": text, "marks": []}]}
+
+        blocks = [
+            paragraph("客户案例：Example"),
+            {"type": "figure", "src": "https://example.com/hero.jpg", "alt": "", "caption": ""},
+            paragraph("94%"), paragraph("了解更多"), paragraph("了解更多"),
+            paragraph("下一页"), paragraph("客户案例：Example"), paragraph("70%"),
+            paragraph("了解更多"), paragraph("下一页"),
+            {"type": "heading", "level": 2, "children": [{"type": "text", "text": "Example 如何提升生产力", "marks": []}]},
+            paragraph("文章导语。"),
+            {"type": "list", "ordered": False, "items": [
+                {"children": [{"type": "text", "text": value, "marks": []}]}
+                for value in ("类别：企业AI", "产品：Example", "日期：2026年8月16日", "阅读时间：5分钟", "分享复制链接")
+            ]},
+            paragraph("可信正文事实、方法与结果。" * 80),
+        ]
+        trimmed, quality = trim_article_blocks(blocks)
+        self.assertTrue(blocks_plain_text(trimmed).startswith("可信正文事实"))
+        self.assertEqual(quality["trimmed_head_blocks"], 13)
 
     def test_get_started_heading_inside_article_is_not_a_tail_without_ui_evidence(self):
         blocks = sanitize_blocks([

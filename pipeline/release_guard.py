@@ -8,6 +8,8 @@ import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+from content_blocks import blocks_plain_text, sanitize_blocks, trim_article_blocks
+
 
 PROTECTED_EVENT_IDS = {"65c35101abc1", "dfb9071b69e0"}
 EVENT_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
@@ -93,6 +95,35 @@ def load_manifest(path):
     return payload if isinstance(payload, dict) else {}
 
 
+def content_quality_snapshot(events):
+    """Return reader-visible structured-content invariants for a release candidate."""
+    structured_ids, renderable_ids, suspect_ids = set(), set(), set()
+    for event_id, event in events.items():
+        source_url = ((event.get("items") or [{}])[0].get("link", "") if event.get("items") else "")
+        blocks = sanitize_blocks(event.get("content_blocks", []), source_url)
+        if not blocks:
+            continue
+        structured_ids.add(event_id)
+        trimmed, quality = trim_article_blocks(blocks)
+        if len(blocks_plain_text(trimmed)) >= 120:
+            renderable_ids.add(event_id)
+        if quality.get("quality_status") != "pass":
+            suspect_ids.add(event_id)
+    return {
+        "structured_ids": structured_ids,
+        "renderable_ids": renderable_ids,
+        "suspect_ids": suspect_ids,
+    }
+
+
+def content_quality_counts(snapshot):
+    return {
+        "structured": len(snapshot["structured_ids"]),
+        "renderable": len(snapshot["renderable_ids"]),
+        "suspect": len(snapshot["suspect_ids"]),
+    }
+
+
 def assess_release(
     baseline_payload,
     candidate_payload,
@@ -112,6 +143,8 @@ def assess_release(
     candidate_events = event_map(candidate_payload)
     baseline_details = set(baseline_details)
     candidate_details = set(candidate_details)
+    baseline_quality = content_quality_snapshot(baseline_events)
+    candidate_quality = content_quality_snapshot(candidate_events)
 
     missing_candidate_pages = set(candidate_events) - candidate_details
     if missing_candidate_pages:
@@ -161,6 +194,34 @@ def assess_release(
             "event_ids": sorted(missing_protected),
         })
 
+    lost_structured = (
+        baseline_quality["structured_ids"] & set(candidate_events)
+    ) - candidate_quality["structured_ids"]
+    if lost_structured:
+        violations.append({
+            "code": "structured_content_lost",
+            "message": f"{len(lost_structured)} existing structured article(s) lost blocks",
+            "event_ids": sorted(lost_structured),
+        })
+
+    became_unrenderable = (
+        baseline_quality["renderable_ids"] & set(candidate_events)
+    ) - candidate_quality["renderable_ids"]
+    if became_unrenderable:
+        violations.append({
+            "code": "structured_content_unrenderable",
+            "message": f"{len(became_unrenderable)} structured article(s) became unrenderable",
+            "event_ids": sorted(became_unrenderable),
+        })
+
+    new_suspect = candidate_quality["suspect_ids"] - baseline_quality["suspect_ids"]
+    if new_suspect:
+        violations.append({
+            "code": "structured_content_suspect",
+            "message": f"{len(new_suspect)} new suspect structured article(s)",
+            "event_ids": sorted(new_suspect),
+        })
+
     if violations and not allow_shrink:
         raise ReleaseGuardError("; ".join(item["message"] for item in violations))
     if violations and (not issue or not ISSUE_RE.search(issue)):
@@ -178,6 +239,7 @@ def assess_release(
         "recent_event_count": len(candidate_recent),
         "detail_count": len(candidate_details),
         "recent_window_days": int(recent_days),
+        "content_quality": content_quality_counts(candidate_quality),
         "allow_shrink": bool(allow_shrink),
         "overrides": violations,
         "baseline": {
@@ -187,6 +249,7 @@ def assess_release(
             "detail_count": len(baseline_details),
             "allowed_expired_count": len(allowed_expired),
             "expired_removed_count": len(expired_events_removed),
+            "content_quality": content_quality_counts(baseline_quality),
         },
         "should_publish": should_publish,
     }

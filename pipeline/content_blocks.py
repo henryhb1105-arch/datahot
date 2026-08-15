@@ -26,10 +26,15 @@ HTML_VOID_TAGS = {
     "area", "base", "br", "col", "embed", "hr", "img", "input", "link",
     "meta", "param", "source", "track", "wbr",
 }
-ARTICLE_CONTAINER_RE = re.compile(
-    r"(?:^|[\s_-])(?:article|post|entry|story|richtext|rich-text|markdown|prose)"
-    r"(?:[\s_-]*(?:body|content|text))?(?:$|[\s_-])|"
-    r"(?:^|[\s_-])(?:body|content)[\s_-]*(?:article|post|story)(?:$|[\s_-])",
+ARTICLE_CONTAINER_SIGNAL_RE = re.compile(
+    r"\b(?:article|post|entry|story)(?:\s+(?:body|content|text))?\b|"
+    r"\b(?:body|content)\s+(?:article|post|story)\b|"
+    r"\b(?:articlebody|rich\s*text|markdown|prose)\b",
+    re.I,
+)
+ARTICLE_CONTAINER_NOISE_RE = re.compile(
+    r"\b(?:archive|author|card|carousel|comment|footer|grid|header|hero|index|"
+    r"latest|list|nav|newsletter|popular|promo|recommended|related|share|sidebar|teaser)\b",
     re.I,
 )
 ARTICLE_TAIL_HEADING_RE = re.compile(
@@ -452,6 +457,22 @@ def _rough_text_length(fragment):
     return len(re.sub(r"\s+", " ", re.sub(r"(?s)<[^>]+>", " ", value)).strip())
 
 
+def _container_semantics(attrs):
+    """Return standardized article signals from class/id/role/itemprop attributes."""
+    values = []
+    for match in re.finditer(
+        r"(?is)\b(?:class|id|role|itemprop)\s*=\s*(?:\"([^\"]*)\"|'([^']*)'|([^\s>]+))",
+        str(attrs or ""),
+    ):
+        values.append(next((part for part in match.groups() if part is not None), ""))
+    normalized = re.sub(r"[^a-z0-9]+", " ", " ".join(values).casefold()).strip()
+    return {
+        "normalized": normalized,
+        "article": bool(ARTICLE_CONTAINER_SIGNAL_RE.search(normalized)),
+        "noise": bool(ARTICLE_CONTAINER_NOISE_RE.search(normalized)),
+    }
+
+
 def _block_counts(blocks):
     return {
         "blocks": len(blocks),
@@ -506,13 +527,16 @@ def _looks_like_author_portrait(block, next_text=""):
 
 def _leading_article_chrome_cut(blocks):
     head_cut = 0
-    for index, block in enumerate(blocks[:6]):
+    prefix_chars = 0
+    for index, block in enumerate(blocks[:24]):
         if block.get("type") not in {"list", "paragraph"}:
+            prefix_chars += len(_block_plain_text(block))
             continue
         text = _block_plain_text(block)
-        if sum(bool(pattern.search(text)) for pattern in ARTICLE_META_LABELS) >= 4:
+        if prefix_chars <= 1200 and sum(bool(pattern.search(text)) for pattern in ARTICLE_META_LABELS) >= 4:
             head_cut = index + 1
             break
+        prefix_chars += len(text)
 
     for index, block in enumerate(blocks[:7]):
         if block.get("type") != "heading" or index == 0:
@@ -663,6 +687,43 @@ def _linked_text_chars(blocks):
         if any(isinstance(mark, dict) and mark.get("type") == "link" for mark in node.get("marks", [])):
             total += len(node.get("text", ""))
     return total
+
+
+def _candidate_integrity(blocks, quality):
+    """Apply non-compensating gates before candidates are allowed to compete."""
+    quality = dict(quality or {})
+    flags = list(quality.get("quality_flags") or [])
+    evidence = list(quality.get("quality_evidence") or [])
+    text_chars = len(blocks_plain_text(blocks))
+    link_ratio = _linked_text_chars(blocks) / max(1, text_chars)
+    texts = [
+        _title_key(_block_plain_text(block))
+        for block in blocks
+        if len(_block_plain_text(block)) >= 8
+    ]
+    duplicate_blocks = len(texts) - len(set(texts))
+    duplicate_ratio = duplicate_blocks / max(1, len(texts))
+    if link_ratio > 0.42:
+        flags.append("link_density_high")
+    if duplicate_blocks >= 3 and duplicate_ratio >= 0.12:
+        flags.append("repeated_block_content")
+    if not flags and text_chars >= 400:
+        evidence.append("integrity_gate")
+    quality.update({
+        "quality_status": "pass" if not flags else "suspect",
+        "quality_flags": list(dict.fromkeys(flags))[:8],
+        "quality_evidence": list(dict.fromkeys(evidence)),
+        "link_ratio": round(link_ratio, 4),
+        "duplicate_blocks": duplicate_blocks,
+        "duplicate_ratio": round(duplicate_ratio, 4),
+    })
+    return quality
+
+
+def _candidate_signature(blocks):
+    return hashlib.sha256(
+        json.dumps(_without_ids(sanitize_blocks(blocks)), ensure_ascii=False, sort_keys=True).encode("utf-8")
+    ).hexdigest()
 
 
 def _candidate_score(strategy, blocks, quality, *, depth=0, focus_ratio=1.0):
@@ -1051,7 +1112,8 @@ def parse_html_blocks_with_report(html_text, base_url="", maximum_figures=None):
     semantic_regions = [
         region for region in regions
         if region["tag"] in {"div", "section"}
-        and ARTICLE_CONTAINER_RE.search(region["attrs"])
+        and _container_semantics(region["attrs"])["article"]
+        and not _container_semantics(region["attrs"])["noise"]
     ]
     article_regions = [region for region in regions if region["tag"] == "article"]
     main_regions = [region for region in regions if region["tag"] == "main"]
@@ -1088,12 +1150,12 @@ def parse_html_blocks_with_report(html_text, base_url="", maximum_figures=None):
             trimmed, quality = trim_article_blocks(parsed)
             if _meaningful_blocks(trimmed):
                 raw_counts = _block_counts(parsed)
-                quality = {
+                quality = _candidate_integrity(trimmed, {
                     **quality,
                     "raw_blocks": raw_counts["blocks"],
                     "raw_text_chars": raw_counts["text_chars"],
-                }
-                focus_ratio = raw_counts["text_chars"] / max(1, broad_raw_text_chars)
+                })
+                focus_ratio = min(1.0, raw_counts["text_chars"] / max(1, broad_raw_text_chars))
                 candidate_pool.append({
                     "strategy": name,
                     "blocks": trimmed,
@@ -1106,18 +1168,19 @@ def parse_html_blocks_with_report(html_text, base_url="", maximum_figures=None):
                     "depth": max(0, int(candidate.get("depth", 0) or 0)),
                     "focus_ratio": focus_ratio,
                     "raw_counts": raw_counts,
+                    "signature": _candidate_signature(trimmed),
                 })
 
     for parsed in (_text_to_blocks(body) for body in _jsonld_article_bodies(source)):
         trimmed, quality = trim_article_blocks(parsed)
         if _meaningful_blocks(trimmed):
             raw_counts = _block_counts(parsed)
-            quality = {
+            quality = _candidate_integrity(trimmed, {
                 **quality,
                 "raw_blocks": raw_counts["blocks"],
                 "raw_text_chars": raw_counts["text_chars"],
-            }
-            focus_ratio = raw_counts["text_chars"] / max(1, broad_raw_text_chars)
+            })
+            focus_ratio = min(1.0, raw_counts["text_chars"] / max(1, broad_raw_text_chars))
             candidate_pool.append({
                 "strategy": "jsonld_article_body",
                 "blocks": trimmed,
@@ -1129,10 +1192,24 @@ def parse_html_blocks_with_report(html_text, base_url="", maximum_figures=None):
                 "depth": 0,
                 "focus_ratio": focus_ratio,
                 "raw_counts": raw_counts,
+                "signature": _candidate_signature(trimmed),
             })
 
+    raw_candidate_count = len(candidate_pool)
+    unique_candidates = {}
+    for candidate in candidate_pool:
+        signature = candidate["signature"]
+        current = unique_candidates.get(signature)
+        if current is None or candidate["score"] > current["score"]:
+            unique_candidates[signature] = candidate
+    candidate_pool = list(unique_candidates.values())
+    quality_candidates = [
+        candidate for candidate in candidate_pool
+        if candidate["quality"].get("quality_status") == "pass"
+    ]
+    selection_pool = quality_candidates or candidate_pool
     if candidate_pool:
-        chosen = max(candidate_pool, key=lambda candidate: candidate["score"])
+        chosen = max(selection_pool, key=lambda candidate: candidate["score"])
         selected = chosen["blocks"]
         strategy = chosen["strategy"]
         quality = chosen["quality"]
@@ -1145,11 +1222,11 @@ def parse_html_blocks_with_report(html_text, base_url="", maximum_figures=None):
         parsed = _parse_html_blocks_raw(source, base_url)
         selected, quality = trim_article_blocks(parsed)
         raw_counts = _block_counts(parsed)
-        quality = {
+        quality = _candidate_integrity(selected, {
             **quality,
             "raw_blocks": raw_counts["blocks"],
             "raw_text_chars": raw_counts["text_chars"],
-        }
+        })
         strategy = "document_fallback"
         selected_score = _candidate_score(strategy, selected, quality)
         selected_tag = "document"
@@ -1184,6 +1261,9 @@ def parse_html_blocks_with_report(html_text, base_url="", maximum_figures=None):
     return selected, {
         "strategy": strategy,
         "candidate_count": len(candidate_pool),
+        "candidate_count_raw": raw_candidate_count,
+        "candidate_duplicates": max(0, raw_candidate_count - len(candidate_pool)),
+        "candidate_quality_rejected": max(0, len(candidate_pool) - len(quality_candidates)),
         "selected_score": selected_score,
         "selected_tag": selected_tag,
         "selected_depth": selected_depth,

@@ -49,7 +49,7 @@ TZ = timezone(timedelta(hours=8))
 LLM_USAGE = LLMUsageTracker(DATA / "llm_usage.json")
 CANDIDATE_CACHE = CandidateCache(DATA / "candidate_cache.json")
 CLUSTER_CACHE = ClusterDecisionCache(DATA / "cluster_cache.json")
-CONTENT_BLOCKS_PROCESSOR_VERSION = "original-first-v2"
+CONTENT_BLOCKS_PROCESSOR_VERSION = "original-first-v3"
 TRANSLATION_RETRY_POLICY_VERSION = "faithful-translation-retry-v1"
 METADATA_TRANSLATION_POLICY_VERSION = "metadata-translation-backfill-v1"
 
@@ -1139,7 +1139,11 @@ def content_parse_record(report, *, status, source="", reason="", media_report=N
     for key in (
         "blocks", "text_chars", "figures", "tables", "figures_discovered",
         "figures_selected", "figures_rejected", "candidate_count",
-        "trimmed_tail_blocks", "trimmed_head_blocks",
+        "figures_rejected_author", "figures_rejected_decorative",
+        "figures_rejected_duplicate", "figures_rejected_small", "figures_rejected_limit",
+        "trimmed_tail_blocks", "trimmed_head_blocks", "trimmed_promotional_blocks",
+        "selected_depth", "selected_raw_blocks", "selected_raw_text_chars",
+        "broad_raw_blocks", "broad_raw_text_chars", "parent_extra_blocks",
     ):
         record[key] = max(0, int(report.get(key, 0) or 0))
     if report.get("selected_score") is not None:
@@ -1150,6 +1154,15 @@ def content_parse_record(report, *, status, source="", reason="", media_report=N
         record["quality_flags"] = [str(flag)[:120] for flag in quality_flags[:8]]
     if report.get("boundary_marker"):
         record["boundary_marker"] = str(report["boundary_marker"])[:120]
+    if report.get("boundary_start_marker"):
+        record["boundary_start_marker"] = str(report["boundary_start_marker"])[:120]
+    if report.get("selected_tag"):
+        record["selected_tag"] = str(report["selected_tag"])[:40]
+    if report.get("focus_ratio") is not None:
+        record["focus_ratio"] = round(float(report.get("focus_ratio") or 0), 4)
+    selection_evidence = report.get("selection_evidence")
+    if isinstance(selection_evidence, list) and selection_evidence:
+        record["selection_evidence"] = [str(value)[:60] for value in selection_evidence[:8]]
     if report.get("noimageindex"):
         record["noimageindex"] = True
     if reason:
@@ -1338,6 +1351,9 @@ def generate_event_body(
             )
             record["translation"]["trimmed_tail_blocks"] = int(
                 previous_quality.get("trimmed_tail_blocks", 0) or 0
+            )
+            record["translation"]["trimmed_promotional_blocks"] = int(
+                previous_quality.get("trimmed_promotional_blocks", 0) or 0
             )
         if translation_error:
             record["translation"]["error"] = translation_error[:80]

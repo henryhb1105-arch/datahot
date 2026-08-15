@@ -34,8 +34,35 @@ ARTICLE_CONTAINER_RE = re.compile(
 )
 ARTICLE_TAIL_HEADING_RE = re.compile(
     r"^(?:related\s+(?:articles?|posts?|stories)|recommended\s+(?:reading|articles?)|"
-    r"you\s+may\s+also\s+like|more\s+from|latest\s+(?:articles?|stories)|"
-    r"相关文章|相关推荐|推荐阅读|更多文章)$",
+    r"you\s+may\s+also\s+like|more\s+from|latest\s+(?:articles?|posts?|stories)|"
+    r"share\s+this\s+(?:article|post|story)|popular\s+(?:articles?|posts?)|"
+    r"相关文章|最新文章|相关推荐|推荐阅读|更多文章|分享本文)$",
+    re.I,
+)
+ARTICLE_PRE_TAIL_PROMO_HEADING_RE = re.compile(
+    r"^(?:get\s+started(?:\s+(?:in|with)\s+.+)?|start\s+(?:using|building)\s+.+|"
+    r"install\s+.+|try\s+.+|join\s+.+|"
+    r"开始使用.+|在.+中开始|安装.+|试用.+|加入.+)$",
+    re.I,
+)
+ARTICLE_PROMO_BLOCK_RE = re.compile(
+    r"(?:\bdownload\b.{0,80}\b(?:guide|report|ebook|whitepaper|roadmap)\b|"
+    r"\b(?:guide|report|ebook|whitepaper)\b.{0,80}\bdownload\b|"
+    r"\b(?:sign\s*up|register|book\s+a\s+demo|contact\s+sales)\b|"
+    r"下载.{0,40}(?:指南|报告|电子书|白皮书|路线图)|"
+    r"(?:指南|报告|电子书|白皮书).{0,40}下载|注册|预约演示|联系销售)",
+    re.I,
+)
+ARTICLE_TERMINAL_PROMO_RE = re.compile(
+    r"^(?:get\s+started\s+(?:with|using|on)\s+.+|try\s+.+(?:today|now)|"
+    r"start\s+(?:using|building)\s+.+(?:today|now)|"
+    r"(?:立即|现在)?开始使用.+|(?:立即|现在)?试用.+)[.!。！]?$",
+    re.I,
+)
+ARTICLE_BYLINE_RE = re.compile(
+    r"(?:\blast\s+(?:edited|updated)(?:\s+on)?\b|\bupdated\s+(?:on|at)\b|"
+    r"\bpublished\s+(?:on|at)\b|\bby\s+[A-Z][\w.'’-]+|"
+    r"最后(?:编辑|更新)(?:于|时间)?|更新于|发布于|作者\s*[：:])",
     re.I,
 )
 ARTICLE_UI_BLOCK_RE = re.compile(
@@ -338,7 +365,7 @@ TAG_TOKEN_RE = re.compile(
 
 
 def _container_regions(html_text):
-    """Return balanced article-like container slices without building a live DOM."""
+    """Return balanced container slices and enough ancestry data to compare focus."""
     stack, regions = [], []
     for match in TAG_TOKEN_RE.finditer(str(html_text or "")):
         tag = str(match.group(2) or "").casefold()
@@ -360,10 +387,18 @@ def _container_regions(html_text):
                     "tag": tag,
                     "attrs": opened["attrs"],
                     "html": str(html_text or "")[opened["start"]:match.end()],
+                    "start": opened["start"],
+                    "end": match.end(),
+                    "depth": opened["depth"],
                 })
             continue
         if tag not in HTML_VOID_TAGS and not attrs.rstrip().endswith("/"):
-            stack.append({"tag": tag, "attrs": attrs, "start": match.start()})
+            stack.append({
+                "tag": tag,
+                "attrs": attrs,
+                "start": match.start(),
+                "depth": len(stack),
+            })
     return regions
 
 
@@ -437,6 +472,116 @@ def _block_plain_text(block):
     return re.sub(r"\s+", " ", blocks_plain_text([block])).strip()
 
 
+def _block_links(block):
+    links = []
+    for node in iter_text_nodes(block):
+        for mark in node.get("marks", []):
+            if isinstance(mark, dict) and mark.get("type") == "link" and mark.get("href"):
+                links.append(str(mark["href"]))
+    return list(dict.fromkeys(links))
+
+
+def _block_link_ratio(block):
+    text_chars = len(_block_plain_text(block))
+    linked_chars = 0
+    for node in iter_text_nodes(block):
+        if any(isinstance(mark, dict) and mark.get("type") == "link" for mark in node.get("marks", [])):
+            linked_chars += len(str(node.get("text") or ""))
+    return linked_chars / max(1, text_chars)
+
+
+def _title_key(value):
+    value = re.sub(r"^[\s/\\|>›»·•:：-]+", "", str(value or "")).casefold()
+    return re.sub(r"[^\w\u3400-\u9fff]+", "", value)
+
+
+def _looks_like_author_portrait(block, next_text=""):
+    if block.get("type") != "figure" or not ARTICLE_BYLINE_RE.search(str(next_text or "")):
+        return False
+    if str(block.get("alt") or "").strip() or str(block.get("caption") or "").strip():
+        return False
+    width, height = int(block.get("width", 0) or 0), int(block.get("height", 0) or 0)
+    return bool(width and height and 0.75 <= width / max(1, height) <= 1.33 and max(width, height) <= 900)
+
+
+def _leading_article_chrome_cut(blocks):
+    head_cut = 0
+    for index, block in enumerate(blocks[:6]):
+        if block.get("type") not in {"list", "paragraph"}:
+            continue
+        text = _block_plain_text(block)
+        if sum(bool(pattern.search(text)) for pattern in ARTICLE_META_LABELS) >= 4:
+            head_cut = index + 1
+            break
+
+    for index, block in enumerate(blocks[:7]):
+        if block.get("type") != "heading" or index == 0:
+            continue
+        title = _title_key(_block_plain_text(block))
+        previous = blocks[:index]
+        breadcrumbish = all(
+            candidate.get("type") in {"paragraph", "list"}
+            and len(_block_plain_text(candidate)) <= 180
+            and (
+                re.match(r"^[\s/\\|>›»·•:：-]", _block_plain_text(candidate))
+                or _block_link_ratio(candidate) >= 0.5
+            )
+            for candidate in previous
+        )
+        if title and breadcrumbish and any(
+            _title_key(_block_plain_text(candidate)) == title for candidate in previous
+        ):
+            head_cut = max(head_cut, index + 1)
+            break
+
+    cursor = head_cut
+    if cursor < len(blocks) and blocks[cursor].get("type") == "figure":
+        next_text = _block_plain_text(blocks[cursor + 1]) if cursor + 1 < len(blocks) else ""
+        if _looks_like_author_portrait(blocks[cursor], next_text):
+            cursor += 1
+    if cursor < len(blocks) and ARTICLE_BYLINE_RE.search(_block_plain_text(blocks[cursor])):
+        cursor += 1
+    return cursor
+
+
+def _repeated_promotional_indices(blocks):
+    by_link, by_text = {}, {}
+    eligible = set()
+    for index, block in enumerate(blocks):
+        text = _block_plain_text(block).strip(" \t\r\n:：")
+        if not text or len(text) > 240 or not ARTICLE_PROMO_BLOCK_RE.search(text):
+            continue
+        eligible.add(index)
+        for href in _block_links(block):
+            by_link.setdefault(href, []).append(index)
+        by_text.setdefault(_title_key(text), []).append(index)
+    repeated = set()
+    for indices in list(by_link.values()) + list(by_text.values()):
+        if len(set(indices)) >= 2:
+            repeated.update(indices)
+    return repeated & eligible
+
+
+def _trim_terminal_promotions(blocks):
+    """Remove only explicit, linked conversion copy at the very end of an article."""
+    trimmed = list(blocks)
+    removed = 0
+    while trimmed:
+        block = trimmed[-1]
+        text = _block_plain_text(block).strip(" \t\r\n:：")
+        if not (
+            block.get("type") == "paragraph"
+            and 0 < len(text) <= 180
+            and _block_links(block)
+            and _block_link_ratio(block) >= 0.15
+            and ARTICLE_TERMINAL_PROMO_RE.fullmatch(text)
+        ):
+            break
+        trimmed.pop()
+        removed += 1
+    return trimmed, removed
+
+
 def trim_article_blocks(blocks, minimum_chars=400):
     """Cut deterministic source-site chrome that follows a meaningful article.
 
@@ -449,6 +594,7 @@ def trim_article_blocks(blocks, minimum_chars=400):
     text_chars = 0
     boundary_index = None
     boundary_marker = ""
+    boundary_start_marker = ""
     for index, block in enumerate(safe):
         text = _block_plain_text(block)
         normalized = text.strip(" \t\r\n:：")
@@ -460,30 +606,54 @@ def trim_article_blocks(blocks, minimum_chars=400):
         if text_chars >= minimum_chars and (is_heading_boundary or is_ui_boundary):
             boundary_index = index
             boundary_marker = normalized[:120]
+            if is_heading_boundary:
+                for earlier in range(max(0, index - 8), index):
+                    earlier_text = _block_plain_text(safe[earlier]).strip(" \t\r\n:：")
+                    between = safe[earlier:index]
+                    if (
+                        safe[earlier].get("type") == "heading"
+                        and ARTICLE_PRE_TAIL_PROMO_HEADING_RE.fullmatch(earlier_text)
+                        and sum(len(_block_plain_text(item)) for item in safe[:earlier]) >= minimum_chars
+                        and all(len(_block_plain_text(item)) <= 320 for item in between)
+                    ):
+                        boundary_index = earlier
+                        boundary_start_marker = earlier_text[:120]
+                        break
             break
         text_chars += len(text)
 
     tail_trimmed = safe if boundary_index is None else safe[:boundary_index]
-    head_cut = 0
-    for index, block in enumerate(tail_trimmed[:6]):
-        if block.get("type") not in {"list", "paragraph"}:
-            continue
-        text = _block_plain_text(block)
-        if sum(bool(pattern.search(text)) for pattern in ARTICLE_META_LABELS) >= 4:
-            head_cut = index + 1
-            break
-    trimmed = tail_trimmed[head_cut:]
+    head_cut = _leading_article_chrome_cut(tail_trimmed)
+    body = tail_trimmed[head_cut:]
+    promotional_indices = _repeated_promotional_indices(body)
+    trimmed = [block for index, block in enumerate(body) if index not in promotional_indices]
+    trimmed, terminal_promotions = _trim_terminal_promotions(trimmed)
     findings = []
     for block in trimmed:
         text = _block_plain_text(block).strip(" \t\r\n:：")
         if text and ARTICLE_POLLUTION_RE.fullmatch(text):
             findings.append(text[:120])
+    evidence = []
+    if head_cut:
+        evidence.append("head_boundary")
+    if boundary_index is not None:
+        evidence.append("tail_boundary")
+    if promotional_indices:
+        evidence.append("repeated_promotion_removed")
+    if terminal_promotions:
+        evidence.append("terminal_promotion_removed")
+    text_total = len(blocks_plain_text(trimmed))
+    if text_total >= minimum_chars and _linked_text_chars(trimmed) / max(1, text_total) <= 0.35:
+        evidence.append("prose_density")
     return sanitize_blocks(trimmed), {
         "quality_status": "pass" if not findings else "suspect",
         "quality_flags": list(dict.fromkeys(findings))[:8],
+        "quality_evidence": evidence,
         "trimmed_tail_blocks": len(safe) - len(tail_trimmed),
         "trimmed_head_blocks": head_cut,
+        "trimmed_promotional_blocks": len(promotional_indices) + terminal_promotions,
         "boundary_marker": boundary_marker,
+        "boundary_start_marker": boundary_start_marker,
     }
 
 
@@ -495,12 +665,13 @@ def _linked_text_chars(blocks):
     return total
 
 
-def _candidate_score(strategy, blocks, quality):
+def _candidate_score(strategy, blocks, quality, *, depth=0, focus_ratio=1.0):
     """Reward focused article semantics without rewarding a whole-page text dump."""
     base = {
         "semantic_container": 720,
         "article": 640,
         "jsonld_article_body": 520,
+        "nested_content": 340,
         "main": 260,
         "largest_content": 120,
         "document_fallback": 0,
@@ -514,9 +685,27 @@ def _candidate_score(strategy, blocks, quality):
     )
     link_ratio = _linked_text_chars(blocks) / max(1, text_chars)
     suspect_penalty = 600 if quality.get("quality_status") != "pass" else 0
+    raw_blocks = max(len(blocks), int(quality.get("raw_blocks", len(blocks)) or len(blocks)))
+    removed_blocks = (
+        int(quality.get("trimmed_head_blocks", 0) or 0)
+        + int(quality.get("trimmed_tail_blocks", 0) or 0)
+        + int(quality.get("trimmed_promotional_blocks", 0) or 0)
+    )
+    trim_penalty = min(320, removed_blocks / max(1, raw_blocks) * 480)
+    focus_bonus = 0
+    if strategy == "nested_content":
+        if 0.45 <= focus_ratio <= 0.97:
+            focus_bonus = 180
+        elif 0.25 <= focus_ratio < 0.45:
+            focus_bonus = 40
+        elif focus_ratio < 0.25:
+            focus_bonus = -180
+        elif focus_ratio > 0.985:
+            focus_bonus = -40
+        focus_bonus += min(80, max(0, int(depth)) * 8)
     return round(
         base + min(360, text_chars / 12) + min(120, structural)
-        - min(240, link_ratio * 480) - suspect_penalty,
+        + focus_bonus - min(240, link_ratio * 480) - trim_penalty - suspect_penalty,
         2,
     )
 
@@ -529,7 +718,7 @@ def select_article_media(blocks, maximum=None):
     figures beyond that cap remain visible as safe source links instead of vanishing.
     """
     safe = sanitize_blocks(blocks)
-    candidates, seen = [], set()
+    candidates, seen, rejected = [], set(), {}
     for index, block in enumerate(safe):
         if block.get("type") != "figure":
             continue
@@ -537,9 +726,18 @@ def select_article_media(blocks, maximum=None):
         identity = (parsed.netloc.casefold(), parsed.path.rstrip("/").casefold())
         descriptor = " ".join((block.get("src", ""), block.get("alt", ""), block.get("caption", "")))
         width, height = int(block.get("width", 0)), int(block.get("height", 0))
-        if identity in seen or DECORATIVE_IMAGE_RE.search(descriptor):
+        next_text = _block_plain_text(safe[index + 1]) if index + 1 < len(safe) else ""
+        if identity in seen:
+            rejected[index] = "duplicate"
+            continue
+        if DECORATIVE_IMAGE_RE.search(descriptor):
+            rejected[index] = "decorative"
+            continue
+        if _looks_like_author_portrait(block, next_text):
+            rejected[index] = "author"
             continue
         if width and height and (width < 240 or height < 120):
+            rejected[index] = "small"
             continue
         seen.add(identity)
         score = 0
@@ -550,17 +748,23 @@ def select_article_media(blocks, maximum=None):
         candidates.append((score, index))
     ranked = sorted(candidates, key=lambda value: (-value[0], value[1]))
     if maximum is not None:
-        ranked = ranked[:max(0, int(maximum))]
+        limit = max(0, int(maximum))
+        for _score, index in ranked[limit:]:
+            rejected[index] = "limit"
+        ranked = ranked[:limit]
     selected = {index for _score, index in ranked}
     filtered = [
         block for index, block in enumerate(safe)
         if block.get("type") != "figure" or index in selected
     ]
-    return sanitize_blocks(filtered), {
+    report = {
         "figures_discovered": sum(block.get("type") == "figure" for block in safe),
         "figures_selected": len(selected),
         "figures_rejected": sum(block.get("type") == "figure" for block in safe) - len(selected),
     }
+    for reason in ("author", "decorative", "duplicate", "small", "limit"):
+        report[f"figures_rejected_{reason}"] = sum(value == reason for value in rejected.values())
+    return sanitize_blocks(filtered), report
 
 
 class ArticleBlockParser(HTMLParser):
@@ -844,63 +1048,88 @@ def parse_html_blocks_with_report(html_text, base_url="", maximum_figures=None):
     """Extract the best article body and return auditable selection metadata."""
     source = str(html_text or "")
     regions = _container_regions(source)
-    strategies = [
-        (
-            "semantic_container",
-            [
-                region for region in regions
-                if region["tag"] in {"div", "section"}
-                and ARTICLE_CONTAINER_RE.search(region["attrs"])
-            ],
-        ),
-        ("article", [region for region in regions if region["tag"] == "article"]),
-        ("main", [region for region in regions if region["tag"] == "main"]),
+    semantic_regions = [
+        region for region in regions
+        if region["tag"] in {"div", "section"}
+        and ARTICLE_CONTAINER_RE.search(region["attrs"])
     ]
+    article_regions = [region for region in regions if region["tag"] == "article"]
+    main_regions = [region for region in regions if region["tag"] == "main"]
+    primary_region_keys = {
+        (region.get("start"), region.get("end"))
+        for region in semantic_regions + article_regions + main_regions
+    }
+    nested_regions = sorted(
+        (
+            region for region in regions
+            if region["tag"] in {"div", "section"}
+            and (region.get("start"), region.get("end")) not in primary_region_keys
+            and _rough_text_length(region["html"]) >= 400
+        ),
+        key=lambda region: _rough_text_length(region["html"]),
+        reverse=True,
+    )[:24]
+    has_primary_root = bool(semantic_regions or article_regions or main_regions)
+    strategies = [
+        ("semantic_container", sorted(semantic_regions, key=lambda region: _rough_text_length(region["html"]), reverse=True)[:16]),
+        ("article", article_regions),
+        ("main", main_regions),
+        ("nested_content" if has_primary_root else "largest_content", nested_regions),
+    ]
+    broad_regions = main_regions or article_regions or semantic_regions or nested_regions
+    broad_raw_text_chars = max(
+        (_rough_text_length(region["html"]) for region in broad_regions),
+        default=max(1, _rough_text_length(source)),
+    )
     candidate_pool = []
     for name, strategy_regions in strategies:
         for candidate in strategy_regions:
             parsed = _parse_html_blocks_raw(candidate["html"], base_url)
             trimmed, quality = trim_article_blocks(parsed)
             if _meaningful_blocks(trimmed):
+                raw_counts = _block_counts(parsed)
+                quality = {
+                    **quality,
+                    "raw_blocks": raw_counts["blocks"],
+                    "raw_text_chars": raw_counts["text_chars"],
+                }
+                focus_ratio = raw_counts["text_chars"] / max(1, broad_raw_text_chars)
                 candidate_pool.append({
                     "strategy": name,
                     "blocks": trimmed,
                     "quality": quality,
-                    "score": _candidate_score(name, trimmed, quality),
+                    "score": _candidate_score(
+                        name, trimmed, quality,
+                        depth=candidate.get("depth", 0), focus_ratio=focus_ratio,
+                    ),
+                    "tag": candidate.get("tag", ""),
+                    "depth": max(0, int(candidate.get("depth", 0) or 0)),
+                    "focus_ratio": focus_ratio,
+                    "raw_counts": raw_counts,
                 })
 
-    if not candidate_pool:
-        jsonld = [_text_to_blocks(body) for body in _jsonld_article_bodies(source)]
-        for parsed in jsonld:
-            trimmed, quality = trim_article_blocks(parsed)
-            if _meaningful_blocks(trimmed):
-                candidate_pool.append({
-                    "strategy": "jsonld_article_body",
-                    "blocks": trimmed,
-                    "quality": quality,
-                    "score": _candidate_score("jsonld_article_body", trimmed, quality),
-                })
-
-    if not candidate_pool:
-        largest = sorted(
-            (
-                region for region in regions
-                if region["tag"] in {"div", "section"}
-                and _rough_text_length(region["html"]) >= 400
-            ),
-            key=lambda region: _rough_text_length(region["html"]),
-            reverse=True,
-        )[:12]
-        for candidate in largest:
-            parsed = _parse_html_blocks_raw(candidate["html"], base_url)
-            trimmed, quality = trim_article_blocks(parsed)
-            if _meaningful_blocks(trimmed):
-                candidate_pool.append({
-                    "strategy": "largest_content",
-                    "blocks": trimmed,
-                    "quality": quality,
-                    "score": _candidate_score("largest_content", trimmed, quality),
-                })
+    for parsed in (_text_to_blocks(body) for body in _jsonld_article_bodies(source)):
+        trimmed, quality = trim_article_blocks(parsed)
+        if _meaningful_blocks(trimmed):
+            raw_counts = _block_counts(parsed)
+            quality = {
+                **quality,
+                "raw_blocks": raw_counts["blocks"],
+                "raw_text_chars": raw_counts["text_chars"],
+            }
+            focus_ratio = raw_counts["text_chars"] / max(1, broad_raw_text_chars)
+            candidate_pool.append({
+                "strategy": "jsonld_article_body",
+                "blocks": trimmed,
+                "quality": quality,
+                "score": _candidate_score(
+                    "jsonld_article_body", trimmed, quality, focus_ratio=focus_ratio,
+                ),
+                "tag": "jsonld",
+                "depth": 0,
+                "focus_ratio": focus_ratio,
+                "raw_counts": raw_counts,
+            })
 
     if candidate_pool:
         chosen = max(candidate_pool, key=lambda candidate: candidate["score"])
@@ -908,18 +1137,63 @@ def parse_html_blocks_with_report(html_text, base_url="", maximum_figures=None):
         strategy = chosen["strategy"]
         quality = chosen["quality"]
         selected_score = chosen["score"]
+        selected_tag = chosen["tag"]
+        selected_depth = chosen["depth"]
+        focus_ratio = chosen["focus_ratio"]
+        raw_counts = chosen["raw_counts"]
     else:
         parsed = _parse_html_blocks_raw(source, base_url)
         selected, quality = trim_article_blocks(parsed)
+        raw_counts = _block_counts(parsed)
+        quality = {
+            **quality,
+            "raw_blocks": raw_counts["blocks"],
+            "raw_text_chars": raw_counts["text_chars"],
+        }
         strategy = "document_fallback"
         selected_score = _candidate_score(strategy, selected, quality)
+        selected_tag = "document"
+        selected_depth = 0
+        focus_ratio = 1.0
+
+    selection_evidence = list(quality.get("quality_evidence") or [])
+    strategy_evidence = {
+        "semantic_container": "semantic_container",
+        "article": "article_element",
+        "nested_content": "nested_focus",
+        "largest_content": "largest_content",
+        "jsonld_article_body": "jsonld_article_body",
+        "main": "main_container",
+    }.get(strategy)
+    if strategy_evidence:
+        selection_evidence.append(strategy_evidence)
+    selection_evidence = list(dict.fromkeys(selection_evidence))
+    if quality.get("quality_status") == "pass" and not selection_evidence:
+        quality = {
+            **quality,
+            "quality_status": "suspect",
+            "quality_flags": ["boundary_evidence_missing"],
+        }
 
     selected, media_report = select_article_media(selected, maximum=maximum_figures)
     counts = _block_counts(selected)
+    broad_raw_blocks = max(
+        (candidate["raw_counts"]["blocks"] for candidate in candidate_pool),
+        default=raw_counts["blocks"],
+    )
     return selected, {
         "strategy": strategy,
         "candidate_count": len(candidate_pool),
         "selected_score": selected_score,
+        "selected_tag": selected_tag,
+        "selected_depth": selected_depth,
+        "selected_raw_blocks": raw_counts["blocks"],
+        "selected_raw_text_chars": raw_counts["text_chars"],
+        "broad_raw_blocks": broad_raw_blocks,
+        "broad_raw_text_chars": broad_raw_text_chars,
+        "parent_extra_blocks": max(0, broad_raw_blocks - raw_counts["blocks"]),
+        "focus_ratio": round(focus_ratio, 4),
+        "selection_evidence": selection_evidence,
         **quality,
         **counts,
         **media_report,

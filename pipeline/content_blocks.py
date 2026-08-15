@@ -32,6 +32,35 @@ ARTICLE_CONTAINER_RE = re.compile(
     r"(?:^|[\s_-])(?:body|content)[\s_-]*(?:article|post|story)(?:$|[\s_-])",
     re.I,
 )
+ARTICLE_TAIL_HEADING_RE = re.compile(
+    r"^(?:related\s+(?:articles?|posts?|stories)|recommended\s+(?:reading|articles?)|"
+    r"you\s+may\s+also\s+like|more\s+from|latest\s+(?:articles?|stories)|"
+    r"相关文章|相关推荐|推荐阅读|更多文章)$",
+    re.I,
+)
+ARTICLE_UI_BLOCK_RE = re.compile(
+    r"^(?:item\s+not\s+found\.?|未找到项目[。.]?|previous|next|上一页|下一页|"
+    r"\d+\s*/\s*\d+|e-?books?|电子书|faq|常见问题)$",
+    re.I,
+)
+ARTICLE_POLLUTION_RE = re.compile(
+    r"^(?:item\s+not\s+found\.?|未找到项目[。.]?|previous|next|上一页|下一页|"
+    r"\d+\s*/\s*\d+|related\s+(?:articles?|posts?|stories)|相关文章|相关推荐|"
+    r"view\s+pricing|查看定价|contact\s+sales|联系销售|"
+    r"get\s+(?:the\s+)?developer\s+newsletter|获取开发者通讯|"
+    r"thanks?!?\s+you(?:'|’)re\s+subscribed\.?|谢谢！?您已订阅[。.]?|"
+    r"sorry,?\s+there\s+was\s+a\s+problem[^.]*\.?|"
+    r"抱歉，?提交时出现问题[^。]*[。.]?)$",
+    re.I,
+)
+ARTICLE_META_LABELS = (
+    re.compile(r"(?:\bcategory\b|类别\s*[：:])", re.I),
+    re.compile(r"(?:\bproduct\b|产品\s*[：:])", re.I),
+    re.compile(r"(?:\bdate\b|日期\s*[：:])", re.I),
+    re.compile(r"(?:reading\s*time|阅读时间)", re.I),
+    re.compile(r"(?:copy\s*link|复制链接)", re.I),
+    re.compile(r"(?:\bshare\b|分享(?:\s*[：:]|复制链接))", re.I),
+)
 DECORATIVE_IMAGE_RE = re.compile(
     r"(?:logo|avatar|icon|favicon|emoji|badge|author|profile|portrait|sponsor|"
     r"advert|tracking|pixel|spacer|sprite)",
@@ -404,6 +433,94 @@ def _meaningful_blocks(blocks):
     )
 
 
+def _block_plain_text(block):
+    return re.sub(r"\s+", " ", blocks_plain_text([block])).strip()
+
+
+def trim_article_blocks(blocks, minimum_chars=400):
+    """Cut deterministic source-site chrome that follows a meaningful article.
+
+    The boundary is intentionally conservative: exact UI copy or a known related-
+    content heading only becomes a stop marker after enough article text has been
+    observed.  This keeps legitimate mentions inside short articles while removing
+    recommendation carousels, newsletter forms and other source-page components.
+    """
+    safe = sanitize_blocks(blocks)
+    text_chars = 0
+    boundary_index = None
+    boundary_marker = ""
+    for index, block in enumerate(safe):
+        text = _block_plain_text(block)
+        normalized = text.strip(" \t\r\n:：")
+        is_heading_boundary = (
+            block.get("type") == "heading"
+            and bool(ARTICLE_TAIL_HEADING_RE.fullmatch(normalized))
+        )
+        is_ui_boundary = bool(ARTICLE_UI_BLOCK_RE.fullmatch(normalized))
+        if text_chars >= minimum_chars and (is_heading_boundary or is_ui_boundary):
+            boundary_index = index
+            boundary_marker = normalized[:120]
+            break
+        text_chars += len(text)
+
+    tail_trimmed = safe if boundary_index is None else safe[:boundary_index]
+    head_cut = 0
+    for index, block in enumerate(tail_trimmed[:6]):
+        if block.get("type") not in {"list", "paragraph"}:
+            continue
+        text = _block_plain_text(block)
+        if sum(bool(pattern.search(text)) for pattern in ARTICLE_META_LABELS) >= 4:
+            head_cut = index + 1
+            break
+    trimmed = tail_trimmed[head_cut:]
+    findings = []
+    for block in trimmed:
+        text = _block_plain_text(block).strip(" \t\r\n:：")
+        if text and ARTICLE_POLLUTION_RE.fullmatch(text):
+            findings.append(text[:120])
+    return sanitize_blocks(trimmed), {
+        "quality_status": "pass" if not findings else "suspect",
+        "quality_flags": list(dict.fromkeys(findings))[:8],
+        "trimmed_tail_blocks": len(safe) - len(tail_trimmed),
+        "trimmed_head_blocks": head_cut,
+        "boundary_marker": boundary_marker,
+    }
+
+
+def _linked_text_chars(blocks):
+    total = 0
+    for node in iter_text_nodes(blocks):
+        if any(isinstance(mark, dict) and mark.get("type") == "link" for mark in node.get("marks", [])):
+            total += len(node.get("text", ""))
+    return total
+
+
+def _candidate_score(strategy, blocks, quality):
+    """Reward focused article semantics without rewarding a whole-page text dump."""
+    base = {
+        "semantic_container": 720,
+        "article": 640,
+        "jsonld_article_body": 520,
+        "main": 260,
+        "largest_content": 120,
+        "document_fallback": 0,
+    }.get(strategy, 0)
+    counts = _block_counts(blocks)
+    text_chars = counts["text_chars"]
+    structural = (
+        sum(block.get("type") == "heading" for block in blocks) * 12
+        + counts["tables"] * 40
+        + counts["figures"] * 10
+    )
+    link_ratio = _linked_text_chars(blocks) / max(1, text_chars)
+    suspect_penalty = 600 if quality.get("quality_status") != "pass" else 0
+    return round(
+        base + min(360, text_chars / 12) + min(120, structural)
+        - min(240, link_ratio * 480) - suspect_penalty,
+        2,
+    )
+
+
 def select_article_media(blocks, maximum=None):
     """Drop decorative media and keep explanatory figures in source order.
 
@@ -728,8 +845,6 @@ def parse_html_blocks_with_report(html_text, base_url="", maximum_figures=None):
     source = str(html_text or "")
     regions = _container_regions(source)
     strategies = [
-        ("article", [region for region in regions if region["tag"] == "article"]),
-        ("main", [region for region in regions if region["tag"] == "main"]),
         (
             "semantic_container",
             [
@@ -738,24 +853,35 @@ def parse_html_blocks_with_report(html_text, base_url="", maximum_figures=None):
                 and ARTICLE_CONTAINER_RE.search(region["attrs"])
             ],
         ),
+        ("article", [region for region in regions if region["tag"] == "article"]),
+        ("main", [region for region in regions if region["tag"] == "main"]),
     ]
-    selected, strategy = [], ""
-    for name, candidates in strategies:
-        parsed = [_parse_html_blocks_raw(candidate["html"], base_url) for candidate in candidates]
-        parsed = [blocks for blocks in parsed if _meaningful_blocks(blocks)]
-        if parsed:
-            selected = max(parsed, key=lambda blocks: _block_counts(blocks)["text_chars"])
-            strategy = name
-            break
+    candidate_pool = []
+    for name, strategy_regions in strategies:
+        for candidate in strategy_regions:
+            parsed = _parse_html_blocks_raw(candidate["html"], base_url)
+            trimmed, quality = trim_article_blocks(parsed)
+            if _meaningful_blocks(trimmed):
+                candidate_pool.append({
+                    "strategy": name,
+                    "blocks": trimmed,
+                    "quality": quality,
+                    "score": _candidate_score(name, trimmed, quality),
+                })
 
-    if not selected:
+    if not candidate_pool:
         jsonld = [_text_to_blocks(body) for body in _jsonld_article_bodies(source)]
-        jsonld = [blocks for blocks in jsonld if _meaningful_blocks(blocks)]
-        if jsonld:
-            selected = max(jsonld, key=lambda blocks: _block_counts(blocks)["text_chars"])
-            strategy = "jsonld_article_body"
+        for parsed in jsonld:
+            trimmed, quality = trim_article_blocks(parsed)
+            if _meaningful_blocks(trimmed):
+                candidate_pool.append({
+                    "strategy": "jsonld_article_body",
+                    "blocks": trimmed,
+                    "quality": quality,
+                    "score": _candidate_score("jsonld_article_body", trimmed, quality),
+                })
 
-    if not selected:
+    if not candidate_pool:
         largest = sorted(
             (
                 region for region in regions
@@ -765,19 +891,39 @@ def parse_html_blocks_with_report(html_text, base_url="", maximum_figures=None):
             key=lambda region: _rough_text_length(region["html"]),
             reverse=True,
         )[:12]
-        parsed = [_parse_html_blocks_raw(candidate["html"], base_url) for candidate in largest]
-        parsed = [blocks for blocks in parsed if _meaningful_blocks(blocks)]
-        if parsed:
-            selected = max(parsed, key=lambda blocks: _block_counts(blocks)["text_chars"])
-            strategy = "largest_content"
+        for candidate in largest:
+            parsed = _parse_html_blocks_raw(candidate["html"], base_url)
+            trimmed, quality = trim_article_blocks(parsed)
+            if _meaningful_blocks(trimmed):
+                candidate_pool.append({
+                    "strategy": "largest_content",
+                    "blocks": trimmed,
+                    "quality": quality,
+                    "score": _candidate_score("largest_content", trimmed, quality),
+                })
 
-    if not selected:
-        selected = _parse_html_blocks_raw(source, base_url)
+    if candidate_pool:
+        chosen = max(candidate_pool, key=lambda candidate: candidate["score"])
+        selected = chosen["blocks"]
+        strategy = chosen["strategy"]
+        quality = chosen["quality"]
+        selected_score = chosen["score"]
+    else:
+        parsed = _parse_html_blocks_raw(source, base_url)
+        selected, quality = trim_article_blocks(parsed)
         strategy = "document_fallback"
+        selected_score = _candidate_score(strategy, selected, quality)
 
     selected, media_report = select_article_media(selected, maximum=maximum_figures)
     counts = _block_counts(selected)
-    return selected, {"strategy": strategy, **counts, **media_report}
+    return selected, {
+        "strategy": strategy,
+        "candidate_count": len(candidate_pool),
+        "selected_score": selected_score,
+        **quality,
+        **counts,
+        **media_report,
+    }
 
 
 def parse_html_blocks(html_text, base_url=""):

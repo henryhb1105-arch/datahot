@@ -45,6 +45,10 @@ class OfficialFeedParsingTests(unittest.TestCase):
         self.assertEqual(parsed.tzinfo, run_update.timezone.utc)
         self.assertEqual(parsed.isoformat(), "2026-08-12T00:00:00+00:00")
 
+    def test_parse_date_accepts_human_readable_jsonld_dates(self):
+        parsed = run_update.parse_date("May 22, 2026")
+        self.assertEqual(parsed.isoformat(), "2026-05-22T00:00:00+00:00")
+
     def test_rss_and_atom_are_both_supported(self):
         rss = ET.fromstring("""
             <rss><channel><item>

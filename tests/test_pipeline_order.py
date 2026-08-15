@@ -446,7 +446,7 @@ class EventFirstPipelineTests(unittest.TestCase):
         self.assertEqual(summary["attempted"], 2)
         self.assertEqual(summary["ready"], 2)
         self.assertFalse(hasattr(translated, "called_item"))
-        self.assertEqual(same_site["content_parse"]["processor_version"], "original-first-v1")
+        self.assertEqual(same_site["content_parse"]["processor_version"], "original-first-v2")
         self.assertEqual(cross_site["content_mode"], "original")
 
     def test_media_refresh_retries_only_source_bound_recoverable_figures(self):
@@ -557,6 +557,70 @@ class EventFirstPipelineTests(unittest.TestCase):
         fetch.assert_not_called()
         translate.assert_called_once()
 
+    def test_parser_upgrade_reuses_trimmed_translation_and_repairs_publish_date(self):
+        target = event("upgrade", importance=95)
+        translated_blocks = [{
+            "type": "paragraph",
+            "children": [{"type": "text", "text": "忠实中文译文和数字 123。" * 75, "marks": []}],
+        }, {
+            "type": "paragraph",
+            "children": [{"type": "text", "text": "未找到项目。", "marks": []}],
+        }, {
+            "type": "heading", "level": 2,
+            "children": [{"type": "text", "text": "相关文章", "marks": []}],
+        }]
+        target.update({
+            "full_zh": "忠实中文译文和数字 123。" * 75,
+            "content_blocks": translated_blocks,
+            "content_mode": "translated",
+            "source_language": "other",
+            "translation_status": "complete",
+            "source_content_hash": "old-parser-hash",
+            "content_parse": {
+                "processor_version": "original-first-v1",
+                "status": "ready",
+                "attempted_at": NOW.isoformat(),
+            },
+        })
+        source_blocks = [{
+            "type": "paragraph",
+            "children": [{
+                "type": "text",
+                "text": "Faithful source facts and number 123. " * 32,
+                "marks": [],
+            }],
+        }]
+        report = {
+            "strategy": "semantic_container", "quality_status": "pass",
+            "quality_flags": [], "candidate_count": 2, "selected_score": 1111.5,
+            "trimmed_tail_blocks": 0, "blocks": 1, "text_chars": 1184,
+            "figures": 0, "tables": 0, "figures_discovered": 0,
+            "figures_selected": 0, "figures_rejected": 0,
+        }
+        published = datetime(2026, 5, 22, tzinfo=timezone.utc)
+        with patch.object(
+            run_update, "fetch_article_content",
+            return_value=("Faithful source facts. " * 60, "", published, source_blocks, report),
+        ), patch.object(run_update, "translate_article_blocks") as translate, patch.object(
+            run_update, "cache_event_media",
+            side_effect=lambda blocks, *_args, **_kwargs: (
+                blocks, {"figures": 0, "cached": 0, "link_only": 0, "reasons": {}},
+            ),
+        ), patch.dict(run_update.os.environ, {"CONTENT_BACKFILL_EVENT_IDS": "upgrade"}):
+            summary = run_update.backfill_structured_content(
+                [target], ("", "", ""), now=NOW, limit=0, lookback_days=30,
+            )
+
+        self.assertEqual(summary["ready"], 1)
+        self.assertEqual(summary["requested_event_ids"], ["upgrade"])
+        self.assertEqual(target["content_parse"]["processor_version"], "original-first-v2")
+        self.assertTrue(target["content_parse"]["translation"]["reused"])
+        self.assertEqual(target["content_parse"]["translation"]["trimmed_tail_blocks"], 2)
+        self.assertEqual(target["content_parse"]["quality_status"], "pass")
+        self.assertNotIn("未找到项目", target["full_zh"])
+        self.assertTrue(target["published"].startswith("2026-05-22"))
+        translate.assert_not_called()
+
     def test_metadata_backfill_repairs_recent_event_and_records_token_purpose(self):
         target = event(
             "metadata", title="English title", zh_summary="English summary",
@@ -586,6 +650,8 @@ class EventFirstPipelineTests(unittest.TestCase):
         self.assertIn("CONTENT_TRANSLATION_BACKFILL_LIMIT:", workflow)
         self.assertIn("CONTENT_METADATA_BACKFILL_LIMIT:", workflow)
         self.assertIn("CONTENT_BACKFILL_ATTEMPTS:", workflow)
+        self.assertIn("CONTENT_BACKFILL_EVENT_IDS:", workflow)
+        self.assertIn("backfill_event_ids:", workflow)
         self.assertNotIn("CONTENT_BLOCKS_BACKFILL_LIMIT:", workflow)
         self.assertNotIn("CONTENT_BLOCKS_BACKFILL_ATTEMPTS:", workflow)
 

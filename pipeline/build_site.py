@@ -8,7 +8,10 @@ from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 from urllib.parse import urlparse
 from agent_page import AGENT_PAGE_CSS, publish_skill_bundle, render_agent_body
-from content_blocks import blocks_plain_text, render_blocks_html, sanitize_blocks, sanitize_url
+from content_blocks import (
+    blocks_plain_text, render_blocks_html, sanitize_blocks, sanitize_url,
+    trim_article_blocks,
+)
 from check_links import check_site_links, format_broken_links
 from feed import build_atom_feed, validate_atom_feed
 from lite_data import (
@@ -939,7 +942,15 @@ def render_detail(e, all_events, css, tts_item=None):
         if main_url else ""
     )
     # blocks-v1 先经本地白名单清洗再渲染；异常或旧数据安全降级到 full_zh。
-    safe_blocks = sanitize_blocks(e.get("content_blocks", []), main_url)
+    safe_blocks, _display_quality = trim_article_blocks(
+        sanitize_blocks(e.get("content_blocks", []), main_url)
+    )
+    if (
+        len(safe_blocks) >= 2 and safe_blocks[0].get("type") == "figure"
+        and not (safe_blocks[0].get("alt") or safe_blocks[0].get("caption"))
+        and safe_blocks[1].get("type") == "heading"
+    ):
+        safe_blocks = safe_blocks[1:]
     if safe_blocks and safe_blocks[0].get("type") == "heading":
         import difflib as _dl
         leading = blocks_plain_text([safe_blocks[0]]).strip()
@@ -993,10 +1004,21 @@ def render_detail(e, all_events, css, tts_item=None):
             f'<div class="content-footer">{note_html}{original_footer_link}</div>'
             if note_html or original_footer_link else ""
         )
-        full_block = f'''<div class="card content-card"><h4>{ic("file")} {content_title}{badge_html}</h4>
+        full_block = f'''<section class="content-section" aria-labelledby="articleBodyTitle">
+  <div class="content-heading"><h2 id="articleBodyTitle">{ic("file")} {content_title}</h2>{badge_html}</div>
   <div class="fulltext">{full_paras}</div>
   {footer_html}
-</div>'''
+</section>'''
+    brief_reason = clean_reason(e.get("reason", ""))
+    brief_html = f'''<details class="article-brief">
+  <summary>DataHot 速览</summary>
+  <div class="article-brief-body"><p>{esc(e["zh_summary"])}</p>
+  {f'<p class="brief-why"><b>为什么值得关注：</b>{esc(brief_reason)}</p>' if brief_reason else ''}</div>
+</details>'''
+    topic_html = (
+        f'<div class="vendors article-tags" aria-label="文章主题">{vtags}</div>'
+        if vtags else ""
+    )
     page_url = f"{SITE_BASE}/e/{event_id}.html"
     jsonld_payload = {
         "@context": "https://schema.org", "@type": "NewsArticle",
@@ -1031,12 +1053,22 @@ def render_detail(e, all_events, css, tts_item=None):
 .article{{max-width:1040px;margin:0 auto;padding:36px 20px 60px}}
 .article-content{{max-width:840px;margin:0 auto}}
 .article .back{{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}}
-.article h1{{font-size:24px;font-weight:800;line-height:1.5;margin:12px 0 16px}}
+.article h1{{max-width:700px;font-size:30px;font-weight:800;line-height:1.38;margin:14px auto 20px}}
 .article .meta{{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}}
-.article .body{{font-size:15.5px;line-height:1.9;color:var(--txt3);margin:20px 0}}
+.article .meta,.article-brief,.tts-player{{max-width:700px;margin-left:auto;margin-right:auto}}
 .article .card{{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}}
 .article h4{{font-size:14px;font-weight:800;margin-bottom:10px}}
-.content-card>h4{{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}}
+.article-brief{{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:18px;margin-bottom:30px}}
+.article-brief>summary{{cursor:pointer;list-style:none;padding:13px 0;font-size:13px;font-weight:750;color:var(--txt2)}}
+.article-brief>summary::-webkit-details-marker{{display:none}}
+.article-brief>summary::after{{content:" ↓";color:var(--sub)}}
+.article-brief[open]>summary::after{{content:" ↑"}}
+.article-brief-body{{padding:0 0 16px;color:var(--txt3)}}
+.article-brief-body p{{font-size:14px;line-height:1.8;margin:0}}
+.article-brief-body .brief-why{{margin-top:9px;color:var(--txt2)}}
+.content-section{{margin:0 0 30px}}
+.content-heading{{max-width:700px;margin:0 auto 22px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}}
+.content-heading h2{{display:flex;align-items:center;gap:7px;font-size:15px;line-height:1.5;margin:0;color:var(--ink)}}
 .content-origin-badge{{font-size:11px;color:var(--sub);font-weight:500}}
 .article .vendor-row{{text-decoration:none}}
 .source-section{{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}}
@@ -1056,14 +1088,15 @@ def render_detail(e, all_events, css, tts_item=None):
 .source-more>summary::after{{content:" ↓"}}
 .source-more[open]>summary::after{{content:" ↑"}}
 @media(max-width:600px){{.source-report{{grid-template-columns:1fr;gap:0}}.source-report-date{{margin-top:1px}}}}
-.fulltext .cb-heading{{font-size:17px;line-height:1.55;margin:24px 0 10px;color:var(--ink)}}
-.fulltext p{{margin:0 0 14px}}
+.fulltext>:not(.cb-figure):not(.cb-table){{max-width:700px;margin-left:auto;margin-right:auto}}
+.fulltext .cb-heading{{font-size:19px;line-height:1.55;margin-top:32px;margin-bottom:12px;color:var(--ink)}}
+.fulltext p{{margin-top:0;margin-bottom:18px}}
 .fulltext strong{{font-weight:750;color:var(--ink)}}
 .fulltext em{{font-style:italic}}
 .fulltext a{{color:var(--blue);text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere}}
-.fulltext ul,.fulltext ol{{padding-left:24px;margin:8px 0 18px}}
+.fulltext ul,.fulltext ol{{padding-left:26px;margin-top:10px;margin-bottom:22px}}
 .fulltext li{{margin:6px 0;padding-left:2px}}
-.fulltext blockquote{{margin:16px 0;padding:10px 16px;border-left:4px solid var(--accent);background:var(--soft);border-radius:0 8px 8px 0;color:var(--txt2)}}
+.fulltext blockquote{{margin-top:20px;margin-bottom:20px;padding:12px 18px;border-left:4px solid var(--accent);background:var(--soft);border-radius:0 8px 8px 0;color:var(--txt2)}}
 .fulltext code{{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:1px 5px}}
 .fulltext pre{{overflow:auto;background:#171a20;color:#e8ebf0;border-radius:10px;padding:14px 16px;margin:16px 0;line-height:1.65}}
 .fulltext pre code{{background:none;border:none;padding:0;color:inherit}}
@@ -1083,7 +1116,7 @@ def render_detail(e, all_events, css, tts_item=None):
 .cta{{display:inline-block;background:var(--accent);color:#fff;font-size:14px;font-weight:700;border-radius:10px;padding:11px 26px;margin:6px 0 4px}}
 .fulltext h5.fh{{font-size:15px;font-weight:800;color:var(--ink);margin:20px 0 8px;padding-left:10px;border-left:3px solid var(--accent)}}
 .fulltext p.fwarn{{font-size:12.5px;color:var(--amber);background:var(--accent-soft);border-radius:8px;padding:8px 12px}}
-.fulltext p{{font-size:15px;line-height:1.95;color:var(--txt3);margin:0 0 14px}}
+.fulltext p,.fulltext li{{font-size:16px;line-height:1.86;color:var(--txt3)}}
 .tts-player{{display:grid;grid-template-columns:auto auto minmax(120px,1fr) auto auto;align-items:center;gap:10px 12px;background:linear-gradient(135deg,var(--card),var(--soft));border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:2px 0 18px}}
 .tts-player[hidden]{{display:none}}
 .tts-copy{{display:flex;flex-direction:column;min-width:112px;line-height:1.35}}
@@ -1100,11 +1133,11 @@ def render_detail(e, all_events, css, tts_item=None):
   .article .back:hover,.source-report:hover .source-report-title,.original-footer-link:hover{{color:var(--accent)}}
   .cta:hover{{opacity:.9}}
 }}
-.content-footer{{display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}}
+.content-footer{{max-width:700px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin:20px auto 0}}
 .disclaimer{{flex:1;font-size:12px;color:var(--sub)}}
 .original-footer-link{{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:7px 12px;border-radius:99px;color:var(--blue);font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap}}
 .original-footer-link:focus-visible{{outline:2px solid var(--accent);outline-offset:2px}}
-@media(max-width:600px){{.content-footer{{align-items:flex-start;flex-direction:column;gap:4px}}.original-footer-link{{align-self:flex-end}}}}
+@media(max-width:600px){{.article{{padding-left:16px;padding-right:16px}}.article h1{{font-size:24px;line-height:1.45}}.fulltext>:not(.cb-figure):not(.cb-table){{max-width:none}}.fulltext p,.fulltext li{{font-size:16px;line-height:1.82}}.content-footer{{align-items:flex-start;flex-direction:column;gap:4px}}.original-footer-link{{align-self:flex-end}}}}
 </style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="{event_id}" data-category="{esc(e["category"])}" data-source="{main_src}">
 {sidebar("home", prefix="../")}
 <header class="detail-brand-header"><div class="wrap nav">
@@ -1127,14 +1160,12 @@ def render_detail(e, all_events, css, tts_item=None):
     {'<span class="star">精选</span>' if e.get("star") else ''}
     <span title="发布时间">{("发布 " + fmt_date(e["published"])) if e.get("published") else "收录 " + fmt_date(e.get("first_seen"))}</span>
     {f'<span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 {md(e.get("first_seen"))}</span>' if e.get("published") and e.get("first_seen") and e["published"][:10] != e["first_seen"][:10] else ""}
-    <span style="margin-left:auto" class="heatnum">{ic("flame",13)} {e["heat"]}</span>
   </div>
   <h1>{esc(e["zh_title"])}</h1>
 {("  " + tts_player) if tts_player else ""}
-  <div class="body">{esc(e["zh_summary"])}</div>
-  {f'<div class="why"><span><span class="w">{ic("sparkle",13)} 推荐理由：</span>{esc(clean_reason(e["reason"]))}</span></div>' if e.get("reason") else ""}
-  {f'<div class="vendors" style="margin-top:14px">{vtags}</div>' if vtags else ""}
+  {brief_html}
   {full_block}
+  {topic_html}
 {supplement_sources}
   <div class="card"><h4>{ic("list")} 相关事件</h4>{rel_html}</div>
   </main>

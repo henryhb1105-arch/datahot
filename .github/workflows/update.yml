@@ -13,7 +13,12 @@ on:
   schedule:
     # UTC 0/6/12/18 点的第 17 分 → 北京时间 08:17 / 14:17 / 20:17 / 02:17
     - cron: "17 0,6,12,18 * * *"
-  workflow_dispatch: # 支持手动触发
+  workflow_dispatch:
+    inputs:
+      backfill_event_ids:
+        description: "可选：只重抓指定正文事件 ID，多个用逗号分隔"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -83,6 +88,7 @@ jobs:
           CONTENT_METADATA_BACKFILL_LIMIT: ${{ vars.CONTENT_METADATA_BACKFILL_LIMIT || '3' }}
           CONTENT_BLOCKS_BACKFILL_DAYS: ${{ vars.CONTENT_BLOCKS_BACKFILL_DAYS || '30' }}
           CONTENT_BACKFILL_ATTEMPTS: ${{ vars.CONTENT_BACKFILL_ATTEMPTS || '12' }}
+          CONTENT_BACKFILL_EVENT_IDS: ${{ inputs.backfill_event_ids || '' }}
           ANALYTICS_ENABLED: ${{ vars.ANALYTICS_ENABLED || 'false' }}
           ANALYTICS_ENDPOINT: ${{ vars.ANALYTICS_ENDPOINT }}
           ANALYTICS_SITE_ID: ${{ vars.ANALYTICS_SITE_ID || 'datahot' }}

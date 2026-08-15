@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-LxfjC9IsSRFuMS//2ADzXaN+ksq5FeAGgjf1L3qWiUg=' 'sha256-crn7kLs2YzIU1zDB813UcLkGi2l3g7jaWd2yCb9JHY4='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-7sp3PY/5V45p//dqimUk1Oj17Jektng95z2CcWREzm8=' 'sha256-crn7kLs2YzIU1zDB813UcLkGi2l3g7jaWd2yCb9JHY4='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Claude托管Agent新增计划调度与Vault环境变量功能 · DataHot</title>
@@ -479,12 +479,22 @@ main,.layout>*,.hotlist>*{min-width:0}
 .article{max-width:1040px;margin:0 auto;padding:36px 20px 60px}
 .article-content{max-width:840px;margin:0 auto}
 .article .back{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}
-.article h1{font-size:24px;font-weight:800;line-height:1.5;margin:12px 0 16px}
+.article h1{max-width:700px;font-size:30px;font-weight:800;line-height:1.38;margin:14px auto 20px}
 .article .meta{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
-.article .body{font-size:15.5px;line-height:1.9;color:var(--txt3);margin:20px 0}
+.article .meta,.article-brief,.tts-player{max-width:700px;margin-left:auto;margin-right:auto}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
-.content-card>h4{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.article-brief{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:18px;margin-bottom:30px}
+.article-brief>summary{cursor:pointer;list-style:none;padding:13px 0;font-size:13px;font-weight:750;color:var(--txt2)}
+.article-brief>summary::-webkit-details-marker{display:none}
+.article-brief>summary::after{content:" ↓";color:var(--sub)}
+.article-brief[open]>summary::after{content:" ↑"}
+.article-brief-body{padding:0 0 16px;color:var(--txt3)}
+.article-brief-body p{font-size:14px;line-height:1.8;margin:0}
+.article-brief-body .brief-why{margin-top:9px;color:var(--txt2)}
+.content-section{margin:0 0 30px}
+.content-heading{max-width:700px;margin:0 auto 22px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}
+.content-heading h2{display:flex;align-items:center;gap:7px;font-size:15px;line-height:1.5;margin:0;color:var(--ink)}
 .content-origin-badge{font-size:11px;color:var(--sub);font-weight:500}
 .article .vendor-row{text-decoration:none}
 .source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
@@ -504,14 +514,15 @@ main,.layout>*,.hotlist>*{min-width:0}
 .source-more>summary::after{content:" ↓"}
 .source-more[open]>summary::after{content:" ↑"}
 @media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
-.fulltext .cb-heading{font-size:17px;line-height:1.55;margin:24px 0 10px;color:var(--ink)}
-.fulltext p{margin:0 0 14px}
+.fulltext>:not(.cb-figure):not(.cb-table){max-width:700px;margin-left:auto;margin-right:auto}
+.fulltext .cb-heading{font-size:19px;line-height:1.55;margin-top:32px;margin-bottom:12px;color:var(--ink)}
+.fulltext p{margin-top:0;margin-bottom:18px}
 .fulltext strong{font-weight:750;color:var(--ink)}
 .fulltext em{font-style:italic}
 .fulltext a{color:var(--blue);text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere}
-.fulltext ul,.fulltext ol{padding-left:24px;margin:8px 0 18px}
+.fulltext ul,.fulltext ol{padding-left:26px;margin-top:10px;margin-bottom:22px}
 .fulltext li{margin:6px 0;padding-left:2px}
-.fulltext blockquote{margin:16px 0;padding:10px 16px;border-left:4px solid var(--accent);background:var(--soft);border-radius:0 8px 8px 0;color:var(--txt2)}
+.fulltext blockquote{margin-top:20px;margin-bottom:20px;padding:12px 18px;border-left:4px solid var(--accent);background:var(--soft);border-radius:0 8px 8px 0;color:var(--txt2)}
 .fulltext code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
 .fulltext pre{overflow:auto;background:#171a20;color:#e8ebf0;border-radius:10px;padding:14px 16px;margin:16px 0;line-height:1.65}
 .fulltext pre code{background:none;border:none;padding:0;color:inherit}
@@ -531,7 +542,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .cta{display:inline-block;background:var(--accent);color:#fff;font-size:14px;font-weight:700;border-radius:10px;padding:11px 26px;margin:6px 0 4px}
 .fulltext h5.fh{font-size:15px;font-weight:800;color:var(--ink);margin:20px 0 8px;padding-left:10px;border-left:3px solid var(--accent)}
 .fulltext p.fwarn{font-size:12.5px;color:var(--amber);background:var(--accent-soft);border-radius:8px;padding:8px 12px}
-.fulltext p{font-size:15px;line-height:1.95;color:var(--txt3);margin:0 0 14px}
+.fulltext p,.fulltext li{font-size:16px;line-height:1.86;color:var(--txt3)}
 .tts-player{display:grid;grid-template-columns:auto auto minmax(120px,1fr) auto auto;align-items:center;gap:10px 12px;background:linear-gradient(135deg,var(--card),var(--soft));border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:2px 0 18px}
 .tts-player[hidden]{display:none}
 .tts-copy{display:flex;flex-direction:column;min-width:112px;line-height:1.35}
@@ -548,11 +559,11 @@ main,.layout>*,.hotlist>*{min-width:0}
   .article .back:hover,.source-report:hover .source-report-title,.original-footer-link:hover{color:var(--accent)}
   .cta:hover{opacity:.9}
 }
-.content-footer{display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}
+.content-footer{max-width:700px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin:20px auto 0}
 .disclaimer{flex:1;font-size:12px;color:var(--sub)}
 .original-footer-link{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:7px 12px;border-radius:99px;color:var(--blue);font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap}
 .original-footer-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media(max-width:600px){.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}}
+@media(max-width:600px){.article{padding-left:16px;padding-right:16px}.article h1{font-size:24px;line-height:1.45}.fulltext>:not(.cb-figure):not(.cb-table){max-width:none}.fulltext p,.fulltext li{font-size:16px;line-height:1.82}.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}}
 </style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="2487cf99c276" data-category="agent" data-source="Claude 官方博客">
 <aside class="sidebar"><div class="slogo"><a href="../index.html" data-smart-home-return aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><a class="mi on" href="../index.html" data-smart-home-return><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>每周简报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>我的收藏</a><a class="mi" href="../classics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg>典藏</a><a class="mi" href="../hot.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>完整榜单</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>
 <header class="detail-brand-header"><div class="wrap nav">
@@ -575,19 +586,22 @@ main,.layout>*,.hotlist>*{min-width:0}
     
     <span title="发布时间">发布 2026-08-10 09:13</span>
     
-    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 29</span>
   </div>
   <h1>Claude托管Agent新增计划调度与Vault环境变量功能</h1>
 
-  <div class="body">Anthropic 宣布 Claude Managed Agents 新增两项公开 beta 功能：可按 cron 计划自动运行，并可在 vaults 中安全存储环境变量。计划部署适用于夜间数据同步、每周合规扫描等重复任务。Rakuten 已用其分析电子表格数据并生成报告。该功能还支持暂停、恢复和按需触发。</div>
-  <div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据从业者可借助 Claude Managed Agents 自动完成数据同步、报告生成和日志监控等日常任务，降低调度系统开发成本。</span></div>
-  <div class="vendors" style="margin-top:14px"><a class="chip" href="../topics/data-agent.html">Data Agent</a><span class="vtag">Anthropic</span><span class="vtag">Claude</span></div>
-  <div class="card content-card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 历史编译稿 <span class="content-origin-badge">旧版 AI 基于原文编译</span></h4>
+  <details class="article-brief">
+  <summary>DataHot 速览</summary>
+  <div class="article-brief-body"><p>Anthropic 宣布 Claude Managed Agents 新增两项公开 beta 功能：可按 cron 计划自动运行，并可在 vaults 中安全存储环境变量。计划部署适用于夜间数据同步、每周合规扫描等重复任务。Rakuten 已用其分析电子表格数据并生成报告。该功能还支持暂停、恢复和按需触发。</p>
+  <p class="brief-why"><b>为什么值得关注：</b>数据从业者可借助 Claude Managed Agents 自动完成数据同步、报告生成和日志监控等日常任务，降低调度系统开发成本。</p></div>
+</details>
+  <section class="content-section" aria-labelledby="articleBodyTitle">
+  <div class="content-heading"><h2 id="articleBodyTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 历史编译稿</h2> <span class="content-origin-badge">旧版 AI 基于原文编译</span></div>
   <div class="fulltext"><p>Anthropic 于2026年6月9日宣布，Claude Managed Agents 新增两项功能：计划运行和通过 vaults 安全存储环境变量。这两项功能目前已在 Claude Platform 上以公开测试版形式提供。</p><p>计划运行功能允许代理按照 cron 表达式执行任务。每次调度触发时，代理会启动一个新会话并完成其任务，用户无需自行构建或托管调度器。该功能适用于夜间数据同步、每周合规扫描或每日摘要等重复性工作。一旦部署上线，用户可随时暂停、恢复或归档部署，也可以按需触发额外运行。</p><p>Rakuten 已在利用这一功能。他们使用计划部署来分析电子表格数据，并按周或月自动生成报告和演示文稿。此外，团队还将其用于监控生产日志和指标，使产品经理无需创建仪表板即可查看应用健康状态。</p><p>另一家用户 Actively AI 使用 Managed Agents 为销售团队提供跨账户的智能搜索。借助计划部署，他们可以定期刷新答案，从而简化技术栈。</p><p>除调度功能外，Claude Managed Agents 现在还支持在 vaults 中存储环境变量，以便代理安全地访问 CLI 工具和其他已认证服务。这减少了在代码或配置中硬编码凭证的需要。</p><p>这两项功能均可通过 Claude Platform 使用。Anthropic 表示，计划部署的典型场景包括数据管道维护、合规审计和周期性报告生成，适用于希望减少人工干预的企业团队。</p><p>该更新进一步扩展了 Claude 在自动化数据工作流中的能力，使其从单一问答交互走向更主动的定时执行。对于数据从业者而言，它将 AI 代理与数据运维场景更紧密地结合。</p></div>
   <div class="content-footer"><div class="disclaimer">这是改版前生成的历史 AI 编译内容，后续将由原文或忠实译文替换</div><a class="original-footer-link" href="https://claude.com/blog/whats-new-in-claude-managed-agents" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Claude 官方博客"><span>查看原文</span><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div>
-</div>
+</section>
+  <div class="vendors article-tags" aria-label="文章主题"><a class="chip" href="../topics/data-agent.html">Data Agent</a><span class="vtag">Anthropic</span><span class="vtag">Claude</span></div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/95de2946ad51.html"><span class="n">›</span>Claude托管Agent更新：支持自托管沙盒与MCP隧道<span class="count">46</span></a><a class="vendor-row" href="../e/1c7118c0179d.html"><span class="n">›</span>Outtake基于Claude构建网络调查Agent<span class="count">14</span></a><a class="vendor-row" href="../e/99fb5308d61b.html"><span class="n">›</span>Agent Harness设计：3种模式发挥Claude智能<span class="count">41</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/95de2946ad51.html"><span class="n">›</span>Claude托管Agent更新：支持自托管沙盒与MCP隧道<span class="count">43</span></a><a class="vendor-row" href="../e/1c7118c0179d.html"><span class="n">›</span>Outtake基于Claude构建网络调查Agent<span class="count">12</span></a><a class="vendor-row" href="../e/99fb5308d61b.html"><span class="n">›</span>Agent Harness设计：3种模式发挥Claude智能<span class="count">39</span></a></div>
   </main>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
@@ -736,7 +750,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title":"Claude托管Agent新增计划调度与Vault环境变量功能","summary":"Anthropic 宣布 Claude Managed Agents 新增两项公开 beta 功能：可按 cron 计划自动运行，并可在 vaults 中安全存储环境变量。计划部署适用于夜间数据同步、每周合规扫描等重复任务。Rakuten 已用其分析电子表格数据并生成报告。该功能还支持暂停、恢复和按需触发。","reason":"数据从业者可借助 Claude Managed Agents 自动完成数据同步、报告生成和日志监控等日常任务，降低调度系统开发成本。","topic":"Data Agent","heat":29,"source":"Claude 官方博客","date":"2026-08-10","url":"https://datahot.xiahongbin.com/e/2487cf99c276.html","qr":"../qr/2487cf99c276.png"};
+var SH_EV = {"title":"Claude托管Agent新增计划调度与Vault环境变量功能","summary":"Anthropic 宣布 Claude Managed Agents 新增两项公开 beta 功能：可按 cron 计划自动运行，并可在 vaults 中安全存储环境变量。计划部署适用于夜间数据同步、每周合规扫描等重复任务。Rakuten 已用其分析电子表格数据并生成报告。该功能还支持暂停、恢复和按需触发。","reason":"数据从业者可借助 Claude Managed Agents 自动完成数据同步、报告生成和日志监控等日常任务，降低调度系统开发成本。","topic":"Data Agent","heat":28,"source":"Claude 官方博客","date":"2026-08-10","url":"https://datahot.xiahongbin.com/e/2487cf99c276.html","qr":"../qr/2487cf99c276.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-UiPG9WFPHByIbC1ID4LxR7Zfh2BE+Jb6C5AD3nLaPMQ=' 'sha256-aC0gNfyssFt594Cc+NOx2Qa5nh4JFLcdKN4eGzZHQmk='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-Zy/sUdrdrnb0Hte3Zplg3mWIWjWmIONTdTK67EYXuoA=' 'sha256-aC0gNfyssFt594Cc+NOx2Qa5nh4JFLcdKN4eGzZHQmk='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Snowflake CoCo提示词技巧与最佳实践 · DataHot</title>
@@ -479,12 +479,22 @@ main,.layout>*,.hotlist>*{min-width:0}
 .article{max-width:1040px;margin:0 auto;padding:36px 20px 60px}
 .article-content{max-width:840px;margin:0 auto}
 .article .back{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}
-.article h1{font-size:24px;font-weight:800;line-height:1.5;margin:12px 0 16px}
+.article h1{max-width:700px;font-size:30px;font-weight:800;line-height:1.38;margin:14px auto 20px}
 .article .meta{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
-.article .body{font-size:15.5px;line-height:1.9;color:var(--txt3);margin:20px 0}
+.article .meta,.article-brief,.tts-player{max-width:700px;margin-left:auto;margin-right:auto}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
-.content-card>h4{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.article-brief{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:18px;margin-bottom:30px}
+.article-brief>summary{cursor:pointer;list-style:none;padding:13px 0;font-size:13px;font-weight:750;color:var(--txt2)}
+.article-brief>summary::-webkit-details-marker{display:none}
+.article-brief>summary::after{content:" ↓";color:var(--sub)}
+.article-brief[open]>summary::after{content:" ↑"}
+.article-brief-body{padding:0 0 16px;color:var(--txt3)}
+.article-brief-body p{font-size:14px;line-height:1.8;margin:0}
+.article-brief-body .brief-why{margin-top:9px;color:var(--txt2)}
+.content-section{margin:0 0 30px}
+.content-heading{max-width:700px;margin:0 auto 22px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}
+.content-heading h2{display:flex;align-items:center;gap:7px;font-size:15px;line-height:1.5;margin:0;color:var(--ink)}
 .content-origin-badge{font-size:11px;color:var(--sub);font-weight:500}
 .article .vendor-row{text-decoration:none}
 .source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
@@ -504,14 +514,15 @@ main,.layout>*,.hotlist>*{min-width:0}
 .source-more>summary::after{content:" ↓"}
 .source-more[open]>summary::after{content:" ↑"}
 @media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
-.fulltext .cb-heading{font-size:17px;line-height:1.55;margin:24px 0 10px;color:var(--ink)}
-.fulltext p{margin:0 0 14px}
+.fulltext>:not(.cb-figure):not(.cb-table){max-width:700px;margin-left:auto;margin-right:auto}
+.fulltext .cb-heading{font-size:19px;line-height:1.55;margin-top:32px;margin-bottom:12px;color:var(--ink)}
+.fulltext p{margin-top:0;margin-bottom:18px}
 .fulltext strong{font-weight:750;color:var(--ink)}
 .fulltext em{font-style:italic}
 .fulltext a{color:var(--blue);text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere}
-.fulltext ul,.fulltext ol{padding-left:24px;margin:8px 0 18px}
+.fulltext ul,.fulltext ol{padding-left:26px;margin-top:10px;margin-bottom:22px}
 .fulltext li{margin:6px 0;padding-left:2px}
-.fulltext blockquote{margin:16px 0;padding:10px 16px;border-left:4px solid var(--accent);background:var(--soft);border-radius:0 8px 8px 0;color:var(--txt2)}
+.fulltext blockquote{margin-top:20px;margin-bottom:20px;padding:12px 18px;border-left:4px solid var(--accent);background:var(--soft);border-radius:0 8px 8px 0;color:var(--txt2)}
 .fulltext code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
 .fulltext pre{overflow:auto;background:#171a20;color:#e8ebf0;border-radius:10px;padding:14px 16px;margin:16px 0;line-height:1.65}
 .fulltext pre code{background:none;border:none;padding:0;color:inherit}
@@ -531,7 +542,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .cta{display:inline-block;background:var(--accent);color:#fff;font-size:14px;font-weight:700;border-radius:10px;padding:11px 26px;margin:6px 0 4px}
 .fulltext h5.fh{font-size:15px;font-weight:800;color:var(--ink);margin:20px 0 8px;padding-left:10px;border-left:3px solid var(--accent)}
 .fulltext p.fwarn{font-size:12.5px;color:var(--amber);background:var(--accent-soft);border-radius:8px;padding:8px 12px}
-.fulltext p{font-size:15px;line-height:1.95;color:var(--txt3);margin:0 0 14px}
+.fulltext p,.fulltext li{font-size:16px;line-height:1.86;color:var(--txt3)}
 .tts-player{display:grid;grid-template-columns:auto auto minmax(120px,1fr) auto auto;align-items:center;gap:10px 12px;background:linear-gradient(135deg,var(--card),var(--soft));border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:2px 0 18px}
 .tts-player[hidden]{display:none}
 .tts-copy{display:flex;flex-direction:column;min-width:112px;line-height:1.35}
@@ -548,11 +559,11 @@ main,.layout>*,.hotlist>*{min-width:0}
   .article .back:hover,.source-report:hover .source-report-title,.original-footer-link:hover{color:var(--accent)}
   .cta:hover{opacity:.9}
 }
-.content-footer{display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}
+.content-footer{max-width:700px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin:20px auto 0}
 .disclaimer{flex:1;font-size:12px;color:var(--sub)}
 .original-footer-link{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:7px 12px;border-radius:99px;color:var(--blue);font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap}
 .original-footer-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media(max-width:600px){.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}}
+@media(max-width:600px){.article{padding-left:16px;padding-right:16px}.article h1{font-size:24px;line-height:1.45}.fulltext>:not(.cb-figure):not(.cb-table){max-width:none}.fulltext p,.fulltext li{font-size:16px;line-height:1.82}.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}}
 </style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="07e502da82c2" data-category="agent" data-source="Snowflake Engineering（Medium）">
 <aside class="sidebar"><div class="slogo"><a href="../index.html" data-smart-home-return aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><a class="mi on" href="../index.html" data-smart-home-return><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>每周简报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>我的收藏</a><a class="mi" href="../classics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg>典藏</a><a class="mi" href="../hot.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>完整榜单</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>
 <header class="detail-brand-header"><div class="wrap nav">
@@ -575,7 +586,6 @@ main,.layout>*,.hotlist>*{min-width:0}
     
     <span title="发布时间">发布 2026-08-14 03:41</span>
     
-    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 56</span>
   </div>
   <h1>Snowflake CoCo提示词技巧与最佳实践</h1>
   <section class="tts-player" id="ttsPlayer" data-tts-player data-duration="55" hidden aria-label="文章精华朗读">
@@ -588,10 +598,13 @@ main,.layout>*,.hotlist>*{min-width:0}
     <option value="1">1.0×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option>
   </select></label>
 </section>
-  <div class="body">Snowflake官方博客介绍了如何充分利用CoCo，强调其已了解账户中的表、查询历史和成本，可查询数据、追踪血缘、构建管道并运行引导式技能。文章提出提示词四要素：目标、约束、上下文和验证，并建议复杂任务使用计划模式。同时通过模糊与具体提示的对比示例，说明明确指定表名、列名和条件可更快获得准确结果。</div>
-  <div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>针对Data Agent的提示工程给出可操作框架，帮助数据从业者提升ChatBI/Text-to-SQL场景下的准确性与效率。</span></div>
-  <div class="vendors" style="margin-top:14px"><a class="chip" href="../topics/chatbi.html">ChatBI</a><a class="chip" href="../topics/data-agent.html">Data Agent</a><span class="vtag">Snowflake</span></div>
-  <div class="card content-card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 译文 <span class="content-origin-badge">AI 逐段翻译</span></h4>
+  <details class="article-brief">
+  <summary>DataHot 速览</summary>
+  <div class="article-brief-body"><p>Snowflake官方博客介绍了如何充分利用CoCo，强调其已了解账户中的表、查询历史和成本，可查询数据、追踪血缘、构建管道并运行引导式技能。文章提出提示词四要素：目标、约束、上下文和验证，并建议复杂任务使用计划模式。同时通过模糊与具体提示的对比示例，说明明确指定表名、列名和条件可更快获得准确结果。</p>
+  <p class="brief-why"><b>为什么值得关注：</b>针对Data Agent的提示工程给出可操作框架，帮助数据从业者提升ChatBI/Text-to-SQL场景下的准确性与效率。</p></div>
+</details>
+  <section class="content-section" aria-labelledby="articleBodyTitle">
+  <div class="content-heading"><h2 id="articleBodyTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 译文</h2> <span class="content-origin-badge">AI 逐段翻译</span></div>
   <div class="fulltext"><figure class="cb-figure"><a class="cb-media-link" href="https://cdn-images-1.medium.com/max/937/1*fZLBU2TUHt3MTdvWkdb-mQ.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/07e502da82c2/996abe671b2da41ed274550d.png" alt="" loading="lazy" decoding="async" width="937" height="781"></a></figure><p>Snowflake CoCo 已经了解你的 Snowflake 账户：你的表、查询历史、成本。它查询你的数据，追踪血缘，构建管道，并在真实环境中运行引导技能。你越清楚想要什么，它就能越快越好地帮你达成目标。</p><p>充分利用 CoCo 的一半是好的提示，另一半是了解已内置的功能。</p><p>以下是这两方面：</p><h3 class="cb-heading">1. 快速提示清单</h3><p>你可以将提示视为一个迷你任务。没有放之四海而皆准的提示，但模糊的请求也不太好。</p><p>在提示中包含某些方面可以更高效：</p><ul><li><strong>目标：</strong> 你到底想要什么？</li><li><strong>约束：</strong> 哪些边界重要（日期范围、净额与总额、排除测试账户）？</li><li><strong>上下文：</strong> CoCo 应该在哪里查找（哪个表、模式或时间窗口）？</li><li><strong>验证：</strong> 你如何知道结果是否正确？</li></ul><p>你未必每次都会用到全部四个方面。但大致遵循此结构将帮助 CoCo 确切了解你的需求，从而更有效地帮你达成目标。</p><p>不过对于更大更复杂的任务，你应该使用计划模式来仔细思考你希望 CoCo 做什么，以便它能更好地根据你的需求执行。</p><h3 class="cb-heading">2. 具体化以更快达成目标</h3><p>模糊的提示仍然有效<strong>。</strong> 如果你向 CoCo 询问“销售”，CoCo 可能会返回一些合理的结果，或者可能会问一个快速的澄清问题。但如果你一开始就具体，你就能直接得到你真正需要的内容。如果你知道信息，你应该明确指定表、列、上下文等，以便 CoCo 能更快地给你你真正想要的答案。</p><pre><code class="language-">Vague      Specific
 ─────────────────────────────────────────────────────────────────────────────
 &quot;Show me sales&quot;          &quot;Total NET_AMOUNT_USD from SALES.PUBLIC.ORDERS
@@ -613,9 +626,10 @@ main,.layout>*,.hotlist>*{min-width:0}
 /data-governance         Classify PII, apply masking policies, review
                          access controls.</code></pre><h3 class="cb-heading">6. 始终检查输出</h3><p>你是专家，只有你知道你真正想要什么，而且运行的责任在你。</p><ul><li>对数字进行合理性检查</li><li>验证输出和 SQL</li><li>考虑先在子集上测试</li></ul><p>任何 AI 都可能犯错，所以最终检查在于你：在结果落到重要数据之前，确认结果是你真正想要的。</p><h3 class="cb-heading">亲自尝试</h3><p>选择一个你通常会打开工作表的问题（例如陈旧表扫描、成本检查、复杂的去重），改用 CoCo 来询问。陈述目标，阅读结果，并引导它完成后续。</p><p>亲自看看<a href="https://www.snowflake.com/en/product/snowflake-coco/" target="_blank" rel="noopener noreferrer nofollow">CoCo</a> 如何在你的日常工作中节省时间和精力。</p><p><a href="https://medium.com/snowflake/how-to-get-the-most-out-of-snowflake-coco-prompting-tips-best-practices-58b9c047c123" target="_blank" rel="noopener noreferrer nofollow">《如何充分利用 Snowflake CoCo：提示技巧与最佳实践》</a> 最初发布在<a href="https://medium.com/snowflake" target="_blank" rel="noopener noreferrer nofollow">Snowflake Builders Blog: Data Engineers, App Developers, AI, &amp; Data Science</a>上，Medium 上的人们通过点赞和回应继续着这一对话。</p></div>
   <div class="content-footer"><a class="original-footer-link" href="https://medium.com/snowflake/how-to-get-the-most-out-of-snowflake-coco-prompting-tips-best-practices-58b9c047c123?source=rss----34b6daafc07---4" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Snowflake Engineering（Medium）"><span>查看原文</span><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div>
-</div>
+</section>
+  <div class="vendors article-tags" aria-label="文章主题"><a class="chip" href="../topics/chatbi.html">ChatBI</a><a class="chip" href="../topics/data-agent.html">Data Agent</a><span class="vtag">Snowflake</span></div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/ae39e628c113.html"><span class="n">›</span>七招控制Snowflake CoCo AI成本<span class="count">25</span></a><a class="vendor-row" href="../e/1126df123262.html"><span class="n">›</span>Snowflake CoCo服务器模式实现安全远程访问<span class="count">25</span></a><a class="vendor-row" href="../e/16934756bbd8.html"><span class="n">›</span>Cortex Analyst与Snowflake Agents：打造生产级分析服务指南<span class="count">52</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/ae39e628c113.html"><span class="n">›</span>七招控制Snowflake CoCo AI成本<span class="count">24</span></a><a class="vendor-row" href="../e/16934756bbd8.html"><span class="n">›</span>Cortex Analyst与Snowflake Agents：打造生产级分析服务指南<span class="count">47</span></a><a class="vendor-row" href="../e/5283c22adfa6.html"><span class="n">›</span>Claude Cowork使用方式分析<span class="count">21</span></a></div>
   </main>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
@@ -764,7 +778,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title":"Snowflake CoCo提示词技巧与最佳实践","summary":"Snowflake官方博客介绍了如何充分利用CoCo，强调其已了解账户中的表、查询历史和成本，可查询数据、追踪血缘、构建管道并运行引导式技能。文章提出提示词四要素：目标、约束、上下文和验证，并建议复杂任务使用计划模式。同时通过模糊与具体提示的对比示例，说明明确指定表名、列名和条件可更快获得准确结果。","reason":"针对Data Agent的提示工程给出可操作框架，帮助数据从业者提升ChatBI/Text-to-SQL场景下的准确性与效率。","topic":"ChatBI","heat":56,"source":"Snowflake Engineering (Medium)","date":"2026-08-14","url":"https://datahot.xiahongbin.com/e/07e502da82c2.html","qr":"../qr/07e502da82c2.png"};
+var SH_EV = {"title":"Snowflake CoCo提示词技巧与最佳实践","summary":"Snowflake官方博客介绍了如何充分利用CoCo，强调其已了解账户中的表、查询历史和成本，可查询数据、追踪血缘、构建管道并运行引导式技能。文章提出提示词四要素：目标、约束、上下文和验证，并建议复杂任务使用计划模式。同时通过模糊与具体提示的对比示例，说明明确指定表名、列名和条件可更快获得准确结果。","reason":"针对Data Agent的提示工程给出可操作框架，帮助数据从业者提升ChatBI/Text-to-SQL场景下的准确性与效率。","topic":"ChatBI","heat":49,"source":"Snowflake Engineering (Medium)","date":"2026-08-14","url":"https://datahot.xiahongbin.com/e/07e502da82c2.html","qr":"../qr/07e502da82c2.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

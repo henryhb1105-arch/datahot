@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-7F3LJv0ANnoCWKblU18uENGq3VD8GkGkXfRUY+mf9DI=' 'sha256-QQc8uB80ciK28qM9loyz4GvxHxhBN1BPQsJcxJ05/Mo='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-/x328lHaprkmFxCtXAhGsNP4SOdijLGg/Bn6K34W3Jo=' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-7F3LJv0ANnoCWKblU18uENGq3VD8GkGkXfRUY+mf9DI='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>MotherDuck用Guides补齐Data Agent看不到的业务上下文 · DataHot</title>
@@ -479,12 +479,22 @@ main,.layout>*,.hotlist>*{min-width:0}
 .article{max-width:1040px;margin:0 auto;padding:36px 20px 60px}
 .article-content{max-width:840px;margin:0 auto}
 .article .back{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}
-.article h1{font-size:24px;font-weight:800;line-height:1.5;margin:12px 0 16px}
+.article h1{max-width:700px;font-size:30px;font-weight:800;line-height:1.38;margin:14px auto 20px}
 .article .meta{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
-.article .body{font-size:15.5px;line-height:1.9;color:var(--txt3);margin:20px 0}
+.article .meta,.article-brief,.tts-player{max-width:700px;margin-left:auto;margin-right:auto}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
-.content-card>h4{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.article-brief{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:18px;margin-bottom:30px}
+.article-brief>summary{cursor:pointer;list-style:none;padding:13px 0;font-size:13px;font-weight:750;color:var(--txt2)}
+.article-brief>summary::-webkit-details-marker{display:none}
+.article-brief>summary::after{content:" ↓";color:var(--sub)}
+.article-brief[open]>summary::after{content:" ↑"}
+.article-brief-body{padding:0 0 16px;color:var(--txt3)}
+.article-brief-body p{font-size:14px;line-height:1.8;margin:0}
+.article-brief-body .brief-why{margin-top:9px;color:var(--txt2)}
+.content-section{margin:0 0 30px}
+.content-heading{max-width:700px;margin:0 auto 22px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}
+.content-heading h2{display:flex;align-items:center;gap:7px;font-size:15px;line-height:1.5;margin:0;color:var(--ink)}
 .content-origin-badge{font-size:11px;color:var(--sub);font-weight:500}
 .article .vendor-row{text-decoration:none}
 .source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
@@ -504,14 +514,15 @@ main,.layout>*,.hotlist>*{min-width:0}
 .source-more>summary::after{content:" ↓"}
 .source-more[open]>summary::after{content:" ↑"}
 @media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
-.fulltext .cb-heading{font-size:17px;line-height:1.55;margin:24px 0 10px;color:var(--ink)}
-.fulltext p{margin:0 0 14px}
+.fulltext>:not(.cb-figure):not(.cb-table){max-width:700px;margin-left:auto;margin-right:auto}
+.fulltext .cb-heading{font-size:19px;line-height:1.55;margin-top:32px;margin-bottom:12px;color:var(--ink)}
+.fulltext p{margin-top:0;margin-bottom:18px}
 .fulltext strong{font-weight:750;color:var(--ink)}
 .fulltext em{font-style:italic}
 .fulltext a{color:var(--blue);text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere}
-.fulltext ul,.fulltext ol{padding-left:24px;margin:8px 0 18px}
+.fulltext ul,.fulltext ol{padding-left:26px;margin-top:10px;margin-bottom:22px}
 .fulltext li{margin:6px 0;padding-left:2px}
-.fulltext blockquote{margin:16px 0;padding:10px 16px;border-left:4px solid var(--accent);background:var(--soft);border-radius:0 8px 8px 0;color:var(--txt2)}
+.fulltext blockquote{margin-top:20px;margin-bottom:20px;padding:12px 18px;border-left:4px solid var(--accent);background:var(--soft);border-radius:0 8px 8px 0;color:var(--txt2)}
 .fulltext code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
 .fulltext pre{overflow:auto;background:#171a20;color:#e8ebf0;border-radius:10px;padding:14px 16px;margin:16px 0;line-height:1.65}
 .fulltext pre code{background:none;border:none;padding:0;color:inherit}
@@ -531,7 +542,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .cta{display:inline-block;background:var(--accent);color:#fff;font-size:14px;font-weight:700;border-radius:10px;padding:11px 26px;margin:6px 0 4px}
 .fulltext h5.fh{font-size:15px;font-weight:800;color:var(--ink);margin:20px 0 8px;padding-left:10px;border-left:3px solid var(--accent)}
 .fulltext p.fwarn{font-size:12.5px;color:var(--amber);background:var(--accent-soft);border-radius:8px;padding:8px 12px}
-.fulltext p{font-size:15px;line-height:1.95;color:var(--txt3);margin:0 0 14px}
+.fulltext p,.fulltext li{font-size:16px;line-height:1.86;color:var(--txt3)}
 .tts-player{display:grid;grid-template-columns:auto auto minmax(120px,1fr) auto auto;align-items:center;gap:10px 12px;background:linear-gradient(135deg,var(--card),var(--soft));border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:2px 0 18px}
 .tts-player[hidden]{display:none}
 .tts-copy{display:flex;flex-direction:column;min-width:112px;line-height:1.35}
@@ -548,11 +559,11 @@ main,.layout>*,.hotlist>*{min-width:0}
   .article .back:hover,.source-report:hover .source-report-title,.original-footer-link:hover{color:var(--accent)}
   .cta:hover{opacity:.9}
 }
-.content-footer{display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}
+.content-footer{max-width:700px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin:20px auto 0}
 .disclaimer{flex:1;font-size:12px;color:var(--sub)}
 .original-footer-link{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:7px 12px;border-radius:99px;color:var(--blue);font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap}
 .original-footer-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media(max-width:600px){.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}}
+@media(max-width:600px){.article{padding-left:16px;padding-right:16px}.article h1{font-size:24px;line-height:1.45}.fulltext>:not(.cb-figure):not(.cb-table){max-width:none}.fulltext p,.fulltext li{font-size:16px;line-height:1.82}.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}}
 </style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="2a6cb6153284" data-category="agent" data-source="主编收录">
 <aside class="sidebar"><div class="slogo"><a href="../index.html" data-smart-home-return aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><a class="mi on" href="../index.html" data-smart-home-return><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>每周简报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>我的收藏</a><a class="mi" href="../classics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg>典藏</a><a class="mi" href="../hot.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>完整榜单</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>
 <header class="detail-brand-header"><div class="wrap nav">
@@ -575,7 +586,6 @@ main,.layout>*,.hotlist>*{min-width:0}
     
     <span title="发布时间">发布 2026-08-11 22:03</span>
     <span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 08-12</span>
-    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 53</span>
   </div>
   <h1>MotherDuck用Guides补齐Data Agent看不到的业务上下文</h1>
   <section class="tts-player" id="ttsPlayer" data-tts-player data-duration="50" hidden aria-label="文章精华朗读">
@@ -588,10 +598,13 @@ main,.layout>*,.hotlist>*{min-width:0}
     <option value="1">1.0×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option>
   </select></label>
 </section>
-  <div class="body">MotherDuck推出Guides，把指标定义、表关系、历史迁移和业务例外等说明作为可查询、可版本化的上下文保存在数仓中。Agent在执行查询或构建数据任务时，可以按需发现并加载这些说明，减少仅凭schema猜测业务语义造成的错误。</div>
-  <div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>企业数据Agent的核心瓶颈正在从SQL生成转向上下文治理，Guides提供了一个接近‘数仓内技能文件’的实现样本。</span></div>
-  <div class="vendors" style="margin-top:14px"><a class="chip" href="../topics/data-agent.html">Data Agent</a><a class="chip" href="../topics/semantic-layer.html">语义层</a><span class="vtag">MotherDuck</span><span class="vtag">DuckDB</span></div>
-  <div class="card content-card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 译文 <span class="content-origin-badge">AI 逐段翻译</span></h4>
+  <details class="article-brief">
+  <summary>DataHot 速览</summary>
+  <div class="article-brief-body"><p>MotherDuck推出Guides，把指标定义、表关系、历史迁移和业务例外等说明作为可查询、可版本化的上下文保存在数仓中。Agent在执行查询或构建数据任务时，可以按需发现并加载这些说明，减少仅凭schema猜测业务语义造成的错误。</p>
+  <p class="brief-why"><b>为什么值得关注：</b>企业数据Agent的核心瓶颈正在从SQL生成转向上下文治理，Guides提供了一个接近‘数仓内技能文件’的实现样本。</p></div>
+</details>
+  <section class="content-section" aria-labelledby="articleBodyTitle">
+  <div class="content-heading"><h2 id="articleBodyTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 译文</h2> <span class="content-origin-badge">AI 逐段翻译</span></div>
   <div class="fulltext"><p>预览</p><p>此功能处于<a href="https://motherduck.com/docs/about-motherduck/feature-stages/" target="_blank" rel="noopener noreferrer nofollow">预览</a>阶段，可能会发生变化。</p><p>通过指南，您可以捕获从模式中不可见的领域知识：您的组织如何定义MRR、要连接哪些表、避免哪些列、数据中的常见陷阱，或者“客户”在您的工作领域中意味着什么。指南也适用于个人偏好：您的Dive风格、您的Flight约定、您希望结果格式化的方式。</p><p>指南是存储在MotherDuck中的Markdown文档，AI代理在处理您的数据之前会读取这些文档。您只需编写一次指南；之后，每个代理会话都会通过<a href="https://motherduck.com/docs/key-tasks/ai-and-motherduck/mcp-setup/" target="_blank" rel="noopener noreferrer nofollow">MCP服务器</a>自动获取。无需在每个聊天中反复复制粘贴上下文。组织共享的指南使组织中的每个代理在相同的定义上保持一致；私有指南则个性化定制代理以适应您的工作方式。</p><h2 class="cb-heading">前提条件<a href="https://motherduck.com/docs/key-tasks/guides/#prerequisites" target="_blank" rel="noopener noreferrer nofollow">​</a></h2><ul><li>拥有MotherDuck账户，并已连接<a href="https://motherduck.com/docs/key-tasks/ai-and-motherduck/mcp-setup/" target="_blank" rel="noopener noreferrer nofollow">MCP服务器</a>到AI客户端，如Claude、Cursor或Claude Code。</li><li>拥有共享组织范围指南的权限（用于向整个组织发布指南）。</li></ul><h2 class="cb-heading">使用主题组织指南<a href="https://motherduck.com/docs/key-tasks/guides/#organize-guides-with-topics" target="_blank" rel="noopener noreferrer nofollow">​</a></h2><p>主题是让代理发现指南而不浪费令牌的有效方式。代理不会预先加载所有指南，而是调用<code>list_guides(topic)</code>，代理会看到带有指南数量的主题树，并钻取看起来与任务相关的主题。这称为渐进式披露，在您执行以下操作时效果最佳：</p><ul><li><strong>选择描述性强的主题名称。</strong> 代理仅根据名称决定是否打开<code>revenue-billing</code>，因此<code>revenue-billing</code>优于<code>misc</code>或<code>team-docs</code>。</li><li><strong>保持结构易于遍历。</strong> 少量命名良好的顶级主题，每个主题下有一到两个层级，比深度或碎片化的树更容易导航。主题不具备唯一性——任意数量的指南都可以共享同一个主题。</li><li><strong>将根主题保留给真正通用的指南。</strong> 没有主题的指南会在每个<code>get_query_guide</code>概览中单独列出：代理最容易找到，但会在每个会话中占用空间。仅在指南非常通用，不属于任何特定领域时，才将主题留空，例如公司描述、公司所在领域的独特属性、数据平台概述或组织范围的SQL约定。</li></ul><pre><code class="language-text">- data-quality/ (1 guide)
 - revenue-billing/ (2 guides)
 - revenue-billing/forecasting/ (1 guide)
@@ -700,9 +713,10 @@ FROM MD_SET_GUIDE_ACCESS(
 FROM MD_DELETE_GUIDE(id = &#x27;a1b2c3d4-e5f6-7890-abcd-ef1234567890&#x27;);
 </code></pre></div>
   <div class="content-footer"><a class="original-footer-link" href="https://motherduck.com/docs/key-tasks/guides/" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="主编收录"><span>查看原文</span><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div>
-</div>
+</section>
+  <div class="vendors article-tags" aria-label="文章主题"><a class="chip" href="../topics/data-agent.html">Data Agent</a><a class="chip" href="../topics/semantic-layer.html">语义层</a><span class="vtag">MotherDuck</span><span class="vtag">DuckDB</span></div>
 <section class="source-section" aria-labelledby="supplementSourcesTitle"><div class="source-heading"><h4 id="supplementSourcesTitle">补充来源</h4><span class="source-summary">1 个信源 · 1 篇报道</span></div><div class="source-group"><div class="source-group-head"><b>X 线索·@motherduck</b></div><a class="source-report" href="https://x.com/motherduck/status/2087177975166902737" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="X 线索·@motherduck"><span class="source-report-title">X 原帖：MotherDuck用Guides补齐Data Agent看不到的业务上下文 <span aria-hidden="true">↗</span></span><span class="source-report-date">2026-08-11 22:03</span></a></div></section>
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/ac7c75fedd0b.html"><span class="n">›</span>一招教你鉴定真假Data Agent<span class="count">39</span></a><a class="vendor-row" href="../e/1526c962704f.html"><span class="n">›</span>Data Agent：超越BI与AI的边界<span class="count">36</span></a><a class="vendor-row" href="../e/3bb9e34e59c3.html"><span class="n">›</span>构建企业级数据分析助手：Data Agent开发实践<span class="count">38</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/ac7c75fedd0b.html"><span class="n">›</span>一招教你鉴定真假Data Agent<span class="count">37</span></a><a class="vendor-row" href="../e/1526c962704f.html"><span class="n">›</span>Data Agent：超越BI与AI的边界<span class="count">36</span></a><a class="vendor-row" href="../e/3bb9e34e59c3.html"><span class="n">›</span>构建企业级数据分析助手：Data Agent开发实践<span class="count">38</span></a></div>
   </main>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
@@ -851,7 +865,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title":"MotherDuck用Guides补齐Data Agent看不到的业务上下文","summary":"MotherDuck推出Guides，把指标定义、表关系、历史迁移和业务例外等说明作为可查询、可版本化的上下文保存在数仓中。Agent在执行查询或构建数据任务时，可以按需发现并加载这些说明，减少仅凭schema猜测业务语义造成的错误。","reason":"企业数据Agent的核心瓶颈正在从SQL生成转向上下文治理，Guides提供了一个接近‘数仓内技能文件’的实现样本。","topic":"Data Agent","heat":53,"source":"DataHot 精选","date":"2026-08-11","url":"https://datahot.xiahongbin.com/e/2a6cb6153284.html","qr":"../qr/2a6cb6153284.png"};
+var SH_EV = {"title":"MotherDuck用Guides补齐Data Agent看不到的业务上下文","summary":"MotherDuck推出Guides，把指标定义、表关系、历史迁移和业务例外等说明作为可查询、可版本化的上下文保存在数仓中。Agent在执行查询或构建数据任务时，可以按需发现并加载这些说明，减少仅凭schema猜测业务语义造成的错误。","reason":"企业数据Agent的核心瓶颈正在从SQL生成转向上下文治理，Guides提供了一个接近‘数仓内技能文件’的实现样本。","topic":"Data Agent","heat":49,"source":"DataHot 精选","date":"2026-08-11","url":"https://datahot.xiahongbin.com/e/2a6cb6153284.html","qr":"../qr/2a6cb6153284.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

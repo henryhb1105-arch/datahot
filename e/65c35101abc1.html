@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-LAGKJL4kzn0kcZhItaj2Q552uVxL3l/qiGpgdfZoo+s=' 'sha256-c/IFUcVHVNXfysVg1jW8O3dVXbRfFZV8kB7u7AEz5Uw='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-A+3BETtSCI3LZFMCCeZHrOTIwtBKZ4zhBBdFlVirTyk=' 'sha256-LAGKJL4kzn0kcZhItaj2Q552uVxL3l/qiGpgdfZoo+s='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>跨100+ AWS账户的集中CloudTrail监控 · DataHot</title>
@@ -479,12 +479,22 @@ main,.layout>*,.hotlist>*{min-width:0}
 .article{max-width:1040px;margin:0 auto;padding:36px 20px 60px}
 .article-content{max-width:840px;margin:0 auto}
 .article .back{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}
-.article h1{font-size:24px;font-weight:800;line-height:1.5;margin:12px 0 16px}
+.article h1{max-width:700px;font-size:30px;font-weight:800;line-height:1.38;margin:14px auto 20px}
 .article .meta{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
-.article .body{font-size:15.5px;line-height:1.9;color:var(--txt3);margin:20px 0}
+.article .meta,.article-brief,.tts-player{max-width:700px;margin-left:auto;margin-right:auto}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
-.content-card>h4{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.article-brief{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:18px;margin-bottom:30px}
+.article-brief>summary{cursor:pointer;list-style:none;padding:13px 0;font-size:13px;font-weight:750;color:var(--txt2)}
+.article-brief>summary::-webkit-details-marker{display:none}
+.article-brief>summary::after{content:" ↓";color:var(--sub)}
+.article-brief[open]>summary::after{content:" ↑"}
+.article-brief-body{padding:0 0 16px;color:var(--txt3)}
+.article-brief-body p{font-size:14px;line-height:1.8;margin:0}
+.article-brief-body .brief-why{margin-top:9px;color:var(--txt2)}
+.content-section{margin:0 0 30px}
+.content-heading{max-width:700px;margin:0 auto 22px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}
+.content-heading h2{display:flex;align-items:center;gap:7px;font-size:15px;line-height:1.5;margin:0;color:var(--ink)}
 .content-origin-badge{font-size:11px;color:var(--sub);font-weight:500}
 .article .vendor-row{text-decoration:none}
 .source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
@@ -504,14 +514,15 @@ main,.layout>*,.hotlist>*{min-width:0}
 .source-more>summary::after{content:" ↓"}
 .source-more[open]>summary::after{content:" ↑"}
 @media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
-.fulltext .cb-heading{font-size:17px;line-height:1.55;margin:24px 0 10px;color:var(--ink)}
-.fulltext p{margin:0 0 14px}
+.fulltext>:not(.cb-figure):not(.cb-table){max-width:700px;margin-left:auto;margin-right:auto}
+.fulltext .cb-heading{font-size:19px;line-height:1.55;margin-top:32px;margin-bottom:12px;color:var(--ink)}
+.fulltext p{margin-top:0;margin-bottom:18px}
 .fulltext strong{font-weight:750;color:var(--ink)}
 .fulltext em{font-style:italic}
 .fulltext a{color:var(--blue);text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere}
-.fulltext ul,.fulltext ol{padding-left:24px;margin:8px 0 18px}
+.fulltext ul,.fulltext ol{padding-left:26px;margin-top:10px;margin-bottom:22px}
 .fulltext li{margin:6px 0;padding-left:2px}
-.fulltext blockquote{margin:16px 0;padding:10px 16px;border-left:4px solid var(--accent);background:var(--soft);border-radius:0 8px 8px 0;color:var(--txt2)}
+.fulltext blockquote{margin-top:20px;margin-bottom:20px;padding:12px 18px;border-left:4px solid var(--accent);background:var(--soft);border-radius:0 8px 8px 0;color:var(--txt2)}
 .fulltext code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
 .fulltext pre{overflow:auto;background:#171a20;color:#e8ebf0;border-radius:10px;padding:14px 16px;margin:16px 0;line-height:1.65}
 .fulltext pre code{background:none;border:none;padding:0;color:inherit}
@@ -531,7 +542,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .cta{display:inline-block;background:var(--accent);color:#fff;font-size:14px;font-weight:700;border-radius:10px;padding:11px 26px;margin:6px 0 4px}
 .fulltext h5.fh{font-size:15px;font-weight:800;color:var(--ink);margin:20px 0 8px;padding-left:10px;border-left:3px solid var(--accent)}
 .fulltext p.fwarn{font-size:12.5px;color:var(--amber);background:var(--accent-soft);border-radius:8px;padding:8px 12px}
-.fulltext p{font-size:15px;line-height:1.95;color:var(--txt3);margin:0 0 14px}
+.fulltext p,.fulltext li{font-size:16px;line-height:1.86;color:var(--txt3)}
 .tts-player{display:grid;grid-template-columns:auto auto minmax(120px,1fr) auto auto;align-items:center;gap:10px 12px;background:linear-gradient(135deg,var(--card),var(--soft));border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:2px 0 18px}
 .tts-player[hidden]{display:none}
 .tts-copy{display:flex;flex-direction:column;min-width:112px;line-height:1.35}
@@ -548,11 +559,11 @@ main,.layout>*,.hotlist>*{min-width:0}
   .article .back:hover,.source-report:hover .source-report-title,.original-footer-link:hover{color:var(--accent)}
   .cta:hover{opacity:.9}
 }
-.content-footer{display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}
+.content-footer{max-width:700px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin:20px auto 0}
 .disclaimer{flex:1;font-size:12px;color:var(--sub)}
 .original-footer-link{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:7px 12px;border-radius:99px;color:var(--blue);font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap}
 .original-footer-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media(max-width:600px){.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}}
+@media(max-width:600px){.article{padding-left:16px;padding-right:16px}.article h1{font-size:24px;line-height:1.45}.fulltext>:not(.cb-figure):not(.cb-table){max-width:none}.fulltext p,.fulltext li{font-size:16px;line-height:1.82}.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}}
 </style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="65c35101abc1" data-category="platform" data-source="AWS Big Data Blog">
 <aside class="sidebar"><div class="slogo"><a href="../index.html" data-smart-home-return aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><a class="mi on" href="../index.html" data-smart-home-return><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>每周简报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>我的收藏</a><a class="mi" href="../classics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg>典藏</a><a class="mi" href="../hot.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>完整榜单</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>
 <header class="detail-brand-header"><div class="wrap nav">
@@ -575,7 +586,6 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span class="star">精选</span>
     <span title="发布时间">发布 2026-08-11 23:48</span>
     <span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 08-12</span>
-    <span style="margin-left:auto" class="heatnum"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 46</span>
   </div>
   <h1>跨100+ AWS账户的集中CloudTrail监控</h1>
   <section class="tts-player" id="ttsPlayer" data-tts-player data-duration="50" hidden aria-label="文章精华朗读">
@@ -588,10 +598,13 @@ main,.layout>*,.hotlist>*{min-width:0}
     <option value="1">1.0×</option><option value="1.2">1.2×</option><option value="1.5">1.5×</option>
   </select></label>
 </section>
-  <div class="body">AWS Big Data Blog 介绍了如何在 Amazon OpenSearch Service 上构建集中式 CloudTrail 监控方案，使用 Terraform 管理全栈资源。该方案每日处理 200 GB 日志，覆盖 100+ AWS 账户，提供自动化威胁检测，并支持按需生成 SOC 2、PCI DSS 和 HIPAA 合规报告，同时为四个团队提供隔离的权限访问。</div>
-  <div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>面向大规模多云账户的安全日志集中分析与合规报告实践，对数据平台建设者具有参考价值。</span></div>
-  <div class="vendors" style="margin-top:14px"><span class="vtag">AWS</span><span class="vtag">Amazon OpenSearch Service</span></div>
-  <div class="card content-card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 译文 <span class="content-origin-badge">AI 逐段翻译</span></h4>
+  <details class="article-brief">
+  <summary>DataHot 速览</summary>
+  <div class="article-brief-body"><p>AWS Big Data Blog 介绍了如何在 Amazon OpenSearch Service 上构建集中式 CloudTrail 监控方案，使用 Terraform 管理全栈资源。该方案每日处理 200 GB 日志，覆盖 100+ AWS 账户，提供自动化威胁检测，并支持按需生成 SOC 2、PCI DSS 和 HIPAA 合规报告，同时为四个团队提供隔离的权限访问。</p>
+  <p class="brief-why"><b>为什么值得关注：</b>面向大规模多云账户的安全日志集中分析与合规报告实践，对数据平台建设者具有参考价值。</p></div>
+</details>
+  <section class="content-section" aria-labelledby="articleBodyTitle">
+  <div class="content-heading"><h2 id="articleBodyTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 译文</h2> <span class="content-origin-badge">AI 逐段翻译</span></div>
   <div class="fulltext"><p>在数十或数百个AWS账户中运行工作负载的组织面临一个常见挑战：大规模集中式安全监控。安全团队需要每天搜索数百GB的AWS CloudTrail日志，以检测威胁并满足SOC 2、PCI DSS和HIPAA审计的合规要求。他们还需要为职责不同的多个团队提供基于角色的访问。</p><p>如果没有专用基础设施，这通常涉及耗时数小时的手动日志搜索和耗时数天的合规报告生成。它还导致跨环境管理索引生命周期的自定义AWS Lambda函数代码库碎片化。一个没有一致访问控制的共享搜索域进一步加剧了问题。</p><p>在本文中，我们展示了如何在Amazon OpenSearch Service上构建集中式CloudTrail监控解决方案。Terraform管理整个堆栈，从域配置到访问控制和生命周期策略。该解决方案处理每天200GB的CloudTrail日志，提供自动威胁检测警报，并为4个不同团队提供隔离的、适合角色的数据访问。</p><h2 class="cb-heading">解决方案概述</h2><p>下图显示了架构。CloudTrail日志通过组织跟踪从100多个AWS账户流入集中式S3存储桶。Amazon Simple Queue Service（Amazon SQS）通知触发OpenSearch Ingestion管道。该管道在2到10个OpenSearch计算单元（OCU）之间自动扩展，以将日志解析并索引到OpenSearch域中。四个团队特定角色通过OpenSearch Dashboards访问数据，并实现租户隔离。</p><figure class="cb-figure"><a class="cb-media-link" href="https://d2908q01vomqb2.cloudfront.net/b6692ea5df920cad691c20319a6fffd7a4a766b8/2026/07/28/BDB-5968-1.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/65c35101abc1/fc2b3e80eb0c12a984d87e1d.png" alt="CloudTrail日志从100多个账户流入S3，然后通过Amazon SQS和OpenSearch Ingestion进入被4个团队角色使用的OpenSearch域" loading="lazy" decoding="async" width="2400" height="1651"></a></figure><p>关键组件包括：</p><ul><li><strong>CloudTrail聚合。</strong> 组织跟踪将100多个账户的日志发送到集中式Amazon Simple Storage Service（Amazon S3）存储桶。</li><li><strong>摄取。</strong> Amazon OpenSearch Ingestion管道通过S3存储桶上的Amazon SQS通知拾取新日志。它根据队列深度在2到10个OCU之间自动扩展。较低环境队列上的限制可防止开发和测试峰值饿死生产摄取。</li><li><strong>Amazon OpenSearch Service域。</strong> 6个或1.4xlarge数据节点（OpenSearch优化实例）和3个专用r8g.large主节点，具有细粒度访问控制、静态加密和节点间加密。</li><li><strong>基础设施即代码。</strong> 索引模板、索引状态管理（ISM）策略、角色、角色映射、租户、警报监控器和仪表板全部在Terraform中声明，并在环境中一致应用。</li></ul><h2 class="cb-heading">前提条件</h2><p>要实现此解决方案，您需要以下各项：</p><ul><li>在AWS Organizations中启用CloudTrail并在成员账户中启用的组织。</li><li>Terraform v1.5+及AWS provider和OpenSearch provider。</li><li>具有用于OpenSearch域的私有子网的虚拟私有云（VPC）。</li><li>每个将访问OpenSearch域的团队的IAM角色。</li><li>用于安全警报通知的Amazon Simple Notification Service（Amazon SNS）主题。</li><li>熟悉Amazon OpenSearch Service、Terraform和AWS CloudTrail。</li><li>示例Terraform代码可在<a href="https://github.com/aws-samples/sample-cloudtrail-opensearch-terraform" target="_blank" rel="noopener noreferrer nofollow">GitHub存储库</a></li></ul><h2 class="cb-heading">实现</h2><p>本节逐步介绍解决方案每个组件的Terraform代码，从指导我们大小调整决策的工作负载配置文件开始。</p><h3 class="cb-heading">工作负载配置文件</h3><p>在调整集群大小之前，我们定义了集中式CloudTrail监控平台的工作负载特征和SLA：</p><div class="cb-table" role="region" aria-label="原文表格" tabindex="0"><table><tr><td><strong>指标</strong></td><td><strong>值</strong></td></tr><tr><td>索引吞吐量</td><td>200 GB/天（约18,000文档/秒）</td></tr><tr><td>搜索查询</td><td>约2,000查询/天（约0.023 QPS）</td></tr><tr><td>平均搜索延迟</td><td>&lt; 100 ms（实现：76 ms）</td></tr><tr><td>保存的搜索</td><td>600+</td></tr><tr><td>仪表板和可视化</td><td>100+</td></tr><tr><td>用户团队</td><td>4（安全运维、事件响应、合规、DevOps）</td></tr><tr><td>保留期</td><td>30天（热层）</td></tr><tr><td>可用性目标</td><td>99.9%</td></tr></table></div><p>这是一个写重的摄取工作负载。主要用例是自动警报和定期合规查询，而不是连续交互式搜索。此工作负载配置文件指导了使用OR1（存储优化）实例和零副本的决策，优先考虑索引吞吐量而非搜索并行性。</p><h3 class="cb-heading">域配置</h3><p>首先配置Amazon OpenSearch Service域，启用加密、细粒度访问控制和VPC放置：</p><pre><code class="language-">resource &quot;aws_opensearch_domain&quot; &quot;cloudtrail&quot; {
   domain_name    = var.domain_name
   engine_version = &quot;OpenSearch_3.3&quot;
@@ -931,9 +944,10 @@ resource &quot;opensearch_tenant&quot; &quot;teams&quot; {
   }
 ]</code></pre><p>温存储使用 force-merge 减少段数量（降低查询开销），而冷存储将数据完全移动到 Amazon S3 以最小化成本。这种分层方法保持热层的高性能，同时满足长期审计要求。</p><h2 class="cb-heading">清理</h2><p>为避免产生持续费用，请通过运行以下命令删除本文中创建的资源：</p><pre><code class="language-">terraform destroy</code></pre><p>这将删除 OpenSearch 域、摄取管道、IAM 角色、SQS 队列以及所有相关配置。在运行 destroy 之前，请确保您已导出要保留的任何数据或仪表板。</p><h2 class="cb-heading">结论</h2><p>在这篇文章中，我们向您展示了如何在Amazon OpenSearch Service上使用Terraform管理整个堆栈来构建集中的CloudTrail监控解决方案。该方法从碎片化、手动配置且包含冗余Lambda代码的系统转变为版本控制、同行评审且一致部署的基础设施。</p><p>威胁检测时间从数小时降至分钟级，并实现自动化告警。原本需要数天的合规报告现在可按需生成。您的团队可以将时间花在安全分析上，而不是基础设施维护上。</p><p>要开始使用，请使用AWS Terraform提供商 <code>aws_opensearch_domain</code> 资源来创建域，然后使用Terraform OpenSearch提供商来管理索引模板、ISM策略、角色和监控器。在索引之前配置您的摄取管道以转换和丰富传入的CloudTrail日志，从而构建一个现代化、可扩展且随组织成长的安全基础。</p><p>此解决方案的完整源代码可在GitHub仓库中获取：<a href="https://github.com/aws-samples/sample-cloudtrail-opensearch-terraform" target="_blank" rel="noopener noreferrer nofollow">GitHub仓库</a></p><p>要了解有关此解决方案中使用的服务的更多信息：</p><ul><li><a href="https://aws.amazon.com/opensearch-service/" target="_blank" rel="noopener noreferrer nofollow">Amazon OpenSearch Service</a></li><li><a href="https://aws.amazon.com/cloudtrail/" target="_blank" rel="noopener noreferrer nofollow">AWS CloudTrail</a></li><li><a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/ingestion.html" target="_blank" rel="noopener noreferrer nofollow">Amazon OpenSearch Ingestion</a></li><li><a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/ism.html" target="_blank" rel="noopener noreferrer nofollow">索引状态管理</a></li><li><a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/fgac.html" target="_blank" rel="noopener noreferrer nofollow">细粒度访问控制</a></li></ul><h2 class="cb-heading">作者简介</h2></div>
   <div class="content-footer"><a class="original-footer-link" href="https://aws.amazon.com/blogs/big-data/centralized-cloudtrail-monitoring-across-100-aws-accounts/" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="AWS Big Data Blog"><span>查看原文</span><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div>
-</div>
+</section>
+  <div class="vendors article-tags" aria-label="文章主题"><span class="vtag">AWS</span><span class="vtag">Amazon OpenSearch Service</span></div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/b900f380de7c.html"><span class="n">›</span>Cloudflare launches Kitesurf, a browser built for AI agents<span class="count">26</span></a><a class="vendor-row" href="../e/49fe4cae4ec6.html"><span class="n">›</span>Claude 3.5 Haiku on AWS Trainium2 and model distillation in Amazon Bedrock | Claude by Anthropic<span class="count">32</span></a><a class="vendor-row" href="../e/d59bf48af2fa.html"><span class="n">›</span>Zero Trust for AI agents | Claude by Anthropic<span class="count">32</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/b900f380de7c.html"><span class="n">›</span>Cloudflare launches Kitesurf, a browser built for AI agents<span class="count">25</span></a><a class="vendor-row" href="../e/49fe4cae4ec6.html"><span class="n">›</span>Claude 3.5 Haiku on AWS Trainium2 and model distillation in Amazon Bedrock | Claude by Anthropic<span class="count">30</span></a><a class="vendor-row" href="../e/d59bf48af2fa.html"><span class="n">›</span>Zero Trust for AI agents | Claude by Anthropic<span class="count">30</span></a></div>
   </main>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
@@ -1082,7 +1096,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title":"跨100+ AWS账户的集中CloudTrail监控","summary":"AWS Big Data Blog 介绍了如何在 Amazon OpenSearch Service 上构建集中式 CloudTrail 监控方案，使用 Terraform 管理全栈资源。该方案每日处理 200 GB 日志，覆盖 100+ AWS 账户，提供自动化威胁检测，并支持按需生成 SOC 2、PCI DSS 和 HIPAA 合规报告，同时为四个团队提供隔离的权限访问。","reason":"面向大规模多云账户的安全日志集中分析与合规报告实践，对数据平台建设者具有参考价值。","topic":"","heat":46,"source":"AWS Big Data Blog","date":"2026-08-11","url":"https://datahot.xiahongbin.com/e/65c35101abc1.html","qr":"../qr/65c35101abc1.png"};
+var SH_EV = {"title":"跨100+ AWS账户的集中CloudTrail监控","summary":"AWS Big Data Blog 介绍了如何在 Amazon OpenSearch Service 上构建集中式 CloudTrail 监控方案，使用 Terraform 管理全栈资源。该方案每日处理 200 GB 日志，覆盖 100+ AWS 账户，提供自动化威胁检测，并支持按需生成 SOC 2、PCI DSS 和 HIPAA 合规报告，同时为四个团队提供隔离的权限访问。","reason":"面向大规模多云账户的安全日志集中分析与合规报告实践，对数据平台建设者具有参考价值。","topic":"","heat":43,"source":"AWS Big Data Blog","date":"2026-08-11","url":"https://datahot.xiahongbin.com/e/65c35101abc1.html","qr":"../qr/65c35101abc1.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

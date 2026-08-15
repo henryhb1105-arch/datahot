@@ -446,7 +446,7 @@ class EventFirstPipelineTests(unittest.TestCase):
         self.assertEqual(summary["attempted"], 2)
         self.assertEqual(summary["ready"], 2)
         self.assertFalse(hasattr(translated, "called_item"))
-        self.assertEqual(same_site["content_parse"]["processor_version"], "original-first-v2")
+        self.assertEqual(same_site["content_parse"]["processor_version"], "original-first-v3")
         self.assertEqual(cross_site["content_mode"], "original")
 
     def test_media_refresh_retries_only_source_bound_recoverable_figures(self):
@@ -577,7 +577,7 @@ class EventFirstPipelineTests(unittest.TestCase):
             "translation_status": "complete",
             "source_content_hash": "old-parser-hash",
             "content_parse": {
-                "processor_version": "original-first-v1",
+                "processor_version": "original-first-v2",
                 "status": "ready",
                 "attempted_at": NOW.isoformat(),
             },
@@ -613,9 +613,10 @@ class EventFirstPipelineTests(unittest.TestCase):
 
         self.assertEqual(summary["ready"], 1)
         self.assertEqual(summary["requested_event_ids"], ["upgrade"])
-        self.assertEqual(target["content_parse"]["processor_version"], "original-first-v2")
+        self.assertEqual(target["content_parse"]["processor_version"], "original-first-v3")
         self.assertTrue(target["content_parse"]["translation"]["reused"])
         self.assertEqual(target["content_parse"]["translation"]["trimmed_tail_blocks"], 2)
+        self.assertEqual(target["content_parse"]["translation"]["trimmed_promotional_blocks"], 0)
         self.assertEqual(target["content_parse"]["quality_status"], "pass")
         self.assertNotIn("未找到项目", target["full_zh"])
         self.assertTrue(target["published"].startswith("2026-05-22"))

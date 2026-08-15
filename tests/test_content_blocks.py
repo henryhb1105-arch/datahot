@@ -164,6 +164,115 @@ class ContentBlockParsingTests(unittest.TestCase):
         self.assertIn("Financial workflow facts", plain)
         self.assertNotIn("Related card copy", plain)
 
+    def test_nested_prose_core_beats_a_broad_main_without_semantic_classes(self):
+        intro = "Authoritative agent facts, operating constraints, and measured results. " * 18
+        section = "Trusted data, governed context, and bounded autonomy are required. " * 18
+        promo = (
+            '<p>The data leader primer: <a href="/resources/agent-guide">'
+            'Download the guide and start building agents.</a></p>'
+        )
+        markup = f"""
+        <main class="relative flex min-h-screen flex-col">
+          <p><a href="/blog">Blog</a></p><p> / <a href="/insights">Insights</a></p>
+          <p> / Why agent projects fail</p><h1>Why agent projects fail</h1>
+          <figure><img src="/authors/daniel.jpg" width="512" height="512" alt=""></figure>
+          <p><a href="/authors/daniel">Daniel Poppy</a> Last edited on Aug 14, 2026</p>
+          <div class="star-mb-6 star-last-mb-0">
+            <p>{intro}</p>{promo}<h2>Why trusted data matters</h2>
+            <p>{section}</p>{promo}<h2>Build an agent you can trust</h2>
+            <p>{section}</p>{promo}<p>Use staged autonomy and explicit approval boundaries.</p>
+          </div>
+          <div class="right-rail"><h3>Get started in dbt</h3><p>Join the analytics engineers.</p>
+            <h3>Install dbt Wizard CLI</h3><p>Install the product.</p><h4>Share this article</h4></div>
+          <section><h3>Latest posts</h3><p>Product 11 min</p><h3>Another article</h3>
+            <p>Daniel Poppy</p><p>on Aug 14, 2026</p></section>
+        </main>
+        """
+        blocks, report = parse_html_blocks_with_report(markup, "https://example.com/post")
+        plain = blocks_plain_text(blocks)
+        self.assertEqual(report["strategy"], "nested_content")
+        self.assertEqual(report["quality_status"], "pass")
+        self.assertGreaterEqual(report["candidate_count"], 2)
+        self.assertIn("nested_focus", report["selection_evidence"])
+        self.assertEqual(report["trimmed_promotional_blocks"], 3)
+        self.assertTrue(plain.startswith("Authoritative agent facts"))
+        self.assertIn("Use staged autonomy", plain)
+        for pollution in (
+            "Blog", "Why agent projects fail", "Daniel Poppy", "Download the guide",
+            "Get started in dbt", "Share this article", "Latest posts", "Another article",
+        ):
+            self.assertNotIn(pollution, plain)
+        self.assertEqual(report["figures_selected"], 0)
+
+    def test_block_cleanup_handles_breadcrumb_byline_repeated_promos_and_tail_cluster(self):
+        def paragraph(text, href=""):
+            marks = [{"type": "link", "href": href}] if href else []
+            return {"type": "paragraph", "children": [{"type": "text", "text": text, "marks": marks}]}
+
+        promo_href = "https://example.com/resources/agent-guide"
+        blocks = sanitize_blocks([
+            paragraph("博客", "https://example.com/blog"),
+            paragraph(" / 洞察", "https://example.com/insights"),
+            paragraph(" / 为什么智能体项目失败"),
+            {"type": "heading", "level": 2, "children": [{"type": "text", "text": "为什么智能体项目失败", "marks": []}]},
+            {"type": "figure", "src": "https://example.com/daniel.jpg", "alt": "", "caption": "", "width": 512, "height": 512},
+            paragraph("Daniel Poppy 最后编辑于2026年8月14日", "https://example.com/authors/daniel"),
+            paragraph("可信正文第一段。" * 70),
+            paragraph("下载指南，开始构建智能体。", promo_href),
+            {"type": "heading", "level": 2, "children": [{"type": "text", "text": "可信数据为何重要", "marks": []}]},
+            paragraph("可信正文第二段。" * 70),
+            paragraph("下载指南，开始构建智能体。", promo_href),
+            {"type": "heading", "level": 3, "children": [{"type": "text", "text": "在 dbt 中开始", "marks": []}]},
+            paragraph("安装产品。", "https://example.com/install"),
+            {"type": "heading", "level": 4, "children": [{"type": "text", "text": "分享本文", "marks": []}]},
+            {"type": "heading", "level": 3, "children": [{"type": "text", "text": "最新文章", "marks": []}]},
+        ])
+        trimmed, quality = trim_article_blocks(blocks)
+        plain = blocks_plain_text(trimmed)
+        self.assertTrue(plain.startswith("可信正文第一段"))
+        self.assertIn("可信正文第二段", plain)
+        self.assertNotIn("下载指南", plain)
+        self.assertNotIn("在 dbt 中开始", plain)
+        self.assertEqual(quality["trimmed_head_blocks"], 6)
+        self.assertEqual(quality["trimmed_promotional_blocks"], 2)
+        self.assertGreaterEqual(quality["trimmed_tail_blocks"], 4)
+        self.assertEqual(quality["quality_status"], "pass")
+
+    def test_get_started_heading_inside_article_is_not_a_tail_without_ui_evidence(self):
+        blocks = sanitize_blocks([
+            {"type": "paragraph", "children": [{"type": "text", "text": "API 设计正文。" * 80, "marks": []}]},
+            {"type": "heading", "level": 2, "children": [{"type": "text", "text": "Get started with the API", "marks": []}]},
+            {"type": "paragraph", "children": [{"type": "text", "text": "Create a token, call the endpoint, and verify the response. " * 20, "marks": []}]},
+        ])
+        trimmed, quality = trim_article_blocks(blocks)
+        self.assertIn("Get started with the API", blocks_plain_text(trimmed))
+        self.assertEqual(quality["trimmed_tail_blocks"], 0)
+
+    def test_linked_terminal_conversion_cta_is_removed_without_matching_body_copy(self):
+        blocks = sanitize_blocks([
+            {"type": "paragraph", "children": [{"type": "text", "text": "可信正文事实。" * 90, "marks": []}]},
+            {"type": "paragraph", "children": [
+                {"type": "text", "text": "Get started with ", "marks": ["em"]},
+                {"type": "text", "text": "Example Cloud", "marks": [
+                    {"type": "link", "href": "https://example.com/product"}, "em",
+                ]},
+                {"type": "text", "text": " today.", "marks": ["em"]},
+            ]},
+        ])
+        trimmed, quality = trim_article_blocks(blocks)
+        self.assertNotIn("Get started", blocks_plain_text(trimmed))
+        self.assertEqual(quality["trimmed_promotional_blocks"], 1)
+        self.assertIn("terminal_promotion_removed", quality["quality_evidence"])
+
+    def test_unlinked_terminal_get_started_sentence_is_preserved(self):
+        blocks = sanitize_blocks([
+            {"type": "paragraph", "children": [{"type": "text", "text": "可信正文事实。" * 90, "marks": []}]},
+            {"type": "paragraph", "children": [{"type": "text", "text": "Get started with the API today.", "marks": []}]},
+        ])
+        trimmed, quality = trim_article_blocks(blocks)
+        self.assertIn("Get started with the API today.", blocks_plain_text(trimmed))
+        self.assertEqual(quality["trimmed_promotional_blocks"], 0)
+
     def test_tail_boundary_trims_related_ui_after_meaningful_article(self):
         article_text = "正文事实、方法和结果。" * 70
         markup = (
@@ -247,6 +356,18 @@ class ContentBlockParsingTests(unittest.TestCase):
         ])
         self.assertEqual(report["figures_selected"], 3)
         self.assertEqual(report["figures_rejected"], 3)
+
+    def test_media_selection_uses_author_context_for_blank_square_portraits(self):
+        blocks = sanitize_blocks([
+            {"type": "figure", "src": "https://example.com/person.jpg", "alt": "", "caption": "", "width": 512, "height": 512},
+            {"type": "paragraph", "children": [{"type": "text", "text": "Daniel Poppy Last edited on Aug 14, 2026", "marks": []}]},
+            {"type": "paragraph", "children": [{"type": "text", "text": "Measured article facts. " * 40, "marks": []}]},
+            {"type": "figure", "src": "https://example.com/results.png", "alt": "Latency benchmark chart", "caption": "Measured results", "width": 960, "height": 540},
+        ])
+        selected, report = select_article_media(blocks)
+        urls = [block["src"] for block in selected if block["type"] == "figure"]
+        self.assertEqual(urls, ["https://example.com/results.png"])
+        self.assertEqual(report["figures_rejected_author"], 1)
 
     def test_article_parser_keeps_all_explanatory_figures_by_default(self):
         figures = "".join(

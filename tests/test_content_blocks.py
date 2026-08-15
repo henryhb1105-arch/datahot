@@ -20,6 +20,7 @@ from content_blocks import (  # noqa: E402
     sanitize_blocks,
     sanitize_url,
     select_article_media,
+    trim_article_blocks,
     translation_nodes,
 )
 import run_update  # noqa: E402
@@ -144,6 +145,66 @@ class ContentBlockParsingTests(unittest.TestCase):
         self.assertEqual(report["strategy"], "article")
         self.assertIn("正文机制说明", plain)
         self.assertNotIn("相关推荐", plain)
+
+    def test_focused_semantic_body_beats_broad_main_with_source_site_chrome(self):
+        article_text = "Financial workflow facts and concrete benchmark results. " * 45
+        related = "Related card copy, pricing, newsletter and navigation. " * 90
+        markup = f"""
+        <main class="page_main">
+          <section class="hero"><h1>Story title</h1><p>Story deck</p></section>
+          <div class="u-rich-text-blog"><h2>Actual article</h2><p>{article_text}</p></div>
+          <section class="related"><h2>Related posts</h2><p>{related}</p></section>
+        </main>
+        """
+        blocks, report = parse_html_blocks_with_report(markup, "https://example.com/post")
+        plain = blocks_plain_text(blocks)
+        self.assertEqual(report["strategy"], "semantic_container")
+        self.assertEqual(report["quality_status"], "pass")
+        self.assertGreaterEqual(report["candidate_count"], 2)
+        self.assertIn("Financial workflow facts", plain)
+        self.assertNotIn("Related card copy", plain)
+
+    def test_tail_boundary_trims_related_ui_after_meaningful_article(self):
+        article_text = "正文事实、方法和结果。" * 70
+        markup = (
+            f'<article><h1>标题</h1><p>{article_text}</p>'
+            '<p>未找到项目。</p><p>上一页</p><p>0/5</p>'
+            '<h2>相关文章</h2><p>推荐卡片</p></article>'
+        )
+        blocks, report = parse_html_blocks_with_report(markup, "https://example.com/post")
+        plain = blocks_plain_text(blocks)
+        self.assertEqual(report["strategy"], "article")
+        self.assertEqual(report["quality_status"], "pass")
+        self.assertEqual(report["boundary_marker"], "未找到项目。")
+        self.assertEqual(report["trimmed_tail_blocks"], 5)
+        self.assertNotIn("未找到项目", plain)
+        self.assertNotIn("推荐卡片", plain)
+
+    def test_persisted_translated_blocks_use_the_same_tail_boundary(self):
+        blocks = sanitize_blocks([
+            {"type": "paragraph", "children": [{"type": "text", "text": "可信正文。" * 90, "marks": []}]},
+            {"type": "paragraph", "children": [{"type": "text", "text": "未找到项目。", "marks": []}]},
+            {"type": "heading", "level": 2, "children": [{"type": "text", "text": "相关文章", "marks": []}]},
+        ])
+        trimmed, quality = trim_article_blocks(blocks)
+        self.assertEqual(len(trimmed), 1)
+        self.assertEqual(quality["trimmed_tail_blocks"], 2)
+        self.assertEqual(quality["quality_status"], "pass")
+
+    def test_article_title_deck_and_metadata_are_removed_before_body(self):
+        blocks = sanitize_blocks([
+            {"type": "heading", "level": 1, "children": [{"type": "text", "text": "重复标题", "marks": []}]},
+            {"type": "paragraph", "children": [{"type": "text", "text": "重复导语", "marks": []}]},
+            {"type": "list", "ordered": False, "items": [
+                {"children": [{"type": "text", "text": value, "marks": []}]}
+                for value in ("类别：企业 AI", "产品：Claude", "日期：2026 年 5 月 22 日", "阅读时间：5 分钟", "分享复制链接")
+            ]},
+            {"type": "paragraph", "children": [{"type": "text", "text": "正文第一段。" * 90, "marks": []}]},
+        ])
+        trimmed, quality = trim_article_blocks(blocks)
+        self.assertEqual(len(trimmed), 1)
+        self.assertTrue(blocks_plain_text(trimmed).startswith("正文第一段"))
+        self.assertEqual(quality["trimmed_head_blocks"], 3)
 
     def test_jsonld_article_body_is_used_when_dom_has_no_body_root(self):
         article_body = "JSON-LD 中的可信文章正文。" * 45
@@ -362,6 +423,21 @@ class ContentBlockTranslationTests(unittest.TestCase):
         self.assertEqual(report["figures"], 1)
         self.assertTrue(any(block["type"] == "figure" for block in blocks))
 
+    def test_fetch_article_content_blocks_a_suspect_body(self):
+        markup = (
+            '<html><body><article><p>View pricing</p><p>'
+            + "Long source copy with facts and benchmark numbers. " * 30
+            + '</p></article></body></html>'
+        ).encode()
+        with patch.object(run_update, "fetch_url", return_value=markup):
+            text, _title, _published, blocks, report = run_update.fetch_article_content(
+                "https://example.com/post", include_report=True,
+            )
+        self.assertEqual(text, "")
+        self.assertEqual(blocks, [])
+        self.assertEqual(report["quality_status"], "suspect")
+        self.assertEqual(report["fallback_reason"], "content_quality_suspect")
+
     def test_event_body_keeps_original_when_translation_is_incomplete(self):
         primary = {
             "article_text": blocks_plain_text(self.blocks),
@@ -434,7 +510,12 @@ class ContentBlockRenderingTests(unittest.TestCase):
         self.assertIn("prefers-color-scheme: dark", page)
         self.assertIn('aria-label="原文表格"', page)
         self.assertIn("overscroll-behavior-inline:contain", page)
-        self.assertIn(" 原文</h4>", page)
+        self.assertIn(" 原文</h2>", page)
+        self.assertIn('class="content-section"', page)
+        self.assertNotIn('class="card content-card"', page)
+        self.assertIn('<summary>DataHot 速览</summary>', page)
+        self.assertIn("max-width:700px", page)
+        self.assertIn("font-size:16px;line-height:1.86", page)
         self.assertNotIn("原文正文", page)
         self.assertNotIn("未经 AI 改写", page)
         self.assertNotIn('class="content-origin-badge"></span>', page)
@@ -451,7 +532,8 @@ class ContentBlockRenderingTests(unittest.TestCase):
         article["content_mode"] = "translated"
         article["source_language"] = "other"
         page = build_site.render_detail(article, [article], "")
-        self.assertIn(" 译文 <span", page)
+        self.assertIn(" 译文</h2>", page)
+        self.assertIn('<span class="content-origin-badge">AI 逐段翻译</span>', page)
         self.assertIn("AI 逐段翻译", page)
         self.assertNotIn('忠实译文 <span class="content-origin-badge">', page)
         self.assertNotIn("AI 仅逐段翻译 · 未总结重组", page)
@@ -463,7 +545,7 @@ class ContentBlockRenderingTests(unittest.TestCase):
         article["content_mode"] = "original"
         article["source_language"] = "other"
         page = build_site.render_detail(article, [article], "")
-        self.assertIn(" 原文</h4>", page)
+        self.assertIn(" 原文</h2>", page)
         self.assertNotIn("原文正文（未翻译）", page)
         self.assertNotIn("翻译暂不可用 · 保留原文", page)
         self.assertNotIn('class="content-origin-badge"></span>', page)
@@ -474,6 +556,31 @@ class ContentBlockRenderingTests(unittest.TestCase):
         page = build_site.render_detail(article, [article], "")
         self.assertIn('<h5 class="fh">关键事实</h5>', page)
         self.assertIn("旧版正文仍然可见。", page)
+
+    def test_detail_rendering_trims_persisted_source_site_tail(self):
+        article = self.base_event()
+        article["content_mode"] = "translated"
+        article["source_language"] = "other"
+        article["content_blocks"] = sanitize_blocks([
+            {
+                "type": "paragraph",
+                "children": [{"type": "text", "text": "可信译文。" * 100, "marks": []}],
+            },
+            {
+                "type": "paragraph",
+                "children": [{"type": "text", "text": "未找到项目。", "marks": []}],
+            },
+            {
+                "type": "heading", "level": 2,
+                "children": [{"type": "text", "text": "相关文章", "marks": []}],
+            },
+        ])
+        page = build_site.render_detail(article, [article], "")
+        self.assertIn("可信译文", page)
+        self.assertNotIn("未找到项目", page)
+        self.assertNotIn("相关文章", page)
+        meta = page.split('<div class="meta">', 1)[1].split("</div>", 1)[0]
+        self.assertNotIn("heatnum", meta)
 
 
 if __name__ == "__main__":

@@ -408,9 +408,11 @@ class WeeklySignalValidationTests(unittest.TestCase):
         self.assertEqual(errors, [])
 
     def test_w32_heterogeneous_infrastructure_group_is_rejected(self):
-        payload = json.loads((ROOT / "site/data/latest.json").read_text(encoding="utf-8"))
-        wanted = {"0a099ff0f253", "caa8145425d1", "cf0a8f7b6f35", "63b7989f4b33"}
-        events = [item for item in payload["events"] if item["event_id"] in wanted]
+        wanted = {"0a099ff0f253", "caa8145425d1", "cf0a8f7b6f35"}
+        events = [
+            item for item in weekly_snapshot_events("2026-W32")
+            if item["event_id"] in wanted
+        ]
         rows, evidence_map = evidence_context(events)
         response = {
             "weekly_judgement": "基础设施开始比较完整运营周期。",
@@ -419,7 +421,7 @@ class WeeklySignalValidationTests(unittest.TestCase):
                 "title": "基础设施比较完整运营周期",
                 "change_type": "strengthening",
                 "confidence": "medium",
-                "confidence_reason": "四个事件都涉及成本或可靠性，但技术层级并不一致。",
+                "confidence_reason": "三个事件都涉及成本或可靠性，但技术层级并不一致。",
                 "anchor": "ClickHouse Cloud 迁移与 AI SSD 路线同时出现。",
                 "mechanism": "将迁移、推理存储和数据库修复合并为运营周期。",
                 "baseline_comparison": "过去四周同类信息数量增加。",

@@ -17,6 +17,7 @@ from cluster_cache import ClusterDecisionCache, cluster_pair_key
 from content_blocks import (
     apply_translations, blocks_plain_text,
     parse_html_blocks_with_report, sanitize_blocks, translation_nodes,
+    trim_article_blocks,
 )
 from media_cache import (
     MEDIA_CACHE_POLICY_VERSION, RETRYABLE_MEDIA_REASONS,
@@ -48,7 +49,7 @@ TZ = timezone(timedelta(hours=8))
 LLM_USAGE = LLMUsageTracker(DATA / "llm_usage.json")
 CANDIDATE_CACHE = CandidateCache(DATA / "candidate_cache.json")
 CLUSTER_CACHE = ClusterDecisionCache(DATA / "cluster_cache.json")
-CONTENT_BLOCKS_PROCESSOR_VERSION = "original-first-v1"
+CONTENT_BLOCKS_PROCESSOR_VERSION = "original-first-v2"
 TRANSLATION_RETRY_POLICY_VERSION = "faithful-translation-retry-v1"
 METADATA_TRANSLATION_POLICY_VERSION = "metadata-translation-backfill-v1"
 
@@ -106,7 +107,10 @@ def parse_date(s):
         return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
     except Exception:
         pass
-    for fmt in ("%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d"):
+    for fmt in (
+        "%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%SZ",
+        "%Y-%m-%d %H:%M:%S", "%Y-%m-%d", "%b %d, %Y", "%B %d, %Y",
+    ):
         try:
             dt = datetime.strptime(s[:25], fmt)
             return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
@@ -294,12 +298,18 @@ def fetch_article_content(url, max_chars=120000, *, include_report=False):
             parse_report["noimageindex"] = True
         text = blocks_plain_text(blocks)
         structural = any(block.get("type") in {"figure", "table"} for block in blocks)
-        meaningful = len(text) > 400 or (len(text) >= 120 and structural)
+        quality_passed = parse_report.get("quality_status", "pass") == "pass"
+        meaningful = quality_passed and (
+            len(text) > 400 or (len(text) >= 120 and structural)
+        )
         if not meaningful:
             fallback = re.sub(r"(?is)<(script|style|noscript|nav|footer|header)[^>]*>.*?</\1>", " ", html_txt)
             text = strip_html(fallback)
             blocks = []
-            parse_report["fallback_reason"] = "structured_body_too_short"
+            parse_report["fallback_reason"] = (
+                "content_quality_suspect" if not quality_passed
+                else "structured_body_too_short"
+            )
         # A whole-page text dump mixes navigation, recommendations and footers and
         # produces the exact "乱糟糟" detail page we want to avoid.  Treat it as
         # unavailable unless the structured extractor found a meaningful article.
@@ -334,7 +344,11 @@ def prefer_rss_article_content(text, blocks, report, feed_html, article_url):
     )
     feed_score = len(feed_text) + feed_structural * 120
     page_score = len(text) + page_structural * 120
-    if len(feed_text) >= 400 and (not text or feed_score >= page_score * 0.9):
+    feed_quality_passed = feed_report.get("quality_status", "pass") == "pass"
+    if (
+        feed_quality_passed and len(feed_text) >= 400
+        and (not text or feed_score >= page_score * 0.9)
+    ):
         selected_report = dict(feed_report)
         selected_report["strategy"] = "rss_" + str(feed_report.get("strategy") or "content")
         return feed_text, feed_blocks, selected_report
@@ -1124,9 +1138,18 @@ def content_parse_record(report, *, status, source="", reason="", media_report=N
     }
     for key in (
         "blocks", "text_chars", "figures", "tables", "figures_discovered",
-        "figures_selected", "figures_rejected",
+        "figures_selected", "figures_rejected", "candidate_count",
+        "trimmed_tail_blocks", "trimmed_head_blocks",
     ):
         record[key] = max(0, int(report.get(key, 0) or 0))
+    if report.get("selected_score") is not None:
+        record["selected_score"] = round(float(report.get("selected_score") or 0), 2)
+    record["quality_status"] = str(report.get("quality_status") or "unknown")[:40]
+    quality_flags = report.get("quality_flags")
+    if isinstance(quality_flags, list) and quality_flags:
+        record["quality_flags"] = [str(flag)[:120] for flag in quality_flags[:8]]
+    if report.get("boundary_marker"):
+        record["boundary_marker"] = str(report["boundary_marker"])[:120]
     if report.get("noimageindex"):
         record["noimageindex"] = True
     if reason:
@@ -1177,9 +1200,14 @@ def generate_event_body(
         dict(event.get("content_parse"))
         if isinstance(event.get("content_parse"), dict) else {}
     )
+    previous_blocks, previous_quality = trim_article_blocks(
+        sanitize_blocks(event.get("content_blocks", []), article_url)
+    )
     completed_same_source = bool(
         content_hash and event.get("source_content_hash") == content_hash
         and (event.get("content_blocks") or event.get("full_zh"))
+        and previous_record.get("processor_version") == CONTENT_BLOCKS_PROCESSOR_VERSION
+        and previous_record.get("quality_status") in {None, "", "unknown", "pass"}
         and (
             event.get("content_mode") == "translated"
             and event.get("translation_status") == "complete"
@@ -1207,38 +1235,56 @@ def generate_event_body(
     mode = "original"
     translation_status = "not_needed" if language == "zh" else "unavailable"
     translation_error = ""
+    translation_reused = ""
     if language != "zh":
+        previous_text = blocks_plain_text(previous_blocks)
+        can_reuse_previous_translation = bool(
+            article_blocks and previous_blocks and previous_quality.get("quality_status") == "pass"
+            and event.get("content_mode") == "translated"
+            and event.get("translation_status") == "complete"
+            and previous_record.get("processor_version") != CONTENT_BLOCKS_PROCESSOR_VERSION
+            and 0.25 <= len(previous_text) / max(1, len(original_text)) <= 3.0
+        )
+        if can_reuse_previous_translation:
+            # Parser upgrades should not spend tokens retranslating a body that was
+            # already translated faithfully. Apply the new deterministic boundary
+            # to the stored blocks and retain that auditable translation.
+            display_blocks = previous_blocks
+            display_text = previous_text
+            mode, translation_status = "translated", "complete"
+            translation_reused = "trimmed_stored_translation"
         try:
-            if cfg[0] and cfg[1] and cfg[2]:
-                estimated_tokens = translation_budget_estimate(article_blocks, article_text)
-                if estimated_tokens and not LLM_USAGE.can_call(estimated_tokens):
-                    status = LLM_USAGE.budget_status(estimated_tokens)
-                    raise LLMBudgetExceeded(
-                        "whole article translation needs "
-                        f"{estimated_tokens} tokens; available {status['available_tokens']}"
+            if not translation_reused:
+                if cfg[0] and cfg[1] and cfg[2]:
+                    estimated_tokens = translation_budget_estimate(article_blocks, article_text)
+                    if estimated_tokens and not LLM_USAGE.can_call(estimated_tokens):
+                        status = LLM_USAGE.budget_status(estimated_tokens)
+                        raise LLMBudgetExceeded(
+                            "whole article translation needs "
+                            f"{estimated_tokens} tokens; available {status['available_tokens']}"
+                        )
+                if article_blocks:
+                    translated, stats = translate_article_blocks(
+                        article_blocks, cfg, source=source, item_id=event["event_id"],
+                        purpose=purpose,
                     )
-            if article_blocks:
-                translated, stats = translate_article_blocks(
-                    article_blocks, cfg, source=source, item_id=event["event_id"],
-                    purpose=purpose,
-                )
-                if translated and stats.get("complete"):
-                    display_blocks = translated
-                    display_text = blocks_plain_text(translated)
-                    mode, translation_status = "translated", "complete"
-                elif cfg[0] and cfg[1] and cfg[2]:
-                    translation_status = "failed"
-                    translation_error = "incomplete_translation"
-            else:
-                translated_text = translate_plain_text(
-                    article_text, cfg, source=source, item_id=event["event_id"], purpose=purpose,
-                )
-                if translated_text:
-                    display_text = translated_text
-                    mode, translation_status = "translated", "complete"
-                elif cfg[0] and cfg[1] and cfg[2]:
-                    translation_status = "failed"
-                    translation_error = "empty_translation"
+                    if translated and stats.get("complete"):
+                        display_blocks = translated
+                        display_text = blocks_plain_text(translated)
+                        mode, translation_status = "translated", "complete"
+                    elif cfg[0] and cfg[1] and cfg[2]:
+                        translation_status = "failed"
+                        translation_error = "incomplete_translation"
+                else:
+                    translated_text = translate_plain_text(
+                        article_text, cfg, source=source, item_id=event["event_id"], purpose=purpose,
+                    )
+                    if translated_text:
+                        display_text = translated_text
+                        mode, translation_status = "translated", "complete"
+                    elif cfg[0] and cfg[1] and cfg[2]:
+                        translation_status = "failed"
+                        translation_error = "empty_translation"
         except Exception as exc:
             translation_status = "failed"
             translation_error = type(exc).__name__
@@ -1284,6 +1330,15 @@ def generate_event_body(
                 "budget_deferred" if translation_error == "LLMBudgetExceeded" else translation_status
             ),
         }
+        if translation_reused:
+            record["translation"]["reused"] = True
+            record["translation"]["reuse_method"] = translation_reused
+            record["translation"]["trimmed_head_blocks"] = int(
+                previous_quality.get("trimmed_head_blocks", 0) or 0
+            )
+            record["translation"]["trimmed_tail_blocks"] = int(
+                previous_quality.get("trimmed_tail_blocks", 0) or 0
+            )
         if translation_error:
             record["translation"]["error"] = translation_error[:80]
     event["content_parse"] = record
@@ -1467,6 +1522,12 @@ def backfill_structured_content(
         "deferred_budget": 0, "stored_original_retries": 0,
         "skipped": 0, "failed": 0,
     }
+    requested_event_ids = {
+        value.strip() for value in re.split(",|\n", os.getenv("CONTENT_BACKFILL_EVENT_IDS", ""))
+        if re.fullmatch(r"[A-Za-z0-9_-]{3,80}", value.strip())
+    }
+    if requested_event_ids:
+        summary["requested_event_ids"] = sorted(requested_event_ids)
     if attempt_limit <= 0:
         summary["disabled_reason"] = "attempt_limit_zero"
         return summary
@@ -1480,15 +1541,22 @@ def backfill_structured_content(
         mode = event.get("content_mode")
         language = event.get("source_language")
         translation_status = event.get("translation_status")
-        if mode == "translated" and translation_status == "complete":
+        previous = event.get("content_parse") if isinstance(event.get("content_parse"), dict) else {}
+        processor_current = bool(
+            previous.get("processor_version") == CONTENT_BLOCKS_PROCESSOR_VERSION
+            and previous.get("quality_status") in {None, "", "unknown", "pass"}
+        )
+        if mode == "translated" and translation_status == "complete" and processor_current:
             continue
-        if mode == "original" and language == "zh" and translation_status == "not_needed":
+        if (
+            mode == "original" and language == "zh"
+            and translation_status == "not_needed" and processor_current
+        ):
             continue
         foreign_retry = bool(
             mode == "original" and language != "zh" and translation_status != "complete"
             and (event.get("content_blocks") or event.get("full_zh"))
         )
-        previous = event.get("content_parse") if isinstance(event.get("content_parse"), dict) else {}
         if not foreign_retry:
             attempted_at = parse_date(previous.get("attempted_at"))
             if attempted_at is not None and previous.get("processor_version") == CONTENT_BLOCKS_PROCESSOR_VERSION:
@@ -1498,6 +1566,12 @@ def backfill_structured_content(
                     continue
         eligible.append(event)
 
+    if requested_event_ids:
+        eligible = [
+            event for event in eligible
+            if event.get("event_id") in requested_event_ids
+        ]
+
     homepage = rank_timeline_events(
         events, page_size=DEFAULT_PAGE_SIZE, source_caps=FIRST_PAGE_SOURCE_CAPS,
     )[:DEFAULT_PAGE_SIZE]
@@ -1505,7 +1579,20 @@ def backfill_structured_content(
         event.get("event_id"): DEFAULT_PAGE_SIZE - index
         for index, event in enumerate(homepage)
     }
+
+    def quality_refresh_priority(event):
+        stored = sanitize_blocks(event.get("content_blocks", []))
+        if not stored:
+            return 0
+        _trimmed, quality = trim_article_blocks(stored)
+        return int(
+            quality.get("trimmed_tail_blocks", 0) > 0
+            or quality.get("trimmed_head_blocks", 0) > 0
+            or quality.get("quality_status") != "pass"
+        )
+
     eligible.sort(key=lambda event: (
+        quality_refresh_priority(event),
         int(
             _metadata_translation_record(event).get("run_id") == LLM_USAGE.run_id
             and _metadata_translation_record(event).get("status") == "complete"
@@ -1534,7 +1621,7 @@ def backfill_structured_content(
             text, blocks, parse_report = stored_text, stored_blocks, dict(previous)
             summary["stored_original_retries"] += 1
         else:
-            text, _title, _published, blocks, parse_report = fetch_article_content(
+            text, _title, published, blocks, parse_report = fetch_article_content(
                 primary.get("link", ""), include_report=True,
             )
             text, blocks, parse_report = prefer_rss_article_content(
@@ -1542,6 +1629,12 @@ def backfill_structured_content(
                 feed_content_by_url.get(norm_url(primary.get("link", ""))),
                 primary.get("link", ""),
             )
+            if published is not None:
+                if published.tzinfo is None:
+                    published = published.replace(tzinfo=timezone.utc)
+                published_iso = published.astimezone(TZ).isoformat()
+                event["published"] = published_iso
+                primary["published"] = published_iso
         if not text:
             event["content_parse"] = content_parse_record(
                 parse_report, status="skipped", source=source,
@@ -1550,15 +1643,22 @@ def backfill_structured_content(
             summary["skipped"] += 1
             continue
         language = detect_source_language(blocks_plain_text(blocks) if blocks else text)
+        reusable_translation = bool(
+            language != "zh" and stored_blocks
+            and event.get("content_mode") == "translated"
+            and event.get("translation_status") == "complete"
+            and previous.get("processor_version") != CONTENT_BLOCKS_PROCESSOR_VERSION
+        )
         can_translate = bool(
-            language != "zh" and cfg[0] and cfg[1] and cfg[2] and foreign_used < limit
+            language != "zh" and not reusable_translation
+            and cfg[0] and cfg[1] and cfg[2] and foreign_used < limit
         )
         if can_translate:
             estimated_tokens = translation_budget_estimate(blocks, text)
             if estimated_tokens and not LLM_USAGE.can_call(estimated_tokens):
                 can_translate = False
                 summary["deferred_budget"] += 1
-        if language != "zh" and not can_translate:
+        if language != "zh" and not can_translate and not reusable_translation:
             summary["deferred_foreign"] += 1
             if stored_foreign:
                 continue

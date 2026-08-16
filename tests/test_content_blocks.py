@@ -691,6 +691,7 @@ class ContentBlockRenderingTests(unittest.TestCase):
         self.assertIn(" 原文</h2>", page)
         self.assertIn('class="content-section"', page)
         self.assertNotIn('class="card content-card"', page)
+        self.assertIn('<details class="article-brief" open>', page)
         self.assertIn('<summary>DataHot 速览</summary>', page)
         self.assertIn("max-width:700px", page)
         self.assertIn("font-size:16px;line-height:1.86", page)

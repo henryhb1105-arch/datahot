@@ -1010,7 +1010,7 @@ def render_detail(e, all_events, css, tts_item=None):
   {footer_html}
 </section>'''
     brief_reason = clean_reason(e.get("reason", ""))
-    brief_html = f'''<details class="article-brief">
+    brief_html = f'''<details class="article-brief" open>
   <summary>DataHot 速览</summary>
   <div class="article-brief-body"><p>{esc(e["zh_summary"])}</p>
   {f'<p class="brief-why"><b>为什么值得关注：</b>{esc(brief_reason)}</p>' if brief_reason else ''}</div>

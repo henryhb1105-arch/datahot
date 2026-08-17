@@ -18,7 +18,7 @@ COLOR_TOKENS = {"accent", "warning", "positive", "info", "emphasis"}
 SKIP_CONTAINER_TAGS = {
     "script", "style", "noscript", "iframe", "object", "form", "button",
     "select", "textarea", "canvas", "svg", "head", "nav", "footer",
-    "header", "aside",
+    "header", "aside", "audio", "video",
 }
 SKIP_VOID_TAGS = {"input", "embed"}
 DANGEROUS_TAGS = SKIP_CONTAINER_TAGS | SKIP_VOID_TAGS
@@ -83,6 +83,35 @@ ARTICLE_POLLUTION_RE = re.compile(
     r"thanks?!?\s+you(?:'|’)re\s+subscribed\.?|谢谢！?您已订阅[。.]?|"
     r"sorry,?\s+there\s+was\s+a\s+problem[^.]*\.?|"
     r"抱歉，?提交时出现问题[^。]*[。.]?)$",
+    re.I,
+)
+SOURCE_UI_CONTAINER_RE = re.compile(
+    r"(?:^|\s)(?:article\s+)?(?:audio|podcast|media)\s+(?:player|controls?|widget)(?:\s|$)|"
+    r"(?:^|\s)(?:reading|bookmark)\s+list(?:\s|$)",
+    re.I,
+)
+ARTICLE_AUDIO_UI_LISTEN_RE = re.compile(
+    r"^(?:listen\s+to\s+(?:this\s+)?(?:article|post|story)|"
+    r"收听(?:本文|这篇文章|文章)|听(?:本文|这篇文章))"
+    r"(?:\s*[-–—:：]\s*\d{1,2}:\d{2})?$",
+    re.I,
+)
+ARTICLE_AUDIO_UI_STATUS_RE = re.compile(
+    r"^(?:audio\s+(?:is\s+)?ready(?:\s+to\s+play)?|"
+    r"音频(?:已)?准备(?:好播放|就绪|完成)|音频已准备好)$",
+    re.I,
+)
+ARTICLE_AUDIO_UI_UNSUPPORTED_RE = re.compile(
+    r"^(?:your\s+browser\s+(?:does\s+not|doesn't)\s+support\s+"
+    r"(?:the\s+)?audio(?:\s+element)?|"
+    r"(?:您|你)的浏览器不支持音频(?:元素)?)$",
+    re.I,
+)
+ARTICLE_AUDIO_UI_TIME_RE = re.compile(
+    r"^\d{1,3}:\d{2}(?:\s*/\s*\d{1,3}:\d{2})?$"
+)
+ARTICLE_AUDIO_UI_LIST_RE = re.compile(
+    r"^(?:reading\s+list|my\s+reading\s+list|bookmarks?|阅读列表|书签)$",
     re.I,
 )
 ARTICLE_META_LABELS = (
@@ -234,7 +263,9 @@ def sanitize_blocks(blocks, base_url=""):
                     block["level"] = min(4, max(2, int(raw.get("level", 2))))
                 except (TypeError, ValueError):
                     block["level"] = 2
-            if not block["children"]:
+            if not block["children"] or not any(
+                str(child.get("text") or "").strip() for child in block["children"]
+            ):
                 continue
         elif kind == "list":
             block["ordered"] = bool(raw.get("ordered"))
@@ -244,7 +275,7 @@ def sanitize_blocks(blocks, base_url=""):
                     item.get("children", []) if isinstance(item, dict) else item,
                     base_url,
                 )
-                if children:
+                if children and any(str(child.get("text") or "").strip() for child in children):
                     block["items"].append({"children": children})
             if not block["items"]:
                 continue
@@ -265,7 +296,7 @@ def sanitize_blocks(blocks, base_url=""):
                         raw_cell.get("children", []) if isinstance(raw_cell, dict) else raw_cell,
                         base_url,
                     )
-                    if children:
+                    if children and any(str(child.get("text") or "").strip() for child in children):
                         cell = {
                             "header": bool(raw_cell.get("header")) if isinstance(raw_cell, dict) else False,
                             "children": children,
@@ -511,6 +542,94 @@ def _block_link_ratio(block):
     return linked_chars / max(1, text_chars)
 
 
+def _normalized_ui_text(value):
+    value = re.sub(r"\s+", " ", str(value or "")).strip().casefold()
+    return value.strip(" \t\r\n.,!?;:，。！？；：()（）[]【】")
+
+
+def _source_ui_container(attrs):
+    """Recognize player/list widgets from semantics, without source URL rules."""
+    values = []
+    for key in ("class", "id", "role", "aria-label", "data-testid", "data-component"):
+        value = attrs.get(key)
+        if value:
+            values.append(str(value))
+    raw = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", " ".join(values))
+    normalized = re.sub(r"[^a-z0-9]+", " ", raw.casefold()).strip()
+    return bool(SOURCE_UI_CONTAINER_RE.search(normalized))
+
+
+def _article_audio_ui_role(block):
+    text = _normalized_ui_text(_block_plain_text(block))
+    if not text:
+        return "blank"
+    if ARTICLE_AUDIO_UI_LISTEN_RE.fullmatch(text):
+        return "listen"
+    if ARTICLE_AUDIO_UI_STATUS_RE.fullmatch(text):
+        return "status"
+    if ARTICLE_AUDIO_UI_UNSUPPORTED_RE.fullmatch(text):
+        return "unsupported"
+    if ARTICLE_AUDIO_UI_TIME_RE.fullmatch(text):
+        return "time"
+    if ARTICLE_AUDIO_UI_LIST_RE.fullmatch(text):
+        return "reading_list"
+    if any("/showbookmarks.action" in href.casefold() for href in _block_links(block)):
+        return "reading_list"
+    return ""
+
+
+def strip_article_ui_chrome(blocks):
+    """Remove a proven embedded player UI cluster while retaining article prose.
+
+    Individual keywords are never deleted. A cluster needs multiple independent
+    player signals (label/status/fallback plus time or reading-list controls), so
+    articles that discuss audio players remain intact.
+    """
+    safe = sanitize_blocks(blocks)
+    roles = [_article_audio_ui_role(block) for block in safe]
+    removed = set()
+    components = 0
+    primary_roles = {"listen", "status", "unsupported"}
+    for index, role in enumerate(roles):
+        if role not in primary_roles:
+            continue
+        start, end = max(0, index - 4), min(len(safe), index + 9)
+        window = [(offset, roles[offset]) for offset in range(start, end) if roles[offset]]
+        role_set = {value for _offset, value in window if value != "blank"}
+        ui_offsets = {offset for offset, value in window if value != "blank"}
+        proven = bool(
+            len(ui_offsets) >= 3
+            and len(role_set & primary_roles) >= 2
+            and role_set & {"time", "reading_list"}
+        )
+        if not proven:
+            continue
+        before = len(removed)
+        removed.update(ui_offsets)
+        if len(removed) > before:
+            components += 1
+    filtered = [block for index, block in enumerate(safe) if index not in removed]
+    return sanitize_blocks(filtered), {
+        "trimmed_embedded_ui_blocks": len(removed),
+        "embedded_ui_components": components,
+    }
+
+
+def strip_article_ui_text(value):
+    """Apply the same contextual player cleanup to legacy paragraph text."""
+    paragraphs = [
+        part.strip()
+        for part in re.split(r"(?:\r?\n){2,}", str(value or ""))
+        if part.strip()
+    ]
+    blocks = sanitize_blocks([
+        {"type": "paragraph", "children": [{"type": "text", "text": part, "marks": []}]}
+        for part in paragraphs
+    ])
+    cleaned, report = strip_article_ui_chrome(blocks)
+    return blocks_plain_text(cleaned), report
+
+
 def _title_key(value):
     value = re.sub(r"^[\s/\\|>›»·•:：-]+", "", str(value or "")).casefold()
     return re.sub(r"[^\w\u3400-\u9fff]+", "", value)
@@ -648,7 +767,7 @@ def trim_article_blocks(blocks, minimum_chars=400):
 
     tail_trimmed = safe if boundary_index is None else safe[:boundary_index]
     head_cut = _leading_article_chrome_cut(tail_trimmed)
-    body = tail_trimmed[head_cut:]
+    body, embedded_ui = strip_article_ui_chrome(tail_trimmed[head_cut:])
     promotional_indices = _repeated_promotional_indices(body)
     trimmed = [block for index, block in enumerate(body) if index not in promotional_indices]
     trimmed, terminal_promotions = _trim_terminal_promotions(trimmed)
@@ -666,6 +785,8 @@ def trim_article_blocks(blocks, minimum_chars=400):
         evidence.append("repeated_promotion_removed")
     if terminal_promotions:
         evidence.append("terminal_promotion_removed")
+    if embedded_ui["trimmed_embedded_ui_blocks"]:
+        evidence.append("embedded_ui_removed")
     text_total = len(blocks_plain_text(trimmed))
     if text_total >= minimum_chars and _linked_text_chars(trimmed) / max(1, text_total) <= 0.35:
         evidence.append("prose_density")
@@ -676,6 +797,8 @@ def trim_article_blocks(blocks, minimum_chars=400):
         "trimmed_tail_blocks": len(safe) - len(tail_trimmed),
         "trimmed_head_blocks": head_cut,
         "trimmed_promotional_blocks": len(promotional_indices) + terminal_promotions,
+        "trimmed_embedded_ui_blocks": embedded_ui["trimmed_embedded_ui_blocks"],
+        "embedded_ui_components": embedded_ui["embedded_ui_components"],
         "boundary_marker": boundary_marker,
         "boundary_start_marker": boundary_start_marker,
     }
@@ -898,12 +1021,16 @@ class ArticleBlockParser(HTMLParser):
         tag = tag.lower()
         attrs = {str(key).lower(): value for key, value in attrs}
         if self.skip_stack:
-            if tag in SKIP_CONTAINER_TAGS:
+            if tag not in HTML_VOID_TAGS:
                 self.skip_stack.append(tag)
             return
         if tag in SKIP_VOID_TAGS:
             return
         if tag in SKIP_CONTAINER_TAGS:
+            self._flush_current()
+            self.skip_stack.append(tag)
+            return
+        if tag in {"div", "section"} and _source_ui_container(attrs):
             self._flush_current()
             self.skip_stack.append(tag)
             return

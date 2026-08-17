@@ -446,7 +446,7 @@ class EventFirstPipelineTests(unittest.TestCase):
         self.assertEqual(summary["attempted"], 2)
         self.assertEqual(summary["ready"], 2)
         self.assertFalse(hasattr(translated, "called_item"))
-        self.assertEqual(same_site["content_parse"]["processor_version"], "original-first-v4")
+        self.assertEqual(same_site["content_parse"]["processor_version"], "original-first-v5")
         self.assertEqual(cross_site["content_mode"], "original")
 
     def test_media_refresh_retries_only_source_bound_recoverable_figures(self):
@@ -602,7 +602,7 @@ class EventFirstPipelineTests(unittest.TestCase):
         self.assertEqual(summary["ready"], 1)
         self.assertEqual(summary["stored_original_retries"], 0)
         self.assertEqual(target["content_mode"], "original")
-        self.assertEqual(target["content_parse"]["processor_version"], "original-first-v4")
+        self.assertEqual(target["content_parse"]["processor_version"], "original-first-v5")
         self.assertEqual(target["content_parse"]["quality_status"], "pass")
         self.assertIn("Complete English article facts", target["full_zh"])
         self.assertNotIn("View pricing", target["full_zh"])
@@ -670,7 +670,7 @@ class EventFirstPipelineTests(unittest.TestCase):
 
         self.assertEqual(summary["ready"], 1)
         self.assertEqual(summary["requested_event_ids"], ["upgrade"])
-        self.assertEqual(target["content_parse"]["processor_version"], "original-first-v4")
+        self.assertEqual(target["content_parse"]["processor_version"], "original-first-v5")
         self.assertTrue(target["content_parse"]["translation"]["reused"])
         self.assertEqual(
             target["content_parse"]["translation"]["reuse_method"],
@@ -767,7 +767,7 @@ class EventFirstPipelineTests(unittest.TestCase):
             )
         self.assertEqual(summary["parser_debt_eligible"], 1)
         self.assertEqual(summary["ready"], 1)
-        self.assertEqual(target["content_parse"]["processor_version"], "original-first-v4")
+        self.assertEqual(target["content_parse"]["processor_version"], "original-first-v5")
         self.assertTrue(target["full_zh"].startswith("重新解析后的可信正文"))
 
     def test_current_processor_with_unknown_quality_is_not_treated_as_complete(self):
@@ -780,7 +780,7 @@ class EventFirstPipelineTests(unittest.TestCase):
                 "children": [{"type": "text", "text": "待复核正文。" * 90, "marks": []}],
             }],
             "content_parse": {
-                "processor_version": "original-first-v4", "quality_status": "unknown",
+                "processor_version": "original-first-v5", "quality_status": "unknown",
                 "status": "ready", "attempted_at": (NOW - timedelta(days=8)).isoformat(),
             },
         })
@@ -860,6 +860,68 @@ class EventFirstPipelineTests(unittest.TestCase):
         self.assertEqual(metrics["media_cached"], 1)
         self.assertEqual(metrics["by_source"]["Feed"]["ready"], 1)
 
+    def test_catalog_normalizer_cleans_stored_translation_and_is_idempotent(self):
+        def paragraph(text):
+            return {
+                "type": "paragraph",
+                "children": [{"type": "text", "text": text, "marks": []}],
+            }
+
+        target = event("polluted")
+        target.update({
+            "content_mode": "translated",
+            "translation_status": "complete",
+            "content_format": "blocks-v1",
+            "content_blocks": [
+                paragraph("收听本文 - 0:00"),
+                paragraph("音频已准备好播放"),
+                paragraph("您的浏览器不支持音频元素。"),
+                paragraph("0:00"),
+                paragraph("0:00"),
+                {"type": "list", "ordered": False, "items": [{"children": [{
+                    "type": "text", "text": "阅读列表", "marks": [],
+                }]}]},
+                paragraph("可信译文正文。" * 80),
+            ],
+            "full_zh": "仍包含旧播放器文案",
+            "content_parse": {"processor_version": "original-first-v4", "quality_status": "pass"},
+        })
+
+        first = run_update.normalize_catalog_article_ui([target])
+        second = run_update.normalize_catalog_article_ui([target])
+
+        self.assertEqual(first["cleaned_events"], 1)
+        self.assertEqual(first["removed_blocks"], 6)
+        self.assertEqual(second["cleaned_events"], 0)
+        self.assertTrue(target["full_zh"].startswith("可信译文正文"))
+        self.assertNotIn("收听本文", target["full_zh"])
+        self.assertEqual(
+            target["content_parse"]["article_ui_cleanup"]["policy_version"],
+            "article-ui-v1",
+        )
+
+    def test_catalog_normalizer_cleans_legacy_plain_body_without_rewriting_prose(self):
+        prose = "第一句是正文。第二句仍在同一段，不应被重新切段。" * 20
+        target = event("legacy-polluted")
+        target.update({
+            "full_zh": "\n\n".join([
+                "收听本文 - 0:00",
+                "音频已准备好播放",
+                "您的浏览器不支持音频元素。",
+                "0:00",
+                "阅读列表",
+                prose,
+            ]),
+            "content_mode": "translated",
+            "translation_status": "complete",
+        })
+
+        summary = run_update.normalize_catalog_article_ui([target])
+
+        self.assertEqual(summary["cleaned_events"], 1)
+        self.assertEqual(summary["removed_blocks"], 5)
+        self.assertEqual(target["full_zh"], prose)
+
     def test_catalog_metrics_expose_current_quality_and_parser_debt(self):
         current = event("current")
         current.update({
@@ -869,7 +931,7 @@ class EventFirstPipelineTests(unittest.TestCase):
                 "children": [{"type": "text", "text": "可信正文。" * 80, "marks": []}],
             }],
             "content_parse": {
-                "processor_version": "original-first-v4", "quality_status": "pass",
+                "processor_version": "original-first-v5", "quality_status": "pass",
             },
         })
         debt = event("debt")

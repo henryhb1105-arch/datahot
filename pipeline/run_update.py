@@ -17,7 +17,7 @@ from cluster_cache import ClusterDecisionCache, cluster_pair_key
 from content_blocks import (
     apply_translations, blocks_plain_text,
     parse_html_blocks_with_report, sanitize_blocks, translation_nodes,
-    trim_article_blocks,
+    strip_article_ui_chrome, strip_article_ui_text, trim_article_blocks,
 )
 from media_cache import (
     MEDIA_CACHE_POLICY_VERSION, RETRYABLE_MEDIA_REASONS,
@@ -49,7 +49,8 @@ TZ = timezone(timedelta(hours=8))
 LLM_USAGE = LLMUsageTracker(DATA / "llm_usage.json")
 CANDIDATE_CACHE = CandidateCache(DATA / "candidate_cache.json")
 CLUSTER_CACHE = ClusterDecisionCache(DATA / "cluster_cache.json")
-CONTENT_BLOCKS_PROCESSOR_VERSION = "original-first-v4"
+CONTENT_BLOCKS_PROCESSOR_VERSION = "original-first-v5"
+ARTICLE_UI_SANITIZER_VERSION = "article-ui-v1"
 TRANSLATION_RETRY_POLICY_VERSION = "faithful-translation-retry-v1"
 METADATA_TRANSLATION_POLICY_VERSION = "metadata-translation-backfill-v1"
 
@@ -1191,6 +1192,7 @@ def content_parse_record(report, *, status, source="", reason="", media_report=N
         "figures_rejected_author", "figures_rejected_decorative",
         "figures_rejected_duplicate", "figures_rejected_small", "figures_rejected_limit",
         "trimmed_tail_blocks", "trimmed_head_blocks", "trimmed_promotional_blocks",
+        "trimmed_embedded_ui_blocks", "embedded_ui_components",
         "selected_depth", "selected_raw_blocks", "selected_raw_text_chars",
         "broad_raw_blocks", "broad_raw_text_chars", "parent_extra_blocks",
         "candidate_count_raw", "candidate_duplicates", "candidate_quality_rejected",
@@ -1944,7 +1946,8 @@ def catalog_content_metrics(events):
     metrics = {
         "events": len(events), "structured": 0, "renderable": 0,
         "current_pass": 0, "parser_debt": 0, "display_trimmed": 0,
-        "display_suspect": 0, "modes": {}, "processor_versions": {},
+        "display_suspect": 0, "embedded_ui_trimmed": 0,
+        "embedded_ui_blocks": 0, "modes": {}, "processor_versions": {},
     }
     for event in events:
         mode = str(event.get("content_mode") or "missing")
@@ -1966,6 +1969,10 @@ def catalog_content_metrics(events):
             metrics["display_suspect"] += 1
         if len(trimmed) != len(blocks):
             metrics["display_trimmed"] += 1
+        embedded_removed = int(quality.get("trimmed_embedded_ui_blocks", 0) or 0)
+        if embedded_removed:
+            metrics["embedded_ui_trimmed"] += 1
+            metrics["embedded_ui_blocks"] += embedded_removed
         if (
             record.get("processor_version") == CONTENT_BLOCKS_PROCESSOR_VERSION
             and record.get("quality_status") == "pass"
@@ -1974,6 +1981,50 @@ def catalog_content_metrics(events):
         else:
             metrics["parser_debt"] += 1
     return metrics
+
+
+def normalize_catalog_article_ui(events):
+    """Remove proven player chrome from stored blocks and legacy plain bodies."""
+    summary = {
+        "policy_version": ARTICLE_UI_SANITIZER_VERSION,
+        "scanned": 0, "cleaned_events": 0, "removed_blocks": 0,
+    }
+    for event in events if isinstance(events, list) else []:
+        summary["scanned"] += 1
+        primary = (event.get("items") or [{}])[0]
+        article_url = primary.get("link", "") if isinstance(primary, dict) else ""
+        stored_blocks = sanitize_blocks(event.get("content_blocks", []), article_url)
+        removed = 0
+        if stored_blocks:
+            cleaned_blocks, cleanup = strip_article_ui_chrome(stored_blocks)
+            removed = int(cleanup.get("trimmed_embedded_ui_blocks", 0) or 0)
+            if removed:
+                event["content_blocks"] = cleaned_blocks
+                event["content_format"] = "blocks-v1"
+                event["full_zh"] = blocks_plain_text(cleaned_blocks)
+        elif str(event.get("full_zh") or "").strip():
+            cleaned_text, cleanup = strip_article_ui_text(event.get("full_zh", ""))
+            removed = int(cleanup.get("trimmed_embedded_ui_blocks", 0) or 0)
+            if removed:
+                event["full_zh"] = cleaned_text
+        if not removed:
+            continue
+        event["body_chars"] = len(str(event.get("full_zh") or ""))
+        record = dict(event.get("content_parse") or {})
+        record["article_ui_cleanup"] = {
+            "policy_version": ARTICLE_UI_SANITIZER_VERSION,
+            "run_id": LLM_USAGE.run_id,
+            "cleaned_at": datetime.now(TZ).isoformat(),
+            "removed_blocks": removed,
+        }
+        evidence = list(record.get("selection_evidence") or [])
+        if "embedded_ui_removed" not in evidence:
+            evidence.append("embedded_ui_removed")
+        record["selection_evidence"] = evidence[:8]
+        event["content_parse"] = record
+        summary["cleaned_events"] += 1
+        summary["removed_blocks"] += removed
+    return summary
 
 
 def write_structured_content_summary(metrics):
@@ -1992,7 +2043,8 @@ def write_structured_content_summary(metrics):
         f"quality rejected: **{metrics.get('candidate_quality_rejected', 0)}**\n"
         f"- Catalog renderable: **{metrics.get('catalog', {}).get('renderable', 0)}** / "
         f"**{metrics.get('catalog', {}).get('structured', 0)}**；parser debt: "
-        f"**{metrics.get('catalog', {}).get('parser_debt', 0)}**\n\n"
+        f"**{metrics.get('catalog', {}).get('parser_debt', 0)}**；player chrome cleaned: "
+        f"**{metrics.get('article_ui_cleanup', {}).get('cleaned_events', 0)}**\n\n"
         "| Extraction strategy | Count |\n|---|---:|\n"
         f"{strategy_rows}\n"
     )
@@ -2314,6 +2366,12 @@ def main():
         else:  # 旧版 items 结构迁移
             for i in old.get("items", []):
                 events.append(make_event(i))
+    article_ui_cleanup_summary = normalize_catalog_article_ui(events)
+    if article_ui_cleanup_summary["cleaned_events"]:
+        print(
+            f"[content-ui] 清理 {article_ui_cleanup_summary['cleaned_events']} 篇 / "
+            f"{article_ui_cleanup_summary['removed_blocks']} 个播放器组件块"
+        )
     normalized_labels = normalize_category_labels(events)
     if normalized_labels:
         print(f"[taxonomy] 统一分类展示名 {normalized_labels} 条")
@@ -2573,6 +2631,7 @@ def main():
     run_structured["metadata_backfill"] = metadata_backfill_summary
     run_structured["backfill"] = backfill_summary
     run_structured["media_refresh"] = media_refresh_summary
+    run_structured["article_ui_cleanup"] = article_ui_cleanup_summary
     write_structured_content_summary(run_structured)
     print(
         f"[structured] ready {run_structured['ready']}/{run_structured['attempted']} | "

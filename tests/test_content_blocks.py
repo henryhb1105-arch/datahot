@@ -20,6 +20,7 @@ from content_blocks import (  # noqa: E402
     sanitize_blocks,
     sanitize_url,
     select_article_media,
+    strip_article_ui_chrome,
     trim_article_blocks,
     translation_nodes,
 )
@@ -132,6 +133,91 @@ class ContentBlockParsingTests(unittest.TestCase):
         rendered = render_blocks_html(blocks)
         self.assertIn('rowspan="2"', rendered)
         self.assertIn('colspan="2"', rendered)
+
+    def test_parser_excludes_audio_elements_and_semantic_player_widgets(self):
+        body = "Measured database facts, constraints, and benchmark results. " * 35
+        markup = f"""
+        <article>
+          <div class="articleAudioPlayer">
+            <div><p>Listen to this article - 0:00</p></div>
+            <p>Audio is ready to play</p>
+            <audio controls><source src="story.mp3">Your browser does not support the audio element.</audio>
+            <p>0:00</p><p>0:00</p><a href="/showbookmarks.action">Reading list</a>
+          </div>
+          <p>{body}</p>
+        </article>
+        """
+        blocks, report = parse_html_blocks_with_report(markup, "https://example.com/post")
+        plain = blocks_plain_text(blocks)
+        self.assertEqual(report["strategy"], "article")
+        self.assertIn("Measured database facts", plain)
+        self.assertNotIn("Listen to this article", plain)
+        self.assertNotIn("browser does not support", plain)
+        self.assertNotIn("Reading list", plain)
+
+    def test_flattened_player_cluster_is_removed_without_keyword_deletion(self):
+        def paragraph(text, href=""):
+            marks = [{"type": "link", "href": href}] if href else []
+            return {
+                "type": "paragraph",
+                "children": [{"type": "text", "text": text, "marks": marks}],
+            }
+
+        polluted = [
+            paragraph("收听本文 - 0:00"),
+            paragraph("音频已准备好播放"),
+            paragraph(" 您的浏览器不支持音频元素。 "),
+            paragraph("0:00"),
+            paragraph("0:00"),
+            {"type": "list", "ordered": False, "items": [{"children": [{
+                "type": "text", "text": "阅读列表", "marks": [{
+                    "type": "link", "href": "https://example.com/showbookmarks.action",
+                }],
+            }]}]},
+            paragraph("Amazon DynamoDB 的向量搜索正文事实。" * 45),
+            paragraph("本文讨论音频播放器的可访问性，但这是真实正文。"),
+        ]
+        cleaned, report = strip_article_ui_chrome(polluted)
+        plain = blocks_plain_text(cleaned)
+        self.assertEqual(report["trimmed_embedded_ui_blocks"], 6)
+        self.assertEqual(report["embedded_ui_components"], 1)
+        self.assertTrue(plain.startswith("Amazon DynamoDB"))
+        self.assertIn("音频播放器的可访问性", plain)
+        self.assertNotIn("浏览器不支持音频元素", plain)
+        self.assertNotIn("阅读列表", plain)
+
+    def test_isolated_audio_phrase_in_article_is_not_removed(self):
+        blocks = sanitize_blocks([{
+            "type": "paragraph",
+            "children": [{
+                "type": "text",
+                "text": "The accessibility test checks whether your browser does not support the audio element.",
+                "marks": [],
+            }],
+        }, {
+            "type": "paragraph",
+            "children": [{
+                "type": "text", "text": "This is explanatory article prose. " * 30, "marks": [],
+            }],
+        }])
+        cleaned, report = strip_article_ui_chrome(blocks)
+        self.assertEqual(report["trimmed_embedded_ui_blocks"], 0)
+        self.assertIn("accessibility test", blocks_plain_text(cleaned))
+
+    def test_sanitizer_drops_whitespace_only_blocks_but_keeps_inline_spaces(self):
+        cleaned = sanitize_blocks([{
+            "type": "paragraph",
+            "children": [{"type": "text", "text": "   ", "marks": []}],
+        }, {
+            "type": "paragraph",
+            "children": [
+                {"type": "text", "text": "Fact", "marks": ["strong"]},
+                {"type": "text", "text": " ", "marks": []},
+                {"type": "text", "text": "continues", "marks": ["em"]},
+            ],
+        }])
+        self.assertEqual(len(cleaned), 1)
+        self.assertEqual(blocks_plain_text(cleaned), "Fact continues")
 
     def test_article_root_wins_over_unrelated_page_copy(self):
         article_text = "正文机制说明和结果数据。" * 45

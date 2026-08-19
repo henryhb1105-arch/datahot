@@ -446,7 +446,7 @@ class EventFirstPipelineTests(unittest.TestCase):
         self.assertEqual(summary["attempted"], 2)
         self.assertEqual(summary["ready"], 2)
         self.assertFalse(hasattr(translated, "called_item"))
-        self.assertEqual(same_site["content_parse"]["processor_version"], "original-first-v6")
+        self.assertEqual(same_site["content_parse"]["processor_version"], "original-first-v7")
         self.assertEqual(cross_site["content_mode"], "original")
 
     def test_media_refresh_retries_only_source_bound_recoverable_figures(self):
@@ -602,7 +602,7 @@ class EventFirstPipelineTests(unittest.TestCase):
         self.assertEqual(summary["ready"], 1)
         self.assertEqual(summary["stored_original_retries"], 0)
         self.assertEqual(target["content_mode"], "original")
-        self.assertEqual(target["content_parse"]["processor_version"], "original-first-v6")
+        self.assertEqual(target["content_parse"]["processor_version"], "original-first-v7")
         self.assertEqual(target["content_parse"]["quality_status"], "pass")
         self.assertIn("Complete English article facts", target["full_zh"])
         self.assertNotIn("View pricing", target["full_zh"])
@@ -670,7 +670,7 @@ class EventFirstPipelineTests(unittest.TestCase):
 
         self.assertEqual(summary["ready"], 1)
         self.assertEqual(summary["requested_event_ids"], ["upgrade"])
-        self.assertEqual(target["content_parse"]["processor_version"], "original-first-v6")
+        self.assertEqual(target["content_parse"]["processor_version"], "original-first-v7")
         self.assertTrue(target["content_parse"]["translation"]["reused"])
         self.assertEqual(
             target["content_parse"]["translation"]["reuse_method"],
@@ -767,7 +767,7 @@ class EventFirstPipelineTests(unittest.TestCase):
             )
         self.assertEqual(summary["parser_debt_eligible"], 1)
         self.assertEqual(summary["ready"], 1)
-        self.assertEqual(target["content_parse"]["processor_version"], "original-first-v6")
+        self.assertEqual(target["content_parse"]["processor_version"], "original-first-v7")
         self.assertTrue(target["full_zh"].startswith("重新解析后的可信正文"))
 
     def test_current_processor_with_unknown_quality_is_not_treated_as_complete(self):
@@ -780,7 +780,7 @@ class EventFirstPipelineTests(unittest.TestCase):
                 "children": [{"type": "text", "text": "待复核正文。" * 90, "marks": []}],
             }],
             "content_parse": {
-                "processor_version": "original-first-v6", "quality_status": "unknown",
+                "processor_version": "original-first-v7", "quality_status": "unknown",
                 "status": "ready", "attempted_at": (NOW - timedelta(days=8)).isoformat(),
             },
         })
@@ -897,7 +897,7 @@ class EventFirstPipelineTests(unittest.TestCase):
         self.assertNotIn("收听本文", target["full_zh"])
         self.assertEqual(
             target["content_parse"]["article_ui_cleanup"]["policy_version"],
-            "article-chrome-v2",
+            "article-chrome-v3",
         )
 
     def test_catalog_normalizer_persists_full_head_and_tail_boundary_cleanup(self):
@@ -976,7 +976,7 @@ class EventFirstPipelineTests(unittest.TestCase):
                 "children": [{"type": "text", "text": "可信正文。" * 80, "marks": []}],
             }],
             "content_parse": {
-                "processor_version": "original-first-v6", "quality_status": "pass",
+                "processor_version": "original-first-v7", "quality_status": "pass",
             },
         })
         debt = event("debt")

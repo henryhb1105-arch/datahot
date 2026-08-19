@@ -417,6 +417,78 @@ class ContentBlockParsingTests(unittest.TestCase):
         self.assertEqual(second_quality["trimmed_head_blocks"], 0)
         self.assertEqual(second_quality["trimmed_tail_blocks"], 0)
 
+    def test_focused_article_title_and_byline_are_not_rendered_as_body(self):
+        def paragraph(text, href=""):
+            marks = [{"type": "link", "href": href}] if href else []
+            return {
+                "type": "paragraph",
+                "children": [{"type": "text", "text": text, "marks": marks}],
+            }
+
+        blocks = sanitize_blocks([
+            {"type": "heading", "level": 2, "children": [{
+                "type": "text",
+                "text": "通用 Agent 进了企业，Data Agent 还要不要单独买？",
+                "marks": [],
+            }]},
+            paragraph("作者：周卫林2026-08-19|NoETL 博客", "https://example.com/blog"),
+            paragraph("今年春节前后，OpenClaw 爆火，我们围绕它做了两次实验。" * 20),
+        ])
+
+        trimmed, quality = trim_article_blocks(blocks)
+        second, second_quality = trim_article_blocks(trimmed)
+
+        self.assertTrue(blocks_plain_text(trimmed).startswith("今年春节前后"))
+        self.assertNotIn("作者：周卫林", blocks_plain_text(trimmed))
+        self.assertNotIn("NoETL 博客", blocks_plain_text(trimmed))
+        self.assertEqual(quality["trimmed_head_blocks"], 2)
+        self.assertEqual(second, trimmed)
+        self.assertEqual(second_quality["trimmed_head_blocks"], 0)
+
+    def test_opening_heading_is_kept_without_an_explicit_byline(self):
+        blocks = sanitize_blocks([
+            {"type": "heading", "level": 2, "children": [{
+                "type": "text", "text": "作者如何建立可信分析流程", "marks": [],
+            }]},
+            {"type": "paragraph", "children": [{
+                "type": "text",
+                "text": "作者认为分析过程必须透明，这段话属于正文。" * 30,
+                "marks": [],
+            }]},
+        ])
+
+        trimmed, quality = trim_article_blocks(blocks)
+
+        self.assertTrue(blocks_plain_text(trimmed).startswith("作者如何建立可信分析流程"))
+        self.assertEqual(quality["trimmed_head_blocks"], 0)
+
+    def test_split_byline_dateline_and_subscribe_control_are_removed_together(self):
+        def paragraph(text):
+            return {
+                "type": "paragraph",
+                "children": [{"type": "text", "text": text, "marks": []}],
+            }
+
+        blocks = sanitize_blocks([
+            {"type": "heading", "level": 2, "children": [{
+                "type": "text", "text": "SQL 形态的意图", "marks": [],
+            }]},
+            paragraph("作者：Dushyant Bansal，ThoughtSpot 工程总监"),
+            paragraph("发布于"),
+            paragraph("订阅"),
+            {"type": "figure", "src": "https://example.com/hero.png", "alt": "架构图"},
+            paragraph("我们的团队花了近一年时间构建新的查询能力。" * 30),
+        ])
+
+        trimmed, quality = trim_article_blocks(blocks)
+        plain = blocks_plain_text(trimmed)
+
+        self.assertNotIn("作者：", plain)
+        self.assertNotIn("发布于", plain)
+        self.assertNotIn("订阅", plain)
+        self.assertEqual(trimmed[0]["type"], "figure")
+        self.assertEqual(quality["trimmed_head_blocks"], 4)
+
     def test_head_share_controls_end_before_body_but_publish_word_in_prose_is_kept(self):
         def paragraph(text):
             return {

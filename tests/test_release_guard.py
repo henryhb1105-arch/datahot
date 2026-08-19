@@ -72,7 +72,7 @@ class ReleaseGuardTests(unittest.TestCase):
         self.assertFalse(manifest["allow_shrink"])
         self.assertEqual(
             manifest["content_quality"],
-            {"structured": 1, "renderable": 1, "suspect": 0},
+            {"structured": 1, "renderable": 1, "suspect": 0, "stored_chrome": 0},
         )
 
     def test_existing_structured_article_cannot_lose_its_blocks(self):
@@ -101,6 +101,23 @@ class ReleaseGuardTests(unittest.TestCase):
         candidate = payload(*self.protected, self.recent, suspect)
 
         with self.assertRaisesRegex(ReleaseGuardError, "new suspect structured"):
+            self.assess(candidate)
+
+    def test_persisted_article_tail_components_are_blocked_before_publish(self):
+        polluted = with_article(event("recent-b"))
+        polluted["content_blocks"].extend([
+            {
+                "type": "paragraph",
+                "children": [{"type": "text", "text": "下一篇", "marks": []}],
+            },
+            {
+                "type": "paragraph",
+                "children": [{"type": "text", "text": "相邻文章标题", "marks": []}],
+            },
+        ])
+        candidate = payload(*self.protected, self.recent, polluted)
+
+        with self.assertRaisesRegex(ReleaseGuardError, "still contain page chrome"):
             self.assess(candidate)
 
     def test_event_count_and_recent_event_regression_are_blocked(self):

@@ -38,10 +38,15 @@ ARTICLE_CONTAINER_NOISE_RE = re.compile(
     re.I,
 )
 ARTICLE_TAIL_HEADING_RE = re.compile(
-    r"^(?:related\s+(?:articles?|posts?|stories)|recommended\s+(?:reading|articles?)|"
+    r"^(?:(?:previous|next)(?:\s+(?:article|post|story))?|"
+    r"related\s+(?:content|articles?|posts?|stories)|"
+    r"recommended(?:\s+(?:reading|articles?|posts?|stories))?|"
     r"you\s+may\s+also\s+like|more\s+from|latest\s+(?:articles?|posts?|stories)|"
     r"share\s+this\s+(?:article|post|story)|popular\s+(?:articles?|posts?)|"
-    r"相关文章|最新文章|相关推荐|推荐阅读|更多文章|分享本文)$",
+    r"topic\s+hub|about\s+the\s+authors?|"
+    r"上一篇(?:文章)?|下一篇(?:文章)?|相关内容|相关博客|相关主题文章|"
+    r"相关客户案例|相关解决方案|相关视频|相关产品推荐|产品推荐|主题中心|"
+    r"关于作者|作者简介|相关文章|最新文章|相关推荐|推荐阅读|更多文章|分享本文)$",
     re.I,
 )
 ARTICLE_PRE_TAIL_PROMO_HEADING_RE = re.compile(
@@ -65,19 +70,36 @@ ARTICLE_TERMINAL_PROMO_RE = re.compile(
     re.I,
 )
 ARTICLE_BYLINE_RE = re.compile(
-    r"(?:\blast\s+(?:edited|updated)(?:\s+on)?\b|\bupdated\s+(?:on|at)\b|"
-    r"\bpublished\s+(?:on|at)\b|\bby\s+[A-Z][\w.'’-]+|"
-    r"最后(?:编辑|更新)(?:于|时间)?|更新于|发布于|作者\s*[：:])",
+    r"^(?:.{0,80}\b(?:last\s+(?:edited|updated)(?:\s+on)?|"
+    r"updated\s+(?:on|at)|published\s+(?:on|at))\b|"
+    r"by\s+[A-Z][\w.'’-]+|.{0,40}最后(?:编辑|更新)(?:于|时间)?|"
+    r"更新于|发布于|作者\s*[：:])",
+    re.I,
+)
+ARTICLE_DATE_META_RE = re.compile(
+    r"^\d{4}(?:[-/.]\d{1,2}(?:[-/.]\d{1,2})?|年\d{1,2}月(?:\d{1,2}日)?)"
+    r"(?:\s*[|·•]\s*[^|·•]{1,60})?$",
+    re.I,
+)
+ARTICLE_HEAD_UI_RE = re.compile(
+    r"^(?:share\s+this\s+(?:article|post|story)|分享本文|"
+    r"copied\s+to\s+(?:the\s+)?clipboard|已复制到剪贴板)$",
     re.I,
 )
 ARTICLE_UI_BLOCK_RE = re.compile(
-    r"^(?:item\s+not\s+found\.?|未找到项目[。.]?|previous|next|上一页|下一页|"
+    r"^(?:item\s+not\s+found\.?|未找到项目[。.]?|"
+    r"(?:previous|next)(?:\s+(?:article|post|story))?|"
+    r"上一页|下一页|上一篇(?:文章)?|下一篇(?:文章)?|"
     r"\d+\s*/\s*\d+|e-?books?|电子书|faq|常见问题)$",
     re.I,
 )
 ARTICLE_POLLUTION_RE = re.compile(
-    r"^(?:item\s+not\s+found\.?|未找到项目[。.]?|previous|next|上一页|下一页|"
-    r"\d+\s*/\s*\d+|related\s+(?:articles?|posts?|stories)|相关文章|相关推荐|"
+    r"^(?:item\s+not\s+found\.?|未找到项目[。.]?|"
+    r"(?:previous|next)(?:\s+(?:article|post|story))?|"
+    r"上一页|下一页|上一篇(?:文章)?|下一篇(?:文章)?|"
+    r"\d+\s*/\s*\d+|related\s+(?:content|articles?|posts?|stories)|"
+    r"相关内容|相关博客|相关主题文章|相关客户案例|相关解决方案|相关视频|"
+    r"相关产品推荐|相关文章|相关推荐|"
     r"view\s+pricing|查看定价|contact\s+sales|联系销售|"
     r"get\s+(?:the\s+)?developer\s+newsletter|获取开发者通讯|"
     r"thanks?!?\s+you(?:'|’)re\s+subscribed\.?|谢谢！?您已订阅[。.]?|"
@@ -88,6 +110,15 @@ ARTICLE_POLLUTION_RE = re.compile(
 SOURCE_UI_CONTAINER_RE = re.compile(
     r"(?:^|\s)(?:article\s+)?(?:audio|podcast|media)\s+(?:player|controls?|widget)(?:\s|$)|"
     r"(?:^|\s)(?:reading|bookmark)\s+list(?:\s|$)",
+    re.I,
+)
+SOURCE_ARTICLE_CHROME_CONTAINER_RE = re.compile(
+    r"(?:^|\s)(?:article|post)\s+(?:footer|navigation|recommendations?)(?:\s|$)|"
+    r"(?:^|\s)(?:related|recommended|recommendations?|recirculation)\s+"
+    r"(?:content|articles?|posts?|stories|cards?|list|section)(?:\s|$)|"
+    r"(?:^|\s)(?:next|previous)\s+(?:article|post|story)(?:\s|$)|"
+    r"(?:^|\s)(?:topic\s+hub|newsletter\s+(?:signup|form)|author\s+(?:bio|card)|"
+    r"product\s+recommendations?|social\s+share)(?:\s|$)",
     re.I,
 )
 ARTICLE_AUDIO_UI_LISTEN_RE = re.compile(
@@ -559,6 +590,18 @@ def _source_ui_container(attrs):
     return bool(SOURCE_UI_CONTAINER_RE.search(normalized))
 
 
+def _source_article_chrome_container(attrs):
+    """Recognize nested article-page components, independent of publisher names."""
+    values = []
+    for key in ("class", "id", "role", "aria-label", "data-testid", "data-component"):
+        value = attrs.get(key)
+        if value:
+            values.append(str(value))
+    raw = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", " ".join(values))
+    normalized = re.sub(r"[^a-z0-9]+", " ", raw.casefold()).strip()
+    return bool(SOURCE_ARTICLE_CHROME_CONTAINER_RE.search(normalized))
+
+
 def _article_audio_ui_role(block):
     text = _normalized_ui_text(_block_plain_text(block))
     if not text:
@@ -644,6 +687,14 @@ def _looks_like_author_portrait(block, next_text=""):
     return bool(width and height and 0.75 <= width / max(1, height) <= 1.33 and max(width, height) <= 900)
 
 
+def _looks_like_byline(block):
+    text = _block_plain_text(block).strip(" \t\r\n:：")
+    return bool(
+        0 < len(text) <= 240
+        and (ARTICLE_BYLINE_RE.search(text) or ARTICLE_DATE_META_RE.fullmatch(text))
+    )
+
+
 def _leading_article_chrome_cut(blocks):
     head_cut = 0
     prefix_chars = 0
@@ -657,6 +708,24 @@ def _leading_article_chrome_cut(blocks):
             break
         prefix_chars += len(text)
 
+    # Some publishers flatten title, author/date and share controls into sibling
+    # blocks.  A share/copy control before any meaningful prose is the reliable
+    # end of that page header, regardless of how those blocks are styled.
+    prefix_chars = 0
+    for index, block in enumerate(blocks[:12]):
+        text = _block_plain_text(block).strip(" \t\r\n:：")
+        if prefix_chars <= 800 and ARTICLE_HEAD_UI_RE.fullmatch(text):
+            head_cut = max(head_cut, index + 1)
+            while (
+                head_cut < min(len(blocks), 12)
+                and ARTICLE_HEAD_UI_RE.fullmatch(
+                    _block_plain_text(blocks[head_cut]).strip(" \t\r\n:：")
+                )
+            ):
+                head_cut += 1
+            break
+        prefix_chars += len(text)
+
     for index, block in enumerate(blocks[:7]):
         if block.get("type") != "heading" or index == 0:
             continue
@@ -667,12 +736,15 @@ def _leading_article_chrome_cut(blocks):
             and len(_block_plain_text(candidate)) <= 180
             and (
                 re.match(r"^[\s/\\|>›»·•:：-]", _block_plain_text(candidate))
-                or _block_link_ratio(candidate) >= 0.5
+                or _block_link_ratio(candidate) >= 0.2
+                or len(_block_links(candidate)) >= 2
             )
             for candidate in previous
         )
+        previous_titles = [_title_key(_block_plain_text(candidate)) for candidate in previous]
         if title and breadcrumbish and any(
-            _title_key(_block_plain_text(candidate)) == title for candidate in previous
+            candidate_title == title or candidate_title.endswith(title)
+            for candidate_title in previous_titles
         ):
             head_cut = max(head_cut, index + 1)
             break
@@ -682,7 +754,7 @@ def _leading_article_chrome_cut(blocks):
         next_text = _block_plain_text(blocks[cursor + 1]) if cursor + 1 < len(blocks) else ""
         if _looks_like_author_portrait(blocks[cursor], next_text):
             cursor += 1
-    if cursor < len(blocks) and ARTICLE_BYLINE_RE.search(_block_plain_text(blocks[cursor])):
+    if cursor < len(blocks) and _looks_like_byline(blocks[cursor]):
         cursor += 1
     return cursor
 
@@ -741,10 +813,9 @@ def trim_article_blocks(blocks, minimum_chars=400):
     for index, block in enumerate(safe):
         text = _block_plain_text(block)
         normalized = text.strip(" \t\r\n:：")
-        is_heading_boundary = (
-            block.get("type") == "heading"
-            and bool(ARTICLE_TAIL_HEADING_RE.fullmatch(normalized))
-        )
+        # Source sites frequently render component labels as plain paragraphs.
+        # Exact component copy is therefore stronger evidence than the HTML tag.
+        is_heading_boundary = bool(ARTICLE_TAIL_HEADING_RE.fullmatch(normalized))
         is_ui_boundary = bool(ARTICLE_UI_BLOCK_RE.fullmatch(normalized))
         if text_chars >= minimum_chars and (is_heading_boundary or is_ui_boundary):
             boundary_index = index
@@ -774,7 +845,10 @@ def trim_article_blocks(blocks, minimum_chars=400):
     findings = []
     for block in trimmed:
         text = _block_plain_text(block).strip(" \t\r\n:：")
-        if text and ARTICLE_POLLUTION_RE.fullmatch(text):
+        if text and (
+            ARTICLE_POLLUTION_RE.fullmatch(text)
+            or ARTICLE_TAIL_HEADING_RE.fullmatch(text)
+        ):
             findings.append(text[:120])
     evidence = []
     if head_cut:
@@ -1030,7 +1104,9 @@ class ArticleBlockParser(HTMLParser):
             self._flush_current()
             self.skip_stack.append(tag)
             return
-        if tag in {"div", "section"} and _source_ui_container(attrs):
+        if tag in {"div", "section"} and (
+            _source_ui_container(attrs) or _source_article_chrome_container(attrs)
+        ):
             self._flush_current()
             self.skip_stack.append(tag)
             return

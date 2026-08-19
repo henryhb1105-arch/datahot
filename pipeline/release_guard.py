@@ -97,7 +97,10 @@ def load_manifest(path):
 
 def content_quality_snapshot(events):
     """Return reader-visible structured-content invariants for a release candidate."""
-    structured_ids, renderable_ids, suspect_ids = set(), set(), set()
+    structured_ids = set()
+    renderable_ids = set()
+    suspect_ids = set()
+    stored_chrome_ids = set()
     for event_id, event in events.items():
         source_url = ((event.get("items") or [{}])[0].get("link", "") if event.get("items") else "")
         blocks = sanitize_blocks(event.get("content_blocks", []), source_url)
@@ -105,6 +108,8 @@ def content_quality_snapshot(events):
             continue
         structured_ids.add(event_id)
         trimmed, quality = trim_article_blocks(blocks)
+        if len(trimmed) != len(blocks):
+            stored_chrome_ids.add(event_id)
         if len(blocks_plain_text(trimmed)) >= 120:
             renderable_ids.add(event_id)
         if quality.get("quality_status") != "pass":
@@ -113,6 +118,7 @@ def content_quality_snapshot(events):
         "structured_ids": structured_ids,
         "renderable_ids": renderable_ids,
         "suspect_ids": suspect_ids,
+        "stored_chrome_ids": stored_chrome_ids,
     }
 
 
@@ -121,6 +127,7 @@ def content_quality_counts(snapshot):
         "structured": len(snapshot["structured_ids"]),
         "renderable": len(snapshot["renderable_ids"]),
         "suspect": len(snapshot["suspect_ids"]),
+        "stored_chrome": len(snapshot["stored_chrome_ids"]),
     }
 
 
@@ -220,6 +227,14 @@ def assess_release(
             "code": "structured_content_suspect",
             "message": f"{len(new_suspect)} new suspect structured article(s)",
             "event_ids": sorted(new_suspect),
+        })
+
+    stored_chrome = candidate_quality["stored_chrome_ids"]
+    if stored_chrome:
+        violations.append({
+            "code": "stored_article_chrome",
+            "message": f"{len(stored_chrome)} structured article(s) still contain page chrome",
+            "event_ids": sorted(stored_chrome),
         })
 
     if violations and not allow_shrink:

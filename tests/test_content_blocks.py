@@ -155,6 +155,27 @@ class ContentBlockParsingTests(unittest.TestCase):
         self.assertNotIn("browser does not support", plain)
         self.assertNotIn("Reading list", plain)
 
+    def test_parser_excludes_nested_recirculation_components_without_visible_labels(self):
+        body = "Verified article facts, constraints, and measured results. " * 35
+        markup = f"""
+        <article>
+          <p>{body}</p>
+          <div class="related-content">
+            <h2>A neighboring article title</h2>
+            <p>This card is not part of the article body.</p>
+          </div>
+          <section data-component="newsletter-signup">
+            <p>Weekly product updates</p>
+          </section>
+        </article>
+        """
+        blocks, report = parse_html_blocks_with_report(markup, "https://example.com/post")
+        plain = blocks_plain_text(blocks)
+        self.assertEqual(report["strategy"], "article")
+        self.assertIn("Verified article facts", plain)
+        self.assertNotIn("neighboring article", plain)
+        self.assertNotIn("Weekly product updates", plain)
+
     def test_flattened_player_cluster_is_removed_without_keyword_deletion(self):
         def paragraph(text, href=""):
             marks = [{"type": "link", "href": href}] if href else []
@@ -358,6 +379,87 @@ class ContentBlockParsingTests(unittest.TestCase):
         self.assertEqual(quality["trimmed_promotional_blocks"], 2)
         self.assertGreaterEqual(quality["trimmed_tail_blocks"], 4)
         self.assertEqual(quality["quality_status"], "pass")
+
+    def test_flat_page_header_and_article_component_tail_are_cut_as_boundaries(self):
+        def paragraph(text, href=""):
+            marks = [{"type": "link", "href": href}] if href else []
+            return {
+                "type": "paragraph",
+                "children": [{"type": "text", "text": text, "marks": marks}],
+            }
+
+        title = "通用 Agent 进了企业，Data Agent 还要不要单独买？"
+        blocks = sanitize_blocks([
+            paragraph("产品 解决方案 客户案例 资源中心", "https://example.com/nav"),
+            paragraph("首页 > NoETL 博客 > " + title, "https://example.com/blog"),
+            {"type": "heading", "level": 2, "children": [
+                {"type": "text", "text": title, "marks": []},
+            ]},
+            paragraph("作者：周卫林 2026-08-19 | NoETL 博客"),
+            paragraph("可信正文事实、推理过程与结论。" * 90),
+            paragraph("下一篇"),
+            paragraph("另一个文章标题", "https://example.com/next"),
+            paragraph("相关博客"),
+            paragraph("相关文章卡片", "https://example.com/related"),
+        ])
+
+        trimmed, quality = trim_article_blocks(blocks)
+        second, second_quality = trim_article_blocks(trimmed)
+        plain = blocks_plain_text(trimmed)
+
+        self.assertTrue(plain.startswith("可信正文事实"))
+        self.assertNotIn("下一篇", plain)
+        self.assertNotIn("相关博客", plain)
+        self.assertEqual(quality["trimmed_head_blocks"], 4)
+        self.assertEqual(quality["trimmed_tail_blocks"], 4)
+        self.assertEqual(quality["boundary_marker"], "下一篇")
+        self.assertEqual(second, trimmed)
+        self.assertEqual(second_quality["trimmed_head_blocks"], 0)
+        self.assertEqual(second_quality["trimmed_tail_blocks"], 0)
+
+    def test_head_share_controls_end_before_body_but_publish_word_in_prose_is_kept(self):
+        def paragraph(text):
+            return {
+                "type": "paragraph",
+                "children": [{"type": "text", "text": text, "marks": []}],
+            }
+
+        blocks = sanitize_blocks([
+            paragraph("所有帖子"),
+            paragraph("2026年8月12日，在新闻"),
+            {"type": "heading", "level": 2, "children": [
+                {"type": "text", "text": "安全版本发布公告", "marks": []},
+            ]},
+            {"type": "heading", "level": 3, "children": [
+                {"type": "text", "text": "作者姓名", "marks": []},
+            ]},
+            {"type": "heading", "level": 3, "children": [
+                {"type": "text", "text": "分享本文", "marks": []},
+            ]},
+            paragraph("已复制到剪贴板"),
+            paragraph("产品发布于 2023 年，随后持续完善治理能力。" * 30),
+        ])
+
+        trimmed, quality = trim_article_blocks(blocks)
+        second, _second_quality = trim_article_blocks(trimmed)
+        plain = blocks_plain_text(trimmed)
+
+        self.assertEqual(quality["trimmed_head_blocks"], 6)
+        self.assertTrue(plain.startswith("产品发布于 2023 年"))
+        self.assertEqual(second, trimmed)
+
+    def test_non_component_sentence_containing_next_article_words_is_preserved(self):
+        blocks = sanitize_blocks([
+            {"type": "paragraph", "children": [{
+                "type": "text", "text": "可信正文事实。" * 90, "marks": [],
+            }]},
+            {"type": "paragraph", "children": [{
+                "type": "text", "text": "下一篇分析会继续解释这一机制。", "marks": [],
+            }]},
+        ])
+        trimmed, quality = trim_article_blocks(blocks)
+        self.assertIn("下一篇分析会继续解释", blocks_plain_text(trimmed))
+        self.assertEqual(quality["trimmed_tail_blocks"], 0)
 
     def test_head_metadata_deep_after_a_hero_carousel_starts_the_real_body(self):
         def paragraph(text):

@@ -1,49 +1,13 @@
 {
- "generated_at": "2026-08-19T22:27:14.276773+08:00",
+ "generated_at": "2026-08-19T22:58:30.113241+08:00",
  "events": [
   {
    "event_id": "6c6fc36a363b",
    "zh_title": "通用 Agent 来了，Data Agent 还要单独买吗？",
    "zh_summary": "文章以 OpenClaw 接入 Aloudata CAN 语义平台、安装问数和归因 Skill 为例，说明通用 Agent 能模仿数据分析，但“会分析”不等于“能上岗”。作者认为 Data Agent 需一体化设计，在需求澄清、强制数据校验、结果可追溯等方面承担岗位责任，而非仅挂载 Skill。文中还强调数据 100% 准确要以分析过程 100% 可信为手段，并指出单独售卖 Skill 无法对任务完成率负责。",
    "reason": "在通用 Agent 热潮下，本文清晰区分了“会分析”与“能上岗”，为数据团队评估 Data Agent 采购价值、设计可信分析流程提供了实用视角。",
-   "full_zh": "通用 Agent 进了企业，Data Agent 还要不要单独买？\n\n作者：周卫林2026-08-19|NoETL 博客\n\n今年春节前后，OpenClaw 爆火，我们围绕 OpenClaw 做了两次实验。\n\n第一次，我们把 Aloudata CAN 语义平台接给 OpenClaw，再装上问数和归因两个 Skill，它就能查询企业数据，也能围绕一个业务异常继续往下分析。（给一个微信公众号的文章链接）第二次，我们又增加了异常检测、预测模拟、报告编排和定时执行等 Skills，让它看起来更像一名高阶分析师（给一个微信公众号的文章链接）。\n\n既然 OpenClaw、WorkBuddy 这样的通用 Agent 已经能够通过接入语义引擎和安装分析 Skills 的方式，就能像模像样地进行数据分析，那么 Aloudata 为什么还要做自己的 Data Agent？\n\n既然企业希望员工未来可能只面对一个统一的 Agent 入口，那还会有必要单独采购 Data Agent 吗？\n\n相信不少同行和客户都已经遇到这个问题，以下是我对这个问题的思考。\n\n会分析，不等于数字分析师能上岗\n\n我先用一个员工求职上岗的过程来比喻说明。\n\n员工求职上岗，需要经历简历评估、面试评估、试用期考核、转正后绩效考评、扩大岗位职责等过程。\n\n简历评估主要考察背景、经历是否匹配，比如会不会使用 SQL、Python，掌握了哪些分析方法。对应到 Data Agent，就是会不会操作工具和具备哪些分析 Skills。\n\n接下来是面试。给候选人一道分析题，看他怎么思考，能不能做出来。我们之前在 OpenClaw 中接上 Aloudata CAN 和 Skills 后完成问数、归因和报告，很像一次表现不错的面试，感觉候选人无所不知、无所不能。\n\n但真正的考验发生在试用期：面对用户提出的没有说清楚的业务问题，Agent 会不会先反问；拿到一个数据时，会不会核验口径和数值；得出分析结论时，能不能完整呈现分析过程和分析依据；被纠正一次以后，同样的错误还会不会再次发生；……\n\n所以，从“会分析”到“能够作为分析师上岗”，中间隔着“造工具”，还是“造人”的区别。\n\n前两次 OpenClaw 实验证明的只是 Agent “会分析”，而企业采购 Data Agent，要求的是“能上岗”。\n\n现实中，有太多的候选人是会面试，而不会干活。\n\n所以，一个好的 Data Agent，应该像一个优秀的数据分析师一样：靠谱，越干越好。\n\n数据分析\n\n员工靠谱，试用期才能转正，Data Agent 也一样\n\n数据分析师要靠谱，前提是给的数据不能出错，客户采购 Data Agent 时，经常会提出一个听起来很苛刻的要求：数据必须 100% 准确。\n\n这个要求是既合理，也不合理。合理的是数据准确是分析决策的前提，需要数据 100%准确，不合理的是现实中的数据分析师因为各种原因，也做不到数据 100%准确。\n\n我对这个要求的看法是：数据 100% 准确是结果，分析过程 100% 可信是手段，只有分析过程 100%可信，才能保障数据 100%准确。\n\nData Agent 要实现分析过程 100%可信（Trusted），要体现在方方面面：\n\n会做需求澄清，问题没有说清楚，就先通过强制反问补齐取数逻辑，比如：对比今年 6 月和 7 月的会员等级变化？这需要 Agent 能够理解会员等级变化是需要取时点值进行比对，那么 6 月和 7 月有可能是时点值，也有可能不是时点值，要看会员等级背后的更新逻辑是日更，还是月更，如果是日更，就要进行反问，到底是取哪一天的值进行比对；\n\n会拒绝心算，好的分析师会跟财务人员一样，保持着拒绝心算的工作习惯，哪怕是 100+100 这种操作，也会在计算器上按出来，而不是自己心算。而大模型有时候遇到简单计算，会自己“心算”，从而常常导致数据不对。\n\n会强制数据校验，对于数据和分析结论，需要有一套校验和评估机制，就像数据分析报告会有组内评审一样。\n\n结果可验证，会保留完整的数据分析过程，通过提供角标、引用等功能，支持用户可以追踪每一个数据和每一条分析结论的运算过程和数据血缘，从 Agent 的动态 Python 计算，到语义引擎的查询接口，一直到下发数据库的查询 SQL，端到端可溯。\n\n……\n\n可以发现，上述对 Data Agent 的行为要求如果要 100%能执行，就不仅仅是在 Skill 这层修改 Prompt 可以实现，很多约束是要进入 Agent 的 Harness 工程里，比如 Context 上下文压缩时不能对数据链相关的内容进行压缩，否则会丢失数据分析关键步骤信息。\n\n因此，脱离 Data Agent 的一体化设计，只是将 Skill 挂载到通用 Agent 里，交接的只是分析经验，而不是岗位责任。这也是我们不支持单独售卖 Skill 的核心原因：无法对任务完成率负责。\n\n员工越干越好，其实是最低要求，Data Agent 也一样\n\n企业招聘员工，要为员工创造上岗条件，比如指定导师（mentor），制订学习计划，然后员工就会先从简单任务开始逐步开展工作，然后越干越懂，越干越熟，越干越好。\n\n真实情况下，企业并不会提前为新员工预置一份完全匹配岗位职责的工作手册，里面写清楚所有的工具、操作方法、标准流程、以及相应的业务知识和判断逻辑等，新员工只要照本宣科、依葫芦画瓢地开展工作就行。\n\n实际情况是，新员工会与导师、领导、同事一起在工作中彼此磨合，逐步建立适合这家企业、这个部门、这个团队的工作技能和工作经验，成为团队中的一员。\n\n学习能力是企业考评员工工作能力的一个关键项，而总结和自省是员工自我提升的关键动作。\n\n同样的情形落到 Data Agent 也一样，企业无法为 Data Agent 上岗提前预置一份完整无误、持续保鲜的数据语义库和业务知识库，这需要 Data Agent 在实际工作中，通过每一次的任务互动获取知识，更新技能，比如如何将反问中获取到的业务知识、习惯用语、用户偏好等更新到 Agent 知识库、记忆里。\n\n这就要求 Data Agent 需要建立一套自迭代、自进化的机制和系统能力，也就是递归自学习（RSI），其中高质量的评测任务是实现 RSI 的关键。这也是“造工具”与“造人”的主要区别。\n\n任务评测就是数字分析师的绩效体系，一个好的 Data Agent 厂商一定会有自己的评测任务集，就像大模型厂商发布模型时，需要通过打榜 SWE-bench 评测 Coding 能力一样，需要有一个基准测试。\n\n随着 Data Agent 任务执行的日志采集的越多，相应的 Harness 优化越做越深，最终这种 Data Agent 的进化，无论从通用 Agent 与专业 Data Agent 厂商在关注度的排序差异性上，还是从工程实践的细节实现上，都注定一体化的 Data Agent 在任务完成率、任务覆盖率和任务执行成本上会比通用 Agent + Skills 的方案要好。\n\n数据分析\n\n产品独立与入口统一，是两件事，并不冲突\n\n独立的 Data Agent，不一定意味着企业员工必须再打开一个聊天窗口。\n\n未来企业完全可以只有一个统一的员工入口。通用 Agent 负责识别员工要完成什么工作，遇到数据任务时，再调用或跳转专业 Data Agent。员工在前台看到的是一个入口，后台承担任务的却是不同的专业 Agent。\n\n但统一入口不等于把 Data Agent 拆成几个 Skills。前者统一的是用户体验，后者拆散的是产品责任。\n\n所以，回到文章标题的问题：通用 Agent 进了企业，Data Agent 还要不要单独买？\n\n如果企业希望自研 Data Agent ，可以采购 Aloudata CAN 企业级语义平台作为自研 Data Agent 的语义引擎；如果企业希望得到的是一名能够稳定地、准确地完成数据任务，并且越干越好的数字分析师，那么需要采购 Aloudata Data Agent。\n\n无论是自研还是外采 Data Agent，都与员工办公入口不冲突，而如果是希望通过通用 Agent + Skills 的方式来实现 Data Agent，前期可以尝试，但长期的天花板并不高。\n\n数据分析\n\n以上是我对“通用 Agent 进了企业，Data Agent 还要不要单独买”的思考：用户入口可以统一，产品责任不能被拆散，欢迎大家在评论区讨论。",
+   "full_zh": "今年春节前后，OpenClaw 爆火，我们围绕 OpenClaw 做了两次实验。\n\n第一次，我们把 Aloudata CAN 语义平台接给 OpenClaw，再装上问数和归因两个 Skill，它就能查询企业数据，也能围绕一个业务异常继续往下分析。（给一个微信公众号的文章链接）第二次，我们又增加了异常检测、预测模拟、报告编排和定时执行等 Skills，让它看起来更像一名高阶分析师（给一个微信公众号的文章链接）。\n\n既然 OpenClaw、WorkBuddy 这样的通用 Agent 已经能够通过接入语义引擎和安装分析 Skills 的方式，就能像模像样地进行数据分析，那么 Aloudata 为什么还要做自己的 Data Agent？\n\n既然企业希望员工未来可能只面对一个统一的 Agent 入口，那还会有必要单独采购 Data Agent 吗？\n\n相信不少同行和客户都已经遇到这个问题，以下是我对这个问题的思考。\n\n会分析，不等于数字分析师能上岗\n\n我先用一个员工求职上岗的过程来比喻说明。\n\n员工求职上岗，需要经历简历评估、面试评估、试用期考核、转正后绩效考评、扩大岗位职责等过程。\n\n简历评估主要考察背景、经历是否匹配，比如会不会使用 SQL、Python，掌握了哪些分析方法。对应到 Data Agent，就是会不会操作工具和具备哪些分析 Skills。\n\n接下来是面试。给候选人一道分析题，看他怎么思考，能不能做出来。我们之前在 OpenClaw 中接上 Aloudata CAN 和 Skills 后完成问数、归因和报告，很像一次表现不错的面试，感觉候选人无所不知、无所不能。\n\n但真正的考验发生在试用期：面对用户提出的没有说清楚的业务问题，Agent 会不会先反问；拿到一个数据时，会不会核验口径和数值；得出分析结论时，能不能完整呈现分析过程和分析依据；被纠正一次以后，同样的错误还会不会再次发生；……\n\n所以，从“会分析”到“能够作为分析师上岗”，中间隔着“造工具”，还是“造人”的区别。\n\n前两次 OpenClaw 实验证明的只是 Agent “会分析”，而企业采购 Data Agent，要求的是“能上岗”。\n\n现实中，有太多的候选人是会面试，而不会干活。\n\n所以，一个好的 Data Agent，应该像一个优秀的数据分析师一样：靠谱，越干越好。\n\n数据分析\n\n员工靠谱，试用期才能转正，Data Agent 也一样\n\n数据分析师要靠谱，前提是给的数据不能出错，客户采购 Data Agent 时，经常会提出一个听起来很苛刻的要求：数据必须 100% 准确。\n\n这个要求是既合理，也不合理。合理的是数据准确是分析决策的前提，需要数据 100%准确，不合理的是现实中的数据分析师因为各种原因，也做不到数据 100%准确。\n\n我对这个要求的看法是：数据 100% 准确是结果，分析过程 100% 可信是手段，只有分析过程 100%可信，才能保障数据 100%准确。\n\nData Agent 要实现分析过程 100%可信（Trusted），要体现在方方面面：\n\n会做需求澄清，问题没有说清楚，就先通过强制反问补齐取数逻辑，比如：对比今年 6 月和 7 月的会员等级变化？这需要 Agent 能够理解会员等级变化是需要取时点值进行比对，那么 6 月和 7 月有可能是时点值，也有可能不是时点值，要看会员等级背后的更新逻辑是日更，还是月更，如果是日更，就要进行反问，到底是取哪一天的值进行比对；\n\n会拒绝心算，好的分析师会跟财务人员一样，保持着拒绝心算的工作习惯，哪怕是 100+100 这种操作，也会在计算器上按出来，而不是自己心算。而大模型有时候遇到简单计算，会自己“心算”，从而常常导致数据不对。\n\n会强制数据校验，对于数据和分析结论，需要有一套校验和评估机制，就像数据分析报告会有组内评审一样。\n\n结果可验证，会保留完整的数据分析过程，通过提供角标、引用等功能，支持用户可以追踪每一个数据和每一条分析结论的运算过程和数据血缘，从 Agent 的动态 Python 计算，到语义引擎的查询接口，一直到下发数据库的查询 SQL，端到端可溯。\n\n……\n\n可以发现，上述对 Data Agent 的行为要求如果要 100%能执行，就不仅仅是在 Skill 这层修改 Prompt 可以实现，很多约束是要进入 Agent 的 Harness 工程里，比如 Context 上下文压缩时不能对数据链相关的内容进行压缩，否则会丢失数据分析关键步骤信息。\n\n因此，脱离 Data Agent 的一体化设计，只是将 Skill 挂载到通用 Agent 里，交接的只是分析经验，而不是岗位责任。这也是我们不支持单独售卖 Skill 的核心原因：无法对任务完成率负责。\n\n员工越干越好，其实是最低要求，Data Agent 也一样\n\n企业招聘员工，要为员工创造上岗条件，比如指定导师（mentor），制订学习计划，然后员工就会先从简单任务开始逐步开展工作，然后越干越懂，越干越熟，越干越好。\n\n真实情况下，企业并不会提前为新员工预置一份完全匹配岗位职责的工作手册，里面写清楚所有的工具、操作方法、标准流程、以及相应的业务知识和判断逻辑等，新员工只要照本宣科、依葫芦画瓢地开展工作就行。\n\n实际情况是，新员工会与导师、领导、同事一起在工作中彼此磨合，逐步建立适合这家企业、这个部门、这个团队的工作技能和工作经验，成为团队中的一员。\n\n学习能力是企业考评员工工作能力的一个关键项，而总结和自省是员工自我提升的关键动作。\n\n同样的情形落到 Data Agent 也一样，企业无法为 Data Agent 上岗提前预置一份完整无误、持续保鲜的数据语义库和业务知识库，这需要 Data Agent 在实际工作中，通过每一次的任务互动获取知识，更新技能，比如如何将反问中获取到的业务知识、习惯用语、用户偏好等更新到 Agent 知识库、记忆里。\n\n这就要求 Data Agent 需要建立一套自迭代、自进化的机制和系统能力，也就是递归自学习（RSI），其中高质量的评测任务是实现 RSI 的关键。这也是“造工具”与“造人”的主要区别。\n\n任务评测就是数字分析师的绩效体系，一个好的 Data Agent 厂商一定会有自己的评测任务集，就像大模型厂商发布模型时，需要通过打榜 SWE-bench 评测 Coding 能力一样，需要有一个基准测试。\n\n随着 Data Agent 任务执行的日志采集的越多，相应的 Harness 优化越做越深，最终这种 Data Agent 的进化，无论从通用 Agent 与专业 Data Agent 厂商在关注度的排序差异性上，还是从工程实践的细节实现上，都注定一体化的 Data Agent 在任务完成率、任务覆盖率和任务执行成本上会比通用 Agent + Skills 的方案要好。\n\n数据分析\n\n产品独立与入口统一，是两件事，并不冲突\n\n独立的 Data Agent，不一定意味着企业员工必须再打开一个聊天窗口。\n\n未来企业完全可以只有一个统一的员工入口。通用 Agent 负责识别员工要完成什么工作，遇到数据任务时，再调用或跳转专业 Data Agent。员工在前台看到的是一个入口，后台承担任务的却是不同的专业 Agent。\n\n但统一入口不等于把 Data Agent 拆成几个 Skills。前者统一的是用户体验，后者拆散的是产品责任。\n\n所以，回到文章标题的问题：通用 Agent 进了企业，Data Agent 还要不要单独买？\n\n如果企业希望自研 Data Agent ，可以采购 Aloudata CAN 企业级语义平台作为自研 Data Agent 的语义引擎；如果企业希望得到的是一名能够稳定地、准确地完成数据任务，并且越干越好的数字分析师，那么需要采购 Aloudata Data Agent。\n\n无论是自研还是外采 Data Agent，都与员工办公入口不冲突，而如果是希望通过通用 Agent + Skills 的方式来实现 Data Agent，前期可以尝试，但长期的天花板并不高。\n\n数据分析\n\n以上是我对“通用 Agent 进了企业，Data Agent 还要不要单独买”的思考：用户入口可以统一，产品责任不能被拆散，欢迎大家在评论区讨论。",
    "content_blocks": [
-    {
-     "type": "heading",
-     "id": "b-28cdf69e09bf",
-     "children": [
-      {
-       "type": "text",
-       "text": "通用 Agent 进了企业，Data Agent 还要不要单独买？",
-       "marks": [],
-       "id": "t-6508bc34f378"
-      }
-     ],
-     "level": 2
-    },
-    {
-     "type": "paragraph",
-     "id": "b-9e41472e8a8b",
-     "children": [
-      {
-       "type": "text",
-       "text": "作者：周卫林2026-08-19|",
-       "marks": [],
-       "id": "t-94c937d0c39b"
-      },
-      {
-       "type": "text",
-       "text": "NoETL 博客",
-       "marks": [
-        {
-         "type": "link",
-         "href": "https://aloudata.com/resources?type=blog"
-        }
-       ],
-       "id": "t-e527f31056d4"
-      }
-     ]
-    },
     {
      "type": "paragraph",
      "id": "b-9af9b1960bef",
@@ -769,20 +733,20 @@
     ]
    },
    "content_parse": {
-    "run_id": "github-32263965837-1",
-    "processor_version": "original-first-v6",
-    "attempted_at": "2026-08-19T22:28:06.244026+08:00",
+    "run_id": "github-32267050930-1",
+    "processor_version": "original-first-v7",
+    "attempted_at": "2026-08-19T22:58:48.243867+08:00",
     "status": "ready",
     "source": "Aloudata 博客",
     "strategy": "largest_content",
-    "blocks": 49,
-    "text_chars": 3510,
+    "blocks": 47,
+    "text_chars": 3448,
     "figures": 3,
     "tables": 0,
     "figures_discovered": 3,
     "figures_selected": 3,
     "figures_rejected": 0,
-    "candidate_count": 3,
+    "candidate_count": 2,
     "figures_rejected_author": 0,
     "figures_rejected_decorative": 0,
     "figures_rejected_duplicate": 0,
@@ -793,21 +757,21 @@
     "trimmed_promotional_blocks": 0,
     "trimmed_embedded_ui_blocks": 0,
     "embedded_ui_components": 0,
-    "selected_depth": 9,
-    "selected_raw_blocks": 49,
-    "selected_raw_text_chars": 3510,
+    "selected_depth": 11,
+    "selected_raw_blocks": 47,
+    "selected_raw_text_chars": 3448,
     "broad_raw_blocks": 103,
     "broad_raw_text_chars": 4194,
-    "parent_extra_blocks": 54,
+    "parent_extra_blocks": 56,
     "candidate_count_raw": 10,
-    "candidate_duplicates": 7,
+    "candidate_duplicates": 8,
     "candidate_quality_rejected": 0,
     "duplicate_blocks": 0,
-    "selected_score": 499.76,
+    "selected_score": 483.66,
     "quality_status": "pass",
     "selected_tag": "div",
-    "focus_ratio": 0.8369,
-    "link_ratio": 0.0057,
+    "focus_ratio": 0.8221,
+    "link_ratio": 0.0035,
     "duplicate_ratio": 0.0,
     "selection_evidence": [
      "prose_density",
@@ -823,14 +787,14 @@
     "content_mode": "original",
     "source_language": "zh",
     "translation_status": "not_needed",
-    "source_content_hash": "8022323acdcb044028b71131"
+    "source_content_hash": "3b969c6ce9108d12cd9fdb5b"
    },
    "content_mode": "original",
    "content_level": "original",
    "source_language": "zh",
    "translation_status": "not_needed",
-   "source_content_hash": "8022323acdcb044028b71131",
-   "body_chars": 3510
+   "source_content_hash": "3b969c6ce9108d12cd9fdb5b",
+   "body_chars": 3448
   },
   {
    "event_id": "61ddf33de841",
@@ -1142,7 +1106,7 @@
    "vendors": [
     "Indeed"
    ],
-   "heat": 51,
+   "heat": 50,
    "star": false,
    "importance": 55,
    "signal": 0,
@@ -1170,9 +1134,9 @@
     "decision_concerns": []
    },
    "content_parse": {
-    "run_id": "github-32263965837-1",
-    "processor_version": "original-first-v6",
-    "attempted_at": "2026-08-19T22:28:29.286573+08:00",
+    "run_id": "github-32267050930-1",
+    "processor_version": "original-first-v7",
+    "attempted_at": "2026-08-19T22:58:52.426343+08:00",
     "status": "ready",
     "source": "Indeed Hiring Lab",
     "strategy": "semantic_container",
@@ -1229,9 +1193,9 @@
     "translation_status": "complete",
     "source_content_hash": "0dc176653af3b7e140dfde39",
     "translation": {
-     "run_id": "github-32263965837-1",
+     "run_id": "github-32267050930-1",
      "policy_version": "faithful-translation-retry-v1",
-     "attempted_at": "2026-08-19T22:28:29.286604+08:00",
+     "attempted_at": "2026-08-19T22:58:52.426393+08:00",
      "purpose": "body_translation_backfill",
      "status": "complete",
      "reused": true,
@@ -1240,10 +1204,10 @@
       "status": "aligned",
       "anchors": 18,
       "source_blocks": 18,
-      "stored_blocks": 19,
+      "stored_blocks": 18,
       "source_anchor_ratio": 1.0,
       "aligned_blocks": 18,
-      "dropped_prefix_blocks": 1,
+      "dropped_prefix_blocks": 0,
       "dropped_suffix_blocks": 0
      },
      "trimmed_head_blocks": 0,
@@ -2163,9 +2127,9 @@
     ]
    },
    "content_parse": {
-    "run_id": "github-32263965837-1",
-    "processor_version": "original-first-v6",
-    "attempted_at": "2026-08-19T22:28:06.955114+08:00",
+    "run_id": "github-32267050930-1",
+    "processor_version": "original-first-v7",
+    "attempted_at": "2026-08-19T22:58:49.286832+08:00",
     "status": "ready",
     "source": "Databricks Blog",
     "strategy": "semantic_container",
@@ -2222,9 +2186,9 @@
     "translation_status": "complete",
     "source_content_hash": "b3ae515557aeb258f722abaa",
     "translation": {
-     "run_id": "github-32263965837-1",
+     "run_id": "github-32267050930-1",
      "policy_version": "faithful-translation-retry-v1",
-     "attempted_at": "2026-08-19T22:28:06.955149+08:00",
+     "attempted_at": "2026-08-19T22:58:49.286886+08:00",
      "purpose": "body_translation_backfill",
      "status": "complete",
      "reused": true,
@@ -3515,9 +3479,9 @@
     ]
    },
    "content_parse": {
-    "run_id": "github-32263965837-1",
-    "processor_version": "original-first-v6",
-    "attempted_at": "2026-08-19T22:30:45.179875+08:00",
+    "run_id": "github-32267050930-1",
+    "processor_version": "original-first-v7",
+    "attempted_at": "2026-08-19T22:58:59.590957+08:00",
     "status": "ready",
     "source": "Databricks Blog",
     "strategy": "semantic_container",
@@ -3571,9 +3535,9 @@
     "translation_status": "complete",
     "source_content_hash": "ecbf5c068240625b1e0c7c43",
     "translation": {
-     "run_id": "github-32263965837-1",
+     "run_id": "github-32267050930-1",
      "policy_version": "faithful-translation-retry-v1",
-     "attempted_at": "2026-08-19T22:30:45.179906+08:00",
+     "attempted_at": "2026-08-19T22:58:59.591005+08:00",
      "purpose": "body_translation_backfill",
      "status": "complete",
      "reused": true,
@@ -9999,9 +9963,9 @@
     ]
    },
    "content_parse": {
-    "run_id": "github-32263965837-1",
-    "processor_version": "original-first-v6",
-    "attempted_at": "2026-08-19T22:28:28.941873+08:00",
+    "run_id": "github-32267050930-1",
+    "processor_version": "original-first-v7",
+    "attempted_at": "2026-08-19T22:58:51.788865+08:00",
     "status": "ready",
     "source": "AWS Big Data Blog",
     "strategy": "semantic_container",
@@ -10058,9 +10022,9 @@
     "translation_status": "complete",
     "source_content_hash": "66ae081be039e12e60dd01a3",
     "translation": {
-     "run_id": "github-32263965837-1",
+     "run_id": "github-32267050930-1",
      "policy_version": "faithful-translation-retry-v1",
-     "attempted_at": "2026-08-19T22:28:28.941909+08:00",
+     "attempted_at": "2026-08-19T22:58:51.788920+08:00",
      "purpose": "body_translation_backfill",
      "status": "complete",
      "reused": true,
@@ -10069,11 +10033,11 @@
       "status": "aligned",
       "anchors": 45,
       "source_blocks": 45,
-      "stored_blocks": 50,
+      "stored_blocks": 45,
       "source_anchor_ratio": 1.0,
       "aligned_blocks": 45,
       "dropped_prefix_blocks": 0,
-      "dropped_suffix_blocks": 5
+      "dropped_suffix_blocks": 0
      },
      "trimmed_head_blocks": 0,
      "trimmed_tail_blocks": 0,
@@ -12132,9 +12096,9 @@
     "decision_concerns": []
    },
    "content_parse": {
-    "run_id": "github-32263965837-1",
-    "processor_version": "original-first-v6",
-    "attempted_at": "2026-08-19T22:29:24.080410+08:00",
+    "run_id": "github-32267050930-1",
+    "processor_version": "original-first-v7",
+    "attempted_at": "2026-08-19T22:58:54.068431+08:00",
     "status": "ready",
     "source": "AWS Big Data Blog",
     "strategy": "semantic_container",
@@ -12188,20 +12152,35 @@
     "content_mode": "translated",
     "source_language": "other",
     "translation_status": "complete",
-    "source_content_hash": "dec382728fb0010bf21965c1",
+    "source_content_hash": "b5d11c7316b852d1d8000a54",
     "translation": {
-     "run_id": "github-32263965837-1",
+     "run_id": "github-32267050930-1",
      "policy_version": "faithful-translation-retry-v1",
-     "attempted_at": "2026-08-19T22:29:24.080454+08:00",
+     "attempted_at": "2026-08-19T22:58:54.068484+08:00",
      "purpose": "body_translation_backfill",
-     "status": "complete"
+     "status": "complete",
+     "reused": true,
+     "reuse_method": "aligned_stored_translation",
+     "alignment": {
+      "status": "aligned",
+      "anchors": 76,
+      "source_blocks": 79,
+      "stored_blocks": 79,
+      "source_anchor_ratio": 0.962,
+      "aligned_blocks": 79,
+      "dropped_prefix_blocks": 0,
+      "dropped_suffix_blocks": 0
+     },
+     "trimmed_head_blocks": 0,
+     "trimmed_tail_blocks": 0,
+     "trimmed_promotional_blocks": 0
     }
    },
    "content_mode": "translated",
    "content_level": "translated",
    "source_language": "other",
    "translation_status": "complete",
-   "source_content_hash": "dec382728fb0010bf21965c1",
+   "source_content_hash": "b5d11c7316b852d1d8000a54",
    "body_chars": 9683
   },
   {
@@ -13550,9 +13529,9 @@
     ]
    },
    "content_parse": {
-    "run_id": "github-32263965837-1",
-    "processor_version": "original-first-v6",
-    "attempted_at": "2026-08-19T22:30:02.482715+08:00",
+    "run_id": "github-32267050930-1",
+    "processor_version": "original-first-v7",
+    "attempted_at": "2026-08-19T22:58:56.751289+08:00",
     "status": "ready",
     "source": "AWS Big Data Blog",
     "strategy": "semantic_container",
@@ -13606,20 +13585,35 @@
     "content_mode": "translated",
     "source_language": "other",
     "translation_status": "complete",
-    "source_content_hash": "dcd0ffaf1741c9a70d2e001b",
+    "source_content_hash": "45fe413b58ee30a00f0334b8",
     "translation": {
-     "run_id": "github-32263965837-1",
+     "run_id": "github-32267050930-1",
      "policy_version": "faithful-translation-retry-v1",
-     "attempted_at": "2026-08-19T22:30:02.482758+08:00",
+     "attempted_at": "2026-08-19T22:58:56.751339+08:00",
      "purpose": "body_translation_backfill",
-     "status": "complete"
+     "status": "complete",
+     "reused": true,
+     "reuse_method": "aligned_stored_translation",
+     "alignment": {
+      "status": "aligned",
+      "anchors": 52,
+      "source_blocks": 55,
+      "stored_blocks": 55,
+      "source_anchor_ratio": 0.9455,
+      "aligned_blocks": 55,
+      "dropped_prefix_blocks": 0,
+      "dropped_suffix_blocks": 0
+     },
+     "trimmed_head_blocks": 0,
+     "trimmed_tail_blocks": 0,
+     "trimmed_promotional_blocks": 0
     }
    },
    "content_mode": "translated",
    "content_level": "translated",
    "source_language": "other",
    "translation_status": "complete",
-   "source_content_hash": "dcd0ffaf1741c9a70d2e001b",
+   "source_content_hash": "45fe413b58ee30a00f0334b8",
    "body_chars": 5355
   },
   {
@@ -15444,9 +15438,9 @@
     ]
    },
    "content_parse": {
-    "run_id": "github-32263965837-1",
-    "processor_version": "original-first-v6",
-    "attempted_at": "2026-08-19T22:30:44.373135+08:00",
+    "run_id": "github-32267050930-1",
+    "processor_version": "original-first-v7",
+    "attempted_at": "2026-08-19T22:58:58.433243+08:00",
     "status": "ready",
     "source": "AWS Big Data Blog",
     "strategy": "semantic_container",
@@ -15500,20 +15494,35 @@
     "content_mode": "translated",
     "source_language": "other",
     "translation_status": "complete",
-    "source_content_hash": "4410e727dc812ff7a2daec08",
+    "source_content_hash": "523c424000064e7b64e4de3e",
     "translation": {
-     "run_id": "github-32263965837-1",
+     "run_id": "github-32267050930-1",
      "policy_version": "faithful-translation-retry-v1",
-     "attempted_at": "2026-08-19T22:30:44.373166+08:00",
+     "attempted_at": "2026-08-19T22:58:58.433298+08:00",
      "purpose": "body_translation_backfill",
-     "status": "complete"
+     "status": "complete",
+     "reused": true,
+     "reuse_method": "aligned_stored_translation",
+     "alignment": {
+      "status": "aligned",
+      "anchors": 63,
+      "source_blocks": 64,
+      "stored_blocks": 64,
+      "source_anchor_ratio": 0.9844,
+      "aligned_blocks": 64,
+      "dropped_prefix_blocks": 0,
+      "dropped_suffix_blocks": 0
+     },
+     "trimmed_head_blocks": 0,
+     "trimmed_tail_blocks": 0,
+     "trimmed_promotional_blocks": 0
     }
    },
    "content_mode": "translated",
    "content_level": "translated",
    "source_language": "other",
    "translation_status": "complete",
-   "source_content_hash": "4410e727dc812ff7a2daec08",
+   "source_content_hash": "523c424000064e7b64e4de3e",
    "body_chars": 6354
   },
   {
@@ -16493,9 +16502,9 @@
     ]
    },
    "content_parse": {
-    "run_id": "github-32263965837-1",
-    "processor_version": "original-first-v6",
-    "attempted_at": "2026-08-19T22:29:25.461526+08:00",
+    "run_id": "github-32267050930-1",
+    "processor_version": "original-first-v7",
+    "attempted_at": "2026-08-19T22:58:55.269780+08:00",
     "status": "ready",
     "source": "InfoQ（AI/数据工程）",
     "strategy": "semantic_container",
@@ -16554,9 +16563,9 @@
     "translation_status": "complete",
     "source_content_hash": "e8b170d2ff9c2924ca738db3",
     "translation": {
-     "run_id": "github-32263965837-1",
+     "run_id": "github-32267050930-1",
      "policy_version": "faithful-translation-retry-v1",
-     "attempted_at": "2026-08-19T22:29:25.461572+08:00",
+     "attempted_at": "2026-08-19T22:58:55.269834+08:00",
      "purpose": "body_translation_backfill",
      "status": "complete",
      "reused": true,
@@ -16565,10 +16574,10 @@
       "status": "aligned",
       "anchors": 11,
       "source_blocks": 11,
-      "stored_blocks": 22,
+      "stored_blocks": 11,
       "source_anchor_ratio": 1.0,
       "aligned_blocks": 11,
-      "dropped_prefix_blocks": 11,
+      "dropped_prefix_blocks": 0,
       "dropped_suffix_blocks": 0
      },
      "trimmed_head_blocks": 0,
@@ -16875,7 +16884,7 @@
    "vendors": [
     "Netflix"
    ],
-   "heat": 57,
+   "heat": 56,
    "star": false,
    "importance": 72,
    "signal": 0,
@@ -19275,9 +19284,9 @@
     ]
    },
    "content_parse": {
-    "run_id": "github-32263965837-1",
-    "processor_version": "original-first-v6",
-    "attempted_at": "2026-08-19T22:30:45.542565+08:00",
+    "run_id": "github-32267050930-1",
+    "processor_version": "original-first-v7",
+    "attempted_at": "2026-08-19T22:59:00.190472+08:00",
     "status": "skipped",
     "source": "Snowflake Engineering（Medium）",
     "strategy": "fetch_failed",
@@ -20479,9 +20488,9 @@
     ]
    },
    "content_parse": {
-    "run_id": "github-32263965837-1",
-    "processor_version": "original-first-v6",
-    "attempted_at": "2026-08-19T22:29:24.121958+08:00",
+    "run_id": "github-32267050930-1",
+    "processor_version": "original-first-v7",
+    "attempted_at": "2026-08-19T22:58:54.107442+08:00",
     "status": "skipped",
     "source": "Snowflake Engineering（Medium）",
     "strategy": "fetch_failed",
@@ -22225,7 +22234,7 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 61,
+   "heat": 60,
    "star": true,
    "importance": 80,
    "signal": 0,
@@ -22258,21 +22267,21 @@
     ]
    },
    "content_parse": {
-    "run_id": "github-32206502748-1",
-    "processor_version": "original-first-v5",
-    "attempted_at": "2026-08-19T10:01:06.122917+08:00",
-    "status": "ready",
+    "run_id": "github-32267050930-1",
+    "processor_version": "original-first-v7",
+    "attempted_at": "2026-08-19T22:58:59.630817+08:00",
+    "status": "skipped",
     "source": "Snowflake Engineering（Medium）",
-    "strategy": "rss_document_fallback",
-    "blocks": 106,
-    "text_chars": 22854,
-    "figures": 8,
+    "strategy": "fetch_failed",
+    "blocks": 0,
+    "text_chars": 0,
+    "figures": 0,
     "tables": 0,
-    "figures_discovered": 9,
-    "figures_selected": 8,
-    "figures_rejected": 1,
+    "figures_discovered": 0,
+    "figures_selected": 0,
+    "figures_rejected": 0,
     "candidate_count": 0,
-    "figures_rejected_author": 1,
+    "figures_rejected_author": 0,
     "figures_rejected_decorative": 0,
     "figures_rejected_duplicate": 0,
     "figures_rejected_small": 0,
@@ -22283,44 +22292,17 @@
     "trimmed_embedded_ui_blocks": 0,
     "embedded_ui_components": 0,
     "selected_depth": 0,
-    "selected_raw_blocks": 107,
-    "selected_raw_text_chars": 22854,
-    "broad_raw_blocks": 107,
-    "broad_raw_text_chars": 23134,
+    "selected_raw_blocks": 0,
+    "selected_raw_text_chars": 0,
+    "broad_raw_blocks": 0,
+    "broad_raw_text_chars": 0,
     "parent_extra_blocks": 0,
     "candidate_count_raw": 0,
     "candidate_duplicates": 0,
     "candidate_quality_rejected": 0,
     "duplicate_blocks": 0,
-    "selected_score": 476.98,
-    "quality_status": "pass",
-    "selected_tag": "document",
-    "focus_ratio": 1.0,
-    "link_ratio": 0.0063,
-    "duplicate_ratio": 0.0,
-    "selection_evidence": [
-     "prose_density",
-     "integrity_gate"
-    ],
-    "reason": "LLMBudgetExceeded",
-    "media": {
-     "figures": 8,
-     "cached": 8,
-     "link_only": 0,
-     "policy_version": "source-cdn-v1"
-    },
-    "content_mode": "original",
-    "source_language": "other",
-    "translation_status": "failed",
-    "source_content_hash": "62c7ccbb344e62e8b47e04a9",
-    "translation": {
-     "run_id": "github-32206502748-1",
-     "policy_version": "faithful-translation-retry-v1",
-     "attempted_at": "2026-08-19T10:01:06.122962+08:00",
-     "purpose": "body_translation",
-     "status": "budget_deferred",
-     "error": "LLMBudgetExceeded"
-    }
+    "quality_status": "unknown",
+    "reason": "no_usable_original"
    },
    "content_mode": "original",
    "content_level": "original",
@@ -27003,7 +26985,7 @@
    "vendors": [
     "Amplitude"
    ],
-   "heat": 50,
+   "heat": 49,
    "star": false,
    "importance": 62,
    "signal": 0,
@@ -27502,7 +27484,7 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 48,
+   "heat": 47,
    "star": false,
    "importance": 60,
    "signal": 0,
@@ -30849,7 +30831,7 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 54,
+   "heat": 53,
    "star": true,
    "importance": 75,
    "signal": 0,
@@ -31557,7 +31539,7 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 53,
+   "heat": 52,
    "star": true,
    "importance": 75,
    "signal": 0,
@@ -36138,7 +36120,7 @@
     "Fivetran",
     "Snowflake"
    ],
-   "heat": 54,
+   "heat": 53,
    "star": true,
    "importance": 80,
    "signal": 0,
@@ -47618,7 +47600,7 @@
    "vendors": [
     "Lightcast"
    ],
-   "heat": 37,
+   "heat": 36,
    "star": false,
    "importance": 62,
    "signal": 0,
@@ -51995,7 +51977,7 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 41,
+   "heat": 40,
    "star": true,
    "importance": 75,
    "signal": 0,
@@ -85114,74 +85096,8 @@
    "zh_title": "ThoughtSpot AgentQL：SQL形态意图，不直接生成SQL的工程路线",
    "zh_summary": "ThoughtSpot 工程博客介绍了 AgentQL——一种以 SQL 语法表达分析意图、但不用 LLM 直接生成 SQL 的能力。其背景是 Spotter 的搜索令牌(token)存在表达力缺口，无法覆盖多步对比、层级计算等复杂查询。AgentQL 选择 SQL 语法作为意图语言，同时拒绝 SQL 执行模型，以统一查询引擎执行。文章详述了背后的工程取舍与设计原则。",
    "reason": "数据从业者可从中了解 ChatBI/Text-to-SQL 的一种架构思路：用 SQL 形状的中间意图而非直接生成 SQL，兼顾表达力与可执行性，对构建分析 Agent 有借鉴价值。",
-   "full_zh": "SQL形态的意图：AgentQL背后的工程\n\n作者：Dushyant Bansal，ThoughtSpot工程总监\n\n发布于\n\n订阅\n\n我们的CEO最近撰文重申了ThoughtSpot在LLM出现之初做出的架构决策：我们不使用LLM直接生成SQL。\n\n我的团队花了近一年时间构建AgentQL：这一能力强化了我们的决策。\n\n下面我将解释我们实际构建了什么，为什么它不仅尊重这一架构决策，而且依赖于它，以及底层的工程选择。\n\n我们面临的问题：表达性差距\n\nSpotter通过搜索令牌回答大多数问题：这是一种结构化、可读的意图表示，业务用户无需了解任何查询语言即可检查和纠正。令牌是合适的默认选择，它们仍然是主要路径。\n\n但我们不断遇到一道我们称之为表达性差距的墙。我们看到诸如“显示本财年支出较去年下降的客户，按下降幅度排序”和“比较各地区的边际贡献与公司平均水平”等查询。多步比较、粒度级别的计算、队列逻辑。\n\n我们的查询引擎可以回答每一个这样的问题，并且多年来一直是如此。令牌语法根本无法表述它们。每当我们扩展语法并重新训练Spotter以生成它时，新的分析功能就会出现，差距又会重新出现。\n\n我们需要一种更丰富的语言来表达意图，这就是我们构建AgentQL的原因。我们不需要——也拒绝构建——第二条执行路径。\n\n设计决策：SQL形态的意图\n\n我们选择SQL语法作为意图语言，有两个实际的工程原因：\n\n它是迄今为止为分析问题创建的最精确、最广泛理解的表示法。它是LLM训练最密集的语言。我们发明的任何定制DSL在这两方面都会更差。\n\n但我们采用了SQL的语法而拒绝了SQL的执行模型。这就是整个设计。这也是AgentQL背后的第一原则：意图和执行是分离的层。\n\nAgentQL语句是针对ThoughtSpot模型编写的：即分析师策划的业务名称。不是物理表或仓库列。\n\n它永远不会，在任何情况下，都不会对您的数据库执行。没有代码路径可以做到这一点。我们知道，因为我们构建了代码路径。\n\n实际发生的情况：AgentQL语句被解析为查询规范，即每个ThoughtSpot查询变成的相同内部表示。\n\n该规范交给我们的确定性查询生成引擎，该引擎生成ThoughtSpot中的每个查询，无论是从Liveboard、搜索还是Spotter对话开始。该引擎编写要运行的SQL。LLM的输出是编译器的输入，而不是数据库的查询。\n\n我们称之为SQL形态的意图。\n\n与文本到SQL的区别并不微妙：\n\n文本到SQL  ThoughtSpot AgentQL LLM编写的内容运行的查询对所需内容的描述它引用的内容物理表和列模型的业务名称执行的内容LLM的输出，逐字逐句由我们的专有引擎编译的确定性SQL谁强制执行安全、连接、指标、日历LLM（希望，每次查询）引擎（始终，按构造）\n\n一个具体的例子。“按产品类别的总销售额和总退货额”可能表达为：\n\nSELECT \"t1\".\"Product Category\",\n       SUM(\"t1\".\"Sales Amount\") AS \"Total Sales\",\n       SUM(\"t1\".\"Return Amount\") AS \"Total Returns\"\nFROM \"Retail Sales\" AS \"t1\"\nGROUP BY \"t1\".\"Product Category\"\n\n该语句永远不会运行，并且隐藏了一个陷阱。在模型背后，销售和退货位于两个共享产品维度的独立事实表中：一个经典的沟壑陷阱。\n\n手写SQL直接连接它们会使行扇出并静默夸大两个总数。编译器知道得更好，因为模型知道：它先在各自粒度上聚合每个事实，然后再合并，解析声明的连接路径，并注入查询用户的行级安全过滤器。您可以检查编译后的SQL。意图只需几秒钟来表达；它继承的语义我们花了十年时间工程化。\n\n一个值得明确说明的结果：AgentQL故意不是SQL的全部。它是一个受限方言，限制就是契约。语句必须完全可针对模型解析，因此编译器会拒绝任何无法确定性治理的内容，从SELECT *到可能绕过模型语义的结构。\n\n我们限制方言不是因为解析完整SQL很难。我们限制它是因为每个接受的语句都是一个承诺，即编译的查询是受治理的，而我们只接受我们能兑现这一承诺的语句。\n\n为什么我们拒绝让LLM做更多\n\n这是一个合理的问题：LLM正在迅速改进，那么为什么不让前沿LLM直接编写仓库SQL并随后验证呢？\n\n因为我们已经花了多年时间为企业数据的实际情况进行工程化，而其中没有一项是对LLM友好的。真实数据模型不是平面表。它们是具有沟壑陷阱和扇出陷阱的多星型模式，如上面销售和退货的例子：连接模式中错误数字看起来完全合理。\n\n有能力的工程师会弄错这些；我们见过。它们携带PII，必须在每次查询中为每个用户保持安全。它们为每个业务单位运行不同的财务日历。它们定义了半加指标，如库存和账户余额，在这种情况下，简单的跨时间SUM就是错误的答案。\n\n要求LLM在每次问题上概率性地重新推导所有这些，你得到的只有两样东西：不确定性和一笔令牌账单。\n\n我们的引擎已经编码了这些语义。因此工程答案显而易见，它成为第二原则：保持LLM的工作薄弱。理解问题，紧凑地表达，然后停止。所有决定数字是否正确的东西都按构造从模型继承。\n\nLLM无法忘记你的行级安全性，因为它从不编写实际运行的查询。它不会选择错误的连接路径，因为模型的连接由编译器应用。它不会偏离你的收入定义，因为定义只有一个，且每个查询都通过它编译。\n\n失败模式同样重要，这是第三个原则：糟糕的查询是编译错误，而不是事故。 当LLM表达意图错误时，你会得到错误但受管控的答案或清晰的验证错误：语句在编译时被拒绝并附有原因。\n\n你永远不会得到的是未受管控的查询接触你的数据。在text-to-SQL系统中，幻觉是实时查询。在我们的系统中，它是编译错误。\n\n这些原则还带来另一项好处，这也是客户最关心的一点：信任。确定性编译器意味着相同的问题产生相同的查询规范、相同的编译SQL和相同的数字，无论哪个LLM表达意图或如何措辞。许多text-to-SQL工具也会显示运行的SQL。\n\n区别在于阅读它给你带来的价值。在那里，你在审计LLM的即兴发挥，逐个查询：它是否选择了正确的连接，应用了正确的安全性，并使用了正确的收入定义？\n\n在这里，SQL是从模型的受管控定义编译的，因此这些问题已经得到解答。验证答案意味着确认意图被理解，而不是手动重新推导正确性。\n\n结果：不按令牌收费\n\n这种架构的一个副产品体现在账单上而不是演示中。因为LLM的角色刻意很小，繁重的工作由我们的确定性引擎完成，而不是按计量推理。一个问题不会启动代理消耗令牌重新推理你的模式。\n\n这是公司在Spotter 3发布时做出决定背后的工程事实：不按消耗的令牌收费。我们的架构使这一选择成为可能；企业选择将好处传递下去。\n\n没有人想要每次提问都带着后台计费器的体验。有了这种架构，就不必如此。\n\n同样的赌注，加倍下注\n\n业界许多公司押注，通过足够的提示、护栏和重试，LLM将编写可信赖的仓库SQL。我们在LLM出现多年前就做了相反的赌注。AgentQL加倍下注：LLM永远不应编写实际执行的查询。LLM理解意图。受管控的引擎产生确定性的答案。\n\n对Spotter用户来说，回报立竿见影：今天就能回答更广泛的分析问题，无需等待令牌语法增长或Spotter针对新能力进行重新训练。如果引擎能回答，AgentQL现在就能提问。\n\nAgentQL为意图提供了更丰富的语言。信任架构毫不动摇：它存在于引擎中、模型中，并掌握在你手中以验证。这是设计带来的工程，而非妥协——所以你永远不必在速度和信任之间做出选择。\n\n开始您的个性化演示 了解如何实现。\n\n订阅我们的博客",
+   "full_zh": "我们的CEO最近撰文重申了ThoughtSpot在LLM出现之初做出的架构决策：我们不使用LLM直接生成SQL。\n\n我的团队花了近一年时间构建AgentQL：这一能力强化了我们的决策。\n\n下面我将解释我们实际构建了什么，为什么它不仅尊重这一架构决策，而且依赖于它，以及底层的工程选择。\n\n我们面临的问题：表达性差距\n\nSpotter通过搜索令牌回答大多数问题：这是一种结构化、可读的意图表示，业务用户无需了解任何查询语言即可检查和纠正。令牌是合适的默认选择，它们仍然是主要路径。\n\n但我们不断遇到一道我们称之为表达性差距的墙。我们看到诸如“显示本财年支出较去年下降的客户，按下降幅度排序”和“比较各地区的边际贡献与公司平均水平”等查询。多步比较、粒度级别的计算、队列逻辑。\n\n我们的查询引擎可以回答每一个这样的问题，并且多年来一直是如此。令牌语法根本无法表述它们。每当我们扩展语法并重新训练Spotter以生成它时，新的分析功能就会出现，差距又会重新出现。\n\n我们需要一种更丰富的语言来表达意图，这就是我们构建AgentQL的原因。我们不需要——也拒绝构建——第二条执行路径。\n\n设计决策：SQL形态的意图\n\n我们选择SQL语法作为意图语言，有两个实际的工程原因：\n\n它是迄今为止为分析问题创建的最精确、最广泛理解的表示法。它是LLM训练最密集的语言。我们发明的任何定制DSL在这两方面都会更差。\n\n但我们采用了SQL的语法而拒绝了SQL的执行模型。这就是整个设计。这也是AgentQL背后的第一原则：意图和执行是分离的层。\n\nAgentQL语句是针对ThoughtSpot模型编写的：即分析师策划的业务名称。不是物理表或仓库列。\n\n它永远不会，在任何情况下，都不会对您的数据库执行。没有代码路径可以做到这一点。我们知道，因为我们构建了代码路径。\n\n实际发生的情况：AgentQL语句被解析为查询规范，即每个ThoughtSpot查询变成的相同内部表示。\n\n该规范交给我们的确定性查询生成引擎，该引擎生成ThoughtSpot中的每个查询，无论是从Liveboard、搜索还是Spotter对话开始。该引擎编写要运行的SQL。LLM的输出是编译器的输入，而不是数据库的查询。\n\n我们称之为SQL形态的意图。\n\n与文本到SQL的区别并不微妙：\n\n文本到SQL  ThoughtSpot AgentQL LLM编写的内容运行的查询对所需内容的描述它引用的内容物理表和列模型的业务名称执行的内容LLM的输出，逐字逐句由我们的专有引擎编译的确定性SQL谁强制执行安全、连接、指标、日历LLM（希望，每次查询）引擎（始终，按构造）\n\n一个具体的例子。“按产品类别的总销售额和总退货额”可能表达为：\n\nSELECT \"t1\".\"Product Category\",\n       SUM(\"t1\".\"Sales Amount\") AS \"Total Sales\",\n       SUM(\"t1\".\"Return Amount\") AS \"Total Returns\"\nFROM \"Retail Sales\" AS \"t1\"\nGROUP BY \"t1\".\"Product Category\"\n\n该语句永远不会运行，并且隐藏了一个陷阱。在模型背后，销售和退货位于两个共享产品维度的独立事实表中：一个经典的沟壑陷阱。\n\n手写SQL直接连接它们会使行扇出并静默夸大两个总数。编译器知道得更好，因为模型知道：它先在各自粒度上聚合每个事实，然后再合并，解析声明的连接路径，并注入查询用户的行级安全过滤器。您可以检查编译后的SQL。意图只需几秒钟来表达；它继承的语义我们花了十年时间工程化。\n\n一个值得明确说明的结果：AgentQL故意不是SQL的全部。它是一个受限方言，限制就是契约。语句必须完全可针对模型解析，因此编译器会拒绝任何无法确定性治理的内容，从SELECT *到可能绕过模型语义的结构。\n\n我们限制方言不是因为解析完整SQL很难。我们限制它是因为每个接受的语句都是一个承诺，即编译的查询是受治理的，而我们只接受我们能兑现这一承诺的语句。\n\n为什么我们拒绝让LLM做更多\n\n这是一个合理的问题：LLM正在迅速改进，那么为什么不让前沿LLM直接编写仓库SQL并随后验证呢？\n\n因为我们已经花了多年时间为企业数据的实际情况进行工程化，而其中没有一项是对LLM友好的。真实数据模型不是平面表。它们是具有沟壑陷阱和扇出陷阱的多星型模式，如上面销售和退货的例子：连接模式中错误数字看起来完全合理。\n\n有能力的工程师会弄错这些；我们见过。它们携带PII，必须在每次查询中为每个用户保持安全。它们为每个业务单位运行不同的财务日历。它们定义了半加指标，如库存和账户余额，在这种情况下，简单的跨时间SUM就是错误的答案。\n\n要求LLM在每次问题上概率性地重新推导所有这些，你得到的只有两样东西：不确定性和一笔令牌账单。\n\n我们的引擎已经编码了这些语义。因此工程答案显而易见，它成为第二原则：保持LLM的工作薄弱。理解问题，紧凑地表达，然后停止。所有决定数字是否正确的东西都按构造从模型继承。\n\nLLM无法忘记你的行级安全性，因为它从不编写实际运行的查询。它不会选择错误的连接路径，因为模型的连接由编译器应用。它不会偏离你的收入定义，因为定义只有一个，且每个查询都通过它编译。\n\n失败模式同样重要，这是第三个原则：糟糕的查询是编译错误，而不是事故。 当LLM表达意图错误时，你会得到错误但受管控的答案或清晰的验证错误：语句在编译时被拒绝并附有原因。\n\n你永远不会得到的是未受管控的查询接触你的数据。在text-to-SQL系统中，幻觉是实时查询。在我们的系统中，它是编译错误。\n\n这些原则还带来另一项好处，这也是客户最关心的一点：信任。确定性编译器意味着相同的问题产生相同的查询规范、相同的编译SQL和相同的数字，无论哪个LLM表达意图或如何措辞。许多text-to-SQL工具也会显示运行的SQL。\n\n区别在于阅读它给你带来的价值。在那里，你在审计LLM的即兴发挥，逐个查询：它是否选择了正确的连接，应用了正确的安全性，并使用了正确的收入定义？\n\n在这里，SQL是从模型的受管控定义编译的，因此这些问题已经得到解答。验证答案意味着确认意图被理解，而不是手动重新推导正确性。\n\n结果：不按令牌收费\n\n这种架构的一个副产品体现在账单上而不是演示中。因为LLM的角色刻意很小，繁重的工作由我们的确定性引擎完成，而不是按计量推理。一个问题不会启动代理消耗令牌重新推理你的模式。\n\n这是公司在Spotter 3发布时做出决定背后的工程事实：不按消耗的令牌收费。我们的架构使这一选择成为可能；企业选择将好处传递下去。\n\n没有人想要每次提问都带着后台计费器的体验。有了这种架构，就不必如此。\n\n同样的赌注，加倍下注\n\n业界许多公司押注，通过足够的提示、护栏和重试，LLM将编写可信赖的仓库SQL。我们在LLM出现多年前就做了相反的赌注。AgentQL加倍下注：LLM永远不应编写实际执行的查询。LLM理解意图。受管控的引擎产生确定性的答案。\n\n对Spotter用户来说，回报立竿见影：今天就能回答更广泛的分析问题，无需等待令牌语法增长或Spotter针对新能力进行重新训练。如果引擎能回答，AgentQL现在就能提问。\n\nAgentQL为意图提供了更丰富的语言。信任架构毫不动摇：它存在于引擎中、模型中，并掌握在你手中以验证。这是设计带来的工程，而非妥协——所以你永远不必在速度和信任之间做出选择。\n\n开始您的个性化演示 了解如何实现。\n\n订阅我们的博客",
    "content_blocks": [
-    {
-     "type": "heading",
-     "id": "b-afaa58c20ca5",
-     "children": [
-      {
-       "type": "text",
-       "text": "SQL形态的意图：AgentQL背后的工程",
-       "marks": [],
-       "id": "t-114b5efa6fe2"
-      }
-     ],
-     "level": 2
-    },
-    {
-     "type": "paragraph",
-     "id": "b-9b055f06d0cf",
-     "children": [
-      {
-       "type": "text",
-       "text": "作者：",
-       "marks": [],
-       "id": "t-a2cd0f28b1c5"
-      },
-      {
-       "type": "text",
-       "text": "Dushyant Bansal",
-       "marks": [
-        {
-         "type": "link",
-         "href": "https://www.thoughtspot.com/author/dushyant-bansal"
-        }
-       ],
-       "id": "t-b8dac4c84a60"
-      },
-      {
-       "type": "text",
-       "text": "，ThoughtSpot工程总监",
-       "marks": [],
-       "id": "t-a5ec1c8494d7"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-2fcebf1c0afd",
-     "children": [
-      {
-       "type": "text",
-       "text": "发布于",
-       "marks": [],
-       "id": "t-a2209c50bae4"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-aefa0286d1b9",
-     "children": [
-      {
-       "type": "text",
-       "text": "订阅",
-       "marks": [],
-       "id": "t-bd96bb770905"
-      }
-     ]
-    },
     {
      "type": "figure",
      "id": "b-600b8a3a9430",
@@ -86295,8 +86211,8 @@
     "status": "ready",
     "source": "ThoughtSpot Blog",
     "strategy": "semantic_container",
-    "blocks": 52,
-    "text_chars": 9209,
+    "blocks": 48,
+    "text_chars": 3155,
     "figures": 1,
     "tables": 1,
     "figures_discovered": 2,
@@ -86332,7 +86248,8 @@
     "selection_evidence": [
      "prose_density",
      "integrity_gate",
-     "semantic_container"
+     "semantic_container",
+     "head_boundary"
     ],
     "media": {
      "figures": 1,
@@ -86353,14 +86270,25 @@
      "attempted_at": "2026-08-18T21:12:23.160586+08:00",
      "purpose": "body_translation_backfill",
      "status": "complete"
-    }
+    },
+    "article_ui_cleanup": {
+     "policy_version": "article-chrome-v3",
+     "run_id": "github-32267050930-1",
+     "cleaned_at": "2026-08-19T22:58:31.866669+08:00",
+     "removed_blocks": 4,
+     "trimmed_head_blocks": 4,
+     "trimmed_tail_blocks": 0,
+     "trimmed_promotional_blocks": 0,
+     "trimmed_embedded_ui_blocks": 0
+    },
+    "quality_flags": []
    },
    "content_mode": "translated",
    "content_level": "translated",
    "source_language": "other",
    "translation_status": "complete",
    "source_content_hash": "276d122b56065086ce08917c",
-   "body_chars": 3223
+   "body_chars": 3155
   },
   {
    "event_id": "aa409ff1c354",
@@ -319985,20 +319913,9 @@
   {
    "name": "爱分析",
    "ok": true,
-   "new": 1,
-   "fetched": 7,
-   "eligible": 2,
-   "prefiltered": 5,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 5,
-    "excluded": 0
-   },
-   "skipped_seen": 1,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:688m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 12.0,
@@ -320016,7 +319933,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1362m_remaining",
+   "skip_reason": "frequency_gate:1408m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -320032,7 +319949,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1362m_remaining",
+   "skip_reason": "frequency_gate:1408m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -320048,7 +319965,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:687m_remaining",
+   "skip_reason": "frequency_gate:655m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -320068,7 +319985,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:687m_remaining",
+   "skip_reason": "frequency_gate:655m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -320086,7 +320003,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:998m_remaining",
+   "skip_reason": "frequency_gate:967m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -320106,7 +320023,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:687m_remaining",
+   "skip_reason": "frequency_gate:655m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -320126,7 +320043,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:687m_remaining",
+   "skip_reason": "frequency_gate:655m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -320144,7 +320061,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1710m_remaining",
+   "skip_reason": "frequency_gate:1679m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 48.0,
@@ -320163,7 +320080,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1710m_remaining",
+   "skip_reason": "frequency_gate:1679m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 48.0,
@@ -320182,7 +320099,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:687m_remaining",
+   "skip_reason": "frequency_gate:655m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -320200,7 +320117,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:687m_remaining",
+   "skip_reason": "frequency_gate:655m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -320220,7 +320137,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1710m_remaining",
+   "skip_reason": "frequency_gate:1679m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 48.0,
@@ -320240,7 +320157,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1710m_remaining",
+   "skip_reason": "frequency_gate:1679m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 48.0,
@@ -320259,7 +320176,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:282m_remaining",
+   "skip_reason": "frequency_gate:251m_remaining",
    "control": {
     "tier": "structured_high",
     "fetch_interval_hours": 6.0,
@@ -320275,7 +320192,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:282m_remaining",
+   "skip_reason": "frequency_gate:251m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -320291,7 +320208,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:282m_remaining",
+   "skip_reason": "frequency_gate:251m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -320307,7 +320224,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:282m_remaining",
+   "skip_reason": "frequency_gate:251m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -320323,7 +320240,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:282m_remaining",
+   "skip_reason": "frequency_gate:251m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -320339,7 +320256,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:282m_remaining",
+   "skip_reason": "frequency_gate:251m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -320358,7 +320275,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:282m_remaining",
+   "skip_reason": "frequency_gate:251m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -320376,7 +320293,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:687m_remaining",
+   "skip_reason": "frequency_gate:655m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -320396,7 +320313,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:282m_remaining",
+   "skip_reason": "frequency_gate:251m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -320412,7 +320329,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:282m_remaining",
+   "skip_reason": "frequency_gate:251m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -320428,7 +320345,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:282m_remaining",
+   "skip_reason": "frequency_gate:251m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -320444,7 +320361,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:282m_remaining",
+   "skip_reason": "frequency_gate:251m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -320460,7 +320377,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1362m_remaining",
+   "skip_reason": "frequency_gate:1408m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -320478,7 +320395,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:282m_remaining",
+   "skip_reason": "frequency_gate:251m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -320496,7 +320413,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1362m_remaining",
+   "skip_reason": "frequency_gate:1408m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -320512,7 +320429,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1362m_remaining",
+   "skip_reason": "frequency_gate:1408m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -320528,7 +320445,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1362m_remaining",
+   "skip_reason": "frequency_gate:1408m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -320544,7 +320461,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1362m_remaining",
+   "skip_reason": "frequency_gate:1408m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -320558,20 +320475,9 @@
   {
    "name": "InfoQ（AI/数据工程）",
    "ok": true,
-   "new": 8,
-   "fetched": 15,
-   "eligible": 15,
-   "prefiltered": 0,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 6,
-   "limit_reached": true,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:688m_remaining",
    "control": {
     "tier": "media_targeted",
     "fetch_interval_hours": 12.0,
@@ -320587,7 +320493,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1362m_remaining",
+   "skip_reason": "frequency_gate:1408m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -320603,7 +320509,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1362m_remaining",
+   "skip_reason": "frequency_gate:1408m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -320617,20 +320523,9 @@
   {
    "name": "Hacker News（数据关键词）",
    "ok": true,
-   "new": 1,
-   "fetched": 8,
-   "eligible": 1,
-   "prefiltered": 7,
-   "prefilter_dropped": {
-    "time": 7,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:688m_remaining",
    "control": {
     "tier": "community_targeted",
     "fetch_interval_hours": 12.0,
@@ -320644,20 +320539,9 @@
   {
    "name": "Bluesky 数据社区",
    "ok": true,
-   "new": 10,
-   "fetched": 15,
-   "eligible": 15,
-   "prefiltered": 0,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": true,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:688m_remaining",
    "control": {
     "tier": "community_targeted",
     "fetch_interval_hours": 12.0,
@@ -320673,7 +320557,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:282m_remaining",
+   "skip_reason": "frequency_gate:251m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -320691,7 +320575,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:282m_remaining",
+   "skip_reason": "frequency_gate:251m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -320708,19 +320592,8 @@
    "name": "Hex Blog",
    "ok": true,
    "new": 0,
-   "fetched": 388,
-   "eligible": 1,
-   "prefiltered": 387,
-   "prefilter_dropped": {
-    "time": 376,
-    "missing_date": 11,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 1,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "skipped": true,
+   "skip_reason": "frequency_gate:688m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -320737,20 +320610,9 @@
   {
    "name": "Amplitude Blog",
    "ok": true,
-   "new": 2,
-   "fetched": 2064,
-   "eligible": 5,
-   "prefiltered": 2059,
-   "prefilter_dropped": {
-    "time": 2052,
-    "missing_date": 0,
-    "path": 4,
-    "keyword": 3,
-    "excluded": 0
-   },
-   "skipped_seen": 3,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:688m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -320768,19 +320630,8 @@
    "name": "Netflix Technology Blog",
    "ok": true,
    "new": 0,
-   "fetched": 10,
-   "eligible": 1,
-   "prefiltered": 9,
-   "prefilter_dropped": {
-    "time": 9,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 1,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "skipped": true,
+   "skip_reason": "frequency_gate:688m_remaining",
    "control": {
     "tier": "engineering_targeted",
     "fetch_interval_hours": 12.0,
@@ -320798,7 +320649,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:282m_remaining",
+   "skip_reason": "frequency_gate:251m_remaining",
    "control": {
     "tier": "structured_high",
     "fetch_interval_hours": 6.0,
@@ -320816,19 +320667,8 @@
    "name": "Google Looker Release Notes",
    "ok": true,
    "new": 0,
-   "fetched": 20,
-   "eligible": 1,
-   "prefiltered": 19,
-   "prefilter_dropped": {
-    "time": 17,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 2,
-    "excluded": 0
-   },
-   "skipped_seen": 1,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "skipped": true,
+   "skip_reason": "frequency_gate:688m_remaining",
    "control": {
     "tier": "structured_high",
     "fetch_interval_hours": 12.0,
@@ -320846,19 +320686,8 @@
    "name": "Microsoft Fabric Blog",
    "ok": true,
    "new": 0,
-   "fetched": 10,
-   "eligible": 0,
-   "prefiltered": 10,
-   "prefilter_dropped": {
-    "time": 10,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "skipped": true,
+   "skip_reason": "frequency_gate:688m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -320878,7 +320707,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:282m_remaining",
+   "skip_reason": "frequency_gate:251m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 6.0,
@@ -320896,19 +320725,8 @@
    "name": "Apache Iceberg Blog",
    "ok": true,
    "new": 0,
-   "fetched": 13,
-   "eligible": 1,
-   "prefiltered": 12,
-   "prefilter_dropped": {
-    "time": 12,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 1,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "skipped": true,
+   "skip_reason": "frequency_gate:688m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 12.0,
@@ -320925,19 +320743,8 @@
    "name": "TiDB Blog",
    "ok": true,
    "new": 0,
-   "fetched": 10,
-   "eligible": 3,
-   "prefiltered": 7,
-   "prefilter_dropped": {
-    "time": 6,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 1
-   },
-   "skipped_seen": 3,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "skipped": true,
+   "skip_reason": "frequency_gate:688m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -320955,19 +320762,8 @@
    "name": "Apache Doris Blog",
    "ok": true,
    "new": 0,
-   "fetched": 20,
-   "eligible": 0,
-   "prefiltered": 20,
-   "prefilter_dropped": {
-    "time": 20,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "skipped": true,
+   "skip_reason": "frequency_gate:688m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -320984,31 +320780,31 @@
   }
  ],
  "structured_content": {
-  "run_id": "github-32263965837-1",
+  "run_id": "github-32267050930-1",
   "attempted": 12,
-  "ready": 10,
+  "ready": 9,
   "figures": 21,
-  "tables": 7,
+  "tables": 6,
   "media_cached": 29,
   "media_link_only": 10,
-  "candidate_duplicates": 112,
-  "candidate_quality_rejected": 56,
+  "candidate_duplicates": 108,
+  "candidate_quality_rejected": 50,
   "strategies": {
    "largest_content": 1,
-   "semantic_container": 9,
-   "fetch_failed": 2
+   "semantic_container": 8,
+   "fetch_failed": 3
   },
   "quality_statuses": {
-   "pass": 10,
-   "unknown": 2
+   "pass": 9,
+   "unknown": 3
   },
   "content_modes": {
    "original": 1,
-   "translated": 9,
-   "unknown": 2
+   "translated": 8,
+   "unknown": 3
   },
   "fallbacks": {
-   "no_usable_original": 2
+   "no_usable_original": 3
   },
   "by_source": {
    "Aloudata 博客": {
@@ -321039,13 +320835,6 @@
     "tables": 6,
     "media_cached": 8
    },
-   "Fivetran Blog": {
-    "attempted": 1,
-    "ready": 1,
-    "figures": 0,
-    "tables": 1,
-    "media_cached": 0
-   },
    "InfoQ（AI/数据工程）": {
     "attempted": 1,
     "ready": 1,
@@ -321054,7 +320843,7 @@
     "media_cached": 0
    },
    "Snowflake Engineering（Medium）": {
-    "attempted": 2,
+    "attempted": 3,
     "ready": 0,
     "figures": 0,
     "tables": 0,
@@ -321065,8 +320854,8 @@
    "events": 206,
    "structured": 194,
    "renderable": 194,
-   "current_pass": 10,
-   "parser_debt": 184,
+   "current_pass": 9,
+   "parser_debt": 185,
    "display_trimmed": 0,
    "display_suspect": 0,
    "embedded_ui_trimmed": 0,
@@ -321077,8 +320866,9 @@
     "missing": 12
    },
    "processor_versions": {
-    "original-first-v6": 12,
-    "original-first-v5": 135,
+    "original-first-v7": 12,
+    "original-first-v5": 134,
+    "original-first-v6": 1,
     "original-first-v1": 45,
     "original-first-v2": 1,
     "original-first-v4": 12,
@@ -321098,16 +320888,16 @@
    "foreign_limit": 6,
    "eligible": 206,
    "attempted": 12,
-   "ready": 10,
+   "ready": 9,
    "original": 1,
-   "translated": 9,
+   "translated": 8,
    "deferred_foreign": 0,
    "deferred_budget": 0,
    "stored_original_retries": 0,
    "parser_debt_eligible": 139,
-   "skipped": 2,
+   "skipped": 3,
    "failed": 0,
-   "planned": 10
+   "planned": 9
   },
   "media_refresh": {
    "policy_version": "source-cdn-v1",
@@ -321121,10 +320911,10 @@
    }
   },
   "article_ui_cleanup": {
-   "policy_version": "article-chrome-v2",
+   "policy_version": "article-chrome-v3",
    "scanned": 206,
-   "cleaned_events": 40,
-   "removed_blocks": 300
+   "cleaned_events": 2,
+   "removed_blocks": 6
   }
  }
 }

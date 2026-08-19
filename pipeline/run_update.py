@@ -49,8 +49,8 @@ TZ = timezone(timedelta(hours=8))
 LLM_USAGE = LLMUsageTracker(DATA / "llm_usage.json")
 CANDIDATE_CACHE = CandidateCache(DATA / "candidate_cache.json")
 CLUSTER_CACHE = ClusterDecisionCache(DATA / "cluster_cache.json")
-CONTENT_BLOCKS_PROCESSOR_VERSION = "original-first-v6"
-ARTICLE_UI_SANITIZER_VERSION = "article-chrome-v2"
+CONTENT_BLOCKS_PROCESSOR_VERSION = "original-first-v7"
+ARTICLE_UI_SANITIZER_VERSION = "article-chrome-v3"
 TRANSLATION_RETRY_POLICY_VERSION = "faithful-translation-retry-v1"
 METADATA_TRANSLATION_POLICY_VERSION = "metadata-translation-backfill-v1"
 

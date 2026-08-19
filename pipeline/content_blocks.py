@@ -83,6 +83,7 @@ ARTICLE_DATE_META_RE = re.compile(
 )
 ARTICLE_HEAD_UI_RE = re.compile(
     r"^(?:share\s+this\s+(?:article|post|story)|分享本文|"
+    r"subscribe|follow|订阅|关注|"
     r"copied\s+to\s+(?:the\s+)?clipboard|已复制到剪贴板)$",
     re.I,
 )
@@ -695,6 +696,25 @@ def _looks_like_byline(block):
     )
 
 
+def _leading_title_followed_by_byline(blocks):
+    """Identify a source-page title/byline cluster at the start of a candidate.
+
+    Focused article containers often begin with the publisher's title followed by
+    an optional author portrait and a byline/dateline.  The title is useful while
+    selecting the article but is duplicate page chrome in DataHot's reading view.
+    Requiring an explicit byline signal prevents ordinary opening headings from
+    being removed.
+    """
+    if not blocks or blocks[0].get("type") != "heading":
+        return False
+    cursor = 1
+    if cursor < len(blocks) and blocks[cursor].get("type") == "figure":
+        next_text = _block_plain_text(blocks[cursor + 1]) if cursor + 1 < len(blocks) else ""
+        if _looks_like_author_portrait(blocks[cursor], next_text):
+            cursor += 1
+    return cursor < len(blocks) and _looks_like_byline(blocks[cursor])
+
+
 def _leading_article_chrome_cut(blocks):
     head_cut = 0
     prefix_chars = 0
@@ -749,12 +769,18 @@ def _leading_article_chrome_cut(blocks):
             head_cut = max(head_cut, index + 1)
             break
 
+    # A focused content container may have already excluded the site navigation
+    # and breadcrumb, leaving only title -> byline/date -> body.  Treat that
+    # explicit cluster as article-page metadata, not as the opening of the prose.
+    if head_cut == 0 and _leading_title_followed_by_byline(blocks):
+        head_cut = 1
+
     cursor = head_cut
     if cursor < len(blocks) and blocks[cursor].get("type") == "figure":
         next_text = _block_plain_text(blocks[cursor + 1]) if cursor + 1 < len(blocks) else ""
         if _looks_like_author_portrait(blocks[cursor], next_text):
             cursor += 1
-    if cursor < len(blocks) and _looks_like_byline(blocks[cursor]):
+    while cursor < len(blocks) and _looks_like_byline(blocks[cursor]):
         cursor += 1
     return cursor
 

@@ -152,6 +152,26 @@ class ReleaseGuardTests(unittest.TestCase):
         with self.assertRaisesRegex(ReleaseGuardError, "recent event"):
             self.assess(candidate)
 
+    def test_newer_published_time_is_used_when_first_seen_is_old(self):
+        rolling = event("rolling-release", days_ago=30)
+        rolling["published"] = (NOW - timedelta(days=1)).isoformat()
+        baseline = payload(*self.protected, rolling)
+        baseline_ids = {item["event_id"] for item in baseline["events"]}
+        candidate = payload(*self.protected)
+
+        with self.assertRaisesRegex(ReleaseGuardError, "recent event"):
+            assess_release(
+                baseline,
+                candidate,
+                baseline_ids,
+                {item["event_id"] for item in candidate["events"]},
+                source_sha="candidate-sha",
+                run_id="12345",
+                issue="automatic",
+                baseline_manifest={"source_sha": "baseline-sha"},
+                now=NOW,
+            )
+
     def test_detail_page_count_regression_is_blocked(self):
         candidate = payload(*self.protected, self.recent)
         with self.assertRaisesRegex(ReleaseGuardError, "details 4 -> 3"):

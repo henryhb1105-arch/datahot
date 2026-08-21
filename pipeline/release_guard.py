@@ -9,9 +9,9 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from content_blocks import blocks_plain_text, sanitize_blocks, trim_article_blocks
+from release_policy import PROTECTED_EVENT_IDS, event_recency_time
 
 
-PROTECTED_EVENT_IDS = {"65c35101abc1", "dfb9071b69e0"}
 EVENT_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 DETAIL_PATH_RE = re.compile(r"(?:^|/)e/([A-Za-z0-9_-]+)\.html$")
 ISSUE_RE = re.compile(r"#\d+")
@@ -40,24 +40,11 @@ def event_map(payload):
     return mapped
 
 
-def parse_time(value):
-    value = str(value or "").strip()
-    if not value:
-        return None
-    try:
-        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except ValueError:
-        return None
-    if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
-    return parsed.astimezone(timezone.utc)
-
-
 def recent_ids(events, *, now, days):
     cutoff = now - timedelta(days=days)
     result = set()
     for event_id, event in events.items():
-        observed = parse_time(event.get("first_seen")) or parse_time(event.get("published"))
+        observed = event_recency_time(event)
         if observed and observed >= cutoff:
             result.add(event_id)
     return result

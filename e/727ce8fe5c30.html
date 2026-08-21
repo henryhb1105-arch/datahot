@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-So7EEJHWVNp0ICUAJ0OmywhcL5dpVmvxx38U95R9QoY=' 'sha256-Vo1yM2Mhm/N/pwScrH98H+JdeDiT6nz54PVwTAPGn7M='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-PbHunTp9ShyUHijP/6zcHe6TVCmZvMDboVriZI7N2oA=' 'sha256-cYsoQGPY81drxvejedKt9C/OAytGXTnp3txE6l/Jq8g='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>DuckDB v2.0: Your Database Deserves a Better Parser · DataHot</title>
-<meta name="description" content="At DuckDB, one of our goals is to make working with a database system as easy as possible. Users interact with the system through the widely understoo">
+<title>DuckDB v2.0 引入全新 PEG 解析器 · DataHot</title>
+<meta name="description" content="DuckDB v2.0 将其基于 PostgreSQL 的 SQL 解析器替换为 PEG 解析器，该解析器更易于演进，并可在运行时扩展。解析器负责检查 SQL 语法有效性，新解析器在保持兼容的同时提升了灵活性和可维护性。">
 <link rel="canonical" href="https://datahot.xiahongbin.com/e/727ce8fe5c30.html">
-<meta property="og:title" content="DuckDB v2.0: Your Database Deserves a Better Parser">
-<meta property="og:description" content="At DuckDB, one of our goals is to make working with a database system as easy as possible. Users interact with the system through the widely understoo">
+<meta property="og:title" content="DuckDB v2.0 引入全新 PEG 解析器">
+<meta property="og:description" content="DuckDB v2.0 将其基于 PostgreSQL 的 SQL 解析器替换为 PEG 解析器，该解析器更易于演进，并可在运行时扩展。解析器负责检查 SQL 语法有效性，新解析器在保持兼容的同时提升了灵活性和可维护性。">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://datahot.xiahongbin.com/e/727ce8fe5c30.html">
 <meta property="og:site_name" content="DataHot · 数据领域 AI 热榜">
@@ -19,7 +19,7 @@
 <meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
 <script defer src="../analytics.js"></script>
 <script defer src="../detail.js"></script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"DuckDB v2.0: Your Database Deserves a Better Parser","description":"At DuckDB, one of our goals is to make working with a database system as easy as possible. Users interact with the system through the widely understoo","datePublished":"2026-08-20T08:00:00+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://duckdb.org/2026/08/20/duckdb-20-peg-parser.html"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"DuckDB v2.0 引入全新 PEG 解析器","description":"DuckDB v2.0 将其基于 PostgreSQL 的 SQL 解析器替换为 PEG 解析器，该解析器更易于演进，并可在运行时扩展。解析器负责检查 SQL 语法有效性，新解析器在保持兼容的同时提升了灵活性和可维护性。","datePublished":"2026-08-20T08:00:00+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://duckdb.org/2026/08/20/duckdb-20-peg-parser.html"}</script>
 <style>
   :root{
     color-scheme: light dark;
@@ -587,12 +587,12 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span title="发布时间">发布 2026-08-20 08:00</span>
     <span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 08-22</span>
   </div>
-  <h1>DuckDB v2.0: Your Database Deserves a Better Parser</h1>
+  <h1>DuckDB v2.0 引入全新 PEG 解析器</h1>
 
   <details class="article-brief" open>
   <summary>DataHot 速览</summary>
-  <div class="article-brief-body"><p>At DuckDB, one of our goals is to make working with a database system as easy as possible. Users interact with the system through the widely understood Structured Query Language (SQL). Previous blog posts have covered DuckDB’s friendly SQL , including GROUP BY ALL and column selection using SELECT *</p>
-  </div>
+  <div class="article-brief-body"><p>DuckDB v2.0 将其基于 PostgreSQL 的 SQL 解析器替换为 PEG 解析器，该解析器更易于演进，并可在运行时扩展。解析器负责检查 SQL 语法有效性，新解析器在保持兼容的同时提升了灵活性和可维护性。</p>
+  <p class="brief-why"><b>为什么值得关注：</b>作为数据库和湖仓领域的重要更新，DuckDB 的新解析器技术对数据平台工程师和开发者有参考价值，可提升查询处理的效率和可扩展性。</p></div>
 </details>
   <section class="content-section" aria-labelledby="articleBodyTitle">
   <div class="content-heading"><h2 id="articleBodyTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 原文</h2></div>
@@ -625,7 +625,7 @@ FromSelectClause &lt;- FromClause SelectClause?
 </section>
   <div class="vendors article-tags" aria-label="文章主题"><span class="vtag">DuckDB</span></div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/2ab3c495806d.html"><span class="n">›</span>Chunked Query Results in the DuckDB Java Driver<span class="count">50</span></a><a class="vendor-row" href="../e/1fca16761613.html"><span class="n">›</span>DuckDB v2.0将新增四个JSON函数，解决数据管道对账难题<span class="count">47</span></a><a class="vendor-row" href="../e/0b039fb415c1.html"><span class="n">›</span>AI加速数据使用，Dataverse助力数据治理准备<span class="count">29</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/1fca16761613.html"><span class="n">›</span>DuckDB v2.0将新增四个JSON函数，解决数据管道对账难题<span class="count">46</span></a><a class="vendor-row" href="../e/2ab3c495806d.html"><span class="n">›</span>DuckDB Java驱动新增分块查询结果<span class="count">45</span></a><a class="vendor-row" href="../e/edf963be5c12.html"><span class="n">›</span>dbt Core v1.12正式发布，引入Rust解析器<span class="count">35</span></a></div>
   </main>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
@@ -774,7 +774,7 @@ function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}c
     });
   });
 })();
-var SH_EV = {"title":"DuckDB v2.0: Your Database Deserves a Better Parser","summary":"At DuckDB, one of our goals is to make working with a database system as easy as possible. Users interact with the system through the widely understood Structured Query Language (SQL). Previous blog posts have covered DuckDB’s friendly SQL , including GROUP BY ALL and column selection using SELECT *","reason":"","topic":"","heat":42,"source":"DuckDB Engineering Blog","date":"2026-08-20","url":"https://datahot.xiahongbin.com/e/727ce8fe5c30.html","qr":"../qr/727ce8fe5c30.png"};
+var SH_EV = {"title":"DuckDB v2.0 引入全新 PEG 解析器","summary":"DuckDB v2.0 将其基于 PostgreSQL 的 SQL 解析器替换为 PEG 解析器，该解析器更易于演进，并可在运行时扩展。解析器负责检查 SQL 语法有效性，新解析器在保持兼容的同时提升了灵活性和可维护性。","reason":"作为数据库和湖仓领域的重要更新，DuckDB 的新解析器技术对数据平台工程师和开发者有参考价值，可提升查询处理的效率和可扩展性。","topic":"","heat":46,"source":"DuckDB Engineering Blog","date":"2026-08-20","url":"https://datahot.xiahongbin.com/e/727ce8fe5c30.html","qr":"../qr/727ce8fe5c30.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

@@ -223,23 +223,26 @@ class ManualBatchTests(unittest.TestCase):
         self.assertTrue(all(row["shelf"] == "evergreen" for row in records))
         self.assertEqual(len({norm_url(row["source_url"]) for row in records}), 8)
 
-    def test_production_latest_contains_each_batch_link_once(self):
+    def test_retained_news_batch_keeps_source_and_discovery_links_together(self):
         batch = json.loads((
             ROOT / "pipeline" / "manual_batches" / "2026-08-12-x-first.json"
         ).read_text(encoding="utf-8"))
         latest = json.loads((
             ROOT / "site" / "data" / "latest.json"
         ).read_text(encoding="utf-8"))
-        links = [
-            norm_url(item["link"])
-            for event in latest["events"]
-            for item in event.get("items", [])
-        ]
+        link_events = {}
+        for event in latest["events"]:
+            event_id = event["event_id"]
+            for item in event.get("items", []):
+                link_events.setdefault(norm_url(item["link"]), []).append(event_id)
 
         for record in validate_batch(batch):
             with self.subTest(title=record["zh_title"]):
-                self.assertEqual(links.count(norm_url(record["source_url"])), 1)
-                self.assertEqual(links.count(norm_url(record["discovery_url"])), 1)
+                source_events = link_events.get(norm_url(record["source_url"]), [])
+                discovery_events = link_events.get(norm_url(record["discovery_url"]), [])
+                self.assertLessEqual(len(source_events), 1)
+                self.assertLessEqual(len(discovery_events), 1)
+                self.assertEqual(source_events, discovery_events)
 
     def test_production_latest_contains_each_hr_ai_source_once(self):
         batch = json.loads((

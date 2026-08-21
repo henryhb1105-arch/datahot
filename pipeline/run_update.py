@@ -37,6 +37,7 @@ from lite_data import (
     DEFAULT_PAGE_SIZE, FIRST_PAGE_SOURCE_CAPS, rank_hot_events,
     rank_timeline_events,
 )
+from release_policy import should_retain_event
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
@@ -2741,8 +2742,7 @@ def main():
                 e["shelf"], e["pinned"] = "news", False
 
     # 清理过期：news 7 天淘汰；evergreen 永久沉淀（典藏池）
-    events = [e for e in events
-              if datetime.fromisoformat(e.get("first_seen") or e["published"]) > cutoff or e.get("shelf") == "evergreen"]
+    events = [e for e in events if should_retain_event(e, cutoff=cutoff)]
     media_prune = prune_media_cache((event["event_id"] for event in events), SITE)
     if media_prune["removed_dirs"]:
         print(

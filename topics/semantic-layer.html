@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-eQ3jLfanEeB/dui4VxfFhmwRfhkih/66Ey7S8VbR77Y='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>语义层 · DataHot 主题</title>
@@ -439,20 +439,86 @@ main,.layout>*,.hotlist>*{min-width:0}
   .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
   body.more-open{overflow:hidden}
 }
-.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.rank-row:focus-visible,.rank-note summary:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.rank-row:focus-visible,.rank-note summary:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible,.tcard-main:focus-visible,.tchild-link:focus-visible,.scenario-row:focus-visible,.topic-back:focus-visible,.topic-recent-card:focus-visible,.topic-reading-all:focus-visible,.topic-update-row:focus-visible,.topic-load-more:focus-visible,.topic-vendors summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:600px){.favbtn{min-width:44px;min-height:44px}}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
-.topic-map-page{max-width:900px;padding-top:28px;padding-bottom:60px}
+.topic-map-page,.topic-page{max-width:900px;padding-top:28px;padding-bottom:60px}
+.topic-map-intro{font-size:13px;color:var(--sub);line-height:1.7;margin:-4px 0 26px}
+.topic-family{margin-top:26px}
+.topic-family:first-of-type{margin-top:0}
+.topic-family-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.topic-family-head h2{font-size:17px;font-weight:800}
+.topic-family-head p{font-size:12px;color:var(--sub)}
 .tgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;min-width:0}
 @media(max-width:960px){.tgrid{grid-template-columns:minmax(0,1fr)}}
-.tcard{min-width:0;width:100%;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;text-decoration:none;display:block;transition:.15s}
+.tcard{min-width:0;width:100%;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);display:flex;flex-direction:column;transition:.15s}
+.tcard-main{display:block;min-width:0;padding:18px 20px;text-decoration:none;color:var(--ink);flex:1}
 .tcard h3{font-size:17px;font-weight:800;margin-bottom:6px}
-.tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:10px}
-.tcard .tn{font-size:12px;color:var(--accent);font-weight:700}
-.tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-@media(max-width:600px){.topic-map-page{padding-top:18px;padding-right:var(--mobile-page-right);padding-left:var(--mobile-page-left)}}
+.tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:12px}
+.topic-counts{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;font-weight:650}
+.topic-counts .recent{color:var(--accent)}
+.topic-counts .total{color:var(--sub);font-weight:500}
+.tchildren{display:flex;align-items:center;gap:7px;border-top:1px solid var(--soft);padding:10px 20px;font-size:11.5px;color:var(--sub)}
+.tchild-link{display:inline-flex;align-items:center;min-height:30px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-weight:650;padding:3px 10px;text-decoration:none}
+.scenario-list{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.scenario-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 16px;align-items:center;min-height:58px;padding:10px 16px;border-bottom:1px solid var(--soft);color:var(--ink);text-decoration:none}
+.scenario-row:last-child{border-bottom:none}
+.scenario-copy{min-width:0}
+.scenario-name{display:block;font-size:14px;font-weight:750}
+.scenario-desc{display:block;margin-top:2px;font-size:11.5px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scenario-count{font-size:11.5px;color:var(--sub);white-space:nowrap}
+.scenario-count.is-active{color:var(--accent);font-weight:650}
+.topic-hero{margin-bottom:24px}
+.topic-back{display:inline-flex;align-items:center;min-height:36px;color:var(--sub);font-size:13px;text-decoration:none}
+.topic-hero h1{font-size:28px;font-weight:800;margin:10px 0 6px}
+.topic-hero-desc{font-size:14px;color:var(--sub);line-height:1.7;margin:0 0 8px}
+.topic-parent{font-size:12px;color:var(--sub);margin-top:9px}
+.topic-parent a{color:var(--accent);font-weight:650;text-decoration:none}
+.topic-section{margin-top:24px}
+.topic-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:10px}
+.topic-section-head h2{font-size:16px;font-weight:800}
+.topic-section-head p{font-size:11.5px;color:var(--sub);text-align:right}
+.topic-recent-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.topic-recent-card{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;text-decoration:none;color:var(--ink)}
+.topic-recent-card h3{font-size:14px;line-height:1.55;margin:6px 0}
+.topic-recent-card p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-size:12px;line-height:1.65;color:var(--txt2)}
+.topic-recent-meta{font-size:10.5px;color:var(--sub)}
+.topic-empty{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:15px 16px;color:var(--sub);font-size:12.5px}
+.topic-reading{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:6px 16px 10px}
+.topic-reading-all{display:inline-flex;align-items:center;min-height:40px;margin-top:3px;color:var(--accent);font-size:12px;font-weight:650;text-decoration:none}
+.topic-updates{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.topic-update-row{display:grid;grid-template-columns:88px minmax(0,1fr) 150px;gap:12px;align-items:center;min-height:52px;padding:9px 14px;border-bottom:1px solid var(--soft);color:var(--ink);text-decoration:none}
+.topic-update-row:last-child{border-bottom:none}
+.topic-update-row.is-extra{display:none}
+.topic-update-date{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums}
+.topic-update-title{min-width:0;font-size:13px;font-weight:650;line-height:1.5}
+.topic-update-source{min-width:0;font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+.topic-load-more{appearance:none;width:100%;min-height:48px;margin-top:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:12.5px;font-weight:650;cursor:pointer}
+.topic-vendors{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:0 14px}
+.topic-vendors summary{display:flex;align-items:center;justify-content:space-between;min-height:48px;font-size:12.5px;font-weight:650;cursor:pointer;list-style:none}
+.topic-vendors summary::-webkit-details-marker{display:none}
+.topic-vendors summary span{color:var(--sub);font-size:11px;font-weight:500}
+.topic-vendors[open] summary span{color:var(--accent)}
+.topic-vendors .vendors{padding:0 0 14px;margin-top:0}
+.classic-topic-group{scroll-margin-top:24px}
+@media(max-width:720px){.topic-recent-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){
+  .topic-map-page,.topic-page{padding-top:18px;padding-right:var(--mobile-page-right);padding-left:var(--mobile-page-left)}
+  .topic-map-intro{margin-bottom:22px}
+  .topic-family-head{display:block}
+  .topic-family-head p{margin-top:3px}
+  .tcard-main{padding:15px 16px}
+  .tchildren{padding:8px 16px}
+  .scenario-row{padding:10px 14px}
+  .scenario-desc{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .topic-hero h1{font-size:26px}
+  .topic-section-head{display:block}
+  .topic-section-head p{text-align:left;margin-top:3px}
+  .topic-update-row{grid-template-columns:70px minmax(0,1fr);gap:3px 10px;padding:10px 12px}
+  .topic-update-source{grid-column:2;text-align:left}
+}
 @media(hover:hover) and (pointer:fine){
   .chip:hover{background:#dbe4ff}
   a.source-name:hover,.crow:hover .ctitle,.fav-entry:hover,.weekly-evidence-row:hover span:first-child,.hrow:hover .ht,.rank-row:hover .rank-title{color:var(--accent)}
@@ -461,7 +527,8 @@ main,.layout>*,.hotlist>*{min-width:0}
   .weekly-strip:hover{border-color:var(--accent)}
   .weekly-strip-link:hover .weekly-strip-title,.weekly-dismiss:hover{color:var(--accent)}
   .sidebar a.mi:hover{background:var(--hover);color:var(--ink)}
-  .tcard:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+  .tcard:hover,.topic-recent-card:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+  .tcard-main:hover h3,.scenario-row:hover .scenario-name,.topic-update-row:hover .topic-update-title,.topic-reading-all:hover{color:var(--accent)}
 }
 @media(prefers-color-scheme:dark) and (hover:hover) and (pointer:fine){
   .chip:hover{background:rgba(110,168,255,.26)}
@@ -473,97 +540,127 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="logo"><a href="../index.html" style="text-decoration:none">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
 
-<div class="wrap" style="padding:28px 20px 60px;max-width:900px">
-  <a class="back" href="../topics.html" style="font-size:13px;color:var(--sub)">← 主题地图</a>
-  <h1 style="font-size:26px;font-weight:800;margin:14px 0 6px">语义层</h1>
-  <p style="font-size:14px;color:var(--sub);margin-bottom:8px">指标平台、语义模型与口径治理——从 BI 配件到 Agent 的数据入口</p>
-  <p style="font-size:12.5px;color:var(--sub);margin-bottom:18px">近 7 天收录 13 个事件 · 每 6 小时更新</p>
-  <div class="vendors" style="margin-bottom:18px"><span class="vtag">Aloudata</span><span class="vtag">Cube</span><span class="vtag">Databricks</span><span class="vtag">Fivetran</span><span class="vtag">Gong</span><span class="vtag">Metabase</span><span class="vtag">Palantir</span><span class="vtag">Salesforce</span><span class="vtag">Snowflake</span><span class="vtag">Visier</span><span class="vtag">dbt Labs</span><span class="vtag">数澜科技</span></div>
-  <div class="scard" style="margin-bottom:18px"><h4 style="margin-bottom:6px"><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg> 本主题必读</h4><a class="crow" href="../e/ac7c75fedd0b.html"><span class="cpin">📌</span><span class="ctitle">一招教你鉴定真假Data Agent</span><span class="cmeta">2026-08-10</span></a><a class="crow" href="../e/ded49e4ed330.html"><span class="cpin"></span><span class="ctitle">语义层方案如何选型？五级分层与三条分界线</span><span class="cmeta">2026-08-05</span></a><a class="crow" href="../e/16934756bbd8.html"><span class="cpin"></span><span class="ctitle">Cortex Analyst与Snowflake Agents：打造生产级分析服务指南</span><span class="cmeta">2026-08-12</span></a><a class="crow" href="../e/6c6fc36a363b.html"><span class="cpin"></span><span class="ctitle">通用 Agent 来了，Data Agent 还要单独买吗？</span><span class="cmeta">2026-08-19</span></a><a class="crow" href="../e/e768a44d300c.html"><span class="cpin"></span><span class="ctitle">原型税正在扼杀你的AI路线图</span><span class="cmeta">2026-08-18</span></a><a class="crow" href="../e/1109cee945b2.html"><span class="cpin"></span><span class="ctitle">为何绝不该用LLM直接处理人力资源数据</span><span class="cmeta">2026-08-18</span></a><a class="crow" href="../e/b4ff3df743a4.html"><span class="cpin"></span><span class="ctitle">爱分析发布2026中国本体平台市场洞察报告</span><span class="cmeta">2026-08-12</span></a><a class="crow" href="../e/de330de1394c.html"><span class="cpin"></span><span class="ctitle">AI时代，数据中台焕发新生？</span><span class="cmeta">2026-08-12</span></a><a class="crow" href="../e/460d5283bb04.html"><span class="cpin"></span><span class="ctitle">开放数据基础设施需用上下文工程统一数据用例</span><span class="cmeta">2026-08-07</span></a><a class="crow" href="../e/d461dff20c65.html"><span class="cpin"></span><span class="ctitle">从分析工程师到上下文工程师</span><span class="cmeta">2026-08-06</span></a><a class="crow" href="../e/5ce50d8a33b1.html"><span class="cpin"></span><span class="ctitle">编码智能体的价值取决于它对数据的了解程度</span><span class="cmeta">2026-08-05</span></a></div>
-  <div class="day"><div class="day-head"><span class="date">8月19日</span><span class="info">1 个事件</span></div><div class="item" data-cat="agent" data-topics="Data Agent|语义层" data-link="../e/6c6fc36a363b.html" data-analytics-list="1" data-event-id="6c6fc36a363b" data-category="agent" data-source="Aloudata 博客">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">官网</span><span class="card-source-name">Aloudata 博客</span><span class="card-time">周三 15:07</span></span>
-      <span class="heatnum is-featured" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 精选 47</span>
-      <button class="favbtn" data-fav="6c6fc36a363b" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/6c6fc36a363b.html">通用 Agent 来了，Data Agent 还要单独买吗？</a></h3>
-      <p class="sum">文章以 OpenClaw 接入 Aloudata CAN 语义平台、安装问数和归因 Skill 为例，说明通用 Agent 能模仿数据分析，但“会分析”不等于“能上岗”。作者认为 Data Agent 需一体化设计，在需求澄清、强制数据校验、结果可追溯等方面承担岗位责任，而非仅挂载 Skill。文中还强调数据 100% 准确要以分析过程 100% 可信为手段，并指出单独售卖 Skill 无法对任务完成率负责。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>在通用 Agent 热潮下，本文清晰区分了“会分析”与“能上岗”，为数据团队评估 Data Agent 采购价值、设计可信分析流程提供了实用视角。</span></div><div class="vendors"><a class="chip" href="../topics/data-agent.html">Data Agent</a><a class="chip" href="../topics/semantic-layer.html">语义层</a><span class="vtag">Aloudata</span></div>
-    </div></div><div class="day"><div class="day-head"><span class="date">8月18日</span><span class="info">3 个事件</span></div><div class="item" data-cat="platform" data-topics="语义层|平台AI化" data-link="../e/334f406bd4ea.html" data-analytics-list="1" data-event-id="334f406bd4ea" data-category="platform" data-source="Snowflake Release Notes">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">官网</span><span class="card-source-name">Snowflake Release Notes</span><span class="card-time">收录 08-18</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 34</span>
-      <button class="favbtn" data-fav="334f406bd4ea" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/334f406bd4ea.html">Snowflake 10.24更新：用户级AI配额与语义视图物化</a></h3>
-      <p class="sum">Snowflake 发布2026年7月9日至15日版本说明，新增每用户配额（Preview），可为AI功能（如Cortex Agents、CoWork、CoCo）设置月度或每日信用额度，防止个别用户产生意外成本。同时推出语义视图物化（Public preview），支持对常用维度和指标预聚合，并通过MAX_STALENESS自动刷新及增量刷新。管理员可通过SQL、Snowsight和Cost Intelligence skill监控用户支出。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据从业者可关注语义层物化对查询性能的提升，以及AI功能成本治理的新手段，适合评估Snowflake平台的AI数据平台能力。</span></div><div class="vendors"><a class="chip" href="../topics/semantic-layer.html">语义层</a><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">Snowflake</span></div>
-    </div>
-<div class="item" data-cat="agent" data-topics="Data Agent|语义层" data-link="../e/e768a44d300c.html" data-analytics-list="1" data-event-id="e768a44d300c" data-category="agent" data-source="Databricks Blog">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Databricks Blog</span><span class="card-time">周二 03:42</span></span>
-      <span class="heatnum is-featured" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 精选 42</span>
-      <button class="favbtn" data-fav="e768a44d300c" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/e768a44d300c.html">原型税正在扼杀你的AI路线图</a></h3>
-      <p class="sum">文章提出“原型税”概念，指从尝试想法到可用原型之间的巨大成本，并认为它比模型能力限制更能拖垮AI路线图。造成该税的三大因素包括跨团队协作时的上下文碎片化、API封装对Agent构成的障碍、以及领域知识孤立。领先的团队并非使用更强大的Agent，而是通过业务语义为Agent提供更好的起点，让意图直接成为规格，并把治理内嵌到流程中。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据从业者可从中理解构建数据分析Agent时语义层与上下文工程的关键性，对设计AI数据平台有直接启发。</span></div><div class="vendors"><a class="chip" href="../topics/data-agent.html">Data Agent</a><a class="chip" href="../topics/semantic-layer.html">语义层</a><span class="vtag">Databricks</span></div>
-    </div>
-<div class="item" data-cat="platform" data-topics="语义层|组织人才" data-link="../e/1109cee945b2.html" data-analytics-list="1" data-event-id="1109cee945b2" data-category="platform" data-source="Visier Blog">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Visier Blog</span><span class="card-time">周二 02:58</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 39</span>
-      <button class="favbtn" data-fav="1109cee945b2" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/1109cee945b2.html">为何绝不该用LLM直接处理人力资源数据</a></h3>
-      <p class="sum">Visier 指出，HR数据比其他企业数据更易变、更具法律敏感性且强依赖上下文，通用LLM无法处理这种细微差异，会基于猜测给出答案，规模越大风险越大。S&amp;P Global 调查显示，企业技术领袖认为生成式AI的主要短板是数据隐私与安全、回答准确性和系统集成。文章认为问题不在模型本身，而在底层架构，需要上下文层、持久护栏和随数据流动的语义基础。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>对于负责HR数据平台和数据治理的从业者，本文直接点出通用LLM处理敏感员工数据的风险，并强调语义层与治理架构的关键作用，值得关注。</span></div><div class="vendors"><a class="chip" href="../topics/semantic-layer.html">语义层</a><a class="chip" href="../topics/people-insights.html">组织人才</a><span class="vtag">Visier</span></div>
-    </div></div><div class="day"><div class="day-head"><span class="date">8月15日</span><span class="info">1 个事件</span></div><div class="item" data-cat="bi" data-topics="语义层|BI变局" data-link="../e/c1f32632df45.html" data-analytics-list="1" data-event-id="c1f32632df45" data-category="bi" data-source="Metabase Blog">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Metabase Blog</span><span class="card-time">08-14</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 27</span>
-      <button class="favbtn" data-fav="c1f32632df45" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/c1f32632df45.html">Metabase举办AI分析周：聚焦语义层与治理</a></h3>
-      <p class="sum">Metabase宣布将于8月25日至27日举办AI Analytics Week，包含三场免费直播活动。活动聚焦AI分析中更关键的问题：答案准确性、数据控制与治理，以及团队对AI产出的所有权。其中一场会议将讲解语义层为何成为AI分析栈中最有价值的组成部分，并演示如何在Metabase中查询数据并验证答案正确性。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>AI分析的价值正从基础问答转向正确性与治理，Metabase的议题反映了BI工具在AI落地中的关键挑战，值得数据从业者关注。</span></div><div class="vendors"><a class="chip" href="../topics/semantic-layer.html">语义层</a><a class="chip" href="../topics/bi-shift.html">BI变局</a><span class="vtag">Metabase</span></div>
-    </div></div><div class="day"><div class="day-head"><span class="date">8月13日</span><span class="info">2 个事件</span></div><div class="item" data-cat="product" data-topics="语义层" data-link="../e/ded49e4ed330.html" data-analytics-list="1" data-event-id="ded49e4ed330" data-category="product" data-source="Aloudata 博客">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">官网</span><span class="card-source-name">Aloudata 博客</span><span class="card-time">08-05</span></span>
-      <span class="heatnum is-featured" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 精选 37</span>
-      <button class="favbtn" data-fav="ded49e4ed330" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/ded49e4ed330.html">语义层方案如何选型？五级分层与三条分界线</a></h3>
-      <p class="sum">本文提出语义层五级能力模型，从L0提示词语义到L4过程语义，并指出L1到L2是质变：语义从辅助模型猜测变为无需猜测的约束。作者引用Cube配对实验数据，仅提供schema时前沿模型准确率在45.5%-50.5%，补充4KB手写语义说明文档后升至67.7%-68.7%。文章通过三条分界线为语义层选型提供衡量标尺，帮助从业者识别方案真实上限。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>语义层是当前数据平台与AI分析的热点，本文提供可操作的分级框架和实证数据，便于从业者在概念泛滥时理性选型。</span></div><div class="vendors"><a class="chip" href="../topics/semantic-layer.html">语义层</a><span class="vtag">Aloudata</span><span class="vtag">Cube</span></div>
-    </div>
-<div class="item" data-cat="agent" data-topics="语义层" data-link="../e/16934756bbd8.html" data-analytics-list="1" data-event-id="16934756bbd8" data-category="agent" data-source="Snowflake Engineering（Medium）">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Snowflake Engineering (Medium)</span><span class="card-time">08-12</span></span>
-      <span class="heatnum is-featured" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 精选 36</span>
-      <button class="favbtn" data-fav="16934756bbd8" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/16934756bbd8.html">Cortex Analyst与Snowflake Agents：打造生产级分析服务指南</a></h3>
-      <p class="sum">本文针对Cortex Analyst和Agent项目中常见的响应慢、结果不正确问题，指出根源往往在于语义模型、编排指令和工具描述等基础设置未受重视。内容包括如何精简现有语义视图、使用Cortex Search解析真实取值、用验证查询锚定SQL，以及通过工具描述和Agent指令路由问题，从而提升服务准确性与速度。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>面向生产级Data Agent部署的深度实践指南，直击ChatBI项目落地中的性能和准确性问题，值得数据从业者参考。</span></div><div class="vendors"><a class="chip" href="../topics/semantic-layer.html">语义层</a><span class="vtag">Snowflake</span></div>
-    </div></div><div class="day"><div class="day-head"><span class="date">8月12日</span><span class="info">2 个事件</span></div><div class="item" data-cat="product" data-topics="语义层|Data Agent" data-link="../e/b4ff3df743a4.html" data-analytics-list="1" data-event-id="b4ff3df743a4" data-category="product" data-source="爱分析">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">爱分析</span><span class="card-time">收录 08-12</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 32</span>
-      <button class="favbtn" data-fav="b4ff3df743a4" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/b4ff3df743a4.html">爱分析发布2026中国本体平台市场洞察报告</a></h3>
-      <p class="sum">爱分析发布《2026爱分析·中国本体平台市场洞察报告》，系统梳理中国市场的本体实践路径与能力演进方向。报告指出，中国市场尚未形成统一的本体定义，并归纳出知识工程、语义层、业务本体、可执行本体四条路径。报告认为，本体平台需要形成语义表达、业务计算、行动执行和持续治理的闭环，并参考Palantir作为能力参照。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>本体平台是语义层与Data Agent落地的重要基础，报告梳理了中国市场的四类实践路径，帮助数据从业者理解产品边界与演进方向。</span></div><div class="vendors"><a class="chip" href="../topics/semantic-layer.html">语义层</a><a class="chip" href="../topics/data-agent.html">Data Agent</a><span class="vtag">Palantir</span></div>
-    </div>
-<div class="item" data-cat="platform" data-topics="语义层|平台AI化" data-link="../e/de330de1394c.html" data-analytics-list="1" data-event-id="de330de1394c" data-category="platform" data-source="爱分析">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">爱分析</span><span class="card-time">收录 08-12</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 32</span>
-      <button class="favbtn" data-fav="de330de1394c" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/de330de1394c.html">AI时代，数据中台焕发新生？</a></h3>
-      <p class="sum">数澜科技创始人甘云锋在接受爱分析访谈时表示，“拆中台”是个误会，AI兴起后数据中台窗口重新打开。他认为数据基座的核心目标是持续输出高质量数据集，本体与语义层是企业AI消除歧义、降低幻觉的关键。数澜从高峰期500人缩减至几十人后，如今定位为“数据+AI”公司，专注数据基座、行业模型和数据智能体，服务军工、央国企及大型民企客户。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据从业者应关注数据中台向AI数据基座演进的路径，以及本体语义层在企业级AI中的落地价值。</span></div><div class="vendors"><a class="chip" href="../topics/semantic-layer.html">语义层</a><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">数澜科技</span></div>
-    </div></div><div class="day"><div class="day-head"><span class="date">8月10日</span><span class="info">1 个事件</span></div><div class="item" data-cat="agent" data-topics="Data Agent|语义层" data-link="../e/ac7c75fedd0b.html" data-analytics-list="1" data-event-id="ac7c75fedd0b" data-category="agent" data-source="微信公众号">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">微信公众号</span><span class="card-time">08-10</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 33</span>
-      <button class="favbtn" data-fav="ac7c75fedd0b" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/ac7c75fedd0b.html">一招教你鉴定真假Data Agent</a></h3>
-      <p class="sum">文章提出一套鉴别真假Data Agent的审查清单：真正的企业级Data Agent需同时满足语义层、目标驱动、证据链与自愈、权限治理、反馈沉淀五项要求。判断基准是它不能只是“会写SQL的聊天框”，必须回答理解数据、安全访问、可验证结果、沉淀资产四个问题。作者直言市场上八成产品只是NL2SQL套聊天框，用半小时逐项验证即可识别套壳。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据从业者选型或评估Data Agent时，可参照这套清单快速识别套壳产品，避免被厂商的PPT和架构宣讲误导。</span></div><div class="vendors"><a class="chip" href="../topics/data-agent.html">Data Agent</a><a class="chip" href="../topics/semantic-layer.html">语义层</a></div>
-    </div></div><div class="day"><div class="day-head"><span class="date">8月7日</span><span class="info">1 个事件</span></div><div class="item" data-cat="platform" data-topics="语义层|湖仓" data-link="../e/460d5283bb04.html" data-analytics-list="1" data-event-id="460d5283bb04" data-category="platform" data-source="Fivetran Blog">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Fivetran Blog</span><span class="card-time">08-07</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 23</span>
-      <button class="favbtn" data-fav="460d5283bb04" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/460d5283bb04.html">开放数据基础设施需用上下文工程统一数据用例</a></h3>
-      <p class="sum">Fivetran产品布道师Charles Wang撰文指出，单一事实来源不仅来自数据集中化，还必须从数据中构建上下文。他结合Fivetran与dbt Labs的托管数据湖服务（MDLS），说明开放表格式、持续同步与元数据发布如何支撑统一架构。文章强调AI系统缺乏隐性知识，必须通过上下文工程让信息显式、结构化、可信且可检索。他将上下文工程分为四类需求，并首先提及语义与血缘。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据从业者需关注如何将统一数据架构与AI系统对齐，上下文工程正成为语义层与Data Agent落地的关键实践。</span></div><div class="vendors"><a class="chip" href="../topics/semantic-layer.html">语义层</a><a class="chip" href="../topics/lakehouse.html">湖仓</a><span class="vtag">Fivetran</span><span class="vtag">dbt Labs</span></div>
-    </div></div><div class="day"><div class="day-head"><span class="date">8月6日</span><span class="info">1 个事件</span></div><div class="item" data-cat="agent" data-topics="Data Agent|语义层" data-link="../e/d461dff20c65.html" data-analytics-list="1" data-event-id="d461dff20c65" data-category="agent" data-source="dbt Blog">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">dbt Blog</span><span class="card-time">08-06</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 23</span>
-      <button class="favbtn" data-fav="d461dff20c65" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/d461dff20c65.html">从分析工程师到上下文工程师</a></h3>
-      <p class="sum">dbt Labs 发文探讨企业 AI 部署从“为仪表盘建模数据”转向“为 Agent 建模上下文”。文章以自身为例，起初直接使用供应商 MCP 连接 Gong 等数据源，导致单次通话分析消耗高达 5 万 Token（约 0.25 美元），总数据量超 5 亿 Token。他们随后将原始数据摄入数仓并通过建模总结，以降低成本和掌控上下文层。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据从业者应关注这一从 analytics engineering 到 context engineering 的范式转变，它直接关系到 AI Agent 如何高效、可控地连接企业数据资产。</span></div><div class="vendors"><a class="chip" href="../topics/data-agent.html">Data Agent</a><a class="chip" href="../topics/semantic-layer.html">语义层</a><span class="vtag">dbt Labs</span><span class="vtag">Gong</span><span class="vtag">Salesforce</span></div>
-    </div></div><div class="day"><div class="day-head"><span class="date">8月5日</span><span class="info">1 个事件</span></div><div class="item" data-cat="agent" data-topics="Data Agent|语义层" data-link="../e/5ce50d8a33b1.html" data-analytics-list="1" data-event-id="5ce50d8a33b1" data-category="agent" data-source="Snowflake Engineering（Medium）">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Snowflake Engineering (Medium)</span><span class="card-time">08-05</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 23</span>
-      <button class="favbtn" data-fav="5ce50d8a33b1" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/5ce50d8a33b1.html">编码智能体的价值取决于它对数据的了解程度</a></h3>
-      <p class="sum">数据工程师尝试用编码智能体处理SQL时，确实能获得帮助：样板代码被削减，脚手架搭建更快。但一个更棘手的 frustration 是，智能体生成的代码看似正确——语法有效、符合惯例——却不适用于实际环境。它不知道哪些表是生产表、哪些 schema 受治理、RBAC 结构如何，导致产出仍需人工重塑。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据从业者应关注：这直击 Data Agent 落地的核心瓶颈——智能体对数据环境上下文的理解不足，影响生成代码的可交付性。</span></div><div class="vendors"><a class="chip" href="../topics/data-agent.html">Data Agent</a><a class="chip" href="../topics/semantic-layer.html">语义层</a><span class="vtag">Snowflake</span></div>
-    </div></div>
-</div>
+<main class="wrap topic-page">
+  <header class="topic-hero">
+    <a class="topic-back" href="../topics.html">← 主题地图</a>
+    <h1>语义层</h1>
+    <p class="topic-hero-desc">指标平台、语义模型与口径治理——从 BI 配件到 Agent 的数据入口</p>
+    <div class="topic-counts"><span class="recent">近 7 天新增 4</span><span class="total">累计 13 · 每 6 小时更新</span></div>
+    
+  </header>
+  <section class="topic-section" aria-labelledby="recentProgress">
+    <div class="topic-section-head"><h2 id="recentProgress">近期进展</h2><p>最近 7 天内最新的 3 条</p></div>
+    <div class="topic-recent-grid"><a class="topic-recent-card" href="../e/6c6fc36a363b.html">
+  <span class="topic-recent-meta">2026-08-19 · Aloudata 博客</span>
+  <h3>通用 Agent 来了，Data Agent 还要单独买吗？</h3>
+  <p>文章以 OpenClaw 接入 Aloudata CAN 语义平台、安装问数和归因 Skill 为例，说明通用 Agent 能模仿数据分析，但“会分析”不等于“能上岗”。作者认为 Data Agent 需一体化设计，在需求澄清、强制数据校验、结果可追溯等方面承担岗位责任，而非仅挂载 Skill。文中还强调数据 100% 准确要以分析过程 100% 可信为手段，并指出单独售卖 Skill 无法对任务完成率负责。</p>
+</a><a class="topic-recent-card" href="../e/334f406bd4ea.html">
+  <span class="topic-recent-meta">2026-08-18 · Snowflake Release Notes</span>
+  <h3>Snowflake 10.24更新：用户级AI配额与语义视图物化</h3>
+  <p>Snowflake 发布2026年7月9日至15日版本说明，新增每用户配额（Preview），可为AI功能（如Cortex Agents、CoWork、CoCo）设置月度或每日信用额度，防止个别用户产生意外成本。同时推出语义视图物化（Public preview），支持对常用维度和指标预聚合，并通过MAX_STALENESS自动刷新及增量刷新。管理员可通过SQL、Snowsight和Cost Intelligence skill监控用户支出。</p>
+</a><a class="topic-recent-card" href="../e/e768a44d300c.html">
+  <span class="topic-recent-meta">2026-08-18 · Databricks Blog</span>
+  <h3>原型税正在扼杀你的AI路线图</h3>
+  <p>文章提出“原型税”概念，指从尝试想法到可用原型之间的巨大成本，并认为它比模型能力限制更能拖垮AI路线图。造成该税的三大因素包括跨团队协作时的上下文碎片化、API封装对Agent构成的障碍、以及领域知识孤立。领先的团队并非使用更强大的Agent，而是通过业务语义为Agent提供更好的起点，让意图直接成为规格，并把治理内嵌到流程中。</p>
+</a></div>
+  </section>
+  
+  <section class="topic-section" aria-labelledby="topicReading">
+    <div class="topic-section-head"><h2 id="topicReading"><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg> 入门阅读</h2><p>来自典藏，最多 3 篇</p></div>
+    <div class="topic-reading"><a class="crow" href="../e/ac7c75fedd0b.html">
+  <span class="cpin">📌</span>
+  <span class="ctitle">一招教你鉴定真假Data Agent</span>
+  <span class="cmeta">2026-08-10</span>
+</a><a class="crow" href="../e/ded49e4ed330.html">
+  <span class="cpin"></span>
+  <span class="ctitle">语义层方案如何选型？五级分层与三条分界线</span>
+  <span class="cmeta">2026-08-05</span>
+</a><a class="crow" href="../e/16934756bbd8.html">
+  <span class="cpin"></span>
+  <span class="ctitle">Cortex Analyst与Snowflake Agents：打造生产级分析服务指南</span>
+  <span class="cmeta">2026-08-12</span>
+</a><a class="topic-reading-all" href="../classics.html#topic-semantic-layer">查看该主题全部典藏 →</a></div>
+  </section>
+  <section class="topic-section" aria-labelledby="allUpdates">
+    <div class="topic-section-head"><h2 id="allUpdates">全部动态</h2><p>按发布时间倒序</p></div>
+    <div class="topic-updates" id="topicUpdates"><a class="topic-update-row" data-topic-update href="../e/6c6fc36a363b.html">
+  <time class="topic-update-date">2026-08-19</time>
+  <span class="topic-update-title">通用 Agent 来了，Data Agent 还要单独买吗？</span>
+  <span class="topic-update-source">Aloudata 博客</span>
+</a><a class="topic-update-row" data-topic-update href="../e/334f406bd4ea.html">
+  <time class="topic-update-date">2026-08-18</time>
+  <span class="topic-update-title">Snowflake 10.24更新：用户级AI配额与语义视图物化</span>
+  <span class="topic-update-source">Snowflake Release Notes</span>
+</a><a class="topic-update-row" data-topic-update href="../e/e768a44d300c.html">
+  <time class="topic-update-date">2026-08-18</time>
+  <span class="topic-update-title">原型税正在扼杀你的AI路线图</span>
+  <span class="topic-update-source">Databricks Blog</span>
+</a><a class="topic-update-row" data-topic-update href="../e/1109cee945b2.html">
+  <time class="topic-update-date">2026-08-18</time>
+  <span class="topic-update-title">为何绝不该用LLM直接处理人力资源数据</span>
+  <span class="topic-update-source">Visier Blog</span>
+</a><a class="topic-update-row" data-topic-update href="../e/c1f32632df45.html">
+  <time class="topic-update-date">2026-08-14</time>
+  <span class="topic-update-title">Metabase举办AI分析周：聚焦语义层与治理</span>
+  <span class="topic-update-source">Metabase Blog</span>
+</a><a class="topic-update-row" data-topic-update href="../e/16934756bbd8.html">
+  <time class="topic-update-date">2026-08-12</time>
+  <span class="topic-update-title">Cortex Analyst与Snowflake Agents：打造生产级分析服务指南</span>
+  <span class="topic-update-source">Snowflake Engineering (Medium)</span>
+</a><a class="topic-update-row" data-topic-update href="../e/b4ff3df743a4.html">
+  <time class="topic-update-date">2026-08-12</time>
+  <span class="topic-update-title">爱分析发布2026中国本体平台市场洞察报告</span>
+  <span class="topic-update-source">爱分析</span>
+</a><a class="topic-update-row" data-topic-update href="../e/de330de1394c.html">
+  <time class="topic-update-date">2026-08-12</time>
+  <span class="topic-update-title">AI时代，数据中台焕发新生？</span>
+  <span class="topic-update-source">爱分析</span>
+</a><a class="topic-update-row" data-topic-update href="../e/ac7c75fedd0b.html">
+  <time class="topic-update-date">2026-08-10</time>
+  <span class="topic-update-title">一招教你鉴定真假Data Agent</span>
+  <span class="topic-update-source">微信公众号</span>
+</a><a class="topic-update-row" data-topic-update href="../e/460d5283bb04.html">
+  <time class="topic-update-date">2026-08-07</time>
+  <span class="topic-update-title">开放数据基础设施需用上下文工程统一数据用例</span>
+  <span class="topic-update-source">Fivetran Blog</span>
+</a><a class="topic-update-row is-extra" data-topic-update href="../e/d461dff20c65.html">
+  <time class="topic-update-date">2026-08-06</time>
+  <span class="topic-update-title">从分析工程师到上下文工程师</span>
+  <span class="topic-update-source">dbt Blog</span>
+</a><a class="topic-update-row is-extra" data-topic-update href="../e/ded49e4ed330.html">
+  <time class="topic-update-date">2026-08-05</time>
+  <span class="topic-update-title">语义层方案如何选型？五级分层与三条分界线</span>
+  <span class="topic-update-source">Aloudata 博客</span>
+</a><a class="topic-update-row is-extra" data-topic-update href="../e/5ce50d8a33b1.html">
+  <time class="topic-update-date">2026-08-05</time>
+  <span class="topic-update-title">编码智能体的价值取决于它对数据的了解程度</span>
+  <span class="topic-update-source">Snowflake Engineering (Medium)</span>
+</a></div>
+    <button class="topic-load-more" type="button" data-topic-load-more data-step="10" aria-controls="topicUpdates">加载更多（10/13）</button>
+  </section>
+  
+  <section class="topic-section" aria-label="相关厂商">
+    <details class="topic-vendors"><summary>涉及 12 个厂商 <span>展开查看</span></summary><div class="vendors"><span class="vtag">Aloudata</span><span class="vtag">Cube</span><span class="vtag">Databricks</span><span class="vtag">Fivetran</span><span class="vtag">Gong</span><span class="vtag">Metabase</span><span class="vtag">Palantir</span><span class="vtag">Salesforce</span><span class="vtag">Snowflake</span><span class="vtag">Visier</span><span class="vtag">dbt Labs</span><span class="vtag">数澜科技</span></div></details>
+  </section>
+</main>
+<noscript><style>
+.topic-update-row.is-extra{display:grid!important}.topic-load-more{display:none!important}
+</style></noscript>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var button=document.querySelector('[data-topic-load-more]');
+  if(!button){return;}
+  var rows=Array.from(document.querySelectorAll('[data-topic-update]'));
+  var step=parseInt(button.getAttribute('data-step')||'10',10);
+  var shown=rows.filter(function(row){return !row.classList.contains('is-extra');}).length;
+  button.addEventListener('click',function(){
+    rows.slice(shown,shown+step).forEach(function(row){row.classList.remove('is-extra');});
+    shown=Math.min(shown+step,rows.length);
+    if(shown>=rows.length){button.remove();return;}
+    button.textContent='加载更多（'+shown+'/'+rows.length+'）';
+  });
+});
+</script>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 <nav class="tabbar" aria-label="移动端主导航">
   <a href="../index.html" class="" data-home-top><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../topics.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-eQ3jLfanEeB/dui4VxfFhmwRfhkih/66Ey7S8VbR77Y='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>平台AI化 · DataHot 主题</title>
@@ -439,20 +439,86 @@ main,.layout>*,.hotlist>*{min-width:0}
   .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
   body.more-open{overflow:hidden}
 }
-.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.rank-row:focus-visible,.rank-note summary:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.rank-row:focus-visible,.rank-note summary:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible,.tcard-main:focus-visible,.tchild-link:focus-visible,.scenario-row:focus-visible,.topic-back:focus-visible,.topic-recent-card:focus-visible,.topic-reading-all:focus-visible,.topic-update-row:focus-visible,.topic-load-more:focus-visible,.topic-vendors summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:600px){.favbtn{min-width:44px;min-height:44px}}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
-.topic-map-page{max-width:900px;padding-top:28px;padding-bottom:60px}
+.topic-map-page,.topic-page{max-width:900px;padding-top:28px;padding-bottom:60px}
+.topic-map-intro{font-size:13px;color:var(--sub);line-height:1.7;margin:-4px 0 26px}
+.topic-family{margin-top:26px}
+.topic-family:first-of-type{margin-top:0}
+.topic-family-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.topic-family-head h2{font-size:17px;font-weight:800}
+.topic-family-head p{font-size:12px;color:var(--sub)}
 .tgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;min-width:0}
 @media(max-width:960px){.tgrid{grid-template-columns:minmax(0,1fr)}}
-.tcard{min-width:0;width:100%;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;text-decoration:none;display:block;transition:.15s}
+.tcard{min-width:0;width:100%;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);display:flex;flex-direction:column;transition:.15s}
+.tcard-main{display:block;min-width:0;padding:18px 20px;text-decoration:none;color:var(--ink);flex:1}
 .tcard h3{font-size:17px;font-weight:800;margin-bottom:6px}
-.tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:10px}
-.tcard .tn{font-size:12px;color:var(--accent);font-weight:700}
-.tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-@media(max-width:600px){.topic-map-page{padding-top:18px;padding-right:var(--mobile-page-right);padding-left:var(--mobile-page-left)}}
+.tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:12px}
+.topic-counts{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;font-weight:650}
+.topic-counts .recent{color:var(--accent)}
+.topic-counts .total{color:var(--sub);font-weight:500}
+.tchildren{display:flex;align-items:center;gap:7px;border-top:1px solid var(--soft);padding:10px 20px;font-size:11.5px;color:var(--sub)}
+.tchild-link{display:inline-flex;align-items:center;min-height:30px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-weight:650;padding:3px 10px;text-decoration:none}
+.scenario-list{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.scenario-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 16px;align-items:center;min-height:58px;padding:10px 16px;border-bottom:1px solid var(--soft);color:var(--ink);text-decoration:none}
+.scenario-row:last-child{border-bottom:none}
+.scenario-copy{min-width:0}
+.scenario-name{display:block;font-size:14px;font-weight:750}
+.scenario-desc{display:block;margin-top:2px;font-size:11.5px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scenario-count{font-size:11.5px;color:var(--sub);white-space:nowrap}
+.scenario-count.is-active{color:var(--accent);font-weight:650}
+.topic-hero{margin-bottom:24px}
+.topic-back{display:inline-flex;align-items:center;min-height:36px;color:var(--sub);font-size:13px;text-decoration:none}
+.topic-hero h1{font-size:28px;font-weight:800;margin:10px 0 6px}
+.topic-hero-desc{font-size:14px;color:var(--sub);line-height:1.7;margin:0 0 8px}
+.topic-parent{font-size:12px;color:var(--sub);margin-top:9px}
+.topic-parent a{color:var(--accent);font-weight:650;text-decoration:none}
+.topic-section{margin-top:24px}
+.topic-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:10px}
+.topic-section-head h2{font-size:16px;font-weight:800}
+.topic-section-head p{font-size:11.5px;color:var(--sub);text-align:right}
+.topic-recent-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.topic-recent-card{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;text-decoration:none;color:var(--ink)}
+.topic-recent-card h3{font-size:14px;line-height:1.55;margin:6px 0}
+.topic-recent-card p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-size:12px;line-height:1.65;color:var(--txt2)}
+.topic-recent-meta{font-size:10.5px;color:var(--sub)}
+.topic-empty{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:15px 16px;color:var(--sub);font-size:12.5px}
+.topic-reading{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:6px 16px 10px}
+.topic-reading-all{display:inline-flex;align-items:center;min-height:40px;margin-top:3px;color:var(--accent);font-size:12px;font-weight:650;text-decoration:none}
+.topic-updates{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.topic-update-row{display:grid;grid-template-columns:88px minmax(0,1fr) 150px;gap:12px;align-items:center;min-height:52px;padding:9px 14px;border-bottom:1px solid var(--soft);color:var(--ink);text-decoration:none}
+.topic-update-row:last-child{border-bottom:none}
+.topic-update-row.is-extra{display:none}
+.topic-update-date{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums}
+.topic-update-title{min-width:0;font-size:13px;font-weight:650;line-height:1.5}
+.topic-update-source{min-width:0;font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+.topic-load-more{appearance:none;width:100%;min-height:48px;margin-top:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:12.5px;font-weight:650;cursor:pointer}
+.topic-vendors{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:0 14px}
+.topic-vendors summary{display:flex;align-items:center;justify-content:space-between;min-height:48px;font-size:12.5px;font-weight:650;cursor:pointer;list-style:none}
+.topic-vendors summary::-webkit-details-marker{display:none}
+.topic-vendors summary span{color:var(--sub);font-size:11px;font-weight:500}
+.topic-vendors[open] summary span{color:var(--accent)}
+.topic-vendors .vendors{padding:0 0 14px;margin-top:0}
+.classic-topic-group{scroll-margin-top:24px}
+@media(max-width:720px){.topic-recent-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){
+  .topic-map-page,.topic-page{padding-top:18px;padding-right:var(--mobile-page-right);padding-left:var(--mobile-page-left)}
+  .topic-map-intro{margin-bottom:22px}
+  .topic-family-head{display:block}
+  .topic-family-head p{margin-top:3px}
+  .tcard-main{padding:15px 16px}
+  .tchildren{padding:8px 16px}
+  .scenario-row{padding:10px 14px}
+  .scenario-desc{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .topic-hero h1{font-size:26px}
+  .topic-section-head{display:block}
+  .topic-section-head p{text-align:left;margin-top:3px}
+  .topic-update-row{grid-template-columns:70px minmax(0,1fr);gap:3px 10px;padding:10px 12px}
+  .topic-update-source{grid-column:2;text-align:left}
+}
 @media(hover:hover) and (pointer:fine){
   .chip:hover{background:#dbe4ff}
   a.source-name:hover,.crow:hover .ctitle,.fav-entry:hover,.weekly-evidence-row:hover span:first-child,.hrow:hover .ht,.rank-row:hover .rank-title{color:var(--accent)}
@@ -461,7 +527,8 @@ main,.layout>*,.hotlist>*{min-width:0}
   .weekly-strip:hover{border-color:var(--accent)}
   .weekly-strip-link:hover .weekly-strip-title,.weekly-dismiss:hover{color:var(--accent)}
   .sidebar a.mi:hover{background:var(--hover);color:var(--ink)}
-  .tcard:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+  .tcard:hover,.topic-recent-card:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+  .tcard-main:hover h3,.scenario-row:hover .scenario-name,.topic-update-row:hover .topic-update-title,.topic-reading-all:hover{color:var(--accent)}
 }
 @media(prefers-color-scheme:dark) and (hover:hover) and (pointer:fine){
   .chip:hover{background:rgba(110,168,255,.26)}
@@ -473,207 +540,191 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="logo"><a href="../index.html" style="text-decoration:none">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
 
-<div class="wrap" style="padding:28px 20px 60px;max-width:900px">
-  <a class="back" href="../topics.html" style="font-size:13px;color:var(--sub)">← 主题地图</a>
-  <h1 style="font-size:26px;font-weight:800;margin:14px 0 6px">平台AI化</h1>
-  <p style="font-size:14px;color:var(--sub);margin-bottom:8px">模型网关、AI 内建功能与治理合并——AI 从外挂变成平台地基</p>
-  <p style="font-size:12.5px;color:var(--sub);margin-bottom:18px">近 7 天收录 29 个事件 · 每 6 小时更新</p>
-  <div class="vendors" style="margin-bottom:18px"><span class="vtag">AWS</span><span class="vtag">Anthropic</span><span class="vtag">BigQuery</span><span class="vtag">Claude</span><span class="vtag">Collibra</span><span class="vtag">Databricks</span><span class="vtag">Fivetran</span><span class="vtag">Gong</span><span class="vtag">Google</span><span class="vtag">Google Cloud</span><span class="vtag">Microsoft</span><span class="vtag">PingCAP</span><span class="vtag">Power BI</span><span class="vtag">Rockfish</span><span class="vtag">Snowflake</span><span class="vtag">Teradata</span><span class="vtag">TiDB</span><span class="vtag">Workday</span><span class="vtag">dbt Labs</span><span class="vtag">phData</span><span class="vtag">数澜科技</span></div>
-  <div class="scard" style="margin-bottom:18px"><h4 style="margin-bottom:6px"><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg> 本主题必读</h4><a class="crow" href="../e/ba8377c644db.html"><span class="cpin"></span><span class="ctitle">扩展Claude能力：Skills与MCP协同构建智能体</span><span class="cmeta">2025-12-19</span></a><a class="crow" href="../e/83357b7d65a2.html"><span class="cpin"></span><span class="ctitle">Snowflake CoWork Automations 架构与执行模型深度解析</span><span class="cmeta">2026-08-21</span></a><a class="crow" href="../e/bcfd90e63775.html"><span class="cpin"></span><span class="ctitle">为Token建模而非表：dbt仓储上下文节省20倍成本</span><span class="cmeta">2026-08-17</span></a><a class="crow" href="../e/29de685d5ab9.html"><span class="cpin"></span><span class="ctitle">管理AI成本：分步教程设置每用户配额控制支出</span><span class="cmeta">2026-08-19</span></a><a class="crow" href="../e/5f9770dfca34.html"><span class="cpin"></span><span class="ctitle">你的 Coding Agent 有多大价值，取决于它对你的数据了解多少</span><span class="cmeta">2026-08-21</span></a><a class="crow" href="../e/42d6165ced5d.html"><span class="cpin"></span><span class="ctitle">加拿大大型铁路用Databricks Genie Code将管道创建自动化率提至90%</span><span class="cmeta">2026-08-13</span></a><a class="crow" href="../e/5c4d28e53f75.html"><span class="cpin"></span><span class="ctitle">Agentic AI 架构为何需要数据库，不只是向量存储</span><span class="cmeta">2026-08-10</span></a><a class="crow" href="../e/cb619e8bf5e1.html"><span class="cpin"></span><span class="ctitle">虚拟化优先还是现代化优先？Snowflake AIM迁移路径建议</span><span class="cmeta">2026-08-17</span></a><a class="crow" href="../e/c076af28e6b5.html"><span class="cpin"></span><span class="ctitle">数据仓库中AI函数的高价值用例</span><span class="cmeta">2026-08-15</span></a><a class="crow" href="../e/ddcb4a5b6b52.html"><span class="cpin"></span><span class="ctitle">开源数据层将赢得AI未来</span><span class="cmeta">2026-08-06</span></a><a class="crow" href="../e/036431034b26.html"><span class="cpin"></span><span class="ctitle">构建医疗AI无需重建数据平台</span><span class="cmeta">2026-08-10</span></a><a class="crow" href="../e/f01dc118d37a.html"><span class="cpin"></span><span class="ctitle">Snowflake CoCo跨区域推理配置与合规指南</span><span class="cmeta">2026-08-13</span></a><a class="crow" href="../e/de330de1394c.html"><span class="cpin"></span><span class="ctitle">AI时代，数据中台焕发新生？</span><span class="cmeta">2026-08-12</span></a><a class="crow" href="../e/4395c235c498.html"><span class="cpin"></span><span class="ctitle">跨区域推理：是什么，启用它实际涉及什么</span><span class="cmeta">2026-08-13</span></a><a class="crow" href="../e/d7c6d34e3d28.html"><span class="cpin"></span><span class="ctitle">制造业数字孪生是生态博弈：Snowflake与Agentic AI的跨组织智能</span><span class="cmeta">2026-08-22</span></a><a class="crow" href="../e/9809cc8aea4d.html"><span class="cpin"></span><span class="ctitle">用自定义标签跟踪SageMaker Unified Studio项目成本</span><span class="cmeta">2026-08-21</span></a><a class="crow" href="../e/bf71c501757a.html"><span class="cpin"></span><span class="ctitle">零售AI治理：需要上下文控制平面</span><span class="cmeta">2026-08-18</span></a><a class="crow" href="../e/e7f241b84ae2.html"><span class="cpin"></span><span class="ctitle">如何在APJ为CoCo配置跨区域推理</span><span class="cmeta">2026-08-14</span></a><a class="crow" href="../e/0b039fb415c1.html"><span class="cpin"></span><span class="ctitle">AI加速数据使用，Dataverse助力数据治理准备</span><span class="cmeta">2026-08-11</span></a><a class="crow" href="../e/341ca51f8349.html"><span class="cpin"></span><span class="ctitle">完整Agent状态栈：内存、文件与Serverless数据库持久化</span><span class="cmeta">2026-08-07</span></a><a class="crow" href="../e/05b5c328b16d.html"><span class="cpin"></span><span class="ctitle">Databricks谈大规模AI编码成本管理</span><span class="cmeta">2026-08-07</span></a></div>
-  <div class="day"><div class="day-head"><span class="date">8月22日</span><span class="info">7 个事件</span></div><div class="item" data-cat="platform" data-topics="平台AI化|供应链" data-link="../e/d7c6d34e3d28.html" data-analytics-list="1" data-event-id="d7c6d34e3d28" data-category="platform" data-source="Snowflake Engineering（Medium）">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Snowflake Engineering (Medium)</span><span class="card-time">7 小时前</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 60</span>
-      <button class="favbtn" data-fav="d7c6d34e3d28" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/d7c6d34e3d28.html">制造业数字孪生是生态博弈：Snowflake与Agentic AI的跨组织智能</a></h3>
-      <p class="sum">本文探讨制造业数字孪生从单一资产仿真演变为跨价值链的多方生态构建。作者认为没有任何单一组织能独立掌握完整数据、模型与领域知识，数字孪生本质上是生态级合作。Snowflake AI Data Cloud 与 Agentic AI 架构作为协调层，通过跨越IT/OT鸿沟、AI代理实现语义互操作、以及零拷贝架构的受控数据共享，解决数据主权、信任与互操作等核心问题。Agentic AI将进一步把数字孪生从被动表征模型转化为在治理边界内自主决策的系统。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>从数据平台与AI代理协同的视角，剖析制造业数字孪生落地的数据治理与生态架构，对关注数据平台化智能与供应链协同的从业者有参考价值。</span></div><div class="vendors"><a class="chip" href="../topics/platform-ai.html">平台AI化</a><a class="chip" href="../topics/supply-chain.html">供应链</a><span class="vtag">Snowflake</span></div>
-    </div>
-<div class="item" data-cat="agent" data-topics="Data Agent|平台AI化" data-link="../e/bdb5206e4abd.html" data-analytics-list="1" data-event-id="bdb5206e4abd" data-category="agent" data-source="Workday Newsroom">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Workday Newsroom</span><span class="card-time">周四 00:00</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 46</span>
-      <button class="favbtn" data-fav="bdb5206e4abd" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/bdb5206e4abd.html">Workday成立AI研究团队，聚焦企业AI可靠性与效率</a></h3>
-      <p class="sum">Workday宣布成立Workday AI Research，专注提升企业AI的可靠性、可信性与效率。研究涵盖持久化Agent记忆、可解释性、多智能体编排、奖励过度优化、推荐系统及自适应资源控制等，多项成果已获ICML、ICLR等顶会接收。同时推出AI研究博士奖学金，每年资助5万美元，以解决企业部署AI Agent时面临的隐私、审计、效率与准确性挑战。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>企业级AI Agent的记忆管理与可靠性评估是数据Agent落地的核心难点，Workday的研究方向对数据产品设计与评测有参考价值。</span></div><div class="vendors"><a class="chip" href="../topics/data-agent.html">Data Agent</a><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">Workday</span></div>
-    </div>
-<div class="item" data-cat="platform" data-topics="平台AI化|Data Agent" data-link="../e/7bf3dfd4737b.html" data-analytics-list="1" data-event-id="7bf3dfd4737b" data-category="platform" data-source="Databricks Blog">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Databricks Blog</span><span class="card-time">8 小时前</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 63</span>
-      <button class="favbtn" data-fav="7bf3dfd4737b" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/7bf3dfd4737b.html">Databricks演示零售需求计划与门店执行一体化应用</a></h3>
-      <p class="sum">Databricks发布零售消费品行业演示，展示如何通过统一应用连接销售、库存、交易、客流和交付等KPI的复盘，并延伸到品类表现、需求预测、营销活动与门店执行。该应用基于数据统一、治理和智能三大支柱，其中Genie支持自然语言查询，自治Agent可跨销售洞察、需求计划、受众构建等步骤编排。演示由Databricks零售与消费品高级解决方案架构师Pavi Singh主持，旨在帮助不同团队在同一平台上协作，将分析转化为业务结果。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>该内容展示了数据平台如何与Data Agent结合，打通零售端到端决策流程，对关注数据平台AI化和业务场景落地的从业者有参考价值。</span></div><div class="vendors"><a class="chip" href="../topics/platform-ai.html">平台AI化</a><a class="chip" href="../topics/data-agent.html">Data Agent</a><span class="vtag">Databricks</span></div>
-    </div>
-<div class="item" data-cat="platform" data-topics="平台AI化" data-link="../e/9809cc8aea4d.html" data-analytics-list="1" data-event-id="9809cc8aea4d" data-category="platform" data-source="AWS Big Data Blog">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">AWS Big Data Blog</span><span class="card-time">周五 00:19</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 49</span>
-      <button class="favbtn" data-fav="9809cc8aea4d" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/9809cc8aea4d.html">用自定义标签跟踪SageMaker Unified Studio项目成本</a></h3>
-      <p class="sum">AWS 官方博客介绍了在 SageMaker Unified Studio 中跟踪项目成本的方法。系统标签会自动传播到所有项目资源，但 CostCenter、Team 等自定义标签不会传播到通过 UI 创建的动态资源。文章提出一个无服务器方案，通过 Glue ETL 将自定义标签与 CUR 数据关联，并用 QuickSight 构建成本分析仪表盘，帮助团队按自定义维度查看支出。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>面向数据平台团队，提供了 AI 项目成本治理与标签管理的可落地实践，适合关注数据平台成本运营的从业者。</span></div><div class="vendors"><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">AWS</span></div>
-    </div>
-<div class="item" data-cat="agent" data-topics="Data Agent|平台AI化" data-link="../e/5f9770dfca34.html" data-analytics-list="1" data-event-id="5f9770dfca34" data-category="agent" data-source="InfoQ 中文">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">InfoQ 中文</span><span class="card-time">周五 00:12</span></span>
-      <span class="heatnum is-featured" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 精选 56</span>
-      <button class="favbtn" data-fav="5f9770dfca34" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/5f9770dfca34.html">你的 Coding Agent 有多大价值，取决于它对你的数据了解多少</a></h3>
-      <p class="sum">文章指出Coding Agent虽能减少数据工程中的样板代码，但因缺乏生产环境上下文（如表生命周期、Schema治理、RBAC），生成结果常“看似正确实则不可用”。核心瓶颈不在模型能力，而在Agent运行时与数据基础设施的语义断连。作者认为真正落地需将治理元数据、权限模型等嵌入Agent运行时，并以Snowflake CoCo为例说明平台原生智能体如何利用角色权限与目录信息解决问题。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据从业者可借此理解Agent在数据场景落地的关键瓶颈——上下文与治理，而非仅关注模型能力，对评估和建设数据Agent有实际参考价值。</span></div><div class="vendors"><a class="chip" href="../topics/data-agent.html">Data Agent</a><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">Snowflake</span></div>
-    </div>
-<div class="item" data-cat="agent" data-topics="Data Agent|平台AI化" data-link="../e/83357b7d65a2.html" data-analytics-list="1" data-event-id="83357b7d65a2" data-category="agent" data-source="Snowflake Engineering（Medium）">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Snowflake Engineering (Medium)</span><span class="card-time">12 小时前</span></span>
-      <span class="heatnum is-featured" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 精选 66</span>
-      <button class="favbtn" data-fav="83357b7d65a2" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/83357b7d65a2.html">Snowflake CoWork Automations 架构与执行模型深度解析</a></h3>
-      <p class="sum">Snowflake CoWork Automations（2026年8月公开预览）引入新的调度原语agent task，可在任务引擎上按计划运行完整的Cortex Agent流程，包括LLM编排、多工具推理、SQL生成与响应合成。文章从底层剖析了权限模型、执行管线以及Cortex Agent API的调用机制，并讨论了大规模治理下数据平台团队需要关注的权限与安全影响。该功能默认授予所有用户EXECUTE AGENT TASK权限，安全团队需评估并收紧这一默认配置。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>这是对Snowflake将自然语言问题转化为可调度的Agent计算的技术详解，帮助数据平台团队理解Agent任务的权限模型与执行机制，是Data Agent落地的重要参考。</span></div><div class="vendors"><a class="chip" href="../topics/data-agent.html">Data Agent</a><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">Snowflake</span></div>
-    </div>
-<div class="item" data-cat="platform" data-topics="平台AI化|Data Agent" data-link="../e/03f210d72a06.html" data-analytics-list="1" data-event-id="03f210d72a06" data-category="platform" data-source="Snowflake Engineering（Medium）">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Snowflake Engineering (Medium)</span><span class="card-time">周四 01:01</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 47</span>
-      <button class="favbtn" data-fav="03f210d72a06" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/03f210d72a06.html">Collibra MCP 赋能 Snowflake CoWork 与 CoCo，构建治理 AI 数据层</a></h3>
-      <p class="sum">Collibra 推出 MCP 服务器，将治理目录中的业务定义、数据血缘、分类策略和数据契约实时接入 AI 工作流，并与 Snowflake CoCo 和 CoWork 集成，使数据目录成为 agent-ready 的智能层。该服务器基于 streamable HTTP 和 OAuth，提供读取、写入和实验三类工具，支持 AI 助手发现数据资产、探索血缘及搜索业务词汇表。Snowflake Cortex 通过标准 MCP 连接器接入，ACCOUNTADMIN 可创建连接器并共享给用户组，确保权限控制。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>该实践展示了如何用 MCP 标准将企业治理元数据以安全方式供给 AI Agent，是数据平台与智能体生态对接的重要参考，值得数据团队关注。</span></div><div class="vendors"><a class="chip" href="../topics/platform-ai.html">平台AI化</a><a class="chip" href="../topics/data-agent.html">Data Agent</a><span class="vtag">Snowflake</span><span class="vtag">Collibra</span></div>
-    </div></div><div class="day"><div class="day-head"><span class="date">8月19日</span><span class="info">3 个事件</span></div><div class="item" data-cat="platform" data-topics="平台AI化" data-link="../e/542be60a2bc9.html" data-analytics-list="1" data-event-id="542be60a2bc9" data-category="platform" data-source="Databricks Blog">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Databricks Blog</span><span class="card-time">周三 06:00</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 44</span>
-      <button class="favbtn" data-fav="542be60a2bc9" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/542be60a2bc9.html">Databricks Document Intelligence：突破复杂文档提取极限</a></h3>
-      <p class="sum">Databricks推出Document Intelligence，帮助数千客户将数十亿页非结构化文档转换为结构化数据，Panasonic、EY-Parthenon和Intercontinental Exchange等客户每周处理数百万份文档。新增的Precision Mode结合定制提取模型与agentic harness，在约9000份复杂文档基准上实现领先的提取准确率，超越前沿大模型。该模式可处理长文档交叉引用、大型嵌套输出及复杂推理模式等难题。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据从业者关注复杂文档结构化提取的最新进展，Databricks在准确率上的突破对数据管线建设有直接参考价值。</span></div><div class="vendors"><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">Databricks</span></div>
-    </div>
-<div class="item" data-cat="platform" data-topics="平台AI化" data-link="../e/bf71c501757a.html" data-analytics-list="1" data-event-id="bf71c501757a" data-category="platform" data-source="Databricks Blog">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Databricks Blog</span><span class="card-time">周二 23:18</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 39</span>
-      <button class="favbtn" data-fav="bf71c501757a" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/bf71c501757a.html">零售AI治理：需要上下文控制平面</a></h3>
-      <p class="sum">零售商正从生成式AI实验走向规模化应用，核心挑战从选择模型转向为每个AI体验提供正确的业务上下文。文章以一家大型分销商为例，说明结合机器学习与LLM优化产品目录，100天冲刺节省数百万美元。但当前企业更需要统一的上下文控制平面，以管理覆盖库存、定价及访问权限的策略。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>文章聚焦AI落地中的数据上下文与权限治理，契合数据平台治理方向，对数据从业者设计企业级AI数据架构有参考价值。</span></div><div class="vendors"><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">Databricks</span></div>
-    </div>
-<div class="item" data-cat="platform" data-topics="平台AI化" data-link="../e/29de685d5ab9.html" data-analytics-list="1" data-event-id="29de685d5ab9" data-category="platform" data-source="Snowflake Engineering（Medium）">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Snowflake Engineering (Medium)</span><span class="card-time">周三 00:14</span></span>
-      <span class="heatnum is-featured" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 精选 46</span>
-      <button class="favbtn" data-fav="29de685d5ab9" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/29de685d5ab9.html">管理AI成本：分步教程设置每用户配额控制支出</a></h3>
-      <p class="sum">本文介绍如何在Snowflake中为Cortex AI设置每用户配额，防止用户无限调用AI_COMPLETE或循环使用Agent导致信用额度快速消耗。配额为每用户设置信用上限，在达到后几分钟内阻止新请求，并按日或月周期自动重置。教程演示了在Snowsight中通过用户标签界定范围，并可在Snowflake CoCo中强制执行。这是通用指南，也可用于其他配额场景。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据团队采用AI功能时成本失控是普遍痛点，该教程提供了具体可操作的用户级配额方案，帮助平台管理者控制AI支出。</span></div><div class="vendors"><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">Snowflake</span></div>
-    </div></div><div class="day"><div class="day-head"><span class="date">8月18日</span><span class="info">3 个事件</span></div><div class="item" data-cat="platform" data-topics="语义层|平台AI化" data-link="../e/334f406bd4ea.html" data-analytics-list="1" data-event-id="334f406bd4ea" data-category="platform" data-source="Snowflake Release Notes">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">官网</span><span class="card-source-name">Snowflake Release Notes</span><span class="card-time">收录 08-18</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 34</span>
-      <button class="favbtn" data-fav="334f406bd4ea" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/334f406bd4ea.html">Snowflake 10.24更新：用户级AI配额与语义视图物化</a></h3>
-      <p class="sum">Snowflake 发布2026年7月9日至15日版本说明，新增每用户配额（Preview），可为AI功能（如Cortex Agents、CoWork、CoCo）设置月度或每日信用额度，防止个别用户产生意外成本。同时推出语义视图物化（Public preview），支持对常用维度和指标预聚合，并通过MAX_STALENESS自动刷新及增量刷新。管理员可通过SQL、Snowsight和Cost Intelligence skill监控用户支出。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据从业者可关注语义层物化对查询性能的提升，以及AI功能成本治理的新手段，适合评估Snowflake平台的AI数据平台能力。</span></div><div class="vendors"><a class="chip" href="../topics/semantic-layer.html">语义层</a><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">Snowflake</span></div>
-    </div>
-<div class="item" data-cat="platform" data-topics="平台AI化|数据人" data-link="../e/bcfd90e63775.html" data-analytics-list="1" data-event-id="bcfd90e63775" data-category="platform" data-source="dbt Blog">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">dbt Blog</span><span class="card-time">周一 22:42</span></span>
-      <span class="heatnum is-featured" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 精选 43</span>
-      <button class="favbtn" data-fav="bcfd90e63775" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/bcfd90e63775.html">为Token建模而非表：dbt仓储上下文节省20倍成本</a></h3>
-      <p class="sum">Gong通话记录是AI重要上下文，但直接调用API每次账户查询消耗约24万token且触及速率上限。团队用Fivetran将Gong数据同步至Snowflake，通过dbt建模并经dbt MCP server提供结构化上下文。最终token成本降低20倍，还能与账户其他数据关联形成更丰富的上下文层。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>展示如何用现有数仓与dbt为AI Agent构建可治理、低成本的上下文层，避免直接调用事务性API，是数据平台服务AI的典型实践。</span></div><div class="vendors"><a class="chip" href="../topics/platform-ai.html">平台AI化</a><a class="chip" href="../topics/data-people.html">数据人</a><span class="vtag">dbt Labs</span><span class="vtag">Gong</span><span class="vtag">Fivetran</span><span class="vtag">Snowflake</span></div>
-    </div>
-<div class="item" data-cat="platform" data-topics="平台AI化" data-link="../e/cb619e8bf5e1.html" data-analytics-list="1" data-event-id="cb619e8bf5e1" data-category="platform" data-source="Snowflake Engineering（Medium）">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Snowflake Engineering (Medium)</span><span class="card-time">周一 22:01</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 40</span>
-      <button class="favbtn" data-fav="cb619e8bf5e1" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/cb619e8bf5e1.html">虚拟化优先还是现代化优先？Snowflake AIM迁移路径建议</a></h3>
-      <p class="sum">客户常问：已有Teradata存量，是先用Snowflake AIM虚拟化现有环境，还是直接原生重建现代化。Snowflake将两条路径统一为AIM，提供三条迁移路线：Teradata虚拟化、非Teradata数仓迁移、Spark负载现代化。作者认为这本质是业务风险问题，并建议在Teradata续约压力大、应用与Teradata SQL耦合深、无法承受大爆炸切换风险时优先选择虚拟化路径。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>面向数据平台负责人，给出了Snowflake AIM三条迁移路线的适用判断，帮助在虚拟化与现代化之间做风险与成本权衡。</span></div><div class="vendors"><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">Snowflake</span><span class="vtag">Teradata</span></div>
-    </div></div><div class="day"><div class="day-head"><span class="date">8月17日</span><span class="info">1 个事件</span></div><div class="item" data-cat="platform" data-topics="平台AI化|Data Agent" data-link="../e/29c609def42d.html" data-analytics-list="1" data-event-id="29c609def42d" data-category="platform" data-source="InfoQ（AI/数据工程）">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">InfoQ (AI/数据工程)</span><span class="card-time">周日 15:21</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 34</span>
-      <button class="favbtn" data-fav="29c609def42d" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/29c609def42d.html">AWS为DynamoDB推出原生向量搜索功能</a></h3>
-      <p class="sum">Amazon DynamoDB 现已提供原生向量搜索，开发者可在同一张表中存储向量嵌入与应用数据，并使用 SearchVectors API 执行近似最近邻查询，无需单独部署向量数据库。该功能支持最多 4096 维向量、欧氏/余弦/点积距离函数和内联过滤，适用于语义检索、RAG、推荐、Agent 记忆等场景。AWS 称向量索引无存储限制、可水平扩展，且全托管无服务器，能减少此前复制数据到独立向量库并保持同步的架构复杂度和数据传输成本。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>对数据从业者：DynamoDB 原生向量搜索让语义检索/RAG/Agent 记忆能力与现有 NoSQL 数据同处一处，减少额外向量库和同步管道，值得关注。</span></div><div class="vendors"><a class="chip" href="../topics/platform-ai.html">平台AI化</a><a class="chip" href="../topics/data-agent.html">Data Agent</a><span class="vtag">AWS</span></div>
-    </div></div><div class="day"><div class="day-head"><span class="date">8月15日</span><span class="info">2 个事件</span></div><div class="item" data-cat="platform" data-topics="平台AI化" data-link="../e/c076af28e6b5.html" data-analytics-list="1" data-event-id="c076af28e6b5" data-category="platform" data-source="Databricks Blog">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Databricks Blog</span><span class="card-time">08-15</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 35</span>
-      <button class="favbtn" data-fav="c076af28e6b5" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/c076af28e6b5.html">数据仓库中AI函数的高价值用例</a></h3>
-      <p class="sum">Databricks 介绍在数据仓库中直接使用 AI 函数处理非结构化数据（如评论、工单、PDF）并与结构化数据结合。通过 SQL 调用模型，推理过程保留在现有管道和 Unity Catalog 治理范围内，支持默认安全治理、SQL 原生使用、统一计费及专用函数如 ai_classify、ai_extract 等。该方案可避免数据搬移带来的安全风险，并简化 AI 工作流。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>展示数据仓库平台如何将 AI 能力内嵌到 SQL 分析流程，兼顾治理与易用性，对数据平台建设者具有直接参考价值。</span></div><div class="vendors"><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">Databricks</span></div>
-    </div>
-<div class="item" data-cat="platform" data-topics="平台AI化" data-link="../e/39088a0f6b22.html" data-analytics-list="1" data-event-id="39088a0f6b22" data-category="platform" data-source="Snowflake Engineering（Medium）">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Snowflake Engineering (Medium)</span><span class="card-time">08-15</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 33</span>
-      <button class="favbtn" data-fav="39088a0f6b22" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/39088a0f6b22.html">Rockfish与Snowflake合作：合成数据生成进入AI数据云</a></h3>
-      <p class="sum">Rockfish Data 与 Snowflake 宣布合作，将合成数据生成能力引入 Snowflake AI Data Cloud，帮助团队训练和验证能识别稀有模式的 AI 模型。文章以移动网络中的&quot;睡眠小区&quot;为例，说明标准机器学习难以捕捉罕见故障的前兆信号，而多数合成数据工具只擅长还原典型场景、却抹平了关键的因果关系。该集成旨在直接在 Snowflake 内补齐这一缺口，使 AI 在自主闭环场景中能在部署前建立信心。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据从业者应关注合成数据生成如何与数据云平台集成，以解决稀有事件数据不足、提升 AI 模型可靠性的实际问题。</span></div><div class="vendors"><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">Snowflake</span><span class="vtag">Rockfish</span></div>
-    </div></div><div class="day"><div class="day-head"><span class="date">8月14日</span><span class="info">1 个事件</span></div><div class="item" data-cat="platform" data-topics="平台AI化" data-link="../e/e7f241b84ae2.html" data-analytics-list="1" data-event-id="e7f241b84ae2" data-category="platform" data-source="Snowflake Engineering（Medium）">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Snowflake Engineering (Medium)</span><span class="card-time">08-14</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 30</span>
-      <button class="favbtn" data-fav="e7f241b84ae2" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/e7f241b84ae2.html">如何在APJ为CoCo配置跨区域推理</a></h3>
-      <p class="sum">Snowflake 官方博客介绍了在亚太（APJ）区域为 CoCo 配置跨区域推理（CRI）的方法。许多模型未在悉尼、东京、新加坡等区域原生部署，因此需要跨区域调用。通过设置 CORTEX_ENABLED_CROSS_REGION 参数为 AWS_APJ、AWS_AU 或 AWS_JP 等区域限定值，可以仅允许流量在亚太区域内经过云厂商私网传输，从而满足数据驻留审查要求。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>面向数据平台管理员的安全配置实践，涉及数据驻留与跨区域推理边界，对使用 Snowflake AI 功能的从业者具有直接参考价值。</span></div><div class="vendors"><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">Snowflake</span></div>
-    </div></div><div class="day"><div class="day-head"><span class="date">8月13日</span><span class="info">4 个事件</span></div><div class="item" data-cat="platform" data-topics="湖仓|平台AI化" data-link="../e/42d6165ced5d.html" data-analytics-list="1" data-event-id="42d6165ced5d" data-category="platform" data-source="Databricks Blog">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Databricks Blog</span><span class="card-time">08-13</span></span>
-      <span class="heatnum is-featured" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 精选 35</span>
-      <button class="favbtn" data-fav="42d6165ced5d" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/42d6165ced5d.html">加拿大大型铁路用Databricks Genie Code将管道创建自动化率提至90%</a></h3>
-      <p class="sum">加拿大最大铁路网络之一运营约2万英里线路，年承运货物价值超2500亿加元。其数据团队借助Databricks Genie Code、Unity Catalog、自定义Agent Skills及Databricks Apps上的Streamlit应用，将管道开发变成可复制的工厂：一段YAML提示即可生成生产级摄取代码，涵盖表定义、历史加载、流式摄入、增量合并和自动化测试。结果新表摄入自动化率超过90%，管道交付从数天压缩至数分钟。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据从业者可借鉴如何用AI Agent与元数据驱动大规模数据管道现代化，降低手工重复开发。</span></div><div class="vendors"><a class="chip" href="../topics/lakehouse.html">湖仓</a><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">Databricks</span></div>
-    </div>
-<div class="item" data-cat="platform" data-topics="平台AI化" data-link="../e/f01dc118d37a.html" data-analytics-list="1" data-event-id="f01dc118d37a" data-category="platform" data-source="Snowflake Engineering（Medium）">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Snowflake Engineering (Medium)</span><span class="card-time">08-13</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 32</span>
-      <button class="favbtn" data-fav="f01dc118d37a" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/f01dc118d37a.html">Snowflake CoCo跨区域推理配置与合规指南</a></h3>
-      <p class="sum">CoCo依赖跨区域推理运行，但安全团队可能担心数据离开欧盟。通过设置CORTEX_ENABLED_CROSS_REGION参数为AWS_EU或AZURE_EU，可将流量限制在欧盟区域，且走云厂商私有骨干。需注意参数默认值可能因账户创建时间而异，且显式禁用会覆盖默认设置。本文给出账户级配置命令及审查要点。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据从业者需理解AI功能跨区域推理的配置方式，以应对数据驻留与安全审查。</span></div><div class="vendors"><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">Snowflake</span></div>
-    </div>
-<div class="item" data-cat="platform" data-topics="平台AI化" data-link="../e/4395c235c498.html" data-analytics-list="1" data-event-id="4395c235c498" data-category="platform" data-source="Snowflake Engineering（Medium）">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Snowflake Engineering (Medium)</span><span class="card-time">08-13</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 31</span>
-      <button class="favbtn" data-fav="4395c235c498" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/4395c235c498.html">跨区域推理：是什么，启用它实际涉及什么</a></h3>
-      <p class="sum">Snowflake CoCo依赖跨区域推理（CRI）才能访问前沿AI模型和完整Cortex AI产品；若账号级参数禁用，开发者打开CoCo将无响应。启用CRI有四个关键点：区域限制来自云提供商、数据不经过公共互联网、可保留推理在本区域、启用不会改变账单。例如，将CORTEX_ENABLED_CROSS_REGION限定为同一云提供商，推理流量走AWS或Azure私有骨干而非公共互联网。该限制本质由云提供商的区域容量和模型部署范围决定。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据从业者需要理解Snowflake跨区域推理的配置影响，尤其是数据合规、区域可用性和Cortex AI启用前提，以便规划平台AI化落地。</span></div><div class="vendors"><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">Snowflake</span></div>
-    </div>
-<div class="item" data-cat="platform" data-topics="平台AI化" data-link="../e/0b039fb415c1.html" data-analytics-list="1" data-event-id="0b039fb415c1" data-category="platform" data-source="Microsoft Power BI（Power Platform Blog）">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Microsoft Power BI (Power Platform Blog)</span><span class="card-time">08-11</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 29</span>
-      <button class="favbtn" data-fav="0b039fb415c1" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/0b039fb415c1.html">AI加速数据使用，Dataverse助力数据治理准备</a></h3>
-      <p class="sum">AI增加了业务数据的规模、价值和用途。Dataverse为管理员提供容量、保留、安全、审计和恢复等管理控制。文章以制造商在采购、财务和供应链中使用AI为例，说明管理员需支撑交易量和数据增长，并回答哪些环境与表在增长、哪些记录需保留、谁能访问、能否恢复等实际问题。文章强调数据所有权、访问模型、生命周期和定期复核是AI时代数据治理的基础。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据从业者应关注AI落地对数据治理提出的新要求：自动化Agent持续读写数据时，容量、权限、保留和审计成为必须解决的实操问题。</span></div><div class="vendors"><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">Microsoft</span><span class="vtag">Power BI</span></div>
-    </div></div><div class="day"><div class="day-head"><span class="date">8月12日</span><span class="info">5 个事件</span></div><div class="item" data-cat="platform" data-topics="语义层|平台AI化" data-link="../e/de330de1394c.html" data-analytics-list="1" data-event-id="de330de1394c" data-category="platform" data-source="爱分析">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">爱分析</span><span class="card-time">收录 08-12</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 32</span>
-      <button class="favbtn" data-fav="de330de1394c" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/de330de1394c.html">AI时代，数据中台焕发新生？</a></h3>
-      <p class="sum">数澜科技创始人甘云锋在接受爱分析访谈时表示，“拆中台”是个误会，AI兴起后数据中台窗口重新打开。他认为数据基座的核心目标是持续输出高质量数据集，本体与语义层是企业AI消除歧义、降低幻觉的关键。数澜从高峰期500人缩减至几十人后，如今定位为“数据+AI”公司，专注数据基座、行业模型和数据智能体，服务军工、央国企及大型民企客户。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据从业者应关注数据中台向AI数据基座演进的路径，以及本体语义层在企业级AI中的落地价值。</span></div><div class="vendors"><a class="chip" href="../topics/semantic-layer.html">语义层</a><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">数澜科技</span></div>
-    </div>
-<div class="item" data-cat="platform" data-topics="Data Agent|平台AI化|湖仓" data-link="../e/5c4d28e53f75.html" data-analytics-list="1" data-event-id="5c4d28e53f75" data-category="platform" data-source="TiDB Blog">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">TiDB Blog</span><span class="card-time">08-10</span></span>
-      <span class="heatnum is-featured" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 精选 38</span>
-      <button class="favbtn" data-fav="5c4d28e53f75" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/5c4d28e53f75.html">Agentic AI 架构为何需要数据库，不只是向量存储</a></h3>
-      <p class="sum">TiDB工程师在SCaiLE Europe 2026上论述，单独的向量数据库并非AI应用的必要代价，而是数据同步约束下的变通方案。每个新增AI组件都会复制一份数据，带来独立的接入路径、运维和同步任务，导致栈越堆越复杂。TiDB通过同一Raft流同步行存储、列存储、向量索引和全文索引，由SQL优化器决定查询走哪个存储。文章认为分布式SQL原生支持向量搜索与分析能力，可减少数据漂移和多系统运维成本。</p><div class="also">另有 <b>1 家信源</b>报道：TiDB Blog</div><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据从业者关注的多系统同步与数据一致性痛点，本文给出分布式数据库一体化方案，对构建Agentic AI数据栈有参考价值。</span></div><div class="vendors"><a class="chip" href="../topics/data-agent.html">Data Agent</a><a class="chip" href="../topics/platform-ai.html">平台AI化</a><a class="chip" href="../topics/lakehouse.html">湖仓</a><span class="vtag">PingCAP</span><span class="vtag">TiDB</span></div>
-    </div>
-<div class="item" data-cat="platform" data-topics="平台AI化" data-link="../e/341ca51f8349.html" data-analytics-list="1" data-event-id="341ca51f8349" data-category="platform" data-source="TiDB Blog">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">TiDB Blog</span><span class="card-time">08-07</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 27</span>
-      <button class="favbtn" data-fav="341ca51f8349" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/341ca51f8349.html">完整Agent状态栈：内存、文件与Serverless数据库持久化</a></h3>
-      <p class="sum">TiDB博客文章指出，AI应用需要四种持久化层：Agent记忆、生成文件、操作状态和检索数据。无服务器数据库能自动扩缩容、按用量计费并支持缩容到零，适合突发流量。文章建议评估引擎而非标签，重点关注连接行为和冷启动，并认为分散的技术栈会累积问题，单一引擎可消除系统边界和一致性缺陷。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据库从业者可借此理解AI应用对数据持久化的新需求，以及Serverless数据库在Agent场景中的适配逻辑。</span></div><div class="vendors"><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">PingCAP</span><span class="vtag">TiDB</span></div>
-    </div>
-<div class="item" data-cat="platform" data-topics="平台AI化" data-link="../e/ddcb4a5b6b52.html" data-analytics-list="1" data-event-id="ddcb4a5b6b52" data-category="platform" data-source="TiDB Blog">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">TiDB Blog</span><span class="card-time">08-06</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 32</span>
-      <button class="favbtn" data-fav="ddcb4a5b6b52" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/ddcb4a5b6b52.html">开源数据层将赢得AI未来</a></h3>
-      <p class="sum">AI改变了重写应用代码的成本，但持久化数据层的迁移成本依然高昂。封闭数据平台会让路线图、定价和部署选择受制于人，而开源数据层能保留关键控制力。TiDB 已被 Kimi、Pinterest、Atlassian、Dify 等用于生产负载，证明开放性与规模化并非取舍。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据从业者可借此评估AI时代数据平台选型，理解开放数据层在避免锁定和保持控制权方面的战略价值。</span></div><div class="vendors"><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">PingCAP</span><span class="vtag">TiDB</span></div>
-    </div>
-<div class="item" data-cat="platform" data-topics="平台AI化" data-link="../e/dfb9071b69e0.html" data-analytics-list="1" data-event-id="dfb9071b69e0" data-category="platform" data-source="Google BigQuery Release Notes">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Google BigQuery Release Notes</span><span class="card-time">周四 15:00</span></span>
-      <span class="heatnum is-featured" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 精选 60</span>
-      <button class="favbtn" data-fav="dfb9071b69e0" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/dfb9071b69e0.html">BigQuery支持Gemini 3.1 Flash Lite与3.5 Flash GA模型</a></h3>
-      <p class="sum">BigQuery宣布正式支持gemini-3.1-flash-lite和gemini-3.5-flash GA模型，适用于us、eu及global多区域端点。用户可在所有生成式AI函数中使用这些模型。该更新源自BigQuery官方发布说明。</p><div class="also">另有 <b>5 家信源</b>报道：Google BigQuery Release Notes · Google BigQuery Release Notes · Google BigQuery Release Notes · Google BigQuery Release Notes · Google BigQuery Release Notes</div><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据从业者可在BigQuery内直接调用最新Gemini模型进行生成式分析，降低AI功能集成成本。</span></div><div class="vendors"><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">Google</span><span class="vtag">BigQuery</span><span class="vtag">Google Cloud</span></div>
-    </div></div><div class="day"><div class="day-head"><span class="date">8月11日</span><span class="info">1 个事件</span></div><div class="item" data-cat="agent" data-topics="Data Agent|平台AI化" data-link="../e/ba8377c644db.html" data-analytics-list="1" data-event-id="ba8377c644db" data-category="agent" data-source="Claude 官方博客">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">官网</span><span class="card-source-name">Claude 官方博客</span><span class="card-time">12-19</span></span>
-      <span class="heatnum is-featured" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 精选 38</span>
-      <button class="favbtn" data-fav="ba8377c644db" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/ba8377c644db.html">扩展Claude能力：Skills与MCP协同构建智能体</a></h3>
-      <p class="sum">Anthropic于2025年12月19日发布文章，介绍如何结合Skills和MCP构建遵循工作流程的智能体。MCP负责连接外部工具，Skills则教导Claude如何高效使用这些工具。例如，通过MCP连接Notion并添加会议准备技能，Claude能自动提取相关页面并按团队标准格式化文档。文章还发布了Agent Skills开放标准，旨在实现跨平台的可移植性。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>该文章详细解析了MCP与Skills的互补关系，对构建代理的数据平台和Agent开发者具有直接指导意义。</span></div><div class="vendors"><a class="chip" href="../topics/data-agent.html">Data Agent</a><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">Anthropic</span><span class="vtag">Claude</span></div>
-    </div></div><div class="day"><div class="day-head"><span class="date">8月10日</span><span class="info">1 个事件</span></div><div class="item" data-cat="platform" data-topics="平台AI化" data-link="../e/036431034b26.html" data-analytics-list="1" data-event-id="036431034b26" data-category="platform" data-source="Fivetran Blog">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Fivetran Blog</span><span class="card-time">08-10</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 32</span>
-      <button class="favbtn" data-fav="036431034b26" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/036431034b26.html">构建医疗AI无需重建数据平台</a></h3>
-      <p class="sum">Fivetran与phData联合发文，指出充分利用AI需要自动化数据集成、上下文工程和代理化基础设施。文章提到37%的医院处于亏损或低利润运营，Fivetran的Epic EMR连接器帮助Inova Health和Sharp Healthcare等机构保持医疗数据AI就绪、合规且可访问。通过现代化的AI-ready数据基础，医疗机构可在临床文档、预测性患者监测、诊断影像等领域部署AI。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据从业者可了解医疗行业如何在不重构数据平台的前提下，通过集成与治理能力支撑AI应用，是数据平台AI化的落地案例。</span></div><div class="vendors"><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">Fivetran</span><span class="vtag">phData</span></div>
-    </div></div><div class="day"><div class="day-head"><span class="date">8月7日</span><span class="info">1 个事件</span></div><div class="item" data-cat="platform" data-topics="平台AI化" data-link="../e/05b5c328b16d.html" data-analytics-list="1" data-event-id="05b5c328b16d" data-category="platform" data-source="Databricks Blog">
-      <div class="top card-meta"><span class="card-source"><span class="srcbadge">RSS</span><span class="card-source-name">Databricks Blog</span><span class="card-time">08-07</span></span>
-      <span class="heatnum" title="热度分：内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg> 23</span>
-      <button class="favbtn" data-fav="05b5c328b16d" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button></div>
-      <h3><a href="../e/05b5c328b16d.html">Databricks谈大规模AI编码成本管理</a></h3>
-      <p class="sum">Databricks博客指出，AI编码工具虽能带来数量级效率提升，但成本指数增长不可持续。为兼顾广泛访问与成本可控，他们与Stripe、Coinbase、Uber、Ramp等企业交流，总结出多项成本管理技术，并开源了Omnigent和Unity AI Gateway等关键组件。</p><div class="why"><span><span class="w"><svg width="13" height="13" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg> 推荐理由：</span>数据从业者可从头部数据平台的实际经验中，了解AI编码及Agent场景下的成本控制方法，对构建数据Agent和AI数据平台有直接借鉴意义。</span></div><div class="vendors"><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">Databricks</span></div>
-    </div></div>
-</div>
+<main class="wrap topic-page">
+  <header class="topic-hero">
+    <a class="topic-back" href="../topics.html">← 主题地图</a>
+    <h1>平台AI化</h1>
+    <p class="topic-hero-desc">模型网关、AI 内建功能与治理合并——AI 从外挂变成平台地基</p>
+    <div class="topic-counts"><span class="recent">近 7 天新增 15</span><span class="total">累计 29 · 每 6 小时更新</span></div>
+    
+  </header>
+  <section class="topic-section" aria-labelledby="recentProgress">
+    <div class="topic-section-head"><h2 id="recentProgress">近期进展</h2><p>最近 7 天内最新的 3 条</p></div>
+    <div class="topic-recent-grid"><a class="topic-recent-card" href="../e/d7c6d34e3d28.html">
+  <span class="topic-recent-meta">2026-08-22 · Snowflake Engineering (Medium)</span>
+  <h3>制造业数字孪生是生态博弈：Snowflake与Agentic AI的跨组织智能</h3>
+  <p>本文探讨制造业数字孪生从单一资产仿真演变为跨价值链的多方生态构建。作者认为没有任何单一组织能独立掌握完整数据、模型与领域知识，数字孪生本质上是生态级合作。Snowflake AI Data Cloud 与 Agentic AI 架构作为协调层，通过跨越IT/OT鸿沟、AI代理实现语义互操作、以及零拷贝架构的受控数据共享，解决数据主权、信任与互操作等核心问题。Agentic AI将进一步把数字孪生从被动表征模型转化为在治理边界内自主决策的系统。</p>
+</a><a class="topic-recent-card" href="../e/7bf3dfd4737b.html">
+  <span class="topic-recent-meta">2026-08-22 · Databricks Blog</span>
+  <h3>Databricks演示零售需求计划与门店执行一体化应用</h3>
+  <p>Databricks发布零售消费品行业演示，展示如何通过统一应用连接销售、库存、交易、客流和交付等KPI的复盘，并延伸到品类表现、需求预测、营销活动与门店执行。该应用基于数据统一、治理和智能三大支柱，其中Genie支持自然语言查询，自治Agent可跨销售洞察、需求计划、受众构建等步骤编排。演示由Databricks零售与消费品高级解决方案架构师Pavi Singh主持，旨在帮助不同团队在同一平台上协作，将分析转化为业务结果。</p>
+</a><a class="topic-recent-card" href="../e/83357b7d65a2.html">
+  <span class="topic-recent-meta">2026-08-21 · Snowflake Engineering (Medium)</span>
+  <h3>Snowflake CoWork Automations 架构与执行模型深度解析</h3>
+  <p>Snowflake CoWork Automations（2026年8月公开预览）引入新的调度原语agent task，可在任务引擎上按计划运行完整的Cortex Agent流程，包括LLM编排、多工具推理、SQL生成与响应合成。文章从底层剖析了权限模型、执行管线以及Cortex Agent API的调用机制，并讨论了大规模治理下数据平台团队需要关注的权限与安全影响。该功能默认授予所有用户EXECUTE AGENT TASK权限，安全团队需评估并收紧这一默认配置。</p>
+</a></div>
+  </section>
+  
+  <section class="topic-section" aria-labelledby="topicReading">
+    <div class="topic-section-head"><h2 id="topicReading"><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg> 入门阅读</h2><p>来自典藏，最多 3 篇</p></div>
+    <div class="topic-reading"><a class="crow" href="../e/ba8377c644db.html">
+  <span class="cpin"></span>
+  <span class="ctitle">扩展Claude能力：Skills与MCP协同构建智能体</span>
+  <span class="cmeta">2025-12-19</span>
+</a><a class="crow" href="../e/83357b7d65a2.html">
+  <span class="cpin"></span>
+  <span class="ctitle">Snowflake CoWork Automations 架构与执行模型深度解析</span>
+  <span class="cmeta">2026-08-21</span>
+</a><a class="crow" href="../e/bcfd90e63775.html">
+  <span class="cpin"></span>
+  <span class="ctitle">为Token建模而非表：dbt仓储上下文节省20倍成本</span>
+  <span class="cmeta">2026-08-17</span>
+</a><a class="topic-reading-all" href="../classics.html#topic-platform-ai">查看该主题全部典藏 →</a></div>
+  </section>
+  <section class="topic-section" aria-labelledby="allUpdates">
+    <div class="topic-section-head"><h2 id="allUpdates">全部动态</h2><p>按发布时间倒序</p></div>
+    <div class="topic-updates" id="topicUpdates"><a class="topic-update-row" data-topic-update href="../e/d7c6d34e3d28.html">
+  <time class="topic-update-date">2026-08-22</time>
+  <span class="topic-update-title">制造业数字孪生是生态博弈：Snowflake与Agentic AI的跨组织智能</span>
+  <span class="topic-update-source">Snowflake Engineering (Medium)</span>
+</a><a class="topic-update-row" data-topic-update href="../e/7bf3dfd4737b.html">
+  <time class="topic-update-date">2026-08-22</time>
+  <span class="topic-update-title">Databricks演示零售需求计划与门店执行一体化应用</span>
+  <span class="topic-update-source">Databricks Blog</span>
+</a><a class="topic-update-row" data-topic-update href="../e/83357b7d65a2.html">
+  <time class="topic-update-date">2026-08-21</time>
+  <span class="topic-update-title">Snowflake CoWork Automations 架构与执行模型深度解析</span>
+  <span class="topic-update-source">Snowflake Engineering (Medium)</span>
+</a><a class="topic-update-row" data-topic-update href="../e/9809cc8aea4d.html">
+  <time class="topic-update-date">2026-08-21</time>
+  <span class="topic-update-title">用自定义标签跟踪SageMaker Unified Studio项目成本</span>
+  <span class="topic-update-source">AWS Big Data Blog</span>
+</a><a class="topic-update-row" data-topic-update href="../e/5f9770dfca34.html">
+  <time class="topic-update-date">2026-08-21</time>
+  <span class="topic-update-title">你的 Coding Agent 有多大价值，取决于它对你的数据了解多少</span>
+  <span class="topic-update-source">InfoQ 中文</span>
+</a><a class="topic-update-row" data-topic-update href="../e/dfb9071b69e0.html">
+  <time class="topic-update-date">2026-08-20</time>
+  <span class="topic-update-title">BigQuery支持Gemini 3.1 Flash Lite与3.5 Flash GA模型</span>
+  <span class="topic-update-source">Google BigQuery Release Notes</span>
+</a><a class="topic-update-row" data-topic-update href="../e/03f210d72a06.html">
+  <time class="topic-update-date">2026-08-20</time>
+  <span class="topic-update-title">Collibra MCP 赋能 Snowflake CoWork 与 CoCo，构建治理 AI 数据层</span>
+  <span class="topic-update-source">Snowflake Engineering (Medium)</span>
+</a><a class="topic-update-row" data-topic-update href="../e/bdb5206e4abd.html">
+  <time class="topic-update-date">2026-08-20</time>
+  <span class="topic-update-title">Workday成立AI研究团队，聚焦企业AI可靠性与效率</span>
+  <span class="topic-update-source">Workday Newsroom</span>
+</a><a class="topic-update-row" data-topic-update href="../e/542be60a2bc9.html">
+  <time class="topic-update-date">2026-08-19</time>
+  <span class="topic-update-title">Databricks Document Intelligence：突破复杂文档提取极限</span>
+  <span class="topic-update-source">Databricks Blog</span>
+</a><a class="topic-update-row" data-topic-update href="../e/29de685d5ab9.html">
+  <time class="topic-update-date">2026-08-19</time>
+  <span class="topic-update-title">管理AI成本：分步教程设置每用户配额控制支出</span>
+  <span class="topic-update-source">Snowflake Engineering (Medium)</span>
+</a><a class="topic-update-row is-extra" data-topic-update href="../e/bf71c501757a.html">
+  <time class="topic-update-date">2026-08-18</time>
+  <span class="topic-update-title">零售AI治理：需要上下文控制平面</span>
+  <span class="topic-update-source">Databricks Blog</span>
+</a><a class="topic-update-row is-extra" data-topic-update href="../e/334f406bd4ea.html">
+  <time class="topic-update-date">2026-08-18</time>
+  <span class="topic-update-title">Snowflake 10.24更新：用户级AI配额与语义视图物化</span>
+  <span class="topic-update-source">Snowflake Release Notes</span>
+</a><a class="topic-update-row is-extra" data-topic-update href="../e/bcfd90e63775.html">
+  <time class="topic-update-date">2026-08-17</time>
+  <span class="topic-update-title">为Token建模而非表：dbt仓储上下文节省20倍成本</span>
+  <span class="topic-update-source">dbt Blog</span>
+</a><a class="topic-update-row is-extra" data-topic-update href="../e/cb619e8bf5e1.html">
+  <time class="topic-update-date">2026-08-17</time>
+  <span class="topic-update-title">虚拟化优先还是现代化优先？Snowflake AIM迁移路径建议</span>
+  <span class="topic-update-source">Snowflake Engineering (Medium)</span>
+</a><a class="topic-update-row is-extra" data-topic-update href="../e/29c609def42d.html">
+  <time class="topic-update-date">2026-08-16</time>
+  <span class="topic-update-title">AWS为DynamoDB推出原生向量搜索功能</span>
+  <span class="topic-update-source">InfoQ (AI/数据工程)</span>
+</a><a class="topic-update-row is-extra" data-topic-update href="../e/c076af28e6b5.html">
+  <time class="topic-update-date">2026-08-15</time>
+  <span class="topic-update-title">数据仓库中AI函数的高价值用例</span>
+  <span class="topic-update-source">Databricks Blog</span>
+</a><a class="topic-update-row is-extra" data-topic-update href="../e/39088a0f6b22.html">
+  <time class="topic-update-date">2026-08-15</time>
+  <span class="topic-update-title">Rockfish与Snowflake合作：合成数据生成进入AI数据云</span>
+  <span class="topic-update-source">Snowflake Engineering (Medium)</span>
+</a><a class="topic-update-row is-extra" data-topic-update href="../e/e7f241b84ae2.html">
+  <time class="topic-update-date">2026-08-14</time>
+  <span class="topic-update-title">如何在APJ为CoCo配置跨区域推理</span>
+  <span class="topic-update-source">Snowflake Engineering (Medium)</span>
+</a><a class="topic-update-row is-extra" data-topic-update href="../e/f01dc118d37a.html">
+  <time class="topic-update-date">2026-08-13</time>
+  <span class="topic-update-title">Snowflake CoCo跨区域推理配置与合规指南</span>
+  <span class="topic-update-source">Snowflake Engineering (Medium)</span>
+</a><a class="topic-update-row is-extra" data-topic-update href="../e/4395c235c498.html">
+  <time class="topic-update-date">2026-08-13</time>
+  <span class="topic-update-title">跨区域推理：是什么，启用它实际涉及什么</span>
+  <span class="topic-update-source">Snowflake Engineering (Medium)</span>
+</a><a class="topic-update-row is-extra" data-topic-update href="../e/42d6165ced5d.html">
+  <time class="topic-update-date">2026-08-13</time>
+  <span class="topic-update-title">加拿大大型铁路用Databricks Genie Code将管道创建自动化率提至90%</span>
+  <span class="topic-update-source">Databricks Blog</span>
+</a><a class="topic-update-row is-extra" data-topic-update href="../e/de330de1394c.html">
+  <time class="topic-update-date">2026-08-12</time>
+  <span class="topic-update-title">AI时代，数据中台焕发新生？</span>
+  <span class="topic-update-source">爱分析</span>
+</a><a class="topic-update-row is-extra" data-topic-update href="../e/0b039fb415c1.html">
+  <time class="topic-update-date">2026-08-11</time>
+  <span class="topic-update-title">AI加速数据使用，Dataverse助力数据治理准备</span>
+  <span class="topic-update-source">Microsoft Power BI (Power Platform Blog)</span>
+</a><a class="topic-update-row is-extra" data-topic-update href="../e/5c4d28e53f75.html">
+  <time class="topic-update-date">2026-08-10</time>
+  <span class="topic-update-title">Agentic AI 架构为何需要数据库，不只是向量存储</span>
+  <span class="topic-update-source">TiDB Blog</span>
+</a><a class="topic-update-row is-extra" data-topic-update href="../e/036431034b26.html">
+  <time class="topic-update-date">2026-08-10</time>
+  <span class="topic-update-title">构建医疗AI无需重建数据平台</span>
+  <span class="topic-update-source">Fivetran Blog</span>
+</a><a class="topic-update-row is-extra" data-topic-update href="../e/341ca51f8349.html">
+  <time class="topic-update-date">2026-08-07</time>
+  <span class="topic-update-title">完整Agent状态栈：内存、文件与Serverless数据库持久化</span>
+  <span class="topic-update-source">TiDB Blog</span>
+</a><a class="topic-update-row is-extra" data-topic-update href="../e/05b5c328b16d.html">
+  <time class="topic-update-date">2026-08-07</time>
+  <span class="topic-update-title">Databricks谈大规模AI编码成本管理</span>
+  <span class="topic-update-source">Databricks Blog</span>
+</a><a class="topic-update-row is-extra" data-topic-update href="../e/ddcb4a5b6b52.html">
+  <time class="topic-update-date">2026-08-06</time>
+  <span class="topic-update-title">开源数据层将赢得AI未来</span>
+  <span class="topic-update-source">TiDB Blog</span>
+</a><a class="topic-update-row is-extra" data-topic-update href="../e/ba8377c644db.html">
+  <time class="topic-update-date">2025-12-19</time>
+  <span class="topic-update-title">扩展Claude能力：Skills与MCP协同构建智能体</span>
+  <span class="topic-update-source">Claude 官方博客</span>
+</a></div>
+    <button class="topic-load-more" type="button" data-topic-load-more data-step="10" aria-controls="topicUpdates">加载更多（10/29）</button>
+  </section>
+  
+  <section class="topic-section" aria-label="相关厂商">
+    <details class="topic-vendors"><summary>涉及 21 个厂商 <span>展开查看</span></summary><div class="vendors"><span class="vtag">AWS</span><span class="vtag">Anthropic</span><span class="vtag">BigQuery</span><span class="vtag">Claude</span><span class="vtag">Collibra</span><span class="vtag">Databricks</span><span class="vtag">Fivetran</span><span class="vtag">Gong</span><span class="vtag">Google</span><span class="vtag">Google Cloud</span><span class="vtag">Microsoft</span><span class="vtag">PingCAP</span><span class="vtag">Power BI</span><span class="vtag">Rockfish</span><span class="vtag">Snowflake</span><span class="vtag">Teradata</span><span class="vtag">TiDB</span><span class="vtag">Workday</span><span class="vtag">dbt Labs</span><span class="vtag">phData</span><span class="vtag">数澜科技</span></div></details>
+  </section>
+</main>
+<noscript><style>
+.topic-update-row.is-extra{display:grid!important}.topic-load-more{display:none!important}
+</style></noscript>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var button=document.querySelector('[data-topic-load-more]');
+  if(!button){return;}
+  var rows=Array.from(document.querySelectorAll('[data-topic-update]'));
+  var step=parseInt(button.getAttribute('data-step')||'10',10);
+  var shown=rows.filter(function(row){return !row.classList.contains('is-extra');}).length;
+  button.addEventListener('click',function(){
+    rows.slice(shown,shown+step).forEach(function(row){row.classList.remove('is-extra');});
+    shown=Math.min(shown+step,rows.length);
+    if(shown>=rows.length){button.remove();return;}
+    button.textContent='加载更多（'+shown+'/'+rows.length+'）';
+  });
+});
+</script>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 <nav class="tabbar" aria-label="移动端主导航">
   <a href="../index.html" class="" data-home-top><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../topics.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>

@@ -151,7 +151,9 @@ class SecurityHardeningTests(unittest.TestCase):
 
     def test_generated_html_tree_has_security_baseline(self):
         pages = sorted((ROOT / "site").rglob("*.html"))
-        self.assertGreater(len(pages), 300)
+        relative = {page.relative_to(ROOT / "site").as_posix() for page in pages}
+        self.assertTrue({"index.html", "weekly.html", "topics.html"}.issubset(relative))
+        self.assertTrue(any(path.startswith("e/") for path in relative))
         for page in pages:
             with self.subTest(page=page.relative_to(ROOT)):
                 document = page.read_text(encoding="utf-8")

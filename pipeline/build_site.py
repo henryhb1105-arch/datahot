@@ -6,7 +6,7 @@ import qrcode
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 from agent_page import AGENT_PAGE_CSS, publish_skill_bundle, render_agent_body
 from content_blocks import (
     blocks_plain_text, render_blocks_html, sanitize_blocks, sanitize_url,
@@ -32,6 +32,7 @@ TOPIC_DIR = SITE / "topics"
 WEEKLY_DIR = SITE / "weekly"
 ANALYTICS_ASSET = ROOT / "pipeline" / "assets" / "analytics.js"
 HOME_ASSET = ROOT / "pipeline" / "assets" / "home.js"
+FOR_ME_ASSET = ROOT / "pipeline" / "assets" / "for-me.js"
 DETAIL_ASSET = ROOT / "pipeline" / "assets" / "detail.js"
 TTS_ASSET = ROOT / "pipeline" / "assets" / "tts-player.js"
 TTS_MANIFEST = SITE / "data" / "tts-manifest.json"
@@ -63,6 +64,7 @@ ICONS = {
  "link": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>',
  "share": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>',
  "sparkle": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>',
+ "radar": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg>',
  "file": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg>',
  "list": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>',
  "more": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>',
@@ -377,7 +379,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   footer{padding-bottom:96px}
   body.mobile-section{padding-top:env(safe-area-inset-top)}
   .section-brand-header,.detail-brand-header{display:none}
-  .tabbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));position:fixed;bottom:0;left:0;right:0;background:var(--tabbar-bg);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:70;padding:0 0 env(safe-area-inset-bottom)}
+  .tabbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));position:fixed;bottom:0;left:0;right:0;background:var(--tabbar-bg);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:70;padding:0 0 env(safe-area-inset-bottom)}
   .tabbar a,.tabbar button{appearance:none;border:0;background:transparent;min-width:0;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 2px 5px;font:inherit;font-size:11px;color:var(--sub);text-decoration:none;gap:2px;cursor:pointer;touch-action:manipulation}
   .tabbar .ico{display:grid;place-items:center;height:22px}
   .tabbar a.on,.tabbar button.on{color:var(--accent);font-weight:650}
@@ -396,7 +398,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
   body.more-open{overflow:hidden}
 }
-.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.rank-row:focus-visible,.rank-note summary:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible,.tcard-main:focus-visible,.tchild-link:focus-visible,.scenario-row:focus-visible,.topic-back:focus-visible,.topic-recent-card:focus-visible,.topic-reading-all:focus-visible,.topic-update-row:focus-visible,.topic-load-more:focus-visible,.topic-vendors summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.rank-row:focus-visible,.rank-note summary:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible,.tcard-main:focus-visible,.tchild-link:focus-visible,.scenario-row:focus-visible,.topic-back:focus-visible,.topic-follow:focus-visible,.topic-recent-card:focus-visible,.topic-reading-all:focus-visible,.topic-update-row:focus-visible,.topic-load-more:focus-visible,.topic-vendors summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:600px){.favbtn{min-width:44px;min-height:44px}}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
@@ -431,6 +433,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .topic-back{display:inline-flex;align-items:center;min-height:36px;color:var(--sub);font-size:13px;text-decoration:none}
 .topic-hero h1{font-size:28px;font-weight:800;margin:10px 0 6px}
 .topic-hero-desc{font-size:14px;color:var(--sub);line-height:1.7;margin:0 0 8px}
+.topic-follow{display:inline-flex;align-items:center;justify-content:center;min-height:40px;margin:7px 0 4px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink);font-size:12.5px;font-weight:700;text-decoration:none}
 .topic-parent{font-size:12px;color:var(--sub);margin-top:9px}
 .topic-parent a{color:var(--accent);font-weight:650;text-decoration:none}
 .topic-section{margin-top:24px}
@@ -471,6 +474,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   .scenario-row{padding:10px 14px}
   .scenario-desc{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
   .topic-hero h1{font-size:26px}
+  .topic-follow{min-height:44px}
   .topic-section-head{display:block}
   .topic-section-head p{text-align:left;margin-top:3px}
   .topic-update-row{grid-template-columns:70px minmax(0,1fr);gap:3px 10px;padding:10px 12px}
@@ -485,16 +489,102 @@ main,.layout>*,.hotlist>*{min-width:0}
   .weekly-strip-link:hover .weekly-strip-title,.weekly-dismiss:hover{color:var(--accent)}
   .sidebar a.mi:hover{background:var(--hover);color:var(--ink)}
   .tcard:hover,.topic-recent-card:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
-  .tcard-main:hover h3,.scenario-row:hover .scenario-name,.topic-update-row:hover .topic-update-title,.topic-reading-all:hover{color:var(--accent)}
+  .tcard-main:hover h3,.scenario-row:hover .scenario-name,.topic-update-row:hover .topic-update-title,.topic-reading-all:hover,.topic-follow:hover{color:var(--accent)}
 }
 @media(prefers-color-scheme:dark) and (hover:hover) and (pointer:fine){
   .chip:hover{background:rgba(110,168,255,.26)}
 }
 """
 
+FOR_ME_CSS = """
+.for-me-page{max-width:1040px;padding:34px 20px 72px}
+.fm-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:start;margin-bottom:18px}
+.fm-eyebrow{margin:0 0 8px;color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.fm-hero h1{margin:0;font-size:38px;line-height:1.05;letter-spacing:-.04em}
+.fm-subtitle{margin:10px 0 0;color:var(--txt2);font-size:15px;line-height:1.7}
+.fm-customize{appearance:none;min-height:44px;padding:0 16px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.fm-visit{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:3px;padding:13px 16px;border:1px solid var(--line);border-radius:13px;background:var(--card);font-size:12.5px;color:var(--sub)}
+.fm-visit strong{color:var(--ink);font-size:13px;white-space:nowrap}
+.fm-setup{margin-bottom:24px;padding:20px;border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));border-radius:16px;background:color-mix(in srgb,var(--accent-soft) 72%,var(--card))}
+.fm-setup-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:14px}
+.fm-setup-head h2{margin:0 0 4px;font-size:17px}
+.fm-setup-head p{margin:0;color:var(--sub);font-size:12.5px;line-height:1.6}
+.fm-progress{color:var(--accent);font-size:12px;font-weight:750;white-space:nowrap}
+.fm-suggestions{display:flex;flex-wrap:wrap;gap:9px}
+.fm-follow-chip{appearance:none;display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:7px 11px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;font-size:13px;cursor:pointer}
+.fm-follow-chip.on{border-color:var(--accent);background:var(--accent);color:#fff}
+.fm-follow-kind{font-size:9px;line-height:1.4;padding:2px 5px;border-radius:4px;background:var(--soft);color:var(--sub);font-weight:800;letter-spacing:.05em}
+.fm-follow-chip.on .fm-follow-kind{background:rgba(255,255,255,.2);color:#fff}
+.fm-privacy{margin:12px 0 0;color:var(--sub);font-size:11.5px}
+.fm-loading,.fm-error,.fm-empty{padding:28px 20px;border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--sub);font-size:13px;line-height:1.8;text-align:center}
+.fm-error button{appearance:none;min-height:40px;margin-top:10px;padding:0 14px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);font:inherit;font-weight:700;cursor:pointer}
+.fm-section{margin-top:28px}
+.fm-section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:12px}
+.fm-section-head h2{margin:0;font-size:19px;letter-spacing:-.01em}
+.fm-section-head p{margin:0;color:var(--sub);font-size:12px;text-align:right}
+.fm-must-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.fm-feed-list,.fm-discovery-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.fm-signal{display:flex;min-width:0;flex-direction:column;padding:17px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.fm-signal.is-read{opacity:.7}
+.fm-signal-top{display:flex;align-items:center;gap:7px;min-width:0;margin-bottom:11px}
+.fm-signal-badge,.fm-new{display:inline-flex;align-items:center;min-height:21px;padding:2px 7px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-size:10px;font-weight:800}
+.fm-new{background:var(--accent);color:#fff}
+.fm-source{min-width:0;margin-left:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub);font-size:10.5px}
+.fm-signal-title{color:var(--ink);font-size:16px;font-weight:760;line-height:1.5;text-decoration:none}
+.fm-signal-summary{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:3;margin:9px 0 0;color:var(--txt2);font-size:12.5px;line-height:1.7}
+.fm-why{display:flex;align-items:flex-start;gap:7px;margin-top:13px;padding:9px 10px;border-radius:9px;background:var(--soft);color:var(--txt2);font-size:11.5px;line-height:1.55}
+.fm-why-label{flex:0 0 auto;color:var(--accent);font-size:10px;font-weight:850}
+.fm-impact{margin:10px 0 0;color:var(--txt2);font-size:11.5px;line-height:1.65}
+.fm-impact b{color:var(--ink)}
+.fm-actions{display:flex;align-items:center;gap:4px;margin-top:auto;padding-top:13px}
+.fm-action{appearance:none;min-height:36px;padding:0 9px;border:0;border-radius:8px;background:transparent;color:var(--sub);font:inherit;font-size:11.5px;cursor:pointer}
+.fm-action[aria-pressed=true]{background:var(--soft);color:var(--ink);font-weight:700}
+.fm-dismiss{margin-left:auto}
+.fm-watch-list{display:grid;gap:8px}
+.fm-watch-row{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:62px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.fm-watch-label{display:grid;grid-template-columns:auto auto;align-items:center;gap:3px 8px;min-width:0}
+.fm-watch-label b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px}
+.fm-watch-count{grid-column:2;color:var(--sub);font-size:11px}
+.fm-watch-remove{appearance:none;min-height:40px;padding:0 9px;border:0;background:transparent;color:var(--sub);font:inherit;font-size:11.5px;cursor:pointer;white-space:nowrap}
+.fm-weekly{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px;border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);text-decoration:none}
+.fm-weekly b{display:block;font-size:15px;margin-bottom:5px}
+.fm-weekly span{color:var(--sub);font-size:12px}
+.fm-weekly-arrow{color:var(--accent)!important;font-size:18px!important}
+.fm-customize:focus-visible,.fm-follow-chip:focus-visible,.fm-action:focus-visible,.fm-watch-remove:focus-visible,.fm-error button:focus-visible,.fm-signal-title:focus-visible,.fm-weekly:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(hover:hover) and (pointer:fine){
+  .fm-customize:hover,.fm-follow-chip:hover{border-color:var(--accent)}
+  .fm-signal:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+  .fm-signal-title:hover,.fm-watch-remove:hover,.fm-action:hover{color:var(--accent)}
+}
+@media(max-width:820px){
+  .fm-must-list,.fm-feed-list,.fm-discovery-list{grid-template-columns:1fr}
+  .fm-signal-summary{-webkit-line-clamp:2}
+}
+@media(max-width:600px){
+  .for-me-page{padding:22px 14px 48px}
+  .fm-hero{grid-template-columns:minmax(0,1fr) auto;gap:12px}
+  .fm-hero h1{font-size:31px}
+  .fm-subtitle{font-size:13.5px}
+  .fm-customize{padding:0 12px}
+  .fm-visit{display:grid;gap:4px;padding:12px 13px}
+  .fm-visit strong{white-space:normal}
+  .fm-setup{padding:16px 14px}
+  .fm-setup-head{display:block}
+  .fm-progress{display:block;margin-top:5px;white-space:normal}
+  .fm-follow-chip{min-height:44px}
+  .fm-section{margin-top:24px}
+  .fm-section-head{display:block}
+  .fm-section-head p{margin-top:3px;text-align:left}
+  .fm-signal{padding:15px}
+  .fm-action,.fm-watch-remove{min-height:44px}
+  .fm-weekly{padding:16px}
+}
+"""
+
 def sidebar(active, gen=None, prefix=""):
     """桌面端左侧菜单栏（≥1200px 显示，窄屏由底部 Tab 承担导航）"""
-    items = [("热榜", "flame", "index.html", "home")]
+    items = [("热榜", "flame", "index.html", "home"),
+             ("For Me", "radar", "for-me.html", "for-me")]
     if weekly_brief_enabled():
         items.append(("每周简报", "calendar", "weekly.html", "weekly"))
     items += [("主题", "map", "topics.html", "topics"),
@@ -597,6 +687,7 @@ def weekly_brief_enabled():
 
 def tabbar(active, prefix=""):
     items = [("热榜", ic("flame",20), "index.html", "home"),
+             ("For Me", ic("radar",20), "for-me.html", "for-me"),
              ("主题", ic("map",20), "topics.html", "topics"),
              ("收藏", ic("star",20), "favorites.html", "favorites")]
     primary = "".join(
@@ -1755,6 +1846,7 @@ document.addEventListener('DOMContentLoaded',function(){
     <a class="topic-back" href="../topics.html">← 主题地图</a>
     <h1>{esc(t["name"])}</h1>
     <p class="topic-hero-desc">{esc(t["desc"])}</p>
+    <a class="topic-follow" href="../for-me.html?follow=topic:{quote(t['name'], safe='')}">＋ 关注此主题，在 For Me 查看</a>
     <div class="topic-counts"><span class="recent">近 7 天新增 {len(recent)}</span><span class="total">累计 {len(topic_events)} · 每 6 小时更新</span></div>
     {parent_html}
   </header>
@@ -2001,6 +2093,70 @@ def render_favorites_page(css, data_url="data/latest-lite.json"):
     return page_shell("我的收藏 · DataHot", "你收藏的数据领域资讯", css, body, tabbar("favorites"), prefix="", active="favorites")
 
 
+def render_for_me_page(css, data_url="data/latest-lite.json"):
+    """For Me：显式关注优先的本地个性化变化入口。"""
+    weekly_label = "查看完整每周简报"
+    weekly_href = "weekly.html" if weekly_brief_enabled() else "index.html"
+    body = f'''
+<div id="forMeDataConfig" data-lite-url="{esc(data_url)}" hidden></div>
+<main class="wrap for-me-page">
+  <header class="fm-hero">
+    <div>
+      <p class="fm-eyebrow">Your signal radar</p>
+      <h1>For Me</h1>
+      <p class="fm-subtitle">只看与你相关的重要变化</p>
+    </div>
+    <button class="fm-customize" id="fmCustomize" type="button" aria-expanded="false" aria-controls="fmSetup">调整关注</button>
+    <div class="fm-visit"><span id="fmVisit">正在读取上次访问…</span><strong><span id="fmNewCount">—</span> 条未读变化</strong></div>
+  </header>
+
+  <section class="fm-setup" id="fmSetup" aria-labelledby="fmSetupTitle">
+    <div class="fm-setup-head">
+      <div><h2 id="fmSetupTitle">先选择你关心的内容</h2><p>主题和厂商可以混选，至少选择 3 个</p></div>
+      <span class="fm-progress" id="fmProgress">已选择 0/3</span>
+    </div>
+    <div class="fm-suggestions" id="fmSuggestions" aria-label="可关注的主题与厂商"></div>
+    <p class="fm-privacy">关注、已读和反馈只保存在这台设备，不需要登录，也不会上传。</p>
+  </section>
+
+  <div class="fm-loading" id="fmLoading" role="status">正在整理与你相关的变化…</div>
+  <div class="fm-error" id="fmError" hidden>暂时无法读取最新内容。<br><button type="button">重新加载</button></div>
+
+  <div id="fmContent" hidden>
+    <section class="fm-section" id="fmMust" aria-labelledby="fmMustTitle">
+      <div class="fm-section-head"><div><h2 id="fmMustTitle">必须知道</h2><p>与你的关注最相关，最多 3 条</p></div></div>
+      <div class="fm-must-list" id="fmMustList"></div>
+    </section>
+    <div class="fm-empty" id="fmEmpty" hidden>暂时没有与你关注对象匹配的变化。可以调整关注，或稍后回来看看。</div>
+
+    <section class="fm-section" id="fmFeed" aria-labelledby="fmFeedTitle">
+      <div class="fm-section-head"><h2 id="fmFeedTitle">关注动态</h2><p>按相关性、重要性和时效排序</p></div>
+      <div class="fm-feed-list" id="fmFeedList"></div>
+    </section>
+
+    <section class="fm-section" aria-labelledby="fmWatchTitle">
+      <div class="fm-section-head"><h2 id="fmWatchTitle">持续关注</h2><p>你的关注对象与当前覆盖</p></div>
+      <div class="fm-watch-list" id="fmWatch"></div>
+    </section>
+
+    <section class="fm-section" id="fmDiscovery" aria-labelledby="fmDiscoveryTitle" hidden>
+      <div class="fm-section-head"><h2 id="fmDiscoveryTitle">可能影响你</h2><p>关注范围外，最多 2 条</p></div>
+      <div class="fm-discovery-list" id="fmDiscoveryList"></div>
+    </section>
+
+    <section class="fm-section" aria-label="本周回顾">
+      <a class="fm-weekly" href="{weekly_href}"><span><b>For Me · 本周回顾</b><span id="fmWeeklyCount">正在整理本周变化</span> · {weekly_label}</span><span class="fm-weekly-arrow" aria-hidden="true">→</span></a>
+    </section>
+  </div>
+  <noscript><div class="fm-error">For Me 需要浏览器 JavaScript 来保存本地关注。你仍可继续使用热榜、主题和周报。</div></noscript>
+</main>
+<script defer src="for-me.js"></script>'''
+    return page_shell(
+        "For Me · DataHot", "只看与你相关的数据与 AI 重要变化",
+        css + FOR_ME_CSS, body, tabbar("for-me"), prefix="", active="for-me",
+    )
+
+
 def load_weekly_brief(path=None):
     path = Path(path) if path is not None else SITE / "data" / "weekly_brief.json"
     try:
@@ -2187,6 +2343,7 @@ def render_privacy_page(css):
     <p>DataHot 的匿名行为统计默认关闭，只有站点配置了 HTTPS 第一方接收端后才会启用。启用时仅记录页面类型、事件 ID、分类、来源、匿名会话与 30 天轮换的随机设备 ID。</p>
     <p style="margin-top:10px"><b>不会采集：</b>正文内容、完整搜索词、Cookie、姓名/邮箱、API Key、浏览器指纹、精确位置或跨站行为。浏览器的 Global Privacy Control / Do Not Track 会被自动尊重。</p>
     <p style="margin-top:10px"><b>搜索：</b>只记录长度区间（1–3 / 4–8 / 9+）和结果数量，不发送输入文字。</p>
+    <p style="margin-top:10px"><b>For Me 与收藏：</b>关注的主题和厂商、已读、不感兴趣与收藏状态只保存在本机浏览器，不会上传；清除本站浏览器数据即可重置。</p>
   </div>
   <div class="scard">
     <div data-analytics-status style="font-size:13px;color:var(--txt2);margin-bottom:12px">读取状态中…</div>
@@ -2253,10 +2410,11 @@ def write_qr_assets(all_events, qr_dir=None, site_base=SITE_BASE):
 
 def main():
     SITE.mkdir(parents=True, exist_ok=True)
-    if not all(asset.exists() for asset in (ANALYTICS_ASSET, HOME_ASSET, DETAIL_ASSET, TTS_ASSET)):
+    if not all(asset.exists() for asset in (ANALYTICS_ASSET, HOME_ASSET, FOR_ME_ASSET, DETAIL_ASSET, TTS_ASSET)):
         raise FileNotFoundError("missing browser asset")
     shutil.copyfile(ANALYTICS_ASSET, SITE / "analytics.js")
     shutil.copyfile(HOME_ASSET, SITE / "home.js")
+    shutil.copyfile(FOR_ME_ASSET, SITE / "for-me.js")
     shutil.copyfile(DETAIL_ASSET, SITE / "detail.js")
     shutil.copyfile(TTS_ASSET, SITE / "tts-player.js")
     payload = json.load(open(SITE / "data" / "latest.json"))
@@ -2599,6 +2757,7 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
     )
     favorite_data_url = "data/latest-lite.json" if lite_enabled else "data/latest.json"
     (SITE / "favorites.html").write_text(render_favorites_page(css, favorite_data_url), encoding="utf-8")
+    (SITE / "for-me.html").write_text(render_for_me_page(css, favorite_data_url), encoding="utf-8")
     (SITE / "weekly.html").write_text(
         render_weekly_brief_page(
             weekly_brief, all_events, css, archives=weekly_archives,

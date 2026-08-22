@@ -102,6 +102,19 @@ Issue [#33](https://github.com/henryhb1105-arch/datahot/issues/33) 将周报拆�
 
 站点构建会生成 [`feed.xml`](https://datahot.xiahongbin.com/feed.xml)，并在所有页面 `<head>` 声明 `application/atom+xml` 自动发现入口。每条 Feed 只包含 DataHot 标题、摘要、稳定详情链接、时间、分类和首要信源，不嵌入第三方全文、图片或任意 HTML。构建会校验 XML、HTTPS 绝对链接、稳定唯一 ID 和对应详情文件；设置 `FEED_ENABLED=false` 可停止生成并移除自动发现声明。
 
+### Agent Feed 与重要资讯推送
+
+[`agent-feed.json`](https://datahot.xiahongbin.com/data/agent-feed.json) 是供 Agent 条件轮询的版本化轻量契约。它只发布最近 7 天已完成中文编辑的事件元数据，不含第三方正文或原文 URL；每个事件都提供稳定的 DataHot 详情链接、收录时间、重要度、多信源数量，以及服务端统一计算的 `push.recommended`。
+
+默认重要规则是：编辑置顶；或重要度不低于 80；或重要度不低于 75 且至少两个信源。参考客户端还会执行首次静默基线、ETag、48 小时新鲜度、事件去重、每轮最多 3 条和北京时间每天最多 5 条。发送前先记录 attempt；投递结果不明确时停止自动重试，避免重复通知。
+
+- 通用 Agent Skill：[`skills/datahot-news/SKILL.md`](skills/datahot-news/SKILL.md)
+- OpenClaw 单条推送：[`integrations/openclaw/README.md`](integrations/openclaw/README.md)
+- 公开安装入口：[`https://datahot.xiahongbin.com/datahot-skill/README.md`](https://datahot.xiahongbin.com/datahot-skill/README.md)
+
+OpenClaw 参考实现使用确定性 command job，不调用模型。每个事件单独执行一次消息发送；微信消息保留裸 HTTPS URL，点击后直接进入 DataHot 详情页。
+DataHot 当前仍按每日四轮采集构建；15 分钟轮询用于在新版本发布后尽快发现变化，不代表上游资讯实时入库。
+
 ### 本地精华朗读
 
 详情页可读取 `site/data/tts-manifest.json`，只在同站点 MP3 已生成且路径通过白名单校验时显示“听这篇”。朗读稿由 `pipeline/tts_text.py` 从标题、摘要、推荐理由和正文关键段落确定性提取，自动排除 URL、代码、表格、来源列表与免责声明，不调用 DeepSeek。`pipeline/tts_generate.py --dry-run` 可在没有语音模型的机器上检查待生成队列。

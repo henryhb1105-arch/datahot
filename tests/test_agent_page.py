@@ -20,6 +20,8 @@ class AgentPageTests(unittest.TestCase):
         )
         self.assertIn(agent_page.SKILL_URL, agent_page.INSTALL_README)
         self.assertIn(agent_page.FEED_URL, agent_page.INSTALL_README)
+        self.assertIn(agent_page.AGENT_FEED_URL, agent_page.INSTALL_README)
+        self.assertIn(agent_page.OPENCLAW_GUIDE_URL, agent_page.INSTALL_README)
         self.assertIn("不要静默覆盖", agent_page.INSTALL_README)
         self.assertIn("仅当前会话有效", agent_page.INSTALL_README)
 
@@ -36,6 +38,8 @@ class AgentPageTests(unittest.TestCase):
         self.assertIn(agent_page.VERIFY_PROMPT, page)
         self.assertIn("复制安装提示", page)
         self.assertIn("仅当前会话有效", page)
+        self.assertIn("主动推送重要资讯", page)
+        self.assertIn(agent_page.OPENCLAW_GUIDE_URL, page)
         self.assertIn('data-nav-active="agent"', page)
         self.assertIn('class="mi on" href="agent.html"', page)
         self.assertIn('class="more-link on" href="agent.html"', page)
@@ -57,6 +61,12 @@ class AgentPageTests(unittest.TestCase):
                 (public_dir / "README.md").read_text(encoding="utf-8"),
                 agent_page.INSTALL_README,
             )
+            integration_dir = ROOT / "integrations" / "openclaw"
+            for name in ("README.md", "datahot_push.py", "config.example.json"):
+                self.assertEqual(
+                    (public_dir / "openclaw" / name).read_bytes(),
+                    (integration_dir / name).read_bytes(),
+                )
 
 
 if __name__ == "__main__":

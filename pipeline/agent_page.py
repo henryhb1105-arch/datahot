@@ -13,6 +13,8 @@ INSTALL_URL = f"{SITE_BASE}/datahot-skill/README.md"
 SKILL_URL = f"{SITE_BASE}/datahot-skill/SKILL.md"
 OPENAI_YAML_URL = f"{SITE_BASE}/datahot-skill/agents/openai.yaml"
 FEED_URL = f"{SITE_BASE}/feed.xml"
+AGENT_FEED_URL = f"{SITE_BASE}/data/agent-feed.json"
+OPENCLAW_GUIDE_URL = f"{SITE_BASE}/datahot-skill/openclaw/README.md"
 INSTALL_PROMPT = f"请安装 DataHot Skill：{INSTALL_URL}"
 VERIFY_PROMPT = "请用 DataHot 告诉我过去 24 小时最值得关注的 3 条数据与 AI 资讯，并附上来源链接。"
 
@@ -26,6 +28,8 @@ INSTALL_README = f"""# DataHot — Agent Skill
 - [SKILL.md]({SKILL_URL})
 - [OpenAI UI metadata]({OPENAI_YAML_URL})
 - [DataHot Atom Feed]({FEED_URL})
+- [DataHot Agent Feed]({AGENT_FEED_URL})
+- [OpenClaw 主动推送接入]({OPENCLAW_GUIDE_URL})
 
 ## 让当前 Agent 安装
 
@@ -44,6 +48,8 @@ INSTALL_README = f"""# DataHot — Agent Skill
 > {VERIFY_PROMPT}
 
 成功答案应注明时间窗，返回当前 DataHot Feed 中的资讯，并包含 DataHot 详情链接和可用的原始信源链接。无法联网或 Feed 不可用时应明确失败，不得用模型记忆冒充实时结果。
+
+需要“持续监控、达到重要阈值后主动推送”时，不要让模型定时生成日报。请审阅 [OpenClaw 接入说明]({OPENCLAW_GUIDE_URL})：它使用版本化 Agent Feed、确定性 command job、首次静默基线、去重与单条消息投递。
 
 ## 更新
 
@@ -93,6 +99,8 @@ def render_agent_body() -> str:
     install_url = html.escape(INSTALL_URL, quote=True)
     skill_url = html.escape(SKILL_URL, quote=True)
     feed_url = html.escape(FEED_URL, quote=True)
+    agent_feed_url = html.escape(AGENT_FEED_URL, quote=True)
+    openclaw_guide_url = html.escape(OPENCLAW_GUIDE_URL, quote=True)
     return f'''<main class="wrap agent-page">
   <header class="agent-hero">
     <p class="agent-eyebrow">DataHot for Agents</p>
@@ -120,6 +128,14 @@ def render_agent_body() -> str:
     <li><b>验证</b>新开会话，用下面的问题检查结果。</li>
   </ol>
 
+  <section class="agent-card" aria-labelledby="pushTitle">
+    <h2 id="pushTitle">让 OpenClaw 主动推送重要资讯</h2>
+    <p>使用无模型的条件轮询：首次静默建基线，之后按重要度去重；一条资讯发送一条消息，点击裸链接直达 DataHot 详情。</p>
+    <div class="agent-actions">
+      <a class="source-cta" href="{openclaw_guide_url}">查看 OpenClaw 接入说明</a>
+    </div>
+  </section>
+
   <section class="agent-card" aria-labelledby="verifyTitle">
     <h2 id="verifyTitle">验证是否接入成功</h2>
     <pre class="agent-code" id="verifyPrompt"><code>{verify_prompt}</code></pre>
@@ -135,6 +151,8 @@ def render_agent_body() -> str:
       安装入口：<a href="{install_url}">{install_url}</a><br>
       Skill 文件：<a href="{skill_url}">{skill_url}</a><br>
       实时数据源：<a href="{feed_url}">{feed_url}</a><br>
+      推送数据契约：<a href="{agent_feed_url}">{agent_feed_url}</a><br>
+      OpenClaw 接入：<a href="{openclaw_guide_url}">{openclaw_guide_url}</a><br>
       DataHot 通常每 6 小时更新。Skill 匿名只读，不登录、不写入、不批量转载全文；每次资讯请求重新读取 Feed。
     </div>
   </details>
@@ -166,15 +184,22 @@ def render_agent_body() -> str:
 </script>'''
 
 
-def publish_skill_bundle(source_dir: Path, public_dir: Path) -> None:
+def publish_skill_bundle(source_dir: Path, public_dir: Path, openclaw_dir: Path | None = None) -> None:
     """Publish the canonical Skill plus the separate Agent-facing install guide."""
     source_dir = Path(source_dir)
     public_dir = Path(public_dir)
     skill_file = source_dir / "SKILL.md"
     metadata_file = source_dir / "agents" / "openai.yaml"
+    openclaw_dir = Path(openclaw_dir) if openclaw_dir else source_dir.parents[1] / "integrations" / "openclaw"
+    openclaw_files = ("README.md", "datahot_push.py", "config.example.json")
     if not skill_file.is_file() or not metadata_file.is_file():
         raise FileNotFoundError("incomplete datahot-news skill bundle")
+    if not all((openclaw_dir / name).is_file() for name in openclaw_files):
+        raise FileNotFoundError("incomplete DataHot OpenClaw bundle")
     (public_dir / "agents").mkdir(parents=True, exist_ok=True)
+    (public_dir / "openclaw").mkdir(parents=True, exist_ok=True)
     (public_dir / "README.md").write_text(INSTALL_README, encoding="utf-8")
     shutil.copyfile(skill_file, public_dir / "SKILL.md")
     shutil.copyfile(metadata_file, public_dir / "agents" / "openai.yaml")
+    for name in openclaw_files:
+        shutil.copyfile(openclaw_dir / name, public_dir / "openclaw" / name)

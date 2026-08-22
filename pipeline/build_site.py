@@ -8,6 +8,7 @@ from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 from urllib.parse import quote, urlparse
 from agent_page import AGENT_PAGE_CSS, publish_skill_bundle, render_agent_body
+from agent_feed import build_agent_feed, validate_agent_feed
 from content_blocks import (
     blocks_plain_text, render_blocks_html, sanitize_blocks, sanitize_url,
     trim_article_blocks,
@@ -2473,6 +2474,21 @@ def main():
     if {Path(name).stem for name in valid_qr_ids} != {Path(name).stem for name in valid_ids}:
         raise RuntimeError("detail pages and local QR assets are inconsistent")
     print(f"[qr] 本地二维码 {len(valid_qr_ids)} 个")
+
+    # ── Agent JSON Feed：供轮询器做增量、阈值与单条推送 ──
+    agent_feed_payload = build_agent_feed(
+        all_events, payload["generated_at"], site_base=SITE_BASE,
+    )
+    agent_feed_errors = validate_agent_feed(
+        agent_feed_payload, site_base=SITE_BASE, site_root=SITE,
+    )
+    if agent_feed_errors:
+        raise RuntimeError(f"invalid Agent feed: {', '.join(agent_feed_errors[:10])}")
+    agent_feed_path = SITE / "data" / "agent-feed.json"
+    agent_feed_path.write_bytes(
+        (json.dumps(agent_feed_payload, ensure_ascii=False, separators=(",", ":")) + "\n").encode("utf-8")
+    )
+    print(f"[agent-feed] schema v1 校验通过：{len(agent_feed_payload['events'])} 条")
 
     # ── Atom 1.0 Feed：只包含 DataHot 摘要与稳定站内详情链接 ──
     feed_path = SITE / "feed.xml"

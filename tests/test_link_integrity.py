@@ -109,13 +109,14 @@ class BuildPathRegressionTests(unittest.TestCase):
             "https://news.ycombinator.com/",
         )
 
-    def test_mobile_navigation_has_four_primary_slots_and_more_sheet(self):
+    def test_mobile_navigation_has_five_primary_slots_and_more_sheet(self):
         with patch.dict(build_site.os.environ, {"WEEKLY_BRIEF_ENABLED": "true"}, clear=False):
             markup = build_site.tabbar("home")
         primary = markup.split("</nav>", 1)[0]
-        self.assertEqual(primary.count("<a "), 3)
+        self.assertEqual(primary.count("<a "), 4)
         self.assertEqual(primary.count("<button "), 1)
         self.assertIn("<span>热榜</span>", primary)
+        self.assertIn("<span>For Me</span>", primary)
         self.assertIn("<span>主题</span>", primary)
         self.assertIn("<span>收藏</span>", primary)
         self.assertIn("<span>更多</span>", primary)

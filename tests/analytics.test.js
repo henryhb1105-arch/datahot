@@ -46,6 +46,7 @@ test("search values collapse to length buckets only", () => {
 test("page classifier never includes full URLs", () => {
   assert.equal(analytics.pageFromPath("/datahot/"), "home");
   assert.equal(analytics.pageFromPath("/datahot/index.html"), "home");
+  assert.equal(analytics.pageFromPath("/datahot/for-me.html"), "for-me");
   assert.equal(analytics.pageFromPath("/datahot/weekly.html"), "weekly");
   assert.equal(analytics.pageFromPath("/datahot/weekly/2026-W32.html"), "weekly");
   assert.equal(analytics.pageFromPath("/datahot/daily.html"), "weekly");

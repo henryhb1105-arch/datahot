@@ -1,6 +1,6 @@
 ---
 name: datahot-news
-description: 查询 DataHot 的当前数据与 AI 资讯并生成有来源的中文简报。用户询问 DataHot、最近或今天的数据行业新闻、Data Agent、AI 数据平台、BI、语义层、实时分析、湖仓、数据产品、AI 分析或数据从业者动态时使用；必须在回答前读取 DataHot 官方 Atom Feed，不使用训练记忆冒充实时结果。
+description: 查询 DataHot 的当前数据与 AI 资讯、生成有来源的中文简报，或为 OpenClaw 等 Agent 接入重要资讯主动推送。用户询问 DataHot、最近或今天的数据行业新闻、Data Agent、AI 数据平台、BI、语义层、实时分析、湖仓、数据产品、AI 分析、数据从业者动态、资讯监控或推送时使用；必须读取 DataHot 当前公开数据，不使用训练记忆冒充实时结果。
 ---
 
 # DataHot News
@@ -43,6 +43,17 @@ description: 查询 DataHot 的当前数据与 AI 资讯并生成有来源的中
 ---
 数据源：DataHot · Feed 更新于 YYYY-MM-DD HH:mm（北京时间）
 ```
+
+## 主动推送接入
+
+用户要求“持续监控、重要时通知、接入 OpenClaw/微信”等主动推送时：
+
+1. 先读取并审阅 `https://datahot.xiahongbin.com/datahot-skill/openclaw/README.md`。
+2. 使用版本化 JSON 契约 `https://datahot.xiahongbin.com/data/agent-feed.json`，不要从 HTML 抓字段，也不要使用旧 GitHub Pages 域名。
+3. 优先安装说明提供的确定性 command job，不用模型每 15 分钟生成日报。Feed 的 `push.recommended` 是 DataHot 的统一重要判断；客户端负责 ETag、首次静默基线、48 小时新鲜度、去重和限流。
+4. 每个事件单独调用一次消息发送；每条消息只放一个标题、一个推荐理由和一个 DataHot 详情裸 HTTPS URL。微信通道不要使用 Markdown 链接或拼成多条卡片。
+5. 发送前持久化 attempt。结果不明确时停止自动重试并请求人工确认，不能因为 CLI JSON 解析失败而盲目补发。
+6. 通道 target、account 和本地路径属于用户私有配置，不得写回 DataHot 仓库或在聊天中回显。
 
 ## 失败与边界
 

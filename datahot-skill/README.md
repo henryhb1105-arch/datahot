@@ -7,6 +7,8 @@
 - [SKILL.md](https://datahot.xiahongbin.com/datahot-skill/SKILL.md)
 - [OpenAI UI metadata](https://datahot.xiahongbin.com/datahot-skill/agents/openai.yaml)
 - [DataHot Atom Feed](https://datahot.xiahongbin.com/feed.xml)
+- [DataHot Agent Feed](https://datahot.xiahongbin.com/data/agent-feed.json)
+- [OpenClaw 主动推送接入](https://datahot.xiahongbin.com/datahot-skill/openclaw/README.md)
 
 ## 让当前 Agent 安装
 
@@ -25,6 +27,8 @@
 > 请用 DataHot 告诉我过去 24 小时最值得关注的 3 条数据与 AI 资讯，并附上来源链接。
 
 成功答案应注明时间窗，返回当前 DataHot Feed 中的资讯，并包含 DataHot 详情链接和可用的原始信源链接。无法联网或 Feed 不可用时应明确失败，不得用模型记忆冒充实时结果。
+
+需要“持续监控、达到重要阈值后主动推送”时，不要让模型定时生成日报。请审阅 [OpenClaw 接入说明](https://datahot.xiahongbin.com/datahot-skill/openclaw/README.md)：它使用版本化 Agent Feed、确定性 command job、首次静默基线、去重与单条消息投递。
 
 ## 更新
 

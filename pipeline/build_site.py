@@ -88,6 +88,23 @@ HOME_FILTER_TOPIC_LABELS = {
     "实时分析": "实时",
 }
 
+# 首页筛选允许标签重叠；主题地图则提供稳定的阅读层级。
+TOPIC_TECH_MAINLINES = (
+    "Data Agent", "语义层", "平台AI化", "BI变局", "湖仓", "实时分析", "数据人",
+)
+TOPIC_BUSINESS_SCENES = (
+    "组织人才", "财务经营", "销售增长", "客户运营", "供应链", "风险管理",
+)
+TOPIC_CHILDREN = {"Data Agent": ("ChatBI",)}
+TOPIC_PARENTS = {
+    child: parent
+    for parent, children in TOPIC_CHILDREN.items()
+    for child in children
+}
+TOPIC_RECENT_DAYS = 7
+TOPIC_READING_LIMIT = 3
+TOPIC_UPDATE_PAGE_SIZE = 10
+
 def src_display(name):
     """信源显示名：站内术语转外部可读 + 英文语境半角括号"""
     if name == "主编收录":
@@ -379,20 +396,86 @@ main,.layout>*,.hotlist>*{min-width:0}
   .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
   body.more-open{overflow:hidden}
 }
-.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.rank-row:focus-visible,.rank-note summary:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.rank-row:focus-visible,.rank-note summary:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible,.tcard-main:focus-visible,.tchild-link:focus-visible,.scenario-row:focus-visible,.topic-back:focus-visible,.topic-recent-card:focus-visible,.topic-reading-all:focus-visible,.topic-update-row:focus-visible,.topic-load-more:focus-visible,.topic-vendors summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:600px){.favbtn{min-width:44px;min-height:44px}}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
-.topic-map-page{max-width:900px;padding-top:28px;padding-bottom:60px}
+.topic-map-page,.topic-page{max-width:900px;padding-top:28px;padding-bottom:60px}
+.topic-map-intro{font-size:13px;color:var(--sub);line-height:1.7;margin:-4px 0 26px}
+.topic-family{margin-top:26px}
+.topic-family:first-of-type{margin-top:0}
+.topic-family-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.topic-family-head h2{font-size:17px;font-weight:800}
+.topic-family-head p{font-size:12px;color:var(--sub)}
 .tgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;min-width:0}
 @media(max-width:960px){.tgrid{grid-template-columns:minmax(0,1fr)}}
-.tcard{min-width:0;width:100%;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;text-decoration:none;display:block;transition:.15s}
+.tcard{min-width:0;width:100%;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);display:flex;flex-direction:column;transition:.15s}
+.tcard-main{display:block;min-width:0;padding:18px 20px;text-decoration:none;color:var(--ink);flex:1}
 .tcard h3{font-size:17px;font-weight:800;margin-bottom:6px}
-.tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:10px}
-.tcard .tn{font-size:12px;color:var(--accent);font-weight:700}
-.tcard .tt{font-size:12.5px;color:var(--txt2);margin-top:8px;line-height:1.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-@media(max-width:600px){.topic-map-page{padding-top:18px;padding-right:var(--mobile-page-right);padding-left:var(--mobile-page-left)}}
+.tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:12px}
+.topic-counts{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;font-weight:650}
+.topic-counts .recent{color:var(--accent)}
+.topic-counts .total{color:var(--sub);font-weight:500}
+.tchildren{display:flex;align-items:center;gap:7px;border-top:1px solid var(--soft);padding:10px 20px;font-size:11.5px;color:var(--sub)}
+.tchild-link{display:inline-flex;align-items:center;min-height:30px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-weight:650;padding:3px 10px;text-decoration:none}
+.scenario-list{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.scenario-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 16px;align-items:center;min-height:58px;padding:10px 16px;border-bottom:1px solid var(--soft);color:var(--ink);text-decoration:none}
+.scenario-row:last-child{border-bottom:none}
+.scenario-copy{min-width:0}
+.scenario-name{display:block;font-size:14px;font-weight:750}
+.scenario-desc{display:block;margin-top:2px;font-size:11.5px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scenario-count{font-size:11.5px;color:var(--sub);white-space:nowrap}
+.scenario-count.is-active{color:var(--accent);font-weight:650}
+.topic-hero{margin-bottom:24px}
+.topic-back{display:inline-flex;align-items:center;min-height:36px;color:var(--sub);font-size:13px;text-decoration:none}
+.topic-hero h1{font-size:28px;font-weight:800;margin:10px 0 6px}
+.topic-hero-desc{font-size:14px;color:var(--sub);line-height:1.7;margin:0 0 8px}
+.topic-parent{font-size:12px;color:var(--sub);margin-top:9px}
+.topic-parent a{color:var(--accent);font-weight:650;text-decoration:none}
+.topic-section{margin-top:24px}
+.topic-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:10px}
+.topic-section-head h2{font-size:16px;font-weight:800}
+.topic-section-head p{font-size:11.5px;color:var(--sub);text-align:right}
+.topic-recent-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.topic-recent-card{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;text-decoration:none;color:var(--ink)}
+.topic-recent-card h3{font-size:14px;line-height:1.55;margin:6px 0}
+.topic-recent-card p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-size:12px;line-height:1.65;color:var(--txt2)}
+.topic-recent-meta{font-size:10.5px;color:var(--sub)}
+.topic-empty{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:15px 16px;color:var(--sub);font-size:12.5px}
+.topic-reading{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:6px 16px 10px}
+.topic-reading-all{display:inline-flex;align-items:center;min-height:40px;margin-top:3px;color:var(--accent);font-size:12px;font-weight:650;text-decoration:none}
+.topic-updates{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.topic-update-row{display:grid;grid-template-columns:88px minmax(0,1fr) 150px;gap:12px;align-items:center;min-height:52px;padding:9px 14px;border-bottom:1px solid var(--soft);color:var(--ink);text-decoration:none}
+.topic-update-row:last-child{border-bottom:none}
+.topic-update-row.is-extra{display:none}
+.topic-update-date{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums}
+.topic-update-title{min-width:0;font-size:13px;font-weight:650;line-height:1.5}
+.topic-update-source{min-width:0;font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+.topic-load-more{appearance:none;width:100%;min-height:48px;margin-top:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:12.5px;font-weight:650;cursor:pointer}
+.topic-vendors{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:0 14px}
+.topic-vendors summary{display:flex;align-items:center;justify-content:space-between;min-height:48px;font-size:12.5px;font-weight:650;cursor:pointer;list-style:none}
+.topic-vendors summary::-webkit-details-marker{display:none}
+.topic-vendors summary span{color:var(--sub);font-size:11px;font-weight:500}
+.topic-vendors[open] summary span{color:var(--accent)}
+.topic-vendors .vendors{padding:0 0 14px;margin-top:0}
+.classic-topic-group{scroll-margin-top:24px}
+@media(max-width:720px){.topic-recent-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){
+  .topic-map-page,.topic-page{padding-top:18px;padding-right:var(--mobile-page-right);padding-left:var(--mobile-page-left)}
+  .topic-map-intro{margin-bottom:22px}
+  .topic-family-head{display:block}
+  .topic-family-head p{margin-top:3px}
+  .tcard-main{padding:15px 16px}
+  .tchildren{padding:8px 16px}
+  .scenario-row{padding:10px 14px}
+  .scenario-desc{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .topic-hero h1{font-size:26px}
+  .topic-section-head{display:block}
+  .topic-section-head p{text-align:left;margin-top:3px}
+  .topic-update-row{grid-template-columns:70px minmax(0,1fr);gap:3px 10px;padding:10px 12px}
+  .topic-update-source{grid-column:2;text-align:left}
+}
 @media(hover:hover) and (pointer:fine){
   .chip:hover{background:#dbe4ff}
   a.source-name:hover,.crow:hover .ctitle,.fav-entry:hover,.weekly-evidence-row:hover span:first-child,.hrow:hover .ht,.rank-row:hover .rank-title{color:var(--accent)}
@@ -401,7 +484,8 @@ main,.layout>*,.hotlist>*{min-width:0}
   .weekly-strip:hover{border-color:var(--accent)}
   .weekly-strip-link:hover .weekly-strip-title,.weekly-dismiss:hover{color:var(--accent)}
   .sidebar a.mi:hover{background:var(--hover);color:var(--ink)}
-  .tcard:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+  .tcard:hover,.topic-recent-card:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+  .tcard-main:hover h3,.scenario-row:hover .scenario-name,.topic-update-row:hover .topic-update-title,.topic-reading-all:hover{color:var(--accent)}
 }
 @media(prefers-color-scheme:dark) and (hover:hover) and (pointer:fine){
   .chip:hover{background:rgba(110,168,255,.26)}
@@ -1455,58 +1539,242 @@ document.querySelectorAll('[data-share-action]').forEach(function(control){
 });
 </script>""".replace("__EV_JSON__", ev_json)
 
-def render_topics_map(events, css):
-    """主题地图页：只展示当前有内容的主题卡片。"""
-    cards = ""
-    for t in TOPICS_META:
-        evs = [e for e in events if t["name"] in e.get("topics", [])]
-        if not evs:
-            continue
-        latest = "".join(f'<div class="tt">· {esc(e["zh_title"][:36])}</div>' for e in evs[:3])
-        cards += f'''<a class="tcard" href="topics/{t["slug"]}.html">
-  <h3>{esc(t["name"])}</h3>
-  <div class="td">{esc(t["desc"])}</div>
-  <div class="tn">{len(evs)} 个事件 →</div>{latest}
-</a>'''
-    return page_shell("主题地图 · DataHot", "按主题看数据领域持续演进的技术与业务叙事", css, f'''
-<div class="wrap topic-map-page">
-  <div class="section-title"><h2>{ic("map",18)} 主题地图</h2><span>按议题看数据领域 · 持续更新</span></div>
-  <div class="tgrid">{cards}</div>
-</div>''', tabbar("topics"), active="topics")
+def _topic_reference_time(events, reference_time=None):
+    if reference_time is not None:
+        return reference_time if reference_time.tzinfo else reference_time.replace(tzinfo=TZ)
+    timestamps = [event_timestamp(event) for event in events]
+    timestamps = [timestamp for timestamp in timestamps if timestamp is not None]
+    return max(timestamps) if timestamps else datetime.now(TZ)
 
-def render_topic_page(t, events, css):
-    """单个主题页：导语 + 该主题事件时间轴"""
-    evs = [e for e in events if t["name"] in e.get("topics", [])]
-    vendors = sorted({v for e in evs for v in e.get("vendors", [])})
-    vtags = "".join(f'<span class="vtag">{esc(v)}</span>' for v in vendors)
-    must = sorted((e for e in evs if e.get("shelf") == "evergreen"),
-                  key=lambda e: (not e.get("pinned"), -e.get("importance", 50)))
-    must_html = ""
-    if must:
-        rows = "".join(
-            f'<a class="crow" href="../{detail_url(e)}"><span class="cpin">{"📌" if e.get("pinned") else ""}</span>'
-            f'<span class="ctitle">{esc(e["zh_title"])}</span><span class="cmeta">{(e.get("published") or e.get("first_seen") or "")[:10]}</span></a>'
-            for e in must)
-        must_html = f'<div class="scard" style="margin-bottom:18px"><h4 style="margin-bottom:6px">{ic("bookmark",14)} 本主题必读</h4>{rows}</div>'
-    days = defaultdict(list)
-    for e in evs:
-        days[day_key(e.get("first_seen") or e["published"])].append(e)
-    timeline = ""
-    for d in sorted(days, reverse=True):
-        timeline += f'<div class="day"><div class="day-head"><span class="date">{d.month}月{d.day}日</span><span class="info">{len(days[d])} 个事件</span></div>'
-        timeline += "\n".join(render_card(e, prefix="../") for e in days[d])
-        timeline += "</div>"
+
+def _topic_sorted_events(events):
+    floor = datetime(1970, 1, 1, tzinfo=timezone.utc)
+
+    def key(event):
+        timestamp = event_timestamp(event) or floor
+        try:
+            importance = int(event.get("importance", 50))
+        except (TypeError, ValueError):
+            importance = 50
+        try:
+            heat = int(event.get("heat", 0))
+        except (TypeError, ValueError):
+            heat = 0
+        return timestamp, importance, heat
+
+    return sorted(events, key=key, reverse=True)
+
+
+def _topic_recent_events(events, reference_time):
+    window = timedelta(days=TOPIC_RECENT_DAYS)
+    recent = []
+    for event in events:
+        timestamp = event_timestamp(event)
+        age = reference_time - timestamp.astimezone(reference_time.tzinfo) if timestamp else None
+        if age is not None and timedelta(0) <= age <= window:
+            recent.append(event)
+    return _topic_sorted_events(recent)
+
+
+def _topic_event_date(event):
+    timestamp = event_timestamp(event)
+    return timestamp.astimezone(TZ).strftime("%Y-%m-%d") if timestamp else "未知日期"
+
+
+def _topic_event_source(event):
+    items = event.get("items") or []
+    return src_display(items[0].get("source", "")) if items else ""
+
+
+def render_topics_map(events, css, reference_time=None):
+    """主题地图页：稳定呈现技术主线，业务场景作为第二层导航。"""
+    reference_time = _topic_reference_time(events, reference_time)
+    meta_by_name = {topic["name"]: topic for topic in TOPICS_META}
+
+    cards = []
+    for name in TOPIC_TECH_MAINLINES:
+        topic = meta_by_name.get(name)
+        if not topic:
+            continue
+        topic_events = [event for event in events if name in event.get("topics", [])]
+        if not topic_events:
+            continue
+        recent_count = len(_topic_recent_events(topic_events, reference_time))
+        children = []
+        for child_name in TOPIC_CHILDREN.get(name, ()):
+            child = meta_by_name.get(child_name)
+            if child and any(child_name in event.get("topics", []) for event in events):
+                children.append(
+                    f'<a class="tchild-link" href="topics/{child["slug"]}.html">{esc(child_name)}</a>'
+                )
+        children_html = (
+            f'<div class="tchildren"><span>子议题</span>{"".join(children)}</div>'
+            if children else ""
+        )
+        recent_copy = f"近 7 天新增 {recent_count}" if recent_count else "近 7 天暂无新增"
+        cards.append(f'''<article class="tcard">
+  <a class="tcard-main" href="topics/{topic["slug"]}.html">
+    <h3>{esc(name)}</h3>
+    <div class="td">{esc(topic["desc"])}</div>
+    <div class="topic-counts"><span class="recent">{recent_copy}</span><span class="total">累计 {len(topic_events)}</span></div>
+  </a>{children_html}
+</article>''')
+
+    scenarios = []
+    for name in TOPIC_BUSINESS_SCENES:
+        topic = meta_by_name.get(name)
+        if not topic:
+            continue
+        topic_events = [event for event in events if name in event.get("topics", [])]
+        if not topic_events:
+            continue
+        recent_count = len(_topic_recent_events(topic_events, reference_time))
+        count_class = "scenario-count is-active" if recent_count else "scenario-count"
+        count_copy = (
+            f"近 7 天 +{recent_count} · 累计 {len(topic_events)}"
+            if recent_count else f"观察中 · 累计 {len(topic_events)}"
+        )
+        scenarios.append(f'''<a class="scenario-row" href="topics/{topic["slug"]}.html">
+  <span class="scenario-copy"><span class="scenario-name">{esc(name)}</span><span class="scenario-desc">{esc(topic["desc"])}</span></span>
+  <span class="{count_class}">{count_copy}</span>
+</a>''')
+
     body = f'''
-<div class="wrap" style="padding:28px 20px 60px;max-width:900px">
-  <a class="back" href="../topics.html" style="font-size:13px;color:var(--sub)">← 主题地图</a>
-  <h1 style="font-size:26px;font-weight:800;margin:14px 0 6px">{esc(t["name"])}</h1>
-  <p style="font-size:14px;color:var(--sub);margin-bottom:8px">{esc(t["desc"])}</p>
-  <p style="font-size:12.5px;color:var(--sub);margin-bottom:18px">近 7 天收录 {len(evs)} 个事件 · 每 6 小时更新</p>
-  {f'<div class="vendors" style="margin-bottom:18px">{vtags}</div>' if vtags else ""}
-  {must_html}
-  {timeline}
-</div>'''
-    return page_shell(f"{t['name']} · DataHot 主题", t["desc"], css, body, tabbar("topics", "../"), prefix="../", active="topics")
+<main class="wrap topic-map-page">
+  <div class="section-title"><h1 style="font-size:20px">{ic("map",18)} 主题地图</h1><span>理解长期变化 · 按议题持续追踪</span></div>
+  <p class="topic-map-intro">按长期议题理解数据与 AI 的变化，在业务场景中找到与你有关的内容。</p>
+  <section class="topic-family" aria-labelledby="techMainlines">
+    <div class="topic-family-head"><h2 id="techMainlines">技术主线</h2><p>稳定的长期议题，不按短期热度排名</p></div>
+    <div class="tgrid">{"".join(cards)}</div>
+  </section>
+  <section class="topic-family" aria-labelledby="businessScenes">
+    <div class="topic-family-head"><h2 id="businessScenes">业务场景</h2><p>用分析回答具体业务问题</p></div>
+    <div class="scenario-list">{"".join(scenarios)}</div>
+  </section>
+</main>'''
+    return page_shell(
+        "主题地图 · DataHot", "按主题理解数据领域持续演进的技术主线与业务场景",
+        css, body, tabbar("topics"), active="topics",
+    )
+
+
+def render_topic_page(t, events, css, reference_time=None):
+    """单个主题页：近期进展、典藏入口与渐进式历史动态。"""
+    reference_time = _topic_reference_time(events, reference_time)
+    topic_events = _topic_sorted_events([
+        event for event in events if t["name"] in event.get("topics", [])
+    ])
+    recent = _topic_recent_events(topic_events, reference_time)
+    vendors = sorted({vendor for event in topic_events for vendor in event.get("vendors", [])})
+
+    recent_cards = "".join(f'''<a class="topic-recent-card" href="../{detail_url(event)}">
+  <span class="topic-recent-meta">{_topic_event_date(event)} · {esc(_topic_event_source(event))}</span>
+  <h3>{esc(event["zh_title"])}</h3>
+  <p>{esc(event.get("zh_summary", ""))}</p>
+</a>''' for event in recent[:3])
+    recent_html = (
+        f'<div class="topic-recent-grid">{recent_cards}</div>'
+        if recent_cards else '<div class="topic-empty">近 7 天暂无新增，以下保留该主题的历史脉络。</div>'
+    )
+
+    reading = sorted(
+        (event for event in topic_events if event.get("shelf") == "evergreen"),
+        key=lambda event: (
+            not event.get("pinned"),
+            -int(event.get("importance", 50) or 50),
+            -(event_timestamp(event) or datetime(1970, 1, 1, tzinfo=timezone.utc)).timestamp(),
+        ),
+    )[:TOPIC_READING_LIMIT]
+    reading_html = ""
+    if reading:
+        rows = "".join(f'''<a class="crow" href="../{detail_url(event)}">
+  <span class="cpin">{"📌" if event.get("pinned") else ""}</span>
+  <span class="ctitle">{esc(event["zh_title"])}</span>
+  <span class="cmeta">{_topic_event_date(event)}</span>
+</a>''' for event in reading)
+        reading_html = f'''
+  <section class="topic-section" aria-labelledby="topicReading">
+    <div class="topic-section-head"><h2 id="topicReading">{ic("bookmark",14)} 入门阅读</h2><p>来自典藏，最多 {TOPIC_READING_LIMIT} 篇</p></div>
+    <div class="topic-reading">{rows}<a class="topic-reading-all" href="../classics.html#topic-{t["slug"]}">查看该主题全部典藏 →</a></div>
+  </section>'''
+
+    update_rows = []
+    for index, event in enumerate(topic_events):
+        extra_class = " is-extra" if index >= TOPIC_UPDATE_PAGE_SIZE else ""
+        update_rows.append(f'''<a class="topic-update-row{extra_class}" data-topic-update href="../{detail_url(event)}">
+  <time class="topic-update-date">{_topic_event_date(event)}</time>
+  <span class="topic-update-title">{esc(event["zh_title"])}</span>
+  <span class="topic-update-source">{esc(_topic_event_source(event))}</span>
+</a>''')
+    visible_count = min(TOPIC_UPDATE_PAGE_SIZE, len(topic_events))
+    load_more = ""
+    progressive_fallback = ""
+    if len(topic_events) > TOPIC_UPDATE_PAGE_SIZE:
+        load_more = (
+            f'<button class="topic-load-more" type="button" data-topic-load-more '
+            f'data-step="{TOPIC_UPDATE_PAGE_SIZE}" aria-controls="topicUpdates">'
+            f'加载更多（{visible_count}/{len(topic_events)}）</button>'
+        )
+        progressive_fallback = '''<noscript><style>
+.topic-update-row.is-extra{display:grid!important}.topic-load-more{display:none!important}
+</style></noscript>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var button=document.querySelector('[data-topic-load-more]');
+  if(!button){return;}
+  var rows=Array.from(document.querySelectorAll('[data-topic-update]'));
+  var step=parseInt(button.getAttribute('data-step')||'10',10);
+  var shown=rows.filter(function(row){return !row.classList.contains('is-extra');}).length;
+  button.addEventListener('click',function(){
+    rows.slice(shown,shown+step).forEach(function(row){row.classList.remove('is-extra');});
+    shown=Math.min(shown+step,rows.length);
+    if(shown>=rows.length){button.remove();return;}
+    button.textContent='加载更多（'+shown+'/'+rows.length+'）';
+  });
+});
+</script>'''
+
+    vendor_html = ""
+    if vendors:
+        vtags = "".join(f'<span class="vtag">{esc(vendor)}</span>' for vendor in vendors)
+        vendor_html = f'''
+  <section class="topic-section" aria-label="相关厂商">
+    <details class="topic-vendors"><summary>涉及 {len(vendors)} 个厂商 <span>展开查看</span></summary><div class="vendors">{vtags}</div></details>
+  </section>'''
+
+    parent_html = ""
+    parent_name = TOPIC_PARENTS.get(t["name"])
+    if parent_name:
+        parent = next((topic for topic in TOPICS_META if topic["name"] == parent_name), None)
+        if parent:
+            parent_html = f'<p class="topic-parent">所属主线：<a href="{parent["slug"]}.html">{esc(parent_name)}</a></p>'
+
+    body = f'''
+<main class="wrap topic-page">
+  <header class="topic-hero">
+    <a class="topic-back" href="../topics.html">← 主题地图</a>
+    <h1>{esc(t["name"])}</h1>
+    <p class="topic-hero-desc">{esc(t["desc"])}</p>
+    <div class="topic-counts"><span class="recent">近 7 天新增 {len(recent)}</span><span class="total">累计 {len(topic_events)} · 每 6 小时更新</span></div>
+    {parent_html}
+  </header>
+  <section class="topic-section" aria-labelledby="recentProgress">
+    <div class="topic-section-head"><h2 id="recentProgress">近期进展</h2><p>最近 7 天内最新的 3 条</p></div>
+    {recent_html}
+  </section>
+  {reading_html}
+  <section class="topic-section" aria-labelledby="allUpdates">
+    <div class="topic-section-head"><h2 id="allUpdates">全部动态</h2><p>按发布时间倒序</p></div>
+    <div class="topic-updates" id="topicUpdates">{"".join(update_rows)}</div>
+    {load_more}
+  </section>
+  {vendor_html}
+</main>
+{progressive_fallback}'''
+    return page_shell(
+        f"{t['name']} · DataHot 主题", t["desc"], css, body,
+        tabbar("topics", "../"), prefix="../", active="topics",
+    )
 
 def page_shell(title, desc, css, body, tabbar_html, prefix="", active=""):
     return finalize_html_security(f'''<!DOCTYPE html>
@@ -1672,7 +1940,7 @@ def render_classics_page(events, css):
   <span class="ctitle">{esc(e["zh_title"])}</span>
   <span class="cmeta">{esc(e["items"][0]["source"])} · {(e.get("published") or e.get("first_seen") or "")[:10]}</span>
 </a>''' for e in evs)
-        groups += f'<div class="scard"><h4 style="margin-bottom:6px">{ic("bookmark",14)} {esc(t["name"])} <span style="font-size:11px;color:var(--sub);font-weight:400">{len(evs)} 篇</span></h4>{rows}</div>'
+        groups += f'<section class="scard classic-topic-group" id="topic-{t["slug"]}"><h4 style="margin-bottom:6px">{ic("bookmark",14)} {esc(t["name"])} <span style="font-size:11px;color:var(--sub);font-weight:400">{len(evs)} 篇</span></h4>{rows}</section>'
     other = [e for e in classics if e["event_id"] not in used]
     if other:
         rows = "".join(
@@ -2062,12 +2330,16 @@ def main():
 
     # ── 主题地图 + 主题页 ──
     TOPIC_DIR.mkdir(parents=True, exist_ok=True)
-    (SITE / "topics.html").write_text(render_topics_map(qualified_events, css), encoding="utf-8")
+    (SITE / "topics.html").write_text(
+        render_topics_map(qualified_events, css, reference_time=gen), encoding="utf-8",
+    )
     valid_topic_slugs = set()
     for t in TOPICS_META:
         if any(t["name"] in e.get("topics", []) for e in qualified_events):
             valid_topic_slugs.add(t["slug"] + ".html")
-            (TOPIC_DIR / (t["slug"] + ".html")).write_text(render_topic_page(t, qualified_events, css), encoding="utf-8")
+            (TOPIC_DIR / (t["slug"] + ".html")).write_text(
+                render_topic_page(t, qualified_events, css, reference_time=gen), encoding="utf-8",
+            )
     for f in TOPIC_DIR.glob("*.html"):
         if f.name not in valid_topic_slugs:
             f.unlink()

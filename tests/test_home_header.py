@@ -118,7 +118,7 @@ class HomeHeaderTests(unittest.TestCase):
         )
         self.assertIn(".tcard{min-width:0;width:100%;overflow:hidden", build_site.SHARED_CSS)
         self.assertIn(
-            ".topic-map-page{padding-top:18px;padding-right:var(--mobile-page-right)",
+            ".topic-map-page,.topic-page{padding-top:18px;padding-right:var(--mobile-page-right)",
             build_site.SHARED_CSS,
         )
 

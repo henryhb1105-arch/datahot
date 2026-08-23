@@ -184,8 +184,8 @@ class HomeHeaderTests(unittest.TestCase):
         self.assertIn(".card-source-name{min-width:0;overflow:hidden;text-overflow:ellipsis", css)
         self.assertIn(".item .top{display:flex;align-items:center;gap:8px", css)
         self.assertNotIn(".item .top{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub);flex-wrap:wrap}", css)
-        source = (ROOT / "pipeline" / "build_site.py").read_text(encoding="utf-8")
-        self.assertIn("b.setAttribute('aria-pressed',b.classList.contains('on')?'true':'false')", source)
+        favorite_js = (ROOT / "pipeline" / "assets" / "favorites.js").read_text(encoding="utf-8")
+        self.assertIn('button.setAttribute("aria-pressed", on ? "true" : "false")', favorite_js)
 
     def test_mobile_timeline_toolbar_stays_on_one_compact_line(self):
         toolbar = build_site.render_timeline_toolbar(126)

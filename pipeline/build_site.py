@@ -34,6 +34,7 @@ WEEKLY_DIR = SITE / "weekly"
 ANALYTICS_ASSET = ROOT / "pipeline" / "assets" / "analytics.js"
 HOME_ASSET = ROOT / "pipeline" / "assets" / "home.js"
 FOR_ME_ASSET = ROOT / "pipeline" / "assets" / "for-me.js"
+FAVORITES_ASSET = ROOT / "pipeline" / "assets" / "favorites.js"
 DETAIL_ASSET = ROOT / "pipeline" / "assets" / "detail.js"
 TTS_ASSET = ROOT / "pipeline" / "assets" / "tts-player.js"
 TTS_MANIFEST = SITE / "data" / "tts-manifest.json"
@@ -248,6 +249,10 @@ main,.layout>*,.hotlist>*{min-width:0}
 .favbtn.on{color:var(--accent)}
 .favbtn.on svg{fill:currentColor}
 .favbtn svg{pointer-events:none}
+.favbtn .sbtn-label{pointer-events:none}
+.fav-toast{position:fixed;left:50%;bottom:28px;z-index:100;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 28px);min-height:44px;padding:8px 10px 8px 16px;border-radius:99px;background:rgba(26,29,35,.94);box-shadow:0 10px 30px rgba(0,0,0,.18);color:#fff;font-size:13px;line-height:1.4;opacity:0;pointer-events:none;transform:translate(-50%,12px);transition:opacity .2s ease,transform .2s ease}
+.fav-toast.show{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+.fav-toast-action{appearance:none;min-height:36px;border:0;border-radius:99px;padding:6px 12px;background:rgba(255,255,255,.14);color:#fff;font:inherit;font-size:12px;font-weight:750;cursor:pointer;white-space:nowrap}
 .fav-entry{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--sub);white-space:nowrap;text-decoration:none}
 .privacy-btn{min-height:44px;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:9px 16px;font-size:12.5px;font-weight:650;cursor:pointer;margin:4px 6px 4px 0}
 .privacy-btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
@@ -373,6 +378,8 @@ main,.layout>*,.hotlist>*{min-width:0}
 }
 .hot .hsum{font-size:12.5px;color:var(--txt2);line-height:1.65;margin:6px 0 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .hot .htime{margin-left:auto;font-size:11px;color:var(--sub)}
+.hot .sources{align-items:center}
+.hot .sources .favbtn{flex:0 0 auto;margin:-8px -8px -8px 0}
 .tabbar{display:none}
 .more-mask,.more-sheet{display:none}
 @media(max-width:1199px){
@@ -399,7 +406,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
   body.more-open{overflow:hidden}
 }
-.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.rank-row:focus-visible,.rank-note summary:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible,.tcard-main:focus-visible,.tchild-link:focus-visible,.scenario-row:focus-visible,.topic-back:focus-visible,.topic-follow:focus-visible,.topic-recent-card:focus-visible,.topic-reading-all:focus-visible,.topic-update-row:focus-visible,.topic-load-more:focus-visible,.topic-vendors summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.fav-toast-action:focus-visible,.favorites-search:focus-visible,.favorites-filter:focus-visible,.favorites-empty-cta:focus-visible,.favorite-card-main:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.rank-row:focus-visible,.rank-note summary:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible,.tcard-main:focus-visible,.tchild-link:focus-visible,.scenario-row:focus-visible,.topic-back:focus-visible,.topic-follow:focus-visible,.topic-recent-card:focus-visible,.topic-reading-all:focus-visible,.topic-update-row:focus-visible,.topic-load-more:focus-visible,.topic-vendors summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:600px){.favbtn{min-width:44px;min-height:44px}}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
@@ -442,7 +449,10 @@ main,.layout>*,.hotlist>*{min-width:0}
 .topic-section-head h2{font-size:16px;font-weight:800}
 .topic-section-head p{font-size:11.5px;color:var(--sub);text-align:right}
 .topic-recent-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.topic-recent-wrap{position:relative;min-width:0}
 .topic-recent-card{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;text-decoration:none;color:var(--ink)}
+.topic-recent-wrap .topic-recent-card{display:block;height:100%;padding-right:54px}
+.topic-recent-fav{position:absolute;top:7px;right:7px;z-index:2}
 .topic-recent-card h3{font-size:14px;line-height:1.55;margin:6px 0}
 .topic-recent-card p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-size:12px;line-height:1.65;color:var(--txt2)}
 .topic-recent-meta{font-size:10.5px;color:var(--sub)}
@@ -480,6 +490,52 @@ main,.layout>*,.hotlist>*{min-width:0}
   .topic-section-head p{text-align:left;margin-top:3px}
   .topic-update-row{grid-template-columns:70px minmax(0,1fr);gap:3px 10px;padding:10px 12px}
   .topic-update-source{grid-column:2;text-align:left}
+}
+.favorites-page{max-width:900px;min-height:calc(100vh - 145px);padding:28px 20px 60px}
+.favorites-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:18px}
+.favorites-title{display:flex;align-items:center;gap:8px;margin:0;font-size:22px;line-height:1.35}
+.favorites-count{color:var(--sub);font-size:12px;font-weight:500;white-space:nowrap}
+.favorites-trust{margin:6px 0 0;color:var(--sub);font-size:12px;line-height:1.6}
+.favorites-trust a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.favorites-tools{margin-bottom:16px}
+.favorites-search{width:min(360px,100%);min-height:44px;border:1px solid var(--line);border-radius:99px;padding:9px 15px;background:var(--card);color:var(--ink);font:inherit;font-size:13px;outline:none}
+.favorites-search:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.favorites-filters{display:flex;gap:7px;overflow-x:auto;margin-top:10px;padding-bottom:2px;scrollbar-width:none}
+.favorites-filters::-webkit-scrollbar{display:none}
+.favorites-filter{appearance:none;flex:0 0 auto;min-height:36px;border:1px solid var(--line);border-radius:99px;padding:6px 13px;background:var(--card);color:var(--sub);font:inherit;font-size:12px;cursor:pointer}
+.favorites-filter.on{border-color:var(--ink);background:var(--ink);color:var(--bg);font-weight:700}
+.favorites-group{margin:0 0 18px}
+.favorites-group h2{margin:0 0 8px;color:var(--sub);font-size:12px;font-weight:700}
+.favorites-list{display:grid;gap:10px}
+.favorite-card{display:grid;grid-template-columns:minmax(0,1fr) 48px;align-items:start;background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+.favorite-card-main{min-width:0;padding:15px 4px 15px 17px;color:var(--ink);text-decoration:none}
+.favorite-card-top{display:flex;align-items:center;gap:7px;margin-bottom:6px;color:var(--sub);font-size:10.5px;line-height:1.4}
+.favorite-card-topic{max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-radius:99px;padding:2px 8px;background:var(--soft);color:var(--txt2)}
+.favorite-card-saved{margin-left:auto;white-space:nowrap}
+.favorite-card h3{margin:0;font-size:15px;line-height:1.5}
+.favorite-card-summary{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;margin:6px 0 0;color:var(--txt2);font-size:12.5px;line-height:1.65}
+.favorite-card-meta{display:flex;align-items:center;gap:7px;margin-top:8px;color:var(--sub);font-size:11px;line-height:1.4}
+.favorite-card-meta span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.favorite-card>.favbtn{align-self:center;margin:4px 4px 4px 0}
+.favorites-empty{display:grid;place-items:center;min-height:330px;padding:34px 20px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);text-align:center}
+.favorites-empty-inner{max-width:360px}
+.favorites-empty-icon{display:grid;place-items:center;width:54px;height:54px;margin:0 auto 14px;border-radius:50%;background:var(--soft);color:var(--sub)}
+.favorites-empty h2{margin:0 0 7px;font-size:17px}
+.favorites-empty p{margin:0;color:var(--sub);font-size:12.5px;line-height:1.75}
+.favorites-empty-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin-top:17px;border-radius:99px;padding:8px 17px;background:var(--ink);color:var(--bg);font-size:12.5px;font-weight:700;text-decoration:none}
+.favorites-loading{padding:22px 0;color:var(--sub);font-size:13px}
+@media(max-width:600px){
+  .favorites-page{min-height:calc(100dvh - 145px - env(safe-area-inset-bottom));padding:20px 14px calc(36px + env(safe-area-inset-bottom))}
+  .favorites-head{display:block;margin-bottom:15px}
+  .favorites-title{font-size:21px}
+  .favorites-trust{font-size:11.5px}
+  .favorites-search{width:100%}
+  .favorite-card{grid-template-columns:minmax(0,1fr) 52px}
+  .favorite-card-main{padding:14px 2px 14px 14px}
+  .favorite-card h3{font-size:15px}
+  .favorite-card>.favbtn{margin-right:4px}
+  .favorites-empty{min-height:350px;padding:32px 18px}
+  .fav-toast{bottom:calc(68px + env(safe-area-inset-bottom))}
 }
 @media(hover:hover) and (pointer:fine){
   .chip:hover{background:#dbe4ff}
@@ -667,6 +723,10 @@ def analytics_head(prefix=""):
         f'data-environment="{esc(environment)}" data-production-host="{esc(production_host)}">\n'
         f'<script defer src="{prefix}analytics.js"></script>'
     )
+
+
+def favorites_head(prefix=""):
+    return f'<script defer src="{prefix}favorites.js"></script>'
 
 def feed_enabled():
     return os.getenv("FEED_ENABLED", "true").strip().lower() in {"1", "true", "yes", "on"}
@@ -920,6 +980,32 @@ def is_classic_review(e):
         return False
     return (datetime.now(TZ) - datetime.fromisoformat(pub).astimezone(TZ)).days > 30
 
+
+def favorite_snapshot(e):
+    """Return the metadata-only record persisted by the local favourites client."""
+    primary = (e.get("items") or [{}])[0]
+    return {
+        "event_id": safe_event_id(e.get("event_id")),
+        "title": str(e.get("zh_title") or ""),
+        "summary": str(e.get("zh_summary") or ""),
+        "source": src_display(str(primary.get("source") or "")),
+        "category": str(e.get("category") or ""),
+        "topics": [str(topic) for topic in (e.get("topics") or []) if str(topic).strip()],
+        "published": str(e.get("published") or e.get("first_seen") or ""),
+        "original_url": _safe_source_url(primary.get("link")),
+    }
+
+
+def favorite_button(e, *, class_name="favbtn", icon_size=15, label=""):
+    record = esc(json.dumps(favorite_snapshot(e), ensure_ascii=False, separators=(",", ":")))
+    event_id = safe_event_id(e.get("event_id"))
+    label_html = f'<span class="sbtn-label">{esc(label)}</span>' if label else ""
+    return (
+        f'<button class="{esc(class_name)}" type="button" data-fav="{event_id}" '
+        f'data-fav-record="{record}" title="收藏" aria-label="收藏" aria-pressed="false">'
+        f'{ic("bookmark", icon_size)}{label_html}</button>'
+    )
+
 def render_card(e, prefix=""):
     event_id = safe_event_id(e["event_id"])
     status_label = "精选" if e.get("star") else ""
@@ -943,7 +1029,7 @@ def render_card(e, prefix=""):
     return f'''<div class="item" data-cat="{esc(e["category"])}" data-topics="{esc("|".join(e.get("topics", [])))}" data-link="{url}" data-analytics-list="1" data-event-id="{event_id}" data-category="{esc(e["category"])}" data-source="{esc(e["items"][0]["source"])}">
       <div class="top card-meta"><span class="card-source"><span class="srcbadge">{src_badge(e["items"][0]["source"])}</span><span class="card-source-name">{esc(src_display(e["items"][0]["source"]))}</span><span class="card-time">{card_time(e)}</span></span>
       <span class="heatnum{status_class}" title="热度分：{HEAT_FORMULA}">{ic("flame",13)} {esc(status_text)}</span>
-      <button class="favbtn" data-fav="{event_id}" title="收藏" aria-label="收藏" aria-pressed="false">{ic("bookmark",15)}</button></div>
+      {favorite_button(e)}</div>
       <h3><a href="{url}">{esc(e["zh_title"])}</a></h3>
       <p class="sum">{esc(e["zh_summary"])}</p>{also}{reason}{vbox}
     </div>'''
@@ -1222,6 +1308,7 @@ def render_detail(e, all_events, css, tts_item=None):
 <meta name="theme-color" content="#1a1d23">
 {feed_discovery()}
 {analytics_head("../")}
+{favorites_head("../")}
 <script defer src="../detail.js"></script>
 <script type="application/ld+json">{jsonld}</script>
 <style>{css}
@@ -1323,7 +1410,7 @@ def render_detail(e, all_events, css, tts_item=None):
   <div class="topbar detail-context">
     <a class="back" href="../index.html" data-smart-back aria-label="返回"><span aria-hidden="true">←</span><span class="back-label">返回</span></a>
     <span class="sharebtns">
-      <button class="sbtn ghost favbtn" type="button" data-fav="{event_id}" title="收藏" aria-label="收藏" aria-pressed="false">{ic("bookmark",15)}<span class="sbtn-label">收藏</span></button>
+      {favorite_button(e, class_name="sbtn ghost favbtn", label="收藏")}
 {("      " + tts_button) if tts_button else ""}
       <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/{event_id}.png" title="海报" aria-label="海报">{ic("image",15)}<span class="sbtn-label">海报</span></button>
       <button class="sbtn" type="button" data-share-action="open" title="分享" aria-label="分享">{ic("share",15)}<span class="sbtn-label">分享</span></button>
@@ -1436,19 +1523,6 @@ def share_ui(e, page_url):
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}catch(e){return[]}}
-(function(){
-  var favs=dhFavs();
-  document.querySelectorAll('[data-fav]').forEach(function(b){
-    if(favs.indexOf(b.dataset.fav)>=0){b.classList.add('on');b.setAttribute('aria-pressed','true');}
-    b.addEventListener('click',function(ev){
-      ev.stopPropagation();
-      var f=dhFavs(),id=b.dataset.fav,i=f.indexOf(id);
-      if(i>=0){f.splice(i,1);b.classList.remove('on');b.setAttribute('aria-pressed','false');}else{f.push(id);b.classList.add('on');b.setAttribute('aria-pressed','true');}
-      localStorage.setItem('dh_favs',JSON.stringify(f));
-    });
-  });
-})();
 var SH_EV = __EV_JSON__;
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
@@ -1759,11 +1833,14 @@ def render_topic_page(t, events, css, reference_time=None):
     recent = _topic_recent_events(topic_events, reference_time)
     vendors = sorted({vendor for event in topic_events for vendor in event.get("vendors", [])})
 
-    recent_cards = "".join(f'''<a class="topic-recent-card" href="../{detail_url(event)}">
+    recent_cards = "".join(f'''<article class="topic-recent-wrap" data-event-id="{safe_event_id(event["event_id"])}">
+  <a class="topic-recent-card" href="../{detail_url(event)}">
   <span class="topic-recent-meta">{_topic_event_date(event)} · {esc(_topic_event_source(event))}</span>
   <h3>{esc(event["zh_title"])}</h3>
   <p>{esc(event.get("zh_summary", ""))}</p>
-</a>''' for event in recent[:3])
+</a>
+  {favorite_button(event, class_name="favbtn topic-recent-fav")}
+</article>''' for event in recent[:3])
     recent_html = (
         f'<div class="topic-recent-grid">{recent_cards}</div>'
         if recent_cards else '<div class="topic-empty">近 7 天暂无新增，以下保留该主题的历史脉络。</div>'
@@ -1880,6 +1957,7 @@ def page_shell(title, desc, css, body, tabbar_html, prefix="", active=""):
 <meta name="theme-color" content="#1a1d23">
 {feed_discovery()}
 {analytics_head(prefix)}
+{favorites_head(prefix)}
 <style>{css}
 {SHARED_CSS}
 </style></head><body class="has-sb mobile-section" data-nav-active="{esc(active)}">
@@ -2057,40 +2135,22 @@ def render_classics_page(events, css):
                       tabbar("classics"), prefix="", active="classics")
 
 def render_favorites_page(css, data_url="data/latest-lite.json"):
-    """收藏页：只拉 metadata-only 数据；详情正文留在详情页。"""
-    body = """
-<div class="wrap" style="padding:28px 20px 60px;max-width:900px">
-  <div class="section-title"><h2>★ 我的收藏</h2><span>保存在本机浏览器 · 不上传</span></div>
-  <div class="scard" style="padding:6px 18px" id="favList"><div style="padding:14px 0;color:var(--sub);font-size:13px">加载中…</div></div>
-</div>
-<script>
-(function(){
-  var list=document.getElementById('favList');
-  var favs=[];
-  try{favs=JSON.parse(localStorage.getItem('dh_favs')||'[]')}catch(e){}
-  if(!favs.length){
-    list.innerHTML='<div style="padding:20px 0;color:var(--sub);font-size:13px;line-height:1.8">还没有收藏。<br>在时间轴卡片或详情页点 ☆ 星标，内容会出现在这里。</div>';
-    return;
-  }
-  function safe(v){return String(v||'').replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c];});}
-  fetch('__DATA_URL__').then(function(r){return r.json();}).then(function(d){
-    var map=Object.create(null);
-    d.events.forEach(function(e){map[e.event_id]=e;});
-    var html='';
-    favs.forEach(function(id){
-      var e=map[id];
-      if(!e) return;
-      html+='<a class="hrow" href="e/'+encodeURIComponent(String(e.event_id||''))+'.html">'
-        +'<span class="ht">'+safe(e.zh_title)+'</span>'
-        +'<span class="hm">'+safe(e.items[0]?e.items[0].source:'')+' · '+safe((e.published||e.first_seen||'').slice(0,10))+'</span></a>';
-    });
-    list.innerHTML=html||'<div style="padding:20px 0;color:var(--sub);font-size:13px">收藏的内容已过期（超过 7 天的新闻会出池，典藏内容永久保留）。</div>';
-  }).catch(function(){
-    list.innerHTML='<div style="padding:20px 0;color:var(--sub);font-size:13px">加载失败，请稍后再试。</div>';
-  });
-})();
-</script>"""
-    body = body.replace("__DATA_URL__", esc(data_url))
+    """收藏页：本机快照优先，数据索引只用于补全旧版 event_id 收藏。"""
+    body = f'''
+<main class="wrap favorites-page" data-favorites-page data-favorites-data-url="{esc(data_url)}">
+  <header class="favorites-head">
+    <div>
+      <h1 class="favorites-title">{ic("bookmark",22)} 我的收藏 <span class="favorites-count" id="favoritesCount">0 条</span></h1>
+      <p class="favorites-trust">仅保存在当前浏览器 · 不上传；清除浏览器数据可能丢失。<a href="privacy.html">了解隐私</a></p>
+    </div>
+  </header>
+  <section class="favorites-tools" id="favoritesTools" aria-label="查找收藏" hidden>
+    <input class="favorites-search" id="favoritesSearch" type="search" placeholder="搜索收藏" aria-label="搜索收藏">
+    <div class="favorites-filters" id="favoritesFilters" aria-label="按主题筛选收藏"></div>
+  </section>
+  <div id="favList" aria-live="polite" aria-busy="true"><div class="favorites-loading">正在读取本机收藏…</div></div>
+  <noscript><div class="favorites-empty"><div class="favorites-empty-inner"><h2>需要启用 JavaScript</h2><p>收藏保存在当前浏览器中，启用 JavaScript 后即可读取。</p></div></div></noscript>
+</main>'''
     return page_shell("我的收藏 · DataHot", "你收藏的数据领域资讯", css, body, tabbar("favorites"), prefix="", active="favorites")
 
 
@@ -2411,11 +2471,12 @@ def write_qr_assets(all_events, qr_dir=None, site_base=SITE_BASE):
 
 def main():
     SITE.mkdir(parents=True, exist_ok=True)
-    if not all(asset.exists() for asset in (ANALYTICS_ASSET, HOME_ASSET, FOR_ME_ASSET, DETAIL_ASSET, TTS_ASSET)):
+    if not all(asset.exists() for asset in (ANALYTICS_ASSET, HOME_ASSET, FOR_ME_ASSET, FAVORITES_ASSET, DETAIL_ASSET, TTS_ASSET)):
         raise FileNotFoundError("missing browser asset")
     shutil.copyfile(ANALYTICS_ASSET, SITE / "analytics.js")
     shutil.copyfile(HOME_ASSET, SITE / "home.js")
     shutil.copyfile(FOR_ME_ASSET, SITE / "for-me.js")
+    shutil.copyfile(FAVORITES_ASSET, SITE / "favorites.js")
     shutil.copyfile(DETAIL_ASSET, SITE / "detail.js")
     shutil.copyfile(TTS_ASSET, SITE / "tts-player.js")
     payload = json.load(open(SITE / "data" / "latest.json"))
@@ -2533,7 +2594,7 @@ def main():
         hot_cards += f'''<div class="hot" data-link="{detail_url(e)}" data-analytics-list="1" data-event-id="{safe_event_id(e["event_id"])}" data-category="{esc(e["category"])}" data-source="{esc(e["items"][0]["source"])}"><span class="rank">TOP {n}</span><span class="heat">{ic("flame",12)} {e["heat"]}</span>
         <h3><a href="{detail_url(e)}">{esc(e["zh_title"])}</a></h3>
         <p class="hsum">{esc(e["zh_summary"])}</p>
-        <div class="sources"><span class="srcbadge">{src_badge(e["items"][0]["source"])}</span>{sources_html(e)}<span class="htime">{card_time(e)}</span></div></div>'''
+        <div class="sources"><span class="srcbadge">{src_badge(e["items"][0]["source"])}</span>{sources_html(e)}<span class="htime">{card_time(e)}</span>{favorite_button(e)}</div></div>'''
 
     # ── 时间轴 ──
     initial_events = home_first_page if lite_enabled else home_ranking
@@ -2602,6 +2663,7 @@ def main():
 <meta name="theme-color" content="#1a1d23">
 {feed_discovery()}
 {analytics_head("")}
+{favorites_head("")}
 {home_config}
 {home_asset}
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2657,31 +2719,6 @@ def main():
 {tabbar("home")}
 
 <script>
-// 收藏（localStorage）
-function dhFavs(){{try{{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}}catch(e){{return[]}}}}
-function showFavTp(t){{
-  let tp=document.getElementById('favtp');
-  if(!tp){{tp=document.createElement('div');tp.id='favtp';tp.style.cssText='position:fixed;top:16%;left:50%;transform:translateX(-50%);background:rgba(26,29,35,.92);color:#fff;font-size:13px;padding:9px 20px;border-radius:99px;z-index:99;transition:opacity .3s';document.body.appendChild(tp);}}
-  tp.textContent=t;tp.style.opacity='1';clearTimeout(tp._t);tp._t=setTimeout(()=>{{tp.style.opacity='0';}},1400);
-}}
-function dhInitFav(){{
-  const favs=dhFavs();
-  document.querySelectorAll('[data-fav]').forEach(b=>{{
-    if(b.dataset.favBound==='1') return;
-    b.dataset.favBound='1';
-    if(favs.includes(b.dataset.fav)) b.classList.add('on');
-    b.setAttribute('aria-pressed',b.classList.contains('on')?'true':'false');
-    b.addEventListener('click',ev=>{{
-      ev.stopPropagation();
-      let f=dhFavs();const id=b.dataset.fav;const i=f.indexOf(id);
-      if(i>=0){{f.splice(i,1);b.classList.remove('on');showFavTp('已取消收藏');}}else{{f.push(id);b.classList.add('on');showFavTp('已收藏 · 底部「收藏」Tab 可见');}}
-      b.setAttribute('aria-pressed',b.classList.contains('on')?'true':'false');
-      localStorage.setItem('dh_favs',JSON.stringify(f));
-    }});
-  }});
-}}
-window.dhInitFav=dhInitFav;
-dhInitFav();
 if(!document.getElementById('homeDataConfig')){{
 function applyFilter(pred){{
   let total=0;

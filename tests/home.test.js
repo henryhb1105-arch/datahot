@@ -283,7 +283,8 @@ test("dynamic cards keep one-line source metadata, combined featured heat and bo
   assert.match(html, /class="card-source-name">Google BigQuery Release Notes/);
   assert.match(html, /class="srcbadge">RSS<\/span>/);
   assert.match(html, /class="heatnum is-featured"[^>]*><svg[^>]*>.*精选 59<\/span>/);
-  assert.match(html, /class="favbtn"[^>]*aria-label="收藏" aria-pressed="false"><svg/);
+  assert.match(html, /class="favbtn"[^>]*data-fav-record="\{&quot;event_id&quot;:&quot;000000000014&quot;/);
+  assert.match(html, /class="favbtn"[^>]*type="button" title="收藏" aria-label="收藏" aria-pressed="false"><svg/);
   assert.doesNotMatch(html, />☆<\/button>/);
   assert.doesNotMatch(html, /<span class="star">精选<\/span>/);
 });

@@ -11,6 +11,7 @@
 <link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://datahot.xiahongbin.com/feed.xml">
 <meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
 <script defer src="../analytics.js"></script>
+<script defer src="../favorites.js"></script>
 <style>
   :root{
     color-scheme: light dark;
@@ -288,6 +289,10 @@ main,.layout>*,.hotlist>*{min-width:0}
 .favbtn.on{color:var(--accent)}
 .favbtn.on svg{fill:currentColor}
 .favbtn svg{pointer-events:none}
+.favbtn .sbtn-label{pointer-events:none}
+.fav-toast{position:fixed;left:50%;bottom:28px;z-index:100;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 28px);min-height:44px;padding:8px 10px 8px 16px;border-radius:99px;background:rgba(26,29,35,.94);box-shadow:0 10px 30px rgba(0,0,0,.18);color:#fff;font-size:13px;line-height:1.4;opacity:0;pointer-events:none;transform:translate(-50%,12px);transition:opacity .2s ease,transform .2s ease}
+.fav-toast.show{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+.fav-toast-action{appearance:none;min-height:36px;border:0;border-radius:99px;padding:6px 12px;background:rgba(255,255,255,.14);color:#fff;font:inherit;font-size:12px;font-weight:750;cursor:pointer;white-space:nowrap}
 .fav-entry{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--sub);white-space:nowrap;text-decoration:none}
 .privacy-btn{min-height:44px;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:9px 16px;font-size:12.5px;font-weight:650;cursor:pointer;margin:4px 6px 4px 0}
 .privacy-btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
@@ -413,6 +418,8 @@ main,.layout>*,.hotlist>*{min-width:0}
 }
 .hot .hsum{font-size:12.5px;color:var(--txt2);line-height:1.65;margin:6px 0 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .hot .htime{margin-left:auto;font-size:11px;color:var(--sub)}
+.hot .sources{align-items:center}
+.hot .sources .favbtn{flex:0 0 auto;margin:-8px -8px -8px 0}
 .tabbar{display:none}
 .more-mask,.more-sheet{display:none}
 @media(max-width:1199px){
@@ -439,7 +446,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
   body.more-open{overflow:hidden}
 }
-.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.rank-row:focus-visible,.rank-note summary:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible,.tcard-main:focus-visible,.tchild-link:focus-visible,.scenario-row:focus-visible,.topic-back:focus-visible,.topic-follow:focus-visible,.topic-recent-card:focus-visible,.topic-reading-all:focus-visible,.topic-update-row:focus-visible,.topic-load-more:focus-visible,.topic-vendors summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.fav-toast-action:focus-visible,.favorites-search:focus-visible,.favorites-filter:focus-visible,.favorites-empty-cta:focus-visible,.favorite-card-main:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.rank-row:focus-visible,.rank-note summary:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible,.tcard-main:focus-visible,.tchild-link:focus-visible,.scenario-row:focus-visible,.topic-back:focus-visible,.topic-follow:focus-visible,.topic-recent-card:focus-visible,.topic-reading-all:focus-visible,.topic-update-row:focus-visible,.topic-load-more:focus-visible,.topic-vendors summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:600px){.favbtn{min-width:44px;min-height:44px}}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
@@ -482,7 +489,10 @@ main,.layout>*,.hotlist>*{min-width:0}
 .topic-section-head h2{font-size:16px;font-weight:800}
 .topic-section-head p{font-size:11.5px;color:var(--sub);text-align:right}
 .topic-recent-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.topic-recent-wrap{position:relative;min-width:0}
 .topic-recent-card{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;text-decoration:none;color:var(--ink)}
+.topic-recent-wrap .topic-recent-card{display:block;height:100%;padding-right:54px}
+.topic-recent-fav{position:absolute;top:7px;right:7px;z-index:2}
 .topic-recent-card h3{font-size:14px;line-height:1.55;margin:6px 0}
 .topic-recent-card p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-size:12px;line-height:1.65;color:var(--txt2)}
 .topic-recent-meta{font-size:10.5px;color:var(--sub)}
@@ -521,6 +531,52 @@ main,.layout>*,.hotlist>*{min-width:0}
   .topic-update-row{grid-template-columns:70px minmax(0,1fr);gap:3px 10px;padding:10px 12px}
   .topic-update-source{grid-column:2;text-align:left}
 }
+.favorites-page{max-width:900px;min-height:calc(100vh - 145px);padding:28px 20px 60px}
+.favorites-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:18px}
+.favorites-title{display:flex;align-items:center;gap:8px;margin:0;font-size:22px;line-height:1.35}
+.favorites-count{color:var(--sub);font-size:12px;font-weight:500;white-space:nowrap}
+.favorites-trust{margin:6px 0 0;color:var(--sub);font-size:12px;line-height:1.6}
+.favorites-trust a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.favorites-tools{margin-bottom:16px}
+.favorites-search{width:min(360px,100%);min-height:44px;border:1px solid var(--line);border-radius:99px;padding:9px 15px;background:var(--card);color:var(--ink);font:inherit;font-size:13px;outline:none}
+.favorites-search:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.favorites-filters{display:flex;gap:7px;overflow-x:auto;margin-top:10px;padding-bottom:2px;scrollbar-width:none}
+.favorites-filters::-webkit-scrollbar{display:none}
+.favorites-filter{appearance:none;flex:0 0 auto;min-height:36px;border:1px solid var(--line);border-radius:99px;padding:6px 13px;background:var(--card);color:var(--sub);font:inherit;font-size:12px;cursor:pointer}
+.favorites-filter.on{border-color:var(--ink);background:var(--ink);color:var(--bg);font-weight:700}
+.favorites-group{margin:0 0 18px}
+.favorites-group h2{margin:0 0 8px;color:var(--sub);font-size:12px;font-weight:700}
+.favorites-list{display:grid;gap:10px}
+.favorite-card{display:grid;grid-template-columns:minmax(0,1fr) 48px;align-items:start;background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+.favorite-card-main{min-width:0;padding:15px 4px 15px 17px;color:var(--ink);text-decoration:none}
+.favorite-card-top{display:flex;align-items:center;gap:7px;margin-bottom:6px;color:var(--sub);font-size:10.5px;line-height:1.4}
+.favorite-card-topic{max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-radius:99px;padding:2px 8px;background:var(--soft);color:var(--txt2)}
+.favorite-card-saved{margin-left:auto;white-space:nowrap}
+.favorite-card h3{margin:0;font-size:15px;line-height:1.5}
+.favorite-card-summary{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;margin:6px 0 0;color:var(--txt2);font-size:12.5px;line-height:1.65}
+.favorite-card-meta{display:flex;align-items:center;gap:7px;margin-top:8px;color:var(--sub);font-size:11px;line-height:1.4}
+.favorite-card-meta span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.favorite-card>.favbtn{align-self:center;margin:4px 4px 4px 0}
+.favorites-empty{display:grid;place-items:center;min-height:330px;padding:34px 20px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);text-align:center}
+.favorites-empty-inner{max-width:360px}
+.favorites-empty-icon{display:grid;place-items:center;width:54px;height:54px;margin:0 auto 14px;border-radius:50%;background:var(--soft);color:var(--sub)}
+.favorites-empty h2{margin:0 0 7px;font-size:17px}
+.favorites-empty p{margin:0;color:var(--sub);font-size:12.5px;line-height:1.75}
+.favorites-empty-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin-top:17px;border-radius:99px;padding:8px 17px;background:var(--ink);color:var(--bg);font-size:12.5px;font-weight:700;text-decoration:none}
+.favorites-loading{padding:22px 0;color:var(--sub);font-size:13px}
+@media(max-width:600px){
+  .favorites-page{min-height:calc(100dvh - 145px - env(safe-area-inset-bottom));padding:20px 14px calc(36px + env(safe-area-inset-bottom))}
+  .favorites-head{display:block;margin-bottom:15px}
+  .favorites-title{font-size:21px}
+  .favorites-trust{font-size:11.5px}
+  .favorites-search{width:100%}
+  .favorite-card{grid-template-columns:minmax(0,1fr) 52px}
+  .favorite-card-main{padding:14px 2px 14px 14px}
+  .favorite-card h3{font-size:15px}
+  .favorite-card>.favbtn{margin-right:4px}
+  .favorites-empty{min-height:350px;padding:32px 18px}
+  .fav-toast{bottom:calc(68px + env(safe-area-inset-bottom))}
+}
 @media(hover:hover) and (pointer:fine){
   .chip:hover{background:#dbe4ff}
   a.source-name:hover,.crow:hover .ctitle,.fav-entry:hover,.weekly-evidence-row:hover span:first-child,.hrow:hover .ht,.rank-row:hover .rank-title{color:var(--accent)}
@@ -553,15 +609,21 @@ main,.layout>*,.hotlist>*{min-width:0}
   </header>
   <section class="topic-section" aria-labelledby="recentProgress">
     <div class="topic-section-head"><h2 id="recentProgress">近期进展</h2><p>最近 7 天内最新的 3 条</p></div>
-    <div class="topic-recent-grid"><a class="topic-recent-card" href="../e/d5bfdeffce5c.html">
+    <div class="topic-recent-grid"><article class="topic-recent-wrap" data-event-id="d5bfdeffce5c">
+  <a class="topic-recent-card" href="../e/d5bfdeffce5c.html">
   <span class="topic-recent-meta">2026-08-18 · dbt Blog</span>
   <h3>Databricks处理数据，dbt定义数据含义</h3>
   <p>Databricks是优秀的数据平台，dbt与Databricks保持合作，数千团队在两者上运行生产工作负载。但选择Databricks作为计算平台与选择它来承载转换逻辑是两个不同的决策，多数公司往往一并批准。将转换逻辑完全置于Databricks会带来可移植性和可审计性风险，退出成本可能在日后成为数月的工程项目。</p>
-</a><a class="topic-recent-card" href="../e/bcfd90e63775.html">
+</a>
+  <button class="favbtn topic-recent-fav" type="button" data-fav="d5bfdeffce5c" data-fav-record="{&quot;event_id&quot;:&quot;d5bfdeffce5c&quot;,&quot;title&quot;:&quot;Databricks处理数据，dbt定义数据含义&quot;,&quot;summary&quot;:&quot;Databricks是优秀的数据平台，dbt与Databricks保持合作，数千团队在两者上运行生产工作负载。但选择Databricks作为计算平台与选择它来承载转换逻辑是两个不同的决策，多数公司往往一并批准。将转换逻辑完全置于Databricks会带来可移植性和可审计性风险，退出成本可能在日后成为数月的工程项目。&quot;,&quot;source&quot;:&quot;dbt Blog&quot;,&quot;category&quot;:&quot;platform&quot;,&quot;topics&quot;:[&quot;数据人&quot;],&quot;published&quot;:&quot;2026-08-18T00:47:00+08:00&quot;,&quot;original_url&quot;:&quot;https://www.getdbt.com/blog/databricks-processes-your-data-dbt-defines-what-it-means&quot;}" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button>
+</article><article class="topic-recent-wrap" data-event-id="bcfd90e63775">
+  <a class="topic-recent-card" href="../e/bcfd90e63775.html">
   <span class="topic-recent-meta">2026-08-17 · dbt Blog</span>
   <h3>为Token建模而非表：dbt仓储上下文节省20倍成本</h3>
   <p>Gong通话记录是AI重要上下文，但直接调用API每次账户查询消耗约24万token且触及速率上限。团队用Fivetran将Gong数据同步至Snowflake，通过dbt建模并经dbt MCP server提供结构化上下文。最终token成本降低20倍，还能与账户其他数据关联形成更丰富的上下文层。</p>
-</a></div>
+</a>
+  <button class="favbtn topic-recent-fav" type="button" data-fav="bcfd90e63775" data-fav-record="{&quot;event_id&quot;:&quot;bcfd90e63775&quot;,&quot;title&quot;:&quot;为Token建模而非表：dbt仓储上下文节省20倍成本&quot;,&quot;summary&quot;:&quot;Gong通话记录是AI重要上下文，但直接调用API每次账户查询消耗约24万token且触及速率上限。团队用Fivetran将Gong数据同步至Snowflake，通过dbt建模并经dbt MCP server提供结构化上下文。最终token成本降低20倍，还能与账户其他数据关联形成更丰富的上下文层。&quot;,&quot;source&quot;:&quot;dbt Blog&quot;,&quot;category&quot;:&quot;platform&quot;,&quot;topics&quot;:[&quot;平台AI化&quot;,&quot;数据人&quot;],&quot;published&quot;:&quot;2026-08-17T22:42:00+08:00&quot;,&quot;original_url&quot;:&quot;https://www.getdbt.com/blog/model-for-the-token-not-the-table&quot;}" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg></button>
+</article></div>
   </section>
   
   <section class="topic-section" aria-labelledby="topicReading">

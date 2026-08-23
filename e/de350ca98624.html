@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-I1sCW0UdhMW7XemFp8iccMOvARI8OpaLRE4Qy2A3rNo=' 'sha256-WASZNsQE9DRDrkgXSSxkjole79YU4KcLXnBXNlo276Y='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-WASZNsQE9DRDrkgXSSxkjole79YU4KcLXnBXNlo276Y=' 'sha256-WLHK3Yl5nTAz9khdEc++943/dH1WuSwgXnlg2uA12uY='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Amazon MQ for RabbitMQ 的认证与授权选项 · DataHot</title>
@@ -18,6 +18,7 @@
 <link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://datahot.xiahongbin.com/feed.xml">
 <meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
 <script defer src="../analytics.js"></script>
+<script defer src="../favorites.js"></script>
 <script defer src="../detail.js"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"Amazon MQ for RabbitMQ 的认证与授权选项","description":"在规模化场景下，消息代理的认证管理十分复杂，静态用户名密码方式会带来凭证分发、轮换与撤销等运维负担。Amazon MQ for RabbitMQ 支持简单凭证、OAuth 2.0、IAM、LDAP、HTTP 认证后端及 SSL 证书等多种认证授权方式，便于对接企业现有身份基础设施。文章介绍了各方式的","datePublished":"2026-08-18T00:37:35+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://aws.amazon.com/blogs/big-data/authentication-and-authorization-options-for-amazon-mq-for-rabbitmq/"}</script>
 <style>
@@ -297,6 +298,10 @@ main,.layout>*,.hotlist>*{min-width:0}
 .favbtn.on{color:var(--accent)}
 .favbtn.on svg{fill:currentColor}
 .favbtn svg{pointer-events:none}
+.favbtn .sbtn-label{pointer-events:none}
+.fav-toast{position:fixed;left:50%;bottom:28px;z-index:100;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 28px);min-height:44px;padding:8px 10px 8px 16px;border-radius:99px;background:rgba(26,29,35,.94);box-shadow:0 10px 30px rgba(0,0,0,.18);color:#fff;font-size:13px;line-height:1.4;opacity:0;pointer-events:none;transform:translate(-50%,12px);transition:opacity .2s ease,transform .2s ease}
+.fav-toast.show{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+.fav-toast-action{appearance:none;min-height:36px;border:0;border-radius:99px;padding:6px 12px;background:rgba(255,255,255,.14);color:#fff;font:inherit;font-size:12px;font-weight:750;cursor:pointer;white-space:nowrap}
 .fav-entry{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--sub);white-space:nowrap;text-decoration:none}
 .privacy-btn{min-height:44px;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:9px 16px;font-size:12.5px;font-weight:650;cursor:pointer;margin:4px 6px 4px 0}
 .privacy-btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
@@ -422,6 +427,8 @@ main,.layout>*,.hotlist>*{min-width:0}
 }
 .hot .hsum{font-size:12.5px;color:var(--txt2);line-height:1.65;margin:6px 0 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .hot .htime{margin-left:auto;font-size:11px;color:var(--sub)}
+.hot .sources{align-items:center}
+.hot .sources .favbtn{flex:0 0 auto;margin:-8px -8px -8px 0}
 .tabbar{display:none}
 .more-mask,.more-sheet{display:none}
 @media(max-width:1199px){
@@ -448,7 +455,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
   body.more-open{overflow:hidden}
 }
-.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.rank-row:focus-visible,.rank-note summary:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible,.tcard-main:focus-visible,.tchild-link:focus-visible,.scenario-row:focus-visible,.topic-back:focus-visible,.topic-follow:focus-visible,.topic-recent-card:focus-visible,.topic-reading-all:focus-visible,.topic-update-row:focus-visible,.topic-load-more:focus-visible,.topic-vendors summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.fav-toast-action:focus-visible,.favorites-search:focus-visible,.favorites-filter:focus-visible,.favorites-empty-cta:focus-visible,.favorite-card-main:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.rank-row:focus-visible,.rank-note summary:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible,.tcard-main:focus-visible,.tchild-link:focus-visible,.scenario-row:focus-visible,.topic-back:focus-visible,.topic-follow:focus-visible,.topic-recent-card:focus-visible,.topic-reading-all:focus-visible,.topic-update-row:focus-visible,.topic-load-more:focus-visible,.topic-vendors summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:600px){.favbtn{min-width:44px;min-height:44px}}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
@@ -491,7 +498,10 @@ main,.layout>*,.hotlist>*{min-width:0}
 .topic-section-head h2{font-size:16px;font-weight:800}
 .topic-section-head p{font-size:11.5px;color:var(--sub);text-align:right}
 .topic-recent-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.topic-recent-wrap{position:relative;min-width:0}
 .topic-recent-card{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;text-decoration:none;color:var(--ink)}
+.topic-recent-wrap .topic-recent-card{display:block;height:100%;padding-right:54px}
+.topic-recent-fav{position:absolute;top:7px;right:7px;z-index:2}
 .topic-recent-card h3{font-size:14px;line-height:1.55;margin:6px 0}
 .topic-recent-card p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-size:12px;line-height:1.65;color:var(--txt2)}
 .topic-recent-meta{font-size:10.5px;color:var(--sub)}
@@ -529,6 +539,52 @@ main,.layout>*,.hotlist>*{min-width:0}
   .topic-section-head p{text-align:left;margin-top:3px}
   .topic-update-row{grid-template-columns:70px minmax(0,1fr);gap:3px 10px;padding:10px 12px}
   .topic-update-source{grid-column:2;text-align:left}
+}
+.favorites-page{max-width:900px;min-height:calc(100vh - 145px);padding:28px 20px 60px}
+.favorites-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:18px}
+.favorites-title{display:flex;align-items:center;gap:8px;margin:0;font-size:22px;line-height:1.35}
+.favorites-count{color:var(--sub);font-size:12px;font-weight:500;white-space:nowrap}
+.favorites-trust{margin:6px 0 0;color:var(--sub);font-size:12px;line-height:1.6}
+.favorites-trust a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.favorites-tools{margin-bottom:16px}
+.favorites-search{width:min(360px,100%);min-height:44px;border:1px solid var(--line);border-radius:99px;padding:9px 15px;background:var(--card);color:var(--ink);font:inherit;font-size:13px;outline:none}
+.favorites-search:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.favorites-filters{display:flex;gap:7px;overflow-x:auto;margin-top:10px;padding-bottom:2px;scrollbar-width:none}
+.favorites-filters::-webkit-scrollbar{display:none}
+.favorites-filter{appearance:none;flex:0 0 auto;min-height:36px;border:1px solid var(--line);border-radius:99px;padding:6px 13px;background:var(--card);color:var(--sub);font:inherit;font-size:12px;cursor:pointer}
+.favorites-filter.on{border-color:var(--ink);background:var(--ink);color:var(--bg);font-weight:700}
+.favorites-group{margin:0 0 18px}
+.favorites-group h2{margin:0 0 8px;color:var(--sub);font-size:12px;font-weight:700}
+.favorites-list{display:grid;gap:10px}
+.favorite-card{display:grid;grid-template-columns:minmax(0,1fr) 48px;align-items:start;background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+.favorite-card-main{min-width:0;padding:15px 4px 15px 17px;color:var(--ink);text-decoration:none}
+.favorite-card-top{display:flex;align-items:center;gap:7px;margin-bottom:6px;color:var(--sub);font-size:10.5px;line-height:1.4}
+.favorite-card-topic{max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-radius:99px;padding:2px 8px;background:var(--soft);color:var(--txt2)}
+.favorite-card-saved{margin-left:auto;white-space:nowrap}
+.favorite-card h3{margin:0;font-size:15px;line-height:1.5}
+.favorite-card-summary{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;margin:6px 0 0;color:var(--txt2);font-size:12.5px;line-height:1.65}
+.favorite-card-meta{display:flex;align-items:center;gap:7px;margin-top:8px;color:var(--sub);font-size:11px;line-height:1.4}
+.favorite-card-meta span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.favorite-card>.favbtn{align-self:center;margin:4px 4px 4px 0}
+.favorites-empty{display:grid;place-items:center;min-height:330px;padding:34px 20px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);text-align:center}
+.favorites-empty-inner{max-width:360px}
+.favorites-empty-icon{display:grid;place-items:center;width:54px;height:54px;margin:0 auto 14px;border-radius:50%;background:var(--soft);color:var(--sub)}
+.favorites-empty h2{margin:0 0 7px;font-size:17px}
+.favorites-empty p{margin:0;color:var(--sub);font-size:12.5px;line-height:1.75}
+.favorites-empty-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin-top:17px;border-radius:99px;padding:8px 17px;background:var(--ink);color:var(--bg);font-size:12.5px;font-weight:700;text-decoration:none}
+.favorites-loading{padding:22px 0;color:var(--sub);font-size:13px}
+@media(max-width:600px){
+  .favorites-page{min-height:calc(100dvh - 145px - env(safe-area-inset-bottom));padding:20px 14px calc(36px + env(safe-area-inset-bottom))}
+  .favorites-head{display:block;margin-bottom:15px}
+  .favorites-title{font-size:21px}
+  .favorites-trust{font-size:11.5px}
+  .favorites-search{width:100%}
+  .favorite-card{grid-template-columns:minmax(0,1fr) 52px}
+  .favorite-card-main{padding:14px 2px 14px 14px}
+  .favorite-card h3{font-size:15px}
+  .favorite-card>.favbtn{margin-right:4px}
+  .favorites-empty{min-height:350px;padding:32px 18px}
+  .fav-toast{bottom:calc(68px + env(safe-area-inset-bottom))}
 }
 @media(hover:hover) and (pointer:fine){
   .chip:hover{background:#dbe4ff}
@@ -642,7 +698,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="topbar detail-context">
     <a class="back" href="../index.html" data-smart-back aria-label="返回"><span aria-hidden="true">←</span><span class="back-label">返回</span></a>
     <span class="sharebtns">
-      <button class="sbtn ghost favbtn" type="button" data-fav="de350ca98624" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg><span class="sbtn-label">收藏</span></button>
+      <button class="sbtn ghost favbtn" type="button" data-fav="de350ca98624" data-fav-record="{&quot;event_id&quot;:&quot;de350ca98624&quot;,&quot;title&quot;:&quot;Amazon MQ for RabbitMQ 的认证与授权选项&quot;,&quot;summary&quot;:&quot;在规模化场景下，消息代理的认证管理十分复杂，静态用户名密码方式会带来凭证分发、轮换与撤销等运维负担。Amazon MQ for RabbitMQ 支持简单凭证、OAuth 2.0、IAM、LDAP、HTTP 认证后端及 SSL 证书等多种认证授权方式，便于对接企业现有身份基础设施。文章介绍了各方式的特点，并帮助用户根据自身环境选择合适方案。&quot;,&quot;source&quot;:&quot;AWS Big Data Blog&quot;,&quot;category&quot;:&quot;platform&quot;,&quot;topics&quot;:[],&quot;published&quot;:&quot;2026-08-18T00:37:35+08:00&quot;,&quot;original_url&quot;:&quot;https://aws.amazon.com/blogs/big-data/authentication-and-authorization-options-for-amazon-mq-for-rabbitmq/&quot;}" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg><span class="sbtn-label">收藏</span></button>
 
       <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/de350ca98624.png" title="海报" aria-label="海报"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg><span class="sbtn-label">海报</span></button>
       <button class="sbtn" type="button" data-share-action="open" title="分享" aria-label="分享"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span class="sbtn-label">分享</span></button>
@@ -806,19 +862,6 @@ main,.layout>*,.hotlist>*{min-width:0}
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-function dhFavs(){try{return JSON.parse(localStorage.getItem('dh_favs')||'[]')}catch(e){return[]}}
-(function(){
-  var favs=dhFavs();
-  document.querySelectorAll('[data-fav]').forEach(function(b){
-    if(favs.indexOf(b.dataset.fav)>=0){b.classList.add('on');b.setAttribute('aria-pressed','true');}
-    b.addEventListener('click',function(ev){
-      ev.stopPropagation();
-      var f=dhFavs(),id=b.dataset.fav,i=f.indexOf(id);
-      if(i>=0){f.splice(i,1);b.classList.remove('on');b.setAttribute('aria-pressed','false');}else{f.push(id);b.classList.add('on');b.setAttribute('aria-pressed','true');}
-      localStorage.setItem('dh_favs',JSON.stringify(f));
-    });
-  });
-})();
 var SH_EV = {"title":"Amazon MQ for RabbitMQ 的认证与授权选项","summary":"在规模化场景下，消息代理的认证管理十分复杂，静态用户名密码方式会带来凭证分发、轮换与撤销等运维负担。Amazon MQ for RabbitMQ 支持简单凭证、OAuth 2.0、IAM、LDAP、HTTP 认证后端及 SSL 证书等多种认证授权方式，便于对接企业现有身份基础设施。文章介绍了各方式的特点，并帮助用户根据自身环境选择合适方案。","reason":"消息代理是数据管道与集成治理的重要组件，其认证授权设计直接影响数据平台的安全性与合规性，值得数据平台和治理团队参考。","topic":"","heat":34,"source":"AWS Big Data Blog","date":"2026-08-18","url":"https://datahot.xiahongbin.com/e/de350ca98624.html","qr":"../qr/de350ca98624.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');

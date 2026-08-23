@@ -286,6 +286,16 @@
     var flameIcon = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"></path></svg>';
     var bookmarkIcon = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"></path></svg>';
     var url = "e/" + encodeURIComponent(event.event_id) + ".html";
+    var favoriteRecord = {
+      event_id: event.event_id,
+      title: event.zh_title || "",
+      summary: event.zh_summary || "",
+      source: source,
+      category: event.category || "",
+      topics: event.topics || [],
+      published: event.published || event.first_seen || "",
+      original_url: ""
+    };
     return '<div class="item" data-cat="' + escapeHtml(event.category) + '" data-topics="' +
       escapeHtml((event.topics || []).join("|")) + '" data-link="' + url +
       '" data-analytics-list="1" data-event-id="' + escapeHtml(event.event_id) +
@@ -294,7 +304,8 @@
       '</span><span class="card-source-name">' + escapeHtml(source) + '</span><span class="card-time">' +
       escapeHtml(cardTime(event)) + '</span></span><span class="heatnum' + (status ? ' is-featured' : '') +
       '" title="热度分">' + flameIcon + ' ' + escapeHtml(heatLabel) + '</span><button class="favbtn" data-fav="' +
-      escapeHtml(event.event_id) + '" title="收藏" aria-label="收藏" aria-pressed="false">' + bookmarkIcon + '</button></div>' +
+      escapeHtml(event.event_id) + '" data-fav-record="' + escapeHtml(JSON.stringify(favoriteRecord)) +
+      '" type="button" title="收藏" aria-label="收藏" aria-pressed="false">' + bookmarkIcon + '</button></div>' +
       '<h3><a href="' + url + '">' + escapeHtml(event.zh_title) + "</a></h3>" +
       '<p class="sum">' + escapeHtml(event.zh_summary) + "</p>" + also + reason +
       ((topics || vendors) ? '<div class="vendors">' + topics + vendors + "</div>" : "") + "</div>";

@@ -29,7 +29,7 @@ def event(event_id, *, evergreen=False, published="2026-08-11T12:00:00+08:00"):
 
 
 class LinkCheckerTests(unittest.TestCase):
-    def test_fixture_covers_root_topic_classics_detail_and_assets(self):
+    def test_fixture_covers_root_topic_detail_and_assets(self):
         with tempfile.TemporaryDirectory() as directory:
             site = Path(directory)
             (site / "topics").mkdir()
@@ -40,17 +40,16 @@ class LinkCheckerTests(unittest.TestCase):
             (site / "icons" / "apple-touch-icon.png").write_bytes(b"png")
             (site / "media" / "old-event" / "chart.png").write_bytes(b"png")
             (site / "index.html").write_text(
-                '<a href="topics.html">Topics</a><a href="classics.html">Classics</a>',
+                '<a href="topics.html">Topics</a>',
                 encoding="utf-8",
             )
             (site / "topics.html").write_text('<a href="topics/data.html">Data</a>', encoding="utf-8")
-            (site / "classics.html").write_text('<a href="e/old-event.html">Old</a>', encoding="utf-8")
             (site / "topics" / "data.html").write_text(
                 '<a href="../index.html">Home</a><a href="../e/old-event.html">Old</a>',
                 encoding="utf-8",
             )
             (site / "e" / "old-event.html").write_text(
-                '<link href="../favicon.ico"><a href="../classics.html#old">Back</a>'
+                '<link href="../favicon.ico"><a href="../topics/data.html">Back</a>'
                 '<img src="../media/old-event/chart.png"><a href="https://example.com">External</a>',
                 encoding="utf-8",
             )
@@ -89,6 +88,17 @@ class LinkCheckerTests(unittest.TestCase):
 
 
 class BuildPathRegressionTests(unittest.TestCase):
+    def test_retired_classics_page_is_removed_without_touching_other_pages(self):
+        with tempfile.TemporaryDirectory() as directory:
+            site = Path(directory)
+            (site / "classics.html").write_text("retired", encoding="utf-8")
+            (site / "index.html").write_text("home", encoding="utf-8")
+
+            build_site.remove_retired_public_pages(site)
+
+            self.assertFalse((site / "classics.html").exists())
+            self.assertTrue((site / "index.html").exists())
+
     def test_source_public_url_only_allows_web_links(self):
         self.assertEqual(
             build_site.source_public_url({"url": "https://example.com/feed.xml"}),
@@ -120,13 +130,15 @@ class BuildPathRegressionTests(unittest.TestCase):
         self.assertIn("<span>主题</span>", primary)
         self.assertIn("<span>收藏</span>", primary)
         self.assertIn("<span>更多</span>", primary)
-        for label in ("每周简报", "完整榜单", "典藏", "信源", "接入 Agent", "隐私说明"):
+        for label in ("每周简报", "完整榜单", "信源", "接入 Agent", "隐私说明"):
             self.assertIn(label, markup)
+        self.assertNotIn("典藏", markup)
+        self.assertNotIn("classics.html", markup)
 
     def test_more_pages_highlight_more_tab(self):
-        classics = build_site.tabbar("classics")
-        self.assertIn('class="tabbar-more on"', classics)
-        self.assertIn('class="more-link on" href="classics.html"', classics)
+        sources = build_site.tabbar("sources")
+        self.assertIn('class="tabbar-more on"', sources)
+        self.assertIn('class="more-link on" href="sources.html"', sources)
         favorites = build_site.tabbar("favorites")
         self.assertNotIn('class="tabbar-more on"', favorites)
         self.assertIn('href="favorites.html" class="on"', favorites)
@@ -146,12 +158,13 @@ class BuildPathRegressionTests(unittest.TestCase):
         primary = sidebar.split('<nav class="sidebar-nav" aria-label="主导航">', 1)[1].split("</nav>", 1)[0]
         tools = sidebar.split('<nav class="sidebar-tools" aria-label="工具">', 1)[1].split("</nav>", 1)[0]
 
-        labels = ("热榜", "关注", "周报", "主题", "收藏", "典藏", "信源")
+        labels = ("热榜", "关注", "周报", "主题", "收藏", "信源")
         self.assertEqual(primary.count('<a class="mi'), len(labels))
         positions = [primary.index(f">{label}</a>") for label in labels]
         self.assertEqual(positions, sorted(positions))
-        for old_label in ("For Me", "每周简报", "我的收藏", "完整榜单", "接入 Agent"):
+        for old_label in ("For Me", "每周简报", "我的收藏", "完整榜单", "典藏", "接入 Agent"):
             self.assertNotIn(old_label, primary)
+        self.assertNotIn("classics.html", primary)
 
         self.assertIn('class="mi on" href="index.html"', primary)
         self.assertIn('href="agent.html"', tools)
@@ -228,7 +241,8 @@ class BuildPathRegressionTests(unittest.TestCase):
             build_site.tabbar("topics", "../"), prefix="../", active="topics",
         )
         self.assertIn('class="slogo"><a href="../index.html"', page)
-        self.assertIn('class="mi" href="../classics.html"', page)
+        self.assertNotIn("classics.html", page)
+        self.assertNotIn("典藏", page)
         self.assertIn('class="mi on" href="../topics.html"', page)
 
     def test_old_evergreen_keeps_detail_while_orphan_is_removed(self):

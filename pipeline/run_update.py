@@ -2731,7 +2731,7 @@ def main():
         ss[st["name"]] = rec
     json.dump(ss, open(ss_path, "w"), ensure_ascii=False, indent=1)
 
-    # 人工策展：classics.json 的 pin（强制典藏）/ drop（撤下）
+    # 人工策展：classics.json 的 pin（强制长期保留）/ drop（撤下）
     cur_path = ROOT / "pipeline" / "classics.json"
     if cur_path.exists():
         cur = json.load(open(cur_path))
@@ -2741,7 +2741,7 @@ def main():
             if e["event_id"] in cur.get("drop", []):
                 e["shelf"], e["pinned"] = "news", False
 
-    # 清理过期：news 7 天淘汰；evergreen 永久沉淀（典藏池）
+    # 清理过期：news 7 天淘汰；evergreen 作为长期内容永久保留
     events = [e for e in events if should_retain_event(e, cutoff=cutoff)]
     media_prune = prune_media_cache((event["event_id"] for event in events), SITE)
     if media_prune["removed_dirs"]:

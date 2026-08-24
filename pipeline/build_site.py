@@ -372,9 +372,12 @@ main,.layout>*,.hotlist>*{min-width:0}
   .sidebar{display:flex;position:fixed;left:0;top:0;bottom:0;width:224px;flex-direction:column;background:var(--card);border-right:1px solid var(--line);padding:22px 16px;z-index:40}
   .sidebar .slogo{font-size:20px;font-weight:800;margin-bottom:26px}
   .sidebar .slogo em{font-style:normal;color:var(--accent)}
+  .sidebar .sidebar-nav{display:grid}
   .sidebar a.mi{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:14px;color:var(--sub);text-decoration:none;margin-bottom:2px}
   .sidebar a.mi.on{background:var(--ink);color:var(--bg);font-weight:600}
-  .sidebar .sfoot{margin-top:auto;font-size:11.5px;color:var(--sub);line-height:1.8}
+  .sidebar .sidebar-tools{margin-top:auto;padding-top:14px;border-top:1px solid var(--line)}
+  .sidebar .sidebar-tools a.mi{margin-bottom:0;font-size:12.5px}
+  .sidebar .sfoot{margin-top:10px;font-size:11.5px;color:var(--sub);line-height:1.8}
 }
 .hot .hsum{font-size:12.5px;color:var(--txt2);line-height:1.65;margin:6px 0 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .hot .htime{margin-left:auto;font-size:11px;color:var(--sub)}
@@ -640,24 +643,30 @@ FOR_ME_CSS = """
 
 def sidebar(active, gen=None, prefix=""):
     """桌面端左侧菜单栏（≥1200px 显示，窄屏由底部 Tab 承担导航）"""
+    menu_active = "home" if active == "hot" else active
     items = [("热榜", "flame", "index.html", "home"),
-             ("For Me", "radar", "for-me.html", "for-me")]
+             ("关注", "radar", "for-me.html", "for-me")]
     if weekly_brief_enabled():
-        items.append(("每周简报", "calendar", "weekly.html", "weekly"))
+        items.append(("周报", "calendar", "weekly.html", "weekly"))
     items += [("主题", "map", "topics.html", "topics"),
-             ("我的收藏", "star", "favorites.html", "favorites"),
-             ("典藏", "bookmark", "classics.html", "classics"), ("完整榜单", "list", "hot.html", "hot"),
-             ("信源", "rss", "sources.html", "sources"),
-             ("接入 Agent", "sparkle", "agent.html", "agent")]
-    menu = "".join(
-        f'<a class="mi{" on" if k == active else ""}" href="{prefix}{u}"'
+             ("收藏", "star", "favorites.html", "favorites"),
+             ("典藏", "bookmark", "classics.html", "classics"),
+             ("信源", "rss", "sources.html", "sources")]
+    menu = '<nav class="sidebar-nav" aria-label="主导航">' + "".join(
+        f'<a class="mi{" on" if k == menu_active else ""}" href="{prefix}{u}"'
         f'{" data-smart-home-return" if k == "home" else ""}>{ic(i,16)}{n}</a>'
-        for n, i, u, k in items)
+        for n, i, u, k in items) + "</nav>"
+    tools = (
+        '<nav class="sidebar-tools" aria-label="工具">'
+        f'<a class="mi{" on" if active == "agent" else ""}" href="{prefix}agent.html">'
+        f'{ic("sparkle",16)}接入 Agent</a></nav>'
+    )
     foot = f'更新 {gen.strftime("%m-%d %H:%M")}<br>' if gen else ""
     logo_label = ' aria-label="刷新 DataHot 首页" title="刷新首页"' if active == "home" else ""
     return ('<aside class="sidebar">'
             f'<div class="slogo"><a href="{prefix}index.html" data-smart-home-return{logo_label} style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div>'
             + menu +
+            tools +
             f'<div class="sfoot">{foot}每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>')
 
 

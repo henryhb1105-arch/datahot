@@ -135,9 +135,31 @@ class BuildPathRegressionTests(unittest.TestCase):
     def test_agent_page_is_available_in_desktop_and_mobile_navigation(self):
         sidebar = build_site.sidebar("agent")
         tabbar = build_site.tabbar("agent")
+        self.assertIn('class="sidebar-tools" aria-label="工具"', sidebar)
         self.assertIn('class="mi on" href="agent.html"', sidebar)
         self.assertIn('class="tabbar-more on"', tabbar)
         self.assertIn('class="more-link on" href="agent.html"', tabbar)
+
+    def test_desktop_navigation_uses_compact_reader_labels_and_separates_tools(self):
+        with patch.dict(build_site.os.environ, {"WEEKLY_BRIEF_ENABLED": "true"}, clear=False):
+            sidebar = build_site.sidebar("hot")
+        primary = sidebar.split('<nav class="sidebar-nav" aria-label="主导航">', 1)[1].split("</nav>", 1)[0]
+        tools = sidebar.split('<nav class="sidebar-tools" aria-label="工具">', 1)[1].split("</nav>", 1)[0]
+
+        labels = ("热榜", "关注", "周报", "主题", "收藏", "典藏", "信源")
+        self.assertEqual(primary.count('<a class="mi'), len(labels))
+        positions = [primary.index(f">{label}</a>") for label in labels]
+        self.assertEqual(positions, sorted(positions))
+        for old_label in ("For Me", "每周简报", "我的收藏", "完整榜单", "接入 Agent"):
+            self.assertNotIn(old_label, primary)
+
+        self.assertIn('class="mi on" href="index.html"', primary)
+        self.assertIn('href="agent.html"', tools)
+        self.assertIn("接入 Agent", tools)
+        self.assertIn(".sidebar .sidebar-tools{margin-top:auto", build_site.SHARED_CSS)
+        builder = (ROOT / "pipeline" / "build_site.py").read_text(encoding="utf-8")
+        self.assertIn('href="hot.html" style="margin-left:auto', builder)
+        self.assertIn("完整榜单 →</a>", builder)
 
     def test_section_and_detail_use_shared_navigation_shells(self):
         section = build_site.page_shell(

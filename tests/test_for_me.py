@@ -12,8 +12,8 @@ import build_site  # noqa: E402
 class ForMeBuildTests(unittest.TestCase):
     def test_for_me_is_second_desktop_and_mobile_entry(self):
         sidebar = build_site.sidebar("for-me")
-        self.assertLess(sidebar.index(">热榜</a>"), sidebar.index(">For Me</a>"))
-        self.assertLess(sidebar.index(">For Me</a>"), sidebar.index(">每周简报</a>"))
+        self.assertLess(sidebar.index(">热榜</a>"), sidebar.index(">关注</a>"))
+        self.assertLess(sidebar.index(">关注</a>"), sidebar.index(">周报</a>"))
         self.assertIn('class="mi on" href="for-me.html"', sidebar)
 
         primary = build_site.tabbar("for-me").split("</nav>", 1)[0]

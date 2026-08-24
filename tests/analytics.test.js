@@ -51,6 +51,7 @@ test("page classifier never includes full URLs", () => {
   assert.equal(analytics.pageFromPath("/datahot/weekly/2026-W32.html"), "weekly");
   assert.equal(analytics.pageFromPath("/datahot/daily.html"), "weekly");
   assert.equal(analytics.pageFromPath("/datahot/topics/data-agent.html"), "topic");
+  assert.equal(analytics.pageFromPath("/datahot/classics.html"), "other");
   assert.equal(analytics.pageFromPath("/datahot/e/0123456789ab.html"), "detail");
   assert.equal(analytics.pageFromPath("/unknown"), "other");
 });

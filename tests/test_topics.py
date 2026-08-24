@@ -84,7 +84,9 @@ class TopicExperienceTests(unittest.TestCase):
         self.assertIn("累计 12", page)
         self.assertEqual(page.count('class="topic-recent-card"'), 3)
         self.assertEqual(page.count('class="crow"'), build_site.TOPIC_READING_LIMIT)
-        self.assertIn('href="../classics.html#topic-data-agent"', page)
+        self.assertIn(f"精选长期内容，最多 {build_site.TOPIC_READING_LIMIT} 篇", page)
+        self.assertNotIn("classics.html", page)
+        self.assertNotIn("典藏", page)
         self.assertEqual(page.count('<a class="topic-update-row'), 12)
         self.assertEqual(page.count("topic-update-row is-extra"), 2)
         self.assertIn("加载更多（10/12）", page)
@@ -101,16 +103,6 @@ class TopicExperienceTests(unittest.TestCase):
             reference_time=REFERENCE_TIME,
         )
         self.assertIn('所属主线：<a href="data-agent.html">Data Agent</a>', page)
-
-    def test_classics_page_exposes_topic_anchor_as_source_of_truth(self):
-        page = build_site.render_classics_page([
-            event(
-                1, topics=["Data Agent"], published="2026-08-21T00:00:00+00:00",
-                evergreen=True, pinned=True,
-            ),
-        ], build_site.load_css())
-        self.assertIn('id="topic-data-agent"', page)
-        self.assertIn('class="scard classic-topic-group"', page)
 
     def test_topic_without_recent_events_says_so_without_misstating_scope(self):
         topic = next(t for t in build_site.TOPICS_META if t["name"] == "财务经营")

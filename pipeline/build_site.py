@@ -409,7 +409,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
   body.more-open{overflow:hidden}
 }
-.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.fav-toast-action:focus-visible,.favorites-search:focus-visible,.favorites-filter:focus-visible,.favorites-empty-cta:focus-visible,.favorite-card-main:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.rank-row:focus-visible,.rank-note summary:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible,.tcard-main:focus-visible,.tchild-link:focus-visible,.scenario-row:focus-visible,.topic-back:focus-visible,.topic-follow:focus-visible,.topic-recent-card:focus-visible,.topic-reading-all:focus-visible,.topic-update-row:focus-visible,.topic-load-more:focus-visible,.topic-vendors summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.fav-toast-action:focus-visible,.favorites-search:focus-visible,.favorites-filter:focus-visible,.favorites-empty-cta:focus-visible,.favorite-card-main:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.rank-row:focus-visible,.rank-note summary:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible,.tcard-main:focus-visible,.tchild-link:focus-visible,.scenario-row:focus-visible,.topic-back:focus-visible,.topic-follow:focus-visible,.topic-recent-card:focus-visible,.topic-update-row:focus-visible,.topic-load-more:focus-visible,.topic-vendors summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:600px){.favbtn{min-width:44px;min-height:44px}}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
@@ -461,7 +461,6 @@ main,.layout>*,.hotlist>*{min-width:0}
 .topic-recent-meta{font-size:10.5px;color:var(--sub)}
 .topic-empty{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:15px 16px;color:var(--sub);font-size:12.5px}
 .topic-reading{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:6px 16px 10px}
-.topic-reading-all{display:inline-flex;align-items:center;min-height:40px;margin-top:3px;color:var(--accent);font-size:12px;font-weight:650;text-decoration:none}
 .topic-updates{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
 .topic-update-row{display:grid;grid-template-columns:88px minmax(0,1fr) 150px;gap:12px;align-items:center;min-height:52px;padding:9px 14px;border-bottom:1px solid var(--soft);color:var(--ink);text-decoration:none}
 .topic-update-row:last-child{border-bottom:none}
@@ -476,7 +475,6 @@ main,.layout>*,.hotlist>*{min-width:0}
 .topic-vendors summary span{color:var(--sub);font-size:11px;font-weight:500}
 .topic-vendors[open] summary span{color:var(--accent)}
 .topic-vendors .vendors{padding:0 0 14px;margin-top:0}
-.classic-topic-group{scroll-margin-top:24px}
 @media(max-width:720px){.topic-recent-grid{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:600px){
   .topic-map-page,.topic-page{padding-top:18px;padding-right:var(--mobile-page-right);padding-left:var(--mobile-page-left)}
@@ -549,7 +547,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   .weekly-strip-link:hover .weekly-strip-title,.weekly-dismiss:hover{color:var(--accent)}
   .sidebar a.mi:hover{background:var(--hover);color:var(--ink)}
   .tcard:hover,.topic-recent-card:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
-  .tcard-main:hover h3,.scenario-row:hover .scenario-name,.topic-update-row:hover .topic-update-title,.topic-reading-all:hover,.topic-follow:hover{color:var(--accent)}
+  .tcard-main:hover h3,.scenario-row:hover .scenario-name,.topic-update-row:hover .topic-update-title,.topic-follow:hover{color:var(--accent)}
 }
 @media(prefers-color-scheme:dark) and (hover:hover) and (pointer:fine){
   .chip:hover{background:rgba(110,168,255,.26)}
@@ -650,7 +648,6 @@ def sidebar(active, gen=None, prefix=""):
         items.append(("周报", "calendar", "weekly.html", "weekly"))
     items += [("主题", "map", "topics.html", "topics"),
              ("收藏", "star", "favorites.html", "favorites"),
-             ("典藏", "bookmark", "classics.html", "classics"),
              ("信源", "rss", "sources.html", "sources")]
     menu = '<nav class="sidebar-nav" aria-label="主导航">' + "".join(
         f'<a class="mi{" on" if k == menu_active else ""}" href="{prefix}{u}"'
@@ -769,7 +766,6 @@ def tabbar(active, prefix=""):
         more_items.append(("每周简报", "calendar", "weekly.html", "weekly"))
     more_items += [
         ("完整榜单", "list", "hot.html", "hot"),
-        ("典藏", "bookmark", "classics.html", "classics"),
         ("信源", "rss", "sources.html", "sources"),
         ("接入 Agent", "sparkle", "agent.html", "agent"),
         ("隐私说明", "file", "privacy.html", "privacy"),
@@ -1834,7 +1830,7 @@ def render_topics_map(events, css, reference_time=None):
 
 
 def render_topic_page(t, events, css, reference_time=None):
-    """单个主题页：近期进展、典藏入口与渐进式历史动态。"""
+    """单个主题页：近期进展、入门阅读与渐进式历史动态。"""
     reference_time = _topic_reference_time(events, reference_time)
     topic_events = _topic_sorted_events([
         event for event in events if t["name"] in event.get("topics", [])
@@ -1872,8 +1868,8 @@ def render_topic_page(t, events, css, reference_time=None):
 </a>''' for event in reading)
         reading_html = f'''
   <section class="topic-section" aria-labelledby="topicReading">
-    <div class="topic-section-head"><h2 id="topicReading">{ic("bookmark",14)} 入门阅读</h2><p>来自典藏，最多 {TOPIC_READING_LIMIT} 篇</p></div>
-    <div class="topic-reading">{rows}<a class="topic-reading-all" href="../classics.html#topic-{t["slug"]}">查看该主题全部典藏 →</a></div>
+    <div class="topic-section-head"><h2 id="topicReading">{ic("bookmark",14)} 入门阅读</h2><p>精选长期内容，最多 {TOPIC_READING_LIMIT} 篇</p></div>
+    <div class="topic-reading">{rows}</div>
   </section>'''
 
     update_rows = []
@@ -2102,46 +2098,6 @@ def render_hot_page(events, css, reference_time=None):
   <details class="rank-note"><summary>热度如何计算</summary><p>{HEAT_FORMULA}；按热度降序，同一信源最多 2 条。</p></details>
 </main>"""
     return page_shell("完整榜单 · DataHot", "数据领域近 7 天热度 TOP 9", css, body, tabbar("home"), prefix="", active="hot")
-
-def render_classics_page(events, css):
-    """典藏页：evergreen 内容按主题分组沉淀，人工置顶优先，按重要性排序"""
-    classics = [e for e in events if e.get("shelf") == "evergreen"]
-    classics.sort(key=lambda e: (not e.get("pinned"), -e.get("importance", 50)))
-    groups = ""
-    used = set()
-    for t in TOPICS_META:
-        evs = [e for e in classics if t["name"] in e.get("topics", [])]
-        if not evs:
-            continue
-        used.update(e["event_id"] for e in evs)
-        rows = "".join(
-            f'''<a class="crow" href="{detail_url(e)}">
-  <span class="cpin">{"📌" if e.get("pinned") else ""}</span>
-  <span class="ctitle">{esc(e["zh_title"])}</span>
-  <span class="cmeta">{esc(e["items"][0]["source"])} · {(e.get("published") or e.get("first_seen") or "")[:10]}</span>
-</a>''' for e in evs)
-        groups += f'<section class="scard classic-topic-group" id="topic-{t["slug"]}"><h4 style="margin-bottom:6px">{ic("bookmark",14)} {esc(t["name"])} <span style="font-size:11px;color:var(--sub);font-weight:400">{len(evs)} 篇</span></h4>{rows}</section>'
-    other = [e for e in classics if e["event_id"] not in used]
-    if other:
-        rows = "".join(
-            f'''<a class="crow" href="{detail_url(e)}">
-  <span class="cpin">{"📌" if e.get("pinned") else ""}</span>
-  <span class="ctitle">{esc(e["zh_title"])}</span>
-  <span class="cmeta">{esc(e["items"][0]["source"])} · {(e.get("published") or e.get("first_seen") or "")[:10]}</span>
-</a>''' for e in other)
-        groups += f'<div class="scard"><h4 style="margin-bottom:6px">{ic("bookmark",14)} 综合 <span style="font-size:11px;color:var(--sub);font-weight:400">{len(other)} 篇</span></h4>{rows}</div>'
-    if not classics:
-        groups = '<div class="scard" style="color:var(--sub);font-size:13px">典藏池正在积累中——AI 会识别方法论/框架/深度实践类内容自动沉淀，主编也可人工置顶。</div>'
-    body = f'''
-<div class="wrap" style="padding:28px 20px 60px;max-width:900px">
-  <div class="section-title"><h2>{ic("bookmark",18)} 典藏</h2><span>穿越时间的内容 · 方法论 / 框架 / 深度实践</span></div>
-  <div class="scard" style="font-size:13px;color:var(--txt2);line-height:1.8">
-    这里收录<b>不随时间贬值</b>的内容：经典方法论、框架指南、深度实践。AI 初筛 + 主编人工策展，永久沉淀，按主题分组。共 {len(classics)} 篇。
-  </div>
-  {groups}
-</div>'''
-    return page_shell("典藏 · DataHot", "数据领域穿越时间的内容：方法论、框架与深度实践", css, body,
-                      tabbar("classics"), prefix="", active="classics")
 
 def render_favorites_page(css, data_url="data/latest-lite.json"):
     """收藏页：本机快照优先，数据索引只用于补全旧版 event_id 收藏。"""
@@ -2478,8 +2434,21 @@ def write_qr_assets(all_events, qr_dir=None, site_base=SITE_BASE):
     return valid_ids
 
 
+RETIRED_PUBLIC_PAGES = ("classics.html",)
+
+
+def remove_retired_public_pages(site_root=SITE):
+    """删除已下线的公开页面，避免增量构建把旧入口重新发布。"""
+    site_root = Path(site_root)
+    for name in RETIRED_PUBLIC_PAGES:
+        retired_page = site_root / name
+        if retired_page.exists():
+            retired_page.unlink()
+
+
 def main():
     SITE.mkdir(parents=True, exist_ok=True)
+    remove_retired_public_pages()
     if not all(asset.exists() for asset in (ANALYTICS_ASSET, HOME_ASSET, FOR_ME_ASSET, FAVORITES_ASSET, DETAIL_ASSET, TTS_ASSET)):
         raise FileNotFoundError("missing browser asset")
     shutil.copyfile(ANALYTICS_ASSET, SITE / "analytics.js")
@@ -2689,7 +2658,6 @@ def main():
   {render_home_brand_update(gen)}
   {weekly_header_link}
   <a class="tab d-only" href="topics.html" style="text-decoration:none">{ic("map",14)} 主题</a>
-  <a class="tab d-only" href="classics.html" style="text-decoration:none">{ic("bookmark",14)} 典藏</a>
   <a class="tab d-only" href="sources.html" style="text-decoration:none">{ic("rss",14)} 信源</a>
 </div></header>
 
@@ -2813,7 +2781,6 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
 
     page = finalize_html_security(page)
     (SITE / "sources.html").write_text(render_sources_page(timeline_events, payload, css), encoding="utf-8")
-    (SITE / "classics.html").write_text(render_classics_page(qualified_events, css), encoding="utf-8")
     (SITE / "hot.html").write_text(
         render_hot_page(hot_window_events, css, reference_time=gen), encoding="utf-8",
     )

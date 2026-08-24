@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""考古收录：把任意经典文章 URL 收进典藏池；自动识别微信公众号文章并提取账号名
+"""考古收录：把任意经典文章 URL 收进长期内容池；自动识别微信公众号文章并提取账号名
 用法：python3 pipeline/collect.py <url1> [url2 ...]
 """
 import sys, json, hashlib, re, html as H
@@ -117,12 +117,12 @@ def main():
         with ThreadPoolExecutor(max_workers=6) as pool:
             new_items = list(pool.map(enrich_curated, new_items))
         for it in new_items:
-            it["shelf"] = "evergreen"   # 收录一律进典藏
+            it["shelf"] = "evergreen"   # 收录一律标记为长期内容
             it["pinned"] = True
             event = make_event(it)
             generate_event_body(event, it, cfg, {})
             events.append(event)
-            print(f"已入典藏: {it['zh_title'][:50]}")
+            print(f"已收录长期内容: {it['zh_title'][:50]}")
         d["events"] = events
         json.dump(d, open(LATEST, "w"), ensure_ascii=False, indent=1)
         print(f"完成，当前事件总数 {len(events)}。运行 build_site.py 重建站点。")

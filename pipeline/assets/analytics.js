@@ -17,7 +17,7 @@
     "sequence", "viewport", "referrer", "action", "filter", "query_bucket",
     "result_count"
   ];
-  var PAGES = ["home", "for-me", "weekly", "daily", "topics", "topic", "classics", "hot", "favorites", "sources", "detail", "privacy", "other"];
+  var PAGES = ["home", "for-me", "weekly", "daily", "topics", "topic", "hot", "favorites", "sources", "detail", "privacy", "other"];
   var CATEGORIES = ["agent", "platform", "bi", "product", "insight", ""];
   var DEVICE_KEY = "dh_analytics_device_v1";
   var SESSION_KEY = "dh_analytics_session_v1";
@@ -73,7 +73,7 @@
     if (/\/weekly\/\d{4}-W\d{2}\.html$/.test(path)) return "weekly";
     var filename = path.split("/").pop() || "index.html";
     var pages = {
-      "index.html": "home", "for-me.html": "for-me", "weekly.html": "weekly", "daily.html": "weekly", "topics.html": "topics", "classics.html": "classics",
+      "index.html": "home", "for-me.html": "for-me", "weekly.html": "weekly", "daily.html": "weekly", "topics.html": "topics",
       "hot.html": "hot", "favorites.html": "favorites", "sources.html": "sources",
       "privacy.html": "privacy"
     };

@@ -4,16 +4,19 @@
 from __future__ import annotations
 
 import argparse
+import fcntl
+import gc
 import json
 import os
 import re
 import shutil
 import subprocess
 import tempfile
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Callable, Iterable
+from typing import Callable, Iterable, Iterator
 
 from lite_data import is_list_eligible
 from tts_text import DEFAULT_MAX_CHARACTERS, TEXT_VERSION, build_tts_script, narration_hash
@@ -23,6 +26,8 @@ ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 TZ = timezone(timedelta(hours=8))
 DEFAULT_VOICE_VERSION = "datahot-anchor-v1"
+DEFAULT_MAX_EVENTS_PER_RUN = 1
+DEFAULT_LOCK_FILE = Path(tempfile.gettempdir()) / "datahot-tts.lock"
 MANIFEST_VERSION = 1
 AUDIO_PATH_RE = re.compile(
     r"^audio/\d{4}/\d{2}/[a-f0-9]{12}-[a-f0-9]{12,64}\.mp3$"
@@ -36,6 +41,34 @@ class NarrationJob:
     content_hash: str
     audio_path: str
     published: str
+
+
+class TTSAlreadyRunningError(RuntimeError):
+    """Raised when another local narration process already owns the lock."""
+
+
+@contextmanager
+def tts_process_lock(path: Path) -> Iterator[None]:
+    """Keep model loading single-instance across workflow and manual runs."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    handle = path.open("a+", encoding="utf-8")
+    try:
+        try:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as error:
+            raise TTSAlreadyRunningError(
+                f"another DataHot TTS process owns {path}"
+            ) from error
+        handle.seek(0)
+        handle.truncate()
+        handle.write(f"pid={os.getpid()}\n")
+        handle.flush()
+        yield
+    finally:
+        try:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+        finally:
+            handle.close()
 
 
 def utc_now() -> datetime:
@@ -108,8 +141,11 @@ def select_jobs(
     site_root: Path,
     voice_version: str,
     maximum: int = DEFAULT_MAX_CHARACTERS,
-    max_events: int = 8,
+    max_events: int = DEFAULT_MAX_EVENTS_PER_RUN,
 ) -> list[NarrationJob]:
+    limit = max(0, max_events)
+    if limit == 0:
+        return []
     candidates = [event for event in events if is_list_eligible(event)]
     candidates.sort(key=_event_date, reverse=True)
     jobs = []
@@ -131,7 +167,7 @@ def select_jobs(
             audio_path=_audio_relative_path(event, content_hash),
             published=str(event.get("published") or event.get("first_seen") or ""),
         ))
-        if len(jobs) >= max(0, max_events):
+        if len(jobs) >= limit:
             break
     return jobs
 
@@ -173,6 +209,27 @@ def prune_expired(
     return removed
 
 
+def _release_accelerator_memory(torch_module: object, device: str) -> None:
+    """Best-effort cleanup so repeated jobs do not retain accelerator caches."""
+    gc.collect()
+    try:
+        if device.startswith("mps"):
+            mps = getattr(torch_module, "mps", None)
+            synchronize = getattr(mps, "synchronize", None)
+            empty_cache = getattr(mps, "empty_cache", None)
+            if callable(synchronize):
+                synchronize()
+            if callable(empty_cache):
+                empty_cache()
+        elif device.startswith("cuda"):
+            cuda = getattr(torch_module, "cuda", None)
+            empty_cache = getattr(cuda, "empty_cache", None)
+            if callable(empty_cache):
+                empty_cache()
+    except Exception as error:  # cleanup must not hide a completed narration
+        print(f"[tts] memory cleanup warning: {type(error).__name__}: {error}")
+
+
 class QwenVoiceCloneBackend:
     def __init__(
         self,
@@ -194,27 +251,45 @@ class QwenVoiceCloneBackend:
                 device = "cpu"
         dtype = torch.float16 if device != "cpu" else torch.float32
         self._sf = sf
-        self.model = Qwen3TTSModel.from_pretrained(
-            model_source,
-            device_map=device,
-            dtype=dtype,
-            attn_implementation="sdpa",
-        )
-        self.prompt = self.model.create_voice_clone_prompt(
-            ref_audio=str(reference_audio),
-            ref_text=reference_text,
-            x_vector_only_mode=False,
-        )
+        self._torch = torch
+        self.device = device
+        self.model = None
+        self.prompt = None
+        try:
+            self.model = Qwen3TTSModel.from_pretrained(
+                model_source,
+                device_map=device,
+                dtype=dtype,
+                attn_implementation="sdpa",
+            )
+            self.prompt = self.model.create_voice_clone_prompt(
+                ref_audio=str(reference_audio),
+                ref_text=reference_text,
+                x_vector_only_mode=False,
+            )
+        except Exception:
+            self.close()
+            raise
 
     def synthesize(self, text: str, output_wav: Path) -> float:
-        wavs, sample_rate = self.model.generate_voice_clone(
-            text=text,
-            language="Chinese",
-            voice_clone_prompt=self.prompt,
-            non_streaming_mode=True,
-        )
-        self._sf.write(output_wav, wavs[0], sample_rate)
-        return len(wavs[0]) / sample_rate
+        wavs = None
+        try:
+            wavs, sample_rate = self.model.generate_voice_clone(
+                text=text,
+                language="Chinese",
+                voice_clone_prompt=self.prompt,
+                non_streaming_mode=True,
+            )
+            self._sf.write(output_wav, wavs[0], sample_rate)
+            return len(wavs[0]) / sample_rate
+        finally:
+            wavs = None
+            _release_accelerator_memory(self._torch, self.device)
+
+    def close(self) -> None:
+        self.prompt = None
+        self.model = None
+        _release_accelerator_memory(self._torch, self.device)
 
 
 def encode_mp3(input_wav: Path, output_mp3: Path, bitrate: str = "64k") -> None:
@@ -274,7 +349,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--manifest", type=Path, default=SITE / "data" / "tts-manifest.json")
     parser.add_argument("--site-root", type=Path, default=SITE)
     parser.add_argument("--voice-version", default=os.getenv("TTS_VOICE_VERSION", DEFAULT_VOICE_VERSION))
-    parser.add_argument("--max-events", type=int, default=int(os.getenv("TTS_MAX_EVENTS_PER_RUN", "8")))
+    parser.add_argument(
+        "--max-events", type=int,
+        default=int(os.getenv("TTS_MAX_EVENTS_PER_RUN", str(DEFAULT_MAX_EVENTS_PER_RUN))),
+    )
     parser.add_argument("--max-characters", type=int, default=int(os.getenv("TTS_MAX_CHARACTERS", str(DEFAULT_MAX_CHARACTERS))))
     parser.add_argument("--retention-days", type=int, default=int(os.getenv("TTS_RETENTION_DAYS", "30")))
     parser.add_argument("--bitrate", default=os.getenv("TTS_AUDIO_BITRATE", "64k"))
@@ -282,6 +360,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--reference-audio", type=Path, default=Path(os.getenv("TTS_REFERENCE_AUDIO", ".")))
     parser.add_argument("--reference-text-file", type=Path, default=Path(os.getenv("TTS_REFERENCE_TEXT_FILE", ".")))
     parser.add_argument("--device", default=os.getenv("TTS_DEVICE", "auto"))
+    parser.add_argument(
+        "--lock-file", type=Path,
+        default=Path(os.getenv("TTS_LOCK_FILE", str(DEFAULT_LOCK_FILE))),
+    )
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--no-cleanup", action="store_true")
     return parser.parse_args()
@@ -319,17 +401,25 @@ def main() -> int:
     if not reference_text:
         raise SystemExit("reference transcript is empty")
 
-    backend = QwenVoiceCloneBackend(
-        args.model_source, args.reference_audio, reference_text, device=args.device,
-    )
-    completed, failed = process_jobs(
-        jobs, manifest, args.site_root, backend, args.voice_version, bitrate=args.bitrate,
-    )
-    removed = [] if args.no_cleanup else prune_expired(
-        manifest, args.site_root, args.retention_days,
-    )
-    manifest["updated_at"] = utc_now().isoformat()
-    write_manifest(args.manifest, manifest)
+    try:
+        with tts_process_lock(args.lock_file):
+            backend = QwenVoiceCloneBackend(
+                args.model_source, args.reference_audio, reference_text, device=args.device,
+            )
+            try:
+                completed, failed = process_jobs(
+                    jobs, manifest, args.site_root, backend, args.voice_version,
+                    bitrate=args.bitrate,
+                )
+            finally:
+                backend.close()
+            removed = [] if args.no_cleanup else prune_expired(
+                manifest, args.site_root, args.retention_days,
+            )
+            manifest["updated_at"] = utc_now().isoformat()
+            write_manifest(args.manifest, manifest)
+    except TTSAlreadyRunningError as error:
+        raise SystemExit(f"[tts] refused concurrent run: {error}") from error
     print(f"[tts] completed={completed} failed={failed} pruned={len(removed)}")
     return 1 if failed and not completed else 0
 

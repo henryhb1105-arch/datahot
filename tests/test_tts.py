@@ -4,17 +4,25 @@ import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "pipeline"))
 
 import build_site  # noqa: E402
+import tts_generate  # noqa: E402
 from tts_generate import (  # noqa: E402
+    DEFAULT_MAX_EVENTS_PER_RUN,
+    QwenVoiceCloneBackend,
+    TTSAlreadyRunningError,
+    _release_accelerator_memory,
     empty_manifest,
     load_manifest,
     prune_expired,
     select_jobs,
+    tts_process_lock,
     write_manifest,
 )
 from tts_text import build_tts_script, narration_hash  # noqa: E402
@@ -134,6 +142,133 @@ class TTSManifestTests(unittest.TestCase):
             self.assertFalse(audio.exists())
 
 
+class TTSMemoryGuardTests(unittest.TestCase):
+    def test_default_batch_is_one_event(self):
+        self.assertEqual(DEFAULT_MAX_EVENTS_PER_RUN, 1)
+        events = []
+        for index in range(3):
+            event = event_fixture()
+            event["event_id"] = f"{index:012x}"
+            event["published"] = f"2026-08-{12 + index:02d}T09:00:00+08:00"
+            events.append(event)
+        with tempfile.TemporaryDirectory() as directory:
+            jobs = select_jobs(
+                events, empty_manifest("v1"), Path(directory), "v1",
+            )
+            disabled = select_jobs(
+                events, empty_manifest("v1"), Path(directory), "v1", max_events=0,
+            )
+        self.assertEqual(len(jobs), 1)
+        self.assertEqual(disabled, [])
+
+    def test_process_lock_rejects_a_second_local_generator(self):
+        with tempfile.TemporaryDirectory() as directory:
+            lock_file = Path(directory) / "tts.lock"
+            with tts_process_lock(lock_file):
+                with self.assertRaises(TTSAlreadyRunningError):
+                    with tts_process_lock(lock_file):
+                        self.fail("second process lock must not be acquired")
+
+    def test_mps_cache_is_released_after_each_synthesis_and_close(self):
+        class FakeMPS:
+            def __init__(self):
+                self.synchronized = 0
+                self.emptied = 0
+
+            def synchronize(self):
+                self.synchronized += 1
+
+            def empty_cache(self):
+                self.emptied += 1
+
+        class FakeTorch:
+            def __init__(self):
+                self.mps = FakeMPS()
+
+        fake_torch = FakeTorch()
+        with patch.object(tts_generate.gc, "collect") as collect:
+            _release_accelerator_memory(fake_torch, "mps")
+        collect.assert_called_once_with()
+        self.assertEqual(fake_torch.mps.synchronized, 1)
+        self.assertEqual(fake_torch.mps.emptied, 1)
+
+        class FakeModel:
+            def generate_voice_clone(self, **_kwargs):
+                return [[0.0, 0.25, -0.25]], 3
+
+        class FakeSoundFile:
+            @staticmethod
+            def write(_path, _audio, _sample_rate):
+                return None
+
+        backend = QwenVoiceCloneBackend.__new__(QwenVoiceCloneBackend)
+        backend._sf = FakeSoundFile()
+        backend._torch = fake_torch
+        backend.device = "mps"
+        backend.model = FakeModel()
+        backend.prompt = object()
+        with patch.object(tts_generate, "_release_accelerator_memory") as release:
+            duration = backend.synthesize("测试", Path("unused.wav"))
+            backend.close()
+        self.assertEqual(duration, 1.0)
+        self.assertEqual(release.call_count, 2)
+        self.assertIsNone(backend.model)
+        self.assertIsNone(backend.prompt)
+
+    def test_main_closes_backend_when_processing_raises(self):
+        class FakeBackend:
+            def __init__(self):
+                self.closed = False
+
+            def close(self):
+                self.closed = True
+
+        backend = FakeBackend()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            data = root / "latest.json"
+            manifest = root / "tts-manifest.json"
+            reference_audio = root / "reference.wav"
+            reference_text = root / "reference.txt"
+            data.write_text('{"events": []}', encoding="utf-8")
+            reference_audio.write_bytes(b"RIFF")
+            reference_text.write_text("参考音频文本", encoding="utf-8")
+            args = SimpleNamespace(
+                data=data,
+                manifest=manifest,
+                site_root=root,
+                voice_version="v1",
+                max_characters=350,
+                max_events=1,
+                retention_days=30,
+                bitrate="64k",
+                model_source="model",
+                reference_audio=reference_audio,
+                reference_text_file=reference_text,
+                device="mps",
+                lock_file=root / "tts.lock",
+                dry_run=False,
+                no_cleanup=False,
+            )
+            job = tts_generate.NarrationJob(
+                event_id="0123456789ab",
+                text="足够长的测试文本",
+                content_hash="a" * 64,
+                audio_path="audio/2026/08/0123456789ab-aaaaaaaaaaaa.mp3",
+                published="2026-08-24T00:00:00+08:00",
+            )
+            with (
+                patch.object(tts_generate, "parse_args", return_value=args),
+                patch.object(tts_generate, "select_jobs", return_value=[job]),
+                patch.object(tts_generate, "QwenVoiceCloneBackend", return_value=backend),
+                patch.object(tts_generate, "process_jobs", side_effect=RuntimeError("boom")),
+            ):
+                with self.assertRaisesRegex(RuntimeError, "boom"):
+                    tts_generate.main()
+
+        self.assertTrue(backend.closed)
+
+
 class TTSDetailRenderingTests(unittest.TestCase):
     def test_ready_audio_renders_accessible_player(self):
         item = {
@@ -198,6 +333,7 @@ class TTSWorkflowTests(unittest.TestCase):
         self.assertIn("uses: ./.github/workflows/deploy.yml", tts_workflow)
         self.assertIn("workflow_call:", deploy_workflow)
         self.assertIn("ref: main", deploy_workflow)
+        self.assertIn("TTS_MAX_EVENTS_PER_RUN: ${{ vars.TTS_MAX_EVENTS_PER_RUN || '1' }}", tts_workflow)
 
 
 if __name__ == "__main__":

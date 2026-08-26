@@ -69,7 +69,7 @@ class FavoritesTests(unittest.TestCase):
         self.assertIn('class="favbtn topic-recent-fav"', topic_page)
         self.assertIn('<script defer src="../favorites.js"></script>', topic_page)
 
-    def test_timeline_snapshot_and_hot_cards_offer_the_same_action(self):
+    def test_timeline_snapshot_keeps_favorite_action_after_hot_cards_are_removed(self):
         item = event()
         timeline_card = build_site.render_card(item)
         self.assertIn('data-fav-record="', timeline_card)
@@ -77,7 +77,8 @@ class FavoritesTests(unittest.TestCase):
         self.assertIn('type="button"', timeline_card)
 
         source = (ROOT / "pipeline" / "build_site.py").read_text(encoding="utf-8")
-        self.assertIn("<span class=\"htime\">{card_time(e)}</span>{favorite_button(e)}", source)
+        self.assertNotIn('class="hot"', source)
+        self.assertIn('class="today-focus"', source)
 
 
 if __name__ == "__main__":

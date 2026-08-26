@@ -272,10 +272,34 @@ main,.layout>*,.hotlist>*{min-width:0}
 .weekly-strip-view{flex:0 0 auto;color:var(--accent);font-size:12px;font-weight:700;white-space:nowrap}
 .weekly-dismiss{appearance:none;display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;min-height:44px;margin:4px;border:0;border-radius:50%;background:transparent;color:var(--sub);cursor:pointer}
 .weekly-dismiss svg{pointer-events:none}
+.today-focus{display:flex;align-items:stretch;min-height:52px;margin-bottom:12px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);overflow:hidden}
+.today-focus-main{display:flex;align-items:center;gap:9px;min-width:0;flex:1;padding:0 12px;color:var(--ink);text-decoration:none}
+.today-focus-label{flex:0 0 auto;border-radius:99px;padding:3px 8px;background:var(--ink);color:var(--bg);font-size:11px;font-weight:750;white-space:nowrap}
+.today-focus-title{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px;font-weight:700}
+.today-focus-signal{display:inline-flex;align-items:center;gap:4px;flex:0 0 auto;color:var(--accent);font-size:11.5px;font-weight:700;white-space:nowrap}
+.today-focus-signal b{font-size:10.5px}
+.today-focus-more{display:flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:72px;padding:0 12px;border-left:1px solid var(--soft);color:var(--accent);font-size:11.5px;font-weight:700;text-decoration:none;white-space:nowrap}
+.top-rank{flex:0 0 auto;border-radius:5px;padding:2px 6px;background:var(--accent);color:#fff;font-size:10px;font-weight:800;line-height:1.3;white-space:nowrap}
+.vendor-card-head{justify-content:space-between}
+.vendor-card-title{display:inline-flex;align-items:center;gap:6px}
+.vendor-card-link{margin-left:auto;color:var(--accent);font-size:11px;font-weight:650;text-decoration:none;white-space:nowrap}
+.vendor-row{color:var(--ink);text-decoration:none}
 @media(max-width:360px){
   .weekly-strip-link{gap:7px;padding-left:10px}
   .weekly-strip-label{padding:3px 7px}
   .weekly-strip-view-arrow{display:none}
+}
+@media(max-width:600px){
+  .weekly-strip{min-height:48px;margin-bottom:10px}
+  .weekly-strip-link{min-height:48px}
+  .today-focus{min-height:48px;margin-bottom:8px}
+  .today-focus-main{gap:6px;padding:0 8px}
+  .today-focus-label{padding:3px 6px;font-size:10px}
+  .today-focus-title{font-size:12.5px}
+  .today-focus-signal{font-size:10.5px}
+  .today-focus-signal b{display:none}
+  .today-focus-more{min-width:56px;padding:0 8px;font-size:11px}
+  .top-rank{padding:2px 5px;font-size:9.5px}
 }
 .weekly-summary{background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border:0;padding:20px 22px}
 .weekly-summary h1{font-size:25px;line-height:1.4;margin:4px 0 8px}
@@ -1011,7 +1035,7 @@ def favorite_button(e, *, class_name="favbtn", icon_size=15, label=""):
         f'{ic("bookmark", icon_size)}{label_html}</button>'
     )
 
-def render_card(e, prefix=""):
+def render_card(e, prefix="", top_rank=None):
     event_id = safe_event_id(e["event_id"])
     status_label = "精选" if e.get("star") else ""
     if not status_label and is_classic_review(e):
@@ -1031,13 +1055,33 @@ def render_card(e, prefix=""):
     vtags = "".join(f'<span class="vtag">{esc(v)}</span>' for v in e.get("vendors", []))
     vbox = f'<div class="vendors">{tchips}{vtags}</div>' if (tchips or vtags) else ""
     url = prefix + detail_url(e)
+    rank_html = (
+        f'<span class="top-rank" aria-label="热点第 {int(top_rank)} 名">TOP {int(top_rank)}</span>'
+        if top_rank else ""
+    )
     return f'''<div class="item" data-cat="{esc(e["category"])}" data-topics="{esc("|".join(e.get("topics", [])))}" data-link="{url}" data-analytics-list="1" data-event-id="{event_id}" data-category="{esc(e["category"])}" data-source="{esc(e["items"][0]["source"])}">
       <div class="top card-meta"><span class="card-source"><span class="srcbadge">{src_badge(e["items"][0]["source"])}</span><span class="card-source-name">{esc(src_display(e["items"][0]["source"]))}</span><span class="card-time">{card_time(e)}</span></span>
+      {rank_html}
       <span class="heatnum{status_class}" title="热度分：{HEAT_FORMULA}">{ic("flame",13)} {esc(status_text)}</span>
       {favorite_button(e)}</div>
       <h3><a href="{url}">{esc(e["zh_title"])}</a></h3>
       <p class="sum">{esc(e["zh_summary"])}</p>{also}{reason}{vbox}
     </div>'''
+
+
+def render_today_focus(event):
+    """Render one compact promotion; the full card remains in the timeline."""
+    if not event:
+        return ""
+    url = detail_url(event)
+    return f'''<div class="today-focus" data-event-id="{safe_event_id(event["event_id"])}">
+  <a class="today-focus-main" href="{url}" data-analytics="today_focus">
+    <span class="today-focus-label">今日重点</span>
+    <span class="today-focus-title">{esc(event["zh_title"])}</span>
+    <span class="today-focus-signal"><b>TOP 1</b>{ic("flame",12)} {int(event.get("heat") or 0)}</span>
+  </a>
+  <a class="today-focus-more" href="hot.html" aria-label="查看完整榜单">榜单 →</a>
+</div>'''
 
 def title_bigrams(t):
     t = re.sub(r"[^\w一-鿿]+", "", (t or "").lower())
@@ -2483,6 +2527,12 @@ def main():
     # 热点保持近 7 天；时间轴使用全部在站合格内容，避免旧洞察无法发现。
     hot_window_events = select_home_events(window_events)
     timeline_events = select_timeline_events(all_events)
+    top_events = rank_hot_events(
+        hot_window_events, limit=3, source_cap=2, reference_time=gen,
+    )
+    top_ids = [event["event_id"] for event in top_events]
+    top_ranks = {event_id: rank for rank, event_id in enumerate(top_ids, 1)}
+    payload["top"] = top_ids
     lite_enabled = lite_home_enabled()
     home_ranking = rank_timeline_events(
         timeline_events, page_size=DEFAULT_PAGE_SIZE,
@@ -2557,23 +2607,6 @@ def main():
         if f.name not in valid_topic_slugs:
             f.unlink()
 
-    # ── 热点榜：继续使用近 7 天合格池和来源上限 ──
-    hot_cards = ""
-    top_ids = [
-        event["event_id"] for event in rank_hot_events(
-            hot_window_events, limit=3, source_cap=2, reference_time=gen,
-        )
-    ]
-    payload["top"] = top_ids
-    for n, eid in enumerate(top_ids, 1):
-        e = next((x for x in hot_window_events if x["event_id"] == eid), None)
-        if not e:
-            continue
-        hot_cards += f'''<div class="hot" data-link="{detail_url(e)}" data-analytics-list="1" data-event-id="{safe_event_id(e["event_id"])}" data-category="{esc(e["category"])}" data-source="{esc(e["items"][0]["source"])}"><span class="rank">TOP {n}</span><span class="heat">{ic("flame",12)} {e["heat"]}</span>
-        <h3><a href="{detail_url(e)}">{esc(e["zh_title"])}</a></h3>
-        <p class="hsum">{esc(e["zh_summary"])}</p>
-        <div class="sources"><span class="srcbadge">{src_badge(e["items"][0]["source"])}</span>{sources_html(e)}<span class="htime">{card_time(e)}</span>{favorite_button(e)}</div></div>'''
-
     # ── 时间轴 ──
     initial_events = home_first_page if lite_enabled else home_ranking
     days = defaultdict(list)
@@ -2590,7 +2623,9 @@ def main():
         timeline += (f'<div class="day" data-day-key="{d.isoformat()}"><div class="day-head">'
                      f'<span class="date" data-date-base="{head}">{visible_head}</span>'
                      f'<span class="info">{info}</span></div>')
-        timeline += "\n".join(render_card(e) for e in days[d])
+        timeline += "\n".join(
+            render_card(e, top_rank=top_ranks.get(e["event_id"])) for e in days[d]
+        )
         timeline += "</div>"
 
     # ── 厂商热榜 ──
@@ -2599,14 +2634,12 @@ def main():
         for v in e.get("vendors", []):
             vendor_count[v] += 1
     vrows = "".join(
-        f'<div class="vendor-row"><span class="n">{n}</span>{esc(v)}<span class="count">{c} 条</span></div>'
+        f'<a class="vendor-row" href="index.html?q={quote(v, safe="")}" '
+        f'aria-label="查看 {esc(v)} 的相关事件"><span class="n">{n}</span>'
+        f'<span>{esc(v)}</span><span class="count">{c} 条</span></a>'
         for n, (v, c) in enumerate(sorted(vendor_count.items(), key=lambda x: -x[1])[:8], 1))
     if not vrows:
         vrows = '<div style="font-size:12.5px;color:var(--sub)">暂无数据</div>'
-
-    ok = sum(1 for s in payload["sources"] if s["ok"])
-    bad = [s["name"] for s in payload["sources"] if not s["ok"]]
-    bad_txt = "、".join(bad) if bad else "无"
 
     # 首页筛选顺序保持稳定；短名称只用于显示，底层筛选值继续兼容旧 URL。
     topic_fchips = render_home_filter_chips(timeline_events)
@@ -2614,7 +2647,8 @@ def main():
     weekly_header_link = f'<a class="tab d-only" href="weekly.html" style="text-decoration:none">{ic("calendar",14)} 周报</a>' if weekly_enabled else ""
     home_config = (
         f'<meta id="homeDataConfig" data-lite-url="data/latest-lite.json" '
-        f'data-page-size="{DEFAULT_PAGE_SIZE}" data-total="{len(timeline_events)}">'
+        f'data-page-size="{DEFAULT_PAGE_SIZE}" data-total="{len(timeline_events)}" '
+        f'data-top-ids="{esc(",".join(top_ids))}">'
         if lite_enabled else ""
     )
     timeline_html = f'<div id="timeline">{timeline}</div>' if lite_enabled else timeline
@@ -2663,8 +2697,7 @@ def main():
 
 <div class="wrap"><div class="layout"><main>
   {weekly_teaser}
-  <div class="section-title"><h2>{ic("flame",18)} 本期热点</h2><span>多信源聚簇 · 按热度排序</span><a href="hot.html" style="margin-left:auto;font-size:12.5px;color:var(--accent);font-weight:600">完整榜单 →</a></div>
-  <div class="hotlist">{hot_cards}</div>
+  {render_today_focus(top_events[0] if top_events else None)}
   {render_timeline_toolbar(len(timeline_events))}
   <div class="chiprow" id="chiprow" role="group" aria-label="筛选时间轴">
     <button class="fchip on" type="button" aria-pressed="true" data-topic="all">全部</button>
@@ -2675,19 +2708,7 @@ def main():
 </main>
 
 <aside>
-  <div class="card"><h4>{ic("building")} 厂商热榜 <span style="font-size:11px;color:var(--sub);font-weight:400">近7天</span></h4>{vrows}</div>
-  <div class="card"><h4>{ic("tag")} 栏目说明</h4><div class="legend">
-    <div class="row"><span class="badge b-agent">Data Agent</span>ChatBI · NL2SQL · 分析 Agent</div>
-    <div class="row"><span class="badge b-platform">AI 数据平台</span>湖仓 · 语义层 · 数据治理</div>
-    <div class="row"><span class="badge b-bi">BI 与可视化</span>BI 厂商 · 报表 · 可视化</div>
-    <div class="row"><span class="badge b-product">数据产品</span>方法论 · 融资并购 · 报告</div>
-    <div class="row"><span class="badge b-insight">AI分析</span>组织人才 · 经营增长 · 风险决策</div>
-  </div></div>
-  <div class="card"><h4>{ic("clock")} 更新状态</h4><div class="status">
-    最后更新：<b>{gen.strftime("%Y-%m-%d %H:%M")}</b><br>
-    信源正常：<b>{ok}/{len(payload["sources"])}</b> · 在站事件 <b>{len(timeline_events)} 个</b><br>
-    信源异常：{esc(bad_txt)}
-  </div></div>
+  <div class="card vendor-rank-card"><h4 class="vendor-card-head"><span class="vendor-card-title">{ic("building")} 厂商榜 <span style="font-size:11px;color:var(--sub);font-weight:400">近7天</span></span><a class="vendor-card-link" href="sources.html">全部信源 →</a></h4>{vrows}</div>
 </aside>
 </div></div>
 

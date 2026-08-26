@@ -187,6 +187,31 @@ class HomeHeaderTests(unittest.TestCase):
         favorite_js = (ROOT / "pipeline" / "assets" / "favorites.js").read_text(encoding="utf-8")
         self.assertIn('button.setAttribute("aria-pressed", on ? "true" : "false")', favorite_js)
 
+    def test_home_focus_is_one_compact_link_and_rank_moves_to_timeline(self):
+        item = {
+            "event_id": "123456789abc", "zh_title": "今日重点标题", "zh_summary": "摘要",
+            "reason": "理由", "category": "platform", "topics": [], "vendors": ["Snowflake"],
+            "heat": 66, "star": True, "shelf": "news",
+            "published": "2026-08-13T12:00:00+08:00", "first_seen": "2026-08-13T12:00:00+08:00",
+            "items": [{"source": "Snowflake Blog"}],
+        }
+        focus = build_site.render_today_focus(item)
+        card = build_site.render_card(item, top_rank=1)
+        source = (ROOT / "pipeline" / "build_site.py").read_text(encoding="utf-8")
+
+        self.assertIn('class="today-focus"', focus)
+        self.assertIn('class="today-focus-label">今日重点</span>', focus)
+        self.assertIn('href="e/123456789abc.html"', focus)
+        self.assertIn('href="hot.html"', focus)
+        self.assertNotIn('class="hot"', focus)
+        self.assertIn('class="top-rank"', card)
+        self.assertIn('TOP 1', card)
+        self.assertIn('精选 66', card)
+        self.assertNotIn("本期热点</h2>", source)
+        self.assertNotIn("栏目说明", source)
+        self.assertNotIn("更新状态", source)
+        self.assertIn('href="sources.html">全部信源 →</a>', source)
+
     def test_mobile_timeline_toolbar_stays_on_one_compact_line(self):
         toolbar = build_site.render_timeline_toolbar(126)
         css = build_site.load_css()

@@ -289,6 +289,17 @@ test("dynamic cards keep one-line source metadata, combined featured heat and bo
   assert.doesNotMatch(html, /<span class="star">精选<\/span>/);
 });
 
+test("dynamic timeline preserves TOP ranks after filtering or loading more", () => {
+  const first = event(31);
+  const second = event(32);
+  const ranks = home.topRanksFromIds(`${first.event_id},${second.event_id}`);
+  const html = home.renderTimeline([first, second], ranks);
+
+  assert.deepEqual(ranks, { [first.event_id]: 1, [second.event_id]: 2 });
+  assert.match(html, /aria-label="热点第 1 名">TOP 1<\/span>/);
+  assert.match(html, /aria-label="热点第 2 名">TOP 2<\/span>/);
+});
+
 test("timeline grouping uses publication date before ingestion date", () => {
   const item = event(4);
   item.published = "2026-08-10T23:00:00+08:00";

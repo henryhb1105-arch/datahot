@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-JkiRY4oVbsCjdrFXmFIXJZzi/EZcKSf/3v2y1Dqk+k4=' 'sha256-phFqkc7J7tsjwT7WBYGNOCZMywE2S2IZNAG0x1kWN/U='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-JkiRY4oVbsCjdrFXmFIXJZzi/EZcKSf/3v2y1Dqk+k4=' 'sha256-NvRsPcer0FgJAKo2R2N3gy4lgjWcTh3/GRLezd1DT24='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>通用 Agent 来了，Data Agent 还要单独买吗？ · DataHot</title>
@@ -321,10 +321,34 @@ main,.layout>*,.hotlist>*{min-width:0}
 .weekly-strip-view{flex:0 0 auto;color:var(--accent);font-size:12px;font-weight:700;white-space:nowrap}
 .weekly-dismiss{appearance:none;display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;min-height:44px;margin:4px;border:0;border-radius:50%;background:transparent;color:var(--sub);cursor:pointer}
 .weekly-dismiss svg{pointer-events:none}
+.today-focus{display:flex;align-items:stretch;min-height:52px;margin-bottom:12px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);overflow:hidden}
+.today-focus-main{display:flex;align-items:center;gap:9px;min-width:0;flex:1;padding:0 12px;color:var(--ink);text-decoration:none}
+.today-focus-label{flex:0 0 auto;border-radius:99px;padding:3px 8px;background:var(--ink);color:var(--bg);font-size:11px;font-weight:750;white-space:nowrap}
+.today-focus-title{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px;font-weight:700}
+.today-focus-signal{display:inline-flex;align-items:center;gap:4px;flex:0 0 auto;color:var(--accent);font-size:11.5px;font-weight:700;white-space:nowrap}
+.today-focus-signal b{font-size:10.5px}
+.today-focus-more{display:flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:72px;padding:0 12px;border-left:1px solid var(--soft);color:var(--accent);font-size:11.5px;font-weight:700;text-decoration:none;white-space:nowrap}
+.top-rank{flex:0 0 auto;border-radius:5px;padding:2px 6px;background:var(--accent);color:#fff;font-size:10px;font-weight:800;line-height:1.3;white-space:nowrap}
+.vendor-card-head{justify-content:space-between}
+.vendor-card-title{display:inline-flex;align-items:center;gap:6px}
+.vendor-card-link{margin-left:auto;color:var(--accent);font-size:11px;font-weight:650;text-decoration:none;white-space:nowrap}
+.vendor-row{color:var(--ink);text-decoration:none}
 @media(max-width:360px){
   .weekly-strip-link{gap:7px;padding-left:10px}
   .weekly-strip-label{padding:3px 7px}
   .weekly-strip-view-arrow{display:none}
+}
+@media(max-width:600px){
+  .weekly-strip{min-height:48px;margin-bottom:10px}
+  .weekly-strip-link{min-height:48px}
+  .today-focus{min-height:48px;margin-bottom:8px}
+  .today-focus-main{gap:6px;padding:0 8px}
+  .today-focus-label{padding:3px 6px;font-size:10px}
+  .today-focus-title{font-size:12.5px}
+  .today-focus-signal{font-size:10.5px}
+  .today-focus-signal b{display:none}
+  .today-focus-more{min-width:56px;padding:0 8px;font-size:11px}
+  .top-rank{padding:2px 5px;font-size:9.5px}
 }
 .weekly-summary{background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border:0;padding:20px 22px}
 .weekly-summary h1{font-size:25px;line-height:1.4;margin:4px 0 8px}
@@ -872,7 +896,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title":"通用 Agent 来了，Data Agent 还要单独买吗？","summary":"文章以 OpenClaw 接入 Aloudata CAN 语义平台、安装问数和归因 Skill 为例，说明通用 Agent 能模仿数据分析，但“会分析”不等于“能上岗”。作者认为 Data Agent 需一体化设计，在需求澄清、强制数据校验、结果可追溯等方面承担岗位责任，而非仅挂载 Skill。文中还强调数据 100% 准确要以分析过程 100% 可信为手段，并指出单独售卖 Skill 无法对任务完成率负责。","reason":"在通用 Agent 热潮下，本文清晰区分了“会分析”与“能上岗”，为数据团队评估 Data Agent 采购价值、设计可信分析流程提供了实用视角。","topic":"Data Agent","heat":38,"source":"Aloudata 博客","date":"2026-08-19","url":"https://datahot.xiahongbin.com/e/6c6fc36a363b.html","qr":"../qr/6c6fc36a363b.png"};
+var SH_EV = {"title":"通用 Agent 来了，Data Agent 还要单独买吗？","summary":"文章以 OpenClaw 接入 Aloudata CAN 语义平台、安装问数和归因 Skill 为例，说明通用 Agent 能模仿数据分析，但“会分析”不等于“能上岗”。作者认为 Data Agent 需一体化设计，在需求澄清、强制数据校验、结果可追溯等方面承担岗位责任，而非仅挂载 Skill。文中还强调数据 100% 准确要以分析过程 100% 可信为手段，并指出单独售卖 Skill 无法对任务完成率负责。","reason":"在通用 Agent 热潮下，本文清晰区分了“会分析”与“能上岗”，为数据团队评估 Data Agent 采购价值、设计可信分析流程提供了实用视角。","topic":"Data Agent","heat":37,"source":"Aloudata 博客","date":"2026-08-19","url":"https://datahot.xiahongbin.com/e/6c6fc36a363b.html","qr":"../qr/6c6fc36a363b.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

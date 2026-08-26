@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-1G8oIs0OewW1oKDDWE6cBg8j1/0besx5HEem8yf9sgE=' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-cQTVC5lHgJMNtPeD8yAxkeV78buXaL4SIaP8U5NHbPM='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-ZXs80GVmLcEuXx5jGTk2UFOu51Du+nxoDotxYUY8v5I=' 'sha256-cQTVC5lHgJMNtPeD8yAxkeV78buXaL4SIaP8U5NHbPM='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Amplitude推出Agent Analytics，解决AI Agent质量评估难题 · DataHot</title>
@@ -321,10 +321,34 @@ main,.layout>*,.hotlist>*{min-width:0}
 .weekly-strip-view{flex:0 0 auto;color:var(--accent);font-size:12px;font-weight:700;white-space:nowrap}
 .weekly-dismiss{appearance:none;display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;min-height:44px;margin:4px;border:0;border-radius:50%;background:transparent;color:var(--sub);cursor:pointer}
 .weekly-dismiss svg{pointer-events:none}
+.today-focus{display:flex;align-items:stretch;min-height:52px;margin-bottom:12px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);overflow:hidden}
+.today-focus-main{display:flex;align-items:center;gap:9px;min-width:0;flex:1;padding:0 12px;color:var(--ink);text-decoration:none}
+.today-focus-label{flex:0 0 auto;border-radius:99px;padding:3px 8px;background:var(--ink);color:var(--bg);font-size:11px;font-weight:750;white-space:nowrap}
+.today-focus-title{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px;font-weight:700}
+.today-focus-signal{display:inline-flex;align-items:center;gap:4px;flex:0 0 auto;color:var(--accent);font-size:11.5px;font-weight:700;white-space:nowrap}
+.today-focus-signal b{font-size:10.5px}
+.today-focus-more{display:flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:72px;padding:0 12px;border-left:1px solid var(--soft);color:var(--accent);font-size:11.5px;font-weight:700;text-decoration:none;white-space:nowrap}
+.top-rank{flex:0 0 auto;border-radius:5px;padding:2px 6px;background:var(--accent);color:#fff;font-size:10px;font-weight:800;line-height:1.3;white-space:nowrap}
+.vendor-card-head{justify-content:space-between}
+.vendor-card-title{display:inline-flex;align-items:center;gap:6px}
+.vendor-card-link{margin-left:auto;color:var(--accent);font-size:11px;font-weight:650;text-decoration:none;white-space:nowrap}
+.vendor-row{color:var(--ink);text-decoration:none}
 @media(max-width:360px){
   .weekly-strip-link{gap:7px;padding-left:10px}
   .weekly-strip-label{padding:3px 7px}
   .weekly-strip-view-arrow{display:none}
+}
+@media(max-width:600px){
+  .weekly-strip{min-height:48px;margin-bottom:10px}
+  .weekly-strip-link{min-height:48px}
+  .today-focus{min-height:48px;margin-bottom:8px}
+  .today-focus-main{gap:6px;padding:0 8px}
+  .today-focus-label{padding:3px 6px;font-size:10px}
+  .today-focus-title{font-size:12.5px}
+  .today-focus-signal{font-size:10.5px}
+  .today-focus-signal b{display:none}
+  .today-focus-more{min-width:56px;padding:0 8px;font-size:11px}
+  .top-rank{padding:2px 5px;font-size:9.5px}
 }
 .weekly-summary{background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border:0;padding:20px 22px}
 .weekly-summary h1{font-size:25px;line-height:1.4;margin:4px 0 8px}
@@ -727,7 +751,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 </section>
   <div class="vendors article-tags" aria-label="文章主题"><a class="chip" href="../topics/data-agent.html">Data Agent</a><span class="vtag">Amplitude</span></div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/ab25c8b6e699.html"><span class="n">›</span>Amplitude发布Agent Analytics：将智能体性能与产品结果相连<span class="count">39</span></a><a class="vendor-row" href="../e/a6d9b9e19533.html"><span class="n">›</span>Amplitude Agent 接入 Discord，让数据出现在决策现场<span class="count">28</span></a><a class="vendor-row" href="../e/d42105556279.html"><span class="n">›</span>什么是工具调用？Databricks解读AI Agent核心机制<span class="count">23</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/ab25c8b6e699.html"><span class="n">›</span>Amplitude发布Agent Analytics：将智能体性能与产品结果相连<span class="count">38</span></a><a class="vendor-row" href="../e/a6d9b9e19533.html"><span class="n">›</span>Amplitude Agent 接入 Discord，让数据出现在决策现场<span class="count">28</span></a><a class="vendor-row" href="../e/d42105556279.html"><span class="n">›</span>什么是工具调用？Databricks解读AI Agent核心机制<span class="count">23</span></a></div>
   </main>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
@@ -863,7 +887,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title":"Amplitude推出Agent Analytics，解决AI Agent质量评估难题","summary":"Amplitude在构建自家AI Agent时发现，传统产品分析指标如参与度、激活率、NPS和离线评估都无法回答“Agent是否给出了有用回答”这一关键问题。用户可能进行两分钟对话后愤怒离开，而传统漏斗仍显示“已激活”。为此，Amplitude构建了Agent Analytics，目前已进入封闭测试阶段，旨在追踪Agent回答质量、失败原因（如提示词、上下文、工具调用）及其对留存和升级的影响。","reason":"数据从业者构建或运营AI Agent时，普遍面临可观测性和质量评估空白，Agent Analytics提供了针对非确定性Agent的分析思路与工具实践。","topic":"Data Agent","heat":40,"source":"Amplitude Blog","date":"2026-08-20","url":"https://datahot.xiahongbin.com/e/7365328d7b8e.html","qr":"../qr/7365328d7b8e.png"};
+var SH_EV = {"title":"Amplitude推出Agent Analytics，解决AI Agent质量评估难题","summary":"Amplitude在构建自家AI Agent时发现，传统产品分析指标如参与度、激活率、NPS和离线评估都无法回答“Agent是否给出了有用回答”这一关键问题。用户可能进行两分钟对话后愤怒离开，而传统漏斗仍显示“已激活”。为此，Amplitude构建了Agent Analytics，目前已进入封闭测试阶段，旨在追踪Agent回答质量、失败原因（如提示词、上下文、工具调用）及其对留存和升级的影响。","reason":"数据从业者构建或运营AI Agent时，普遍面临可观测性和质量评估空白，Agent Analytics提供了针对非确定性Agent的分析思路与工具实践。","topic":"Data Agent","heat":39,"source":"Amplitude Blog","date":"2026-08-20","url":"https://datahot.xiahongbin.com/e/7365328d7b8e.html","qr":"../qr/7365328d7b8e.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

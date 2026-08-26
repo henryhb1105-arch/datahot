@@ -267,7 +267,15 @@
     return String(value || "").replace(/^\s*推荐理由\s*[:：]\s*/, "");
   }
 
-  function renderCard(event) {
+  function topRanksFromIds(value) {
+    var ranks = {};
+    String(value || "").split(",").filter(Boolean).forEach(function (eventId, index) {
+      ranks[eventId] = index + 1;
+    });
+    return ranks;
+  }
+
+  function renderCard(event, topRanks) {
     var source = event.items && event.items[0] ? event.items[0].source : "";
     var sourceBadge = event.source_badge || "RSS";
     var topics = (event.topics || []).map(function (topic) {
@@ -283,6 +291,9 @@
     var status = event.star ? "精选" : "";
     var heat = Number(event.heat || 0);
     var heatLabel = status ? status + " " + heat : String(heat);
+    var topRank = topRanks && topRanks[event.event_id];
+    var topRankHtml = topRank ? '<span class="top-rank" aria-label="热点第 ' + topRank +
+      ' 名">TOP ' + topRank + "</span>" : "";
     var flameIcon = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"></path></svg>';
     var bookmarkIcon = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"></path></svg>';
     var url = "e/" + encodeURIComponent(event.event_id) + ".html";
@@ -302,7 +313,7 @@
       '" data-category="' + escapeHtml(event.category) + '" data-source="' + escapeHtml(source) + '">' +
       '<div class="top card-meta"><span class="card-source"><span class="srcbadge">' + escapeHtml(sourceBadge) +
       '</span><span class="card-source-name">' + escapeHtml(source) + '</span><span class="card-time">' +
-      escapeHtml(cardTime(event)) + '</span></span><span class="heatnum' + (status ? ' is-featured' : '') +
+      escapeHtml(cardTime(event)) + '</span></span>' + topRankHtml + '<span class="heatnum' + (status ? ' is-featured' : '') +
       '" title="热度分">' + flameIcon + ' ' + escapeHtml(heatLabel) + '</span><button class="favbtn" data-fav="' +
       escapeHtml(event.event_id) + '" data-fav-record="' + escapeHtml(JSON.stringify(favoriteRecord)) +
       '" type="button" title="收藏" aria-label="收藏" aria-pressed="false">' + bookmarkIcon + '</button></div>' +
@@ -311,7 +322,7 @@
       ((topics || vendors) ? '<div class="vendors">' + topics + vendors + "</div>" : "") + "</div>";
   }
 
-  function renderTimeline(events) {
+  function renderTimeline(events, topRanks) {
     var groups = [], byKey = new Map();
     events.forEach(function (event) {
       var parts = dateParts(event.published || event.first_seen);
@@ -326,7 +337,9 @@
       return '<div class="day" data-day-key="' + escapeHtml(group.parts.key) +
         '"><div class="day-head"><span class="date" data-date-base="' + escapeHtml(group.parts.head) + '">' + escapeHtml(group.parts.head) +
         '</span><span class="info">' + escapeHtml(group.parts.label) + " · " + group.events.length +
-        " 个事件</span></div>" + group.events.map(renderCard).join("") + "</div>";
+        " 个事件</span></div>" + group.events.map(function (event) {
+          return renderCard(event, topRanks);
+        }).join("") + "</div>";
     }).join("");
   }
 
@@ -343,6 +356,7 @@
     var backToTop = doc.getElementById("backToTop");
     var pageSize = Math.max(1, parseInt(config.dataset.pageSize || "20", 10));
     var total = Math.max(0, parseInt(config.dataset.total || "0", 10));
+    var topRanks = topRanksFromIds(config.dataset.topIds || "");
     var state = stateFromSearch(win.location.search);
     var payloadPromise = null;
     var allEvents = null;
@@ -479,7 +493,7 @@
       }
       return fetchEvents().then(function (events) {
         var result = visibleEvents(events, state, pageSize);
-        root.innerHTML = renderTimeline(result.visible) || '<div class="scard" style="color:var(--sub)">没有匹配的事件</div>';
+        root.innerHTML = renderTimeline(result.visible, topRanks) || '<div class="scard" style="color:var(--sub)">没有匹配的事件</div>';
         syncTodayLabels();
         count.textContent = String(result.filtered.length);
         if (qClear) qClear.style.display = state.q ? "" : "none";
@@ -633,6 +647,7 @@
     navigationType: navigationType,
     shouldRestoreInitialSnapshot: shouldRestoreInitialSnapshot,
     renderLoadFailure: renderLoadFailure,
+    topRanksFromIds: topRanksFromIds,
     renderTimeline: renderTimeline,
     boot: boot
   };

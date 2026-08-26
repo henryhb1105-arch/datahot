@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-CKRuaM/39wlv8k+KmXwY1kyOpAEbOtXLTKyZX6imHwA=' 'sha256-tu93U6Zu7M/7JM/0vUGru1Qnzhsj/IORR4eYUOlfL/Y='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-cipmsWPhtY6wKXR303VL+4myAgwFIGO6Jvr4LgTt2lw=' 'sha256-tu93U6Zu7M/7JM/0vUGru1Qnzhsj/IORR4eYUOlfL/Y='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Snowflake为CoCo推出受限会话范围，限制AI Agent权限 · DataHot</title>
@@ -321,10 +321,34 @@ main,.layout>*,.hotlist>*{min-width:0}
 .weekly-strip-view{flex:0 0 auto;color:var(--accent);font-size:12px;font-weight:700;white-space:nowrap}
 .weekly-dismiss{appearance:none;display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;min-height:44px;margin:4px;border:0;border-radius:50%;background:transparent;color:var(--sub);cursor:pointer}
 .weekly-dismiss svg{pointer-events:none}
+.today-focus{display:flex;align-items:stretch;min-height:52px;margin-bottom:12px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);overflow:hidden}
+.today-focus-main{display:flex;align-items:center;gap:9px;min-width:0;flex:1;padding:0 12px;color:var(--ink);text-decoration:none}
+.today-focus-label{flex:0 0 auto;border-radius:99px;padding:3px 8px;background:var(--ink);color:var(--bg);font-size:11px;font-weight:750;white-space:nowrap}
+.today-focus-title{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px;font-weight:700}
+.today-focus-signal{display:inline-flex;align-items:center;gap:4px;flex:0 0 auto;color:var(--accent);font-size:11.5px;font-weight:700;white-space:nowrap}
+.today-focus-signal b{font-size:10.5px}
+.today-focus-more{display:flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:72px;padding:0 12px;border-left:1px solid var(--soft);color:var(--accent);font-size:11.5px;font-weight:700;text-decoration:none;white-space:nowrap}
+.top-rank{flex:0 0 auto;border-radius:5px;padding:2px 6px;background:var(--accent);color:#fff;font-size:10px;font-weight:800;line-height:1.3;white-space:nowrap}
+.vendor-card-head{justify-content:space-between}
+.vendor-card-title{display:inline-flex;align-items:center;gap:6px}
+.vendor-card-link{margin-left:auto;color:var(--accent);font-size:11px;font-weight:650;text-decoration:none;white-space:nowrap}
+.vendor-row{color:var(--ink);text-decoration:none}
 @media(max-width:360px){
   .weekly-strip-link{gap:7px;padding-left:10px}
   .weekly-strip-label{padding:3px 7px}
   .weekly-strip-view-arrow{display:none}
+}
+@media(max-width:600px){
+  .weekly-strip{min-height:48px;margin-bottom:10px}
+  .weekly-strip-link{min-height:48px}
+  .today-focus{min-height:48px;margin-bottom:8px}
+  .today-focus-main{gap:6px;padding:0 8px}
+  .today-focus-label{padding:3px 6px;font-size:10px}
+  .today-focus-title{font-size:12.5px}
+  .today-focus-signal{font-size:10.5px}
+  .today-focus-signal b{display:none}
+  .today-focus-more{min-width:56px;padding:0 8px;font-size:11px}
+  .top-rank{padding:2px 5px;font-size:9.5px}
 }
 .weekly-summary{background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border:0;padding:20px 22px}
 .weekly-summary h1{font-size:25px;line-height:1.4;margin:4px 0 8px}
@@ -750,7 +774,7 @@ $$;</code></pre><p>在部署前值得了解一个优先级细节。如果用户�
 </section>
   <div class="vendors article-tags" aria-label="文章主题"><a class="chip" href="../topics/data-agent.html">Data Agent</a><span class="vtag">Snowflake</span></div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/6d261f8fce4b.html"><span class="n">›</span>Snowflake CoCo推出技能与插件共享功能<span class="count">37</span></a><a class="vendor-row" href="../e/ae39e628c113.html"><span class="n">›</span>七招控制Snowflake CoCo AI成本<span class="count">23</span></a><a class="vendor-row" href="../e/07e502da82c2.html"><span class="n">›</span>Snowflake CoCo提示词技巧与最佳实践<span class="count">31</span></a></div>
+  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/6d261f8fce4b.html"><span class="n">›</span>Snowflake CoCo推出技能与插件共享功能<span class="count">36</span></a><a class="vendor-row" href="../e/ae39e628c113.html"><span class="n">›</span>七招控制Snowflake CoCo AI成本<span class="count">23</span></a><a class="vendor-row" href="../e/07e502da82c2.html"><span class="n">›</span>Snowflake CoCo提示词技巧与最佳实践<span class="count">31</span></a></div>
   </main>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
@@ -886,7 +910,7 @@ $$;</code></pre><p>在部署前值得了解一个优先级细节。如果用户�
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title":"Snowflake为CoCo推出受限会话范围，限制AI Agent权限","summary":"Snowflake CoCo现已推出Restricted Session Scope（受限会话范围），用于限制AI Agent代表用户执行操作时的权限。该功能作为权限上限，与现有RBAC结合，取用户权限与RSS的交集，不会授予用户本身没有的权限。管理员可将会话策略附加到账户或特定用户，例如设置为只读数据范围。此前Agent继承用户的全部权限，包括ACCOUNTADMIN或生产写权限，RSS解决了这一安全问题。","reason":"数据从业者应关注，因为Agent权限治理是生产环境落地AI Agent的关键问题，Snowflake提供了不重构角色层级即可限制Agent权限的方案。","topic":"Data Agent","heat":63,"source":"Snowflake Engineering (Medium)","date":"2026-08-25","url":"https://datahot.xiahongbin.com/e/a4673d84447b.html","qr":"../qr/a4673d84447b.png"};
+var SH_EV = {"title":"Snowflake为CoCo推出受限会话范围，限制AI Agent权限","summary":"Snowflake CoCo现已推出Restricted Session Scope（受限会话范围），用于限制AI Agent代表用户执行操作时的权限。该功能作为权限上限，与现有RBAC结合，取用户权限与RSS的交集，不会授予用户本身没有的权限。管理员可将会话策略附加到账户或特定用户，例如设置为只读数据范围。此前Agent继承用户的全部权限，包括ACCOUNTADMIN或生产写权限，RSS解决了这一安全问题。","reason":"数据从业者应关注，因为Agent权限治理是生产环境落地AI Agent的关键问题，Snowflake提供了不重构角色层级即可限制Agent权限的方案。","topic":"Data Agent","heat":58,"source":"Snowflake Engineering (Medium)","date":"2026-08-25","url":"https://datahot.xiahongbin.com/e/a4673d84447b.html","qr":"../qr/a4673d84447b.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

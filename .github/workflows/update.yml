@@ -104,6 +104,10 @@ jobs:
           BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
         run: |
           python3 pipeline/run_update.py
+          python3 pipeline/quarantine_content.py \
+            --baseline "$RUNNER_TEMP/datahot-main-baseline/latest.json" \
+            --candidate site/data/latest.json \
+            --report "$RUNNER_TEMP/datahot-content-quarantine.json"
           python3 pipeline/build_site.py
           python3 pipeline/check_links.py site
 

@@ -118,6 +118,51 @@ def content_quality_counts(snapshot):
     }
 
 
+def quarantine_new_stored_chrome(baseline_payload, candidate_payload):
+    """Quarantine newly introduced page chrome without regressing published data.
+
+    A polluted new event is removed. If backfill pollutes an existing clean event,
+    its last published baseline copy is restored. Pollution already present in the
+    baseline cannot be repaired safely here and continues to block the release.
+    """
+    baseline_events = event_map(baseline_payload)
+    candidate_events = event_map(candidate_payload)
+    baseline_chrome_ids = content_quality_snapshot(baseline_events)["stored_chrome_ids"]
+    candidate_chrome_ids = content_quality_snapshot(candidate_events)["stored_chrome_ids"]
+    existing_pollution = candidate_chrome_ids & baseline_chrome_ids
+    if existing_pollution:
+        sample = ", ".join(sorted(existing_pollution)[:10])
+        raise ReleaseGuardError(
+            f"existing event(s) contain stored page chrome and cannot be quarantined: {sample}"
+        )
+
+    if not candidate_chrome_ids:
+        return candidate_payload, []
+
+    quarantined = []
+    kept_events = []
+    for event in candidate_payload.get("events", []):
+        event_id = str(event.get("event_id") or "")
+        if event_id not in candidate_chrome_ids:
+            kept_events.append(event)
+            continue
+        if event_id in baseline_events:
+            kept_events.append(baseline_events[event_id])
+            disposition = "restored_baseline"
+        else:
+            disposition = "removed_new_event"
+        quarantined.append({
+            "event_id": event_id,
+            "title": str(event.get("zh_title") or event.get("title") or ""),
+            "reason": "stored_article_chrome",
+            "disposition": disposition,
+        })
+
+    cleaned = dict(candidate_payload)
+    cleaned["events"] = kept_events
+    return cleaned, quarantined
+
+
 def assess_release(
     baseline_payload,
     candidate_payload,

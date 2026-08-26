@@ -1,4 +1,6 @@
+import json
 import sys
+import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -7,7 +9,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "pipeline"))
 
-from release_guard import PROTECTED_EVENT_IDS, ReleaseGuardError, assess_release  # noqa: E402
+from release_guard import (  # noqa: E402
+    PROTECTED_EVENT_IDS,
+    ReleaseGuardError,
+    assess_release,
+    quarantine_new_stored_chrome,
+)
+from quarantine_content import main as quarantine_main  # noqa: E402
 
 
 NOW = datetime(2026, 8, 13, tzinfo=timezone.utc)
@@ -120,6 +128,115 @@ class ReleaseGuardTests(unittest.TestCase):
         with self.assertRaisesRegex(ReleaseGuardError, "still contain page chrome"):
             self.assess(candidate)
 
+    def test_new_polluted_article_is_quarantined_without_removing_baseline(self):
+        polluted = with_article(event("recent-b"))
+        polluted["zh_title"] = "污染文章"
+        polluted["content_blocks"].extend([
+            {"type": "paragraph", "children": [{"type": "text", "text": "下一篇", "marks": []}]},
+            {"type": "paragraph", "children": [{"type": "text", "text": "相邻文章标题", "marks": []}]},
+        ])
+        candidate = payload(*self.protected, self.recent, polluted)
+
+        cleaned, quarantined = quarantine_new_stored_chrome(self.baseline, candidate)
+
+        self.assertEqual(
+            {item["event_id"] for item in cleaned["events"]},
+            self.baseline_ids,
+        )
+        self.assertEqual(quarantined, [{
+            "event_id": "recent-b",
+            "title": "污染文章",
+            "reason": "stored_article_chrome",
+            "disposition": "removed_new_event",
+        }])
+
+    def test_multiple_new_polluted_articles_are_quarantined_together(self):
+        polluted_events = []
+        for event_id in ("recent-b", "recent-c"):
+            item = with_article(event(event_id))
+            item["content_blocks"].extend([
+                {"type": "paragraph", "children": [{"type": "text", "text": "下一篇", "marks": []}]},
+                {"type": "paragraph", "children": [{"type": "text", "text": "相邻文章标题", "marks": []}]},
+            ])
+            polluted_events.append(item)
+
+        cleaned, quarantined = quarantine_new_stored_chrome(
+            self.baseline, payload(*self.protected, self.recent, *polluted_events),
+        )
+
+        self.assertEqual({item["event_id"] for item in cleaned["events"]}, self.baseline_ids)
+        self.assertEqual(
+            {item["event_id"] for item in quarantined},
+            {"recent-b", "recent-c"},
+        )
+
+    def test_existing_polluted_article_is_never_auto_quarantined(self):
+        existing = with_article(event("recent-a"))
+        existing["content_blocks"].extend([
+            {"type": "paragraph", "children": [{"type": "text", "text": "下一篇", "marks": []}]},
+            {"type": "paragraph", "children": [{"type": "text", "text": "相邻文章标题", "marks": []}]},
+        ])
+        baseline = payload(*self.protected, existing)
+        candidate = payload(*self.protected, existing)
+
+        with self.assertRaisesRegex(ReleaseGuardError, "cannot be quarantined"):
+            quarantine_new_stored_chrome(baseline, candidate)
+
+    def test_existing_clean_article_is_restored_when_backfill_adds_chrome(self):
+        polluted = with_article(event("recent-a"))
+        polluted["zh_title"] = "被回填污染的文章"
+        polluted["content_blocks"].extend([
+            {"type": "paragraph", "children": [{"type": "text", "text": "下一篇", "marks": []}]},
+            {"type": "paragraph", "children": [{"type": "text", "text": "相邻文章标题", "marks": []}]},
+        ])
+        candidate = payload(*self.protected, polluted)
+
+        cleaned, quarantined = quarantine_new_stored_chrome(self.baseline, candidate)
+
+        restored = next(item for item in cleaned["events"] if item["event_id"] == "recent-a")
+        baseline_event = next(
+            item for item in self.baseline["events"] if item["event_id"] == "recent-a"
+        )
+        self.assertEqual(restored, baseline_event)
+        self.assertEqual(quarantined[0]["disposition"], "restored_baseline")
+
+    def test_clean_candidate_is_unchanged_by_quarantine(self):
+        candidate = payload(*self.protected, self.recent, with_article(event("recent-b")))
+        cleaned, quarantined = quarantine_new_stored_chrome(self.baseline, candidate)
+
+        self.assertIs(cleaned, candidate)
+        self.assertEqual(quarantined, [])
+
+    def test_quarantine_cli_rewrites_candidate_and_emits_audit_report(self):
+        polluted = with_article(event("recent-b"))
+        polluted["content_blocks"].extend([
+            {"type": "paragraph", "children": [{"type": "text", "text": "下一篇", "marks": []}]},
+            {"type": "paragraph", "children": [{"type": "text", "text": "相邻文章标题", "marks": []}]},
+        ])
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            baseline_path = root / "baseline.json"
+            candidate_path = root / "candidate.json"
+            report_path = root / "report.json"
+            baseline_path.write_text(json.dumps(self.baseline), encoding="utf-8")
+            candidate_path.write_text(
+                json.dumps(payload(*self.protected, self.recent, polluted)), encoding="utf-8"
+            )
+
+            result = quarantine_main([
+                "--baseline", str(baseline_path),
+                "--candidate", str(candidate_path),
+                "--report", str(report_path),
+            ])
+
+            self.assertEqual(result, 0)
+            cleaned = json.loads(candidate_path.read_text(encoding="utf-8"))
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+            self.assertEqual({item["event_id"] for item in cleaned["events"]}, self.baseline_ids)
+            self.assertEqual(report["candidate_event_count_before"], len(self.baseline_ids) + 1)
+            self.assertEqual(report["candidate_event_count_after"], len(self.baseline_ids))
+            self.assertEqual(report["quarantined"][0]["disposition"], "removed_new_event")
+
     def test_event_count_and_recent_event_regression_are_blocked(self):
         candidate = payload(*self.protected)
         with self.assertRaisesRegex(ReleaseGuardError, "recent event"):
@@ -228,6 +345,11 @@ class ReleaseWorkflowTests(unittest.TestCase):
         self.assertIn("uses: ./.github/workflows/deploy.yml", tts)
         self.assertIn("python3 pipeline/release_guard.py", deploy)
         self.assertIn("保存本轮主线数据基线", update)
+        self.assertIn("pipeline/quarantine_content.py", update)
+        self.assertLess(
+            update.index("pipeline/quarantine_content.py"),
+            update.index("python3 pipeline/build_site.py"),
+        )
         self.assertIn("主线数据回写前防缩水", update)
         self.assertIn("site/data/release.json", deploy)
         self.assertIn("allow_shrink:", deploy)

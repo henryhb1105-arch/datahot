@@ -627,11 +627,18 @@ main,.layout>*,.hotlist>*{min-width:0}
 }
 
 .article{max-width:1040px;margin:0 auto;padding:36px 20px 60px}
+.article-layout{max-width:1000px;margin:0 auto}
 .article-content{max-width:840px;margin:0 auto}
+.article-layout.has-toc{display:grid;grid-template-columns:minmax(0,840px) 144px;gap:16px;align-items:start}
+.article-layout.has-toc .article-content{min-width:0;margin:0}
 .article .back{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}
 .article h1{max-width:700px;font-size:30px;font-weight:800;line-height:1.38;margin:14px auto 20px}
 .article .meta{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
 .article .meta,.article-brief,.tts-player{max-width:700px;margin-left:auto;margin-right:auto}
+.meta-source-link{display:inline-flex;align-items:center;gap:3px;color:var(--txt3);font-weight:650;text-decoration:none}
+.meta-source-link svg{flex:0 0 auto}
+.meta-source-text{color:var(--txt3);font-weight:650}
+.meta-content-mode{display:inline-flex;align-items:center;min-height:22px;padding:2px 8px;border-radius:99px;background:var(--soft);color:var(--txt2);font-size:10.5px;font-weight:700}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
 .article-brief{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:18px;margin-bottom:30px}
@@ -647,6 +654,26 @@ main,.layout>*,.hotlist>*{min-width:0}
 .content-heading h2{display:flex;align-items:center;gap:7px;font-size:15px;line-height:1.5;margin:0;color:var(--ink)}
 .content-origin-badge{font-size:11px;color:var(--sub);font-weight:500}
 .article .vendor-row{text-decoration:none}
+.related-title{min-width:0;flex:1;line-height:1.55}
+.related-meta{flex:0 0 auto;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub);font-size:11px}
+.article-toc-mobile{display:none;max-width:700px;margin:0 auto 24px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+.article-toc-mobile>summary{display:flex;align-items:center;justify-content:space-between;min-height:46px;padding:0 14px;cursor:pointer;list-style:none;color:var(--ink);font-size:13px;font-weight:750}
+.article-toc-mobile>summary::-webkit-details-marker{display:none}
+.article-toc-mobile>summary span,.article-toc-title span{color:var(--sub);font-size:10.5px;font-weight:500}
+.article-toc-mobile ol,.article-toc-rail ol{list-style:none;margin:0;padding:0}
+.article-toc-mobile ol{max-height:50vh;overflow-y:auto;padding:0 14px 12px;border-top:1px solid var(--soft)}
+.article-toc-mobile li{margin:0}
+.article-toc-mobile a{display:block;padding:8px 0;border-bottom:1px solid var(--soft);color:var(--txt2);font-size:12px;line-height:1.5;text-decoration:none}
+.article-toc-mobile li:last-child a{border-bottom:0}
+.article-toc-mobile .toc-level-3 a,.article-toc-mobile .toc-level-4 a{padding-left:12px}
+.article-toc-rail{position:sticky;top:82px;max-height:calc(100vh - 104px);overflow-y:auto;padding:10px 0 12px 14px;border-left:1px solid var(--line);scrollbar-width:thin}
+.article-toc-title{display:flex;justify-content:space-between;gap:6px;margin-bottom:7px;color:var(--ink);font-size:11.5px;font-weight:800}
+.article-toc-rail a{display:block;padding:5px 0;color:var(--sub);font-size:10.5px;line-height:1.45;text-decoration:none}
+.article-toc-rail .toc-level-3 a,.article-toc-rail .toc-level-4 a{padding-left:9px}
+.article-toc-rail a[aria-current="location"]{color:var(--accent);font-weight:750}
+[data-article-heading]{scroll-margin-top:88px}
+.reading-progress{position:absolute;left:0;right:0;bottom:-1px;height:2px;overflow:hidden;background:transparent}
+.reading-progress>span{display:block;width:100%;height:100%;background:var(--accent);transform:scaleX(0);transform-origin:left center;will-change:transform}
 .source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
 .source-heading{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
 .source-heading h4{margin:0}
@@ -664,7 +691,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .source-more>summary::after{content:" ↓"}
 .source-more[open]>summary::after{content:" ↑"}
 @media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
-.fulltext>:not(.cb-figure):not(.cb-table){max-width:700px;margin-left:auto;margin-right:auto}
+.fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:700px;margin-left:auto;margin-right:auto}
 .fulltext .cb-heading{font-size:19px;line-height:1.55;margin-top:32px;margin-bottom:12px;color:var(--ink)}
 .fulltext p{margin-top:0;margin-bottom:18px}
 .fulltext strong{font-weight:750;color:var(--ink)}
@@ -676,16 +703,22 @@ main,.layout>*,.hotlist>*{min-width:0}
 .fulltext code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
 .fulltext pre{overflow:auto;background:#171a20;color:#e8ebf0;border-radius:10px;padding:14px 16px;margin:16px 0;line-height:1.65}
 .fulltext pre code{background:none;border:none;padding:0;color:inherit}
-.cb-table{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;margin:16px 0;border:1px solid var(--line);border-radius:9px}
+.cb-table-shell{position:relative;margin:16px 0}
+.cb-table{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;margin:0;border:1px solid var(--line);border-radius:9px}
 .cb-table:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .cb-table table{border-collapse:collapse;width:100%;min-width:480px;font-size:13px}
 .cb-table th,.cb-table td{padding:9px 12px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:left;vertical-align:top}
 .cb-table th{background:var(--soft);color:var(--ink);font-weight:700}
 .cb-table tr:last-child td{border-bottom:none}
+.cb-table th:first-child,.cb-table td:first-child{position:sticky;left:0;z-index:1;background:var(--card);box-shadow:1px 0 0 var(--line)}
+.cb-table th:first-child{z-index:2;background:var(--soft)}
+.table-scroll-hint{display:none;position:absolute;right:8px;bottom:8px;z-index:3;padding:4px 8px;border-radius:99px;background:rgba(26,29,35,.88);color:#fff;font-size:10.5px;font-weight:700;pointer-events:none;box-shadow:0 3px 12px rgba(0,0,0,.16)}
+.cb-table-shell.is-overflowing:not(.has-scrolled) .table-scroll-hint{display:block}
+.cb-table-shell.is-overflowing:not(.at-end)::after{content:"";position:absolute;top:1px;right:1px;bottom:1px;width:24px;border-radius:0 8px 8px 0;background:linear-gradient(90deg,transparent,var(--card));pointer-events:none}
 .cb-figure{margin:20px 0;background:var(--soft);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .cb-media-link{display:block;background:#f5f7fa;text-decoration:none}
 .cb-figure img{display:block;width:100%;height:auto;max-height:72vh;object-fit:contain;margin:0 auto}
-@media(max-width:600px){.cb-figure{margin:16px -8px;border-radius:9px}.cb-table{max-width:100%;margin-left:0;margin-right:0}}
+@media(max-width:600px){.cb-figure{margin:16px -8px;border-radius:9px}.cb-table-shell{max-width:100%;margin-left:0;margin-right:0}}
 @media (prefers-color-scheme: dark){.cb-media-link{background:#171a20}}
 .tone-accent{color:var(--accent);font-weight:650}.tone-warning{color:var(--amber);font-weight:650}
 .tone-positive{color:var(--green);font-weight:650}.tone-info{color:var(--blue);font-weight:650}.tone-emphasis{color:var(--ink);font-weight:650}
@@ -706,14 +739,15 @@ main,.layout>*,.hotlist>*{min-width:0}
 @media(max-width:600px){.tts-player{grid-template-columns:1fr auto auto;gap:9px;padding:11px 12px}.tts-copy{grid-column:1/-1;grid-row:1;flex-direction:row;align-items:baseline;gap:8px}.tts-toggle{grid-column:1;grid-row:2}.tts-time{grid-column:2;grid-row:2}.tts-rate-label{grid-column:3;grid-row:2}.tts-progress{grid-column:1/-1;grid-row:3}}
 @media(prefers-reduced-motion:reduce){.tts-player *{scroll-behavior:auto!important;transition:none!important}}
 @media(hover:hover) and (pointer:fine){
-  .article .back:hover,.source-report:hover .source-report-title,.original-footer-link:hover{color:var(--accent)}
+  .article .back:hover,.meta-source-link:hover,.source-report:hover .source-report-title,.original-footer-link:hover,.article-toc-mobile a:hover,.article-toc-rail a:hover{color:var(--accent)}
   .cta:hover{opacity:.9}
 }
 .content-footer{max-width:700px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin:20px auto 0}
 .disclaimer{flex:1;font-size:12px;color:var(--sub)}
 .original-footer-link{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:7px 12px;border-radius:99px;color:var(--blue);font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap}
-.original-footer-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media(max-width:600px){.article{padding-left:16px;padding-right:16px}.article h1{font-size:24px;line-height:1.45}.fulltext>:not(.cb-figure):not(.cb-table){max-width:none}.fulltext p,.fulltext li{font-size:16px;line-height:1.82}.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}}
+.original-footer-link:focus-visible,.meta-source-link:focus-visible,.article-toc-mobile summary:focus-visible,.article-toc-mobile a:focus-visible,.article-toc-rail a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:1199px){.article-layout.has-toc{display:block}.article-layout.has-toc .article-content{margin:0 auto}.article-toc-rail{display:none}.article-toc-mobile{display:block}}
+@media(max-width:600px){.article{padding-left:16px;padding-right:16px}.article h1{font-size:24px;line-height:1.45}.fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:none}.fulltext p,.fulltext li{font-size:16px;line-height:1.82}.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}.related-meta{max-width:88px}}
 </style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="424b235d79d4" data-category="product" data-source="人人都是产品经理">
 <aside class="sidebar"><div class="slogo"><a href="../index.html" data-smart-home-return aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><nav class="sidebar-nav" aria-label="主导航"><a class="mi on" href="../index.html" data-smart-home-return><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../for-me.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg>关注</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>周报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>收藏</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a></nav><nav class="sidebar-tools" aria-label="工具"><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a></nav><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>
 <header class="detail-brand-header"><div class="wrap nav">
@@ -728,11 +762,14 @@ main,.layout>*,.hotlist>*{min-width:0}
       <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/424b235d79d4.png" title="海报" aria-label="海报"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg><span class="sbtn-label">海报</span></button>
       <button class="sbtn" type="button" data-share-action="open" title="分享" aria-label="分享"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span class="sbtn-label">分享</span></button>
     </span>
+    
   </div>
+  <div class="article-layout">
   <main class="article-content">
   <div class="meta">
     <span class="srcbadge">RSS</span>
-    <span style="font-weight:600;color:var(--txt3)">人人都是产品经理</span>
+    <a class="meta-source-link" href="https://www.woshipm.com/share/6453213.html" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="人人都是产品经理" aria-label="查看 人人都是产品经理 原文"><span>人人都是产品经理</span><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+    <span class="meta-content-mode">原文</span>
     
     <span title="发布时间">发布 2026-08-24 11:33</span>
     
@@ -753,6 +790,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="article-brief-body"><p>文章依据国家标准 GB11643-1999，指出身份证第15、16位并非派出所代码，而是第15-17位共同构成顺序码。通过反证法说明若按派出所代码理解，一个派出所同一天最多只能容纳5男5女出生，逻辑上不成立；又从管理实践说明派出所分配号段而非将固定代码嵌入号码。作者借此强调，AI时代获得答案容易，但保持独立判断力对风控产品经理至关重要。</p>
   <p class="brief-why"><b>为什么值得关注：</b>数据从业者在设计风控关联规则或身份证校验逻辑时，容易轻信常见说法导致误判；本文从标准与数学逻辑出发纠正误解，对数据产品经理和规则设计者有实际借鉴价值。</p></div>
 </details>
+  
   <section class="content-section" aria-labelledby="articleBodyTitle">
   <div class="content-heading"><h2 id="articleBodyTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 原文</h2></div>
   <div class="fulltext"><p><a href="https://www.woshipm.com/u/860433" target="_blank" rel="noopener noreferrer nofollow">风控打怪升级</a> </p><p>2026-08-24  0 评论  180 浏览  0 收藏   8 分钟  </p><blockquote>身份证号码第15、16位真的是派出所代码吗？本文从国家标准、数学逻辑和管理实践三个维度，用第一性原理和反证法揭示真相：这其实是一个广泛流传的误解。在AI时代，保持独立判断能力比获取答案更重要。 </blockquote><figure class="cb-figure"><a class="cb-media-link" href="https://image.woshipm.com/2023/09/26/150398ca-5c65-11ee-b266-00163e142b65.jpg" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/424b235d79d4/e32d11a0cb8e38073aefed5d.webp" alt="" loading="lazy" decoding="async" width="900" height="420"></a></figure><p>在系统设计中，很多时候都会涉及到身份证号码的校验，基础的包括输入位数校验，身份证含义正则校验等，但是真实在业务逻辑判断的时候，对于身份证号码背后的含义，又需要有更深入的理解。</p><p>最近，在和分析师沟通规则设计的时候，对于身份证号码第15.16位的理解，我们产生了分歧，分析师在设置规则时，使用身份证前6位及第15、16位号码相同，作为两个人存在关联的判断逻辑，但我基于收集到的资料认为这个规则并不足以判断两个人存在关联，且可能存在误判的可能性。</p><p>下文将从定义本源、数学逻辑、管理实践这三个维度说明，“身份证号码第15、16位代表所在地派出所代码”这一说法是错误的。</p><h2 class="cb-heading">一、回归本源：用“第一性原理”审视编码规则</h2><p>第一性原理要求我们抛开所有二手解读，直接回到最根本的官方标准。</p><p>身份证编码的唯一法定依据是国家标准 GB11643-1999《公民身份号码》。该标准明确规定了18位数字的构成：</p><p>第1-6位：地址码（省、市、县）。</p><p>第7-14位：出生日期码。</p><p>第15-17位：顺序码。</p><p>第18位：校验码。</p><p>请注意，标准文本中写的是“顺序码”，它是一个由三个数字组成的整体，用来对同一地址码、同一出生日期的人进行编号。标准从未提及“派出所”或“单位代码”字样。回归法理本源，足以证明该说法没有法律依据。</p><h2 class="cb-heading">二、数学推演：用“反证法”击穿容量天花板</h2><p>如果暂时不看标准，假设这个说法成立（即第15、16位是固定派出所代码，第17位是个人序号），我们来推演一下逻辑后果：</p><p>假设派出所代码占用了两位（00-99），那么留给个人顺序号的只剩下第17位这一位数字（0-9）。</p><p>由于第17位必须承担区分性别的重任（奇数为男，偶数为女），那么对于任意一个派出所、在任意一天：</p><p>男性可用的号码仅有 1, 3, 5, 7, 9（共5个）。</p><p>女性可用的号码仅有 0, 2, 4, 6, 8（共5个）。</p><p>结论：如果一个派出所同一天有超过5名男婴或5名女婴出生，身份证号就编不下去了。这在人口大县是极大概率事件。反证法告诉我们，如果假设为真，整个户籍系统将在逻辑上立刻崩溃，因此假设必然为假。</p><h2 class="cb-heading">三、管理归位：用“奥卡姆剃刀”剔除认知偏差</h2><p>为什么很多人坚信这是“派出所代码”？因为顺序码确实<strong>是由</strong>派出所分配的。但“由谁分配”和“代表谁”是完全不同的概念。</p><p>奥卡姆剃刀原则（如无必要，勿增实体）：在解释第15-17位时，“简单的顺序号”是唯一必要的解释；而引入“派出所代码”这个额外实体，不仅无法解释上述的数学矛盾，反而会破坏原有逻辑。</p><p>实际上，派出所管理的是号段（例如将001-100分配给某个社区），而不是将这些数字嵌入身份证作为固定标识。号码是终身的，但派出所是可能撤并、更名的，如果号码固定为老派出所代码，一旦行政区划变动，身份证立刻失效。因此，为了保持号码的终身有效性，编码规则必须剥离任何可变动的行政单位代码。</p><h2 class="cb-heading">总结</h2><p>法理上，国家标准明确为“顺序码”；</p><p>逻辑上，若代之以“派出所码”，容量只够每天编5个男号和5个女号，无法满足实际需求；</p><p>认知上，大家将“分配管理者”误当作了“编码内容”。</p><p>因此，第15、16位不能认为是派出所代码，正确定义是：第15-17位共同构成顺序码，其中第17位是性别的标识位。</p><p>为什么我们会产生这样的误解，或许在特定场景下，这样的解释是有一定的解释效力的，但不足以泛化，下面是两例比较权威的媒体发布的文章，其中也写到“第15、16位是当地派出所代码”。</p><p>中新网2017年05月21日16:58发布的文章《冷知识：用了一辈子身份证，却不知道“X”是什么？》中这样说明：</p><p>“身份证号码18位数字各有意义，我们的身份证号码一共有18位数字，这不是随机排列的，每一位数字可都有其特殊的意义……比较特别的是第15位到18位数字：第15、16位数字表示的是所在地派出所的代码；第17位数字表示性别，比如如果是奇数，那就表示男性，偶数则表示是女性；最后一位数字则是校验码。”</p><figure class="cb-figure"><a class="cb-media-link" href="https://image.woshipm.com/2026/08/24/460b491a-9f63-11f1-bc31-00163e09d72f.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/424b235d79d4/2f37265ca7df57c2d751ac2d.webp" alt="" loading="lazy" decoding="async" width="2380" height="1130"></a></figure><p>钱江晚报2019年10月25日17:04发布的文章《摇号又出幺蛾子？杭州红盘梧桐郡10位购房者身份证号一模一样？真相在这里》这样写：</p><blockquote>“可能很多人都以为，身份证后4位数是随机产生的，重叠的可能极小，其实并非如此——第15、16位是当地派出所代码（比如，钱报记者从余杭区闲林派出所户籍科了解到，闲林派出所的代码是43）；第17位为顺序号，男为单数，女为双数；第18位则为校验码，由0～9和X来表示。”</blockquote><p>AI的发展越来越快，答案或许很容易获得，但产品经理或者说人的判断能力，是稀缺的能力，过去有人云亦云的说法，现在有“AI投毒”、“语料污染”、“生成式引擎优化 (GEO)”误导大模型。</p><p>AI的发展日新月异，全世界最聪明的大脑，最热的资本投资都在集中发力，但如何在其中用AI解决问题，同时保持自己独立的思考和判断能力，值得我们去思考。</p><p>本文由 @风控打怪升级 原创发布于人人都是产品经理。未经作者许可，禁止转载</p><p>题图来自unsplash，基于CC0协议</p><p>该文观点仅代表作者本人，人人都是产品经理平台仅提供信息存储空间服务</p><p>更多精彩内容，请关注人人都是产品经理微信公众号或下载App</p><p><a href="https://www.woshipm.com/tag/ai%e5%ba%94%e7%94%a8" target="_blank" rel="noopener noreferrer nofollow">AI应用</a><a href="https://www.woshipm.com/tag/%e5%9b%bd%e5%ae%b6%e6%a0%87%e5%87%86" target="_blank" rel="noopener noreferrer nofollow">国家标准</a><a href="https://www.woshipm.com/tag/%e7%8b%ac%e7%ab%8b%e5%88%a4%e6%96%ad" target="_blank" rel="noopener noreferrer nofollow">独立判断</a><a href="https://www.woshipm.com/tag/%e7%bc%96%e7%a0%81%e8%a7%84%e5%88%99" target="_blank" rel="noopener noreferrer nofollow">编码规则</a><a href="https://www.woshipm.com/tag/%e8%ba%ab%e4%bb%bd%e8%af%81%e5%8f%b7%e7%a0%81" target="_blank" rel="noopener noreferrer nofollow">身份证号码</a><a href="https://www.woshipm.com/tag/%e9%80%bb%e8%be%91%e6%8e%a8%e7%90%86" target="_blank" rel="noopener noreferrer nofollow">逻辑推理</a></p></div>
@@ -760,12 +798,14 @@ main,.layout>*,.hotlist>*{min-width:0}
 </section>
   <div class="vendors article-tags" aria-label="文章主题"><a class="chip" href="../topics/risk-management.html">风险管理</a></div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/4842d16865d3.html"><span class="n">›</span>AI指数时代的产品管理：Claude Code产品主管分享<span class="count">27</span></a><a class="vendor-row" href="../e/009c04918a87.html"><span class="n">›</span>AI开始争夺专家数据<span class="count">27</span></a><a class="vendor-row" href="../e/670aa1988526.html"><span class="n">›</span>AI原生初创企业建设手册<span class="count">9</span></a></div>
+  
   </main>
+  
+  </div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 <nav class="tabbar" aria-label="移动端主导航">
-  <a href="../index.html" class="on" data-home-top><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../for-me.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg></span><span>For Me</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>
+  <a href="../index.html" class="on" data-home-top><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../for-me.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg></span><span>关注</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>
   <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
 </nav>
 <div class="more-mask" data-more-mask aria-hidden="true"></div>

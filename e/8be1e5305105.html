@@ -627,11 +627,18 @@ main,.layout>*,.hotlist>*{min-width:0}
 }
 
 .article{max-width:1040px;margin:0 auto;padding:36px 20px 60px}
+.article-layout{max-width:1000px;margin:0 auto}
 .article-content{max-width:840px;margin:0 auto}
+.article-layout.has-toc{display:grid;grid-template-columns:minmax(0,840px) 144px;gap:16px;align-items:start}
+.article-layout.has-toc .article-content{min-width:0;margin:0}
 .article .back{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}
 .article h1{max-width:700px;font-size:30px;font-weight:800;line-height:1.38;margin:14px auto 20px}
 .article .meta{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
 .article .meta,.article-brief,.tts-player{max-width:700px;margin-left:auto;margin-right:auto}
+.meta-source-link{display:inline-flex;align-items:center;gap:3px;color:var(--txt3);font-weight:650;text-decoration:none}
+.meta-source-link svg{flex:0 0 auto}
+.meta-source-text{color:var(--txt3);font-weight:650}
+.meta-content-mode{display:inline-flex;align-items:center;min-height:22px;padding:2px 8px;border-radius:99px;background:var(--soft);color:var(--txt2);font-size:10.5px;font-weight:700}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
 .article-brief{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:18px;margin-bottom:30px}
@@ -647,6 +654,26 @@ main,.layout>*,.hotlist>*{min-width:0}
 .content-heading h2{display:flex;align-items:center;gap:7px;font-size:15px;line-height:1.5;margin:0;color:var(--ink)}
 .content-origin-badge{font-size:11px;color:var(--sub);font-weight:500}
 .article .vendor-row{text-decoration:none}
+.related-title{min-width:0;flex:1;line-height:1.55}
+.related-meta{flex:0 0 auto;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub);font-size:11px}
+.article-toc-mobile{display:none;max-width:700px;margin:0 auto 24px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+.article-toc-mobile>summary{display:flex;align-items:center;justify-content:space-between;min-height:46px;padding:0 14px;cursor:pointer;list-style:none;color:var(--ink);font-size:13px;font-weight:750}
+.article-toc-mobile>summary::-webkit-details-marker{display:none}
+.article-toc-mobile>summary span,.article-toc-title span{color:var(--sub);font-size:10.5px;font-weight:500}
+.article-toc-mobile ol,.article-toc-rail ol{list-style:none;margin:0;padding:0}
+.article-toc-mobile ol{max-height:50vh;overflow-y:auto;padding:0 14px 12px;border-top:1px solid var(--soft)}
+.article-toc-mobile li{margin:0}
+.article-toc-mobile a{display:block;padding:8px 0;border-bottom:1px solid var(--soft);color:var(--txt2);font-size:12px;line-height:1.5;text-decoration:none}
+.article-toc-mobile li:last-child a{border-bottom:0}
+.article-toc-mobile .toc-level-3 a,.article-toc-mobile .toc-level-4 a{padding-left:12px}
+.article-toc-rail{position:sticky;top:82px;max-height:calc(100vh - 104px);overflow-y:auto;padding:10px 0 12px 14px;border-left:1px solid var(--line);scrollbar-width:thin}
+.article-toc-title{display:flex;justify-content:space-between;gap:6px;margin-bottom:7px;color:var(--ink);font-size:11.5px;font-weight:800}
+.article-toc-rail a{display:block;padding:5px 0;color:var(--sub);font-size:10.5px;line-height:1.45;text-decoration:none}
+.article-toc-rail .toc-level-3 a,.article-toc-rail .toc-level-4 a{padding-left:9px}
+.article-toc-rail a[aria-current="location"]{color:var(--accent);font-weight:750}
+[data-article-heading]{scroll-margin-top:88px}
+.reading-progress{position:absolute;left:0;right:0;bottom:-1px;height:2px;overflow:hidden;background:transparent}
+.reading-progress>span{display:block;width:100%;height:100%;background:var(--accent);transform:scaleX(0);transform-origin:left center;will-change:transform}
 .source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
 .source-heading{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
 .source-heading h4{margin:0}
@@ -664,7 +691,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .source-more>summary::after{content:" ↓"}
 .source-more[open]>summary::after{content:" ↑"}
 @media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
-.fulltext>:not(.cb-figure):not(.cb-table){max-width:700px;margin-left:auto;margin-right:auto}
+.fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:700px;margin-left:auto;margin-right:auto}
 .fulltext .cb-heading{font-size:19px;line-height:1.55;margin-top:32px;margin-bottom:12px;color:var(--ink)}
 .fulltext p{margin-top:0;margin-bottom:18px}
 .fulltext strong{font-weight:750;color:var(--ink)}
@@ -676,16 +703,22 @@ main,.layout>*,.hotlist>*{min-width:0}
 .fulltext code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
 .fulltext pre{overflow:auto;background:#171a20;color:#e8ebf0;border-radius:10px;padding:14px 16px;margin:16px 0;line-height:1.65}
 .fulltext pre code{background:none;border:none;padding:0;color:inherit}
-.cb-table{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;margin:16px 0;border:1px solid var(--line);border-radius:9px}
+.cb-table-shell{position:relative;margin:16px 0}
+.cb-table{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;margin:0;border:1px solid var(--line);border-radius:9px}
 .cb-table:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .cb-table table{border-collapse:collapse;width:100%;min-width:480px;font-size:13px}
 .cb-table th,.cb-table td{padding:9px 12px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:left;vertical-align:top}
 .cb-table th{background:var(--soft);color:var(--ink);font-weight:700}
 .cb-table tr:last-child td{border-bottom:none}
+.cb-table th:first-child,.cb-table td:first-child{position:sticky;left:0;z-index:1;background:var(--card);box-shadow:1px 0 0 var(--line)}
+.cb-table th:first-child{z-index:2;background:var(--soft)}
+.table-scroll-hint{display:none;position:absolute;right:8px;bottom:8px;z-index:3;padding:4px 8px;border-radius:99px;background:rgba(26,29,35,.88);color:#fff;font-size:10.5px;font-weight:700;pointer-events:none;box-shadow:0 3px 12px rgba(0,0,0,.16)}
+.cb-table-shell.is-overflowing:not(.has-scrolled) .table-scroll-hint{display:block}
+.cb-table-shell.is-overflowing:not(.at-end)::after{content:"";position:absolute;top:1px;right:1px;bottom:1px;width:24px;border-radius:0 8px 8px 0;background:linear-gradient(90deg,transparent,var(--card));pointer-events:none}
 .cb-figure{margin:20px 0;background:var(--soft);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .cb-media-link{display:block;background:#f5f7fa;text-decoration:none}
 .cb-figure img{display:block;width:100%;height:auto;max-height:72vh;object-fit:contain;margin:0 auto}
-@media(max-width:600px){.cb-figure{margin:16px -8px;border-radius:9px}.cb-table{max-width:100%;margin-left:0;margin-right:0}}
+@media(max-width:600px){.cb-figure{margin:16px -8px;border-radius:9px}.cb-table-shell{max-width:100%;margin-left:0;margin-right:0}}
 @media (prefers-color-scheme: dark){.cb-media-link{background:#171a20}}
 .tone-accent{color:var(--accent);font-weight:650}.tone-warning{color:var(--amber);font-weight:650}
 .tone-positive{color:var(--green);font-weight:650}.tone-info{color:var(--blue);font-weight:650}.tone-emphasis{color:var(--ink);font-weight:650}
@@ -706,14 +739,15 @@ main,.layout>*,.hotlist>*{min-width:0}
 @media(max-width:600px){.tts-player{grid-template-columns:1fr auto auto;gap:9px;padding:11px 12px}.tts-copy{grid-column:1/-1;grid-row:1;flex-direction:row;align-items:baseline;gap:8px}.tts-toggle{grid-column:1;grid-row:2}.tts-time{grid-column:2;grid-row:2}.tts-rate-label{grid-column:3;grid-row:2}.tts-progress{grid-column:1/-1;grid-row:3}}
 @media(prefers-reduced-motion:reduce){.tts-player *{scroll-behavior:auto!important;transition:none!important}}
 @media(hover:hover) and (pointer:fine){
-  .article .back:hover,.source-report:hover .source-report-title,.original-footer-link:hover{color:var(--accent)}
+  .article .back:hover,.meta-source-link:hover,.source-report:hover .source-report-title,.original-footer-link:hover,.article-toc-mobile a:hover,.article-toc-rail a:hover{color:var(--accent)}
   .cta:hover{opacity:.9}
 }
 .content-footer{max-width:700px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin:20px auto 0}
 .disclaimer{flex:1;font-size:12px;color:var(--sub)}
 .original-footer-link{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:7px 12px;border-radius:99px;color:var(--blue);font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap}
-.original-footer-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media(max-width:600px){.article{padding-left:16px;padding-right:16px}.article h1{font-size:24px;line-height:1.45}.fulltext>:not(.cb-figure):not(.cb-table){max-width:none}.fulltext p,.fulltext li{font-size:16px;line-height:1.82}.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}}
+.original-footer-link:focus-visible,.meta-source-link:focus-visible,.article-toc-mobile summary:focus-visible,.article-toc-mobile a:focus-visible,.article-toc-rail a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:1199px){.article-layout.has-toc{display:block}.article-layout.has-toc .article-content{margin:0 auto}.article-toc-rail{display:none}.article-toc-mobile{display:block}}
+@media(max-width:600px){.article{padding-left:16px;padding-right:16px}.article h1{font-size:24px;line-height:1.45}.fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:none}.fulltext p,.fulltext li{font-size:16px;line-height:1.82}.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}.related-meta{max-width:88px}}
 </style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="8be1e5305105" data-category="insight" data-source="LinkedIn">
 <aside class="sidebar"><div class="slogo"><a href="../index.html" data-smart-home-return aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><nav class="sidebar-nav" aria-label="主导航"><a class="mi on" href="../index.html" data-smart-home-return><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../for-me.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg>关注</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>周报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>收藏</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a></nav><nav class="sidebar-tools" aria-label="工具"><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a></nav><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>
 <header class="detail-brand-header"><div class="wrap nav">
@@ -728,11 +762,14 @@ main,.layout>*,.hotlist>*{min-width:0}
       <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/8be1e5305105.png" title="海报" aria-label="海报"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg><span class="sbtn-label">海报</span></button>
       <button class="sbtn" type="button" data-share-action="open" title="分享" aria-label="分享"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span class="sbtn-label">分享</span></button>
     </span>
+    
   </div>
+  <div class="article-layout">
   <main class="article-content">
   <div class="meta">
     <span class="srcbadge">RSS</span>
-    <span style="font-weight:600;color:var(--txt3)">LinkedIn</span>
+    <a class="meta-source-link" href="https://www.linkedin.com/business/talent/blog/talent-acquisition/future-of-recruiting-2025" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="LinkedIn" aria-label="查看 LinkedIn 原文"><span>LinkedIn</span><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+    <span class="meta-content-mode">AI 逐段翻译</span>
     
     <span title="发布时间">发布 2025-02-13 16:00</span>
     <span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 08-12</span>
@@ -744,6 +781,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="article-brief-body"><p>LinkedIn调查23个国家的1,271名招聘管理者，并结合平台数据发现，37%的招聘从业者正在试验或整合生成式AI，已使用者平均报告每周工作量减少20%。然而89%认为招聘质量的衡量会更重要，只有25%对所在组织有效衡量招聘质量的能力高度有信心。</p>
   <p class="brief-why"><b>为什么值得关注：</b>报告提醒招聘团队，AI节省时间只是过程指标，真正需要建立的是招聘质量、技能匹配和录用后表现的闭环数据。</p></div>
 </details>
+  
   <section class="content-section" aria-labelledby="articleBodyTitle">
   <div class="content-heading"><h2 id="articleBodyTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 译文</h2> <span class="content-origin-badge">AI 逐段翻译</span></div>
   <div class="fulltext"><p>想每周节省一整天的工作时间？根据<a href="https://business.linkedin.com/talent-solutions/resources/future-of-recruiting?trk=bl-po-q3fy25" target="_blank" rel="noopener noreferrer nofollow">领英刚刚发布的《2025年招聘未来报告》</a>，已经使用生成式AI的人才招聘专业人士报告称，他们的工作量平均减少了20%。</p><p>这很可能就是为什么学习AI素养技能的人才招聘专业人士数量在过去一年中增长了一倍多（2.3倍）。<strong> </strong>但正如你在下文将看到的，招聘效率只是故事的一部分。</p><p>领英全新的《2025年招聘未来报告》提炼了领英平台上数十亿个数据点、来自1000多名人才专业人士的答复以及数十位人才领导者的建议，旨在帮助你理解并应对最新的招聘趋势。</p><p>下面继续阅读报告中的最大亮点。<a href="https://business.linkedin.com/talent-solutions/resources/future-of-recruiting?trk=bl-po-q3fy25" target="_blank" rel="noopener noreferrer nofollow">点击此处阅读完整报告</a>，了解如何利用AI实现关键招聘目标，例如提高招聘质量并掌握<a href="https://www.linkedin.com/business/talent/blog/talent-acquisition/how-to-get-started-with-skills-based-hiring" target="_blank" rel="noopener noreferrer nofollow">基于技能的招聘</a>。</p><h2 class="cb-heading">AI正在重新定义卓越招聘</h2><p>你可能不需要太多说服就会相信AI将影响招聘——而且你并不孤单：73%的人才招聘专业人士认为AI将改变公司的招聘方式。</p><p>对许多人来说，这并非只是假设：近四成（37%）的人才招聘专业人士表示，他们目前正在试验生成式AI或积极将其整合到招聘流程中。那些已经尝试的人报告称，平均节省了20%的工作时间——每周节省一整天，可用于更具战略性的工作。</p><p>但正如我们之前提到的，效率只是故事的一部分。随着AI帮助自动化日常任务，人际技能变得比以往任何时候都更加重要。与2023年相比，2024年雇主将“关系发展”列为招聘人员必备技能的可能性是2023年的54倍。</p><p>简而言之，<a href="https://www.linkedin.com/business/talent/blog/talent-acquisition/ryan-roslansky-talent-connect-2024" target="_blank" rel="noopener noreferrer nofollow">AI正在使招聘团队变得更有人情味，而不是更少。</a>而且，正如我们将在接下来的部分看到的，它还能让他们更具战略性，专注于高影响力的工作，例如提高招聘质量和灌输基于技能的招聘。</p><p>阅读完整报告，了解将生成式AI整合到招聘中的主要挑战数据，以及领先公司如何做到这一点的提示和建议。</p><h2 class="cb-heading">招聘质量成为焦点</h2><p>多达89%的人才招聘专业人士认为，衡量招聘质量将变得越来越重要。然而，只有25%的人对自己组织有效衡量招聘质量的能力高度自信。</p><p>好消息呢？约有61%的人认为AI可以帮助改进他们衡量这一关键指标的方式。</p><p>当然，<a href="https://www.linkedin.com/business/talent/blog/talent-acquisition/how-to-measure-quality-of-hire" target="_blank" rel="noopener noreferrer nofollow">衡量招聘质量</a>只是第一步。真正的目标是提高它。在这方面，早期数据同样令人鼓舞：使用领英AI辅助消息最多的公司，与使用最少的公司相比，实现高质量招聘的可能性高出9%。</p><p>除了AI，雇主品牌也起着至关重要的作用。以提供创新项目工作机会而闻名的公司，实现高质量招聘的可能性高出11%——这表明强大的雇主品牌不仅能吸引更多候选人，还能吸引更好的候选人。</p><p>阅读完整报告，了解其他哪些雇主价值主张与高质量招聘相关，以及优步等公司关于如何衡量招聘质量的引述。</p><h2 class="cb-heading">基于技能的招聘变得至关重要</h2><p>当你招聘某人时，你关心的是他们能做什么，而不是他们去过哪里。这就是基于技能的招聘背后的基本理念。</p><p>超过九成（93%）的人才招聘专业人士认为，准确评估候选人的技能对于提高招聘质量至关重要。</p><p>领英的平台数据验证了这一信念：进行最多基于技能搜索的公司，实现高质量招聘的可能性高出12%。</p><p>当然，这说起来容易做起来难——这需要额外的时间和精力，而招聘人员以前可能没有。幸运的是，AI节省的时间通常被重新用于更好的候选人评估：在已经整合或试验生成式AI的人才招聘专业人士中，35%表示节省的时间用于候选人筛选，而26%表示利用节省的时间专注于技能评估。</p><p><a href="https://business.linkedin.com/talent-solutions/resources/future-of-recruiting?trk=bl-po-q3fy25" target="_blank" rel="noopener noreferrer nofollow">阅读完整报告</a>，了解学历要求如何失宠，以及领先公司如何加强对技能评估的严谨性。</p><p><strong>致谢</strong>  </p><p>本报告得益于对全球众多招聘领导者的深度访谈，我们对此表示衷心感谢，包括：<a href="https://www.linkedin.com/in/jessicaaguilar" target="_blank" rel="noopener noreferrer nofollow">Jessica Aguilar</a>（苏黎世保险）；<a href="https://www.linkedin.com/in/blanchardlaurent/" target="_blank" rel="noopener noreferrer nofollow">Laurent Blanchard</a>（PageGroup）；<a href="https://uk.linkedin.com/in/brownnoel" target="_blank" rel="noopener noreferrer nofollow">Noel Brown</a>（汇丰银行）；<a href="https://www.linkedin.com/in/glencathey" target="_blank" rel="noopener noreferrer nofollow">Glen Cathey</a>（任仕达）；<a href="https://www.linkedin.com/in/jackyeclayton" target="_blank" rel="noopener noreferrer nofollow">Jackye Clayton</a>（Textio，现就职于PeoplePuzzles）；<a href="https://ca.linkedin.com/in/fabien-desmangles-52051515" target="_blank" rel="noopener noreferrer nofollow">Fabien Desmangles</a>（达索系统）；<a href="https://www.linkedin.com/in/eric-dozier" target="_blank" rel="noopener noreferrer nofollow">Eric Dozier</a>（礼来公司）；<a href="https://www.linkedin.com/in/james-edwards-38525b69/?originalSubdomain=uk" target="_blank" rel="noopener noreferrer nofollow">James Edwards</a>（Greene King）；<a href="https://www.linkedin.com/in/judepatrick927/" target="_blank" rel="noopener noreferrer nofollow">Jude James</a>（UST）；<a href="https://fr.linkedin.com/in/nathalie-jaoui-1713a729" target="_blank" rel="noopener noreferrer nofollow">Nathalie Jaoui</a>（Groupe CRIT）；<a href="https://fr.linkedin.com/in/helene-jonquoy" target="_blank" rel="noopener noreferrer nofollow">Hélène Jonquoy</a>（德科集团）；<a href="https://in.linkedin.com/in/sandesh-kumar-19a42712" target="_blank" rel="noopener noreferrer nofollow">Sandesh Kumar</a>（威普罗）；<a href="https://www.linkedin.com/in/hunglee/" target="_blank" rel="noopener noreferrer nofollow">Hung Lee</a>（Recruiting Brainfood）；<a href="https://ch.linkedin.com/in/david-luyet-joinswisscom" target="_blank" rel="noopener noreferrer nofollow">David Luyet</a>（瑞士电信）；<a href="https://in.linkedin.com/in/piyushmehta01" target="_blank" rel="noopener noreferrer nofollow">Piyush Mehta</a>（简伯特）；<a href="https://www.linkedin.com/in/hamishnisbet/" target="_blank" rel="noopener noreferrer nofollow">Hamish Nisbet</a>（帝亚吉欧）；<a href="https://in.linkedin.com/in/venkatesh-raja" target="_blank" rel="noopener noreferrer nofollow">Venkatesh Raja</a>（Shoppers Stop）；<a href="https://ch.linkedin.com/in/salma1603" target="_blank" rel="noopener noreferrer nofollow">Salma Rashad</a>（西门子）；<a href="https://www.linkedin.com/in/anarecio" target="_blank" rel="noopener noreferrer nofollow">Ana Recio</a>（优步）；<a href="https://www.linkedin.com/in/erinscruggs" target="_blank" rel="noopener noreferrer nofollow">Erin Scruggs</a>（领英）；<a href="https://www.linkedin.com/in/jennifershappley" target="_blank" rel="noopener noreferrer nofollow">Jennifer Shappley</a>（领英）；<a href="https://www.linkedin.com/in/johnvlastelica" target="_blank" rel="noopener noreferrer nofollow">John Vlastelica</a>（Recruiting Toolbox）；以及<a href="https://www.linkedin.com/in/kerstin-wagner/" target="_blank" rel="noopener noreferrer nofollow">Kerstin Wagner</a>（德国铁路）。</p><p><em><strong>方法论</strong></em>  </p><p><em>领英研究调查了1271名担任管理高级职位或更高职位的招聘专业人士（1019名企业招聘专业人士，252名搜索与人事代理专业人士）。调查受访者是领英会员，根据其领英资料中的信息被选中参与，并根据调查回答进行资格认定。该调查于2024年9月以4种语言在23个国家进行。</em>  </p><p><em>本报告的平台洞察来源于领英上200多个国家的10亿会员产生的数十亿数据点。有关完整方法论，</em><a href="https://business.linkedin.com/talent-solutions/resources/future-of-recruiting?trk=bl-po-q3fy25" target="_blank" rel="noopener noreferrer nofollow"><em>请在此处查看完整报告</em></a><em>。</em></p></div>
@@ -751,12 +789,14 @@ main,.layout>*,.hotlist>*{min-width:0}
 </section>
   <div class="vendors article-tags" aria-label="文章主题"><a class="chip" href="../topics/people-insights.html">组织人才</a><span class="vtag">LinkedIn</span></div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/01bd33c269e9.html"><span class="n">›</span>LINE Yahoo将生成式AI系统性引入人事全流程<span class="count">40</span></a><a class="vendor-row" href="../e/6202212eeef3.html"><span class="n">›</span>都市级AI暴露：GenAI如何重塑美国各地就业<span class="count">49</span></a><a class="vendor-row" href="../e/11caa8f9632f.html"><span class="n">›</span>Anthropic经济指数：AI使用衡量新维度<span class="count">34</span></a></div>
+  
   </main>
+  
+  </div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 <nav class="tabbar" aria-label="移动端主导航">
-  <a href="../index.html" class="on" data-home-top><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../for-me.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg></span><span>For Me</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>
+  <a href="../index.html" class="on" data-home-top><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../for-me.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg></span><span>关注</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>
   <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
 </nav>
 <div class="more-mask" data-more-mask aria-hidden="true"></div>

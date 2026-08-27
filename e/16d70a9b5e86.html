@@ -627,11 +627,18 @@ main,.layout>*,.hotlist>*{min-width:0}
 }
 
 .article{max-width:1040px;margin:0 auto;padding:36px 20px 60px}
+.article-layout{max-width:1000px;margin:0 auto}
 .article-content{max-width:840px;margin:0 auto}
+.article-layout.has-toc{display:grid;grid-template-columns:minmax(0,840px) 144px;gap:16px;align-items:start}
+.article-layout.has-toc .article-content{min-width:0;margin:0}
 .article .back{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}
 .article h1{max-width:700px;font-size:30px;font-weight:800;line-height:1.38;margin:14px auto 20px}
 .article .meta{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
 .article .meta,.article-brief,.tts-player{max-width:700px;margin-left:auto;margin-right:auto}
+.meta-source-link{display:inline-flex;align-items:center;gap:3px;color:var(--txt3);font-weight:650;text-decoration:none}
+.meta-source-link svg{flex:0 0 auto}
+.meta-source-text{color:var(--txt3);font-weight:650}
+.meta-content-mode{display:inline-flex;align-items:center;min-height:22px;padding:2px 8px;border-radius:99px;background:var(--soft);color:var(--txt2);font-size:10.5px;font-weight:700}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
 .article-brief{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:18px;margin-bottom:30px}
@@ -647,6 +654,26 @@ main,.layout>*,.hotlist>*{min-width:0}
 .content-heading h2{display:flex;align-items:center;gap:7px;font-size:15px;line-height:1.5;margin:0;color:var(--ink)}
 .content-origin-badge{font-size:11px;color:var(--sub);font-weight:500}
 .article .vendor-row{text-decoration:none}
+.related-title{min-width:0;flex:1;line-height:1.55}
+.related-meta{flex:0 0 auto;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub);font-size:11px}
+.article-toc-mobile{display:none;max-width:700px;margin:0 auto 24px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+.article-toc-mobile>summary{display:flex;align-items:center;justify-content:space-between;min-height:46px;padding:0 14px;cursor:pointer;list-style:none;color:var(--ink);font-size:13px;font-weight:750}
+.article-toc-mobile>summary::-webkit-details-marker{display:none}
+.article-toc-mobile>summary span,.article-toc-title span{color:var(--sub);font-size:10.5px;font-weight:500}
+.article-toc-mobile ol,.article-toc-rail ol{list-style:none;margin:0;padding:0}
+.article-toc-mobile ol{max-height:50vh;overflow-y:auto;padding:0 14px 12px;border-top:1px solid var(--soft)}
+.article-toc-mobile li{margin:0}
+.article-toc-mobile a{display:block;padding:8px 0;border-bottom:1px solid var(--soft);color:var(--txt2);font-size:12px;line-height:1.5;text-decoration:none}
+.article-toc-mobile li:last-child a{border-bottom:0}
+.article-toc-mobile .toc-level-3 a,.article-toc-mobile .toc-level-4 a{padding-left:12px}
+.article-toc-rail{position:sticky;top:82px;max-height:calc(100vh - 104px);overflow-y:auto;padding:10px 0 12px 14px;border-left:1px solid var(--line);scrollbar-width:thin}
+.article-toc-title{display:flex;justify-content:space-between;gap:6px;margin-bottom:7px;color:var(--ink);font-size:11.5px;font-weight:800}
+.article-toc-rail a{display:block;padding:5px 0;color:var(--sub);font-size:10.5px;line-height:1.45;text-decoration:none}
+.article-toc-rail .toc-level-3 a,.article-toc-rail .toc-level-4 a{padding-left:9px}
+.article-toc-rail a[aria-current="location"]{color:var(--accent);font-weight:750}
+[data-article-heading]{scroll-margin-top:88px}
+.reading-progress{position:absolute;left:0;right:0;bottom:-1px;height:2px;overflow:hidden;background:transparent}
+.reading-progress>span{display:block;width:100%;height:100%;background:var(--accent);transform:scaleX(0);transform-origin:left center;will-change:transform}
 .source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
 .source-heading{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
 .source-heading h4{margin:0}
@@ -664,7 +691,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .source-more>summary::after{content:" ↓"}
 .source-more[open]>summary::after{content:" ↑"}
 @media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
-.fulltext>:not(.cb-figure):not(.cb-table){max-width:700px;margin-left:auto;margin-right:auto}
+.fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:700px;margin-left:auto;margin-right:auto}
 .fulltext .cb-heading{font-size:19px;line-height:1.55;margin-top:32px;margin-bottom:12px;color:var(--ink)}
 .fulltext p{margin-top:0;margin-bottom:18px}
 .fulltext strong{font-weight:750;color:var(--ink)}
@@ -676,16 +703,22 @@ main,.layout>*,.hotlist>*{min-width:0}
 .fulltext code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
 .fulltext pre{overflow:auto;background:#171a20;color:#e8ebf0;border-radius:10px;padding:14px 16px;margin:16px 0;line-height:1.65}
 .fulltext pre code{background:none;border:none;padding:0;color:inherit}
-.cb-table{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;margin:16px 0;border:1px solid var(--line);border-radius:9px}
+.cb-table-shell{position:relative;margin:16px 0}
+.cb-table{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;margin:0;border:1px solid var(--line);border-radius:9px}
 .cb-table:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .cb-table table{border-collapse:collapse;width:100%;min-width:480px;font-size:13px}
 .cb-table th,.cb-table td{padding:9px 12px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:left;vertical-align:top}
 .cb-table th{background:var(--soft);color:var(--ink);font-weight:700}
 .cb-table tr:last-child td{border-bottom:none}
+.cb-table th:first-child,.cb-table td:first-child{position:sticky;left:0;z-index:1;background:var(--card);box-shadow:1px 0 0 var(--line)}
+.cb-table th:first-child{z-index:2;background:var(--soft)}
+.table-scroll-hint{display:none;position:absolute;right:8px;bottom:8px;z-index:3;padding:4px 8px;border-radius:99px;background:rgba(26,29,35,.88);color:#fff;font-size:10.5px;font-weight:700;pointer-events:none;box-shadow:0 3px 12px rgba(0,0,0,.16)}
+.cb-table-shell.is-overflowing:not(.has-scrolled) .table-scroll-hint{display:block}
+.cb-table-shell.is-overflowing:not(.at-end)::after{content:"";position:absolute;top:1px;right:1px;bottom:1px;width:24px;border-radius:0 8px 8px 0;background:linear-gradient(90deg,transparent,var(--card));pointer-events:none}
 .cb-figure{margin:20px 0;background:var(--soft);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .cb-media-link{display:block;background:#f5f7fa;text-decoration:none}
 .cb-figure img{display:block;width:100%;height:auto;max-height:72vh;object-fit:contain;margin:0 auto}
-@media(max-width:600px){.cb-figure{margin:16px -8px;border-radius:9px}.cb-table{max-width:100%;margin-left:0;margin-right:0}}
+@media(max-width:600px){.cb-figure{margin:16px -8px;border-radius:9px}.cb-table-shell{max-width:100%;margin-left:0;margin-right:0}}
 @media (prefers-color-scheme: dark){.cb-media-link{background:#171a20}}
 .tone-accent{color:var(--accent);font-weight:650}.tone-warning{color:var(--amber);font-weight:650}
 .tone-positive{color:var(--green);font-weight:650}.tone-info{color:var(--blue);font-weight:650}.tone-emphasis{color:var(--ink);font-weight:650}
@@ -706,14 +739,15 @@ main,.layout>*,.hotlist>*{min-width:0}
 @media(max-width:600px){.tts-player{grid-template-columns:1fr auto auto;gap:9px;padding:11px 12px}.tts-copy{grid-column:1/-1;grid-row:1;flex-direction:row;align-items:baseline;gap:8px}.tts-toggle{grid-column:1;grid-row:2}.tts-time{grid-column:2;grid-row:2}.tts-rate-label{grid-column:3;grid-row:2}.tts-progress{grid-column:1/-1;grid-row:3}}
 @media(prefers-reduced-motion:reduce){.tts-player *{scroll-behavior:auto!important;transition:none!important}}
 @media(hover:hover) and (pointer:fine){
-  .article .back:hover,.source-report:hover .source-report-title,.original-footer-link:hover{color:var(--accent)}
+  .article .back:hover,.meta-source-link:hover,.source-report:hover .source-report-title,.original-footer-link:hover,.article-toc-mobile a:hover,.article-toc-rail a:hover{color:var(--accent)}
   .cta:hover{opacity:.9}
 }
 .content-footer{max-width:700px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin:20px auto 0}
 .disclaimer{flex:1;font-size:12px;color:var(--sub)}
 .original-footer-link{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:7px 12px;border-radius:99px;color:var(--blue);font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap}
-.original-footer-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media(max-width:600px){.article{padding-left:16px;padding-right:16px}.article h1{font-size:24px;line-height:1.45}.fulltext>:not(.cb-figure):not(.cb-table){max-width:none}.fulltext p,.fulltext li{font-size:16px;line-height:1.82}.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}}
+.original-footer-link:focus-visible,.meta-source-link:focus-visible,.article-toc-mobile summary:focus-visible,.article-toc-mobile a:focus-visible,.article-toc-rail a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:1199px){.article-layout.has-toc{display:block}.article-layout.has-toc .article-content{margin:0 auto}.article-toc-rail{display:none}.article-toc-mobile{display:block}}
+@media(max-width:600px){.article{padding-left:16px;padding-right:16px}.article h1{font-size:24px;line-height:1.45}.fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:none}.fulltext p,.fulltext li{font-size:16px;line-height:1.82}.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}.related-meta{max-width:88px}}
 </style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="16d70a9b5e86" data-category="platform" data-source="InfoQ（AI/数据工程）">
 <aside class="sidebar"><div class="slogo"><a href="../index.html" data-smart-home-return aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><nav class="sidebar-nav" aria-label="主导航"><a class="mi on" href="../index.html" data-smart-home-return><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../for-me.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg>关注</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>周报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>收藏</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a></nav><nav class="sidebar-tools" aria-label="工具"><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a></nav><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>
 <header class="detail-brand-header"><div class="wrap nav">
@@ -728,11 +762,14 @@ main,.layout>*,.hotlist>*{min-width:0}
       <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/16d70a9b5e86.png" title="海报" aria-label="海报"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg><span class="sbtn-label">海报</span></button>
       <button class="sbtn" type="button" data-share-action="open" title="分享" aria-label="分享"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span class="sbtn-label">分享</span></button>
     </span>
+    
   </div>
+  <div class="article-layout">
   <main class="article-content">
   <div class="meta">
     <span class="srcbadge">RSS</span>
-    <span style="font-weight:600;color:var(--txt3)">InfoQ (AI/数据工程)</span>
+    <a class="meta-source-link" href="https://www.infoq.com/news/2026/08/spotify-data-lake-point-queries/?utm_campaign=infoq_content&amp;utm_source=infoq&amp;utm_medium=feed&amp;utm_term=AI%2C+ML+%26+Data+Engineering" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="InfoQ（AI/数据工程）" aria-label="查看 InfoQ (AI/数据工程) 原文"><span>InfoQ (AI/数据工程)</span><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+    <span class="meta-content-mode">AI 逐段翻译</span>
     
     <span title="发布时间">发布 2026-08-12 22:26</span>
     <span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 08-13</span>
@@ -753,6 +790,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="article-brief-body"><p>Spotify推出随机访问Parquet（RAP）存储架构，通过外部索引层将查找键直接映射到Parquet文件中的行位置，从而在数据湖上实现低延迟点查询，无需将数据复制到运营数据库。该方案支持在线服务和AI应用从同一数据集读取单个记录，同时继续用于分析、机器学习和在线服务。Spotify表示，其数据湖中存储着EB级数据，而Bigtable中存储PB级在线数据，大规模复制成本高昂。</p>
   <p class="brief-why"><b>为什么值得关注：</b>该架构展示了如何在保持数据湖统一存储的同时满足在线点查询性能，对湖仓架构设计有参考价值。</p></div>
 </details>
+  
   <section class="content-section" aria-labelledby="articleBodyTitle">
   <div class="content-heading"><h2 id="articleBodyTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 译文</h2> <span class="content-origin-badge">AI 逐段翻译</span></div>
   <div class="fulltext"><p>Spotify推出了<a href="https://engineering.atspotify.com/2026/7/indexing-the-data-lake-for-online-point-queries/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer nofollow">随机访问Parquet (RAP)</a>，这是一种存储架构，可以直接针对其数据湖中存储的数据实现低延迟点查询，使在线服务和AI应用无需将数据集复制到运营数据库即可检索单条记录。RAP在Apache Parquet文件之上增加了一个外部索引层，支持交互式查询，同时继续使用相同的数据集进行分析、机器学习和在线服务。</p><p>Spotify解释说，现代数据湖已成为分析和AI工作负载的中心存储库，但检索单条记录仍然效率低下，因为诸如<a href="https://trino.io/" target="_blank" rel="noopener noreferrer nofollow">Trino</a>和<a href="https://cloud.google.com/bigquery" target="_blank" rel="noopener noreferrer nofollow">BigQuery</a>之类的分布式查询引擎是为分析型扫描而不是基于键的查找而优化的。尽管诸如<a href="https://cloud.google.com/storage" target="_blank" rel="noopener noreferrer nofollow">Google Cloud Storage</a>之类的云对象存储现在提供了毫秒级的访问延迟，但查询规划、元数据遍历和文件发现会为点查询增加大量开销。Spotify指出，它在Bigtable中存储了PB级的在线数据，而其基于Google Cloud Storage的数据湖中存储着EB级数据，使得大规模复制到服务数据库的成本日益高昂。</p><p>RAP通过引入一个外部索引来解决这一挑战，该索引将查找键（如用户ID）直接映射到Parquet文件和行位置。查询不再扫描数千个文件，而是通过索引解析键，然后对对象存储发起一次有针对性的范围读取。当新数据写入<a href="https://iceberg.apache.org/" target="_blank" rel="noopener noreferrer nofollow">Apache Iceberg</a>表时，索引构建器会生成只追加的索引片段，而不修改不可变的Parquet文件。Spotify表示，这种方法使得相同的数据集能够支持分析处理、机器学习管道、笔记本、AI代理和延迟敏感的在线应用，而无需维护重复的存储系统。</p><p>Spotify的发布是在将开放数据湖技术扩展到分析处理之外的更广泛努力之后进行的。Google Cloud最近描述了一种基于<a href="https://cloud.google.com/blog/products/data-analytics/the-future-of-data-lakehouse-for-the-agentic-era?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer nofollow">Apache Iceberg的湖仓架构</a>，用于AI应用，同样寻求减少数据复制，同时支持对数据的操作访问。与那种方法不同，RAP引入了一个专门为点查找优化的外部索引层，同时保持与现有Parquet文件和Iceberg表的兼容性。</p><p>该架构也在数据工程社区内引发了讨论。<a href="https://publish.x.com/?url=https://twitter.com/andrewlamb1111/status/2083460112555888799" target="_blank" rel="noopener noreferrer nofollow">Andrew Lamb</a>强调RAP是扩展开放数据格式以支持交互式工作负载的一个例子。在另一场<a href="https://www.linkedin.com/posts/vikas-singh-bril_everyones-data-lake-is-already-fast-enough-activity-7490989209868980224-R5gJ" target="_blank" rel="noopener noreferrer nofollow">LinkedIn讨论</a>中，Vikas Singh认为，云对象存储性能的改进已将点查询相关的更多延迟转移到查询规划和元数据访问上，而RAP正是通过预计算索引来减少这一领域的延迟。</p><p>Spotify还介绍了多种存储布局优化，以减少点查询延迟。这些优化包括按查找键对数据进行排序以减少访问的文件数、将相关记录分组在一起、交错值列以便通过单次连续读取检索多个属性，以及使用覆盖索引，这样无需读取Parquet文件即可满足某些查询。根据Spotify的说法，这些技术以文件或索引大小适度增加为代价，减少存储操作次数，使某些点查询能够通过仅几KB的单次范围读取来服务。</p><p><em>交错值列布局可以从多个列中检索相关值（来源：</em><a href="https://engineering.atspotify.com/2026/7/indexing-the-data-lake-for-online-point-queries" target="_blank" rel="noopener noreferrer nofollow"><em>Spotify博客文章</em></a><em>)</em></p><p>Spotify还支持二级索引，无需重写<a href="https://parquet.apache.org/" target="_blank" rel="noopener noreferrer nofollow">Parquet文件</a>即可跨多个查找维度（如买家ID或卖家ID）高效查询。基于哈希的索引支持精确查找，而有序索引支持范围查询。Spotify表示，二级索引在服务层管理，允许在不更改数据管道的情况下添加新的访问路径，同时继续使用相同的Parquet数据集进行分析扫描和交互式点查询。诸如<a href="https://en.wikipedia.org/wiki/Z-order_curve" target="_blank" rel="noopener noreferrer nofollow">Z排序</a>和<a href="https://en.wikipedia.org/wiki/Hilbert_curve" target="_blank" rel="noopener noreferrer nofollow">Hilbert曲线</a>之类的存储布局技术可以进一步改善二级查找维度的数据局部性。</p></div>
@@ -760,12 +798,14 @@ main,.layout>*,.hotlist>*{min-width:0}
 </section>
   <div class="vendors article-tags" aria-label="文章主题"><a class="chip" href="../topics/lakehouse.html">湖仓</a></div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/18d4c041883c.html"><span class="n">›</span>Shopify 用 ClickHouse 构建全球电商可观测性平台<span class="count">39</span></a><a class="vendor-row" href="../e/036431034b26.html"><span class="n">›</span>构建医疗AI无需重建数据平台<span class="count">32</span></a><a class="vendor-row" href="../e/a64173b0e40c.html"><span class="n">›</span>SageMaker Unified Studio与Lake Formation实现湖仓细粒度访问控制<span class="count">23</span></a></div>
+  
   </main>
+  
+  </div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 <nav class="tabbar" aria-label="移动端主导航">
-  <a href="../index.html" class="on" data-home-top><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../for-me.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg></span><span>For Me</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>
+  <a href="../index.html" class="on" data-home-top><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../for-me.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg></span><span>关注</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>
   <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
 </nav>
 <div class="more-mask" data-more-mask aria-hidden="true"></div>

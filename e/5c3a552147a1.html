@@ -627,11 +627,18 @@ main,.layout>*,.hotlist>*{min-width:0}
 }
 
 .article{max-width:1040px;margin:0 auto;padding:36px 20px 60px}
+.article-layout{max-width:1000px;margin:0 auto}
 .article-content{max-width:840px;margin:0 auto}
+.article-layout.has-toc{display:grid;grid-template-columns:minmax(0,840px) 144px;gap:16px;align-items:start}
+.article-layout.has-toc .article-content{min-width:0;margin:0}
 .article .back{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}
 .article h1{max-width:700px;font-size:30px;font-weight:800;line-height:1.38;margin:14px auto 20px}
 .article .meta{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
 .article .meta,.article-brief,.tts-player{max-width:700px;margin-left:auto;margin-right:auto}
+.meta-source-link{display:inline-flex;align-items:center;gap:3px;color:var(--txt3);font-weight:650;text-decoration:none}
+.meta-source-link svg{flex:0 0 auto}
+.meta-source-text{color:var(--txt3);font-weight:650}
+.meta-content-mode{display:inline-flex;align-items:center;min-height:22px;padding:2px 8px;border-radius:99px;background:var(--soft);color:var(--txt2);font-size:10.5px;font-weight:700}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
 .article-brief{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:18px;margin-bottom:30px}
@@ -647,6 +654,26 @@ main,.layout>*,.hotlist>*{min-width:0}
 .content-heading h2{display:flex;align-items:center;gap:7px;font-size:15px;line-height:1.5;margin:0;color:var(--ink)}
 .content-origin-badge{font-size:11px;color:var(--sub);font-weight:500}
 .article .vendor-row{text-decoration:none}
+.related-title{min-width:0;flex:1;line-height:1.55}
+.related-meta{flex:0 0 auto;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub);font-size:11px}
+.article-toc-mobile{display:none;max-width:700px;margin:0 auto 24px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+.article-toc-mobile>summary{display:flex;align-items:center;justify-content:space-between;min-height:46px;padding:0 14px;cursor:pointer;list-style:none;color:var(--ink);font-size:13px;font-weight:750}
+.article-toc-mobile>summary::-webkit-details-marker{display:none}
+.article-toc-mobile>summary span,.article-toc-title span{color:var(--sub);font-size:10.5px;font-weight:500}
+.article-toc-mobile ol,.article-toc-rail ol{list-style:none;margin:0;padding:0}
+.article-toc-mobile ol{max-height:50vh;overflow-y:auto;padding:0 14px 12px;border-top:1px solid var(--soft)}
+.article-toc-mobile li{margin:0}
+.article-toc-mobile a{display:block;padding:8px 0;border-bottom:1px solid var(--soft);color:var(--txt2);font-size:12px;line-height:1.5;text-decoration:none}
+.article-toc-mobile li:last-child a{border-bottom:0}
+.article-toc-mobile .toc-level-3 a,.article-toc-mobile .toc-level-4 a{padding-left:12px}
+.article-toc-rail{position:sticky;top:82px;max-height:calc(100vh - 104px);overflow-y:auto;padding:10px 0 12px 14px;border-left:1px solid var(--line);scrollbar-width:thin}
+.article-toc-title{display:flex;justify-content:space-between;gap:6px;margin-bottom:7px;color:var(--ink);font-size:11.5px;font-weight:800}
+.article-toc-rail a{display:block;padding:5px 0;color:var(--sub);font-size:10.5px;line-height:1.45;text-decoration:none}
+.article-toc-rail .toc-level-3 a,.article-toc-rail .toc-level-4 a{padding-left:9px}
+.article-toc-rail a[aria-current="location"]{color:var(--accent);font-weight:750}
+[data-article-heading]{scroll-margin-top:88px}
+.reading-progress{position:absolute;left:0;right:0;bottom:-1px;height:2px;overflow:hidden;background:transparent}
+.reading-progress>span{display:block;width:100%;height:100%;background:var(--accent);transform:scaleX(0);transform-origin:left center;will-change:transform}
 .source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
 .source-heading{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
 .source-heading h4{margin:0}
@@ -664,7 +691,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .source-more>summary::after{content:" ↓"}
 .source-more[open]>summary::after{content:" ↑"}
 @media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
-.fulltext>:not(.cb-figure):not(.cb-table){max-width:700px;margin-left:auto;margin-right:auto}
+.fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:700px;margin-left:auto;margin-right:auto}
 .fulltext .cb-heading{font-size:19px;line-height:1.55;margin-top:32px;margin-bottom:12px;color:var(--ink)}
 .fulltext p{margin-top:0;margin-bottom:18px}
 .fulltext strong{font-weight:750;color:var(--ink)}
@@ -676,16 +703,22 @@ main,.layout>*,.hotlist>*{min-width:0}
 .fulltext code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
 .fulltext pre{overflow:auto;background:#171a20;color:#e8ebf0;border-radius:10px;padding:14px 16px;margin:16px 0;line-height:1.65}
 .fulltext pre code{background:none;border:none;padding:0;color:inherit}
-.cb-table{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;margin:16px 0;border:1px solid var(--line);border-radius:9px}
+.cb-table-shell{position:relative;margin:16px 0}
+.cb-table{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;margin:0;border:1px solid var(--line);border-radius:9px}
 .cb-table:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .cb-table table{border-collapse:collapse;width:100%;min-width:480px;font-size:13px}
 .cb-table th,.cb-table td{padding:9px 12px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:left;vertical-align:top}
 .cb-table th{background:var(--soft);color:var(--ink);font-weight:700}
 .cb-table tr:last-child td{border-bottom:none}
+.cb-table th:first-child,.cb-table td:first-child{position:sticky;left:0;z-index:1;background:var(--card);box-shadow:1px 0 0 var(--line)}
+.cb-table th:first-child{z-index:2;background:var(--soft)}
+.table-scroll-hint{display:none;position:absolute;right:8px;bottom:8px;z-index:3;padding:4px 8px;border-radius:99px;background:rgba(26,29,35,.88);color:#fff;font-size:10.5px;font-weight:700;pointer-events:none;box-shadow:0 3px 12px rgba(0,0,0,.16)}
+.cb-table-shell.is-overflowing:not(.has-scrolled) .table-scroll-hint{display:block}
+.cb-table-shell.is-overflowing:not(.at-end)::after{content:"";position:absolute;top:1px;right:1px;bottom:1px;width:24px;border-radius:0 8px 8px 0;background:linear-gradient(90deg,transparent,var(--card));pointer-events:none}
 .cb-figure{margin:20px 0;background:var(--soft);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .cb-media-link{display:block;background:#f5f7fa;text-decoration:none}
 .cb-figure img{display:block;width:100%;height:auto;max-height:72vh;object-fit:contain;margin:0 auto}
-@media(max-width:600px){.cb-figure{margin:16px -8px;border-radius:9px}.cb-table{max-width:100%;margin-left:0;margin-right:0}}
+@media(max-width:600px){.cb-figure{margin:16px -8px;border-radius:9px}.cb-table-shell{max-width:100%;margin-left:0;margin-right:0}}
 @media (prefers-color-scheme: dark){.cb-media-link{background:#171a20}}
 .tone-accent{color:var(--accent);font-weight:650}.tone-warning{color:var(--amber);font-weight:650}
 .tone-positive{color:var(--green);font-weight:650}.tone-info{color:var(--blue);font-weight:650}.tone-emphasis{color:var(--ink);font-weight:650}
@@ -706,14 +739,15 @@ main,.layout>*,.hotlist>*{min-width:0}
 @media(max-width:600px){.tts-player{grid-template-columns:1fr auto auto;gap:9px;padding:11px 12px}.tts-copy{grid-column:1/-1;grid-row:1;flex-direction:row;align-items:baseline;gap:8px}.tts-toggle{grid-column:1;grid-row:2}.tts-time{grid-column:2;grid-row:2}.tts-rate-label{grid-column:3;grid-row:2}.tts-progress{grid-column:1/-1;grid-row:3}}
 @media(prefers-reduced-motion:reduce){.tts-player *{scroll-behavior:auto!important;transition:none!important}}
 @media(hover:hover) and (pointer:fine){
-  .article .back:hover,.source-report:hover .source-report-title,.original-footer-link:hover{color:var(--accent)}
+  .article .back:hover,.meta-source-link:hover,.source-report:hover .source-report-title,.original-footer-link:hover,.article-toc-mobile a:hover,.article-toc-rail a:hover{color:var(--accent)}
   .cta:hover{opacity:.9}
 }
 .content-footer{max-width:700px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin:20px auto 0}
 .disclaimer{flex:1;font-size:12px;color:var(--sub)}
 .original-footer-link{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:7px 12px;border-radius:99px;color:var(--blue);font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap}
-.original-footer-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media(max-width:600px){.article{padding-left:16px;padding-right:16px}.article h1{font-size:24px;line-height:1.45}.fulltext>:not(.cb-figure):not(.cb-table){max-width:none}.fulltext p,.fulltext li{font-size:16px;line-height:1.82}.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}}
+.original-footer-link:focus-visible,.meta-source-link:focus-visible,.article-toc-mobile summary:focus-visible,.article-toc-mobile a:focus-visible,.article-toc-rail a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:1199px){.article-layout.has-toc{display:block}.article-layout.has-toc .article-content{margin:0 auto}.article-toc-rail{display:none}.article-toc-mobile{display:block}}
+@media(max-width:600px){.article{padding-left:16px;padding-right:16px}.article h1{font-size:24px;line-height:1.45}.fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:none}.fulltext p,.fulltext li{font-size:16px;line-height:1.82}.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}.related-meta{max-width:88px}}
 </style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="5c3a552147a1" data-category="platform" data-source="Fivetran Blog">
 <aside class="sidebar"><div class="slogo"><a href="../index.html" data-smart-home-return aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><nav class="sidebar-nav" aria-label="主导航"><a class="mi on" href="../index.html" data-smart-home-return><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../for-me.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg>关注</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>周报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>收藏</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a></nav><nav class="sidebar-tools" aria-label="工具"><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a></nav><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>
 <header class="detail-brand-header"><div class="wrap nav">
@@ -728,11 +762,14 @@ main,.layout>*,.hotlist>*{min-width:0}
       <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/5c3a552147a1.png" title="海报" aria-label="海报"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg><span class="sbtn-label">海报</span></button>
       <button class="sbtn" type="button" data-share-action="open" title="分享" aria-label="分享"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span class="sbtn-label">分享</span></button>
     </span>
+    
   </div>
+  <div class="article-layout">
   <main class="article-content">
   <div class="meta">
     <span class="srcbadge">RSS</span>
-    <span style="font-weight:600;color:var(--txt3)">Fivetran Blog</span>
+    <a class="meta-source-link" href="https://www.fivetran.com/blog/inside-anasacs-multi-country-sap-transformation" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Fivetran Blog" aria-label="查看 Fivetran Blog 原文"><span>Fivetran Blog</span><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+    <span class="meta-content-mode">AI 逐段翻译</span>
     
     <span title="发布时间">发布 2026-08-23 23:56</span>
     <span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 08-24</span>
@@ -753,6 +790,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="article-brief-body"><p>智利跨国农业工业公司ANASAC在拉美及全球19个市场推进ERP整合，统一迁移到SAP S/4HANA Cloud。Fivetran在案例中强调，仅有ERP统一不够，还需打破API限制、专有格式等造成的数据围墙花园，让ERP数据支撑分析、报表与长期现代化。该实践展示了跨国企业如何通过数据集成获得全局业务视图。</p>
   <p class="brief-why"><b>为什么值得关注：</b>跨国ERP整合与数据集成治理是数据平台建设中的典型难题，Fivetran的实践案例对数据从业者有参考价值。</p></div>
 </details>
+  
   <section class="content-section" aria-labelledby="articleBodyTitle">
   <div class="content-heading"><h2 id="articleBodyTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 译文</h2> <span class="content-origin-badge">AI 逐段翻译</span></div>
   <div class="fulltext"><p>如今一些最具雄心的<a href="https://www.fivetran.com/blog/four-approaches-to-data-infrastructure-modernization" target="_blank" rel="noopener noreferrer nofollow">企业数字化转型</a>并非发生在硅谷、纽约、伦敦或巴黎，而是由像ANASAC这样的公司所承担。ANASAC是一家智利跨国农化行业领导者，业务遍及拉丁美洲及全球的19个市场。</p><p>ANASAC正处于两个使数字化转型尤为复杂的挑战的交汇点：一是全球业务足迹，各国监管和运营存在差异；二是其所在行业运营数据对从供应规划到客户服务的各个环节都至关重要。</p><p>在公司启动一项重大<a href="https://www.fivetran.com/blog/erp-data-financial-efficiency-and-the-current-state-of-enterprise-data-strategy" target="_blank" rel="noopener noreferrer nofollow">ERP</a>整合，通过RISE迁移到SAP S/4HANA Cloud私有版时，它承担了一项在该地区同规模企业中鲜有尝试的挑战。</p><p>[CTA_MODULE]</p><h2 class="cb-heading">你的ERP数据不能被困在围墙花园中</h2><p>ANASAC的ERP环境在多个国家间呈碎片化，这是通过扩张和收购实现增长的全球企业的常见模式。每个市场都有自己的系统、数据和运营规范。这种碎片化使得难以从整体上审视业务，也难以进行跨区域的综合分析。</p><p>整合到SAP S/4HANA RISE的决策不仅仅是技术层面的。这是对统一运营模式的押注，在这种模式下，每个国家都能在相同的ERP骨干上运行，公司也能以更清晰的全局视角做出决策。</p><p>但统一ERP只是整个图景的一半。另一半是确保ERP中的数据能够为业务的其他部分提供动力：分析、报告、规划以及长期现代化路线图。</p><p><a href="https://www.fivetran.com/blog/who-really-controls-your-data-and-what-rights-do-you-have-to-it" target="_blank" rel="noopener noreferrer nofollow">在实践中</a>，API限制、专有格式、供应商政策以及其他技术和合同障碍可能将数据锁定在其产生的地方。这实际上形成了围墙花园，限制了数据的分析和运营潜力，因为它限制了组织将数据与其他来源的数据结合以构建全面上下文的能力，或者将其连接到供应商生态系统之外系统的能力。随着<a href="https://www.fivetran.com/blog/your-next-workforce-runs-on-data-are-you-ready-for-that-future" target="_blank" rel="noopener noreferrer nofollow">持续运行的AI代理</a>从多个来源提取数据、执行多步骤工作流并实时行动，将数据移出围墙花园的需求变得更加迫切。</p><h2 class="cb-heading">Fivetran帮助你将ERP数据移出围墙花园</h2><p>对于ANASAC而言，使用SAP数据来赋能各种分析和运营用例的需求意味着将其移入Snowflake，在那里它可以与其他来源结合并更广泛地使用。对于许多迁移到SAP S/4HANA RISE的公司来说，最大的未决问题之一是能否继续可靠地访问和复制SAP数据——以及能否以在SAP环境中被接受的方式进行。RISE是一种托管产品，关于提取的规则可能模糊不清。<a href="https://www.fivetran.com/blog/who-really-owns-your-sap-data" target="_blank" rel="noopener noreferrer nofollow">被SAP环境接受</a>。RISE是一个托管服务，关于提取的规则可能有些模糊。</p><p>ANASAC需要一种复制方法，以避免在大型ERP转型期间引入额外风险或不确定性。<a href="https://evolveds.ai/" target="_blank" rel="noopener noreferrer nofollow">Evolve Decision Science</a>是一家领先的拉美分析和AI咨询公司，作为ANASAC的战略合作伙伴，确定了Fivetran作为支持其统一数据战略的正确平台，并帮助推动实施。Evolve和Fivetran共同实现了从SAP S/4HANA提取关键数据并将其交付到Snowflake，为集中式分析、治理和未来数据计划创建了可扩展的基础。</p><p><a href="https://www.fivetran.com/blog/a-technical-deep-dive-into-how-fivetran-centralizes-sap-data" target="_blank" rel="noopener noreferrer nofollow">Fivetran的数据集成</a>通过RFC中的NetWeaver应用层使用间接静态读取，这是SAP中常见的一种机制。ANASAC报告称，部署未引起任何合同问题，也未对SAP性能造成影响。</p><p>实施后，ANASAC的内部团队独立管理平台，调整表、优化同步频率，并在最少外部支持的情况下处理模式变更。对于在复杂的多国RISE项目中运作的精简团队而言，这种自主性是一个重要优势。</p><h2 class="cb-heading">构建跨市场扩展的基础</h2><p>随着Fivetran部署的扩展和更多国家的实例上线，团队细化了要引入哪些数据以及多久同步一次——这让他们对环境有了更严格的控制，并随着业务发展保持架构的灵活性。</p><p>通过使用Fivetran将SAP S/4HANA RISE数据加载到Snowflake，ANASAC为整个业务构建了一个更<a href="https://www.fivetran.com/blog/ai-readiness-requires-a-unified-data-architecture" target="_blank" rel="noopener noreferrer nofollow">灵活的分析基础</a>。他们不再将关键的ERP数据锁定在围墙花园中，而是使其在云端可用，在那里可以进行建模、与其他来源结合，并供其运营所在的19个国家团队使用。</p><p>&quot;在我们迁移到SAP S/4HANA RISE时，拥有一个值得信赖的数据集成方法至关重要，&quot;ANASAC企业技术副总监Gonzalo Ubilla表示。&quot;Fivetran为我们提供了一种可靠的方式，使用我们理解并对其前进有信心的方式将SAP数据复制到Snowflake。这帮助我们支持了推广，同时为业务构建了更强大的分析和AI就绪基础。&quot;</p><h2 class="cb-heading">ANASAC的故事对企业转型的启示</h2><p>ANASAC展示了拉丁美洲的一个持续趋势：已建立复杂多国业务的企业正在认真投资于ERP现代化和数据基础设施以与之匹配。其运营复杂性（和雄心）不仅轻松与北美或欧洲领先科技中心的普遍水平相媲美，而且往往超过它们。</p><p>对于正在评估SAP RISE的跨国企业，ANASAC的经验是一个有用的实证：在保持数据战略完整、团队掌控和与分析基础齐头并进的情况下，同时推进多国RISE项目是可能的。</p><p>[CTA_MODULE]</p><p>‍</p></div>
@@ -760,12 +798,14 @@ main,.layout>*,.hotlist>*{min-width:0}
 </section>
   <div class="vendors article-tags" aria-label="文章主题"><span class="vtag">Fivetran</span><span class="vtag">SAP</span></div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/9e059ac6ed28.html"><span class="n">›</span>Fivetran用AI构建状态页，替换6.5万美元SaaS<span class="count">31</span></a><a class="vendor-row" href="../e/41e1e7af7342.html"><span class="n">›</span>自建还是购买数据管道？Fivetran拆解真实成本<span class="count">32</span></a><a class="vendor-row" href="../e/e1458227e025.html"><span class="n">›</span>Fivetran谈数据目的地：决定数据架构成败的5个要点<span class="count">34</span></a></div>
+  <section class="card related-events" aria-labelledby="relatedEventsTitle"><h4 id="relatedEventsTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/9e059ac6ed28.html"><span class="n">›</span><span class="related-title">Fivetran用AI构建状态页，替换6.5万美元SaaS</span><span class="related-meta">AI 数据平台</span></a><a class="vendor-row" href="../e/41e1e7af7342.html"><span class="n">›</span><span class="related-title">自建还是购买数据管道？Fivetran拆解真实成本</span><span class="related-meta">AI 数据平台</span></a><a class="vendor-row" href="../e/e1458227e025.html"><span class="n">›</span><span class="related-title">Fivetran谈数据目的地：决定数据架构成败的5个要点</span><span class="related-meta">AI 数据平台</span></a></section>
   </main>
+  
+  </div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 <nav class="tabbar" aria-label="移动端主导航">
-  <a href="../index.html" class="on" data-home-top><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../for-me.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg></span><span>For Me</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>
+  <a href="../index.html" class="on" data-home-top><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../for-me.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg></span><span>关注</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>
   <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
 </nav>
 <div class="more-mask" data-more-mask aria-hidden="true"></div>

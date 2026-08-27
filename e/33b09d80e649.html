@@ -627,11 +627,18 @@ main,.layout>*,.hotlist>*{min-width:0}
 }
 
 .article{max-width:1040px;margin:0 auto;padding:36px 20px 60px}
+.article-layout{max-width:1000px;margin:0 auto}
 .article-content{max-width:840px;margin:0 auto}
+.article-layout.has-toc{display:grid;grid-template-columns:minmax(0,840px) 144px;gap:16px;align-items:start}
+.article-layout.has-toc .article-content{min-width:0;margin:0}
 .article .back{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}
 .article h1{max-width:700px;font-size:30px;font-weight:800;line-height:1.38;margin:14px auto 20px}
 .article .meta{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
 .article .meta,.article-brief,.tts-player{max-width:700px;margin-left:auto;margin-right:auto}
+.meta-source-link{display:inline-flex;align-items:center;gap:3px;color:var(--txt3);font-weight:650;text-decoration:none}
+.meta-source-link svg{flex:0 0 auto}
+.meta-source-text{color:var(--txt3);font-weight:650}
+.meta-content-mode{display:inline-flex;align-items:center;min-height:22px;padding:2px 8px;border-radius:99px;background:var(--soft);color:var(--txt2);font-size:10.5px;font-weight:700}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
 .article-brief{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:18px;margin-bottom:30px}
@@ -647,6 +654,26 @@ main,.layout>*,.hotlist>*{min-width:0}
 .content-heading h2{display:flex;align-items:center;gap:7px;font-size:15px;line-height:1.5;margin:0;color:var(--ink)}
 .content-origin-badge{font-size:11px;color:var(--sub);font-weight:500}
 .article .vendor-row{text-decoration:none}
+.related-title{min-width:0;flex:1;line-height:1.55}
+.related-meta{flex:0 0 auto;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub);font-size:11px}
+.article-toc-mobile{display:none;max-width:700px;margin:0 auto 24px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+.article-toc-mobile>summary{display:flex;align-items:center;justify-content:space-between;min-height:46px;padding:0 14px;cursor:pointer;list-style:none;color:var(--ink);font-size:13px;font-weight:750}
+.article-toc-mobile>summary::-webkit-details-marker{display:none}
+.article-toc-mobile>summary span,.article-toc-title span{color:var(--sub);font-size:10.5px;font-weight:500}
+.article-toc-mobile ol,.article-toc-rail ol{list-style:none;margin:0;padding:0}
+.article-toc-mobile ol{max-height:50vh;overflow-y:auto;padding:0 14px 12px;border-top:1px solid var(--soft)}
+.article-toc-mobile li{margin:0}
+.article-toc-mobile a{display:block;padding:8px 0;border-bottom:1px solid var(--soft);color:var(--txt2);font-size:12px;line-height:1.5;text-decoration:none}
+.article-toc-mobile li:last-child a{border-bottom:0}
+.article-toc-mobile .toc-level-3 a,.article-toc-mobile .toc-level-4 a{padding-left:12px}
+.article-toc-rail{position:sticky;top:82px;max-height:calc(100vh - 104px);overflow-y:auto;padding:10px 0 12px 14px;border-left:1px solid var(--line);scrollbar-width:thin}
+.article-toc-title{display:flex;justify-content:space-between;gap:6px;margin-bottom:7px;color:var(--ink);font-size:11.5px;font-weight:800}
+.article-toc-rail a{display:block;padding:5px 0;color:var(--sub);font-size:10.5px;line-height:1.45;text-decoration:none}
+.article-toc-rail .toc-level-3 a,.article-toc-rail .toc-level-4 a{padding-left:9px}
+.article-toc-rail a[aria-current="location"]{color:var(--accent);font-weight:750}
+[data-article-heading]{scroll-margin-top:88px}
+.reading-progress{position:absolute;left:0;right:0;bottom:-1px;height:2px;overflow:hidden;background:transparent}
+.reading-progress>span{display:block;width:100%;height:100%;background:var(--accent);transform:scaleX(0);transform-origin:left center;will-change:transform}
 .source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
 .source-heading{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
 .source-heading h4{margin:0}
@@ -664,7 +691,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .source-more>summary::after{content:" ↓"}
 .source-more[open]>summary::after{content:" ↑"}
 @media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
-.fulltext>:not(.cb-figure):not(.cb-table){max-width:700px;margin-left:auto;margin-right:auto}
+.fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:700px;margin-left:auto;margin-right:auto}
 .fulltext .cb-heading{font-size:19px;line-height:1.55;margin-top:32px;margin-bottom:12px;color:var(--ink)}
 .fulltext p{margin-top:0;margin-bottom:18px}
 .fulltext strong{font-weight:750;color:var(--ink)}
@@ -676,16 +703,22 @@ main,.layout>*,.hotlist>*{min-width:0}
 .fulltext code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
 .fulltext pre{overflow:auto;background:#171a20;color:#e8ebf0;border-radius:10px;padding:14px 16px;margin:16px 0;line-height:1.65}
 .fulltext pre code{background:none;border:none;padding:0;color:inherit}
-.cb-table{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;margin:16px 0;border:1px solid var(--line);border-radius:9px}
+.cb-table-shell{position:relative;margin:16px 0}
+.cb-table{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;margin:0;border:1px solid var(--line);border-radius:9px}
 .cb-table:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .cb-table table{border-collapse:collapse;width:100%;min-width:480px;font-size:13px}
 .cb-table th,.cb-table td{padding:9px 12px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:left;vertical-align:top}
 .cb-table th{background:var(--soft);color:var(--ink);font-weight:700}
 .cb-table tr:last-child td{border-bottom:none}
+.cb-table th:first-child,.cb-table td:first-child{position:sticky;left:0;z-index:1;background:var(--card);box-shadow:1px 0 0 var(--line)}
+.cb-table th:first-child{z-index:2;background:var(--soft)}
+.table-scroll-hint{display:none;position:absolute;right:8px;bottom:8px;z-index:3;padding:4px 8px;border-radius:99px;background:rgba(26,29,35,.88);color:#fff;font-size:10.5px;font-weight:700;pointer-events:none;box-shadow:0 3px 12px rgba(0,0,0,.16)}
+.cb-table-shell.is-overflowing:not(.has-scrolled) .table-scroll-hint{display:block}
+.cb-table-shell.is-overflowing:not(.at-end)::after{content:"";position:absolute;top:1px;right:1px;bottom:1px;width:24px;border-radius:0 8px 8px 0;background:linear-gradient(90deg,transparent,var(--card));pointer-events:none}
 .cb-figure{margin:20px 0;background:var(--soft);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .cb-media-link{display:block;background:#f5f7fa;text-decoration:none}
 .cb-figure img{display:block;width:100%;height:auto;max-height:72vh;object-fit:contain;margin:0 auto}
-@media(max-width:600px){.cb-figure{margin:16px -8px;border-radius:9px}.cb-table{max-width:100%;margin-left:0;margin-right:0}}
+@media(max-width:600px){.cb-figure{margin:16px -8px;border-radius:9px}.cb-table-shell{max-width:100%;margin-left:0;margin-right:0}}
 @media (prefers-color-scheme: dark){.cb-media-link{background:#171a20}}
 .tone-accent{color:var(--accent);font-weight:650}.tone-warning{color:var(--amber);font-weight:650}
 .tone-positive{color:var(--green);font-weight:650}.tone-info{color:var(--blue);font-weight:650}.tone-emphasis{color:var(--ink);font-weight:650}
@@ -706,14 +739,15 @@ main,.layout>*,.hotlist>*{min-width:0}
 @media(max-width:600px){.tts-player{grid-template-columns:1fr auto auto;gap:9px;padding:11px 12px}.tts-copy{grid-column:1/-1;grid-row:1;flex-direction:row;align-items:baseline;gap:8px}.tts-toggle{grid-column:1;grid-row:2}.tts-time{grid-column:2;grid-row:2}.tts-rate-label{grid-column:3;grid-row:2}.tts-progress{grid-column:1/-1;grid-row:3}}
 @media(prefers-reduced-motion:reduce){.tts-player *{scroll-behavior:auto!important;transition:none!important}}
 @media(hover:hover) and (pointer:fine){
-  .article .back:hover,.source-report:hover .source-report-title,.original-footer-link:hover{color:var(--accent)}
+  .article .back:hover,.meta-source-link:hover,.source-report:hover .source-report-title,.original-footer-link:hover,.article-toc-mobile a:hover,.article-toc-rail a:hover{color:var(--accent)}
   .cta:hover{opacity:.9}
 }
 .content-footer{max-width:700px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin:20px auto 0}
 .disclaimer{flex:1;font-size:12px;color:var(--sub)}
 .original-footer-link{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:7px 12px;border-radius:99px;color:var(--blue);font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap}
-.original-footer-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media(max-width:600px){.article{padding-left:16px;padding-right:16px}.article h1{font-size:24px;line-height:1.45}.fulltext>:not(.cb-figure):not(.cb-table){max-width:none}.fulltext p,.fulltext li{font-size:16px;line-height:1.82}.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}}
+.original-footer-link:focus-visible,.meta-source-link:focus-visible,.article-toc-mobile summary:focus-visible,.article-toc-mobile a:focus-visible,.article-toc-rail a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:1199px){.article-layout.has-toc{display:block}.article-layout.has-toc .article-content{margin:0 auto}.article-toc-rail{display:none}.article-toc-mobile{display:block}}
+@media(max-width:600px){.article{padding-left:16px;padding-right:16px}.article h1{font-size:24px;line-height:1.45}.fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:none}.fulltext p,.fulltext li{font-size:16px;line-height:1.82}.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}.related-meta{max-width:88px}}
 </style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="33b09d80e649" data-category="platform" data-source="Snowflake Engineering（Medium）">
 <aside class="sidebar"><div class="slogo"><a href="../index.html" data-smart-home-return aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><nav class="sidebar-nav" aria-label="主导航"><a class="mi on" href="../index.html" data-smart-home-return><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../for-me.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg>关注</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>周报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>收藏</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a></nav><nav class="sidebar-tools" aria-label="工具"><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a></nav><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>
 <header class="detail-brand-header"><div class="wrap nav">
@@ -728,11 +762,14 @@ main,.layout>*,.hotlist>*{min-width:0}
       <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/33b09d80e649.png" title="海报" aria-label="海报"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg><span class="sbtn-label">海报</span></button>
       <button class="sbtn" type="button" data-share-action="open" title="分享" aria-label="分享"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span class="sbtn-label">分享</span></button>
     </span>
+    <span class="reading-progress" aria-hidden="true"><span data-reading-progress></span></span>
   </div>
+  <div class="article-layout has-toc">
   <main class="article-content">
   <div class="meta">
     <span class="srcbadge">RSS</span>
-    <span style="font-weight:600;color:var(--txt3)">Snowflake Engineering (Medium)</span>
+    <a class="meta-source-link" href="https://medium.com/snowflake/merge-safe-backfill-patterns-with-snowpark-python-e856b2fe24de?source=rss----34b6daafc07---4" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Snowflake Engineering（Medium）" aria-label="查看 Snowflake Engineering (Medium) 原文"><span>Snowflake Engineering (Medium)</span><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+    <span class="meta-content-mode">AI 逐段翻译</span>
     
     <span title="发布时间">发布 2026-08-21 03:01</span>
     <span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 08-22</span>
@@ -744,9 +781,10 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="article-brief-body"><p>本文针对数据管道回填操作中的常见挑战，提出使用Snowpark Python的解决方案。当目标表为派生事实表、源为追加型事件日志时，每次批量处理可能包含插入、更新和删除，回填需处理冲突与数据新鲜度。文章总结了五种最常见的回填问题，并逐一给出简单可复用的模式。适合数据工程团队在维护当前状态表时参考。</p>
   <p class="brief-why"><b>为什么值得关注：</b>回填是数据管道运维中的高频痛点，文章提供了基于Snowpark Python的实用模式，能帮助数据从业者避免数据一致性问题。</p></div>
 </details>
+  <details class="article-toc-mobile"><summary>本文目录 <span>11 节</span></summary><ol><li class="toc-level-4"><a href="#article-section-1" data-toc-link data-toc-target="article-section-1">在不破坏当前数据的前提下重放历史数据</a></li><li class="toc-level-3"><a href="#article-section-2" data-toc-link data-toc-target="article-section-2">基本设置</a></li><li class="toc-level-4"><a href="#article-section-3" data-toc-link data-toc-target="article-section-3">模拟示例数据</a></li><li class="toc-level-4"><a href="#article-section-4" data-toc-link data-toc-target="article-section-4">每日增量管道</a></li><li class="toc-level-3"><a href="#article-section-5" data-toc-link data-toc-target="article-section-5">回填挑战与解决方案</a></li><li class="toc-level-4"><a href="#article-section-6" data-toc-link data-toc-target="article-section-6">问题 1：事件窗口不告诉你需要重新计算什么</a></li><li class="toc-level-4"><a href="#article-section-7" data-toc-link data-toc-target="article-section-7">问题 2：去重必须解决整个历史，而不是切片</a></li><li class="toc-level-4"><a href="#article-section-8" data-toc-link data-toc-target="article-section-8">问题 3：重用每日作业的新鲜度保护会静默丢弃修复</a></li><li class="toc-level-4"><a href="#article-section-9" data-toc-link data-toc-target="article-section-9">问题 4：单次大型重建占用过多资源</a></li><li class="toc-level-4"><a href="#article-section-10" data-toc-link data-toc-target="article-section-10">问题5：长时间运行的回填在执行过程中不可见</a></li><li class="toc-level-3"><a href="#article-section-11" data-toc-link data-toc-target="article-section-11">综合运用</a></li></ol></details>
   <section class="content-section" aria-labelledby="articleBodyTitle">
   <div class="content-heading"><h2 id="articleBodyTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 译文</h2> <span class="content-origin-badge">AI 逐段翻译</span></div>
-  <div class="fulltext"><h4 class="cb-heading">在不破坏当前数据的前提下重放历史数据</h4><p>当数据管道每天仅插入新行时，回填很容易。当每个批次包含必须应用于当前状态表的插入、更新和删除时，任务变得更加复杂。回填操作需要关注冲突条件和数据新鲜度。本文指出了五个最常见的回填问题，并使用 Snowpark Python 为每个问题提供了简单的解决方案。</p><figure class="cb-figure"><a class="cb-media-link" href="https://cdn-images-1.medium.com/max/1024/1*mHb5PSuoP0C3QOkV3K7m6w.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/33b09d80e649/a2ab257ef6d80c6a320c2edd.png" alt="" loading="lazy" decoding="async" width="1024" height="572"></a></figure><p><strong>假设：</strong> 本文讨论的模式很常见：目标是派生的事实表——不是源数据的切片，而是转换、丰富后的表示形式，保存每个实体的当前状态。源是不可变的追加事件日志，无限增长（不是 SCD 2 型表）——每个状态变化、金额调整和取消都作为带时间戳的新行捕获。</p><h3 class="cb-heading">基本设置</h3><h4 class="cb-heading">模拟示例数据</h4><p>模拟示例使用 <strong>订单事件</strong> 源和 <strong>订单事实</strong> 目标。</p><pre><code class="language-">-- Source: append-only event log of order state changes
+  <div class="fulltext"><h4 class="cb-heading" id="article-section-1" data-article-heading>在不破坏当前数据的前提下重放历史数据</h4><p>当数据管道每天仅插入新行时，回填很容易。当每个批次包含必须应用于当前状态表的插入、更新和删除时，任务变得更加复杂。回填操作需要关注冲突条件和数据新鲜度。本文指出了五个最常见的回填问题，并使用 Snowpark Python 为每个问题提供了简单的解决方案。</p><figure class="cb-figure"><a class="cb-media-link" href="https://cdn-images-1.medium.com/max/1024/1*mHb5PSuoP0C3QOkV3K7m6w.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/33b09d80e649/a2ab257ef6d80c6a320c2edd.png" alt="" loading="lazy" decoding="async" width="1024" height="572"></a></figure><p><strong>假设：</strong> 本文讨论的模式很常见：目标是派生的事实表——不是源数据的切片，而是转换、丰富后的表示形式，保存每个实体的当前状态。源是不可变的追加事件日志，无限增长（不是 SCD 2 型表）——每个状态变化、金额调整和取消都作为带时间戳的新行捕获。</p><h3 class="cb-heading" id="article-section-2" data-article-heading>基本设置</h3><h4 class="cb-heading" id="article-section-3" data-article-heading>模拟示例数据</h4><p>模拟示例使用 <strong>订单事件</strong> 源和 <strong>订单事实</strong> 目标。</p><pre><code class="language-">-- Source: append-only event log of order state changes
 CREATE OR REPLACE TABLE order_events (
     order_id        VARCHAR,
     customer_id     VARCHAR,
@@ -804,7 +842,7 @@ INSERT INTO order_facts VALUES
 (&#x27;ORD-002&#x27;, &#x27;C-200&#x27;, 180.00, &#x27;delivered&#x27;, FALSE, &#x27;2025-03-15 10:00:00&#x27;,
  &#x27;2025-03-10 08:00:00&#x27;, 5, &#x27;2025-03-15 10:05:00&#x27;, &#x27;daily_20250315&#x27;, CURRENT_TIMESTAMP()),
 (&#x27;ORD-007&#x27;, &#x27;C-700&#x27;, 95.00, &#x27;delivered&#x27;,  FALSE, &#x27;2025-11-03 15:00:00&#x27;,
- NULL, NULL, &#x27;2025-11-03 15:04:00&#x27;, &#x27;daily_20251103&#x27;, CURRENT_TIMESTAMP());</code></pre><h4 class="cb-heading">每日增量管道</h4><p>这是简单的 <strong>每日 MERGE 作业</strong>：它仅处理 <strong>前一天的数据 </strong>（已摄取的事件），<strong>去重</strong> 为每个订单一行，应用转换逻辑，并使用 <strong>新鲜度保护</strong> 合并到事实表中。</p><pre><code class="language-">MERGE INTO order_facts AS target
+ NULL, NULL, &#x27;2025-11-03 15:04:00&#x27;, &#x27;daily_20251103&#x27;, CURRENT_TIMESTAMP());</code></pre><h4 class="cb-heading" id="article-section-4" data-article-heading>每日增量管道</h4><p>这是简单的 <strong>每日 MERGE 作业</strong>：它仅处理 <strong>前一天的数据 </strong>（已摄取的事件），<strong>去重</strong> 为每个订单一行，应用转换逻辑，并使用 <strong>新鲜度保护</strong> 合并到事实表中。</p><pre><code class="language-">MERGE INTO order_facts AS target
 USING (
     SELECT
         e.order_id,
@@ -838,7 +876,7 @@ WHEN MATCHED AND (
             AND source.ingested_at &gt; target.ingested_at)
      ) THEN UPDATE ALL BY NAME
 
-WHEN NOT MATCHED THEN INSERT ALL BY NAME;</code></pre><p>这个每日作业非常健壮：有界每日窗口、通过 QUALIFY 按事件时间排序并以摄取时间作为决胜键进行去重，以及一个接受 <strong>较新事件 </strong>或同一事件的 <strong>更新摄取</strong> 的新鲜度保护。所有转换逻辑都位于 USING 子句中，因此 UPDATE ALL BY NAME 和 INSERT ALL BY NAME 可以将源列映射到目标列，而无需重复列列表两次。</p><p>为什么要回填？因为每日作业只查看昨天。源中断、运行失败或追溯重载都会使事件落在未来所有每日窗口之外——它们将永远不会被处理。当源数据本身错误并随后被更正时，事实表持有的值将永远不会被未来的每日运行重新访问。</p><p>我们使用 Snowpark Python 展示解决方案，因为跨越数月数据的回填工作需要参数化边界、循环控制、并行性、日志记录和错误处理——这些在 Python 中都很容易实现。</p><h3 class="cb-heading">回填挑战与解决方案</h3><h4 class="cb-heading">问题 1：事件窗口不告诉你需要重新计算什么</h4><p>一月份的某个事件到达更正。自然的做法是将源过滤到一月并合并结果。但是，其 1 月发货事件被更正的订单可能是在 11 月发生的配送事件，其事实行反映了两者。仅从 1 月份事件重新计算会生成该订单的部分图像。</p><p>显示问题的示例数据：</p><blockquote>ORD-007 shipped event_ts 2025–01–30（已更正，原为 2025–01–28）</blockquote><blockquote>— 但该订单的完整历史远远超出窗口</blockquote><blockquote>ORD-007 pending event_ts 2025–01–25</blockquote><blockquote>ORD-007 shipped event_ts 2025–01–30</blockquote><blockquote>ORD-007 delivered event_ts 2025–11–03</blockquote><p>仅过滤到一月只会得到发货事件。任何从配送事件派生的状态都会丢失或变得陈旧。</p><p><strong>解决方案：</strong> 使用事件时间范围来识别受影响的键，然后读取这些键的完整历史。窗口选择订单；它不选择你从中计算的事件。</p><p>以下代码示例可直接在 Snowsight UI 中测试：</p><pre><code class="language-">from snowflake.snowpark.functions import col, lit
+WHEN NOT MATCHED THEN INSERT ALL BY NAME;</code></pre><p>这个每日作业非常健壮：有界每日窗口、通过 QUALIFY 按事件时间排序并以摄取时间作为决胜键进行去重，以及一个接受 <strong>较新事件 </strong>或同一事件的 <strong>更新摄取</strong> 的新鲜度保护。所有转换逻辑都位于 USING 子句中，因此 UPDATE ALL BY NAME 和 INSERT ALL BY NAME 可以将源列映射到目标列，而无需重复列列表两次。</p><p>为什么要回填？因为每日作业只查看昨天。源中断、运行失败或追溯重载都会使事件落在未来所有每日窗口之外——它们将永远不会被处理。当源数据本身错误并随后被更正时，事实表持有的值将永远不会被未来的每日运行重新访问。</p><p>我们使用 Snowpark Python 展示解决方案，因为跨越数月数据的回填工作需要参数化边界、循环控制、并行性、日志记录和错误处理——这些在 Python 中都很容易实现。</p><h3 class="cb-heading" id="article-section-5" data-article-heading>回填挑战与解决方案</h3><h4 class="cb-heading" id="article-section-6" data-article-heading>问题 1：事件窗口不告诉你需要重新计算什么</h4><p>一月份的某个事件到达更正。自然的做法是将源过滤到一月并合并结果。但是，其 1 月发货事件被更正的订单可能是在 11 月发生的配送事件，其事实行反映了两者。仅从 1 月份事件重新计算会生成该订单的部分图像。</p><p>显示问题的示例数据：</p><blockquote>ORD-007 shipped event_ts 2025–01–30（已更正，原为 2025–01–28）</blockquote><blockquote>— 但该订单的完整历史远远超出窗口</blockquote><blockquote>ORD-007 pending event_ts 2025–01–25</blockquote><blockquote>ORD-007 shipped event_ts 2025–01–30</blockquote><blockquote>ORD-007 delivered event_ts 2025–11–03</blockquote><p>仅过滤到一月只会得到发货事件。任何从配送事件派生的状态都会丢失或变得陈旧。</p><p><strong>解决方案：</strong> 使用事件时间范围来识别受影响的键，然后读取这些键的完整历史。窗口选择订单；它不选择你从中计算的事件。</p><p>以下代码示例可直接在 Snowsight UI 中测试：</p><pre><code class="language-">from snowflake.snowpark.functions import col, lit
 
 def affected_keys(session, event_start, event_end):
     &quot;&quot;&quot;Order IDs touched by events in the window.&quot;&quot;&quot;
@@ -859,7 +897,7 @@ def full_history(session, keys_df):
     )
 
 keys = affected_keys(session, &quot;2025-01-01&quot;, &quot;2025-02-01&quot;)
-history = full_history(session, keys)</code></pre><p>回填窗口现在是发现的范围，而不是计算边界。范围内的每个订单都从完整历史重新计算。</p><h4 class="cb-heading">问题 2：去重必须解决整个历史，而不是切片</h4><p>每日作业在其窗口内去重，这是安全的，因为目标已经持有早期窗口的状态。回填没有这种优势——它从零开始重建行，因此获胜事件必须是订单整个生命周期中的最新事件。</p><p>显示问题的示例数据：</p><blockquote>— ORD-001 完整历史</blockquote><blockquote>ORD-001 pending 2025–01–10</blockquote><blockquote>ORD-001 shipped 2025–01–12</blockquote><blockquote>ORD-001 delivered 2025–01–15</blockquote><blockquote>— 在 2025–01–10 到 2025–01–13 窗口内去重</blockquote><blockquote>— 会选择 &#x27;shipped&#x27; — 但订单实际上是 &#x27;delivered&#x27;</blockquote><p><strong>解决方案：</strong>对问题 1 中的完整历史进行去重，而不是对窗口子集进行去重。去重逻辑与每日作业相同；只是输入不同。</p><pre><code class="language-">from snowflake.snowpark import Window
+history = full_history(session, keys)</code></pre><p>回填窗口现在是发现的范围，而不是计算边界。范围内的每个订单都从完整历史重新计算。</p><h4 class="cb-heading" id="article-section-7" data-article-heading>问题 2：去重必须解决整个历史，而不是切片</h4><p>每日作业在其窗口内去重，这是安全的，因为目标已经持有早期窗口的状态。回填没有这种优势——它从零开始重建行，因此获胜事件必须是订单整个生命周期中的最新事件。</p><p>显示问题的示例数据：</p><blockquote>— ORD-001 完整历史</blockquote><blockquote>ORD-001 pending 2025–01–10</blockquote><blockquote>ORD-001 shipped 2025–01–12</blockquote><blockquote>ORD-001 delivered 2025–01–15</blockquote><blockquote>— 在 2025–01–10 到 2025–01–13 窗口内去重</blockquote><blockquote>— 会选择 &#x27;shipped&#x27; — 但订单实际上是 &#x27;delivered&#x27;</blockquote><p><strong>解决方案：</strong>对问题 1 中的完整历史进行去重，而不是对窗口子集进行去重。去重逻辑与每日作业相同；只是输入不同。</p><pre><code class="language-">from snowflake.snowpark import Window
 from snowflake.snowpark.functions import row_number
 
 def deduplicate(df, key_cols, order_cols):
@@ -876,7 +914,7 @@ def deduplicate(df, key_cols, order_cols):
 latest = deduplicate(
     history, [&quot;order_id&quot;], [&quot;event_ts&quot;, &quot;ingested_at&quot;]
 )
-latest.show()</code></pre><p>因为输入是订单的完整历史，获胜者就是真实的当前状态——并且可以从同一 DataFrame 派生每个多事件列，而无需查阅目标。</p><h4 class="cb-heading">问题 3：重用每日作业的新鲜度保护会静默丢弃修复</h4><p>每日 MERGE 仅在新事件比存储的事件更新时才更新。该保护对于增量合并是正确的：它阻止晚到的旧事件恢复更新的状态。应用于回填时，它会产生相反的效果。</p><p>显示问题的示例数据：</p><blockquote>— 目标当前持有 11 月的配送状态</blockquote><blockquote>ORD-007 last_status_ts 2025–11–03</blockquote><blockquote>— 回填从完整历史重新计算；</blockquote><blockquote>— 获胜事件仍然是 11 月的配送，但带有从 1 月事件</blockquote><blockquote>— 派生的已更正的 shipped_ts</blockquote><blockquote>— 新鲜度保护：2025–11–03 &gt; 2025–11–03 为 false</blockquote><blockquote>— -&gt; 更新被拒绝，更正被丢弃</blockquote><p>重新计算的行是正确的，但保护将其与同样最新的目标行进行比较，并拒绝写入。更正永远不会生效，运行报告成功。</p><p><strong>解决方案：</strong> 在回填路径中，重新计算的值通过构造是权威的——绝不像每日合并作业那样引用当前状态表中的值来重建字段。</p><pre><code class="language-">from snowflake.snowpark.functions import (
+latest.show()</code></pre><p>因为输入是订单的完整历史，获胜者就是真实的当前状态——并且可以从同一 DataFrame 派生每个多事件列，而无需查阅目标。</p><h4 class="cb-heading" id="article-section-8" data-article-heading>问题 3：重用每日作业的新鲜度保护会静默丢弃修复</h4><p>每日 MERGE 仅在新事件比存储的事件更新时才更新。该保护对于增量合并是正确的：它阻止晚到的旧事件恢复更新的状态。应用于回填时，它会产生相反的效果。</p><p>显示问题的示例数据：</p><blockquote>— 目标当前持有 11 月的配送状态</blockquote><blockquote>ORD-007 last_status_ts 2025–11–03</blockquote><blockquote>— 回填从完整历史重新计算；</blockquote><blockquote>— 获胜事件仍然是 11 月的配送，但带有从 1 月事件</blockquote><blockquote>— 派生的已更正的 shipped_ts</blockquote><blockquote>— 新鲜度保护：2025–11–03 &gt; 2025–11–03 为 false</blockquote><blockquote>— -&gt; 更新被拒绝，更正被丢弃</blockquote><p>重新计算的行是正确的，但保护将其与同样最新的目标行进行比较，并拒绝写入。更正永远不会生效，运行报告成功。</p><p><strong>解决方案：</strong> 在回填路径中，重新计算的值通过构造是权威的——绝不像每日合并作业那样引用当前状态表中的值来重建字段。</p><pre><code class="language-">from snowflake.snowpark.functions import (
     when, datediff, current_timestamp,
     when_matched, when_not_matched
 )
@@ -940,7 +978,7 @@ def rebuild_facts(target, history_df, batch_id):
 order_facts = session.table(&quot;order_facts&quot;)
 result = rebuild_facts(order_facts, history, &quot;backfill_2025-01&quot;)
 print(f&quot;inserted={result.rows_inserted}, &quot;
-      f&quot;updated={result.rows_updated}&quot;)</code></pre><p>注意哪些内容消失了。没有对目标进行向前合并连接，因为 shipped_ts 是从历史中的发货事件派生的。没有新鲜度谓词，因为重建替换而不是合并。由于每个订单完全由其自身事件计算，结果不依赖于任何其他切片已写入的内容。</p><h4 class="cb-heading">问题 4：单次大型重建占用过多资源</h4><p>用一条语句为每个受影响订单重新计算一年的历史会产生常见的运维问题：与完整历史的连接规模庞大，仓库可能超时，失败则意味着从头再来。</p><p><strong>解决方案：</strong>按键范围而非事件时间进行切片。由于每个订单都从自己的完整历史重建，切片完全独立——它们可以任意顺序运行，或并行运行，而不影响彼此的结果。</p><pre><code class="language-">from snowflake.snowpark.functions import abs as abs_, hash as hash_
+      f&quot;updated={result.rows_updated}&quot;)</code></pre><p>注意哪些内容消失了。没有对目标进行向前合并连接，因为 shipped_ts 是从历史中的发货事件派生的。没有新鲜度谓词，因为重建替换而不是合并。由于每个订单完全由其自身事件计算，结果不依赖于任何其他切片已写入的内容。</p><h4 class="cb-heading" id="article-section-9" data-article-heading>问题 4：单次大型重建占用过多资源</h4><p>用一条语句为每个受影响订单重新计算一年的历史会产生常见的运维问题：与完整历史的连接规模庞大，仓库可能超时，失败则意味着从头再来。</p><p><strong>解决方案：</strong>按键范围而非事件时间进行切片。由于每个订单都从自己的完整历史重建，切片完全独立——它们可以任意顺序运行，或并行运行，而不影响彼此的结果。</p><pre><code class="language-">from snowflake.snowpark.functions import abs as abs_, hash as hash_
 
 def rebuild_in_key_slices(session, event_start, event_end,
                           slice_count=20):
@@ -959,7 +997,7 @@ def rebuild_in_key_slices(session, event_start, event_end,
         )
         history = full_history(session, slice_keys)
         batch_id = f&quot;backfill_{event_start}_bucket{b}&quot;
-        rebuild_facts(order_facts, history, batch_id)</code></pre><p>哈希分桶可生成大小均匀、可复现的切片，无需了解键的分布。切片顺序在此无关紧要，这正是并行执行安全的原因。</p><h4 class="cb-heading">问题5：长时间运行的回填在执行过程中不可见</h4><p>跨越数月历史的回填可能运行数小时甚至数天。适当的日志记录能让你跟进：哪些范围已完成，每个范围更改了多少行，以及中断后从哪里恢复。</p><p><strong>解决方案：</strong> 将每个切片写入运行账本——一个记录范围、状态、行数和时间戳的小型控制表。该账本将不透明的长时间运行任务转变为可查询的进度报告，并兼作防止启动第二个重叠回填的防护措施。</p><pre><code class="language-">CREATE OR REPLACE TABLE run_ledger (
+        rebuild_facts(order_facts, history, batch_id)</code></pre><p>哈希分桶可生成大小均匀、可复现的切片，无需了解键的分布。切片顺序在此无关紧要，这正是并行执行安全的原因。</p><h4 class="cb-heading" id="article-section-10" data-article-heading>问题5：长时间运行的回填在执行过程中不可见</h4><p>跨越数月历史的回填可能运行数小时甚至数天。适当的日志记录能让你跟进：哪些范围已完成，每个范围更改了多少行，以及中断后从哪里恢复。</p><p><strong>解决方案：</strong> 将每个切片写入运行账本——一个记录范围、状态、行数和时间戳的小型控制表。该账本将不透明的长时间运行任务转变为可查询的进度报告，并兼作防止启动第二个重叠回填的防护措施。</p><pre><code class="language-">CREATE OR REPLACE TABLE run_ledger (
     batch_id        VARCHAR NOT NULL,
     target_table    VARCHAR,
     event_start     DATE,
@@ -1011,17 +1049,19 @@ session.sql(&quot;&quot;&quot;
     FROM run_ledger
     WHERE target_table = &#x27;order_facts&#x27;
     GROUP BY status
-&quot;&quot;&quot;).show()</code></pre><p>账本使进度在回填仍在运行时即可查询——你可以检查哪些切片已完成，每个切片更改了多少行，以及当前切片已执行了多长时间。它还能防止第二个操作员对同一范围启动重叠回填。</p><h3 class="cb-heading">综合运用</h3><p>回填是正常生命周期能力，而非应急脚本。当与增量路径一起设计时，它成为受控重放：准备、合并、验证、恢复。贯穿始终的原则是：纠正性回填必须将事件日志视为权威，而将事实表视为可丢弃的。</p><p><em>感谢您阅读本文！请自行尝试运行代码示例，如有任何问题请随时联系我。如果您想在未来看到类似内容，请告诉我您面临的挑战或正在寻找的解决方案。让我们一起学习！</em></p><p><a href="https://medium.com/snowflake/merge-safe-backfill-patterns-with-snowpark-python-e856b2fe24de" target="_blank" rel="noopener noreferrer nofollow">使用Snowpark Python的MERGE安全回填模式</a> 最初发表于<a href="https://medium.com/snowflake" target="_blank" rel="noopener noreferrer nofollow">Snowflake Builders Blog：数据工程师、应用开发者、AI与数据科学</a>在Medium上，人们通过高亮和回应这篇文章继续对话。</p></div>
+&quot;&quot;&quot;).show()</code></pre><p>账本使进度在回填仍在运行时即可查询——你可以检查哪些切片已完成，每个切片更改了多少行，以及当前切片已执行了多长时间。它还能防止第二个操作员对同一范围启动重叠回填。</p><h3 class="cb-heading" id="article-section-11" data-article-heading>综合运用</h3><p>回填是正常生命周期能力，而非应急脚本。当与增量路径一起设计时，它成为受控重放：准备、合并、验证、恢复。贯穿始终的原则是：纠正性回填必须将事件日志视为权威，而将事实表视为可丢弃的。</p><p><em>感谢您阅读本文！请自行尝试运行代码示例，如有任何问题请随时联系我。如果您想在未来看到类似内容，请告诉我您面临的挑战或正在寻找的解决方案。让我们一起学习！</em></p><p><a href="https://medium.com/snowflake/merge-safe-backfill-patterns-with-snowpark-python-e856b2fe24de" target="_blank" rel="noopener noreferrer nofollow">使用Snowpark Python的MERGE安全回填模式</a> 最初发表于<a href="https://medium.com/snowflake" target="_blank" rel="noopener noreferrer nofollow">Snowflake Builders Blog：数据工程师、应用开发者、AI与数据科学</a>在Medium上，人们通过高亮和回应这篇文章继续对话。</p></div>
   <div class="content-footer"><a class="original-footer-link" href="https://medium.com/snowflake/merge-safe-backfill-patterns-with-snowpark-python-e856b2fe24de?source=rss----34b6daafc07---4" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Snowflake Engineering（Medium）"><span>查看原文</span><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div>
 </section>
   <div class="vendors article-tags" aria-label="文章主题"><span class="vtag">Snowflake</span></div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/3e10f65aa591.html"><span class="n">›</span>Snowflake Universal Core：ODBC和Python驱动公开预览<span class="count">32</span></a><a class="vendor-row" href="../e/5427b4d9824d.html"><span class="n">›</span>Amazon MWAA Serverless 新增 PythonOperator 和 BashOperator 支持<span class="count">48</span></a><a class="vendor-row" href="../e/04a9eab02673.html"><span class="n">›</span>掌握Snowflake RBAC：可扩展安全访问控制实战指南<span class="count">23</span></a></div>
+  <section class="card related-events" aria-labelledby="relatedEventsTitle"><h4 id="relatedEventsTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/3e10f65aa591.html"><span class="n">›</span><span class="related-title">Snowflake Universal Core：ODBC和Python驱动公开预览</span><span class="related-meta">AI 数据平台</span></a></section>
   </main>
+  <aside class="article-toc-rail" aria-label="本文目录"><div class="article-toc-title">本文目录 <span>11 节</span></div><ol><li class="toc-level-4"><a href="#article-section-1" data-toc-link data-toc-target="article-section-1">在不破坏当前数据的前提下重放历史数据</a></li><li class="toc-level-3"><a href="#article-section-2" data-toc-link data-toc-target="article-section-2">基本设置</a></li><li class="toc-level-4"><a href="#article-section-3" data-toc-link data-toc-target="article-section-3">模拟示例数据</a></li><li class="toc-level-4"><a href="#article-section-4" data-toc-link data-toc-target="article-section-4">每日增量管道</a></li><li class="toc-level-3"><a href="#article-section-5" data-toc-link data-toc-target="article-section-5">回填挑战与解决方案</a></li><li class="toc-level-4"><a href="#article-section-6" data-toc-link data-toc-target="article-section-6">问题 1：事件窗口不告诉你需要重新计算什么</a></li><li class="toc-level-4"><a href="#article-section-7" data-toc-link data-toc-target="article-section-7">问题 2：去重必须解决整个历史，而不是切片</a></li><li class="toc-level-4"><a href="#article-section-8" data-toc-link data-toc-target="article-section-8">问题 3：重用每日作业的新鲜度保护会静默丢弃修复</a></li><li class="toc-level-4"><a href="#article-section-9" data-toc-link data-toc-target="article-section-9">问题 4：单次大型重建占用过多资源</a></li><li class="toc-level-4"><a href="#article-section-10" data-toc-link data-toc-target="article-section-10">问题5：长时间运行的回填在执行过程中不可见</a></li><li class="toc-level-3"><a href="#article-section-11" data-toc-link data-toc-target="article-section-11">综合运用</a></li></ol></aside>
+  </div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 <nav class="tabbar" aria-label="移动端主导航">
-  <a href="../index.html" class="on" data-home-top><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../for-me.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg></span><span>For Me</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>
+  <a href="../index.html" class="on" data-home-top><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../for-me.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg></span><span>关注</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>
   <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
 </nav>
 <div class="more-mask" data-more-mask aria-hidden="true"></div>

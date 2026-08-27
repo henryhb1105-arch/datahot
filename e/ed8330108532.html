@@ -627,11 +627,18 @@ main,.layout>*,.hotlist>*{min-width:0}
 }
 
 .article{max-width:1040px;margin:0 auto;padding:36px 20px 60px}
+.article-layout{max-width:1000px;margin:0 auto}
 .article-content{max-width:840px;margin:0 auto}
+.article-layout.has-toc{display:grid;grid-template-columns:minmax(0,840px) 144px;gap:16px;align-items:start}
+.article-layout.has-toc .article-content{min-width:0;margin:0}
 .article .back{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}
 .article h1{max-width:700px;font-size:30px;font-weight:800;line-height:1.38;margin:14px auto 20px}
 .article .meta{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
 .article .meta,.article-brief,.tts-player{max-width:700px;margin-left:auto;margin-right:auto}
+.meta-source-link{display:inline-flex;align-items:center;gap:3px;color:var(--txt3);font-weight:650;text-decoration:none}
+.meta-source-link svg{flex:0 0 auto}
+.meta-source-text{color:var(--txt3);font-weight:650}
+.meta-content-mode{display:inline-flex;align-items:center;min-height:22px;padding:2px 8px;border-radius:99px;background:var(--soft);color:var(--txt2);font-size:10.5px;font-weight:700}
 .article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
 .article h4{font-size:14px;font-weight:800;margin-bottom:10px}
 .article-brief{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:18px;margin-bottom:30px}
@@ -647,6 +654,26 @@ main,.layout>*,.hotlist>*{min-width:0}
 .content-heading h2{display:flex;align-items:center;gap:7px;font-size:15px;line-height:1.5;margin:0;color:var(--ink)}
 .content-origin-badge{font-size:11px;color:var(--sub);font-weight:500}
 .article .vendor-row{text-decoration:none}
+.related-title{min-width:0;flex:1;line-height:1.55}
+.related-meta{flex:0 0 auto;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub);font-size:11px}
+.article-toc-mobile{display:none;max-width:700px;margin:0 auto 24px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+.article-toc-mobile>summary{display:flex;align-items:center;justify-content:space-between;min-height:46px;padding:0 14px;cursor:pointer;list-style:none;color:var(--ink);font-size:13px;font-weight:750}
+.article-toc-mobile>summary::-webkit-details-marker{display:none}
+.article-toc-mobile>summary span,.article-toc-title span{color:var(--sub);font-size:10.5px;font-weight:500}
+.article-toc-mobile ol,.article-toc-rail ol{list-style:none;margin:0;padding:0}
+.article-toc-mobile ol{max-height:50vh;overflow-y:auto;padding:0 14px 12px;border-top:1px solid var(--soft)}
+.article-toc-mobile li{margin:0}
+.article-toc-mobile a{display:block;padding:8px 0;border-bottom:1px solid var(--soft);color:var(--txt2);font-size:12px;line-height:1.5;text-decoration:none}
+.article-toc-mobile li:last-child a{border-bottom:0}
+.article-toc-mobile .toc-level-3 a,.article-toc-mobile .toc-level-4 a{padding-left:12px}
+.article-toc-rail{position:sticky;top:82px;max-height:calc(100vh - 104px);overflow-y:auto;padding:10px 0 12px 14px;border-left:1px solid var(--line);scrollbar-width:thin}
+.article-toc-title{display:flex;justify-content:space-between;gap:6px;margin-bottom:7px;color:var(--ink);font-size:11.5px;font-weight:800}
+.article-toc-rail a{display:block;padding:5px 0;color:var(--sub);font-size:10.5px;line-height:1.45;text-decoration:none}
+.article-toc-rail .toc-level-3 a,.article-toc-rail .toc-level-4 a{padding-left:9px}
+.article-toc-rail a[aria-current="location"]{color:var(--accent);font-weight:750}
+[data-article-heading]{scroll-margin-top:88px}
+.reading-progress{position:absolute;left:0;right:0;bottom:-1px;height:2px;overflow:hidden;background:transparent}
+.reading-progress>span{display:block;width:100%;height:100%;background:var(--accent);transform:scaleX(0);transform-origin:left center;will-change:transform}
 .source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
 .source-heading{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
 .source-heading h4{margin:0}
@@ -664,7 +691,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .source-more>summary::after{content:" ↓"}
 .source-more[open]>summary::after{content:" ↑"}
 @media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
-.fulltext>:not(.cb-figure):not(.cb-table){max-width:700px;margin-left:auto;margin-right:auto}
+.fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:700px;margin-left:auto;margin-right:auto}
 .fulltext .cb-heading{font-size:19px;line-height:1.55;margin-top:32px;margin-bottom:12px;color:var(--ink)}
 .fulltext p{margin-top:0;margin-bottom:18px}
 .fulltext strong{font-weight:750;color:var(--ink)}
@@ -676,16 +703,22 @@ main,.layout>*,.hotlist>*{min-width:0}
 .fulltext code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
 .fulltext pre{overflow:auto;background:#171a20;color:#e8ebf0;border-radius:10px;padding:14px 16px;margin:16px 0;line-height:1.65}
 .fulltext pre code{background:none;border:none;padding:0;color:inherit}
-.cb-table{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;margin:16px 0;border:1px solid var(--line);border-radius:9px}
+.cb-table-shell{position:relative;margin:16px 0}
+.cb-table{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;margin:0;border:1px solid var(--line);border-radius:9px}
 .cb-table:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .cb-table table{border-collapse:collapse;width:100%;min-width:480px;font-size:13px}
 .cb-table th,.cb-table td{padding:9px 12px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:left;vertical-align:top}
 .cb-table th{background:var(--soft);color:var(--ink);font-weight:700}
 .cb-table tr:last-child td{border-bottom:none}
+.cb-table th:first-child,.cb-table td:first-child{position:sticky;left:0;z-index:1;background:var(--card);box-shadow:1px 0 0 var(--line)}
+.cb-table th:first-child{z-index:2;background:var(--soft)}
+.table-scroll-hint{display:none;position:absolute;right:8px;bottom:8px;z-index:3;padding:4px 8px;border-radius:99px;background:rgba(26,29,35,.88);color:#fff;font-size:10.5px;font-weight:700;pointer-events:none;box-shadow:0 3px 12px rgba(0,0,0,.16)}
+.cb-table-shell.is-overflowing:not(.has-scrolled) .table-scroll-hint{display:block}
+.cb-table-shell.is-overflowing:not(.at-end)::after{content:"";position:absolute;top:1px;right:1px;bottom:1px;width:24px;border-radius:0 8px 8px 0;background:linear-gradient(90deg,transparent,var(--card));pointer-events:none}
 .cb-figure{margin:20px 0;background:var(--soft);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .cb-media-link{display:block;background:#f5f7fa;text-decoration:none}
 .cb-figure img{display:block;width:100%;height:auto;max-height:72vh;object-fit:contain;margin:0 auto}
-@media(max-width:600px){.cb-figure{margin:16px -8px;border-radius:9px}.cb-table{max-width:100%;margin-left:0;margin-right:0}}
+@media(max-width:600px){.cb-figure{margin:16px -8px;border-radius:9px}.cb-table-shell{max-width:100%;margin-left:0;margin-right:0}}
 @media (prefers-color-scheme: dark){.cb-media-link{background:#171a20}}
 .tone-accent{color:var(--accent);font-weight:650}.tone-warning{color:var(--amber);font-weight:650}
 .tone-positive{color:var(--green);font-weight:650}.tone-info{color:var(--blue);font-weight:650}.tone-emphasis{color:var(--ink);font-weight:650}
@@ -706,14 +739,15 @@ main,.layout>*,.hotlist>*{min-width:0}
 @media(max-width:600px){.tts-player{grid-template-columns:1fr auto auto;gap:9px;padding:11px 12px}.tts-copy{grid-column:1/-1;grid-row:1;flex-direction:row;align-items:baseline;gap:8px}.tts-toggle{grid-column:1;grid-row:2}.tts-time{grid-column:2;grid-row:2}.tts-rate-label{grid-column:3;grid-row:2}.tts-progress{grid-column:1/-1;grid-row:3}}
 @media(prefers-reduced-motion:reduce){.tts-player *{scroll-behavior:auto!important;transition:none!important}}
 @media(hover:hover) and (pointer:fine){
-  .article .back:hover,.source-report:hover .source-report-title,.original-footer-link:hover{color:var(--accent)}
+  .article .back:hover,.meta-source-link:hover,.source-report:hover .source-report-title,.original-footer-link:hover,.article-toc-mobile a:hover,.article-toc-rail a:hover{color:var(--accent)}
   .cta:hover{opacity:.9}
 }
 .content-footer{max-width:700px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin:20px auto 0}
 .disclaimer{flex:1;font-size:12px;color:var(--sub)}
 .original-footer-link{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:7px 12px;border-radius:99px;color:var(--blue);font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap}
-.original-footer-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media(max-width:600px){.article{padding-left:16px;padding-right:16px}.article h1{font-size:24px;line-height:1.45}.fulltext>:not(.cb-figure):not(.cb-table){max-width:none}.fulltext p,.fulltext li{font-size:16px;line-height:1.82}.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}}
+.original-footer-link:focus-visible,.meta-source-link:focus-visible,.article-toc-mobile summary:focus-visible,.article-toc-mobile a:focus-visible,.article-toc-rail a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:1199px){.article-layout.has-toc{display:block}.article-layout.has-toc .article-content{margin:0 auto}.article-toc-rail{display:none}.article-toc-mobile{display:block}}
+@media(max-width:600px){.article{padding-left:16px;padding-right:16px}.article h1{font-size:24px;line-height:1.45}.fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:none}.fulltext p,.fulltext li{font-size:16px;line-height:1.82}.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}.related-meta{max-width:88px}}
 </style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="ed8330108532" data-category="agent" data-source="InfoQ 中文">
 <aside class="sidebar"><div class="slogo"><a href="../index.html" data-smart-home-return aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><nav class="sidebar-nav" aria-label="主导航"><a class="mi on" href="../index.html" data-smart-home-return><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../for-me.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg>关注</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>周报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>收藏</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a></nav><nav class="sidebar-tools" aria-label="工具"><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a></nav><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>
 <header class="detail-brand-header"><div class="wrap nav">
@@ -728,11 +762,14 @@ main,.layout>*,.hotlist>*{min-width:0}
       <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/ed8330108532.png" title="海报" aria-label="海报"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg><span class="sbtn-label">海报</span></button>
       <button class="sbtn" type="button" data-share-action="open" title="分享" aria-label="分享"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span class="sbtn-label">分享</span></button>
     </span>
+    
   </div>
+  <div class="article-layout">
   <main class="article-content">
   <div class="meta">
     <span class="srcbadge">RSS</span>
-    <span style="font-weight:600;color:var(--txt3)">InfoQ 中文</span>
+    <a class="meta-source-link" href="https://www.infoq.cn/article/hQp9boye2rpPH7ZWUvXL?utm_source=rss&amp;utm_medium=article" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="InfoQ 中文" aria-label="查看 InfoQ 中文 原文"><span>InfoQ 中文</span><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+    <span class="meta-content-mode">原文</span>
     
     <span title="发布时间">发布 2026-08-08 18:00</span>
     
@@ -744,6 +781,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="article-brief-body"><p>AICon深圳大会将于2026年8月21日至22日举行，中软融鑫总工程师于浩军将分享金融监管领域的Harness实践。他强调Agent落地关键已从模型能力转向系统工程能力，金融监管场景零容错、强追溯、口径复杂，Agent稳定性取决于数据资产与知识资产质量。实践验证，监管报表全链路的稳定性依赖工程化治理而非单纯模型调优。</p>
   <p class="brief-why"><b>为什么值得关注：</b>该分享直接涉及Data Agent在金融监管高可靠性场景中的工程化落地，数据从业者可从中了解如何通过知识与数据双向驱动提升Agent稳定性。</p></div>
 </details>
+  
   <section class="content-section" aria-labelledby="articleBodyTitle">
   <div class="content-heading"><h2 id="articleBodyTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 原文</h2></div>
   <div class="fulltext"><ul><li>AICon 全球人工智能开发与应用大会</li></ul><ul><li>2026-08-08北京</li><li>本文字数：2393 字 阅读完需：约 8 分钟</li></ul><p>AI摘要</p><p>Agent 落地的关键瓶颈已从模型能力转向系统工程能力，尤其在金融监管等高可靠性场景中，数据与知识资产质量及持续增强的工程体系决定 Agent 稳定性。</p><p>金融监管场景要求零容错、强追溯、口径复杂，Agent 实际运行高度依赖结构化知识库与可验证数据链；</p><p>Harness 工程方法论聚焦模型之外的智能体稳定性保障，强调知识与数据双向驱动；</p><p>实践验证：Agent 在监管报表全链路（采集→计算→检核→复核→血缘追溯）中，稳定性取决于工程化治理而非模型调优。</p><p>适合 AI 架构师、智能体系统工程师、金融科技合规与数据平台负责人阅读。</p><figure class="cb-figure"><a class="cb-media-link" href="https://static001.infoq.cn/resource/image/67/ef/674973bb7e6128afec56e5e5cdaa54ef.jpg?x-oss-process=image/resize,w_726" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/ed8330108532/22cdf26ceb548dc70bd1b622.webp" alt="" loading="lazy" decoding="async" width="726" height="407"></a></figure><p>Agent 时代，哪些方向正在成为行业关键变量？50 + 实战案例揭晓答案！</p><p>模型参数规模不断突破，推理成本持续下降，开源生态日益繁荣。当模型能力逐渐成为行业共识，一个新的问题开始浮现：<strong>当人人都能获得强大的模型能力之后，真正的竞争力还剩下什么？</strong> 答案正在从模型能力本身，转向围绕模型构建可规模化的智能系统；从单点能力提升，转向系统工程与组织级落地能力。</p><p>在这一背景下，<a href="https://aicon.infoq.cn/2026/shenzhen/track" target="_blank" rel="noopener noreferrer nofollow">2026 年 AICon 人工智能开发与应用大会 · 深圳站</a>正式启动。本次大会将于<strong> 8 月 21 日—22 日</strong>举办，聚焦 AI 基础设施、大模型系统、智能体工程、数据智能、多模态技术与行业落地等关键方向，邀请来自腾讯、阿里、华为、百度、蚂蚁集团等 50 + 头部科技企业技术负责人、科研机构一线专家，系统性分享前沿洞察与实战干货，共同探讨 AI 技术从能力到系统、从实验到生产的真实路径。</p><p>中软融鑫总工程师于浩军已确认出席 “<a href="https://aicon.infoq.cn/2026/shenzhen/track/1951" target="_blank" rel="noopener noreferrer nofollow">Harness Engineering：模型之外的智能体工程</a>” 专题，并发表题为<strong>《</strong><a href="https://aicon.infoq.cn/2026/shenzhen/presentation/7197" target="_blank" rel="noopener noreferrer nofollow">金融监管领域的 Harness 实践：让知识与数据驱动 Agent 稳定运行</a><strong>》</strong>的主题分享。金融监管数据是一个“零容错、强追溯、口径复杂”的场景：一张报表背后是成百上千的指标口径、明细数据和监管规则，任何一处口径漂移或数据错误都可能带来合规风险。当他们尝试用 Agent 来承接采集、计算、检核、复核这些工作时，很快发现——决定 Agent 能否“跑得稳”的，不是模型能力，而是它背后的数据资产与知识资产质量，以及一套让二者持续相互增强的工程体系。本次分享将先从金融监管的真实应用场景切入：从监管要求解析、数据采集处理、日常质量检核，到问题根因/血缘追溯、缺失数据补全、数据复核，看清 Agent 在每个环节要解决什么、又卡在哪里、如何解决。</p><figure class="cb-figure"><a class="cb-media-link" href="https://static001.geekbang.org/infoq/c5/c5346e1dd93647b4eab8dd9cb891f6bb.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/ed8330108532/f6cccebac1a40376f7d1502a.webp" alt="" loading="lazy" decoding="async" width="1242" height="2208"></a></figure><p>于浩军，中软融鑫总工程师，曾参与原中国银监会 1104 工程建设，人民银行金融基础数据体系建设等金融监管机构的数据体系架构设计及落地工作。在行业落地层面，先后深度参与多家大型银行、城市商业银行、农信社、非银机构的数据体系规划、架构设计和落地工作。近年来聚焦“金融监管 × AI Agent”融合方向，探索以高质量数据资产与知识资产驱动智能体在金融监管场景中的稳定、可信、可追溯运行。他在本次会议的详细演讲内容如下：</p><blockquote><strong>演讲提纲：</strong></blockquote><ol><li>第一部分：应用场景——Agent 在金融监管中要解决什么</li></ol><ul><li>背景：金融监管为什么“不容 Agent 犯错”</li><li>场景特点：口径复杂、频度高、零容错、强追溯。</li><li>通用 Agent 直接上场的三大痛点：口径漂移、幻觉、不可解释。</li><li>端到端应用场景全景</li><li>需求侧：解析监管要求 + 比对内部数据情况，自动生成采集逻辑、处理程序、质量控制规则。</li><li>报送中：智能数据初始化、自动质量检核。</li><li>问题处置：根因分析、血缘分析、数据追溯、缺失数据智能补全。</li><li>报送前：数据复核、生成复核报告、给出审核建议。</li></ul><p>2. 第二部分：解决方案——Harness 体系如何支撑场景落地</p><ul><li>AIR Harness：面向金融监管的智能体底座</li><li>定位：让 Agent 在监管“零容错、强追溯”要求下稳定运行的工程底座。</li><li>核心能力：Agent / Skill / Tools / MCP 创建——但都服务于“口径受控、数据可查、逻辑可溯”。</li><li>监管特性一 · 口径受控执行：Agent 依据已治理的知识/数据资产执行，取数逻辑与指标计算被“钉”在治理成果上；高频监管场景（指标计算、报表勾稽校验）固化为标准 Skill。</li><li>监管特性二 · 面向监管数据形态的受控连接：MCP 精准对接明细/指标/报表库、监管知识库、勾稽血缘图库，每次取数与知识引用可审计、可留痕。</li><li>监管特性三 · 全链路可追溯：记录每一步（调用哪个 Skill、引用哪条口径、取哪张表、走哪条血缘），报送结果可逐层回溯到规则与数据源。</li><li>两大知识底座：让 Agent“既懂知识，又懂关系”</li><li>向量知识库：基础知识部分，分类存储监管制度/口径说明/数据字典，MCP 接入增强 RAG。</li><li>图数据库：关系与逻辑部分，以图存储指标勾稽、数据血缘、报送逻辑关系，MCP 接入增强 RAG。</li><li>双底座如何解决“口径依赖上下文、指标依赖计算逻辑”。</li><li>数据资产管理：数据即知识，知识反哺数据</li><li>数据分层：明细类、指标类、报表类、非结构化。</li><li>三类定义入库为知识：表/字段定义、指标口径与计算逻辑、报表口径频度范围。</li><li>Agent → 治理提效：自动完善元数据、识别数据标准、安全分级分类、数据确权。</li><li>数据资产 → Agent 反哺：自动生成取数 SQL、取指标方法、数据知识问答。</li><li>数据质量管理：Agent 驱动的质量闭环</li><li>以数据资产为基础的动态监测。</li><li>Agent 自动生成检核规则、评估有效性。</li><li>问题闭环：根因/血缘/追溯 → 处置流程 → 考核评价。</li><li>自动生成质量分析报告、考核评价报告。</li><li>回扣场景：双向驱动如何让前述场景稳定运行</li><li>Agent 按“知识资产的业务逻辑 + 数据资产的定义信息”执行，而非自由发挥。</li><li>Skill 固化 + MCP 受控接入：抑制幻觉、锁定口径。</li><li>全链路可解释与可追溯：结果回溯到规则、数据与血缘（呼应第一部分痛点）。</li></ul><p>3. 第三部分：经验与展望</p><ul><li>落地经验与展望</li><li>双向驱动飞轮：治理越好 → Agent 越稳 → 治理更高效。</li><li>踩坑与经验总结。</li></ul><p><strong>这样的技术在实践过程中有哪些痛点？</strong></p><ul><li>数据资产和知识资产在初步形成及后续维护过程中的质量稳定性及稳定性评价方面，还存在不可控因素。</li></ul><p><strong>听众收益</strong></p><ul><li>金融监管场景下 Agent 落地的全流程拆解与真实痛点。</li><li>一套可复用的“知识/数据资产 → Harness → Agent”工程范式。</li></ul><p>除此之外，本次大会还策划了<a href="https://aicon.infoq.cn/2026/shenzhen/track/1949" target="_blank" rel="noopener noreferrer nofollow">AI Infra、推理工程与异构计算</a>、<a href="https://aicon.infoq.cn/2026/shenzhen/track/1950" target="_blank" rel="noopener noreferrer nofollow">超级个体与蜂群智能的共生进化</a>、<a href="https://aicon.infoq.cn/2026/shenzhen/track/1952" target="_blank" rel="noopener noreferrer nofollow">迈向机器人 AGI 的关键技术与产业实践</a>、<a href="https://aicon.infoq.cn/2026/shenzhen/track/1953" target="_blank" rel="noopener noreferrer nofollow">Agent 安全：从风险到可控</a>、<a href="https://aicon.infoq.cn/2026/shenzhen/track/1955" target="_blank" rel="noopener noreferrer nofollow">大模型效率工程与 Agent 系统实践</a>、<a href="https://aicon.infoq.cn/2026/shenzhen/track/1958" target="_blank" rel="noopener noreferrer nofollow">AI Agent 高价值商业场景实战</a>等 10 个专题论坛，届时将有来自不同行业、不同领域、不同企业的 50+资深专家在现场带来前沿技术洞察和一线实践经验。</p><p>日程已 100%上线！AICon 深圳站：10 大专题+1 个动手实验室、近 60 场重磅议题，集结浙大知名高校教授及阿里、腾讯、华为、快手、Google Cloud 团队等头部企业技术专家，聚焦 Agent 工程化，构建可靠智能的技术路径。更多详情可扫码或联系票务经理 13269078023 进行咨询。</p><figure class="cb-figure"><a class="cb-media-link" href="https://static001.geekbang.org/infoq/da/dacf14c5301d029dfcd02da92d0a1d57.jpeg" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/ed8330108532/aa40ba5f2809dd1c62f800c5.webp" alt="" loading="lazy" decoding="async" width="1108" height="624"></a></figure></div>
@@ -751,12 +789,14 @@ main,.layout>*,.hotlist>*{min-width:0}
 </section>
   <div class="vendors article-tags" aria-label="文章主题"><a class="chip" href="../topics/data-agent.html">Data Agent</a></div>
 
-  <div class="card"><h4><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/99fb5308d61b.html"><span class="n">›</span>Agent Harness设计：3种模式发挥Claude智能<span class="count">32</span></a><a class="vendor-row" href="../e/3bb9e34e59c3.html"><span class="n">›</span>构建企业级数据分析助手：Data Agent开发实践<span class="count">38</span></a><a class="vendor-row" href="../e/dad607407e20.html"><span class="n">›</span>Netflix开源因果推断Agent工作流<span class="count">34</span></a></div>
+  <section class="card related-events" aria-labelledby="relatedEventsTitle"><h4 id="relatedEventsTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/99fb5308d61b.html"><span class="n">›</span><span class="related-title">Agent Harness设计：3种模式发挥Claude智能</span><span class="related-meta">Data Agent</span></a></section>
   </main>
+  
+  </div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 <nav class="tabbar" aria-label="移动端主导航">
-  <a href="../index.html" class="on" data-home-top><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../for-me.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg></span><span>For Me</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>
+  <a href="../index.html" class="on" data-home-top><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../for-me.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg></span><span>关注</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>
   <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
 </nav>
 <div class="more-mask" data-more-mask aria-hidden="true"></div>

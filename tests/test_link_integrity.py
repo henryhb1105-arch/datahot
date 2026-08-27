@@ -126,7 +126,7 @@ class BuildPathRegressionTests(unittest.TestCase):
         self.assertEqual(primary.count("<a "), 4)
         self.assertEqual(primary.count("<button "), 1)
         self.assertIn("<span>热榜</span>", primary)
-        self.assertIn("<span>For Me</span>", primary)
+        self.assertIn("<span>关注</span>", primary)
         self.assertIn("<span>主题</span>", primary)
         self.assertIn("<span>收藏</span>", primary)
         self.assertIn("<span>更多</span>", primary)

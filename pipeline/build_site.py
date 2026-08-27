@@ -778,7 +778,7 @@ def weekly_brief_enabled():
 
 def tabbar(active, prefix=""):
     items = [("热榜", ic("flame",20), "index.html", "home"),
-             ("For Me", ic("radar",20), "for-me.html", "for-me"),
+             ("关注", ic("radar",20), "for-me.html", "for-me"),
              ("主题", ic("map",20), "topics.html", "topics"),
              ("收藏", ic("star",20), "favorites.html", "favorites")]
     primary = "".join(
@@ -1092,6 +1092,85 @@ def sim(a, b):
         return 0.0
     return len(a & b) / len(a | b)
 
+
+def _event_terms(event, key):
+    return {
+        str(value).strip().casefold()
+        for value in (event.get(key) or [])
+        if str(value).strip()
+    }
+
+
+def related_event_score(event, candidate):
+    """Return a conservative relevance score, or None when evidence is weak."""
+    shared_topics = _event_terms(event, "topics") & _event_terms(candidate, "topics")
+    shared_vendors = _event_terms(event, "vendors") & _event_terms(candidate, "vendors")
+    title_similarity = sim(
+        title_bigrams(event.get("zh_title", "")),
+        title_bigrams(candidate.get("zh_title", "")),
+    )
+    signals = sum((bool(shared_topics), bool(shared_vendors), title_similarity >= 0.14))
+    if signals < 2:
+        return None
+    same_category = event.get("category") == candidate.get("category")
+    return (
+        signals,
+        min(len(shared_topics), 3),
+        min(len(shared_vendors), 3),
+        title_similarity,
+        int(same_category),
+        int(candidate.get("importance") or 0),
+    )
+
+
+def select_related_events(event, all_events, limit=3):
+    scored = []
+    for candidate in all_events:
+        if candidate.get("event_id") == event.get("event_id"):
+            continue
+        score = related_event_score(event, candidate)
+        if score is not None:
+            scored.append((score, candidate))
+    scored.sort(key=lambda pair: pair[0], reverse=True)
+    return [candidate for _score, candidate in scored[:limit]]
+
+
+def article_toc_entries(blocks, minimum=6):
+    headings = []
+    for block in blocks:
+        if block.get("type") != "heading":
+            continue
+        label = blocks_plain_text([block]).strip()
+        if not label:
+            continue
+        headings.append({
+            "id": f"article-section-{len(headings) + 1}",
+            "label": label[:120],
+            "level": min(4, max(2, int(block.get("level") or 2))),
+        })
+    return headings if len(headings) >= minimum else []
+
+
+def render_article_toc(entries):
+    if not entries:
+        return "", ""
+    links = "".join(
+        f'<li class="toc-level-{entry["level"]}"><a href="#{entry["id"]}" '
+        f'data-toc-link data-toc-target="{entry["id"]}">{esc(entry["label"])}</a></li>'
+        for entry in entries
+    )
+    mobile = (
+        '<details class="article-toc-mobile">'
+        f'<summary>本文目录 <span>{len(entries)} 节</span></summary>'
+        f'<ol>{links}</ol></details>'
+    )
+    desktop = (
+        '<aside class="article-toc-rail" aria-label="本文目录">'
+        f'<div class="article-toc-title">本文目录 <span>{len(entries)} 节</span></div>'
+        f'<ol>{links}</ol></aside>'
+    )
+    return mobile, desktop
+
 def human_time(iso):
     dt = datetime.fromisoformat(iso).astimezone(TZ)
     delta = datetime.now(TZ) - dt
@@ -1226,15 +1305,18 @@ def render_supplement_sources(event, primary_item):
 def render_detail(e, all_events, css, tts_item=None):
     event_id = safe_event_id(e["event_id"])
     tts_button, tts_player, tts_script = render_tts_ui(tts_item)
-    ebg = title_bigrams(e["zh_title"])
-    related = sorted(
-        (x for x in all_events if x["event_id"] != e["event_id"]),
-        key=lambda x: (x["category"] == e["category"], sim(ebg, title_bigrams(x["zh_title"]))),
-        reverse=True)[:3]
+    related = select_related_events(e, all_events)
     rel_html = "".join(
         f'<a class="vendor-row" href="../{detail_url(x)}">'
-        f'<span class="n">›</span>{esc(x["zh_title"])}<span class="count">{x["heat"]}</span></a>'
-        for x in related) or '<div style="font-size:12.5px;color:var(--sub)">暂无相关事件</div>'
+        f'<span class="n">›</span><span class="related-title">{esc(x["zh_title"])}</span>'
+        f'<span class="related-meta">{esc(x.get("category_label") or x.get("category") or "同主题")}</span></a>'
+        for x in related
+    )
+    related_html = (
+        f'<section class="card related-events" aria-labelledby="relatedEventsTitle">'
+        f'<h4 id="relatedEventsTitle">{ic("list")} 相关事件</h4>{rel_html}</section>'
+        if rel_html else ""
+    )
     primary_item = detail_primary_item(e)
     supplement_sources = render_supplement_sources(e, primary_item)
     tchips = "".join(
@@ -1246,6 +1328,14 @@ def render_detail(e, all_events, css, tts_item=None):
     main_link = esc(main_url)
     main_src_name = primary_item["source"]
     main_src = esc(main_src_name)
+    main_source_meta = (
+        f'<a class="meta-source-link" href="{main_link}" target="_blank" '
+        f'rel="noopener noreferrer" data-analytics="outbound" data-source="{main_src}" '
+        f'aria-label="查看 {esc(src_display(main_src_name))} 原文">'
+        f'<span>{esc(src_display(main_src_name))}</span>{ic("arrow", 12)}</a>'
+        if main_url else
+        f'<span class="meta-source-text">{esc(src_display(main_src_name))}</span>'
+    )
     original_footer_link = (
         f'<a class="original-footer-link" href="{main_link}" target="_blank" '
         f'rel="noopener noreferrer" data-analytics="outbound" data-source="{main_src}">'
@@ -1272,43 +1362,71 @@ def render_detail(e, all_events, css, tts_item=None):
         ) >= 0.72:
             safe_blocks = safe_blocks[1:]
     render_media = os.getenv("MEDIA_BLOCKS_ENABLED", "true").strip().lower() not in {"0", "false", "no", "off"}
-    full_paras = render_blocks_html(safe_blocks, render_media=render_media) if safe_blocks else ""
+    toc_entries = article_toc_entries(safe_blocks)
+    heading_ids = [entry["id"] for entry in toc_entries]
+    full_paras = (
+        render_blocks_html(safe_blocks, render_media=render_media, heading_ids=heading_ids)
+        if safe_blocks else ""
+    )
     if not full_paras:
         paras_all = [pp.strip() for pp in re.split(r"\n\s*\n", e.get("full_zh", "")) if pp.strip()]
         if paras_all and paras_all[0].startswith("## "):
             import difflib as _dl
             if _dl.SequenceMatcher(None, paras_all[0][3:], e["zh_title"]).ratio() > 0.6:
                 paras_all = paras_all[1:]
+        legacy_labels = [para[3:].strip() for para in paras_all if para.startswith("## ") and para[3:].strip()]
+        if len(legacy_labels) >= 6:
+            toc_entries = [
+                {"id": f"article-section-{index}", "label": label[:120], "level": 3}
+                for index, label in enumerate(legacy_labels, 1)
+            ]
+        legacy_heading_index = 0
         for para in paras_all:
             if para.startswith("## "):
-                full_paras += f'<h5 class="fh">{esc(para[3:])}</h5>'
+                navigation_attrs = ""
+                if toc_entries:
+                    navigation_attrs = (
+                        f' id="{toc_entries[legacy_heading_index]["id"]}" data-article-heading'
+                    )
+                    legacy_heading_index += 1
+                full_paras += f'<h5 class="fh"{navigation_attrs}>{esc(para[3:])}</h5>'
             elif para.startswith("【"):
                 full_paras += f'<p class="fwarn">{esc(para)}</p>'
             else:
                 full_paras += "".join(f"<p>{esc(x)}</p>" for x in para.split("\n") if x.strip())
+    content_mode = e.get("content_mode") or "legacy_ai"
+    if content_mode == "translated":
+        content_title = "译文"
+        content_badge = "AI 逐段翻译"
+        content_note = ""
+        meta_mode_label = "AI 逐段翻译"
+    elif content_mode == "original" and e.get("source_language") == "zh":
+        content_title = "原文"
+        content_badge = ""
+        content_note = "正文来自 RSS 或原网页；DataHot 仅做安全清洗和版式整理，未使用 AI 改写"
+        meta_mode_label = "原文"
+    elif content_mode == "original":
+        content_title = "原文"
+        content_badge = ""
+        content_note = "当前直接显示原文，自动翻译暂不可用；未进行 AI 摘写或重组"
+        meta_mode_label = "原文 · 未翻译"
+    elif content_mode == "ai_fallback":
+        content_title = "内容摘要"
+        content_badge = "原文不可用 · 降级展示"
+        content_note = "未获得可用全文，当前为降级内容，仅供定位原始信源"
+        meta_mode_label = "内容摘要"
+    else:
+        content_title = "历史编译稿"
+        content_badge = "旧版 AI 基于原文编译"
+        content_note = "这是改版前生成的历史 AI 编译内容，后续将由原文或忠实译文替换"
+        meta_mode_label = "历史编译稿"
+    toc_mobile_html, toc_rail_html = render_article_toc(toc_entries)
+    progress_html = (
+        '<span class="reading-progress" aria-hidden="true"><span data-reading-progress></span></span>'
+        if toc_entries else ""
+    )
     full_block = ""
     if full_paras:
-        content_mode = e.get("content_mode") or "legacy_ai"
-        if content_mode == "translated":
-            content_title = "译文"
-            content_badge = "AI 逐段翻译"
-            content_note = ""
-        elif content_mode == "original" and e.get("source_language") == "zh":
-            content_title = "原文"
-            content_badge = ""
-            content_note = "正文来自 RSS 或原网页；DataHot 仅做安全清洗和版式整理，未使用 AI 改写"
-        elif content_mode == "original":
-            content_title = "原文"
-            content_badge = ""
-            content_note = "当前直接显示原文，自动翻译暂不可用；未进行 AI 摘写或重组"
-        elif content_mode == "ai_fallback":
-            content_title = "内容摘要"
-            content_badge = "原文不可用 · 降级展示"
-            content_note = "未获得可用全文，当前为降级内容，仅供定位原始信源"
-        else:
-            content_title = "历史编译稿"
-            content_badge = "旧版 AI 基于原文编译"
-            content_note = "这是改版前生成的历史 AI 编译内容，后续将由原文或忠实译文替换"
         badge_html = f' <span class="content-origin-badge">{content_badge}</span>' if content_badge else ""
         note_html = f'<div class="disclaimer">{content_note}</div>' if content_note else ""
         footer_html = (
@@ -1363,11 +1481,18 @@ def render_detail(e, all_events, css, tts_item=None):
 <style>{css}
 {SHARED_CSS}
 .article{{max-width:1040px;margin:0 auto;padding:36px 20px 60px}}
+.article-layout{{max-width:1000px;margin:0 auto}}
 .article-content{{max-width:840px;margin:0 auto}}
+.article-layout.has-toc{{display:grid;grid-template-columns:minmax(0,840px) 144px;gap:16px;align-items:start}}
+.article-layout.has-toc .article-content{{min-width:0;margin:0}}
 .article .back{{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}}
 .article h1{{max-width:700px;font-size:30px;font-weight:800;line-height:1.38;margin:14px auto 20px}}
 .article .meta{{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}}
 .article .meta,.article-brief,.tts-player{{max-width:700px;margin-left:auto;margin-right:auto}}
+.meta-source-link{{display:inline-flex;align-items:center;gap:3px;color:var(--txt3);font-weight:650;text-decoration:none}}
+.meta-source-link svg{{flex:0 0 auto}}
+.meta-source-text{{color:var(--txt3);font-weight:650}}
+.meta-content-mode{{display:inline-flex;align-items:center;min-height:22px;padding:2px 8px;border-radius:99px;background:var(--soft);color:var(--txt2);font-size:10.5px;font-weight:700}}
 .article .card{{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}}
 .article h4{{font-size:14px;font-weight:800;margin-bottom:10px}}
 .article-brief{{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:18px;margin-bottom:30px}}
@@ -1383,6 +1508,26 @@ def render_detail(e, all_events, css, tts_item=None):
 .content-heading h2{{display:flex;align-items:center;gap:7px;font-size:15px;line-height:1.5;margin:0;color:var(--ink)}}
 .content-origin-badge{{font-size:11px;color:var(--sub);font-weight:500}}
 .article .vendor-row{{text-decoration:none}}
+.related-title{{min-width:0;flex:1;line-height:1.55}}
+.related-meta{{flex:0 0 auto;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub);font-size:11px}}
+.article-toc-mobile{{display:none;max-width:700px;margin:0 auto 24px;border:1px solid var(--line);border-radius:10px;background:var(--card)}}
+.article-toc-mobile>summary{{display:flex;align-items:center;justify-content:space-between;min-height:46px;padding:0 14px;cursor:pointer;list-style:none;color:var(--ink);font-size:13px;font-weight:750}}
+.article-toc-mobile>summary::-webkit-details-marker{{display:none}}
+.article-toc-mobile>summary span,.article-toc-title span{{color:var(--sub);font-size:10.5px;font-weight:500}}
+.article-toc-mobile ol,.article-toc-rail ol{{list-style:none;margin:0;padding:0}}
+.article-toc-mobile ol{{max-height:50vh;overflow-y:auto;padding:0 14px 12px;border-top:1px solid var(--soft)}}
+.article-toc-mobile li{{margin:0}}
+.article-toc-mobile a{{display:block;padding:8px 0;border-bottom:1px solid var(--soft);color:var(--txt2);font-size:12px;line-height:1.5;text-decoration:none}}
+.article-toc-mobile li:last-child a{{border-bottom:0}}
+.article-toc-mobile .toc-level-3 a,.article-toc-mobile .toc-level-4 a{{padding-left:12px}}
+.article-toc-rail{{position:sticky;top:82px;max-height:calc(100vh - 104px);overflow-y:auto;padding:10px 0 12px 14px;border-left:1px solid var(--line);scrollbar-width:thin}}
+.article-toc-title{{display:flex;justify-content:space-between;gap:6px;margin-bottom:7px;color:var(--ink);font-size:11.5px;font-weight:800}}
+.article-toc-rail a{{display:block;padding:5px 0;color:var(--sub);font-size:10.5px;line-height:1.45;text-decoration:none}}
+.article-toc-rail .toc-level-3 a,.article-toc-rail .toc-level-4 a{{padding-left:9px}}
+.article-toc-rail a[aria-current="location"]{{color:var(--accent);font-weight:750}}
+[data-article-heading]{{scroll-margin-top:88px}}
+.reading-progress{{position:absolute;left:0;right:0;bottom:-1px;height:2px;overflow:hidden;background:transparent}}
+.reading-progress>span{{display:block;width:100%;height:100%;background:var(--accent);transform:scaleX(0);transform-origin:left center;will-change:transform}}
 .source-section{{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}}
 .source-heading{{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}}
 .source-heading h4{{margin:0}}
@@ -1400,7 +1545,7 @@ def render_detail(e, all_events, css, tts_item=None):
 .source-more>summary::after{{content:" ↓"}}
 .source-more[open]>summary::after{{content:" ↑"}}
 @media(max-width:600px){{.source-report{{grid-template-columns:1fr;gap:0}}.source-report-date{{margin-top:1px}}}}
-.fulltext>:not(.cb-figure):not(.cb-table){{max-width:700px;margin-left:auto;margin-right:auto}}
+.fulltext>:not(.cb-figure):not(.cb-table-shell){{max-width:700px;margin-left:auto;margin-right:auto}}
 .fulltext .cb-heading{{font-size:19px;line-height:1.55;margin-top:32px;margin-bottom:12px;color:var(--ink)}}
 .fulltext p{{margin-top:0;margin-bottom:18px}}
 .fulltext strong{{font-weight:750;color:var(--ink)}}
@@ -1412,16 +1557,22 @@ def render_detail(e, all_events, css, tts_item=None):
 .fulltext code{{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:1px 5px}}
 .fulltext pre{{overflow:auto;background:#171a20;color:#e8ebf0;border-radius:10px;padding:14px 16px;margin:16px 0;line-height:1.65}}
 .fulltext pre code{{background:none;border:none;padding:0;color:inherit}}
-.cb-table{{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;margin:16px 0;border:1px solid var(--line);border-radius:9px}}
+.cb-table-shell{{position:relative;margin:16px 0}}
+.cb-table{{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;margin:0;border:1px solid var(--line);border-radius:9px}}
 .cb-table:focus-visible{{outline:2px solid var(--blue);outline-offset:2px}}
 .cb-table table{{border-collapse:collapse;width:100%;min-width:480px;font-size:13px}}
 .cb-table th,.cb-table td{{padding:9px 12px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:left;vertical-align:top}}
 .cb-table th{{background:var(--soft);color:var(--ink);font-weight:700}}
 .cb-table tr:last-child td{{border-bottom:none}}
+.cb-table th:first-child,.cb-table td:first-child{{position:sticky;left:0;z-index:1;background:var(--card);box-shadow:1px 0 0 var(--line)}}
+.cb-table th:first-child{{z-index:2;background:var(--soft)}}
+.table-scroll-hint{{display:none;position:absolute;right:8px;bottom:8px;z-index:3;padding:4px 8px;border-radius:99px;background:rgba(26,29,35,.88);color:#fff;font-size:10.5px;font-weight:700;pointer-events:none;box-shadow:0 3px 12px rgba(0,0,0,.16)}}
+.cb-table-shell.is-overflowing:not(.has-scrolled) .table-scroll-hint{{display:block}}
+.cb-table-shell.is-overflowing:not(.at-end)::after{{content:"";position:absolute;top:1px;right:1px;bottom:1px;width:24px;border-radius:0 8px 8px 0;background:linear-gradient(90deg,transparent,var(--card));pointer-events:none}}
 .cb-figure{{margin:20px 0;background:var(--soft);border:1px solid var(--line);border-radius:12px;overflow:hidden}}
 .cb-media-link{{display:block;background:#f5f7fa;text-decoration:none}}
 .cb-figure img{{display:block;width:100%;height:auto;max-height:72vh;object-fit:contain;margin:0 auto}}
-@media(max-width:600px){{.cb-figure{{margin:16px -8px;border-radius:9px}}.cb-table{{max-width:100%;margin-left:0;margin-right:0}}}}
+@media(max-width:600px){{.cb-figure{{margin:16px -8px;border-radius:9px}}.cb-table-shell{{max-width:100%;margin-left:0;margin-right:0}}}}
 @media (prefers-color-scheme: dark){{.cb-media-link{{background:#171a20}}}}
 .tone-accent{{color:var(--accent);font-weight:650}}.tone-warning{{color:var(--amber);font-weight:650}}
 .tone-positive{{color:var(--green);font-weight:650}}.tone-info{{color:var(--blue);font-weight:650}}.tone-emphasis{{color:var(--ink);font-weight:650}}
@@ -1442,14 +1593,15 @@ def render_detail(e, all_events, css, tts_item=None):
 @media(max-width:600px){{.tts-player{{grid-template-columns:1fr auto auto;gap:9px;padding:11px 12px}}.tts-copy{{grid-column:1/-1;grid-row:1;flex-direction:row;align-items:baseline;gap:8px}}.tts-toggle{{grid-column:1;grid-row:2}}.tts-time{{grid-column:2;grid-row:2}}.tts-rate-label{{grid-column:3;grid-row:2}}.tts-progress{{grid-column:1/-1;grid-row:3}}}}
 @media(prefers-reduced-motion:reduce){{.tts-player *{{scroll-behavior:auto!important;transition:none!important}}}}
 @media(hover:hover) and (pointer:fine){{
-  .article .back:hover,.source-report:hover .source-report-title,.original-footer-link:hover{{color:var(--accent)}}
+  .article .back:hover,.meta-source-link:hover,.source-report:hover .source-report-title,.original-footer-link:hover,.article-toc-mobile a:hover,.article-toc-rail a:hover{{color:var(--accent)}}
   .cta:hover{{opacity:.9}}
 }}
 .content-footer{{max-width:700px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin:20px auto 0}}
 .disclaimer{{flex:1;font-size:12px;color:var(--sub)}}
 .original-footer-link{{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:7px 12px;border-radius:99px;color:var(--blue);font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap}}
-.original-footer-link:focus-visible{{outline:2px solid var(--accent);outline-offset:2px}}
-@media(max-width:600px){{.article{{padding-left:16px;padding-right:16px}}.article h1{{font-size:24px;line-height:1.45}}.fulltext>:not(.cb-figure):not(.cb-table){{max-width:none}}.fulltext p,.fulltext li{{font-size:16px;line-height:1.82}}.content-footer{{align-items:flex-start;flex-direction:column;gap:4px}}.original-footer-link{{align-self:flex-end}}}}
+.original-footer-link:focus-visible,.meta-source-link:focus-visible,.article-toc-mobile summary:focus-visible,.article-toc-mobile a:focus-visible,.article-toc-rail a:focus-visible{{outline:2px solid var(--accent);outline-offset:2px}}
+@media(max-width:1199px){{.article-layout.has-toc{{display:block}}.article-layout.has-toc .article-content{{margin:0 auto}}.article-toc-rail{{display:none}}.article-toc-mobile{{display:block}}}}
+@media(max-width:600px){{.article{{padding-left:16px;padding-right:16px}}.article h1{{font-size:24px;line-height:1.45}}.fulltext>:not(.cb-figure):not(.cb-table-shell){{max-width:none}}.fulltext p,.fulltext li{{font-size:16px;line-height:1.82}}.content-footer{{align-items:flex-start;flex-direction:column;gap:4px}}.original-footer-link{{align-self:flex-end}}.related-meta{{max-width:88px}}}}
 </style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="{event_id}" data-category="{esc(e["category"])}" data-source="{main_src}">
 {sidebar("home", prefix="../")}
 <header class="detail-brand-header"><div class="wrap nav">
@@ -1464,11 +1616,14 @@ def render_detail(e, all_events, css, tts_item=None):
       <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/{event_id}.png" title="海报" aria-label="海报">{ic("image",15)}<span class="sbtn-label">海报</span></button>
       <button class="sbtn" type="button" data-share-action="open" title="分享" aria-label="分享">{ic("share",15)}<span class="sbtn-label">分享</span></button>
     </span>
+    {progress_html}
   </div>
+  <div class="article-layout{' has-toc' if toc_entries else ''}">
   <main class="article-content">
   <div class="meta">
     <span class="srcbadge">{src_badge(main_src_name)}</span>
-    <span style="font-weight:600;color:var(--txt3)">{esc(src_display(main_src_name))}</span>
+    {main_source_meta}
+    <span class="meta-content-mode">{esc(meta_mode_label)}</span>
     {'<span class="star">精选</span>' if e.get("star") else ''}
     <span title="发布时间">{("发布 " + fmt_date(e["published"])) if e.get("published") else "收录 " + fmt_date(e.get("first_seen"))}</span>
     {f'<span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 {md(e.get("first_seen"))}</span>' if e.get("published") and e.get("first_seen") and e["published"][:10] != e["first_seen"][:10] else ""}
@@ -1476,11 +1631,14 @@ def render_detail(e, all_events, css, tts_item=None):
   <h1>{esc(e["zh_title"])}</h1>
 {("  " + tts_player) if tts_player else ""}
   {brief_html}
+  {toc_mobile_html}
   {full_block}
   {topic_html}
 {supplement_sources}
-  <div class="card"><h4>{ic("list")} 相关事件</h4>{rel_html}</div>
+  {related_html}
   </main>
+  {toc_rail_html}
+  </div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
 {tabbar("home", "../")}

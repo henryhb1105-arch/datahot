@@ -54,6 +54,10 @@ class DetailSourceRenderingTests(unittest.TestCase):
         self.assertIn(
             'class="original-footer-link" href="https://example.com/primary"', page,
         )
+        self.assertIn(
+            'class="meta-source-link" href="https://example.com/primary"', page,
+        )
+        self.assertIn('<span class="meta-content-mode">历史编译稿</span>', page)
         self.assertIn('<span>查看原文</span>', page)
         self.assertNotIn('class="meta-original"', page)
         self.assertNotIn("补充来源", page)
@@ -62,6 +66,7 @@ class DetailSourceRenderingTests(unittest.TestCase):
         self.assertNotIn("按时间排序", page)
         self.assertNotIn("首发", page)
         self.assertNotIn("（英文）", page)
+        self.assertNotIn('class="card related-events"', page)
 
     def test_explicit_primary_controls_top_link_and_supplements(self):
         older = source_item(
@@ -96,9 +101,41 @@ class DetailSourceRenderingTests(unittest.TestCase):
         page = build_site.render_detail(event, [event], "")
 
         self.assertNotIn("AI 仅用于按原文顺序逐段翻译", page)
+        self.assertIn('<span class="meta-content-mode">AI 逐段翻译</span>', page)
         self.assertIn('<span>查看原文</span>', page)
         self.assertIn('class="original-footer-link" href="https://example.com/primary"', page)
         self.assertNotIn('class="disclaimer"', page)
+
+    def test_related_events_require_two_independent_relevance_signals(self):
+        item = source_item(
+            "primary", "Primary Source", "https://example.com/primary",
+            "Primary report", "2026-08-12T10:00:00+08:00",
+        )
+        base = detail_event([item])
+        base.update({
+            "event_id": "base", "zh_title": "Databricks Agent 平台能力更新",
+            "topics": ["Data Agent"], "vendors": ["Databricks"],
+        })
+        weak = detail_event([item])
+        weak.update({
+            "event_id": "weak", "zh_title": "Databricks 财务季度报告",
+            "topics": ["财务经营"], "vendors": [],
+        })
+        strong = detail_event([item])
+        strong.update({
+            "event_id": "strong", "zh_title": "Databricks Agent 产品发布",
+            "topics": ["Data Agent"], "vendors": ["Databricks"],
+            "category_label": "AI 数据平台",
+        })
+
+        self.assertIsNone(build_site.related_event_score(base, weak))
+        self.assertEqual(build_site.select_related_events(base, [base, weak, strong]), [strong])
+        page = build_site.render_detail(base, [base, weak, strong], "")
+        self.assertIn('class="card related-events"', page)
+        self.assertIn("Databricks Agent 产品发布", page)
+        related = page.split('class="card related-events"', 1)[1]
+        self.assertNotIn("Databricks 财务季度报告", related)
+        self.assertNotIn('<span class="count">', related)
 
     def test_same_source_reports_remain_individually_reachable(self):
         items = [

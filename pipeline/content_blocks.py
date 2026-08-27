@@ -1656,13 +1656,24 @@ def _render_inlines(nodes):
     return "".join(rendered)
 
 
-def render_blocks_html(blocks, render_media=True):
+def render_blocks_html(blocks, render_media=True, heading_ids=None):
     rendered = []
+    heading_ids = list(heading_ids or [])
+    heading_index = 0
     for block in sanitize_blocks(blocks):
         kind = block["type"]
         if kind == "heading":
             level = block.get("level", 2)
-            rendered.append(f'<h{level} class="cb-heading">{_render_inlines(block["children"])}</h{level}>')
+            heading_id = heading_ids[heading_index] if heading_index < len(heading_ids) else ""
+            heading_index += 1
+            navigation_attrs = (
+                f' id="{html.escape(heading_id, quote=True)}" data-article-heading'
+                if heading_id else ""
+            )
+            rendered.append(
+                f'<h{level} class="cb-heading"{navigation_attrs}>'
+                f'{_render_inlines(block["children"])}</h{level}>'
+            )
         elif kind == "paragraph":
             rendered.append(f'<p>{_render_inlines(block["children"])}</p>')
         elif kind == "blockquote":
@@ -1687,8 +1698,12 @@ def render_blocks_html(blocks, render_media=True):
                     cells += f'<{tag}{spans}>{_render_inlines(cell["children"])}</{tag}>'
                 rows.append(f"<tr>{cells}</tr>")
             rendered.append(
-                f'<div class="cb-table" role="region" aria-label="原文表格" tabindex="0">'
+                '<div class="cb-table-shell" data-table-shell>'
+                '<div class="cb-table" role="region" aria-label="原文表格" '
+                'tabindex="0" data-scroll-table>'
                 f'<table>{"".join(rows)}</table></div>'
+                '<span class="table-scroll-hint" data-table-hint aria-hidden="true">'
+                '左右滑动查看&nbsp;→</span></div>'
             )
         elif kind == "figure":
             cached_src = sanitize_cached_media_path(block.get("cached_src"))

@@ -947,6 +947,10 @@ class ContentBlockRenderingTests(unittest.TestCase):
         self.assertIn(".tone-accent", page)
         self.assertIn("prefers-color-scheme: dark", page)
         self.assertIn('aria-label="原文表格"', page)
+        self.assertIn('class="cb-table-shell" data-table-shell', page)
+        self.assertIn('data-scroll-table', page)
+        self.assertIn('data-table-hint', page)
+        self.assertIn("左右滑动查看", page)
         self.assertIn("overscroll-behavior-inline:contain", page)
         self.assertIn(" 原文</h2>", page)
         self.assertIn('class="content-section"', page)
@@ -964,6 +968,39 @@ class ContentBlockRenderingTests(unittest.TestCase):
         self.assertIn('src="../detail.js"', page)
         self.assertNotIn("返回热榜", page)
         self.assertNotIn("全文编译", page)
+
+    def test_long_structured_article_gets_conditional_toc_and_progress(self):
+        article = self.base_event()
+        article["content_mode"] = "original"
+        article["source_language"] = "zh"
+        article["content_blocks"] = []
+        for index in range(1, 7):
+            article["content_blocks"].extend([
+                {
+                    "type": "heading", "level": 2,
+                    "children": [{"type": "text", "text": f"第 {index} 节", "marks": []}],
+                },
+                {
+                    "type": "paragraph",
+                    "children": [{"type": "text", "text": "正文内容。", "marks": []}],
+                },
+            ])
+
+        page = build_site.render_detail(article, [article], "")
+
+        self.assertIn('<details class="article-toc-mobile">', page)
+        self.assertIn('<aside class="article-toc-rail" aria-label="本文目录">', page)
+        self.assertIn("6 节", page)
+        self.assertIn('id="article-section-1" data-article-heading', page)
+        self.assertIn('data-toc-target="article-section-6"', page)
+        self.assertIn('data-reading-progress', page)
+        self.assertIn('<details class="article-brief" open>', page)
+
+        short = dict(article)
+        short["content_blocks"] = article["content_blocks"][:10]
+        short_page = build_site.render_detail(short, [short], "")
+        self.assertNotIn('<details class="article-toc-mobile">', short_page)
+        self.assertNotIn("data-reading-progress", short_page)
 
     def test_detail_page_labels_translation_without_claiming_ai_compilation(self):
         article = self.base_event()

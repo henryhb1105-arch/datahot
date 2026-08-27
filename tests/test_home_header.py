@@ -318,7 +318,7 @@ class HomeHeaderTests(unittest.TestCase):
         )
         self.assertIn(
             "@media(hover:hover) and (pointer:fine){{\n"
-            "  .article .back:hover,.source-report:hover",
+            "  .article .back:hover,.meta-source-link:hover,.source-report:hover",
             builder,
         )
 

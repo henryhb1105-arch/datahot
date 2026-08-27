@@ -19,8 +19,8 @@ class ForMeBuildTests(unittest.TestCase):
         primary = build_site.tabbar("for-me").split("</nav>", 1)[0]
         self.assertEqual(primary.count("<a "), 4)
         self.assertEqual(primary.count("<button "), 1)
-        self.assertLess(primary.index("<span>热榜</span>"), primary.index("<span>For Me</span>"))
-        self.assertLess(primary.index("<span>For Me</span>"), primary.index("<span>主题</span>"))
+        self.assertLess(primary.index("<span>热榜</span>"), primary.index("<span>关注</span>"))
+        self.assertLess(primary.index("<span>关注</span>"), primary.index("<span>主题</span>"))
         self.assertIn('href="for-me.html" class="on"', primary)
 
     def test_page_exposes_non_empty_preview_and_transparent_personalization(self):
@@ -44,7 +44,7 @@ class ForMeBuildTests(unittest.TestCase):
     def test_mobile_navigation_uses_five_slots_without_overflow_prone_labels(self):
         self.assertIn("grid-template-columns:repeat(5,minmax(0,1fr))", build_site.SHARED_CSS)
         primary = build_site.tabbar("home").split("</nav>", 1)[0]
-        for label in ("热榜", "For Me", "主题", "收藏", "更多"):
+        for label in ("热榜", "关注", "主题", "收藏", "更多"):
             self.assertIn(f"<span>{label}</span>", primary)
 
     def test_privacy_page_discloses_local_for_me_state(self):

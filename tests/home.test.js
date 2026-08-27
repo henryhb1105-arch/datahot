@@ -188,6 +188,28 @@ test("detail return uses history only for a same-tab visit from the DataHot home
   assert.equal(detail.shouldUseHistoryBack("", current, 4), false);
 });
 
+test("detail reading progress is clamped to the article body", () => {
+  assert.equal(detail.readingProgress(50, 100, 1000, 500), 0);
+  assert.equal(detail.readingProgress(350, 100, 1000, 500), 0.5);
+  assert.equal(detail.readingProgress(900, 100, 1000, 500), 1);
+  assert.equal(detail.readingProgress(100, 100, 300, 500), 1);
+});
+
+test("detail table hint appears only for an unscrolled overflowing table", () => {
+  assert.deepEqual(detail.tableScrollState(0, 360, 496), {
+    overflow: true, scrolled: false, atEnd: false
+  });
+  assert.deepEqual(detail.tableScrollState(12, 360, 496), {
+    overflow: true, scrolled: true, atEnd: false
+  });
+  assert.deepEqual(detail.tableScrollState(136, 360, 496), {
+    overflow: true, scrolled: true, atEnd: true
+  });
+  assert.deepEqual(detail.tableScrollState(0, 500, 496), {
+    overflow: false, scrolled: false, atEnd: true
+  });
+});
+
 test("smart detail return prevents the fallback link and goes back once", () => {
   const clickHandlers = [];
   let backCalls = 0;

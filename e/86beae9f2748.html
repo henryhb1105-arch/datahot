@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-H7w8Bn6DO+iNkBshpF+gDZP8ADUGFS6oWTRu75S7if0=' 'sha256-ecVrFgSqjm3dsj7HyLE2KM1DsKwGN4r80xYOnQIIC7g='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>如何把 Agent 的判断与行动变成可恢复的软件事实 | KDC 工程补篇 · DataHot</title>
+<meta name="description" content="本文从退款审批场景切入，指出 Agent 单次执行循环不等于业务就绪，系统必须让目标、判断、审批、执行、产物和反馈拥有稳定状态。作者提出业务因果链与运行事实链双链结构，将 Session、Harness 与执行环境解耦，并定义 Resume、Progress、Evaluation 三类 Contra">
+<link rel="canonical" href="https://datahot.xiahongbin.com/e/86beae9f2748.html">
+<meta property="og:title" content="如何把 Agent 的判断与行动变成可恢复的软件事实 | KDC 工程补篇">
+<meta property="og:description" content="本文从退款审批场景切入，指出 Agent 单次执行循环不等于业务就绪，系统必须让目标、判断、审批、执行、产物和反馈拥有稳定状态。作者提出业务因果链与运行事实链双链结构，将 Session、Harness 与执行环境解耦，并定义 Resume、Progress、Evaluation 三类 Contra">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://datahot.xiahongbin.com/e/86beae9f2748.html">
+<meta property="og:site_name" content="DataHot · 数据领域 AI 热榜">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="theme-color" content="#1a1d23">
+<link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://datahot.xiahongbin.com/feed.xml">
+<meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
+<script defer src="../analytics.js"></script>
+<script defer src="../favorites.js"></script>
+<script defer src="../detail.js"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"如何把 Agent 的判断与行动变成可恢复的软件事实 | KDC 工程补篇","description":"本文从退款审批场景切入，指出 Agent 单次执行循环不等于业务就绪，系统必须让目标、判断、审批、执行、产物和反馈拥有稳定状态。作者提出业务因果链与运行事实链双链结构，将 Session、Harness 与执行环境解耦，并定义 Resume、Progress、Evaluation 三类 Contra","datePublished":"2026-08-27T18:00:00+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://www.infoq.cn/article/AkgUFEFE4uG7WIlqaO2g?utm_source=rss\u0026utm_medium=article"}</script>
+<style>
+  :root{
+    color-scheme: light dark;
+    --bg:#f6f7f9; --card:#ffffff; --ink:#1a1d23; --sub:#6b7280; --line:#e5e7eb;
+    --accent:#d94f2b; --accent-soft:#fdf0ec;
+    --blue:#2563eb; --green:#0f9d6c; --purple:#7c3aed; --amber:#b45309;
+    --txt2:#4b5563; --txt3:#374151; --soft:#f3f4f6; --hover:#f0f1f3;
+    --header-bg:rgba(255,255,255,.92); --tabbar-bg:rgba(255,255,255,.95);
+    --mobile-page-left:14px; --mobile-page-right:14px;
+    --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#121417; --card:#1e2126; --ink:#e9ebef; --sub:#9aa1ab; --line:#2e323a;
+      --accent:#e5603c; --accent-soft:rgba(229,96,60,.16);
+      --blue:#6ea8ff; --green:#34c98e; --purple:#a78bfa; --amber:#e0a455;
+      --txt2:#b6bcc6; --txt3:#cdd2da; --soft:#2a2e35; --hover:#2a2e35;
+      --header-bg:rgba(18,20,23,.92); --tabbar-bg:rgba(30,33,38,.95);
+    }
+    .tab.on,.fchip.on{background:var(--ink);color:#121417}
+    .sidebar a.mi.on{background:rgba(229,96,60,.14);color:var(--accent)}
+    .sub-box input,.tlsearch{color:var(--ink)}
+    .mock-banner{background:#000}
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 20px}
+
+  /* ── 顶部导航 ── */
+  header{position:sticky;top:0;z-index:50;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+  .nav{display:flex;align-items:center;gap:18px;min-height:56px}
+  .logo{font-size:20px;font-weight:800;letter-spacing:-.5px}
+  .logo em{font-style:normal;color:var(--accent)}
+  .logo .tag{font-size:11px;font-weight:500;color:var(--sub);margin-left:8px;border:1px solid var(--line);border-radius:99px;padding:2px 8px;vertical-align:middle}
+  .home-logo{display:inline-flex;align-items:center;border-radius:8px}
+  .home-logo:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+  .update-info{position:relative;margin-left:auto}
+  .update-info summary{list-style:none}
+  .update-info summary::-webkit-details-marker{display:none}
+  .upd-time{font-size:11.5px;color:var(--sub);white-space:nowrap;display:inline-flex;align-items:center;gap:4px;padding:5px 8px;border-radius:99px;cursor:help;transition:background .15s,color .15s}
+  .update-info:focus-within .upd-time,.update-info[open] .upd-time{background:var(--hover);color:var(--ink)}
+  .upd-time:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .update-popover{position:absolute;right:0;top:calc(100% + 9px);z-index:90;width:min(330px,calc(100vw - 28px));padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);box-shadow:0 12px 32px rgba(0,0,0,.14);font-size:12.5px;line-height:1.7;color:var(--txt2);white-space:normal;opacity:0;visibility:hidden;transform:translateY(-4px);pointer-events:none;transition:opacity .15s,transform .15s,visibility .15s}
+  .update-popover b{display:block;margin-bottom:3px;color:var(--ink);font-size:13px}
+  .update-info:not(.is-dismissed):focus-within .update-popover,.update-info[open]:not(.is-dismissed) .update-popover{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto}
+  .tabs{display:flex;gap:4px;flex:1}
+  .tab{padding:6px 14px;border-radius:99px;font-size:14px;color:var(--sub);cursor:pointer;white-space:nowrap}
+  .tab.on{background:var(--ink);color:#fff;font-weight:600}
+  .search{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:6px 14px;font-size:13px;color:var(--sub);min-width:180px;cursor:pointer}
+  .btn-sub{background:var(--accent);color:#fff;border-radius:99px;padding:7px 16px;font-size:13px;font-weight:600;white-space:nowrap}
+
+  .layout{display:grid;grid-template-columns:1fr 320px;gap:24px;padding:28px 0 60px}
+  @media(max-width:1199px){.layout{grid-template-columns:1fr}}
+
+  /* ── 移动端导航适配 ── */
+  @media(max-width:1199px){
+    .nav{flex-wrap:wrap;height:auto;padding:8px 0;gap:10px;min-height:52px}
+    .logo{font-size:19px}
+    .logo .tag{display:none}
+    .tabs{order:3;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
+    .tabs::-webkit-scrollbar{display:none}
+    .tab{flex-shrink:0;padding:5px 12px;font-size:13px}
+    .search{margin-left:auto;min-width:0;padding:5px 12px}
+    .btn-sub{display:none}
+  }
+
+  /* ── iPhone 体验适配 ── */
+  @media(max-width:600px){
+    :root{--mobile-page-left:max(14px,env(safe-area-inset-left));--mobile-page-right:max(14px,env(safe-area-inset-right))}
+    body{-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+    .wrap{padding:0 14px}
+    .section-title h2{font-size:17px}
+    .hotlist{grid-template-columns:1fr;gap:10px}
+    .hot{padding:14px 16px}
+    .hot h3{font-size:14px}
+    .item{padding:14px 16px;border-radius:12px}
+    .item h3{font-size:15px;overflow-wrap:anywhere}
+    .item .sum{font-size:13px;line-height:1.7;overflow-wrap:anywhere}
+    .item .top{font-size:11px;gap:4px}
+    .heatnum{font-size:12px}
+    .why{font-size:12.5px;line-height:1.7}
+    .brief{padding:16px 18px}
+    .brief p{font-size:13.5px}
+    .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-left:calc(-1 * var(--mobile-page-left));margin-right:calc(-1 * var(--mobile-page-right));padding:4px calc(var(--mobile-page-right) + 18px) 12px var(--mobile-page-left);scroll-padding-left:var(--mobile-page-left);scroll-padding-right:var(--mobile-page-right)}
+    .chiprow::after{display:block;content:"";position:sticky;right:0;flex:0 0 18px;width:18px;margin-left:-18px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+    .chiprow::-webkit-scrollbar{display:none}
+    .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:44px;display:inline-flex;align-items:center}
+    .tab,.fchip,.chip{touch-action:manipulation}
+    aside{align-self:start;position:sticky;top:20px}
+    aside .card{padding:14px 16px}
+    .article{padding:20px 14px 48px}
+    .article h1{font-size:20px}
+    .article .body{font-size:14.5px}
+    .fulltext p{font-size:14px}
+    .cta{width:100%;text-align:center;padding:13px 0;font-size:15px}
+    .day-head .date{font-size:15px}
+  }
+  @media(min-width:1280px){.wrap{max-width:1320px}}
+
+  /* ── 每周简报 ── */
+  .brief{background:linear-gradient(135deg,#1a1d23 0%,#2b2418 60%,#3d2412 100%);color:#fff;border-radius:var(--radius);padding:22px 26px;margin-bottom:22px;position:relative;overflow:hidden}
+  .brief .label{font-size:12px;letter-spacing:2px;color:#f5b48a;font-weight:700;margin-bottom:8px}
+  .brief p{font-size:15px;line-height:1.8;color:#f3f4f6}
+  .brief .meta{margin-top:10px;font-size:12px;color:#9ca3af}
+  .brief::after{content:"⚡";position:absolute;right:18px;top:14px;font-size:42px;opacity:.25}
+
+  /* ── 热点榜 ── */
+  .section-title{display:flex;align-items:baseline;gap:10px;margin:6px 0 14px}
+  .section-title h2{font-size:19px;font-weight:800}
+  .section-title span{font-size:12px;color:var(--sub)}
+  .timeline-toolbar{align-items:center;flex-wrap:nowrap}
+  .timeline-toolbar h2,.timeline-toolbar .timeline-count{white-space:nowrap}
+  .timeline-searchbox{display:flex;align-items:center;min-width:0;width:min(150px,40vw);margin-left:auto}
+  .timeline-searchbox .tlsearch{margin-left:0;min-width:0;flex:1 1 0}
+  .timeline-clear{appearance:none;display:inline-grid;place-items:center;min-width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:var(--sub);cursor:pointer;margin-left:4px;font:inherit}
+  .timeline-count{font-size:11px;color:var(--sub)}
+  @media(max-width:600px){
+    .timeline-toolbar{gap:8px}
+    .timeline-searchbox{width:min(120px,34vw)}
+    .timeline-searchbox .tlsearch,.timeline-searchbox .tlsearch:focus{width:100%}
+    .timeline-clear{min-width:44px;height:44px}
+  }
+  .hotlist{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:30px}
+  @media(max-width:600px){.hotlist{grid-template-columns:1fr;gap:10px}}
+  @media(max-width:1399px) and (min-width:601px){.hotlist{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .hot{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;position:relative;transition:.15s;cursor:pointer}
+  .hot .rank{position:absolute;top:-1px;left:16px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:0 0 8px 8px}
+  .hot .heat{position:absolute;top:12px;right:16px;font-size:12px;color:var(--accent);font-weight:700}
+  .hot h3{font-size:15px;font-weight:700;margin:14px 0 8px;line-height:1.5}
+  .hot .sources{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
+  .src{font-size:11px;background:var(--soft);color:var(--sub);border-radius:6px;padding:2px 8px}
+  .src.more{background:var(--accent-soft);color:var(--accent)}
+
+  /* ── 时间轴 ── */
+  .day{margin-bottom:8px}
+  .day-head{display:flex;align-items:center;gap:12px;margin:22px 0 12px}
+  .day-head .date{font-size:17px;font-weight:800}
+  .day-head .info{font-size:12px;color:var(--sub)}
+  .day-head::after{content:"";flex:1;height:1px;background:var(--line)}
+  .back-to-top{display:none}
+  @media(max-width:600px){
+    .home-page .home-header{position:static}
+    .home-page #timeline .day-head{position:sticky;top:0;z-index:35;min-height:40px;margin:18px -14px 12px;padding:0 14px;justify-content:space-between;background:var(--bg);border-bottom:1px solid var(--line)}
+    .home-page #timeline .day-head .date,.home-page #timeline .day-head .info{white-space:nowrap}
+    .home-page #timeline .day-head::after{display:none}
+    .back-to-top{position:fixed;right:16px;bottom:calc(70px + env(safe-area-inset-bottom));z-index:69;width:44px;height:44px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;background:var(--ink);color:var(--bg);box-shadow:0 6px 20px rgba(0,0,0,.18);font-size:22px;line-height:1;cursor:pointer;touch-action:manipulation;opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .18s ease,transform .18s ease}
+    .back-to-top.show{opacity:1;transform:translateY(0);pointer-events:auto}
+    .back-to-top:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+  }
+  .item{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin-bottom:12px;transition:.15s;cursor:pointer}
+  @media(hover:hover) and (pointer:fine){
+    .update-info:hover .upd-time,.tab:hover{background:var(--hover);color:var(--ink)}
+    .update-info:not(.is-dismissed):hover .update-popover{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto}
+    .hot:hover,.item:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+    .hot a:hover,.item a:hover{color:var(--accent)}
+  }
+  @media(hover:none) and (pointer:coarse){
+    .hot:active,.item:active{border-color:#d1d5db;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+  }
+  .fchip:focus-visible,.timeline-clear:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  }
+  .item .top{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub)}
+  .card-source{display:flex;align-items:center;gap:6px;min-width:0;flex:1 1 auto;overflow:hidden;white-space:nowrap}
+  .card-source-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;color:var(--txt3)}
+  .card-time{flex:0 0 auto;white-space:nowrap}
+  .badge{font-weight:600;border-radius:6px;padding:1px 8px;font-size:11px}
+  .b-agent{background:#eef2ff;color:var(--blue)}
+  .b-platform{background:#ecfdf5;color:var(--green)}
+  .b-bi{background:#f5f3ff;color:var(--purple)}
+  .b-product{background:#fef7e8;color:var(--amber)}
+  .b-insight{background:#fff1f2;color:#be123c}
+  .star{color:var(--accent);font-weight:700}
+  .item .heatnum{flex:0 0 auto;white-space:nowrap;font-weight:800;color:var(--accent);font-size:13px}
+  .item .heatnum.is-featured{padding:2px 7px;border-radius:99px;background:var(--accent-soft)}
+  .item h3{font-size:16px;font-weight:700;margin:8px 0 6px;line-height:1.55}
+  .item .sum{font-size:13.5px;color:var(--txt2);line-height:1.75}
+  .item .also{margin-top:10px;font-size:12px;color:var(--sub)}
+  .item .also b{color:var(--ink)}
+  .why{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;font-size:13px;color:var(--txt2);line-height:1.75}
+.why .w{color:var(--accent);font-weight:700;white-space:nowrap;font-size:12px;letter-spacing:1px}
+.why .w svg{vertical-align:-2px}
+  .vendors{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
+  .vtag{font-size:11px;border:1px dashed var(--line);color:var(--sub);border-radius:99px;padding:1px 10px;cursor:default}
+  
+
+  /* ── 侧栏 ── */
+  aside .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
+  aside h4{font-size:14px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+  .vendor-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--soft);font-size:13px;cursor:pointer}
+  .vendor-row:last-child{border-bottom:none}
+  .vendor-row .n{width:16px;color:var(--sub);font-size:12px}
+  .vendor-row .count{margin-left:auto;font-size:12px;color:var(--accent);font-weight:700}
+  .up{transform:scale(.8)}
+  .sub-box input{width:100%;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:8px;outline:none}
+  .sub-box button{width:100%;background:var(--ink);color:var(--bg);border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer}
+  .status{font-size:12.5px;color:var(--sub);line-height:2}
+  .status b{color:var(--green)}
+  .legend{display:flex;flex-direction:column;gap:6px;font-size:12.5px}
+  .legend .row{display:flex;align-items:center;gap:8px;color:var(--sub)}
+
+  footer{border-top:1px solid var(--line);padding:26px 0;text-align:center;font-size:12px;color:var(--sub)}
+  .mock-banner{background:#1a1d23;color:#fff;text-align:center;font-size:12px;padding:7px;letter-spacing:1px}
+  .mock-banner b{color:#f5b48a}
+
+
+body{overflow-x:clip}
+main,.layout>*,.hotlist>*{min-width:0}
+.d-only{display:inline-block}
+@media(max-width:1199px){.d-only{display:none}}
+.chip{display:inline-block;font-size:11px;background:#eef2ff;color:var(--blue);border-radius:99px;padding:1px 10px;text-decoration:none}
+.tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
+.tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
+.chiprow{display:flex;flex-wrap:wrap;gap:8px;overflow:visible;padding:4px 0 12px;margin-bottom:4px;position:relative}
+.chiprow::after{display:none;content:"";position:sticky;right:0;flex:0 0 18px;width:18px;margin-left:-18px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+.chiprow::-webkit-scrollbar{display:none}
+.chiprow .fchip{appearance:none;flex-shrink:0;min-height:36px;font:inherit;font-size:12.5px;line-height:1.4;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
+.chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
+@media(max-width:600px){
+  .home-page>.wrap{padding-left:var(--mobile-page-left);padding-right:var(--mobile-page-right)}
+  .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-left:calc(-1 * var(--mobile-page-left));margin-right:calc(-1 * var(--mobile-page-right));padding:4px calc(var(--mobile-page-right) + 18px) 12px var(--mobile-page-left);scroll-padding-left:var(--mobile-page-left);scroll-padding-right:var(--mobile-page-right)}
+  .chiprow::after{display:block}
+  .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:44px;display:inline-flex;align-items:center}
+}
+@media (prefers-color-scheme: dark){
+  .chip{background:rgba(110,168,255,.16);color:#6ea8ff}
+  .chiprow .fchip.on{background:var(--ink);color:#121417;border-color:var(--ink)}
+  .chiprow .fchip{background:var(--card);color:var(--sub);border-color:var(--line)}
+}
+.scard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 20px;margin-bottom:14px}
+.source-page{padding:30px 20px 60px;max-width:820px}
+.source-intro{margin-bottom:30px}
+.source-intro h1{font-size:27px;line-height:1.35;margin:0 0 10px}
+.source-intro p{font-size:14px;line-height:1.8;color:var(--txt2);margin:0;max-width:720px}
+.source-alert{margin-top:14px;padding:10px 12px;border-left:3px solid var(--amber);background:var(--soft);border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.7;color:var(--txt2)}
+.source-alert b{color:var(--ink);margin-right:6px}
+.source-group{margin:0 0 28px}
+.source-group-head{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:8px}
+.source-group-head h2{font-size:16px;line-height:1.4;margin:0}
+.source-group-head span{font-size:11.5px;color:var(--sub)}
+.source-row{display:flex;align-items:center;gap:12px;min-height:49px;border-bottom:1px solid var(--soft)}
+.source-name{display:inline-flex;align-items:center;gap:4px;min-width:0;color:var(--ink);font-size:13.5px;font-weight:650;line-height:1.5;text-decoration:none}
+.source-name svg{flex:0 0 auto}
+.source-focus{margin-left:auto;color:var(--sub);font-size:11.5px;line-height:1.45;text-align:right}
+.source-health{color:var(--amber);font-size:11.5px;white-space:nowrap}
+.source-disabled{margin:2px 0 28px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.source-disabled summary{cursor:pointer;padding:13px 0;font-size:13px;font-weight:650;color:var(--txt2)}
+.source-disabled .source-row{align-items:flex-start;padding:11px 0;min-height:0}
+.source-disabled-reason{margin-left:auto;max-width:62%;font-size:11.5px;line-height:1.6;color:var(--sub);text-align:right}
+.source-contribute{display:flex;align-items:center;gap:18px;background:var(--soft);border-radius:var(--radius);padding:17px 18px;margin-bottom:20px}
+.source-contribute-copy{min-width:0;flex:1}
+.source-contribute h2{font-size:15px;margin:0 0 4px}
+.source-contribute p{font-size:12.5px;line-height:1.6;color:var(--sub);margin:0}
+.source-cta{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border-radius:99px;background:var(--ink);color:var(--bg);padding:8px 14px;font-size:12px;font-weight:650;text-decoration:none}
+.source-principle{font-size:12px;line-height:1.75;color:var(--sub);margin:0}
+@media(max-width:600px){
+  .source-page{padding:22px 18px 52px}
+  .source-intro{margin-bottom:25px}
+  .source-intro h1{font-size:24px}
+  .source-row{gap:8px}
+  .source-name{font-size:13px;min-height:44px}
+  .source-focus{max-width:45%;font-size:11px}
+  .source-disabled .source-row{display:block}
+  .source-disabled-reason{max-width:none;margin:4px 0 0;text-align:left}
+  .source-contribute{align-items:flex-start;flex-direction:column;gap:12px}
+}
+.crow{display:flex;align-items:baseline;gap:8px;padding:9px 0;border-bottom:1px solid var(--soft);text-decoration:none;color:var(--ink)}
+.crow:last-child{border-bottom:none}
+.cpin{width:18px;flex-shrink:0;font-size:12px}
+.ctitle{font-size:13.5px;font-weight:600;line-height:1.55;flex:1}
+.cmeta{font-size:11px;color:var(--sub);white-space:nowrap}
+.favbtn{appearance:none;min-width:36px;min-height:36px;border:none;background:none;color:var(--sub);cursor:pointer;padding:6px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%}
+.favbtn.on{color:var(--accent)}
+.favbtn.on svg{fill:currentColor}
+.favbtn svg{pointer-events:none}
+.favbtn .sbtn-label{pointer-events:none}
+.fav-toast{position:fixed;left:50%;bottom:28px;z-index:100;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 28px);min-height:44px;padding:8px 10px 8px 16px;border-radius:99px;background:rgba(26,29,35,.94);box-shadow:0 10px 30px rgba(0,0,0,.18);color:#fff;font-size:13px;line-height:1.4;opacity:0;pointer-events:none;transform:translate(-50%,12px);transition:opacity .2s ease,transform .2s ease}
+.fav-toast.show{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+.fav-toast-action{appearance:none;min-height:36px;border:0;border-radius:99px;padding:6px 12px;background:rgba(255,255,255,.14);color:#fff;font:inherit;font-size:12px;font-weight:750;cursor:pointer;white-space:nowrap}
+.fav-entry{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--sub);white-space:nowrap;text-decoration:none}
+.privacy-btn{min-height:44px;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:9px 16px;font-size:12.5px;font-weight:650;cursor:pointer;margin:4px 6px 4px 0}
+.privacy-btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.load-more{display:block;margin:18px auto 4px;border:1px solid var(--line);background:var(--card);color:var(--txt2);border-radius:99px;padding:9px 22px;font-size:12.5px;font-weight:650;cursor:pointer}
+.load-more[hidden]{display:none}
+.load-more[disabled]{opacity:.65;cursor:default}
+.filter-error b{display:block;margin-bottom:5px;color:var(--ink);font-size:14px}
+.filter-error p{margin:0;color:var(--sub);font-size:12.5px;line-height:1.7}
+.filter-error-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.filter-error-actions button{min-height:44px;border:1px solid var(--line);border-radius:99px;padding:8px 15px;background:var(--card);color:var(--ink);font:inherit;font-size:12.5px;font-weight:650;cursor:pointer}
+.filter-error-actions button:first-child{border-color:var(--accent);background:var(--accent);color:#fff}
+.weekly-strip{display:flex;align-items:stretch;min-height:52px;margin-bottom:16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);overflow:hidden}
+.weekly-strip[hidden]{display:none}
+.weekly-strip-link{display:flex;align-items:center;gap:10px;min-width:0;min-height:52px;flex:1;padding:0 4px 0 14px;color:var(--ink);text-decoration:none}
+.weekly-strip-label{flex:0 0 auto;border-radius:99px;padding:3px 8px;background:var(--accent-soft);color:var(--accent);font-size:11px;font-weight:750;white-space:nowrap}
+.weekly-strip-title{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:700}
+.weekly-strip-view{flex:0 0 auto;color:var(--accent);font-size:12px;font-weight:700;white-space:nowrap}
+.weekly-dismiss{appearance:none;display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;min-height:44px;margin:4px;border:0;border-radius:50%;background:transparent;color:var(--sub);cursor:pointer}
+.weekly-dismiss svg{pointer-events:none}
+.today-focus{display:flex;align-items:stretch;min-height:52px;margin-bottom:12px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);overflow:hidden}
+.today-focus-main{display:flex;align-items:center;gap:9px;min-width:0;flex:1;padding:0 12px;color:var(--ink);text-decoration:none}
+.today-focus-label{flex:0 0 auto;border-radius:99px;padding:3px 8px;background:var(--ink);color:var(--bg);font-size:11px;font-weight:750;white-space:nowrap}
+.today-focus-title{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px;font-weight:700}
+.today-focus-signal{display:inline-flex;align-items:center;gap:4px;flex:0 0 auto;color:var(--accent);font-size:11.5px;font-weight:700;white-space:nowrap}
+.today-focus-signal b{font-size:10.5px}
+.today-focus-more{display:flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:72px;padding:0 12px;border-left:1px solid var(--soft);color:var(--accent);font-size:11.5px;font-weight:700;text-decoration:none;white-space:nowrap}
+.top-rank{flex:0 0 auto;border-radius:5px;padding:2px 6px;background:var(--accent);color:#fff;font-size:10px;font-weight:800;line-height:1.3;white-space:nowrap}
+.vendor-card-head{justify-content:space-between}
+.vendor-card-title{display:inline-flex;align-items:center;gap:6px}
+.vendor-card-link{margin-left:auto;color:var(--accent);font-size:11px;font-weight:650;text-decoration:none;white-space:nowrap}
+.vendor-row{color:var(--ink);text-decoration:none}
+@media(max-width:360px){
+  .weekly-strip-link{gap:7px;padding-left:10px}
+  .weekly-strip-label{padding:3px 7px}
+  .weekly-strip-view-arrow{display:none}
+}
+@media(max-width:600px){
+  .weekly-strip{min-height:48px;margin-bottom:10px}
+  .weekly-strip-link{min-height:48px}
+  .today-focus{min-height:48px;margin-bottom:8px}
+  .today-focus-main{gap:6px;padding:0 8px}
+  .today-focus-label{padding:3px 6px;font-size:10px}
+  .today-focus-title{font-size:12.5px}
+  .today-focus-signal{font-size:10.5px}
+  .today-focus-signal b{display:none}
+  .today-focus-more{min-width:56px;padding:0 8px;font-size:11px}
+  .top-rank{padding:2px 5px;font-size:9.5px}
+}
+.weekly-summary{background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border:0;padding:20px 22px}
+.weekly-summary h1{font-size:25px;line-height:1.4;margin:4px 0 8px}
+.weekly-summary p{font-size:14px;line-height:1.75;color:#e5e7eb;margin:0}
+.weekly-change{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.12);font-size:13px;line-height:1.7;color:#f3f4f6}
+.weekly-change:last-child{border-bottom:0}
+.weekly-themes{display:grid;gap:14px}
+.weekly-theme{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px}
+.weekly-theme h2{font-size:19px;line-height:1.5;margin:9px 0 12px}
+.weekly-theme p{font-size:13.5px;line-height:1.85;color:var(--txt2);margin:0 0 12px}
+.weekly-badges{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.weekly-pill{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:99px;padding:3px 8px;font-size:10.5px;color:var(--sub)}
+.weekly-pill.priority-now{border-color:#dc2626;color:#b91c1c;background:#fef2f2}
+.weekly-pill.priority-test{border-color:#d97706;color:#b45309;background:#fffbeb}
+.weekly-pill.priority-watch{border-color:#2563eb;color:#1d4ed8;background:#eff6ff}
+.weekly-pill.priority-ignore{color:var(--sub);background:var(--soft)}
+.weekly-anchor{background:var(--soft);border-left:3px solid var(--accent);padding:10px 12px;border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.75;color:var(--txt2);margin:0 0 14px}
+.weekly-anchor b,.weekly-why b{color:var(--ink)}
+.weekly-why{font-size:13px;line-height:1.8;color:var(--txt2);border-top:1px solid var(--soft);padding-top:12px}
+.weekly-action{margin-top:12px;background:#fff8ed;border:1px solid #f3d5aa;border-radius:9px;padding:11px 12px;font-size:13px;line-height:1.75;color:var(--txt2)}
+.weekly-action b{color:#9a4f08;margin-right:7px}
+.weekly-signal-meta{font-size:11px;color:var(--sub);margin-top:12px}
+.weekly-secondary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.weekly-secondary .scard{font-size:12.5px;line-height:1.75;color:var(--txt2)}
+.weekly-secondary b{display:block;color:var(--ink);font-size:12px;margin-bottom:6px}
+.weekly-evidence{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:0 18px}
+.weekly-evidence summary{cursor:pointer;padding:15px 0;font-size:13px;font-weight:700;color:var(--ink)}
+.weekly-evidence-row{display:flex;gap:12px;align-items:baseline;padding:11px 0;border-top:1px solid var(--soft);text-decoration:none;color:var(--ink)}
+.weekly-evidence-row span:first-child{font-size:13px;line-height:1.55;flex:1}
+.weekly-evidence-row span:last-child{font-size:10.5px;color:var(--sub);white-space:nowrap}
+.weekly-archive{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 22px}
+.weekly-archive a{font-size:12px;color:var(--sub);border:1px solid var(--line);border-radius:99px;padding:5px 10px;text-decoration:none}
+.weekly-archive a.on{border-color:var(--accent);color:var(--accent)}
+@media (prefers-color-scheme: dark){
+  .weekly-pill.priority-now{border-color:#ef7b7b;color:#ffaaaa;background:rgba(220,38,38,.14)}
+  .weekly-pill.priority-test{border-color:#d89a3d;color:#f2bd70;background:rgba(217,119,6,.14)}
+  .weekly-pill.priority-watch{border-color:#6ea8ff;color:#9cc3ff;background:rgba(37,99,235,.14)}
+  .weekly-action{background:rgba(217,119,6,.12);border-color:rgba(242,189,112,.38);color:var(--txt2)}
+  .weekly-action b{color:#f2bd70}
+}
+@media(max-width:700px){
+  .weekly-summary{padding:16px 20px}
+  .weekly-summary h1{font-size:23px}
+  .weekly-theme{padding:17px}
+  .weekly-theme h2{font-size:17px}
+  .weekly-secondary{grid-template-columns:1fr}
+  .weekly-evidence-row{align-items:flex-start;flex-direction:column;gap:4px}
+  .weekly-evidence-row span:last-child{white-space:normal}
+}
+.hrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--soft);text-decoration:none;color:var(--ink)}
+.hrow:last-child{border-bottom:none}
+.hrow .rk{font-size:15px;font-weight:800;color:var(--accent);width:26px;flex-shrink:0;text-align:center}
+.hrow .ht{flex:1;font-size:14px;font-weight:600;line-height:1.5}
+.hrow .hm{font-size:11px;color:var(--sub);white-space:nowrap}
+.rank-page{padding:28px 20px 60px;max-width:900px}
+.rank-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.rank-head h1{display:flex;align-items:center;gap:7px;font-size:20px;line-height:1.4;margin:0}
+.rank-head p{font-size:12px;color:var(--sub);margin:0}
+.rank-list{padding:6px 18px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+.rank-row{display:grid;grid-template-columns:26px minmax(0,1fr) minmax(150px,auto);align-items:center;gap:12px;min-height:48px;padding:12px 0;border-bottom:1px solid var(--soft);color:var(--ink);text-decoration:none}
+.rank-row:last-child{border-bottom:none}
+.rank-no{font-size:14px;font-weight:750;color:var(--sub);font-variant-numeric:tabular-nums;text-align:center}
+.rank-no.is-top{color:var(--accent);font-size:16px;font-weight:850}
+.rank-title{min-width:0;font-size:14px;font-weight:650;line-height:1.5}
+.rank-meta{display:flex;align-items:center;justify-content:flex-end;gap:9px;min-width:0;max-width:280px;color:var(--sub);font-size:11px}
+.rank-source{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank-heat{display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;color:var(--accent);font-weight:700;white-space:nowrap}
+.rank-note{margin-top:8px;color:var(--sub);font-size:12px}
+.rank-note summary{display:flex;align-items:center;width:max-content;max-width:100%;min-height:44px;cursor:pointer;list-style:none}
+.rank-note summary::-webkit-details-marker{display:none}
+.rank-note summary::after{content:" ↓";margin-left:4px}
+.rank-note[open] summary::after{content:" ↑"}
+.rank-note p{margin:0 0 8px;line-height:1.7}
+@media(max-width:600px){
+  .rank-page{padding:18px 14px calc(32px + env(safe-area-inset-bottom))}
+  .rank-head{display:block;margin-bottom:14px}
+  .rank-head h1{font-size:22px}
+  .rank-head p{margin-top:4px;font-size:12px}
+  .rank-list{display:grid;gap:10px;padding:0;background:transparent;border:0;border-radius:0}
+  .rank-row{grid-template-columns:30px minmax(0,1fr);grid-template-rows:auto auto;align-items:start;gap:5px 10px;min-height:76px;padding:13px 14px;background:var(--card);border:1px solid var(--line);border-radius:12px}
+  .rank-row:last-child{border-bottom:1px solid var(--line)}
+  .rank-no{grid-row:1/3;padding-top:1px;font-size:14px;text-align:left}
+  .rank-no.is-top{font-size:17px}
+  .rank-title{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;font-size:15px;line-height:1.5}
+  .rank-meta{grid-column:2;justify-content:flex-start;max-width:none;width:100%;gap:8px}
+  .rank-source{flex:1}
+  .rank-note{margin-top:4px}
+}
+.srcbadge{font-size:10px;border:1px solid var(--line);border-radius:5px;padding:0 5px;color:var(--sub);flex-shrink:0;line-height:1.6}
+.sidebar{display:none}
+@media(min-width:1200px){
+  body.has-sb{padding-left:224px}
+  body.has-sb>header{display:none}
+  .sidebar{display:flex;position:fixed;left:0;top:0;bottom:0;width:224px;flex-direction:column;background:var(--card);border-right:1px solid var(--line);padding:22px 16px;z-index:40}
+  .sidebar .slogo{font-size:20px;font-weight:800;margin-bottom:26px}
+  .sidebar .slogo em{font-style:normal;color:var(--accent)}
+  .sidebar .sidebar-nav{display:grid}
+  .sidebar a.mi{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:14px;color:var(--sub);text-decoration:none;margin-bottom:2px}
+  .sidebar a.mi.on{background:var(--ink);color:var(--bg);font-weight:600}
+  .sidebar .sidebar-tools{margin-top:auto;padding-top:14px;border-top:1px solid var(--line)}
+  .sidebar .sidebar-tools a.mi{margin-bottom:0;font-size:12.5px}
+  .sidebar .sfoot{margin-top:10px;font-size:11.5px;color:var(--sub);line-height:1.8}
+}
+.hot .hsum{font-size:12.5px;color:var(--txt2);line-height:1.65;margin:6px 0 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hot .htime{margin-left:auto;font-size:11px;color:var(--sub)}
+.hot .sources{align-items:center}
+.hot .sources .favbtn{flex:0 0 auto;margin:-8px -8px -8px 0}
+.tabbar{display:none}
+.more-mask,.more-sheet{display:none}
+@media(max-width:1199px){
+  body{padding-bottom:64px}
+  footer{padding-bottom:96px}
+  body.mobile-section{padding-top:env(safe-area-inset-top)}
+  .section-brand-header,.detail-brand-header{display:none}
+  .tabbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));position:fixed;bottom:0;left:0;right:0;background:var(--tabbar-bg);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:70;padding:0 0 env(safe-area-inset-bottom)}
+  .tabbar a,.tabbar button{appearance:none;border:0;background:transparent;min-width:0;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 2px 5px;font:inherit;font-size:11px;color:var(--sub);text-decoration:none;gap:2px;cursor:pointer;touch-action:manipulation}
+  .tabbar .ico{display:grid;place-items:center;height:22px}
+  .tabbar a.on,.tabbar button.on{color:var(--accent);font-weight:650}
+  .more-mask{display:block;position:fixed;inset:0;background:rgba(0,0,0,.42);opacity:0;pointer-events:none;transition:opacity .22s ease;z-index:78}
+  .more-mask.show{opacity:1;pointer-events:auto}
+  .more-sheet{display:block;position:fixed;left:0;right:0;bottom:0;z-index:80;max-height:70vh;overflow:auto;background:var(--card);border-radius:18px 18px 0 0;padding:8px 16px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -14px 40px rgba(0,0,0,.18);transform:translateY(110%);transition:transform .28s cubic-bezier(.32,.72,.35,1)}
+  .more-sheet.show{transform:translateY(0)}
+  .more-handle{width:36px;height:4px;border-radius:99px;background:var(--line);margin:2px auto 12px}
+  .more-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .more-head h2{font-size:18px}
+  .more-close{appearance:none;border:0;background:var(--soft);color:var(--sub);width:44px;height:44px;border-radius:50%;font-size:18px;cursor:pointer}
+  .more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .more-link{display:flex;align-items:center;gap:11px;min-height:58px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);text-decoration:none;color:var(--ink)}
+  .more-link .more-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent);flex:0 0 auto}
+  .more-link span:last-child{min-width:0;font-size:13px;font-weight:650}
+  .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  body.more-open{overflow:hidden}
+}
+.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.fav-toast-action:focus-visible,.favorites-search:focus-visible,.favorites-filter:focus-visible,.favorites-empty-cta:focus-visible,.favorite-card-main:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.rank-row:focus-visible,.rank-note summary:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible,.tcard-main:focus-visible,.tchild-link:focus-visible,.scenario-row:focus-visible,.topic-back:focus-visible,.topic-follow:focus-visible,.topic-recent-card:focus-visible,.topic-update-row:focus-visible,.topic-load-more:focus-visible,.topic-vendors summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:600px){.favbtn{min-width:44px;min-height:44px}}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+.topic-map-page,.topic-page{max-width:900px;padding-top:28px;padding-bottom:60px}
+.topic-map-intro{font-size:13px;color:var(--sub);line-height:1.7;margin:-4px 0 26px}
+.topic-family{margin-top:26px}
+.topic-family:first-of-type{margin-top:0}
+.topic-family-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.topic-family-head h2{font-size:17px;font-weight:800}
+.topic-family-head p{font-size:12px;color:var(--sub)}
+.tgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;min-width:0}
+@media(max-width:960px){.tgrid{grid-template-columns:minmax(0,1fr)}}
+.tcard{min-width:0;width:100%;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);display:flex;flex-direction:column;transition:.15s}
+.tcard-main{display:block;min-width:0;padding:18px 20px;text-decoration:none;color:var(--ink);flex:1}
+.tcard h3{font-size:17px;font-weight:800;margin-bottom:6px}
+.tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:12px}
+.topic-counts{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;font-weight:650}
+.topic-counts .recent{color:var(--accent)}
+.topic-counts .total{color:var(--sub);font-weight:500}
+.tchildren{display:flex;align-items:center;gap:7px;border-top:1px solid var(--soft);padding:10px 20px;font-size:11.5px;color:var(--sub)}
+.tchild-link{display:inline-flex;align-items:center;min-height:30px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-weight:650;padding:3px 10px;text-decoration:none}
+.scenario-list{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.scenario-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 16px;align-items:center;min-height:58px;padding:10px 16px;border-bottom:1px solid var(--soft);color:var(--ink);text-decoration:none}
+.scenario-row:last-child{border-bottom:none}
+.scenario-copy{min-width:0}
+.scenario-name{display:block;font-size:14px;font-weight:750}
+.scenario-desc{display:block;margin-top:2px;font-size:11.5px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scenario-count{font-size:11.5px;color:var(--sub);white-space:nowrap}
+.scenario-count.is-active{color:var(--accent);font-weight:650}
+.topic-hero{margin-bottom:24px}
+.topic-back{display:inline-flex;align-items:center;min-height:36px;color:var(--sub);font-size:13px;text-decoration:none}
+.topic-hero h1{font-size:28px;font-weight:800;margin:10px 0 6px}
+.topic-hero-desc{font-size:14px;color:var(--sub);line-height:1.7;margin:0 0 8px}
+.topic-follow{display:inline-flex;align-items:center;justify-content:center;min-height:40px;margin:7px 0 4px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink);font-size:12.5px;font-weight:700;text-decoration:none}
+.topic-parent{font-size:12px;color:var(--sub);margin-top:9px}
+.topic-parent a{color:var(--accent);font-weight:650;text-decoration:none}
+.topic-section{margin-top:24px}
+.topic-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:10px}
+.topic-section-head h2{font-size:16px;font-weight:800}
+.topic-section-head p{font-size:11.5px;color:var(--sub);text-align:right}
+.topic-recent-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.topic-recent-wrap{position:relative;min-width:0}
+.topic-recent-card{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;text-decoration:none;color:var(--ink)}
+.topic-recent-wrap .topic-recent-card{display:block;height:100%;padding-right:54px}
+.topic-recent-fav{position:absolute;top:7px;right:7px;z-index:2}
+.topic-recent-card h3{font-size:14px;line-height:1.55;margin:6px 0}
+.topic-recent-card p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-size:12px;line-height:1.65;color:var(--txt2)}
+.topic-recent-meta{font-size:10.5px;color:var(--sub)}
+.topic-empty{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:15px 16px;color:var(--sub);font-size:12.5px}
+.topic-reading{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:6px 16px 10px}
+.topic-updates{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.topic-update-row{display:grid;grid-template-columns:88px minmax(0,1fr) 150px;gap:12px;align-items:center;min-height:52px;padding:9px 14px;border-bottom:1px solid var(--soft);color:var(--ink);text-decoration:none}
+.topic-update-row:last-child{border-bottom:none}
+.topic-update-row.is-extra{display:none}
+.topic-update-date{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums}
+.topic-update-title{min-width:0;font-size:13px;font-weight:650;line-height:1.5}
+.topic-update-source{min-width:0;font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+.topic-load-more{appearance:none;width:100%;min-height:48px;margin-top:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:12.5px;font-weight:650;cursor:pointer}
+.topic-vendors{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:0 14px}
+.topic-vendors summary{display:flex;align-items:center;justify-content:space-between;min-height:48px;font-size:12.5px;font-weight:650;cursor:pointer;list-style:none}
+.topic-vendors summary::-webkit-details-marker{display:none}
+.topic-vendors summary span{color:var(--sub);font-size:11px;font-weight:500}
+.topic-vendors[open] summary span{color:var(--accent)}
+.topic-vendors .vendors{padding:0 0 14px;margin-top:0}
+@media(max-width:720px){.topic-recent-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){
+  .topic-map-page,.topic-page{padding-top:18px;padding-right:var(--mobile-page-right);padding-left:var(--mobile-page-left)}
+  .topic-map-intro{margin-bottom:22px}
+  .topic-family-head{display:block}
+  .topic-family-head p{margin-top:3px}
+  .tcard-main{padding:15px 16px}
+  .tchildren{padding:8px 16px}
+  .scenario-row{padding:10px 14px}
+  .scenario-desc{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .topic-hero h1{font-size:26px}
+  .topic-follow{min-height:44px}
+  .topic-section-head{display:block}
+  .topic-section-head p{text-align:left;margin-top:3px}
+  .topic-update-row{grid-template-columns:70px minmax(0,1fr);gap:3px 10px;padding:10px 12px}
+  .topic-update-source{grid-column:2;text-align:left}
+}
+.favorites-page{max-width:900px;min-height:calc(100vh - 145px);padding:28px 20px 60px}
+.favorites-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:18px}
+.favorites-title{display:flex;align-items:center;gap:8px;margin:0;font-size:22px;line-height:1.35}
+.favorites-count{color:var(--sub);font-size:12px;font-weight:500;white-space:nowrap}
+.favorites-trust{margin:6px 0 0;color:var(--sub);font-size:12px;line-height:1.6}
+.favorites-trust a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.favorites-tools{margin-bottom:16px}
+.favorites-search{width:min(360px,100%);min-height:44px;border:1px solid var(--line);border-radius:99px;padding:9px 15px;background:var(--card);color:var(--ink);font:inherit;font-size:13px;outline:none}
+.favorites-search:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.favorites-filters{display:flex;gap:7px;overflow-x:auto;margin-top:10px;padding-bottom:2px;scrollbar-width:none}
+.favorites-filters::-webkit-scrollbar{display:none}
+.favorites-filter{appearance:none;flex:0 0 auto;min-height:36px;border:1px solid var(--line);border-radius:99px;padding:6px 13px;background:var(--card);color:var(--sub);font:inherit;font-size:12px;cursor:pointer}
+.favorites-filter.on{border-color:var(--ink);background:var(--ink);color:var(--bg);font-weight:700}
+.favorites-group{margin:0 0 18px}
+.favorites-group h2{margin:0 0 8px;color:var(--sub);font-size:12px;font-weight:700}
+.favorites-list{display:grid;gap:10px}
+.favorite-card{display:grid;grid-template-columns:minmax(0,1fr) 48px;align-items:start;background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+.favorite-card-main{min-width:0;padding:15px 4px 15px 17px;color:var(--ink);text-decoration:none}
+.favorite-card-top{display:flex;align-items:center;gap:7px;margin-bottom:6px;color:var(--sub);font-size:10.5px;line-height:1.4}
+.favorite-card-topic{max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-radius:99px;padding:2px 8px;background:var(--soft);color:var(--txt2)}
+.favorite-card-saved{margin-left:auto;white-space:nowrap}
+.favorite-card h3{margin:0;font-size:15px;line-height:1.5}
+.favorite-card-summary{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;margin:6px 0 0;color:var(--txt2);font-size:12.5px;line-height:1.65}
+.favorite-card-meta{display:flex;align-items:center;gap:7px;margin-top:8px;color:var(--sub);font-size:11px;line-height:1.4}
+.favorite-card-meta span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.favorite-card>.favbtn{align-self:center;margin:4px 4px 4px 0}
+.favorites-empty{display:grid;place-items:center;min-height:330px;padding:34px 20px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);text-align:center}
+.favorites-empty-inner{max-width:360px}
+.favorites-empty-icon{display:grid;place-items:center;width:54px;height:54px;margin:0 auto 14px;border-radius:50%;background:var(--soft);color:var(--sub)}
+.favorites-empty h2{margin:0 0 7px;font-size:17px}
+.favorites-empty p{margin:0;color:var(--sub);font-size:12.5px;line-height:1.75}
+.favorites-empty-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin-top:17px;border-radius:99px;padding:8px 17px;background:var(--ink);color:var(--bg);font-size:12.5px;font-weight:700;text-decoration:none}
+.favorites-loading{padding:22px 0;color:var(--sub);font-size:13px}
+@media(max-width:600px){
+  .favorites-page{min-height:calc(100dvh - 145px - env(safe-area-inset-bottom));padding:20px 14px calc(36px + env(safe-area-inset-bottom))}
+  .favorites-head{display:block;margin-bottom:15px}
+  .favorites-title{font-size:21px}
+  .favorites-trust{font-size:11.5px}
+  .favorites-search{width:100%}
+  .favorite-card{grid-template-columns:minmax(0,1fr) 52px}
+  .favorite-card-main{padding:14px 2px 14px 14px}
+  .favorite-card h3{font-size:15px}
+  .favorite-card>.favbtn{margin-right:4px}
+  .favorites-empty{min-height:350px;padding:32px 18px}
+  .fav-toast{bottom:calc(68px + env(safe-area-inset-bottom))}
+}
+@media(hover:hover) and (pointer:fine){
+  .chip:hover{background:#dbe4ff}
+  a.source-name:hover,.crow:hover .ctitle,.fav-entry:hover,.weekly-evidence-row:hover span:first-child,.hrow:hover .ht,.rank-row:hover .rank-title{color:var(--accent)}
+  .source-cta:hover{opacity:.86}
+  .load-more:hover,.weekly-archive a:hover{border-color:var(--accent);color:var(--accent)}
+  .weekly-strip:hover{border-color:var(--accent)}
+  .weekly-strip-link:hover .weekly-strip-title,.weekly-dismiss:hover{color:var(--accent)}
+  .sidebar a.mi:hover{background:var(--hover);color:var(--ink)}
+  .tcard:hover,.topic-recent-card:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+  .tcard-main:hover h3,.scenario-row:hover .scenario-name,.topic-update-row:hover .topic-update-title,.topic-follow:hover{color:var(--accent)}
+}
+@media(prefers-color-scheme:dark) and (hover:hover) and (pointer:fine){
+  .chip:hover{background:rgba(110,168,255,.26)}
+}
+
+.article{max-width:1040px;margin:0 auto;padding:36px 20px 60px}
+.article-layout{max-width:1000px;margin:0 auto}
+.article-content{max-width:840px;margin:0 auto}
+.article-layout.has-toc{display:grid;grid-template-columns:minmax(0,840px) 144px;gap:16px;align-items:start}
+.article-layout.has-toc .article-content{min-width:0;margin:0}
+.article .back{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}
+.article h1{max-width:700px;font-size:30px;font-weight:800;line-height:1.38;margin:14px auto 20px}
+.article .meta{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
+.article .meta,.article-brief,.tts-player{max-width:700px;margin-left:auto;margin-right:auto}
+.meta-source-link{display:inline-flex;align-items:center;gap:3px;color:var(--txt3);font-weight:650;text-decoration:none}
+.meta-source-link svg{flex:0 0 auto}
+.meta-source-text{color:var(--txt3);font-weight:650}
+.meta-content-mode{display:inline-flex;align-items:center;min-height:22px;padding:2px 8px;border-radius:99px;background:var(--soft);color:var(--txt2);font-size:10.5px;font-weight:700}
+.article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
+.article h4{font-size:14px;font-weight:800;margin-bottom:10px}
+.article-brief{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:18px;margin-bottom:30px}
+.article-brief>summary{cursor:pointer;list-style:none;padding:13px 0;font-size:13px;font-weight:750;color:var(--txt2)}
+.article-brief>summary::-webkit-details-marker{display:none}
+.article-brief>summary::after{content:" ↓";color:var(--sub)}
+.article-brief[open]>summary::after{content:" ↑"}
+.article-brief-body{padding:0 0 16px;color:var(--txt3)}
+.article-brief-body p{font-size:14px;line-height:1.8;margin:0}
+.article-brief-body .brief-why{margin-top:9px;color:var(--txt2)}
+.content-section{margin:0 0 30px}
+.content-heading{max-width:700px;margin:0 auto 22px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}
+.content-heading h2{display:flex;align-items:center;gap:7px;font-size:15px;line-height:1.5;margin:0;color:var(--ink)}
+.content-origin-badge{font-size:11px;color:var(--sub);font-weight:500}
+.article .vendor-row{text-decoration:none}
+.related-title{min-width:0;flex:1;line-height:1.55}
+.related-meta{flex:0 0 auto;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub);font-size:11px}
+.article-toc-mobile{display:none;max-width:700px;margin:0 auto 24px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+.article-toc-mobile>summary{display:flex;align-items:center;justify-content:space-between;min-height:46px;padding:0 14px;cursor:pointer;list-style:none;color:var(--ink);font-size:13px;font-weight:750}
+.article-toc-mobile>summary::-webkit-details-marker{display:none}
+.article-toc-mobile>summary span,.article-toc-title span{color:var(--sub);font-size:10.5px;font-weight:500}
+.article-toc-mobile ol,.article-toc-rail ol{list-style:none;margin:0;padding:0}
+.article-toc-mobile ol{max-height:50vh;overflow-y:auto;padding:0 14px 12px;border-top:1px solid var(--soft)}
+.article-toc-mobile li{margin:0}
+.article-toc-mobile a{display:block;padding:8px 0;border-bottom:1px solid var(--soft);color:var(--txt2);font-size:12px;line-height:1.5;text-decoration:none}
+.article-toc-mobile li:last-child a{border-bottom:0}
+.article-toc-mobile .toc-level-3 a,.article-toc-mobile .toc-level-4 a{padding-left:12px}
+.article-toc-rail{position:sticky;top:82px;max-height:calc(100vh - 104px);overflow-y:auto;padding:10px 0 12px 14px;border-left:1px solid var(--line);scrollbar-width:thin}
+.article-toc-title{display:flex;justify-content:space-between;gap:6px;margin-bottom:7px;color:var(--ink);font-size:11.5px;font-weight:800}
+.article-toc-rail a{display:block;padding:5px 0;color:var(--sub);font-size:10.5px;line-height:1.45;text-decoration:none}
+.article-toc-rail .toc-level-3 a,.article-toc-rail .toc-level-4 a{padding-left:9px}
+.article-toc-rail a[aria-current="location"]{color:var(--accent);font-weight:750}
+[data-article-heading]{scroll-margin-top:88px}
+.reading-progress{position:absolute;left:0;right:0;bottom:-1px;height:2px;overflow:hidden;background:transparent}
+.reading-progress>span{display:block;width:100%;height:100%;background:var(--accent);transform:scaleX(0);transform-origin:left center;will-change:transform}
+.source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
+.source-heading{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.source-heading h4{margin:0}
+.source-summary{font-size:11.5px;color:var(--sub)}
+.source-group{padding:10px 0;border-bottom:1px solid var(--soft)}
+.source-group-head{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txt3);margin-bottom:2px}
+.source-group-head b{font-weight:700}
+.source-group-head span{font-size:10.5px;color:var(--sub)}
+.source-report{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:14px;padding:4px 0;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.55}
+.source-report-title{min-width:0;overflow-wrap:anywhere}
+.source-report-date{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}
+.source-more{padding-top:8px}
+.source-more>summary{width:max-content;max-width:100%;font-size:12px;color:var(--accent);cursor:pointer;list-style:none;padding:4px 0}
+.source-more>summary::-webkit-details-marker{display:none}
+.source-more>summary::after{content:" ↓"}
+.source-more[open]>summary::after{content:" ↑"}
+@media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
+.fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:700px;margin-left:auto;margin-right:auto}
+.fulltext .cb-heading{font-size:19px;line-height:1.55;margin-top:32px;margin-bottom:12px;color:var(--ink)}
+.fulltext p{margin-top:0;margin-bottom:18px}
+.fulltext strong{font-weight:750;color:var(--ink)}
+.fulltext em{font-style:italic}
+.fulltext a{color:var(--blue);text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere}
+.fulltext ul,.fulltext ol{padding-left:26px;margin-top:10px;margin-bottom:22px}
+.fulltext li{margin:6px 0;padding-left:2px}
+.fulltext blockquote{margin-top:20px;margin-bottom:20px;padding:12px 18px;border-left:4px solid var(--accent);background:var(--soft);border-radius:0 8px 8px 0;color:var(--txt2)}
+.fulltext code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+.fulltext pre{overflow:auto;background:#171a20;color:#e8ebf0;border-radius:10px;padding:14px 16px;margin:16px 0;line-height:1.65}
+.fulltext pre code{background:none;border:none;padding:0;color:inherit}
+.cb-table-shell{position:relative;margin:16px 0}
+.cb-table{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;margin:0;border:1px solid var(--line);border-radius:9px}
+.cb-table:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.cb-table table{border-collapse:collapse;width:100%;min-width:480px;font-size:13px}
+.cb-table th,.cb-table td{padding:9px 12px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:left;vertical-align:top}
+.cb-table th{background:var(--soft);color:var(--ink);font-weight:700}
+.cb-table tr:last-child td{border-bottom:none}
+.cb-table th:first-child,.cb-table td:first-child{position:sticky;left:0;z-index:1;background:var(--card);box-shadow:1px 0 0 var(--line)}
+.cb-table th:first-child{z-index:2;background:var(--soft)}
+.table-scroll-hint{display:none;position:absolute;right:8px;bottom:8px;z-index:3;padding:4px 8px;border-radius:99px;background:rgba(26,29,35,.88);color:#fff;font-size:10.5px;font-weight:700;pointer-events:none;box-shadow:0 3px 12px rgba(0,0,0,.16)}
+.cb-table-shell.is-overflowing:not(.has-scrolled) .table-scroll-hint{display:block}
+.cb-table-shell.is-overflowing:not(.at-end)::after{content:"";position:absolute;top:1px;right:1px;bottom:1px;width:24px;border-radius:0 8px 8px 0;background:linear-gradient(90deg,transparent,var(--card));pointer-events:none}
+.cb-figure{margin:20px 0;background:var(--soft);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.cb-media-link{display:block;background:#f5f7fa;text-decoration:none}
+.cb-figure img{display:block;width:100%;height:auto;max-height:72vh;object-fit:contain;margin:0 auto}
+@media(max-width:600px){.cb-figure{margin:16px -8px;border-radius:9px}.cb-table-shell{max-width:100%;margin-left:0;margin-right:0}}
+@media (prefers-color-scheme: dark){.cb-media-link{background:#171a20}}
+.tone-accent{color:var(--accent);font-weight:650}.tone-warning{color:var(--amber);font-weight:650}
+.tone-positive{color:var(--green);font-weight:650}.tone-info{color:var(--blue);font-weight:650}.tone-emphasis{color:var(--ink);font-weight:650}
+.cta{display:inline-block;background:var(--accent);color:#fff;font-size:14px;font-weight:700;border-radius:10px;padding:11px 26px;margin:6px 0 4px}
+.fulltext h5.fh{font-size:15px;font-weight:800;color:var(--ink);margin:20px 0 8px;padding-left:10px;border-left:3px solid var(--accent)}
+.fulltext p.fwarn{font-size:12.5px;color:var(--amber);background:var(--accent-soft);border-radius:8px;padding:8px 12px}
+.fulltext p,.fulltext li{font-size:16px;line-height:1.86;color:var(--txt3)}
+.tts-player{display:grid;grid-template-columns:auto auto minmax(120px,1fr) auto auto;align-items:center;gap:10px 12px;background:linear-gradient(135deg,var(--card),var(--soft));border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:2px 0 18px}
+.tts-player[hidden]{display:none}
+.tts-copy{display:flex;flex-direction:column;min-width:112px;line-height:1.35}
+.tts-copy b{font-size:12.5px;color:var(--ink)}
+.tts-copy span{font-size:10.5px;color:var(--sub);margin-top:2px}
+.tts-toggle{min-width:58px;min-height:44px;border:0;border-radius:99px;background:var(--ink);color:var(--card);font-size:12px;font-weight:750;padding:7px 13px;cursor:pointer}
+.tts-progress{width:100%;accent-color:var(--accent);cursor:pointer}
+.tts-time{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tts-rate-label{font-size:10.5px;color:var(--sub);display:flex;align-items:center;gap:4px}
+.tts-rate-label select{border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--ink);font-size:11px;padding:4px 5px}
+@media(max-width:600px){.tts-player{grid-template-columns:1fr auto auto;gap:9px;padding:11px 12px}.tts-copy{grid-column:1/-1;grid-row:1;flex-direction:row;align-items:baseline;gap:8px}.tts-toggle{grid-column:1;grid-row:2}.tts-time{grid-column:2;grid-row:2}.tts-rate-label{grid-column:3;grid-row:2}.tts-progress{grid-column:1/-1;grid-row:3}}
+@media(prefers-reduced-motion:reduce){.tts-player *{scroll-behavior:auto!important;transition:none!important}}
+@media(hover:hover) and (pointer:fine){
+  .article .back:hover,.meta-source-link:hover,.source-report:hover .source-report-title,.original-footer-link:hover,.article-toc-mobile a:hover,.article-toc-rail a:hover{color:var(--accent)}
+  .cta:hover{opacity:.9}
+}
+.content-footer{max-width:700px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin:20px auto 0}
+.disclaimer{flex:1;font-size:12px;color:var(--sub)}
+.original-footer-link{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:7px 12px;border-radius:99px;color:var(--blue);font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap}
+.original-footer-link:focus-visible,.meta-source-link:focus-visible,.article-toc-mobile summary:focus-visible,.article-toc-mobile a:focus-visible,.article-toc-rail a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:1199px){.article-layout.has-toc{display:block}.article-layout.has-toc .article-content{margin:0 auto}.article-toc-rail{display:none}.article-toc-mobile{display:block}}
+@media(max-width:600px){.article{padding-left:16px;padding-right:16px}.article h1{font-size:24px;line-height:1.45}.fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:none}.fulltext p,.fulltext li{font-size:16px;line-height:1.82}.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}.related-meta{max-width:88px}}
+</style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="86beae9f2748" data-category="agent" data-source="InfoQ 中文">
+<aside class="sidebar"><div class="slogo"><a href="../index.html" data-smart-home-return aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><nav class="sidebar-nav" aria-label="主导航"><a class="mi on" href="../index.html" data-smart-home-return><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../for-me.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg>关注</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>周报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>收藏</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a></nav><nav class="sidebar-tools" aria-label="工具"><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a></nav><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>
+<header class="detail-brand-header"><div class="wrap nav">
+  <div class="logo"><a href="../index.html" data-smart-home-return>Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
+</div></header>
+<div class="article">
+  <div class="topbar detail-context">
+    <a class="back" href="../index.html" data-smart-back aria-label="返回"><span aria-hidden="true">←</span><span class="back-label">返回</span></a>
+    <span class="sharebtns">
+      <button class="sbtn ghost favbtn" type="button" data-fav="86beae9f2748" data-fav-record="{&quot;event_id&quot;:&quot;86beae9f2748&quot;,&quot;title&quot;:&quot;如何把 Agent 的判断与行动变成可恢复的软件事实 | KDC 工程补篇&quot;,&quot;summary&quot;:&quot;本文从退款审批场景切入，指出 Agent 单次执行循环不等于业务就绪，系统必须让目标、判断、审批、执行、产物和反馈拥有稳定状态。作者提出业务因果链与运行事实链双链结构，将 Session、Harness 与执行环境解耦，并定义 Resume、Progress、Evaluation 三类 Contract 支撑状态恢复、交接与持续演进。适合 AI 架构师、Agent 系统工程师和数据平台建设者阅读。&quot;,&quot;source&quot;:&quot;InfoQ 中文&quot;,&quot;category&quot;:&quot;agent&quot;,&quot;topics&quot;:[&quot;Data Agent&quot;],&quot;published&quot;:&quot;2026-08-27T18:00:00+08:00&quot;,&quot;original_url&quot;:&quot;https://www.infoq.cn/article/AkgUFEFE4uG7WIlqaO2g?utm_source=rss&amp;utm_medium=article&quot;}" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg><span class="sbtn-label">收藏</span></button>
+
+      <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/86beae9f2748.png" title="海报" aria-label="海报"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg><span class="sbtn-label">海报</span></button>
+      <button class="sbtn" type="button" data-share-action="open" title="分享" aria-label="分享"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span class="sbtn-label">分享</span></button>
+    </span>
+    <span class="reading-progress" aria-hidden="true"><span data-reading-progress></span></span>
+  </div>
+  <div class="article-layout has-toc">
+  <main class="article-content">
+  <div class="meta">
+    <span class="srcbadge">RSS</span>
+    <a class="meta-source-link" href="https://www.infoq.cn/article/AkgUFEFE4uG7WIlqaO2g?utm_source=rss&amp;utm_medium=article" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="InfoQ 中文" aria-label="查看 InfoQ 中文 原文"><span>InfoQ 中文</span><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+    <span class="meta-content-mode">原文</span>
+    <span class="star">精选</span>
+    <span title="发布时间">发布 2026-08-27 18:00</span>
+    <span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 08-28</span>
+  </div>
+  <h1>如何把 Agent 的判断与行动变成可恢复的软件事实 | KDC 工程补篇</h1>
+
+  <details class="article-brief" open>
+  <summary>DataHot 速览</summary>
+  <div class="article-brief-body"><p>本文从退款审批场景切入，指出 Agent 单次执行循环不等于业务就绪，系统必须让目标、判断、审批、执行、产物和反馈拥有稳定状态。作者提出业务因果链与运行事实链双链结构，将 Session、Harness 与执行环境解耦，并定义 Resume、Progress、Evaluation 三类 Contract 支撑状态恢复、交接与持续演进。适合 AI 架构师、Agent 系统工程师和数据平台建设者阅读。</p>
+  <p class="brief-why"><b>为什么值得关注：</b>数据从业者应关注 Agent 在生产环境中的可恢复、可控制与可审计能力，这是 Data Agent 从演示走向真实业务的关键工程基础。</p></div>
+</details>
+  <details class="article-toc-mobile"><summary>本文目录 <span>35 节</span></summary><ol><li class="toc-level-2"><a href="#article-section-1" data-toc-link data-toc-target="article-section-1">会执行一次循环，不等于可以运行一个产品</a></li><li class="toc-level-2"><a href="#article-section-2" data-toc-link data-toc-target="article-section-2">三种事实不能混在一起</a></li><li class="toc-level-2"><a href="#article-section-3" data-toc-link data-toc-target="article-section-3">生产级 Agent 需要两条可以连接的链</a></li><li class="toc-level-2"><a href="#article-section-4" data-toc-link data-toc-target="article-section-4">ReAct、Harness 和 KDC 分别解决什么</a></li><li class="toc-level-2"><a href="#article-section-5" data-toc-link data-toc-target="article-section-5">公开实践不是一套统一理论，但正在回答同一组问题</a></li><li class="toc-level-2"><a href="#article-section-6" data-toc-link data-toc-target="article-section-6">Harness 不是一个单体：Session、Harness 和执行环境应该解耦</a></li><li class="toc-level-2"><a href="#article-section-7" data-toc-link data-toc-target="article-section-7">最小运行对象：让现场拥有稳定归属</a></li><li class="toc-level-2"><a href="#article-section-8" data-toc-link data-toc-target="article-section-8">Session、Context、State、Memory 和 Knowledge 不是同一个对象</a></li><li class="toc-level-2"><a href="#article-section-9" data-toc-link data-toc-target="article-section-9">State、View 和 Control 必须分开</a></li><li class="toc-level-3"><a href="#article-section-10" data-toc-link data-toc-target="article-section-10">State 是可恢复的运行事实</a></li><li class="toc-level-3"><a href="#article-section-11" data-toc-link data-toc-target="article-section-11">View 是从事实派生的展示</a></li><li class="toc-level-3"><a href="#article-section-12" data-toc-link data-toc-target="article-section-12">Control 是命令，不是直接改状态</a></li><li class="toc-level-2"><a href="#article-section-13" data-toc-link data-toc-target="article-section-13">语义责任必须分开，物理存储可以统一</a></li><li class="toc-level-2"><a href="#article-section-14" data-toc-link data-toc-target="article-section-14">一份最小 State Schema</a></li><li class="toc-level-2"><a href="#article-section-15" data-toc-link data-toc-target="article-section-15">从判断到执行，需要经历一次可恢复的状态变化</a></li><li class="toc-level-3"><a href="#article-section-16" data-toc-link data-toc-target="article-section-16">1. 形成业务判断</a></li><li class="toc-level-3"><a href="#article-section-17" data-toc-link data-toc-target="article-section-17">2. 提出能力调用建议</a></li><li class="toc-level-3"><a href="#article-section-18" data-toc-link data-toc-target="article-section-18">3. 控制平面要求确认</a></li><li class="toc-level-3"><a href="#article-section-19" data-toc-link data-toc-target="article-section-19">4. View 展示审批</a></li><li class="toc-level-3"><a href="#article-section-20" data-toc-link data-toc-target="article-section-20">5. 用户提交 Control</a></li><li class="toc-level-3"><a href="#article-section-21" data-toc-link data-toc-target="article-section-21">6. 能力运行时执行</a></li><li class="toc-level-3"><a href="#article-section-22" data-toc-link data-toc-target="article-section-22">7. Runtime 记录执行结果</a></li><li class="toc-level-3"><a href="#article-section-23" data-toc-link data-toc-target="article-section-23">8. 现实反馈关闭业务闭环</a></li><li class="toc-level-2"><a href="#article-section-24" data-toc-link data-toc-target="article-section-24">Checkpoint 不等于 Durable Execution</a></li><li class="toc-level-2"><a href="#article-section-25" data-toc-link data-toc-target="article-section-25">Run 结束以后，哪些事实可以离开 Session</a></li><li class="toc-level-3"><a href="#article-section-26" data-toc-link data-toc-target="article-section-26">用七个问题检查 Memory 与 Knowledge 是否真正连通</a></li><li class="toc-level-2"><a href="#article-section-27" data-toc-link data-toc-target="article-section-27">日志和 Trace 仍然不等于运行状态</a></li><li class="toc-level-2"><a href="#article-section-28" data-toc-link data-toc-target="article-section-28">长时间任务还需要 Progress Contract</a></li><li class="toc-level-2"><a href="#article-section-29" data-toc-link data-toc-target="article-section-29">Agent Harness 本身也需要 Evaluation Contract</a></li><li class="toc-level-2"><a href="#article-section-30" data-toc-link data-toc-target="article-section-30">Harness 的假设也有生命周期</a></li><li class="toc-level-2"><a href="#article-section-31" data-toc-link data-toc-target="article-section-31">不要先建设一个庞大的 Harness 平台</a></li><li class="toc-level-2"><a href="#article-section-32" data-toc-link data-toc-target="article-section-32">实践：对一条 Agent 流程做恢复演练</a></li><li class="toc-level-2"><a href="#article-section-33" data-toc-link data-toc-target="article-section-33">从“模型做过什么”走向“系统可以相信什么”</a></li><li class="toc-level-2"><a href="#article-section-34" data-toc-link data-toc-target="article-section-34">理论边界与开放问题</a></li><li class="toc-level-2"><a href="#article-section-35" data-toc-link data-toc-target="article-section-35">参考</a></li></ol></details>
+  <section class="content-section" aria-labelledby="articleBodyTitle">
+  <div class="content-heading"><h2 id="articleBodyTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 原文</h2></div>
+  <div class="fulltext"><p>vivo 肖博</p><ul><li>蔡芳芳</li></ul><ul><li>2026-08-27北京</li><li>本文字数：15708 字 阅读完需：约 52 分钟</li></ul><p>AI摘要</p><p>本文聚焦 AI Agent 在真实业务中落地的关键工程挑战：如何使推理、授权与行动转化为可恢复、可控制、可审计的软件运行事实。提出“业务因果链”与“运行事实链”双链结构，解耦 Session、Harness 与执行环境，并定义三类 Contract 支撑状态一致性与生命周期管理。</p><p>关键观点：① Agent 单次执行不等于业务就绪，需保障目标到反馈的稳定状态；② 领域现实、业务判断事实、软件运行事实须分层建模；③ Resume/Progress/Evaluation 三类 Contract 是运行可恢复与可演进的核心契约。</p><p>适合 AI 架构师、Agent 系统工程师、MLOps 工程师阅读。</p><figure class="cb-figure"><a class="cb-media-link" href="https://static001.infoq.cn/resource/image/9e/25/9e62482a0byy70a6cc95fd56ca161125.png?x-oss-process=image/resize,w_726" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/86beae9f2748/0835fe1403e43d4be361c583.webp" alt="" loading="lazy" decoding="async" width="726" height="408"></a></figure><p><strong>作者</strong>：vivo 肖博</p><p><strong>AI 合作者</strong>：ChatGPT（GPT-5.5）</p><p><strong>创作模式</strong>：Human-led, AI-collaborated</p><p><strong>责任声明</strong>：文章观点、理论体系及最终内容由作者负责；AI 参与讨论、推演、表达优化及部分内容生成。</p><blockquote>研究说明：知识驱动计算（Knowledge-driven Computing, KDC）是我们正在提出和持续打磨的一套 AI 应用软件工程理论，目前仍处于开放研究阶段。前五篇建立了从 Reality 到 Feedback 的理论闭环。这篇补篇不增加新的 KDC 核心概念，而是讨论其中一段更具体的工程问题：推理、授权和行动如何变成可恢复、可控制、可审计的软件运行事实。 本文摘要：会推理、会调用 Tool，只能说明 Agent 能够完成一次执行循环。要进入真实业务，系统还必须让目标、判断、审批、执行、产物和反馈拥有稳定状态，并在刷新、重连、进程重启和人工介入后继续保持一致。本文区分领域现实、业务判断事实和软件运行事实，提出业务因果链与运行事实链的双链结构；进一步将 Session、Harness 与执行环境解耦，区分 Session、Context、State、Memory 和 Knowledge，并以 Resume Contract、Progress Contract 与 Evaluation Contract 说明一次 Agent 运行如何被恢复、交接、验证和持续演进。 <strong>KDC 系列文章：</strong></blockquote><ol><li><a href="https://www.infoq.cn/article/JWP8LYvuoD0tmFelLRq4" target="_blank" rel="noopener noreferrer nofollow">《软件从现实开始：知识驱动计算（KDC）的 Reality First 主张》</a></li><li><a href="https://www.infoq.cn/article/N43yEF08JflwxI0S0Uec" target="_blank" rel="noopener noreferrer nofollow">《软件不是文件：KDC 的知识工程主张》</a></li><li><a href="https://www.infoq.cn/article/ViFwzzK2B2ifEIgXaSTC" target="_blank" rel="noopener noreferrer nofollow">《调用成功不等于判断正确：KDC 的行动治理主张》</a></li><li><a href="https://www.infoq.cn/article/EF97eR5oivR50UqIINsP" target="_blank" rel="noopener noreferrer nofollow">《保存历史不等于形成记忆：KDC 的长期运行主张》</a></li><li><a href="https://www.infoq.cn/article/6zto2Zd1cdiODGyBcf6r" target="_blank" rel="noopener noreferrer nofollow">《KDC 全景：从现实到反馈的完整工程模型》</a></li><li>《如何把 Agent 的判断与行动变成可恢复的软件事实 | KDC 工程补篇》（本文）</li></ol><p>还是从退款这个具体场景开始。</p><p>用户问售后 Agent：</p><blockquote>帮我看看这笔订单能不能退。如果可以，就直接帮我处理。</blockquote><p>Agent 查询订单，引用当前退款政策，判断订单符合条件，然后准备调用退款能力。由于退款会改变订单和资金状态，系统要求用户确认。页面显示了一条审批提示：</p><blockquote>订单符合退款条件。是否确认发起退款？</blockquote><p>用户还没有点击确认，页面突然刷新。</p><p>刷新之后，审批提示消失了。聊天记录里还能看到 Agent 说过“准备退款”，但前端不知道审批是否仍然有效，后端不知道用户是否已经做过决定，能力运行时也不知道应该继续、暂停还是取消。</p><p>更危险的情况是，退款请求已经提交给支付渠道，但后端在写入本地完成状态之前重启。恢复后，系统只看到“任务尚未完成”，于是再次调用退款接口。</p><p>这一次，问题不在知识是否可靠，也不在 Agent 是否理解了用户目标。判断和授权规则可能都是正确的，系统仍然可能因为缺少稳定运行事实而丢失现场、重复执行或无法追责。</p><p>这说明，从“Agent 做出了正确判断”到“系统可靠地完成了行动”之间，还有一层不能省略的工程结构。</p><h2 class="cb-heading" id="article-section-1" data-article-heading>会执行一次循环，不等于可以运行一个产品</h2><p><a href="https://arxiv.org/abs/2210.03629" target="_blank" rel="noopener noreferrer nofollow">ReAct</a> 可以把模型行为概括成一个循环：</p><pre><code class="language-">Thought -&gt; Action -&gt; Observation</code></pre><p>复制代码</p><p>模型根据当前上下文形成下一步，调用 Tool，读取结果，再继续判断。这个抽象很好地解释了模型如何在一次任务中交替推理和行动。</p><p>但产品系统面对的不是一段始终连续的模型调用。页面会刷新，连接会断开，进程会重启，Tool 会长时间运行，审批可能等待几个小时，外部系统可能已经完成操作但响应丢失，子 Agent 也可能在另一个执行环境中继续工作。</p><p>生产系统还需要回答：</p><ul><li>当前是哪一次 Run、哪一个 Turn 在运行？</li><li>模型已经提出了什么行动，行动是否得到授权？</li><li>Tool 是尚未调用、正在执行、已经完成，还是结果未知？</li><li>用户刷新页面后，原审批是否仍然有效？</li><li>进程重启后，应该从哪里恢复？</li><li>Artifact 和子 Agent 属于哪个目标、判断和行动？</li><li>用户点击 Stop 时，究竟停止哪一次运行？</li><li>外部行动是否已经发生，重试会不会造成重复影响？</li></ul><p>这些问题不能依靠模型“记住”，也不能让 UI 从聊天文本中猜测。它们必须成为系统可以持久化、引用和恢复的运行事实。</p><p>我们把承载这类责任的工程系统称为 Agent Harness，并提出通过共享 State Schema、Runtime Event、View 和 Control，把模型行为转化为可恢复、可控制、可追溯的产品事实。vivo 团队关于<a href="https://my.oschina.net/vivotech/blog/19726101" target="_blank" rel="noopener noreferrer nofollow">从 ReAct 到 Agent Harness 的工程讨论</a>，是本文继续追问状态归属、恢复边界和产品一致性的一个直接起点。</p><p>这个视角与 KDC 的对象化、运行时化和治理化高度契合。但在接入 KDC 之前，需要先澄清“事实”并不只有一个层次。</p><h2 class="cb-heading" id="article-section-2" data-article-heading>三种事实不能混在一起</h2><p>在 Agent 系统中，至少存在三种需要分别管理的事实。</p><p>领域现实是应用软件的最终参照物。软件只能通过接口、事件、人工确认和其他表示间接观察它。</p><p>业务判断事实说明系统基于什么目标、知识和证据形成结论，又为什么建议某项行动。这里的“事实”不是说判断必然正确，而是说系统确实在特定上下文和依据下形成过这项判断。KDC 用推理对象或等价的 AI Action Record 表达这类责任。</p><p>软件运行事实则说明某次运行中已经发生了什么：Run 是否开始，审批是否挂起，Tool 是否执行，Artifact 是否创建，Checkpoint 位于哪里。</p><p>三者有关联，但不能互相替代：</p><pre><code class="language-">tool.call.completed  不等于退款已经到账pendingApproval = null  不等于用户已经同意退款页面显示“已完成”  不等于业务目标已经实现</code></pre><p>复制代码</p><p>Runtime 可以权威地声明“这次 Tool Call 已经完成”，却不能仅凭这个运行事实证明用户已经收到资金。UI 可以显示审批条，却不能因为审批条消失就推断用户已经授权。</p><p>KDC 与 Agent Harness 在这里形成互补：Harness 让运行事实可信，KDC 继续追问这些运行事实对应什么业务判断和领域现实。</p><h2 class="cb-heading" id="article-section-3" data-article-heading>生产级 Agent 需要两条可以连接的链</h2><p>KDC 的业务因果链关注系统为什么行动，以及行动是否实现现实目标：</p><pre><code class="language-">Reality  -&gt; Knowledge / Memory  -&gt; Reasoning  -&gt; Skill  -&gt; Capability  -&gt; Policy Decision  -&gt; Action  -&gt; Feedback  -&gt; Reality</code></pre><p>复制代码</p><p>Agent 产品的运行事实链关注一次执行如何持续存在：</p><pre><code class="language-">Runtime Event  -&gt; State-&gt;View       -&gt; Checkpoint -&gt; ResumeUser Control  -&gt; Runtime Event</code></pre><p>复制代码</p><p>两条链不能各自独立。只保留业务因果链，系统可能解释得清楚却无法恢复。只保留运行事实链，系统可以恢复调用，却不知道行动是否具备业务资格，也不知道最终结果是否实现现实目标。</p><pre><code class="language-">flowchart LR    subgraph B[“业务因果链：为什么行动“]        direction TB        T[“业务目标“] --&gt; K[“Knowledge / Memory“]        K --&gt; Q[“Reasoning Object“]        Q --&gt; L[“Skill“]        L --&gt; C[“Capability Proposal“]        C --&gt; P[“Policy Decision“]        P --&gt; A[“Action“]        A --&gt; F[“Reality Feedback“]end    subgraph R[“运行事实链：执行到哪里“]        direction TB        E[“Runtime Event“] --&gt; S[“State“]        S --&gt; V[“View“]        V --&gt; U[“User Control“]        U --&gt; E        S --&gt; H[“Checkpoint / Resume“]end    Q -.-&gt;|reasoningObjectId| S    L -.-&gt;|skillId| S    C -.-&gt;|capabilityId| S    P -.-&gt;|policyDecisionId| S    A -.-&gt;|toolCallId| E    F -.-&gt;|feedbackId| S</code></pre><p>复制代码</p><p><em>图：业务因果链与运行事实链通过稳定身份连接</em></p><p>连接两条链的关键不是复制更多文本，而是稳定身份：</p><pre><code class="language-">runIdturnIdreasoningObjectIdskillIdcapabilityIdpolicyDecisionIdapprovalIdtoolCallIdartifactIdfeedbackId</code></pre><p>复制代码</p><p>这些身份让系统知道，一条审批属于哪次判断，一次 Tool Call 来自哪个能力，一份 Artifact 支持哪个目标，一条反馈又应该修正哪次行动。</p><h2 class="cb-heading" id="article-section-4" data-article-heading>ReAct、Harness 和 KDC 分别解决什么</h2><p>三者并不是互相替代的架构方案。</p><p>从 KDC 视角看，Agent Harness 可以承担推理运行时、能力运行时和运行时可观测的一部分工程责任。它不是 KDC 的新核心对象，也不等于完整的能力控制平面。</p><p>更准确的关系是：</p><blockquote>ReAct 让模型能够连续决定下一步，Harness 让这些步骤成为可靠的软件运行事实，KDC 让运行事实可以追溯到业务目标、知识依据、行动资格和现实结果。</blockquote><h2 class="cb-heading" id="article-section-5" data-article-heading>公开实践不是一套统一理论，但正在回答同一组问题</h2><p>“Agent Harness”目前更像一组正在收敛的工程实践，而不是一套已有统一对象、边界和标准实现的理论。不同项目从不同故障出发，各自强调了生产级 Agent 的一部分责任。</p><p>这些实践共同暴露了状态连续性、外部副作用、长任务交接和系统评测问题，但对状态是否应该独立持久化、能否从线程上下文推导，并没有形成统一结论。Managed Agents 和 Durable Execution 更强调进程外的持久记录，12-Factor Agents 则更强调在可能时从统一线程上下文推导执行与业务状态。</p><p>KDC 与它们的关系不是用新名称重新包装这些机制。KDC 提供的是更上层的业务因果约束：运行现场要连接哪一次判断，判断依据什么知识，Capability 为什么有资格被使用，授权如何形成，以及最终由什么现实反馈证明目标实现。本文后面的 Session、Resume、Progress 和 Evaluation 等契约，是把公开工程经验接入这条业务因果链的尝试。</p><p>本文用 <strong>Contract</strong> 表示一组可以被实现、检查和测试的工程约束或交接模板，不把 Resume Contract、Progress Contract、Evaluation Contract 增加为 KDC 核心对象。</p><h2 class="cb-heading" id="article-section-6" data-article-heading>Harness 不是一个单体：Session、Harness 和执行环境应该解耦</h2><p>工程讨论中常把 Agent Harness 画成包围模型、工具和状态的一个大盒子。这个画法便于概括，却容易让团队把不同生命周期、不同信任等级的责任部署在同一个进程里。</p><p>Anthropic 在 Managed Agents 的实践中提出了一个有价值的拆分：Session 保存可以持续追加的运行记录，Harness 负责循环、上下文组织和控制逻辑，Sandbox 承担代码、命令或工具的实际执行。三者通过稳定接口协作，而不必共享生命周期。<a href="https://www.anthropic.com/engineering/managed-agents" target="_blank" rel="noopener noreferrer nofollow">Anthropic 的 Managed Agents 实践</a>还进一步说明，Harness 本身可以尽量无状态；即使 Harness 进程崩溃，新的实例也可以从外部持久化的 Session 重建现场。</p><p>把这个结构放入 KDC，可以得到一张更完整的运行拓扑：</p><pre><code class="language-">flowchart LR    U[“用户 / 外部事件“] --&gt; G[“Agent Harness&lt;br/&gt;循环、上下文与控制“]    G &lt;--&gt;|“读取 / 追加事件“| S[(“Durable Session&lt;br/&gt;Event Log + State“)]    G --&gt;|“Capability Command“| P[“能力控制平面 / 代理“]    P --&gt; X[“Sandbox / Tool / MCP Server“]    V[“凭证与密钥库“] --&gt;|“短期授权“| P    X --&gt;|“Observation / Result“| P    P --&gt;|“Runtime Event“| S    S --&gt;|“事实与反馈引用“| K[“KDC 业务因果链“]    K --&gt;|“知识、策略与资格“| G</code></pre><p>复制代码</p><p><em>图：可替换 Harness、持久化 Session 与隔离执行环境</em></p><p>其中每一部分承担不同责任：</p><p>这项拆分带来三个直接收益。</p><p>第一，<strong>恢复不再依赖原来的 Harness 实例</strong>。只要 Session 中的事件和状态足以重建现场，新的 Harness 或模型实例就可以接手；不同版本的运行器还必须满足 Session 接口、事件 Schema 和恢复语义兼容，或者先完成显式迁移。</p><p>第二，<strong>“大脑”和“手”可以分别扩展</strong>。一个 Harness 可以驱动多个隔离执行环境；一个长时间运行的 Sandbox 也可以在模型调用结束后继续完成任务。模型上下文结束，不等于外部工作必须终止。</p><p>第三，<strong>安全边界从 Prompt 约束变成结构约束</strong>。高权限凭证不进入模型上下文，也不直接暴露给不可信 Sandbox。能力代理根据主体、Capability、Policy Decision 和有效期发放最小权限或代为签名，并记录：</p><pre><code class="language-">executionEnvironmentIdsandboxTrustLevelcredentialScopecredentialLeaseIdnetworkPolicydataAccessPolicy</code></pre><p>复制代码</p><p>这并不要求所有系统立刻部署独立 Session 服务和 Sandbox 平台。它首先要求团队在接口和数据归属上把责任拆开：什么必须在进程外持久化，什么可以随 Harness 丢弃，什么只能由可信控制面执行，什么凭证绝不能进入模型可见范围。</p><h2 class="cb-heading" id="article-section-7" data-article-heading>最小运行对象：让现场拥有稳定归属</h2><p>KDC 的核心对象关注知识、记忆、推理、Skill 和 Capability。生产级 Agent 还需要一组支撑运行连续性的工程对象。</p><p>这些对象不必都成为独立数据库表，也不必升级成新的理论名词。它们首先是一组必须有明确 Owner、生命周期和持久化边界的工程责任。</p><p>对象化的判断标准仍然是：如果某个状态影响恢复、审批、继续执行、跨端一致、审计或结果检查，它就不应该只存在于聊天文本、Prompt、组件变量或临时缓存中。</p><h2 class="cb-heading" id="article-section-8" data-article-heading>Session、Context、State、Memory 和 Knowledge 不是同一个对象</h2><p>“让 Agent 记住”在工程讨论里经常同时指五件不同的事：保存对话、恢复运行、给模型组装上下文、跨任务保留经验，以及提供经过治理的知识。它们都与历史有关，却不能共享同一个生命周期和可信等级。</p><p><a href="https://adk.dev/sessions/" target="_blank" rel="noopener noreferrer nofollow">Google ADK 的 Session 文档</a>将 Session、State 和 Memory 分开：Session 表示当前交互线程及其事件，State 是这个 Session 中的临时数据，Memory 则支持跨 Session 检索。<a href="https://docs.langchain.com/oss/python/langgraph/persistence" target="_blank" rel="noopener noreferrer nofollow">LangGraph 的持久化设计</a>也区分线程内 Checkpointer 与跨线程 Store。这些划分说明“恢复当前任务”和“让历史影响未来任务”需要不同的持久化语义。</p><p>KDC 在此基础上还需要把 Context 和 Knowledge 单独列出：</p><p>最关键的区别是：</p><blockquote>Session 是可恢复的历史来源，Context 是一次模型调用对历史的选择性投影。</blockquote><p>Context 可以被裁剪、压缩、重排或重新生成。它不应该是唯一保存审批、Tool 状态或外部请求身份的地方。一次上下文压缩如果遗漏“用户已经批准”，不应该让审批重新变成待处理；一次新的模型调用如果没有看到全部 Trace，也不应该改变已经发生的外部事实。</p><p>为了使上下文选择可解释，生产系统可以为每次 Context Projection 记录：</p><pre><code class="language-">contextBuildIdsourceEventRangeincludedObjectRefsomittedObjectRefscompactionPolicyVersionpromptTemplateVersiontokenBudget</code></pre><p>复制代码</p><p>这些字段不是要永久保存模型看到的每一个 Token，而是让团队能够回答：这次判断基于 Session 中的哪些事实，哪些内容被摘要或省略，使用的是哪一版上下文策略。</p><p>同样，跨 Session 可检索也不等于已经形成 KDC Memory，更不等于形成 Knowledge。一个旧 Tool Result 可以进入搜索索引，但只有经过来源确认、适用范围判断、时效治理和必要验证后，它才有资格稳定影响未来判断或行动。</p><h2 class="cb-heading" id="article-section-9" data-article-heading>State、View 和 Control 必须分开</h2><p>一个常见失败方式，是让前端从消息文本中推断运行状态。</p><p>例如，模型输出：</p><pre><code class="language-">需要用户确认后才能发起退款。</code></pre><p>复制代码</p><p>UI 识别到“需要确认”，于是本地生成一个审批按钮。这个实现短期内可以工作，却没有回答：</p><ul><li>这条审批对应哪个 Run、Turn 和 Tool Call？</li><li>刷新之后如何恢复？</li><li>后端是否真的暂停在可恢复位置？</li><li>用户点击同意时，决定应该发送给谁？</li><li>策略已经变化或审批已经过期时怎么办？</li></ul><p>因此需要区分三类责任。</p><h3 class="cb-heading" id="article-section-10" data-article-heading>State 是可恢复的运行事实</h3><p>State 由 Runtime 或明确的业务边界产生并持久化。它可以包含：</p><pre><code class="language-">activeRuncurrentTurncheckpointpendingApprovalstoolCallsartifactRefssubagentRefsruntimeStatus</code></pre><p>复制代码</p><h3 class="cb-heading" id="article-section-11" data-article-heading>View 是从事实派生的展示</h3><p>View 可以包含：</p><pre><code class="language-">isBusycanStopapprovalBannertoolBadgessubagentProgressartifactPanel</code></pre><p>复制代码</p><p><code>pendingApproval</code> 存在，所以展示审批条。<code>activeRun</code> 处于运行状态，所以允许 Stop。View 可以随着交互设计变化，但不应该反向成为运行事实的权威来源。</p><h3 class="cb-heading" id="article-section-12" data-article-heading>Control 是命令，不是直接改状态</h3><p>用户点击批准、拒绝、停止或恢复时，UI 发送 Control：</p><pre><code class="language-">resume(approvalId, decision)stop(runId)retry(toolCallId)reload(threadId)</code></pre><p>复制代码</p><p>Control 表示“请求系统做什么”，不表示事情已经发生。用户点击 Stop 后，UI 不能直接把 Run 标记为已停止。Runtime 接收命令、处理取消边界，再产生新的 Event 和 State。</p><p>可以把边界压缩成一句话：</p><blockquote>Runtime 写运行事实，View 读取运行事实，Control 提交命令，UI 不替 Runtime 补写运行事实。</blockquote><h2 class="cb-heading" id="article-section-13" data-article-heading>语义责任必须分开，物理存储可以统一</h2><p>强调 State、View、Control、Session 和 Memory 的区别，不意味着第一版工程必须建立五套数据库。</p><p><a href="https://github.com/humanlayer/12-factor-agents/blob/main/content/factor-05-unify-execution-state.md" target="_blank" rel="noopener noreferrer nofollow">12-Factor Agents 的第五项原则</a>主张在可能的情况下统一执行状态和业务状态，从线程上下文中推导当前进度。这个方向有明确价值：单一事件序列更容易序列化、分叉、回放和调试，也减少了多个状态库之间的同步问题。</p><p>但“统一存储”不应退化为“从自然语言消息猜测权威状态”。尤其在退款、支付、权限变更等场景，下面这些状态必须有明确类型：</p><pre><code class="language-">approval.requiredapproval.grantedcapability.authorizedtool.call.dispatchedtool.call.acceptedtool.call.result_unknownfeedback.success_criteria_met</code></pre><p>复制代码</p><p>一种平衡方式是采用统一的追加事件日志，同时为不同语义建立强类型事件和投影：</p><pre><code class="language-">{  “eventId“: “event-109“,  “eventType“: “approval.required“,  “runId“: “run-20260727001“,  “turnId“: “turn-003“,  “producer“: “policy-runtime“,  “reasoningObjectId“: “reasoning-021“,  “capabilityId“: “refund-order-v2“,  “correlationId“: “refund-intent-031“,  “causationId“: “event-108“,  “schemaVersion“: 2,  “occurredAt“: “2026-07-27T16:42:10+08:00“,  “payload“: {    “approvalId“: “approval-017“,    “risk“: “high“,    “expiresAt“: “2026-07-27T18:00:00+08:00“  }}</code></pre><p>复制代码</p><p>同一份日志可以派生 Runtime State、用户 View、审计记录和评测轨迹，避免多处写入互相冲突。但每种投影仍然有自己的 Schema、Owner 和使用资格。审批状态必须由审批事件归约，不能因为 Agent 在文本中说“用户应该会同意”而改变；业务结果状态必须根据 Feedback Contract 检查反馈来源、证据和成功标准，不能因为 Tool 返回 <code>200</code> 就直接改写。</p><p>因此，更准确的工程原则是：</p><blockquote>语义责任必须分开，物理存储可以统一；能从事件确定性归约的状态不必重复写，不能可靠推导的高风险事实必须显式记录。</blockquote><h2 class="cb-heading" id="article-section-14" data-article-heading>一份最小 State Schema</h2><p>下面的结构只是用于说明责任边界，不是 KDC 标准 Schema：</p><pre><code class="language-">{  “session“: {    “sessionId“: “session-refund-001“,    “lastEventId“: “event-109“,    “stateSchemaVersion“: 2  },  “run“: {    “runId“: “run-20260727001“,    “status“: “waiting_for_approval“,    “goalRef“: “goal-refund-001“,    “currentTurnId“: “turn-003“,    “checkpointId“: “checkpoint-008“,    “contextBuildId“: “context-build-052“  },  “runtime“: {    “harnessVersion“: “harness-1.8.0“,    “modelVersion“: “model-release-202607“,    “executionEnvironmentId“: “sandbox-014“  },  “reasoning“: {    “reasoningObjectId“: “reasoning-021“,    “conclusion“: “eligible_but_requires_confirmation“,    “knowledgeRefs“: [“refund-policy-v4“],    “risk“: “high“  },  “pendingApprovals“: [    {      “approvalId“: “approval-017“,      “capabilityId“: “refund-order-v2“,      “toolCallId“: “tool-call-031“,      “policyDecisionId“: “policy-decision-044“,      “status“: “pending“,      “expiresAt“: “2026-07-27T18:00:00+08:00“    }  ],  “toolCalls“: [    {      “toolCallId“: “tool-call-031“,      “capabilityId“: “refund-order-v2“,      “status“: “proposed“,      “idempotencyKey“: “refund:order-001:intent-031“,      “externalRequestId“: null,      “dispatchedAt“: null,      “acceptedAt“: null,      “resultRef“: null,      “reconciliationStatus“: “not_required“,      “lastError“: null    }  ],  “artifactRefs“: [],  “subagentRefs“: []}</code></pre><p>复制代码</p><p>这个结构同时保留了三类信息：</p><ul><li>运行连续性所需的 <code>runId</code>、状态、Checkpoint 和审批；</li><li>业务因果追溯所需的推理对象、知识、能力和策略判定引用；</li><li>副作用控制所需的 Tool Call 状态、幂等键、外部请求和对账信息。</li></ul><p>如果 State 只保存 <code>pendingApproval = true</code>，它仍然不够。系统还需要知道等待的是哪项行动、来自哪次判断、由哪个策略要求、什么时候失效，以及恢复后应该回到哪个执行位置。</p><p>同一个 Tool Call 发出后，如果支付渠道可能已经受理但响应丢失，State 不应回退成“尚未调用”，而应保留同一个 <code>toolCallId</code> 和 <code>idempotencyKey</code>：</p><pre><code class="language-">{  “run“: {    “runId“: “run-20260727001“,    “status“: “awaiting_reconciliation“,    “checkpointId“: “checkpoint-009“  },  “toolCalls“: [    {      “toolCallId“: “tool-call-031“,      “capabilityId“: “refund-order-v2“,      “status“: “result_unknown“,      “idempotencyKey“: “refund:order-001:intent-031“,      “externalRequestId“: “payment-request-8841“,      “dispatchedAt“: “2026-07-27T16:48:12+08:00“,      “acceptedAt“: null,      “resultRef“: null,      “reconciliationStatus“: “pending“,      “lastError“: “response_timeout“    }  ],  “outcomeVerification“: {    “status“: “pending“,    “feedbackRefs“: []  }}</code></pre><p>复制代码</p><p>这里的 <code>result_unknown</code> 不是失败的另一种写法，而是一个禁止盲目重试的恢复边界。Runtime 必须先使用外部请求身份查询或对账，再决定完成、补偿还是转人工。</p><h2 class="cb-heading" id="article-section-15" data-article-heading>从判断到执行，需要经历一次可恢复的状态变化</h2><p>回到退款案例，一条更完整的运行路径可以这样设计。</p><h3 class="cb-heading" id="article-section-16" data-article-heading>1. 形成业务判断</h3><p>推理运行时识别用户目标，引用退款政策和订单事实，形成推理对象：订单符合退款条件，但需要用户最终确认。</p><h3 class="cb-heading" id="article-section-17" data-article-heading>2. 提出能力调用建议</h3><p>Agent 选择退款 Skill，并提出调用 <code>refund-order-v2</code> 的建议。此时只是行动建议，不是执行授权。</p><h3 class="cb-heading" id="article-section-18" data-article-heading>3. 控制平面要求确认</h3><p>策略根据能力风险、用户目标和当前证据返回 <code>requires_confirmation</code>。Runtime 产生 <code>approval.required</code> 事件，写入 Pending Approval，并创建 Checkpoint。</p><h3 class="cb-heading" id="article-section-19" data-article-heading>4. View 展示审批</h3><p>UI 从 Pending Approval 派生审批条。页面刷新后，审批条仍然可以从持久化 State 恢复，不需要重新解析聊天文本。</p><h3 class="cb-heading" id="article-section-20" data-article-heading>5. 用户提交 Control</h3><p>用户确认后，前端发送 <code>resume(approvalId, allow)</code>。Runtime 校验审批是否仍然有效、主体是否一致、能力版本和前置条件是否发生变化。</p><h3 class="cb-heading" id="article-section-21" data-article-heading>6. 能力运行时执行</h3><p>授权通过后，能力运行时调用底层 Tool。执行请求携带稳定的幂等键，并记录外部请求身份。</p><h3 class="cb-heading" id="article-section-22" data-article-heading>7. Runtime 记录执行结果</h3><p>Tool 返回后，Runtime 产生 <code>tool.call.completed</code> 或 <code>tool.call.result_unknown</code>，更新 State 和 Checkpoint。结果未知时，系统不能简单回到“未执行”。</p><h3 class="cb-heading" id="article-section-23" data-article-heading>8. 现实反馈关闭业务闭环</h3><p>支付渠道状态、对账结果或用户确认随后进入 Feedback Contract。只有系统取得符合成功标准的有效证据，才可以表达“退款已经到账”，并保留证据来源和验证时间。</p><p>这条路径将“业务上为什么可以做”和“软件上已经做到哪里”连接了起来。</p><h2 class="cb-heading" id="article-section-24" data-article-heading>Checkpoint 不等于 Durable Execution</h2><p>持久化 Checkpoint 只能说明系统知道从哪里恢复，不能自动保证外部行动只发生一次，也不能保证恢复后的代码路径与中断前完全相同。</p><p><a href="https://docs.langchain.com/oss/python/langgraph/interrupts" target="_blank" rel="noopener noreferrer nofollow">LangGraph 的 Interrupt 机制</a>会在暂停时持久化状态，并通过同一个 Thread 恢复；但恢复时所在 Node 会从头重新执行，因此 Interrupt 之前的副作用必须能够安全重放。<a href="https://docs.temporal.io/encyclopedia/event-history" target="_blank" rel="noopener noreferrer nofollow">Temporal 的 Event History</a>则用持久化事件历史记录 Workflow 生命周期，通过重放历史重建逻辑状态，并把外部副作用交给 Activity 等受控边界。</p><p>两类实践共同说明，Checkpoint 要与至少三个概念配合：</p><p>模型生成“执行退款”只产生行动建议。策略通过后，Runtime 才创建 Capability Command；能力运行时接收命令并调度 Tool Call；外部结果被观察和验证后，系统再追加 Event。把命令、执行和事实分开，才能在恢复时知道应该重放逻辑、查询外部状态，还是禁止再次执行。</p><p>考虑下面的时间窗口：</p><pre><code class="language-">退款请求已经被支付渠道受理  -&gt; 后端尚未写入 tool.call.completed  -&gt; 进程重启-&gt; 本地状态仍显示 running</code></pre><p>复制代码</p><p>恢复后直接重试，可能再次发起退款。生产系统至少要考虑：</p><ul><li>为高影响调用生成稳定幂等键；</li><li>区分“命令已发送”“外部系统已受理”“业务结果已确认”；</li><li>在结果未知时先查询或对账，而不是盲目重试；</li><li>使用事务消息、Outbox 或等价机制减少本地状态与事件发布之间的空窗；</li><li>记录能力的重试、补偿和人工接管策略；</li><li>让同一个 Approval 不能被重复消费；</li><li>恢复时重新验证已经变化的权限、政策和业务前置条件。</li></ul><p>这些规则不应该散落在某个 Agent Prompt 中，而应该形成一份可以由 Runtime 执行和测试的 <strong>Resume Contract</strong>：</p><p>对于高影响行动，执行状态与结果验证状态应该分别管理：</p><pre><code class="language-">Action Execution Statusproposed  -&gt; authorized  -&gt; dispatching  -&gt; accepted  -&gt; completed / faileddispatching / accepted  -&gt; result_unknown  -&gt; reconciling  -&gt; completed / failed / manual_handoffOutcome Verification Statusnot_observed  -&gt; pending  -&gt; confirmed_success / confirmed_failure / inconclusive</code></pre><p>复制代码</p><p>执行状态回答 Capability Command 和 Tool Call 已经走到哪里；结果验证状态回答系统掌握的反馈证据是否满足业务成功标准。二者通过 <code>toolCallId</code>、<code>feedbackId</code> 和目标引用连接，但不共享一个终态。Run 可以在外部工作已经可靠移交、结果仍为 <code>pending</code> 时结束，后续 Feedback 再更新业务结果状态。</p><p><code>result_unknown</code> 不是普通失败。它表示系统缺少足够证据判断外部行动是否已经发生，默认重试可能扩大风险。此时应该进入查询、对账或人工接管，而不是回退到 <code>authorized</code> 再次发起。</p><p>同样，Stop 也不是一个瞬间完成的布尔值。系统可能已经停止模型生成，却无法取消外部 Tool。它需要区分：</p><pre><code class="language-">stop.requestedmodel.cancelledtool.cancellation_requestedtool.cancelledexternal_action_irreversiblerun.stopped</code></pre><p>复制代码</p><p>可恢复不是“重新加载最后一条消息”，而是知道哪些事实已经发生、哪些行动仍在进行、哪些结果尚不确定，以及下一步怎样继续才不会扩大现实风险。</p><h2 class="cb-heading" id="article-section-25" data-article-heading>Run 结束以后，哪些事实可以离开 Session</h2><p>前文已经区分了 Session、State、Memory 和 Knowledge。更具体的工程问题是：Run 结束以后，哪些信息应该清理，哪些只为审计保留，哪些可以影响未来？</p><p>Checkpoint、Pending Approval 和 Active Run 用于恢复同一次任务。它们回答：</p><blockquote>这次运行执行到哪里？</blockquote><p>记忆对象用于让历史在受治理条件下影响未来任务。它回答：</p><blockquote>这段历史是否仍然可以影响未来判断和行动？</blockquote><p>一次退款 Run 结束后，Checkpoint 可以归档或清理，Pending Approval 必须关闭，短期凭证应该撤销。Runtime Event 可以根据审计、隐私和合规要求保留，但“被保留”不表示“可以被未来 Agent 检索并使用”。</p><p>此次运行中的内容进入未来，可以经过一条显式晋升路径：</p><pre><code class="language-">Runtime Event / Feedback  -&gt; Candidate Experience  -&gt; 来源与现实结果验证  -&gt; 适用范围、主体和时效判断  -&gt; Memory Object  -&gt; 多次验证与抽象  -&gt; Knowledge Candidate</code></pre><p>复制代码</p><p>例如，“这一次退款接口耗时 18 秒”通常只是运行记录；“该用户明确要求退款进度只通过短信通知”可能成为有期限的用户记忆；“某渠道在返回受理后仍需通过对账事件确认到账”在多次验证、明确边界和治理后，才可能形成可供未来推理使用的知识或规则。</p><h3 class="cb-heading" id="article-section-26" data-article-heading>用七个问题检查 Memory 与 Knowledge 是否真正连通</h3><p>团队可以用下面七个问题评估当前的记忆与知识工程能力：</p><blockquote>这条记忆来自什么经历？  它为什么仍能影响当前任务？  哪些记忆支持了这项候选知识？  这项知识经过了什么验证？  哪些反馈强化或推翻了它？  它目前能支持哪些判断和行动？  现实变化后，系统会降级、替换还是停止使用它？</blockquote><p>这七个问题依次检查来源追溯、记忆使用资格、经验到知识的证据链、知识验证、反馈修正、行动边界和生命周期治理。如果系统只能回答“内容存在哪里、如何被召回”，却不能回答这些问题，那么它仍然主要是一个存储与检索系统，还没有形成 Memory 与 Knowledge 相互连接的运行能力。</p><p>因此：</p><pre><code class="language-">持久化 State ≠ 形成 Memory能够恢复 Run ≠ 历史可以影响未来保存所有 Event ≠ 获得组织经验</code></pre><p>复制代码</p><p>把两者混在一起，会让临时运行状态长期污染用户画像，也会让真正需要复用的经验淹没在事件日志中。反过来，如果所有 Session 都在任务结束后整体删除，团队也无法从真实结果中形成受验证的经验。关键不是“全部保存”或“全部遗忘”，而是为不同对象设置明确的使用资格、保留期限、删除机制和晋升路径。</p><h2 class="cb-heading" id="article-section-27" data-article-heading>日志和 Trace 仍然不等于运行状态</h2><p>日志、Trace 和 Event 都很重要，但它们的职责不同。</p><p>Trace 适合还原一次请求经过哪些组件以及耗时和错误。Event 表达某项状态变化已经发生。State 表达系统当前可恢复的事实。Checkpoint 保存继续执行所需的位置和上下文。</p><p>系统可以从完整 Event Log 重建 State，也可以持久化 State Snapshot 并保留增量事件。具体方案取决于规模、恢复时延、审计要求和基础设施能力。</p><p>无论采用哪种方式，运行信号都应该携带稳定的业务因果引用：</p><pre><code class="language-">runIdreasoningObjectIdcapabilityIdpolicyDecisionIdtoolCallIdfeedbackId</code></pre><p>复制代码</p><p>否则，团队只能知道某个 Tool 在某个时间失败，却不知道它服务什么目标、基于什么知识、为什么被允许，也不知道错误应该回到推理、治理、能力实现还是外部系统。</p><h2 class="cb-heading" id="article-section-28" data-article-heading>长时间任务还需要 Progress Contract</h2><p>有些 Agent 任务会跨越多个上下文窗口、多个模型调用，甚至多个工作日。此时，持久化完整 Session 仍然不够。下一次接手的 Agent 虽然可以读取全部历史，却不一定能迅速判断当前基线是否可用、哪些工作已经验证、哪些只是尝试，以及接下来最安全的一步是什么。</p><p><a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents" target="_blank" rel="noopener noreferrer nofollow">Anthropic 关于长时间运行 Agent Harness 的研究</a>发现，仅依赖上下文压缩很容易让后续 Agent 高估进展、重复修改或破坏已经工作的部分。其工程方案包括初始化 Agent、结构化功能清单、进度文件、版本历史、环境启动脚本，以及每个会话只推进一个可验证增量。</p><p>把这类经验推广到业务 Agent，可以定义一份 <strong>Progress Contract</strong>。它不是自由文本工作日志，而是当前工作现场的结构化交接面：</p><p>例如，一个“协助完成供应商准入”的 Agent 可能跨越材料收集、合规检查、人工补件、审批和系统开户。Progress Contract 不应该只写“资料基本完成”，而应明确：营业执照已经验证，税务信息仍待人工确认，合规审批尚未发生，开户 Capability 因此仍不可用；下一步只能请求补件，不能重复创建供应商。</p><p>Progress Contract 与前面的几个对象仍然不同：</p><pre><code class="language-">Checkpoint 说明从哪里恢复执行Runtime State 说明当前机器状态Progress Contract 说明跨 Session 如何可靠接手工作Memory 说明哪些历史有资格影响未来Knowledge 说明未来判断可以依据什么</code></pre><p>复制代码</p><p>一次长任务会话开始时，Harness 应先恢复环境、读取 Progress Contract 并验证基线；结束前则应关闭不完整副作用、更新工作项、附上证据，并留下一个可执行的下一步。这样，交接不再依赖下一次模型从几十万 Token 的历史中自行揣测现场。</p><h2 class="cb-heading" id="article-section-29" data-article-heading>Agent Harness 本身也需要 Evaluation Contract</h2><p>Agent 能完成演示，不代表 Harness 能承担生产责任。模型、Prompt、上下文选择、恢复逻辑、Capability 描述和策略代理共同决定系统行为，因此不能只单独评价模型。</p><p><a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents" target="_blank" rel="noopener noreferrer nofollow">Anthropic 的 Agent 评测方法</a>区分了 Agent Harness 与 Evaluation Harness，并进一步区分 Transcript 或 Trajectory 和 Outcome：前者是 Agent 采取过的路径，后者是任务结束后环境真正处于什么状态。这个区分与 KDC 的核心问题高度一致：一条漂亮的推理轨迹不能代替现实反馈，一句“退款成功”也不能代替到账事实。</p><p>对 KDC 工程实现而言，至少需要四类 Grader：</p><p>这些 Grader 可以组合确定性代码检查、模型判定和人工复核。高风险不变量应尽量使用代码或权威数据源验证，例如“同一审批只能消费一次”“未经授权不得调用退款能力”；表达质量、解释完整性等开放问题可以使用模型或人工评价。</p><p>一份 <strong>Evaluation Contract</strong> 可以包含：</p><pre><code class="language-">taskDefinitioninitialEvidenceSnapshotsuccessFeedbackCriteriaforbiddenOutcomesrequiredCapabilitiesforbiddenCapabilitiesinterruptionInjectionstrajectoryGradersrecoveryGradersoutcomeGradersgovernanceGraderstrialCountversionMatrixreleaseThresholds</code></pre><p>复制代码</p><p><code>initialEvidenceSnapshot</code> 保存的是系统在 Trial 开始时获得的现实表示、来源和版本，而不是对 Reality 的直接复制。这样，Evaluation Contract 既能固定评测初始条件，也不会把数据快照误写成现实本身。</p><p>其中 <code>interruptionInjections</code> 应主动覆盖最难在正常演示中出现的问题：在审批前刷新、在外部系统受理后断网、在 Tool 返回前杀死 Harness、在 Resume 前升级策略、重复投递回调、让子 Agent 延迟返回。</p><p>Agent 运行存在非确定性，同一个任务需要多次 Trial 才能看出成功率和风险分布。能力探索阶段可以使用较难任务寻找系统上限；持续发布阶段则需要固定回归集，阻止模型、Harness 或 Capability 升级重新引入已经修复的问题。</p><p>评测结果也不宜过早压缩成一个综合分数。退款重复执行一次的风险，不能被十次措辞更自然的回答抵消。KDC 更关心每项关键责任是否达到门槛，以及失败究竟发生在知识、推理、治理、运行恢复、能力执行还是现实反馈。</p><h2 class="cb-heading" id="article-section-30" data-article-heading>Harness 的假设也有生命周期</h2><p>Harness 并不是一层写完就不再变化的基础设施。模型能力提升后，过去为了弥补模型缺陷而加入的固定流程可能限制新模型；模型、上下文算法或 Tool 行为改变后，旧 Checkpoint 也未必能由新版本无损恢复。</p><p>因此，运行事件和评测结果至少应该能够关联：</p><pre><code class="language-">modelVersionharnessVersionpromptTemplateVersioncontextPolicyVersionstateSchemaVersionskillVersioncapabilityVersionpolicyVersionknowledgeVersionevaluationSuiteVersion</code></pre><p>复制代码</p><p>版本记录不是为了让每次调用携带一长串不可读元数据，而是为四类工程决策提供依据：</p><ul><li>旧 Checkpoint 是否需要迁移、沿用旧 Runtime 恢复或直接转人工；</li><li>新模型能否移除已经过时的编排补丁，而不破坏业务约束；</li><li>Capability 或 Policy 升级后，哪些挂起审批必须重新判定；</li><li>线上回归究竟由模型、Harness、上下文、知识还是外部依赖变化引起。</li></ul><p>比较稳妥的升级方式是保持 Session、Harness 和 Sandbox 之间的接口稳定，对版本组合运行 Evaluation Contract，先小流量验证，再逐步放量；同时为高风险 Capability 保留回滚、暂停和人工接管能力。系统要治理的不只是 Agent 的行动，也包括 Harness 自己关于模型和运行环境的假设。</p><h2 class="cb-heading" id="article-section-31" data-article-heading>不要先建设一个庞大的 Harness 平台</h2><p>和 KDC 的其他运行时一样，Agent Harness 首先是一组工程责任，不必从独立平台开始。</p><p>第一版可以只选择一条高影响流程，补齐：</p><ul><li>稳定的 Run、Turn 和 Tool Call 身份；</li><li>进程外持久化的 Session Event 与可恢复 State；</li><li>持久化 Pending Approval；</li><li>一个可以恢复的 Checkpoint；</li><li>State、View 和 Control 的边界；</li><li>一份明确重放、幂等、对账和版本兼容规则的 Resume Contract；</li><li>高风险调用的幂等与结果核验；</li><li>模型可见上下文与执行凭证、Sandbox 的隔离；</li><li>推理、能力、策略和反馈的关联键；</li><li>刷新、重启、重复提交和结果未知场景的 Evaluation Contract。</li></ul><p>当多个 Agent 产品开始重复处理审批、恢复、Artifact、子 Agent 和运行控制时，再把这些机制抽象为共享 Harness 或 Agent Runtime。</p><p>抽象顺序仍然应该是：</p><pre><code class="language-">真实故障与业务风险  -&gt; 明确运行事实  -&gt; 建立最小状态协议  -&gt; 验证恢复和治理边界  -&gt; 再形成共享平台能力</code></pre><p>复制代码</p><h2 class="cb-heading" id="article-section-32" data-article-heading>实践：对一条 Agent 流程做恢复演练</h2><p>选择一个会产生现实影响的任务，例如退款、发消息、创建订单、修改权限或提交审批。不要只测试正常路径，至少演练下面这些故障。</p><p>演练完成后，应留下五份最小产物：</p><ol><li>一份 State 与 Event Schema，说明哪些状态必须持久化、由谁产生以及如何归约；</li><li>一份 Resume Contract，说明每种中断后的重放边界、幂等、对账、补偿和版本规则；</li><li>一份安全边界说明，标出模型、Harness、能力代理、Sandbox、数据与凭证之间的信任关系；</li><li>一份 Progress Contract，说明长任务怎样验证基线、交接现场和确定下一步；</li><li>一份 Evaluation Contract，用故障注入和多类 Grader 验证轨迹、恢复、治理和现实结果。</li></ol><p>如果团队仍需要读取聊天文本、查看多个日志并询问当时值班人员，才能判断一次行动是否已获授权、是否已经执行以及能否重试，那么运行事实还没有成为稳定的生产能力。</p><h2 class="cb-heading" id="article-section-33" data-article-heading>从“模型做过什么”走向“系统可以相信什么”</h2><p>生产级 Agent 的难点不只是让模型形成更好的计划，也不只是接入更多 Tool。</p><p>系统需要同时回答三组问题。</p><p>第一组是业务因果问题：</p><pre><code class="language-">为什么这样判断？依据什么知识？谁允许采取行动？行动是否实现现实目标？</code></pre><p>复制代码</p><p>第二组是运行连续性问题：</p><pre><code class="language-">当前执行到哪里？什么状态可以恢复？什么命令仍然有效？哪些外部影响已经发生？</code></pre><p>复制代码</p><p>第三组是验证与演进问题：</p><pre><code class="language-">中断之后能否安全继续？下一次 Session 能否可靠接手？最终环境是否真的达到目标状态？模型、Harness 或能力升级是否造成回归？</code></pre><p>复制代码</p><p>Agent Harness 主要补齐运行连续性，Evaluation Harness 检查运行路径和现实结果，KDC 尝试把三组问题连接到同一条责任链上。</p><p>当业务因果链和运行事实链拥有稳定身份、明确 Owner、恢复契约和可验证边界时，Agent 才不只是“完成了一次模型循环”。它开始成为一个能够在中断、恢复、交接、审批、失败、升级和现实反馈中继续承担工程责任的软件系统。</p><h2 class="cb-heading" id="article-section-34" data-article-heading>理论边界与开放问题</h2><p>本文把 Agent Harness 视为一种外部工程参考，而不是 KDC 的新核心术语。Run、Turn、Checkpoint、Pending Approval、Artifact Reference 和 Control Command 是候选运行时对象，其最小结构、状态机、持久化方式和跨框架协议仍需要通过具体实现验证。Session、Harness、Sandbox 的三层拓扑，以及 Resume Contract、Progress Contract、Evaluation Contract，是结合现有公开实践提出的 Derived 工程模型，不表示行业已经形成统一标准。</p><p>业务因果链与运行事实链的双链结构同样属于当前阶段的 Derived 工程模型。它与事件溯源、Durable Execution、工作流引擎、Saga、状态机、Agent Framework 和可观测系统之间的精确边界仍需要继续比较。尤其是统一事件存储能否在具体业务中同时满足性能、隐私、删除、审计和跨地域要求，旧 Checkpoint 如何跨模型与 Harness 版本恢复，以及哪些上下文投影元数据值得长期保留，都仍是开放问题。</p><p>本文也不主张所有低风险问答都采用完整的持久化、Sandbox 和审计结构。行动影响越大、执行时间越长、人工等待越多、外部副作用越难撤销，运行事实显式化和契约化的必要性才越强。具体实现应根据风险分层，而不是把完整拓扑机械复制到每一次模型调用。</p><h2 class="cb-heading" id="article-section-35" data-article-heading>参考</h2><ul><li>Shunyu Yao 等：《<a href="https://arxiv.org/abs/2210.03629" target="_blank" rel="noopener noreferrer nofollow">ReAct: Synergizing Reasoning and Acting in Language Models</a>》</li><li>Anthropic：《<a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents" target="_blank" rel="noopener noreferrer nofollow">Effective harnesses for long-running agents</a>》</li><li>Anthropic：《<a href="https://www.anthropic.com/engineering/managed-agents" target="_blank" rel="noopener noreferrer nofollow">Scaling Managed Agents: Decoupling the brain from the hands</a>》</li><li>Anthropic：《<a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents" target="_blank" rel="noopener noreferrer nofollow">Demystifying evals for AI agents</a>》</li><li>LangChain：《<a href="https://docs.langchain.com/oss/python/langgraph/persistence" target="_blank" rel="noopener noreferrer nofollow">LangGraph Persistence</a>》</li><li>LangChain：《<a href="https://docs.langchain.com/oss/python/langgraph/interrupts" target="_blank" rel="noopener noreferrer nofollow">LangGraph Interrupts</a>》</li><li>Temporal：《<a href="https://docs.temporal.io/encyclopedia/event-history" target="_blank" rel="noopener noreferrer nofollow">Event History</a>》</li><li>Google：《<a href="https://adk.dev/sessions/" target="_blank" rel="noopener noreferrer nofollow">Agent Development Kit: Sessions</a>》</li><li>HumanLayer：《<a href="https://github.com/humanlayer/12-factor-agents/blob/main/content/factor-05-unify-execution-state.md" target="_blank" rel="noopener noreferrer nofollow">12-Factor Agents: Unify execution state and business state</a>》</li></ul><p><strong>版权声明：</strong> 本文采用 <a href="https://creativecommons.org/" target="_blank" rel="noopener noreferrer nofollow">CC BY-NC-ND 4.0（署名-非商业性使用-禁止演绎）</a> 许可协议。转载请注明出处</p></div>
+  <div class="content-footer"><div class="disclaimer">正文来自 RSS 或原网页；DataHot 仅做安全清洗和版式整理，未使用 AI 改写</div><a class="original-footer-link" href="https://www.infoq.cn/article/AkgUFEFE4uG7WIlqaO2g?utm_source=rss&amp;utm_medium=article" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="InfoQ 中文"><span>查看原文</span><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div>
+</section>
+  <div class="vendors article-tags" aria-label="文章主题"><a class="chip" href="../topics/data-agent.html">Data Agent</a></div>
+
+  
+  </main>
+  <aside class="article-toc-rail" aria-label="本文目录"><div class="article-toc-title">本文目录 <span>35 节</span></div><ol><li class="toc-level-2"><a href="#article-section-1" data-toc-link data-toc-target="article-section-1">会执行一次循环，不等于可以运行一个产品</a></li><li class="toc-level-2"><a href="#article-section-2" data-toc-link data-toc-target="article-section-2">三种事实不能混在一起</a></li><li class="toc-level-2"><a href="#article-section-3" data-toc-link data-toc-target="article-section-3">生产级 Agent 需要两条可以连接的链</a></li><li class="toc-level-2"><a href="#article-section-4" data-toc-link data-toc-target="article-section-4">ReAct、Harness 和 KDC 分别解决什么</a></li><li class="toc-level-2"><a href="#article-section-5" data-toc-link data-toc-target="article-section-5">公开实践不是一套统一理论，但正在回答同一组问题</a></li><li class="toc-level-2"><a href="#article-section-6" data-toc-link data-toc-target="article-section-6">Harness 不是一个单体：Session、Harness 和执行环境应该解耦</a></li><li class="toc-level-2"><a href="#article-section-7" data-toc-link data-toc-target="article-section-7">最小运行对象：让现场拥有稳定归属</a></li><li class="toc-level-2"><a href="#article-section-8" data-toc-link data-toc-target="article-section-8">Session、Context、State、Memory 和 Knowledge 不是同一个对象</a></li><li class="toc-level-2"><a href="#article-section-9" data-toc-link data-toc-target="article-section-9">State、View 和 Control 必须分开</a></li><li class="toc-level-3"><a href="#article-section-10" data-toc-link data-toc-target="article-section-10">State 是可恢复的运行事实</a></li><li class="toc-level-3"><a href="#article-section-11" data-toc-link data-toc-target="article-section-11">View 是从事实派生的展示</a></li><li class="toc-level-3"><a href="#article-section-12" data-toc-link data-toc-target="article-section-12">Control 是命令，不是直接改状态</a></li><li class="toc-level-2"><a href="#article-section-13" data-toc-link data-toc-target="article-section-13">语义责任必须分开，物理存储可以统一</a></li><li class="toc-level-2"><a href="#article-section-14" data-toc-link data-toc-target="article-section-14">一份最小 State Schema</a></li><li class="toc-level-2"><a href="#article-section-15" data-toc-link data-toc-target="article-section-15">从判断到执行，需要经历一次可恢复的状态变化</a></li><li class="toc-level-3"><a href="#article-section-16" data-toc-link data-toc-target="article-section-16">1. 形成业务判断</a></li><li class="toc-level-3"><a href="#article-section-17" data-toc-link data-toc-target="article-section-17">2. 提出能力调用建议</a></li><li class="toc-level-3"><a href="#article-section-18" data-toc-link data-toc-target="article-section-18">3. 控制平面要求确认</a></li><li class="toc-level-3"><a href="#article-section-19" data-toc-link data-toc-target="article-section-19">4. View 展示审批</a></li><li class="toc-level-3"><a href="#article-section-20" data-toc-link data-toc-target="article-section-20">5. 用户提交 Control</a></li><li class="toc-level-3"><a href="#article-section-21" data-toc-link data-toc-target="article-section-21">6. 能力运行时执行</a></li><li class="toc-level-3"><a href="#article-section-22" data-toc-link data-toc-target="article-section-22">7. Runtime 记录执行结果</a></li><li class="toc-level-3"><a href="#article-section-23" data-toc-link data-toc-target="article-section-23">8. 现实反馈关闭业务闭环</a></li><li class="toc-level-2"><a href="#article-section-24" data-toc-link data-toc-target="article-section-24">Checkpoint 不等于 Durable Execution</a></li><li class="toc-level-2"><a href="#article-section-25" data-toc-link data-toc-target="article-section-25">Run 结束以后，哪些事实可以离开 Session</a></li><li class="toc-level-3"><a href="#article-section-26" data-toc-link data-toc-target="article-section-26">用七个问题检查 Memory 与 Knowledge 是否真正连通</a></li><li class="toc-level-2"><a href="#article-section-27" data-toc-link data-toc-target="article-section-27">日志和 Trace 仍然不等于运行状态</a></li><li class="toc-level-2"><a href="#article-section-28" data-toc-link data-toc-target="article-section-28">长时间任务还需要 Progress Contract</a></li><li class="toc-level-2"><a href="#article-section-29" data-toc-link data-toc-target="article-section-29">Agent Harness 本身也需要 Evaluation Contract</a></li><li class="toc-level-2"><a href="#article-section-30" data-toc-link data-toc-target="article-section-30">Harness 的假设也有生命周期</a></li><li class="toc-level-2"><a href="#article-section-31" data-toc-link data-toc-target="article-section-31">不要先建设一个庞大的 Harness 平台</a></li><li class="toc-level-2"><a href="#article-section-32" data-toc-link data-toc-target="article-section-32">实践：对一条 Agent 流程做恢复演练</a></li><li class="toc-level-2"><a href="#article-section-33" data-toc-link data-toc-target="article-section-33">从“模型做过什么”走向“系统可以相信什么”</a></li><li class="toc-level-2"><a href="#article-section-34" data-toc-link data-toc-target="article-section-34">理论边界与开放问题</a></li><li class="toc-level-2"><a href="#article-section-35" data-toc-link data-toc-target="article-section-35">参考</a></li></ol></aside>
+  </div>
+</div>
+<footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
+<nav class="tabbar" aria-label="移动端主导航">
+  <a href="../index.html" class="on" data-home-top><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../for-me.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg></span><span>关注</span></a><a href="../topics.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>
+  <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
+</nav>
+<div class="more-mask" data-more-mask aria-hidden="true"></div>
+<section class="more-sheet" id="mobileMoreSheet" role="dialog" aria-modal="true" aria-labelledby="mobileMoreTitle" aria-hidden="true">
+  <div class="more-handle" aria-hidden="true"></div>
+  <div class="more-head"><h2 id="mobileMoreTitle">更多</h2><button class="more-close" type="button" data-more-close aria-label="关闭更多导航">×</button></div>
+  <div class="more-grid"><a class="more-link" href="../weekly.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span>每周简报</span></a><a class="more-link" href="../hot.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></span><span>完整榜单</span></a><a class="more-link" href="../sources.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span><span>信源</span></a><a class="more-link" href="../agent.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg></span><span>接入 Agent</span></a><a class="more-link" href="../privacy.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg></span><span>隐私说明</span></a></div>
+</section>
+<script>
+(function(){
+  var homeLink=document.querySelector('[data-home-top]');
+  if(homeLink) homeLink.addEventListener('click',function(event){
+    if(document.body&&document.body.classList.contains('home-page')) return;
+    var button=event.button==null?0:event.button;
+    if(event.defaultPrevented||button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey) return;
+    try{
+      var current=new URL(window.location.href);
+      var target=new URL(homeLink.href,current);
+      var source=new URL(document.referrer,current);
+      var targetRoot=target.pathname.replace(/index\.html$/,'');
+      var sourceIsHome=source.origin===target.origin&&(source.pathname===target.pathname||source.pathname===targetRoot);
+      if(!sourceIsHome||window.history.length<=1) return;
+      window.sessionStorage.setItem('datahotForceHomeTop','1');
+      event.preventDefault();window.history.back();
+    }catch(error){}
+  });
+  var trigger=document.querySelector('[data-more-open]');
+  var sheet=document.getElementById('mobileMoreSheet');
+  var mask=document.querySelector('[data-more-mask]');
+  var closeBtn=document.querySelector('[data-more-close]');
+  if(!trigger||!sheet||!mask||!closeBtn) return;
+  var background=Array.from(document.body.children).filter(function(node){return node!==sheet&&node!==mask&&node.tagName!=='SCRIPT'});
+  function setMore(open){
+    if(!open) background.forEach(function(node){node.removeAttribute('inert')});
+    trigger.setAttribute('aria-expanded',open?'true':'false');
+    sheet.setAttribute('aria-hidden',open?'false':'true');
+    sheet.classList.toggle('show',open);
+    mask.classList.toggle('show',open);
+    document.body.classList.toggle('more-open',open);
+    if(open){background.forEach(function(node){node.setAttribute('inert','')});closeBtn.focus()}else trigger.focus();
+  }
+  trigger.addEventListener('click',function(){setMore(true)});
+  closeBtn.addEventListener('click',function(){setMore(false)});
+  mask.addEventListener('click',function(){setMore(false)});
+  document.addEventListener('keydown',function(event){
+    if(!sheet.classList.contains('show')) return;
+    if(event.key==='Escape'){setMore(false);return}
+    if(event.key!=='Tab') return;
+    var focusable=Array.from(sheet.querySelectorAll('a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])'));
+    if(!focusable.length) return;
+    var first=focusable[0],last=focusable[focusable.length-1];
+    if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+    else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+  });
+})();
+</script>
+
+
+<div class="sh-mask" id="shMask" data-share-action="close"></div>
+<div class="sh-sheet" id="shSheet"><div class="sh-panel">
+  <div class="sh-group">
+    <div class="sh-title">分享这条资讯</div>
+    <button class="sh-opt" type="button" data-share-action="copy"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 复制链接</button>
+    <button class="sh-opt" type="button" data-share-action="native"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 系统分享…</button>
+  </div>
+  <button class="sh-cancel" type="button" data-share-action="close">取消</button>
+</div></div>
+<div class="sh-poster-modal" id="shPoster">
+  <div class="sh-poster-wrap"><img id="shPosterImg" alt="分享海报"></div>
+  <div class="sh-poster-actions">
+    <a class="sh-save" id="shSave" href="#" data-share-action="save">保存图片</a>
+    <button class="sh-close" type="button" data-share-action="close">关闭</button>
+  </div>
+  <div class="sh-poster-tip">iOS 也可以长按图片保存</div>
+</div>
+<div class="sh-toast" id="shToast"></div>
+<style>
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;margin-bottom:14px}
+.topbar .back{flex:0 0 auto;white-space:nowrap}
+.sharebtns{display:flex;justify-content:flex-end;gap:8px;min-width:0;max-width:100%;margin-left:auto}
+.sharebtns .sbtn{min-width:76px}
+.sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-height:44px;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
+.sbtn svg{flex:0 0 auto}
+.sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.sbtn:active{transform:scale(.95)}
+.topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topbar.detail-context .back{display:inline-flex;align-items:center;justify-content:center;align-self:center;min-width:88px;min-height:44px;margin-bottom:0;padding:0 14px;border-radius:99px;font-size:14px;font-weight:650;color:var(--ink);text-decoration:none}
+.topbar.detail-context .back{gap:5px}
+.topbar.detail-context .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:600px){
+.article{padding:20px 14px 48px}
+.topbar{align-items:center;flex-direction:row;gap:8px}
+.topbar.detail-context{margin:-20px -14px 14px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
+.topbar.detail-context .back{align-self:center}
+.sharebtns{width:auto;gap:4px;overflow:visible;padding-bottom:0}
+.sharebtns .sbtn{width:56px;min-width:56px;height:44px;padding:0 6px;font-size:12px}
+.sharebtns .sbtn-label{display:inline}
+}
+@media(max-width:359px){
+.topbar.detail-context .back{width:44px;min-width:44px;padding:0}
+.topbar.detail-context .back-label{display:none}
+}
+.sh-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.25s;z-index:80}
+.sh-mask.show{opacity:1;pointer-events:auto}
+.sh-sheet{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(110%);transition:transform .3s cubic-bezier(.32,.72,.35,1);padding:0 10px calc(10px + env(safe-area-inset-bottom))}
+.sh-sheet.show{transform:translateY(0)}
+.sh-panel{max-width:430px;margin:0 auto}
+.sh-group{background:var(--card);border-radius:16px;overflow:hidden;margin-bottom:8px}
+.sh-title{font-size:12px;color:var(--sub);text-align:center;padding:12px;border-bottom:.5px solid var(--line)}
+.sh-opt{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px;font-size:16px;font-weight:500;border:none;border-bottom:.5px solid var(--line);cursor:pointer;background:none;width:100%;color:var(--ink)}
+.sh-opt:last-child{border-bottom:none}
+.sh-opt:active{background:var(--hover)}
+.sh-cancel{background:var(--card);border-radius:16px;padding:15px;text-align:center;font-size:16px;font-weight:600;color:var(--blue);cursor:pointer;width:100%;border:none}
+.sh-poster-modal{position:fixed;inset:0;z-index:95;background:rgba(15,17,20,.92);display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.sh-poster-modal.show{display:flex}
+.sh-poster-wrap{width:min(340px,86vw);border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.sh-poster-wrap img{width:100%;display:block}
+.sh-poster-actions{margin-top:18px;display:flex;gap:10px}
+.sh-save,.sh-close{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:none;border-radius:99px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
+.sbtn:focus-visible,.sh-opt:focus-visible,.sh-cancel:focus-visible,.sh-save:focus-visible,.sh-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sh-save{background:var(--accent);color:#fff}
+.sh-close{background:rgba(255,255,255,.15);color:#fff}
+.sh-poster-tip{margin-top:10px;font-size:11px;color:#8b919b}
+.sh-toast{position:fixed;top:18%;left:50%;transform:translateX(-50%);background:rgba(26,29,35,.92);color:#fff;font-size:13px;padding:10px 20px;border-radius:99px;opacity:0;transition:.25s;z-index:99;pointer-events:none}
+.sh-toast.show{opacity:1}
+</style>
+<script>
+if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
+}
+var SH_EV = {"title":"如何把 Agent 的判断与行动变成可恢复的软件事实 | KDC 工程补篇","summary":"本文从退款审批场景切入，指出 Agent 单次执行循环不等于业务就绪，系统必须让目标、判断、审批、执行、产物和反馈拥有稳定状态。作者提出业务因果链与运行事实链双链结构，将 Session、Harness 与执行环境解耦，并定义 Resume、Progress、Evaluation 三类 Contract 支撑状态恢复、交接与持续演进。适合 AI 架构师、Agent 系统工程师和数据平台建设者阅读。","reason":"数据从业者应关注 Agent 在生产环境中的可恢复、可控制与可审计能力，这是 Data Agent 从演示走向真实业务的关键工程基础。","topic":"Data Agent","heat":66,"source":"InfoQ 中文","date":"2026-08-27","url":"https://datahot.xiahongbin.com/e/86beae9f2748.html","qr":"../qr/86beae9f2748.png"};
+function shClose(){
+  document.getElementById('shMask').classList.remove('show');
+  document.getElementById('shSheet').classList.remove('show');
+  document.getElementById('shPoster').classList.remove('show');
+}
+function openSheet(){
+  document.getElementById('shMask').classList.add('show');
+  document.getElementById('shSheet').classList.add('show');
+}
+function shToast(t){
+  var el=document.getElementById('shToast'); el.textContent=t; el.classList.add('show');
+  setTimeout(function(){el.classList.remove('show')},1600);
+}
+function shCopy(){
+  shClose();
+  function fallbackCopy(text){
+    var i=document.createElement('input');i.value=text;i.setAttribute('readonly','');document.body.appendChild(i);i.select();
+    var ok=false;try{ok=document.execCommand('copy');}catch(e){ok=false}i.remove();return ok;
+  }
+  var copied=navigator.clipboard&&navigator.clipboard.writeText
+    ?navigator.clipboard.writeText(SH_EV.url).then(function(){return true},function(){return fallbackCopy(SH_EV.url)})
+    :Promise.resolve(fallbackCopy(SH_EV.url));
+  copied.then(function(ok){shToast(ok?'链接已复制，去粘贴吧':'复制失败，请手动复制链接');});
+}
+function shSaveClick(ev){
+  ev.preventDefault();
+  if(!posterURL){return;}
+  var blob=dataToBlob(posterURL);
+  // iOS 相册直存：Web Share API 文件分享 → 原生面板选「存储图像」
+  try{
+    var file=new File([blob],'datahot-'+SH_EV.title.slice(0,20)+'.png',{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      navigator.share({files:[file],title:SH_EV.title}).then(function(){
+        shToast('已调起系统分享，选择"存储图像"即可存入相册');
+      }).catch(function(){});
+      return;
+    }
+  }catch(e){}
+  // 降级：新标签页打开，长按保存
+  var bu=URL.createObjectURL(blob);
+  var w=window.open(bu,'_blank');
+  if(!w){shToast('请长按图片保存到相册');}
+  else{shToast('已在新页面打开，长按图片保存');}
+}
+function shNative(){
+  shClose();
+  if(navigator.share){
+    navigator.share({title:SH_EV.title,text:(SH_EV.reason||SH_EV.summary).slice(0,60)+' | DataHot',url:SH_EV.url}).catch(function(){});
+  }else{shCopy();}
+}
+function wrapText(ctx,text,x,y,maxW,lineH,maxLines){
+  var line='',lines=0;
+  for(var i=0;i<text.length;i++){
+    var t=line+text[i];
+    if(ctx.measureText(t).width>maxW&&line){
+      ctx.fillText(line,x,y);y+=lineH;lines++;line=text[i];
+      if(lines>=maxLines-1){
+        line=line+text.slice(i+1);
+        while(ctx.measureText(line+'…').width>maxW&&line.length>1){line=line.slice(0,-1);}
+        ctx.fillText(line+'…',x,y);return y+lineH;
+      }
+    }else{line=t;}
+  }
+  if(line){ctx.fillText(line,x,y);y+=lineH;}
+  return y;
+}
+function posterPalette(dark){
+  return dark ? {
+    bg:['#1a1d23','#231d17','#33200f'], title:'#ffffff', sum:'#c9cdd4',
+    reasonBg:'rgba(217,79,43,.14)', reasonHd:'#f5b48a', reasonTxt:'#f0d9cf',
+    meta:'#8b919b', dash:'rgba(255,255,255,.18)', name:'#ffffff', foot:'#c9cdd4',
+    qrBox:'#ffffff', qrBorder:null, topic:'#f5b48a', topicBd:'rgba(245,180,138,.7)'
+  } : {
+    bg:['#ffffff','#fdf8f4','#fdf0e9'], title:'#1a1d23', sum:'#4b5563',
+    reasonBg:'rgba(217,79,43,.07)', reasonHd:'#d94f2b', reasonTxt:'#7c3a24',
+    meta:'#6b7280', dash:'rgba(0,0,0,.15)', name:'#1a1d23', foot:'#6b7280',
+    qrBox:'#ffffff', qrBorder:'rgba(0,0,0,.12)', topic:'#d94f2b', topicBd:'rgba(217,79,43,.5)'
+  };
+}
+function posterLayout(x,W,P,qrImg){
+  // 绘制一遍并返回内容结束 y（用于动态高度）
+  var g=x.createLinearGradient(0,0,W,2000);
+  g.addColorStop(0,P.bg[0]);g.addColorStop(.55,P.bg[1]);g.addColorStop(1,P.bg[2]);
+  x.fillStyle=g;x.fillRect(0,0,W,2000);
+  x.fillStyle='#d94f2b';x.beginPath();x.roundRect(64,60,72,72,18);x.fill();
+  x.fillStyle='#fff';x.font='800 44px -apple-system,sans-serif';x.textBaseline='middle';
+  x.fillText('D',88,98);
+  x.fillStyle=P.name;x.font='800 38px -apple-system,sans-serif';x.fillText('DataHot',152,100);
+  if(SH_EV.topic){
+    x.font='500 26px -apple-system,PingFang SC,sans-serif';
+    var tw=x.measureText(SH_EV.topic).width;
+    x.strokeStyle=P.topicBd;x.lineWidth=2;
+    x.beginPath();x.roundRect(W-64-tw-48,66,tw+48,56,28);x.stroke();
+    x.fillStyle=P.topic;x.fillText(SH_EV.topic,W-64-tw-24,96);
+  }
+  var y=210;x.fillStyle=P.title;x.font='800 58px -apple-system,PingFang SC,sans-serif';x.textBaseline='top';
+  y=wrapText(x,SH_EV.title,64,y,W-128,84,3)+16;
+  x.fillStyle=P.sum;x.font='400 32px -apple-system,PingFang SC,sans-serif';
+  y=wrapText(x,SH_EV.summary,64,y,W-128,52,5)+20;
+  if(SH_EV.reason){
+    // 先测量推荐理由行数，动态确定色块高度（不再截断在中间）
+    var reasonLines=1,rl='',lineW=W-176;
+    x.font='400 28px -apple-system,PingFang SC,sans-serif';
+    for(var ri=0;ri<SH_EV.reason.length;ri++){
+      var rt=rl+SH_EV.reason[ri];
+      if(x.measureText(rt).width>lineW&&rl){reasonLines++;rl=SH_EV.reason[ri];}else{rl=rt;}
+    }
+    reasonLines=Math.min(reasonLines,3);
+    var boxH=56+reasonLines*44+22;
+    var ry=y+8;
+    x.fillStyle=P.reasonBg;x.fillRect(64,ry,W-128,boxH);
+    x.fillStyle='#d94f2b';x.fillRect(64,ry,8,boxH);
+    x.fillStyle=P.reasonHd;x.font='700 28px -apple-system,PingFang SC,sans-serif';
+    x.fillText('推荐理由',92,ry+26);
+    x.fillStyle=P.reasonTxt;x.font='400 28px -apple-system,PingFang SC,sans-serif';
+    wrapText(x,SH_EV.reason,92,ry+66,W-176,44,3);
+    y=ry+boxH+30;
+  }
+  x.fillStyle=P.meta;x.font='400 26px -apple-system,sans-serif';
+  x.fillText('热度 '+SH_EV.heat+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);
+  y=y+4+56;
+  // 分隔线 + 二维码区（紧跟内容，不再锚底）
+  x.strokeStyle=P.dash;x.setLineDash([8,8]);x.lineWidth=2;
+  x.beginPath();x.moveTo(64,y);x.lineTo(W-64,y);x.stroke();x.setLineDash([]);
+  x.fillStyle=P.qrBox;x.beginPath();x.roundRect(64,y+36,150,150,14);x.fill();
+  if(P.qrBorder){x.strokeStyle=P.qrBorder;x.lineWidth=2;x.beginPath();x.roundRect(64,y+36,150,150,14);x.stroke();}
+  x.drawImage(qrImg,74,y+46,130,130);
+  x.fillStyle=P.name;x.font='700 30px -apple-system,PingFang SC,sans-serif';
+  x.fillText('扫码阅读全文或忠实译文',240,y+60);
+  x.fillStyle=P.foot;x.font='400 24px -apple-system,PingFang SC,sans-serif';
+  x.fillText('DataHot · 数据领域 AI 热榜',240,y+110);
+  x.fillText('henryhb1105-arch.github.io/datahot',240,y+150);
+  return y+186+56; // 二维码块底 + 下边距
+}
+function drawPoster(qrImg,dark){
+  var P=posterPalette(dark),W=1080;
+  var m=document.createElement('canvas');m.width=W;m.height=2000;
+  var H=posterLayout(m.getContext('2d'),W,P,qrImg);
+  var c=document.createElement('canvas');c.width=W;c.height=H;
+  posterLayout(c.getContext('2d'),W,P,qrImg);
+  return c.toDataURL('image/png');
+}
+var posterURL=null,posterDark=null,posterLoading=false;
+function openPoster(){
+  var dark=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches;
+  if(posterURL&&posterDark===dark){showPoster();return;}
+  if(posterLoading){return;}
+  posterLoading=true;
+  posterDark=dark;
+  var qr=new Image();
+  qr.onload=function(){
+    try{posterURL=drawPoster(qr,dark);posterLoading=false;showPoster();}
+    catch(error){posterLoading=false;posterURL=null;shToast('海报生成失败，请稍后重试');}
+  };
+  qr.onerror=function(){posterLoading=false;posterURL=null;shToast('海报生成失败，请稍后重试');};
+  qr.src=SH_EV.qr;
+}
+function dataToBlob(d){
+  var p=d.split(','),m=p[0].match(/:(.*?);/)[1],b=atob(p[1]),a=new Uint8Array(b.length);
+  for(var i=0;i<b.length;i++){a[i]=b.charCodeAt(i);}
+  return new Blob([a],{type:m});
+}
+function showPoster(){
+  document.getElementById('shPosterImg').src=posterURL;
+  var a=document.getElementById('shSave');
+  a.href=URL.createObjectURL(dataToBlob(posterURL)); a.target='_blank';a.rel='noopener noreferrer';
+  document.getElementById('shPoster').classList.add('show');
+}
+document.querySelectorAll('[data-share-action]').forEach(function(control){
+  control.addEventListener('click',function(event){
+    var action=control.dataset.shareAction;
+    if(action==='open'){openSheet();}
+    else if(action==='close'){shClose();}
+    else if(action==='copy'){shCopy();}
+    else if(action==='poster'){shClose();openPoster();}
+    else if(action==='native'){shNative();}
+    else if(action==='save'){shSaveClick(event);}
+  });
+});
+</script></body></html>

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-PoUq+TbxPnAR9cJew0Z+gBeiOAyYG3tO7gs3/l1TrjM=' 'sha256-jP1UjCoNQQNeMtqLAk9qb7p615KdkB+UR0jYo617W6g='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-Nz1LqZGO22qxsm5EJnFeT3650EDRBWP7noTOJP1W1lk=' 'sha256-PoUq+TbxPnAR9cJew0Z+gBeiOAyYG3tO7gs3/l1TrjM='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Fivetran性能工程复盘：AI如何改变两年提速之路 · DataHot</title>
@@ -19,6 +19,7 @@
 <meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
 <script defer src="../analytics.js"></script>
 <script defer src="../favorites.js"></script>
+<script defer src="../content-feedback.js"></script>
 <script defer src="../detail.js"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"Fivetran性能工程复盘：AI如何改变两年提速之路","description":"Fivetran启动高性能/低延迟（HSLL）计划，目标是将Oracle到Snowflake等管道提速2-3倍，即1TB数据两小时迁移（约137MB/s）。当时Oracle到Snowflake基准为26MB/s，Postgres到BigQuery为48MB/s。两年后分别达到139MB/s和259M","datePublished":"2026-08-25T21:00:01+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://www.fivetran.com/blog/how-we-do-performance-engineering-at-fivetran-and-how-ai-changed-it-2-years-later"}</script>
 <style>
@@ -690,6 +691,18 @@ main,.layout>*,.hotlist>*{min-width:0}
 .source-more>summary::-webkit-details-marker{display:none}
 .source-more>summary::after{content:" ↓"}
 .source-more[open]>summary::after{content:" ↑"}
+.content-feedback{max-width:700px;margin:28px auto 22px;padding:18px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.content-feedback-main{display:flex;align-items:center;justify-content:space-between;gap:18px}
+.content-feedback h2{font-size:14px;line-height:1.5;margin:0 0 3px;color:var(--ink)}
+.content-feedback p{font-size:11.5px;line-height:1.5;margin:0;color:var(--sub)}
+.content-feedback-actions{display:flex;gap:8px;flex:0 0 auto}
+.content-feedback button{min-height:38px;border:1px solid var(--line);border-radius:99px;background:var(--card);color:var(--txt2);font-size:12px;font-weight:700;padding:7px 14px;cursor:pointer}
+.content-feedback button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.content-feedback-reasons{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:12px}
+.content-feedback-reasons[hidden]{display:none}
+.content-feedback-reasons span{font-size:11px;color:var(--sub)}
+.content-feedback-reasons button{min-height:32px;font-size:11px;font-weight:600;padding:5px 10px}
+@media(max-width:600px){.content-feedback-main{align-items:flex-start;flex-direction:column;gap:12px}.content-feedback-actions{width:100%}.content-feedback-actions button{flex:1}}
 @media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
 .fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:700px;margin-left:auto;margin-right:auto}
 .fulltext .cb-heading{font-size:19px;line-height:1.55;margin-top:32px;margin-bottom:12px;color:var(--ink)}
@@ -798,6 +811,21 @@ main,.layout>*,.hotlist>*{min-width:0}
 </section>
   <div class="vendors article-tags" aria-label="文章主题"><a class="chip" href="../topics/data-people.html">数据人</a><span class="vtag">Fivetran</span><span class="vtag">Snowflake</span><span class="vtag">BigQuery</span><span class="vtag">Oracle</span></div>
 <section class="source-section" aria-labelledby="supplementSourcesTitle"><div class="source-heading"><h4 id="supplementSourcesTitle">补充来源</h4><span class="source-summary">1 个信源 · 1 篇报道</span></div><div class="source-group"><div class="source-group-head"><b>Fivetran Blog</b></div><a class="source-report" href="https://www.fivetran.com/blog/how-we-do-performance-engineering-at-fivetran" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Fivetran Blog"><span class="source-report-title">How we do performance engineering at Fivetran | Blog | Fivetran <span aria-hidden="true">↗</span></span><span class="source-report-date">2026-08-26 01:54</span></a></div></section>
+  <section class="content-feedback" data-content-feedback data-event-id="10b6595d9b0a" data-feedback-context="{&quot;topics&quot;:[&quot;数据人&quot;],&quot;vendors&quot;:[&quot;Fivetran&quot;,&quot;Snowflake&quot;,&quot;BigQuery&quot;,&quot;Oracle&quot;],&quot;source&quot;:&quot;Fivetran Blog&quot;}" aria-labelledby="contentFeedbackTitle">
+  <div class="content-feedback-main">
+    <div><h2 id="contentFeedbackTitle">这篇内容对你有用吗？</h2><p data-feedback-status aria-live="polite">反馈只用于改善内容筛选，不等同于收藏</p></div>
+    <div class="content-feedback-actions">
+      <button type="button" data-feedback-value="useful" aria-pressed="false">有用</button>
+      <button type="button" data-feedback-value="not_useful" aria-pressed="false">没用</button>
+    </div>
+  </div>
+  <div class="content-feedback-reasons" data-feedback-reasons="useful" hidden aria-label="有用的原因">
+    <span>可选原因</span><button type="button" data-feedback-reason="solid">内容扎实</button><button type="button" data-feedback-reason="relevant">贴合工作</button><button type="button" data-feedback-reason="novel">提供新观点</button><button type="button" data-feedback-reason="source_discovery">发现好信源</button>
+  </div>
+  <div class="content-feedback-reasons" data-feedback-reasons="not_useful" hidden aria-label="没用的原因">
+    <span>可选原因</span><button type="button" data-feedback-reason="irrelevant">不相关</button><button type="button" data-feedback-reason="shallow">太浅</button><button type="button" data-feedback-reason="marketing">营销软文</button><button type="button" data-feedback-reason="duplicate">内容重复</button><button type="button" data-feedback-reason="body_quality">正文质量差</button>
+  </div>
+</section>
   <section class="card related-events" aria-labelledby="relatedEventsTitle"><h4 id="relatedEventsTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/9e059ac6ed28.html"><span class="n">›</span><span class="related-title">Fivetran用AI构建状态页，替换6.5万美元SaaS</span><span class="related-meta">AI 数据平台</span></a><a class="vendor-row" href="../e/bcfd90e63775.html"><span class="n">›</span><span class="related-title">为Token建模而非表：dbt仓储上下文节省20倍成本</span><span class="related-meta">AI 数据平台</span></a><a class="vendor-row" href="../e/1a5723bd7772.html"><span class="n">›</span><span class="related-title">CWT如何将AI分析转化为数百万美元资产</span><span class="related-meta">BI 与可视化</span></a></section>
   </main>
   <aside class="article-toc-rail" aria-label="本文目录"><div class="article-toc-title">本文目录 <span>20 节</span></div><ol><li class="toc-level-2"><a href="#article-section-1" data-toc-link data-toc-target="article-section-1">先测量：“如果你无法测量它，就无法改进它”</a></li><li class="toc-level-3"><a href="#article-section-2" data-toc-link data-toc-target="article-section-2">选择指标</a></li><li class="toc-level-3"><a href="#article-section-3" data-toc-link data-toc-target="article-section-3">对代码进行测量</a></li><li class="toc-level-3"><a href="#article-section-4" data-toc-link data-toc-target="article-section-4">基准测试产品</a></li><li class="toc-level-3"><a href="#article-section-5" data-toc-link data-toc-target="article-section-5">构建一个工具来查看同步内部情况</a></li><li class="toc-level-3"><a href="#article-section-6" data-toc-link data-toc-target="article-section-6">记录每个基准结果</a></li><li class="toc-level-2"><a href="#article-section-7" data-toc-link data-toc-target="article-section-7">改进：一个想法队列，其中大多数会失败</a></li><li class="toc-level-3"><a href="#article-section-8" data-toc-link data-toc-target="article-section-8">广泛头脑风暴，并预期超过一半会失败</a></li><li class="toc-level-3"><a href="#article-section-9" data-toc-link data-toc-target="article-section-9">保持更改队列</a></li><li class="toc-level-3"><a href="#article-section-10" data-toc-link data-toc-target="article-section-10">在本地原型，并设置时间盒</a></li><li class="toc-level-3"><a href="#article-section-11" data-toc-link data-toc-target="article-section-11">写下负面结果，并附上原因</a></li><li class="toc-level-2"><a href="#article-section-12" data-toc-link data-toc-target="article-section-12">老虎团队：优化整个系统，而不是局部</a></li><li class="toc-level-3"><a href="#article-section-13" data-toc-link data-toc-target="article-section-13">每个学科，以及架构的三个部分</a></li><li class="toc-level-3"><a href="#article-section-14" data-toc-link data-toc-target="article-section-14">无代码所有权边界</a></li><li class="toc-level-3"><a href="#article-section-15" data-toc-link data-toc-target="article-section-15">真正的、受保护的重点</a></li><li class="toc-level-3"><a href="#article-section-16" data-toc-link data-toc-target="article-section-16">一个目标，狭窄</a></li><li class="toc-level-3"><a href="#article-section-17" data-toc-link data-toc-target="article-section-17">轻量级流程，重文档</a></li><li class="toc-level-3"><a href="#article-section-18" data-toc-link data-toc-target="article-section-18">明确的简化假设，预先协商</a></li><li class="toc-level-2"><a href="#article-section-19" data-toc-link data-toc-target="article-section-19">我们学到的：性能工作的参考</a></li><li class="toc-level-2"><a href="#article-section-20" data-toc-link data-toc-target="article-section-20">从临时团队到永久能力</a></li></ol></aside>
@@ -936,7 +964,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title":"Fivetran性能工程复盘：AI如何改变两年提速之路","summary":"Fivetran启动高性能/低延迟（HSLL）计划，目标是将Oracle到Snowflake等管道提速2-3倍，即1TB数据两小时迁移（约137MB/s）。当时Oracle到Snowflake基准为26MB/s，Postgres到BigQuery为48MB/s。两年后分别达到139MB/s和259MB/s，生产吞吐量从7MB/s提升至70MB/s。文章总结了测量指标、定位瓶颈、围绕系统组织团队等性能工程方法，并谈及AI带来的改变。","reason":"数据从业者可借鉴Fivetran对分布式数据管道做性能工程的方法论，理解如何设定吞吐目标、衡量系统并推动整体改进。","topic":"数据人","heat":52,"source":"Fivetran Blog","date":"2026-08-25","url":"https://datahot.xiahongbin.com/e/10b6595d9b0a.html","qr":"../qr/10b6595d9b0a.png"};
+var SH_EV = {"title":"Fivetran性能工程复盘：AI如何改变两年提速之路","summary":"Fivetran启动高性能/低延迟（HSLL）计划，目标是将Oracle到Snowflake等管道提速2-3倍，即1TB数据两小时迁移（约137MB/s）。当时Oracle到Snowflake基准为26MB/s，Postgres到BigQuery为48MB/s。两年后分别达到139MB/s和259MB/s，生产吞吐量从7MB/s提升至70MB/s。文章总结了测量指标、定位瓶颈、围绕系统组织团队等性能工程方法，并谈及AI带来的改变。","reason":"数据从业者可借鉴Fivetran对分布式数据管道做性能工程的方法论，理解如何设定吞吐目标、衡量系统并推动整体改进。","topic":"数据人","heat":50,"source":"Fivetran Blog","date":"2026-08-25","url":"https://datahot.xiahongbin.com/e/10b6595d9b0a.html","qr":"../qr/10b6595d9b0a.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

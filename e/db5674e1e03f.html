@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-E3vpvL48ED1YcxyHNClAlPX2CeEhuldpk95dHEjXRr0=' 'sha256-FzltRYoSxtoe5iK/2xcKDUT0FzCCy7yBIVC7Mu6LH2w='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-FzltRYoSxtoe5iK/2xcKDUT0FzCCy7yBIVC7Mu6LH2w=' 'sha256-fZJqhLC+6dBbCTYf+5r7bdydh1BK0AcHAUCERI4lFfI='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>开放表格式解析：Iceberg vs. Delta vs. Hudi · DataHot</title>
@@ -19,6 +19,7 @@
 <meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
 <script defer src="../analytics.js"></script>
 <script defer src="../favorites.js"></script>
+<script defer src="../content-feedback.js"></script>
 <script defer src="../detail.js"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"开放表格式解析：Iceberg vs. Delta vs. Hudi","description":"本文解析Apache Iceberg、Delta Lake和Apache Hudi三种主流开放表格式。它们作为对象存储之上的元数据层，为数据湖文件添加ACID事务、模式演进和时间旅行能力，使数据能像数据库表一样被一致读取和安全更新。文章对比了三种格式在事务支持和模式演进上的差异，并说明其与湖仓架构的","datePublished":"2026-08-25T15:37:09+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://www.databricks.com/blog/open-table-formats"}</script>
 <style>
@@ -690,6 +691,18 @@ main,.layout>*,.hotlist>*{min-width:0}
 .source-more>summary::-webkit-details-marker{display:none}
 .source-more>summary::after{content:" ↓"}
 .source-more[open]>summary::after{content:" ↑"}
+.content-feedback{max-width:700px;margin:28px auto 22px;padding:18px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.content-feedback-main{display:flex;align-items:center;justify-content:space-between;gap:18px}
+.content-feedback h2{font-size:14px;line-height:1.5;margin:0 0 3px;color:var(--ink)}
+.content-feedback p{font-size:11.5px;line-height:1.5;margin:0;color:var(--sub)}
+.content-feedback-actions{display:flex;gap:8px;flex:0 0 auto}
+.content-feedback button{min-height:38px;border:1px solid var(--line);border-radius:99px;background:var(--card);color:var(--txt2);font-size:12px;font-weight:700;padding:7px 14px;cursor:pointer}
+.content-feedback button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.content-feedback-reasons{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:12px}
+.content-feedback-reasons[hidden]{display:none}
+.content-feedback-reasons span{font-size:11px;color:var(--sub)}
+.content-feedback-reasons button{min-height:32px;font-size:11px;font-weight:600;padding:5px 10px}
+@media(max-width:600px){.content-feedback-main{align-items:flex-start;flex-direction:column;gap:12px}.content-feedback-actions{width:100%}.content-feedback-actions button{flex:1}}
 @media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
 .fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:700px;margin-left:auto;margin-right:auto}
 .fulltext .cb-heading{font-size:19px;line-height:1.55;margin-top:32px;margin-bottom:12px;color:var(--ink)}
@@ -789,6 +802,21 @@ main,.layout>*,.hotlist>*{min-width:0}
 </section>
   <div class="vendors article-tags" aria-label="文章主题"><a class="chip" href="../topics/lakehouse.html">湖仓</a><span class="vtag">Databricks</span></div>
 
+  <section class="content-feedback" data-content-feedback data-event-id="db5674e1e03f" data-feedback-context="{&quot;topics&quot;:[&quot;湖仓&quot;],&quot;vendors&quot;:[&quot;Databricks&quot;],&quot;source&quot;:&quot;Databricks Blog&quot;}" aria-labelledby="contentFeedbackTitle">
+  <div class="content-feedback-main">
+    <div><h2 id="contentFeedbackTitle">这篇内容对你有用吗？</h2><p data-feedback-status aria-live="polite">反馈只用于改善内容筛选，不等同于收藏</p></div>
+    <div class="content-feedback-actions">
+      <button type="button" data-feedback-value="useful" aria-pressed="false">有用</button>
+      <button type="button" data-feedback-value="not_useful" aria-pressed="false">没用</button>
+    </div>
+  </div>
+  <div class="content-feedback-reasons" data-feedback-reasons="useful" hidden aria-label="有用的原因">
+    <span>可选原因</span><button type="button" data-feedback-reason="solid">内容扎实</button><button type="button" data-feedback-reason="relevant">贴合工作</button><button type="button" data-feedback-reason="novel">提供新观点</button><button type="button" data-feedback-reason="source_discovery">发现好信源</button>
+  </div>
+  <div class="content-feedback-reasons" data-feedback-reasons="not_useful" hidden aria-label="没用的原因">
+    <span>可选原因</span><button type="button" data-feedback-reason="irrelevant">不相关</button><button type="button" data-feedback-reason="shallow">太浅</button><button type="button" data-feedback-reason="marketing">营销软文</button><button type="button" data-feedback-reason="duplicate">内容重复</button><button type="button" data-feedback-reason="body_quality">正文质量差</button>
+  </div>
+</section>
   <section class="card related-events" aria-labelledby="relatedEventsTitle"><h4 id="relatedEventsTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/3df7acce56e1.html"><span class="n">›</span><span class="related-title">Databricks将在VLDB 2026展示Lakebase、流处理与湖仓创新</span><span class="related-meta">AI 数据平台</span></a><a class="vendor-row" href="../e/42d6165ced5d.html"><span class="n">›</span><span class="related-title">加拿大大型铁路用Databricks Genie Code将管道创建自动化率提至90%</span><span class="related-meta">AI 数据平台</span></a><a class="vendor-row" href="../e/6038dd3650c1.html"><span class="n">›</span><span class="related-title">垂直行业优势：Lakebase与Agentic AI驱动行业转型</span><span class="related-meta">AI 数据平台</span></a></section>
   </main>
   <aside class="article-toc-rail" aria-label="本文目录"><div class="article-toc-title">本文目录 <span>17 节</span></div><ol><li class="toc-level-2"><a href="#article-section-1" data-toc-link data-toc-target="article-section-1">什么是数据湖，为什么开放表格式重要？</a></li><li class="toc-level-2"><a href="#article-section-2" data-toc-link data-toc-target="article-section-2">你需要了解的开放表格式和文件格式</a></li><li class="toc-level-3"><a href="#article-section-3" data-toc-link data-toc-target="article-section-3">Apache Iceberg</a></li><li class="toc-level-3"><a href="#article-section-4" data-toc-link data-toc-target="article-section-4">Delta Lake</a></li><li class="toc-level-3"><a href="#article-section-5" data-toc-link data-toc-target="article-section-5">Apache Hudi</a></li><li class="toc-level-3"><a href="#article-section-6" data-toc-link data-toc-target="article-section-6">Parquet和ORC</a></li><li class="toc-level-2"><a href="#article-section-7" data-toc-link data-toc-target="article-section-7">Iceberg vs. Delta Lake vs. Hudi：快速比较</a></li><li class="toc-level-2"><a href="#article-section-8" data-toc-link data-toc-target="article-section-8">Apache Iceberg内部：表和元数据</a></li><li class="toc-level-3"><a href="#article-section-9" data-toc-link data-toc-target="article-section-9">Iceberg元数据树</a></li><li class="toc-level-3"><a href="#article-section-10" data-toc-link data-toc-target="article-section-10">快照和时间旅行</a></li><li class="toc-level-3"><a href="#article-section-11" data-toc-link data-toc-target="article-section-11">分区演化</a></li><li class="toc-level-2"><a href="#article-section-12" data-toc-link data-toc-target="article-section-12">Iceberg表内部机制与维护</a></li><li class="toc-level-2"><a href="#article-section-13" data-toc-link data-toc-target="article-section-13">Delta Lake与ACID事务</a></li><li class="toc-level-3"><a href="#article-section-14" data-toc-link data-toc-target="article-section-14">Delta Lake事务日志</a></li><li class="toc-level-3"><a href="#article-section-15" data-toc-link data-toc-target="article-section-15">Delta Lake中的ACID事务行为</a></li><li class="toc-level-3"><a href="#article-section-16" data-toc-link data-toc-target="article-section-16">从Spark原生到多引擎支持</a></li><li class="toc-level-2"><a href="#article-section-17" data-toc-link data-toc-target="article-section-17">文件格式基础：Parquet如何实现数据跳过</a></li></ol></aside>
@@ -927,7 +955,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title":"开放表格式解析：Iceberg vs. Delta vs. Hudi","summary":"本文解析Apache Iceberg、Delta Lake和Apache Hudi三种主流开放表格式。它们作为对象存储之上的元数据层，为数据湖文件添加ACID事务、模式演进和时间旅行能力，使数据能像数据库表一样被一致读取和安全更新。文章对比了三种格式在事务支持和模式演进上的差异，并说明其与湖仓架构的关系。","reason":"开放表格式是湖仓架构的核心技术基石，理解Iceberg、Delta和Hudi的差异有助于数据平台从业者做技术选型与架构设计。","topic":"湖仓","heat":46,"source":"Databricks Blog","date":"2026-08-25","url":"https://datahot.xiahongbin.com/e/db5674e1e03f.html","qr":"../qr/db5674e1e03f.png"};
+var SH_EV = {"title":"开放表格式解析：Iceberg vs. Delta vs. Hudi","summary":"本文解析Apache Iceberg、Delta Lake和Apache Hudi三种主流开放表格式。它们作为对象存储之上的元数据层，为数据湖文件添加ACID事务、模式演进和时间旅行能力，使数据能像数据库表一样被一致读取和安全更新。文章对比了三种格式在事务支持和模式演进上的差异，并说明其与湖仓架构的关系。","reason":"开放表格式是湖仓架构的核心技术基石，理解Iceberg、Delta和Hudi的差异有助于数据平台从业者做技术选型与架构设计。","topic":"湖仓","heat":44,"source":"Databricks Blog","date":"2026-08-25","url":"https://datahot.xiahongbin.com/e/db5674e1e03f.html","qr":"../qr/db5674e1e03f.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

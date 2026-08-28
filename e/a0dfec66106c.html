@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-RMTPV3dwSjtesElp1XWFpb6OAfJ1TKvQzs5Tx66bUV8=' 'sha256-VLQsQezjvtvanGeC0tWM7xZMrBiMCR4ahbpBLaO3pL0='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-VLQsQezjvtvanGeC0tWM7xZMrBiMCR4ahbpBLaO3pL0=' 'sha256-Z4AEUocfO1Dr/0PmCe9TfjYxYDYnMGmLYXov1zxuIzQ='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>ClickGap：ClickHouse 的自主 QA 代理 · DataHot</title>
@@ -19,6 +19,7 @@
 <meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
 <script defer src="../analytics.js"></script>
 <script defer src="../favorites.js"></script>
+<script defer src="../content-feedback.js"></script>
 <script defer src="../detail.js"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"ClickGap：ClickHouse 的自主 QA 代理","description":"ClickHouse 每天合并 50 到 100 个 PR。ClickGap 是一个自主 QA 代理，审查每个合并后的变更，设计并执行测试，将回归归因到具体提交，并自动提交 issue 和 PR。上线五个月，ClickGap 已提交约 500 个 issue 和约 200 个 PR，其中一半以上 i","datePublished":"2026-08-25T08:00:00+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://clickhouse.com/blog/clickgap-autonomous-qa-for-clickhouse"}</script>
 <style>
@@ -690,6 +691,18 @@ main,.layout>*,.hotlist>*{min-width:0}
 .source-more>summary::-webkit-details-marker{display:none}
 .source-more>summary::after{content:" ↓"}
 .source-more[open]>summary::after{content:" ↑"}
+.content-feedback{max-width:700px;margin:28px auto 22px;padding:18px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.content-feedback-main{display:flex;align-items:center;justify-content:space-between;gap:18px}
+.content-feedback h2{font-size:14px;line-height:1.5;margin:0 0 3px;color:var(--ink)}
+.content-feedback p{font-size:11.5px;line-height:1.5;margin:0;color:var(--sub)}
+.content-feedback-actions{display:flex;gap:8px;flex:0 0 auto}
+.content-feedback button{min-height:38px;border:1px solid var(--line);border-radius:99px;background:var(--card);color:var(--txt2);font-size:12px;font-weight:700;padding:7px 14px;cursor:pointer}
+.content-feedback button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.content-feedback-reasons{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:12px}
+.content-feedback-reasons[hidden]{display:none}
+.content-feedback-reasons span{font-size:11px;color:var(--sub)}
+.content-feedback-reasons button{min-height:32px;font-size:11px;font-weight:600;padding:5px 10px}
+@media(max-width:600px){.content-feedback-main{align-items:flex-start;flex-direction:column;gap:12px}.content-feedback-actions{width:100%}.content-feedback-actions button{flex:1}}
 @media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
 .fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:700px;margin-left:auto;margin-right:auto}
 .fulltext .cb-heading{font-size:19px;line-height:1.55;margin-top:32px;margin-bottom:12px;color:var(--ink)}
@@ -789,6 +802,21 @@ main,.layout>*,.hotlist>*{min-width:0}
 </section>
   <div class="vendors article-tags" aria-label="文章主题"><span class="vtag">ClickHouse</span></div>
 
+  <section class="content-feedback" data-content-feedback data-event-id="a0dfec66106c" data-feedback-context="{&quot;topics&quot;:[],&quot;vendors&quot;:[&quot;ClickHouse&quot;],&quot;source&quot;:&quot;ClickHouse Blog&quot;}" aria-labelledby="contentFeedbackTitle">
+  <div class="content-feedback-main">
+    <div><h2 id="contentFeedbackTitle">这篇内容对你有用吗？</h2><p data-feedback-status aria-live="polite">反馈只用于改善内容筛选，不等同于收藏</p></div>
+    <div class="content-feedback-actions">
+      <button type="button" data-feedback-value="useful" aria-pressed="false">有用</button>
+      <button type="button" data-feedback-value="not_useful" aria-pressed="false">没用</button>
+    </div>
+  </div>
+  <div class="content-feedback-reasons" data-feedback-reasons="useful" hidden aria-label="有用的原因">
+    <span>可选原因</span><button type="button" data-feedback-reason="solid">内容扎实</button><button type="button" data-feedback-reason="relevant">贴合工作</button><button type="button" data-feedback-reason="novel">提供新观点</button><button type="button" data-feedback-reason="source_discovery">发现好信源</button>
+  </div>
+  <div class="content-feedback-reasons" data-feedback-reasons="not_useful" hidden aria-label="没用的原因">
+    <span>可选原因</span><button type="button" data-feedback-reason="irrelevant">不相关</button><button type="button" data-feedback-reason="shallow">太浅</button><button type="button" data-feedback-reason="marketing">营销软文</button><button type="button" data-feedback-reason="duplicate">内容重复</button><button type="button" data-feedback-reason="body_quality">正文质量差</button>
+  </div>
+</section>
   <section class="card related-events" aria-labelledby="relatedEventsTitle"><h4 id="relatedEventsTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/0ef0564c116b.html"><span class="n">›</span><span class="related-title">ClickHouse真的赢下可观测性之战了吗？</span><span class="related-meta">AI 数据平台</span></a><a class="vendor-row" href="../e/cedb37dd0b13.html"><span class="n">›</span><span class="related-title">ClickHouse .NET驱动1.0到1.3更新概览</span><span class="related-meta">AI 数据平台</span></a><a class="vendor-row" href="../e/6ae50c0c35df.html"><span class="n">›</span><span class="related-title">ClickHouse八月通讯：26.7性能优化与活动盘点</span><span class="related-meta">AI 数据平台</span></a></section>
   </main>
   <aside class="article-toc-rail" aria-label="本文目录"><div class="article-toc-title">本文目录 <span>11 节</span></div><ol><li class="toc-level-2"><a href="#article-section-1" data-toc-link data-toc-target="article-section-1">A database that is already tested to death</a></li><li class="toc-level-2"><a href="#article-section-2" data-toc-link data-toc-target="article-section-2">What it found in ClickHouse</a></li><li class="toc-level-2"><a href="#article-section-3" data-toc-link data-toc-target="article-section-3">How it works</a></li><li class="toc-level-2"><a href="#article-section-4" data-toc-link data-toc-target="article-section-4">Where the findings actually come from</a></li><li class="toc-level-2"><a href="#article-section-5" data-toc-link data-toc-target="article-section-5">Cheap on purpose, measured for it</a></li><li class="toc-level-2"><a href="#article-section-6" data-toc-link data-toc-target="article-section-6">Never name the wrong PR</a></li><li class="toc-level-2"><a href="#article-section-7" data-toc-link data-toc-target="article-section-7">The part nobody plans for: earning trust</a></li><li class="toc-level-2"><a href="#article-section-8" data-toc-link data-toc-target="article-section-8">Memory, and why Loom exists</a></li><li class="toc-level-2"><a href="#article-section-9" data-toc-link data-toc-target="article-section-9">What comes next</a></li><li class="toc-level-2"><a href="#article-section-10" data-toc-link data-toc-target="article-section-10">If you want this for your own codebase</a></li><li class="toc-level-2"><a href="#article-section-11" data-toc-link data-toc-target="article-section-11">The point</a></li></ol></aside>
@@ -927,7 +955,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title":"ClickGap：ClickHouse 的自主 QA 代理","summary":"ClickHouse 每天合并 50 到 100 个 PR。ClickGap 是一个自主 QA 代理，审查每个合并后的变更，设计并执行测试，将回归归因到具体提交，并自动提交 issue 和 PR。上线五个月，ClickGap 已提交约 500 个 issue 和约 200 个 PR，其中一半以上 issue 已关闭，超 200 个已关闭 issue 关联了修复 PR。","reason":"在每天合并数十个 PR 的数据库项目中，用 AI Agent 自动化回归测试和缺陷归因，能显著降低人工审查负担，对数据基础设施团队有借鉴意义。","topic":"","heat":42,"source":"ClickHouse Blog","date":"2026-08-25","url":"https://datahot.xiahongbin.com/e/a0dfec66106c.html","qr":"../qr/a0dfec66106c.png"};
+var SH_EV = {"title":"ClickGap：ClickHouse 的自主 QA 代理","summary":"ClickHouse 每天合并 50 到 100 个 PR。ClickGap 是一个自主 QA 代理，审查每个合并后的变更，设计并执行测试，将回归归因到具体提交，并自动提交 issue 和 PR。上线五个月，ClickGap 已提交约 500 个 issue 和约 200 个 PR，其中一半以上 issue 已关闭，超 200 个已关闭 issue 关联了修复 PR。","reason":"在每天合并数十个 PR 的数据库项目中，用 AI Agent 自动化回归测试和缺陷归因，能显著降低人工审查负担，对数据基础设施团队有借鉴意义。","topic":"","heat":40,"source":"ClickHouse Blog","date":"2026-08-25","url":"https://datahot.xiahongbin.com/e/a0dfec66106c.html","qr":"../qr/a0dfec66106c.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

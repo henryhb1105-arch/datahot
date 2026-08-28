@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-b/fROnGemdGupbac2kyS1j0xOd0yqvR649oom2WRj8U=' 'sha256-n0qPZDtJhI0ZsGuCV0D2nJ1T86ozywGCqP5TNgksSdM='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-1YLoN5+NuyH/PGK4enXCSitLhxxdythsHPzOhEV4NEg=' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-b/fROnGemdGupbac2kyS1j0xOd0yqvR649oom2WRj8U='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>ClickHouse Cloud如何通过OpenTelemetry实现每秒5000万事件接入 · DataHot</title>
@@ -19,6 +19,7 @@
 <meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
 <script defer src="../analytics.js"></script>
 <script defer src="../favorites.js"></script>
+<script defer src="../content-feedback.js"></script>
 <script defer src="../detail.js"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"ClickHouse Cloud如何通过OpenTelemetry实现每秒5000万事件接入","description":"ClickHouse Cloud公开其内部可观测性平台LogHouse的OpenTelemetry接入架构演进，从常见的agent-to-gateway两层架构起步，现已达到每秒5000万事件、存储177 PiB未压缩数据的规模。文章详细说明了面对数据库背压时，默认内存队列无法承受10GBps压缩数","datePublished":"2026-08-24T08:00:00+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://clickhouse.com/blog/reliable-opentelemetry-ingestion-at-scale"}</script>
 <style>
@@ -690,6 +691,18 @@ main,.layout>*,.hotlist>*{min-width:0}
 .source-more>summary::-webkit-details-marker{display:none}
 .source-more>summary::after{content:" ↓"}
 .source-more[open]>summary::after{content:" ↑"}
+.content-feedback{max-width:700px;margin:28px auto 22px;padding:18px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.content-feedback-main{display:flex;align-items:center;justify-content:space-between;gap:18px}
+.content-feedback h2{font-size:14px;line-height:1.5;margin:0 0 3px;color:var(--ink)}
+.content-feedback p{font-size:11.5px;line-height:1.5;margin:0;color:var(--sub)}
+.content-feedback-actions{display:flex;gap:8px;flex:0 0 auto}
+.content-feedback button{min-height:38px;border:1px solid var(--line);border-radius:99px;background:var(--card);color:var(--txt2);font-size:12px;font-weight:700;padding:7px 14px;cursor:pointer}
+.content-feedback button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.content-feedback-reasons{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:12px}
+.content-feedback-reasons[hidden]{display:none}
+.content-feedback-reasons span{font-size:11px;color:var(--sub)}
+.content-feedback-reasons button{min-height:32px;font-size:11px;font-weight:600;padding:5px 10px}
+@media(max-width:600px){.content-feedback-main{align-items:flex-start;flex-direction:column;gap:12px}.content-feedback-actions{width:100%}.content-feedback-actions button{flex:1}}
 @media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
 .fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:700px;margin-left:auto;margin-right:auto}
 .fulltext .cb-heading{font-size:19px;line-height:1.55;margin-top:32px;margin-bottom:12px;color:var(--ink)}
@@ -798,6 +811,21 @@ main,.layout>*,.hotlist>*{min-width:0}
 </section>
   <div class="vendors article-tags" aria-label="文章主题"><a class="chip" href="../topics/realtime.html">实时分析</a><span class="vtag">ClickHouse</span></div>
 
+  <section class="content-feedback" data-content-feedback data-event-id="f76b86977b69" data-feedback-context="{&quot;topics&quot;:[&quot;实时分析&quot;],&quot;vendors&quot;:[&quot;ClickHouse&quot;],&quot;source&quot;:&quot;ClickHouse Blog&quot;}" aria-labelledby="contentFeedbackTitle">
+  <div class="content-feedback-main">
+    <div><h2 id="contentFeedbackTitle">这篇内容对你有用吗？</h2><p data-feedback-status aria-live="polite">反馈只用于改善内容筛选，不等同于收藏</p></div>
+    <div class="content-feedback-actions">
+      <button type="button" data-feedback-value="useful" aria-pressed="false">有用</button>
+      <button type="button" data-feedback-value="not_useful" aria-pressed="false">没用</button>
+    </div>
+  </div>
+  <div class="content-feedback-reasons" data-feedback-reasons="useful" hidden aria-label="有用的原因">
+    <span>可选原因</span><button type="button" data-feedback-reason="solid">内容扎实</button><button type="button" data-feedback-reason="relevant">贴合工作</button><button type="button" data-feedback-reason="novel">提供新观点</button><button type="button" data-feedback-reason="source_discovery">发现好信源</button>
+  </div>
+  <div class="content-feedback-reasons" data-feedback-reasons="not_useful" hidden aria-label="没用的原因">
+    <span>可选原因</span><button type="button" data-feedback-reason="irrelevant">不相关</button><button type="button" data-feedback-reason="shallow">太浅</button><button type="button" data-feedback-reason="marketing">营销软文</button><button type="button" data-feedback-reason="duplicate">内容重复</button><button type="button" data-feedback-reason="body_quality">正文质量差</button>
+  </div>
+</section>
   <section class="card related-events" aria-labelledby="relatedEventsTitle"><h4 id="relatedEventsTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/28640dc36b12.html"><span class="n">›</span><span class="related-title">Suprema Gaming借助ClickHouse Cloud打造Agent-ready数据平台</span><span class="related-meta">AI 数据平台</span></a><a class="vendor-row" href="../e/cedb37dd0b13.html"><span class="n">›</span><span class="related-title">ClickHouse .NET驱动1.0到1.3更新概览</span><span class="related-meta">AI 数据平台</span></a><a class="vendor-row" href="../e/bd7415fa4b93.html"><span class="n">›</span><span class="related-title">Sony LIV基于ClickHouse Cloud构建十亿行级实时流分析</span><span class="related-meta">AI 数据平台</span></a></section>
   </main>
   <aside class="article-toc-rail" aria-label="本文目录"><div class="article-toc-title">本文目录 <span>9 节</span></div><ol><li class="toc-level-2"><a href="#article-section-1" data-toc-link data-toc-target="article-section-1">历史</a></li><li class="toc-level-3"><a href="#article-section-2" data-toc-link data-toc-target="article-section-2">迭代 1：agent 到 gateway</a></li><li class="toc-level-3"><a href="#article-section-3" data-toc-link data-toc-target="article-section-3">在压力下崩溃</a></li><li class="toc-level-3"><a href="#article-section-4" data-toc-link data-toc-target="article-section-4">迭代 2：本地预写日志</a></li><li class="toc-level-3"><a href="#article-section-5" data-toc-link data-toc-target="article-section-5">Kafka 怎么样？</a></li><li class="toc-level-2"><a href="#article-section-6" data-toc-link data-toc-target="article-section-6">设计迭代 3</a></li><li class="toc-level-3"><a href="#article-section-7" data-toc-link data-toc-target="article-section-7">如果对象存储宕机怎么办？</a></li><li class="toc-level-2"><a href="#article-section-8" data-toc-link data-toc-target="article-section-8">新管道</a></li><li class="toc-level-3"><a href="#article-section-9" data-toc-link data-toc-target="article-section-9">故障转移连接器</a></li></ol></aside>
@@ -936,7 +964,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title":"ClickHouse Cloud如何通过OpenTelemetry实现每秒5000万事件接入","summary":"ClickHouse Cloud公开其内部可观测性平台LogHouse的OpenTelemetry接入架构演进，从常见的agent-to-gateway两层架构起步，现已达到每秒5000万事件、存储177 PiB未压缩数据的规模。文章详细说明了面对数据库背压时，默认内存队列无法承受10GBps压缩数据吞吐，因此设计自定义S3-backed管道来保证持久性。重点讨论了大规模遥测场景下生产者速率不可控带来的工程挑战与权衡。","reason":"数据从业者可从中学习大规模遥测数据接入的架构演化、背压处理及成本性能权衡，是数据平台工程实践的高质量参考。","topic":"实时分析","heat":44,"source":"ClickHouse Blog","date":"2026-08-24","url":"https://datahot.xiahongbin.com/e/f76b86977b69.html","qr":"../qr/f76b86977b69.png"};
+var SH_EV = {"title":"ClickHouse Cloud如何通过OpenTelemetry实现每秒5000万事件接入","summary":"ClickHouse Cloud公开其内部可观测性平台LogHouse的OpenTelemetry接入架构演进，从常见的agent-to-gateway两层架构起步，现已达到每秒5000万事件、存储177 PiB未压缩数据的规模。文章详细说明了面对数据库背压时，默认内存队列无法承受10GBps压缩数据吞吐，因此设计自定义S3-backed管道来保证持久性。重点讨论了大规模遥测场景下生产者速率不可控带来的工程挑战与权衡。","reason":"数据从业者可从中学习大规模遥测数据接入的架构演化、背压处理及成本性能权衡，是数据平台工程实践的高质量参考。","topic":"实时分析","heat":43,"source":"ClickHouse Blog","date":"2026-08-24","url":"https://datahot.xiahongbin.com/e/f76b86977b69.html","qr":"../qr/f76b86977b69.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

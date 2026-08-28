@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-SgLDdmqcqD1hmEjsIxMrlQbe/2uJVhIByhXqGwYxQHQ=' 'sha256-YMBAfu1bEsPvVGGCLKE+5uEKjDuf6bcXj/gRJRhuCq0='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-YMBAfu1bEsPvVGGCLKE+5uEKjDuf6bcXj/gRJRhuCq0=' 'sha256-vD5sZV1xH+fyIOf9QmILPI7tRUeTuK89lXy66nQIOYQ='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Postgres不慢，慢的是存储：NVMe与EBS性能对比 · DataHot</title>
@@ -16,7 +16,7 @@
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 <meta name="theme-color" content="#1a1d23">
 <link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://datahot.xiahongbin.com/feed.xml">
-<meta name="datahot-analytics" data-enabled="false" data-endpoint="" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
+<meta name="datahot-analytics" data-enabled="true" data-endpoint="https://metrics.datahot.xiahongbin.com/v1/events" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
 <script defer src="../analytics.js"></script>
 <script defer src="../favorites.js"></script>
 <script defer src="../content-feedback.js"></script>
@@ -955,7 +955,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title":"Postgres不慢，慢的是存储：NVMe与EBS性能对比","summary":"本文回顾了POSETTE 2026上关于Postgres存储性能的演讲。基准测试显示，EBS在页读取上耗时约19ms，而NVMe仅0.3ms；WAL fsync在EBS上为11ms，NVMe为1.5ms。64个后端中，EBS上有29个等待IO:DataFileRead，而NVMe上只有9个。NVMe主机在240秒内累计占用约9.4核CPU，EBS仅约1核，说明EBS大量时间在等待存储。文章还讨论了如何通过集群级持久化在本地NVMe上实现生产级可用性。","reason":"数据库存储性能直接影响数据分析与查询效率，该实践对比为数据平台选型与成本性能优化提供实证参考。","topic":"","heat":33,"source":"ClickHouse Blog","date":"2026-08-20","url":"https://datahot.xiahongbin.com/e/8c48e9aeec01.html","qr":"../qr/8c48e9aeec01.png"};
+var SH_EV = {"title":"Postgres不慢，慢的是存储：NVMe与EBS性能对比","summary":"本文回顾了POSETTE 2026上关于Postgres存储性能的演讲。基准测试显示，EBS在页读取上耗时约19ms，而NVMe仅0.3ms；WAL fsync在EBS上为11ms，NVMe为1.5ms。64个后端中，EBS上有29个等待IO:DataFileRead，而NVMe上只有9个。NVMe主机在240秒内累计占用约9.4核CPU，EBS仅约1核，说明EBS大量时间在等待存储。文章还讨论了如何通过集群级持久化在本地NVMe上实现生产级可用性。","reason":"数据库存储性能直接影响数据分析与查询效率，该实践对比为数据平台选型与成本性能优化提供实证参考。","topic":"","heat":32,"source":"ClickHouse Blog","date":"2026-08-20","url":"https://datahot.xiahongbin.com/e/8c48e9aeec01.html","qr":"../qr/8c48e9aeec01.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

@@ -78,7 +78,7 @@ class FavoritesTests(unittest.TestCase):
 
         source = (ROOT / "pipeline" / "build_site.py").read_text(encoding="utf-8")
         self.assertNotIn('class="hot"', source)
-        self.assertIn('class="today-focus"', source)
+        self.assertIn('class="today-hot"', source)
 
 
 if __name__ == "__main__":

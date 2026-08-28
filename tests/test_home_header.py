@@ -78,16 +78,16 @@ class HomeHeaderTests(unittest.TestCase):
         self.assertIn('data-topic="平台AI化">AI平台</button>', chips)
         self.assertIn('data-topic="实时分析">实时</button>', chips)
 
-    def test_filter_chips_wrap_on_desktop_and_scroll_with_affordance_on_mobile(self):
+    def test_filter_chips_stay_single_line_and_scroll_on_desktop_and_mobile(self):
         self.assertIn(
-            ".chiprow{display:flex;flex-wrap:wrap;gap:8px;overflow:visible",
+            ".chiprow{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;overflow-y:hidden",
             build_site.SHARED_CSS,
         )
         self.assertIn(
-            ".chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto",
+            ".chiprow{gap:6px;margin-left:calc(-1 * var(--mobile-page-left))",
             build_site.SHARED_CSS,
         )
-        self.assertIn(".chiprow::after{display:block}", build_site.SHARED_CSS)
+        self.assertIn(".chiprow::after{display:block;", build_site.SHARED_CSS)
         self.assertIn(
             "margin-left:calc(-1 * var(--mobile-page-left));margin-right:calc(-1 * var(--mobile-page-right))",
             build_site.SHARED_CSS,
@@ -187,30 +187,49 @@ class HomeHeaderTests(unittest.TestCase):
         favorite_js = (ROOT / "pipeline" / "assets" / "favorites.js").read_text(encoding="utf-8")
         self.assertIn('button.setAttribute("aria-pressed", on ? "true" : "false")', favorite_js)
 
-    def test_home_focus_is_one_compact_link_and_rank_moves_to_timeline(self):
-        item = {
-            "event_id": "123456789abc", "zh_title": "今日重点标题", "zh_summary": "摘要",
-            "reason": "理由", "category": "platform", "topics": [], "vendors": ["Snowflake"],
-            "heat": 66, "star": True, "shelf": "news",
-            "published": "2026-08-13T12:00:00+08:00", "first_seen": "2026-08-13T12:00:00+08:00",
-            "items": [{"source": "Snowflake Blog"}],
-        }
-        focus = build_site.render_today_focus(item)
-        card = build_site.render_card(item, top_rank=1)
+    def test_home_hot_list_is_compact_top_three_and_ranks_remain_in_timeline(self):
+        items = []
+        for rank, heat in enumerate((66, 62, 59), 1):
+            items.append({
+                "event_id": f"{rank:012d}", "zh_title": f"热点标题 {rank}", "zh_summary": "不应出现在榜单的摘要",
+                "reason": "不应出现在榜单的理由", "category": "platform", "topics": [], "vendors": ["Snowflake"],
+                "heat": heat, "star": rank == 1, "shelf": "news",
+                "published": "2026-08-13T12:00:00+08:00", "first_seen": "2026-08-13T12:00:00+08:00",
+                "items": [{"source": "Snowflake Blog"}],
+            })
+        hot = build_site.render_today_hot(items)
+        card = build_site.render_card(items[0], top_rank=1)
         source = (ROOT / "pipeline" / "build_site.py").read_text(encoding="utf-8")
 
-        self.assertIn('class="today-focus"', focus)
-        self.assertIn('class="today-focus-label">今日重点</span>', focus)
-        self.assertIn('href="e/123456789abc.html"', focus)
-        self.assertIn('href="hot.html"', focus)
-        self.assertNotIn('class="hot"', focus)
+        self.assertIn('class="today-hot"', hot)
+        self.assertIn('<h2 id="todayHotTitle">今日热榜</h2>', hot)
+        self.assertEqual(hot.count('class="today-hot-row'), 3)
+        self.assertIn('class="today-hot-row is-lead"', hot)
+        self.assertEqual(hot.count('class="today-hot-rank"'), 3)
+        self.assertIn('href="e/000000000001.html"', hot)
+        self.assertIn('href="e/000000000002.html"', hot)
+        self.assertIn('href="e/000000000003.html"', hot)
+        self.assertIn('href="hot.html"', hot)
+        self.assertNotIn("不应出现在榜单的摘要", hot)
+        self.assertNotIn("不应出现在榜单的理由", hot)
+        self.assertNotIn('class="hot"', hot)
         self.assertIn('class="top-rank"', card)
         self.assertIn('TOP 1', card)
         self.assertIn('精选 66', card)
         self.assertNotIn("本期热点</h2>", source)
+        self.assertNotIn("今日重点", source)
         self.assertNotIn("栏目说明", source)
         self.assertNotIn("更新状态", source)
         self.assertIn('href="sources.html">全部信源 →</a>', source)
+        self.assertIn(".today-hot-row:focus-visible,.today-hot-more:focus-visible", build_site.SHARED_CSS)
+
+    def test_home_hot_list_limits_output_to_top_three(self):
+        items = [{
+            "event_id": f"{rank:012d}", "zh_title": f"热点标题 {rank}", "heat": 70 - rank,
+        } for rank in range(1, 5)]
+        hot = build_site.render_today_hot(items)
+        self.assertEqual(hot.count('class="today-hot-row'), 3)
+        self.assertNotIn("热点标题 4", hot)
 
     def test_mobile_timeline_toolbar_stays_on_one_compact_line(self):
         toolbar = build_site.render_timeline_toolbar(126)

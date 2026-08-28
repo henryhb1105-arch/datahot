@@ -171,8 +171,8 @@ class BuildPathRegressionTests(unittest.TestCase):
         self.assertIn("接入 Agent", tools)
         self.assertIn(".sidebar .sidebar-tools{margin-top:auto", build_site.SHARED_CSS)
         builder = (ROOT / "pipeline" / "build_site.py").read_text(encoding="utf-8")
-        self.assertIn('class="today-focus-more" href="hot.html"', builder)
-        self.assertIn("榜单 →</a>", builder)
+        self.assertIn('class="today-hot-more" href="hot.html"', builder)
+        self.assertIn("完整榜单 →</a>", builder)
 
     def test_section_and_detail_use_shared_navigation_shells(self):
         section = build_site.page_shell(

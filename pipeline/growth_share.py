@@ -80,6 +80,14 @@ def _json_request(url, *, payload=None, token=""):
         return json.loads(response.read().decode("utf-8"))
 
 
+def _xrpc_error_name(error):
+    try:
+        payload = json.loads(error.read().decode("utf-8"))
+    except (AttributeError, UnicodeDecodeError, json.JSONDecodeError):
+        return ""
+    return str(payload.get("error") or "") if isinstance(payload, dict) else ""
+
+
 def wait_until_live(url, *, attempts=12, delay=10):
     """Confirm the public detail page exists before any external distribution."""
     last_error = None
@@ -113,7 +121,9 @@ def publish(post, *, handle, password, now=None):
         existing = _json_request(lookup, token=token)
         return {"status": "already_published", "uri": existing.get("uri"), "rkey": rkey}
     except HTTPError as error:
-        if error.code != 404:
+        # The reference PDS returns HTTP 400 + RecordNotFound for a missing
+        # record. Only that explicit XRPC error means it is safe to create.
+        if _xrpc_error_name(error) != "RecordNotFound":
             raise
     record = {
         "$type": "app.bsky.feed.post",

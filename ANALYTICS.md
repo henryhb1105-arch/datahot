@@ -23,6 +23,7 @@
 | 事件 | 触发 | 去重 |
 |---|---|---|
 | `session_start` | 生产会话首次启动 | 每个 sessionStorage 会话一次 |
+| `page_view` | 正式域名页面打开 | 每次页面加载一次，立即发送 |
 | `list_exposure` | 首页/主题列表卡片可见面积达到 40% | 每会话、页面、事件一次 |
 | `detail_click` | 点击详情链接或整卡 | 同目标 750 ms 内一次 |
 | `outbound_click` | 详情页点击原文、信源或正文外链 | 同事件 750 ms 内一次 |
@@ -32,9 +33,17 @@
 | `filter` | 点击主题筛选 | 同筛选 750 ms 内一次 |
 | `weekly_brief_click` | 点击标有 `data-analytics="weekly_brief"` 的周报入口 | 同入口 750 ms 内一次 |
 
-字段白名单在 `pipeline/analytics_schema.py`。上下文只包含：页面类型、事件 ID、分类、来源、随机 `session_id/device_id`、序号、宽度区间、来源类型区间，以及内容反馈的固定动作/原因枚举。设备 ID 由第一方 localStorage 随机生成并每 30 天轮换，不读取 Cookie 或浏览器指纹。
+字段白名单在 `pipeline/analytics_schema.py`。上下文只包含：页面类型、公开相对页面路径（无 query/hash）、事件 ID、分类、来源、随机 `session_id/device_id`、序号、宽度区间、来源类型区间，以及内容反馈的固定动作/原因枚举。设备 ID 由第一方 localStorage 随机生成并每 30 天轮换，不读取 Cookie 或浏览器指纹。
 
-不会发送正文、摘要、完整搜索词、URL/referrer 全文、API Key、姓名、邮箱、UA、IP 或位置。搜索只发送长度区间 `1-3 / 4-8 / 9+` 与结果数量。
+不会发送正文、摘要、完整搜索词、查询参数、外部 URL/referrer 全文、API Key、姓名、邮箱、UA、IP 或位置。搜索只发送长度区间 `1-3 / 4-8 / 9+` 与结果数量。
+
+## 生产接收端与私有后台
+
+- 接收端：`https://metrics.datahot.xiahongbin.com/v1/events`，仅接受来自 DataHot 正式域名的 `text/plain` 小批量请求。
+- 私有后台：`https://admin.datahot.xiahongbin.com`，由 Cloudflare Access 登录保护，Worker 内还会再次核对唯一管理员身份。
+- 存储：Cloudflare D1；`event_uuid` 为主键幂等去重，原始事件 90 天后由定时任务删除。
+- 绕过保护：`workers.dev` 和预览地址均关闭；后台响应带 `noindex`、`no-store`、禁止嵌入和严格 CSP。
+- 代码与运行手册：`ops/traffic-worker/`。仓库不会保存管理员邮箱、Access Token 或访问明细。
 
 ## 数据质量与指标
 
@@ -53,6 +62,8 @@ python3 pipeline/analytics_metrics.py export.ndjson
 - 反馈原因分布 = `solid/relevant/novel/source_discovery/irrelevant/shallow/marketing/duplicate/body_quality` 的计数
 - 搜索/筛选使用率 = 使用该功能的会话 / `session_start` 会话
 - 7 日回访率 = 有至少 7 天完整观察窗的首次设备中，在第 1–7 天再次出现的设备占比
-- DAU = 每个 UTC 日期唯一匿名设备数
+- PV = 每个 Asia/Shanghai 自然日合法 `page_view` 数
+- 可测 UV = 每个 Asia/Shanghai 自然日产生合法 `page_view` 的唯一匿名设备数
+- 热门页面 = 公开相对页面路径上的 PV 与可测 UV；同一设备访问多个页面时会分别进入各页面 UV
 
 报告同时给出合法率、解析失败、未知字段、缺字段和传输重复数。数据质量未达标前不得据此做产品决策。

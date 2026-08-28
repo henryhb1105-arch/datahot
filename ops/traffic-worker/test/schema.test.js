@@ -1,0 +1,50 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { safePagePath, shanghaiDay, toStoredEvent, validateEvent } from "../src/schema.js";
+
+function uuid(number) {
+  return `00000000-0000-4000-8000-${number.toString(16).padStart(12, "0")}`;
+}
+
+function event(extra = {}) {
+  return {
+    schema_version: 1,
+    event_uuid: uuid(1),
+    name: "page_view",
+    ts: "2026-08-28T08:00:00.000Z",
+    environment: "production",
+    site_id: "datahot",
+    page: "detail",
+    page_path: "/e/0123456789ab.html",
+    session_id: uuid(2),
+    device_id: uuid(3),
+    sequence: 1,
+    viewport: "large",
+    referrer: "social",
+    ...extra,
+  };
+}
+
+test("server accepts the public page view contract", () => {
+  const input = event();
+  assert.deepEqual(validateEvent(input, { now: Date.parse("2026-08-28T08:01:00Z"), siteId: "datahot" }), []);
+  const stored = toStoredEvent(input, "2026-08-28T08:01:00.000Z");
+  assert.equal(stored.day_cst, "2026-08-28");
+  assert.equal(stored.page_path, "/e/0123456789ab.html");
+  assert.equal(Object.hasOwn(stored, "query_bucket"), false);
+});
+
+test("server rejects private, stale, future, and unknown data", () => {
+  assert.ok(validateEvent(event({ email: "person@example.com" }), { now: Date.parse("2026-08-28T08:01:00Z") }).includes("unknown_fields"));
+  assert.ok(validateEvent(event({ page_path: "/account/person@example.com" }), { now: Date.parse("2026-08-28T08:01:00Z") }).includes("page_path_required"));
+  assert.ok(validateEvent(event({ ts: "2026-08-25T08:00:00Z" }), { now: Date.parse("2026-08-28T08:01:00Z") }).includes("timestamp_stale"));
+  assert.ok(validateEvent(event({ ts: "2026-08-28T09:00:00Z" }), { now: Date.parse("2026-08-28T08:01:00Z") }).includes("timestamp_future"));
+});
+
+test("page paths and Shanghai calendar days are bounded", () => {
+  assert.equal(safePagePath("/"), "/");
+  assert.equal(safePagePath("/topics/data-agent.html"), "/topics/data-agent.html");
+  assert.equal(safePagePath("/search.html?q=private"), "");
+  assert.equal(safePagePath("/index.html/private"), "");
+  assert.equal(shanghaiDay("2026-08-28T17:30:00Z"), "2026-08-29");
+});

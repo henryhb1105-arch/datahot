@@ -1,4 +1,5 @@
 import { DASHBOARD_HTML, DASHBOARD_JS } from "./dashboard.js";
+import { clearSessionCookie, createSessionCookie, LOGIN_HTML, passwordMatches, sessionAuthorized } from "./auth.js";
 import { shanghaiDay, toStoredEvent, validateEvent } from "./schema.js";
 import { addDays, buildDashboardSummary } from "./summary.js";
 
@@ -16,11 +17,11 @@ function json(payload, status = 200, extraHeaders = {}) {
   });
 }
 
-function adminHeaders(contentType) {
+function adminHeaders(contentType, extraHeaders = {}) {
   return {
     "Content-Type": contentType,
     "Cache-Control": "no-store, private",
-    "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+    "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
     "Cross-Origin-Opener-Policy": "same-origin",
     "Cross-Origin-Resource-Policy": "same-origin",
     "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
@@ -28,6 +29,7 @@ function adminHeaders(contentType) {
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
     "X-Robots-Tag": "noindex, nofollow, noarchive",
+    ...extraHeaders,
   };
 }
 
@@ -134,16 +136,11 @@ export async function handleIngest(request, env, now = new Date()) {
   return json({ accepted, rejected: invalid, duplicate: duplicates }, 202, cors);
 }
 
-async function adminAuthorized(request, env, ctx) {
+async function adminAuthorized(request, env) {
   const hostname = new URL(request.url).hostname;
   if (env.LOCAL_DEV === "true" && ["127.0.0.1", "localhost", env.METRICS_HOST].includes(hostname)) return true;
-  if (hostname !== env.ADMIN_HOST || !env.ADMIN_EMAIL || !ctx?.access) return false;
-  try {
-    const identity = await ctx.access.getIdentity();
-    return String(identity?.email || "").trim().toLowerCase() === String(env.ADMIN_EMAIL).trim().toLowerCase();
-  } catch {
-    return false;
-  }
+  if (hostname !== env.ADMIN_HOST) return false;
+  return sessionAuthorized(request, env);
 }
 
 export async function loadDashboardData(env, days, now = new Date()) {
@@ -196,12 +193,53 @@ export async function loadDashboardData(env, days, now = new Date()) {
   });
 }
 
-async function handleAdmin(request, env, ctx) {
-  if (!await adminAuthorized(request, env, ctx)) {
-    return new Response("Access required", { status: 403, headers: adminHeaders("text/plain; charset=utf-8") });
-  }
+async function handleAdmin(request, env) {
   const url = new URL(request.url);
-  if (request.method !== "GET") return new Response("Method not allowed", { status: 405, headers: adminHeaders("text/plain; charset=utf-8") });
+  const local = env.LOCAL_DEV === "true";
+  const authorized = await adminAuthorized(request, env);
+
+  if (!local && url.pathname === "/login") {
+    if (request.method === "GET") {
+      if (authorized) return new Response(null, { status: 303, headers: adminHeaders("text/plain; charset=utf-8", { Location: "/" }) });
+      return new Response(LOGIN_HTML(), { headers: adminHeaders("text/html; charset=utf-8") });
+    }
+    if (request.method === "POST") {
+      const contentType = String(request.headers.get("Content-Type") || "").toLowerCase();
+      const declaredLength = Number(request.headers.get("Content-Length") || 0);
+      if (!contentType.startsWith("application/x-www-form-urlencoded") || declaredLength > 2048) {
+        return new Response("Invalid request", { status: 400, headers: adminHeaders("text/plain; charset=utf-8") });
+      }
+      const body = await request.text();
+      if (new TextEncoder().encode(body).byteLength > 2048) {
+        return new Response("Invalid request", { status: 400, headers: adminHeaders("text/plain; charset=utf-8") });
+      }
+      const password = new URLSearchParams(body).get("password") || "";
+      if (!await passwordMatches(password, env.ADMIN_PASSWORD_HASH)) {
+        return new Response(LOGIN_HTML("密码不正确，请重试。"), { status: 401, headers: adminHeaders("text/html; charset=utf-8") });
+      }
+      try {
+        const cookie = await createSessionCookie(env);
+        return new Response(null, { status: 303, headers: adminHeaders("text/plain; charset=utf-8", { Location: "/", "Set-Cookie": cookie }) });
+      } catch {
+        return new Response("Authentication is not configured", { status: 503, headers: adminHeaders("text/plain; charset=utf-8") });
+      }
+    }
+    return new Response("Method not allowed", { status: 405, headers: adminHeaders("text/plain; charset=utf-8", { Allow: "GET, POST" }) });
+  }
+
+  if (!authorized) {
+    if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/assets/")) {
+      return new Response("Authentication required", { status: 401, headers: adminHeaders("text/plain; charset=utf-8") });
+    }
+    return new Response(null, { status: 303, headers: adminHeaders("text/plain; charset=utf-8", { Location: "/login" }) });
+  }
+
+  if (!local && url.pathname === "/logout") {
+    if (request.method !== "POST") return new Response("Method not allowed", { status: 405, headers: adminHeaders("text/plain; charset=utf-8", { Allow: "POST" }) });
+    return new Response(null, { status: 303, headers: adminHeaders("text/plain; charset=utf-8", { Location: "/login", "Set-Cookie": clearSessionCookie() }) });
+  }
+
+  if (request.method !== "GET") return new Response("Method not allowed", { status: 405, headers: adminHeaders("text/plain; charset=utf-8", { Allow: "GET" }) });
   if (url.pathname === "/" || url.pathname === "/index.html") {
     return new Response(DASHBOARD_HTML, { headers: adminHeaders("text/html; charset=utf-8") });
   }
@@ -222,7 +260,7 @@ export async function handleRequest(request, env, ctx) {
   if (url.hostname === env.METRICS_HOST && url.pathname === "/healthz" && request.method === "GET") {
     return json({ ok: true, service: "datahot-traffic" });
   }
-  if (url.hostname === env.ADMIN_HOST || local) return handleAdmin(request, env, ctx);
+  if (url.hostname === env.ADMIN_HOST || local) return handleAdmin(request, env);
   return new Response("Not found", { status: 404 });
 }
 

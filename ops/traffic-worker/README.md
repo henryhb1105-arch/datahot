@@ -7,12 +7,13 @@
 
 ## 安全与隐私边界
 
-- 后台必须同时通过 Cloudflare Access 与 Worker 内的管理员邮箱核对。
-- `workers.dev` 与预览 URL 必须关闭，避免绕过自有域名上的 Access。
+- 后台使用 Worker 原生密码登录，密码哈希与会话签名密钥均使用 Cloudflare 加密 secret，明文密码只保存在管理员 Mac 钥匙串中。
+- 登录成功后仅签发 12 小时有效的 `HttpOnly`、`Secure`、`SameSite=Strict` Cookie；退出时立即清除。
+- `workers.dev` 与预览 URL 必须关闭，避免绕过自有后台域名。
 - 接收端只允许 `https://datahot.xiahongbin.com`，单批最多 20 条、32 KiB。
 - 不读取或存储请求 IP、Header、UA、地理位置、Cookie、查询参数、完整 referrer、正文或完整搜索词。
 - `event_uuid` 唯一约束负责传输去重，超过 90 天的原始事件每日清理。
-- `.dev.vars` 只可用于本机，禁止提交；管理员身份使用 Cloudflare secret `ADMIN_EMAIL`。
+- `.dev.vars` 只可用于本机，禁止提交；生产环境只设置 `ADMIN_PASSWORD_HASH` 与 `SESSION_SECRET`，禁止提交。
 
 ## 本地验证
 
@@ -29,10 +30,9 @@ npm test
 
 1. 创建 D1 `datahot-traffic`，将真实 UUID 写入 `wrangler.toml`。
 2. 应用远端 migration。
-3. 设置 Worker secret `ADMIN_EMAIL`，不得提交到仓库。
+3. 生成高强度管理员密码，将明文只存入 Mac 钥匙串；其 SHA-256 写入 Worker secret `ADMIN_PASSWORD_HASH`，并设置独立随机 `SESSION_SECRET`。两项均不得提交到仓库。
 4. 部署 Worker，确认两个 Custom Domain 已激活且 `workers.dev`、preview URL 均关闭。
-5. 为 `admin.datahot.xiahongbin.com` 创建 Cloudflare Access self-hosted application，仅允许管理员邮箱。
-6. 分别验证：未登录被拦截、错误账号被拦截、管理员可打开；采集域名不能打开后台。
+5. 分别验证：未登录跳转登录页、错误密码被拦截、管理员密码可打开并退出；采集域名不能打开后台。
 7. 设置 GitHub Actions Variables：
    - `ANALYTICS_ENABLED=true`
    - `ANALYTICS_ENDPOINT=https://metrics.datahot.xiahongbin.com/v1/events`

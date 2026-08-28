@@ -7,9 +7,10 @@ import argparse
 import json
 import os
 import re
+import time
 from datetime import datetime
 from pathlib import Path
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
@@ -79,6 +80,23 @@ def _json_request(url, *, payload=None, token=""):
         return json.loads(response.read().decode("utf-8"))
 
 
+def wait_until_live(url, *, attempts=12, delay=10):
+    """Confirm the public detail page exists before any external distribution."""
+    last_error = None
+    for attempt in range(attempts):
+        request = Request(url, headers={"User-Agent": "DataHotGrowth/1.0"}, method="GET")
+        try:
+            with urlopen(request, timeout=15) as response:
+                if 200 <= response.status < 400:
+                    return
+                last_error = RuntimeError(f"live page returned HTTP {response.status}")
+        except (HTTPError, URLError, TimeoutError) as error:
+            last_error = error
+        if attempt + 1 < attempts:
+            time.sleep(delay)
+    raise RuntimeError(f"详情页尚未在线，取消本次分发：{url}") from last_error
+
+
 def publish(post, *, handle, password, now=None):
     now = now or datetime.now(TZ)
     session = _json_request(f"{BSKY_API}/com.atproto.server.createSession", payload={
@@ -137,6 +155,7 @@ def main(argv=None):
     password = os.getenv("BSKY_APP_PASSWORD", "").strip()
     if not handle or not password:
         raise SystemExit("GROWTH_BSKY_ENABLED=true 但缺少 BSKY_HANDLE/BSKY_APP_PASSWORD")
+    wait_until_live(post["url"])
     print(json.dumps(publish(post, handle=handle, password=password), ensure_ascii=False))
     return 0
 

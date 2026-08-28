@@ -128,3 +128,11 @@ jobs:
       - name: 相同 source SHA 跳过重复发布
         if: steps.release_guard.outputs.should_publish != 'true'
         run: echo "当前 main SHA 已在线，无需重复写入 gh-pages"
+
+      - name: 每日运营分发（仅在详情页确认在线后执行）
+        continue-on-error: true
+        env:
+          GROWTH_BSKY_ENABLED: ${{ vars.GROWTH_BSKY_ENABLED || 'false' }}
+          BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
+          BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
+        run: python3 pipeline/growth_share.py

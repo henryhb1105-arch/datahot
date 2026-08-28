@@ -43,6 +43,22 @@ class GrowthShareTests(unittest.TestCase):
                 self.assertEqual(growth_share.main(["--data", str(path)]), 0)
                 publish.assert_not_called()
 
+    def test_enabled_mode_verifies_live_page_before_publishing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "latest.json"
+            path.write_text(json.dumps({"top": ["aaaaaaaaaaaa"], "events": [self.event()]}), encoding="utf-8")
+            env = {
+                "GROWTH_BSKY_ENABLED": "true",
+                "BSKY_HANDLE": "datahot.example",
+                "BSKY_APP_PASSWORD": "unit-test-only",
+            }
+            calls = []
+            with patch.object(growth_share, "wait_until_live", side_effect=lambda _url: calls.append("live")), \
+                    patch.object(growth_share, "publish", side_effect=lambda *_args, **_kwargs: calls.append("publish") or {"status": "published"}), \
+                    patch.dict("os.environ", env, clear=True):
+                self.assertEqual(growth_share.main(["--data", str(path)]), 0)
+            self.assertEqual(calls, ["live", "publish"])
+
     def test_daily_record_key_is_a_stable_tid(self):
         now = datetime(2026, 8, 28, 14, 30, tzinfo=growth_share.TZ)
         tid = growth_share.daily_tid(now)

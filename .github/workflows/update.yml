@@ -120,13 +120,6 @@ jobs:
           python3 pipeline/build_site.py
           python3 pipeline/check_links.py site
 
-      - name: 每日运营分发（默认关闭，启用后每天幂等发布一条）
-        env:
-          GROWTH_BSKY_ENABLED: ${{ vars.GROWTH_BSKY_ENABLED || 'false' }}
-          BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
-          BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
-        run: python3 pipeline/growth_share.py
-
       - name: 周报 AI 生成状态（异常时告警，不阻塞资讯更新）
         continue-on-error: true
         run: python3 pipeline/check_weekly_brief.py site/data/weekly_brief.json --expect-ai

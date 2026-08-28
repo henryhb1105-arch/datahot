@@ -1,9 +1,11 @@
+import io
 import json
 import sys
 import tempfile
 import unittest
 from datetime import datetime
 from pathlib import Path
+from urllib.error import HTTPError
 from unittest.mock import patch
 
 
@@ -64,6 +66,51 @@ class GrowthShareTests(unittest.TestCase):
         tid = growth_share.daily_tid(now)
         self.assertRegex(tid, r"^[234567abcdefghij][234567abcdefghijklmnopqrstuvwxyz]{12}$")
         self.assertEqual(tid, growth_share.daily_tid(now.replace(hour=23)))
+
+    def test_missing_record_uses_official_xrpc_error_then_publishes(self):
+        missing = HTTPError(
+            "https://bsky.social/xrpc/com.atproto.repo.getRecord",
+            400,
+            "Bad Request",
+            {},
+            io.BytesIO(json.dumps({"error": "RecordNotFound"}).encode("utf-8")),
+        )
+        responses = [
+            {"did": "did:plc:test", "accessJwt": "token"},
+            missing,
+            {"uri": "at://did:plc:test/app.bsky.feed.post/example"},
+        ]
+        with patch.object(growth_share, "_json_request", side_effect=responses) as request:
+            result = growth_share.publish(
+                growth_share.build_post(self.event()),
+                handle="datahot.example",
+                password="unit-test-only",
+                now=datetime(2026, 8, 28, 14, 30, tzinfo=growth_share.TZ),
+            )
+        self.assertEqual(result["status"], "published")
+        self.assertEqual(request.call_count, 3)
+        self.assertIn("com.atproto.repo.putRecord", request.call_args_list[2].args[0])
+
+    def test_unexpected_xrpc_400_is_not_treated_as_missing(self):
+        invalid = HTTPError(
+            "https://bsky.social/xrpc/com.atproto.repo.getRecord",
+            400,
+            "Bad Request",
+            {},
+            io.BytesIO(json.dumps({"error": "InvalidRequest"}).encode("utf-8")),
+        )
+        responses = [
+            {"did": "did:plc:test", "accessJwt": "token"},
+            invalid,
+        ]
+        with patch.object(growth_share, "_json_request", side_effect=responses):
+            with self.assertRaises(HTTPError):
+                growth_share.publish(
+                    growth_share.build_post(self.event()),
+                    handle="datahot.example",
+                    password="unit-test-only",
+                    now=datetime(2026, 8, 28, 14, 30, tzinfo=growth_share.TZ),
+                )
 
 
 if __name__ == "__main__":

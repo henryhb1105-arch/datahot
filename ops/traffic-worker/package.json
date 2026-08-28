@@ -1,0 +1,17 @@
+{
+  "name": "datahot-traffic-worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "check:production": "node scripts/check-production-config.mjs",
+    "dev": "wrangler dev --local --port 8787",
+    "db:migrate:local": "wrangler d1 migrations apply datahot-traffic --local",
+    "db:migrate:remote": "npm run check:production && wrangler d1 migrations apply datahot-traffic --remote",
+    "deploy": "npm run check:production && wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "4.127.0"
+  }
+}

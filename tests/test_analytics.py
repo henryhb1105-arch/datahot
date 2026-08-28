@@ -46,6 +46,9 @@ class AnalyticsSchemaTests(unittest.TestCase):
         self.assertIn("action_required", validate_event(event(3, "favorite_toggle", event_id="aaaaaaaaaaaa")))
         self.assertIn("query_bucket_required", validate_event(event(4, "search")))
         self.assertIn("environment", validate_event(event(5, "session_start", environment="development")))
+        self.assertIn("page_path_required", validate_event(event(8, "page_view")))
+        self.assertEqual(validate_event(event(9, "page_view", page_path="/e/aaaaaaaaaaaa.html", page="detail")), [])
+        self.assertIn("page_path", validate_event(event(10, "session_start", page_path="/private?email=x")))
         self.assertEqual(validate_event(event(
             6, "content_feedback", event_id="aaaaaaaaaaaa",
             action="not_useful", feedback_reason="marketing", page="detail",
@@ -63,6 +66,7 @@ class AnalyticsMetricTests(unittest.TestCase):
     def sample(self):
         events = [
             event(1, "session_start", session=1, device=1),
+            event(13, "page_view", session=1, device=1, page_path="/"),
             event(2, "list_exposure", session=1, device=1, event_id="aaaaaaaaaaaa"),
             event(3, "detail_click", session=1, device=1, event_id="aaaaaaaaaaaa"),
             event(4, "outbound_click", session=1, device=1, event_id="aaaaaaaaaaaa"),
@@ -70,6 +74,7 @@ class AnalyticsMetricTests(unittest.TestCase):
             event(6, "search", session=1, device=1, query_bucket="4-8", result_count=3),
             event(7, "filter", session=1, device=1, filter="data-agent"),
             event(8, "session_start", session=2, device=2),
+            event(14, "page_view", session=2, device=2, page_path="/", referrer="social"),
             event(9, "list_exposure", session=2, device=2, event_id="bbbbbbbbbbbb"),
             event(10, "session_start", ts="2026-08-05T00:00:00+00:00", session=3, device=1),
             event(11, "session_start", ts="2026-08-10T00:00:00+00:00", session=4, device=3),
@@ -102,6 +107,16 @@ class AnalyticsMetricTests(unittest.TestCase):
         self.assertEqual(metrics["filter_usage_rate"], 0.25)
         self.assertEqual(metrics["seven_day_return_cohort"], 2)
         self.assertEqual(metrics["seven_day_return_rate"], 0.5)
+        self.assertEqual(metrics["daily_page_views"], {"2026-08-01": 2})
+        self.assertEqual(metrics["daily_active_devices"], {"2026-08-01": 2})
+        self.assertEqual(metrics["top_pages"], {"/": 2})
+        self.assertEqual(metrics["page_view_referrers"], {"direct": 1, "social": 1})
+
+    def test_page_views_use_shanghai_natural_days(self):
+        report = compute_metrics([
+            event(20, "page_view", ts="2026-08-01T17:00:00Z", page_path="/"),
+        ])
+        self.assertEqual(report["metrics"]["daily_page_views"], {"2026-08-02": 1})
 
     def test_reader_accepts_batches_and_reports_malformed_lines(self):
         lines = [json.dumps({"events": self.sample()[:2]}), "not-json"]

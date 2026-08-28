@@ -8,8 +8,12 @@ import sys
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from analytics_schema import validate_event
+
+
+SHANGHAI = ZoneInfo("Asia/Shanghai")
 
 
 def _ratio(numerator, denominator):
@@ -95,10 +99,17 @@ def compute_metrics(raw_events, parse_errors=0):
 
     activity = defaultdict(set)
     daily_devices = defaultdict(set)
+    daily_page_views = Counter()
+    top_pages = Counter()
+    page_referrers = Counter()
     for event in valid:
-        day = datetime.fromisoformat(event["ts"].replace("Z", "+00:00")).date()
+        day = datetime.fromisoformat(event["ts"].replace("Z", "+00:00")).astimezone(SHANGHAI).date()
         activity[event["device_id"]].add(day)
-        daily_devices[day.isoformat()].add(event["device_id"])
+        if event["name"] == "page_view":
+            daily_devices[day.isoformat()].add(event["device_id"])
+            daily_page_views[day.isoformat()] += 1
+            top_pages[event.get("page_path") or event["page"]] += 1
+            page_referrers[event["referrer"]] += 1
     max_day = max((day for days in activity.values() for day in days), default=None)
     cohort, returned = 0, 0
     if max_day:
@@ -138,6 +149,9 @@ def compute_metrics(raw_events, parse_errors=0):
         "daily_active_devices": {
             day: len(devices) for day, devices in sorted(daily_devices.items())
         },
+        "daily_page_views": dict(sorted(daily_page_views.items())),
+        "top_pages": dict(top_pages.most_common()),
+        "page_view_referrers": dict(sorted(page_referrers.items())),
     }
     return {"quality": quality, "metrics": metrics}
 

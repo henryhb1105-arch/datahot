@@ -64,17 +64,29 @@ test("page classifier never includes full URLs", () => {
   assert.equal(analytics.pageFromPath("/datahot/for-me.html"), "for-me");
   assert.equal(analytics.pageFromPath("/datahot/weekly.html"), "weekly");
   assert.equal(analytics.pageFromPath("/datahot/weekly/2026-W32.html"), "weekly");
-  assert.equal(analytics.pageFromPath("/datahot/daily.html"), "weekly");
+  assert.equal(analytics.pageFromPath("/datahot/daily.html"), "daily");
   assert.equal(analytics.pageFromPath("/datahot/topics/data-agent.html"), "topic");
-  assert.equal(analytics.pageFromPath("/datahot/classics.html"), "other");
+  assert.equal(analytics.pageFromPath("/datahot/classics.html"), "classics");
   assert.equal(analytics.pageFromPath("/datahot/e/0123456789ab.html"), "detail");
   assert.equal(analytics.pageFromPath("/unknown"), "other");
+});
+
+test("page path keeps only public relative routes and drops query data", () => {
+  assert.equal(analytics.safePagePath("/datahot/?private=1"), "/");
+  assert.equal(analytics.safePagePath("/e/0123456789ab.html?utm_source=test"), "/e/0123456789ab.html");
+  assert.equal(analytics.safePagePath("/topics/data-agent.html#section"), "/topics/data-agent.html");
+  assert.equal(analytics.safePagePath("/account/person@example.com"), "");
+  const clean = analytics.sanitizeEvent({
+    name: "page_view", site_id: "datahot", page: "detail",
+    page_path: "/e/0123456789ab.html?secret=1"
+  });
+  assert.equal(clean.page_path, "/e/0123456789ab.html");
 });
 
 test("minimum event model is explicitly enumerated", () => {
   for (const name of [
     "list_exposure", "detail_click", "outbound_click", "favorite_toggle",
-    "content_feedback", "search", "filter", "weekly_brief_click", "daily_brief_click", "session_start",
+    "content_feedback", "search", "filter", "weekly_brief_click", "daily_brief_click", "session_start", "page_view",
   ]) assert.ok(analytics.eventNames.includes(name));
   assert.equal(typeof analytics.observeList, "function");
 });

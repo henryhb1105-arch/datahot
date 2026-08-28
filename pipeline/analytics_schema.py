@@ -9,7 +9,7 @@ from datetime import datetime
 
 SCHEMA_VERSION = 1
 EVENT_NAMES = {
-    "session_start", "list_exposure", "detail_click", "outbound_click",
+    "session_start", "page_view", "list_exposure", "detail_click", "outbound_click",
     "favorite_toggle", "content_feedback", "search", "filter",
     "weekly_brief_click", "daily_brief_click",
 }
@@ -25,7 +25,7 @@ FEEDBACK_REASONS = {
 QUERY_BUCKETS = {"1-3", "4-8", "9+", ""}
 ALLOWED_FIELDS = {
     "schema_version", "event_uuid", "name", "ts", "environment", "site_id",
-    "page", "event_id", "category", "source", "session_id", "device_id",
+    "page", "page_path", "event_id", "category", "source", "session_id", "device_id",
     "sequence", "viewport", "referrer", "action", "filter", "query_bucket",
     "result_count", "feedback_reason",
 }
@@ -39,6 +39,10 @@ EVENT_ID_REQUIRED = {
 }
 UUID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$", re.I)
 EVENT_ID_RE = re.compile(r"^[a-f0-9]{12}$")
+PAGE_PATH_RE = re.compile(
+    r"^/(?:$|(?:index|for-me|weekly|daily|topics|classics|hot|favorites|sources|privacy)\.html$|"
+    r"topics/[a-z0-9-]{1,60}\.html$|weekly/\d{4}-W\d{2}\.html$|e/[a-f0-9]{12}\.html$)"
+)
 SITE_ID_RE = re.compile(r"^[a-z0-9_-]{1,40}$")
 SAFE_TEXT_RE = re.compile(r"^[^\x00-\x1f\x7f]{0,80}$")
 
@@ -77,6 +81,11 @@ def validate_event(event):
         errors.append("site_id")
     if event.get("page") not in PAGES:
         errors.append("page")
+    page_path = str(event.get("page_path") or "")
+    if event.get("name") == "page_view" and not PAGE_PATH_RE.fullmatch(page_path):
+        errors.append("page_path_required")
+    elif page_path and not PAGE_PATH_RE.fullmatch(page_path):
+        errors.append("page_path")
     event_id = str(event.get("event_id") or "")
     if event.get("name") in EVENT_ID_REQUIRED and not EVENT_ID_RE.fullmatch(event_id):
         errors.append("event_id_required")

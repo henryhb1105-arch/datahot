@@ -8,17 +8,17 @@
   "use strict";
 
   var EVENT_NAMES = [
-    "session_start", "list_exposure", "detail_click", "outbound_click",
+    "session_start", "page_view", "list_exposure", "detail_click", "outbound_click",
     "favorite_toggle", "content_feedback", "search", "filter",
     "weekly_brief_click", "daily_brief_click"
   ];
   var ALLOWED_FIELDS = [
     "schema_version", "event_uuid", "name", "ts", "environment", "site_id",
-    "page", "event_id", "category", "source", "session_id", "device_id",
+    "page", "page_path", "event_id", "category", "source", "session_id", "device_id",
     "sequence", "viewport", "referrer", "action", "filter", "query_bucket",
     "result_count", "feedback_reason"
   ];
-  var PAGES = ["home", "for-me", "weekly", "daily", "topics", "topic", "hot", "favorites", "sources", "detail", "privacy", "other"];
+  var PAGES = ["home", "for-me", "weekly", "daily", "topics", "topic", "classics", "hot", "favorites", "sources", "detail", "privacy", "other"];
   var CATEGORIES = ["agent", "platform", "bi", "product", "insight", ""];
   var DEVICE_KEY = "dh_analytics_device_v1";
   var SESSION_KEY = "dh_analytics_session_v1";
@@ -34,6 +34,22 @@
     return text.slice(0, maximum);
   }
 
+  function safePagePath(value) {
+    var path = String(value || "").split(/[?#]/, 1)[0].trim();
+    if (!path) return "";
+    if (path.indexOf("/datahot/") === 0) path = path.slice(8);
+    else if (path === "/datahot") path = "/";
+    path = path.replace(/\/{2,}/g, "/");
+    if (path === "/") return "/";
+    var allowed = [
+      /^\/(?:index|for-me|weekly|daily|topics|classics|hot|favorites|sources|privacy)\.html$/,
+      /^\/topics\/[a-z0-9-]{1,60}\.html$/,
+      /^\/weekly\/\d{4}-W\d{2}\.html$/,
+      /^\/e\/[a-f0-9]{12}\.html$/
+    ];
+    return path.length <= 160 && allowed.some(function (pattern) { return pattern.test(path); }) ? path : "";
+  }
+
   function sanitizeEvent(input) {
     if (!input || typeof input !== "object" || !includes(EVENT_NAMES, input.name)) return null;
     var output = {};
@@ -43,6 +59,7 @@
     output.schema_version = 1;
     output.site_id = cleanText(output.site_id, 40).toLowerCase().replace(/[^a-z0-9_-]/g, "");
     output.page = includes(PAGES, output.page) ? output.page : "other";
+    output.page_path = safePagePath(output.page_path);
     output.event_id = /^[a-f0-9]{12}$/.test(String(output.event_id || "")) ? output.event_id : "";
     output.category = includes(CATEGORIES, String(output.category || "")) ? String(output.category || "") : "";
     output.source = cleanText(output.source, 80);
@@ -56,7 +73,7 @@
     if (Object.prototype.hasOwnProperty.call(output, "result_count")) {
       output.result_count = Math.max(0, Math.min(100000, Number(output.result_count) || 0));
     }
-    ["event_id", "category", "source", "filter", "action", "query_bucket", "feedback_reason"].forEach(function (field) {
+    ["page_path", "event_id", "category", "source", "filter", "action", "query_bucket", "feedback_reason"].forEach(function (field) {
       if (!output[field]) delete output[field];
     });
     return output;
@@ -78,8 +95,8 @@
     if (/\/weekly\/\d{4}-W\d{2}\.html$/.test(path)) return "weekly";
     var filename = path.split("/").pop() || "index.html";
     var pages = {
-      "index.html": "home", "for-me.html": "for-me", "weekly.html": "weekly", "daily.html": "weekly", "topics.html": "topics",
-      "hot.html": "hot", "favorites.html": "favorites", "sources.html": "sources",
+      "index.html": "home", "for-me.html": "for-me", "weekly.html": "weekly", "daily.html": "daily", "topics.html": "topics",
+      "classics.html": "classics", "hot.html": "hot", "favorites.html": "favorites", "sources.html": "sources",
       "privacy.html": "privacy"
     };
     return pages[filename] || "other";
@@ -254,6 +271,7 @@
       var raw = Object.assign({
         schema_version: 1, event_uuid: uuid(), name: name, ts: new Date().toISOString(),
         environment: "production", site_id: config.siteId, page: page,
+        page_path: safePagePath(win.location.pathname),
         session_id: sessionId, device_id: deviceRecord.id, sequence: nextSequence(),
         viewport: viewportBucket(), referrer: referrerBucket()
       }, props);
@@ -273,6 +291,8 @@
       emit("session_start", {}, 0);
       storageSet(session, SESSION_STARTED_KEY, "1");
     }
+    emit("page_view", context(body), 0);
+    flush();
 
     var exposed = new Set();
     var observer = null;
@@ -368,6 +388,7 @@
     sanitizeEvent: sanitizeEvent,
     queryBucket: queryBucket,
     pageFromPath: pageFromPath,
+    safePagePath: safePagePath,
     boot: boot,
     track: function () {}, flush: function () {}, disable: function () {}, enable: function () {},
     observeList: function () {}

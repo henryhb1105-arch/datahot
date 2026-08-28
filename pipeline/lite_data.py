@@ -352,6 +352,10 @@ def lite_event(event, *, source_badge=None):
         "topics": list(event.get("topics") or []),
         **({"work_tags": event["work_tags"]} if isinstance(event.get("work_tags"), dict) else {}),
         "heat": int(event.get("heat") or 0),
+        "quality_score": int(
+            event.get("quality_score", event.get("importance", 50)) or 50
+        ),
+        "trend_score": int(event.get("trend_score", event.get("heat", 0)) or 0),
         "star": bool(event.get("star")),
         "importance": (
             None if event.get("importance") in (None, "")

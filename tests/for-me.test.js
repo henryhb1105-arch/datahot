@@ -44,6 +44,23 @@ test("explicit follows outrank global popularity and explain the match", () => {
   assert.deepEqual(forMe.matchReasons(matching, state), [{ kind: "topic", value: "语义层" }]);
 });
 
+test("quality, trend and personal fit remain independent ranking inputs", () => {
+  const state = forMe.normalizeState({ topics: ["语义层"], vendors: [] });
+  state.feedback = forMe.normalizeFeedbackStore({ entries: {
+    aaaaaaaaaaaa: {
+      value: "not_useful", reason: "irrelevant", topics: ["语义层"], vendors: [], source: "Source"
+    }
+  }});
+  const rejected = event("aaaaaaaaaaaa", { topics: ["语义层"], importance: 99, heat: 99 });
+  rejected.quality_score = 99; rejected.trend_score = 99;
+  const useful = event("bbbbbbbbbbbb", { topics: ["语义层"], importance: 55, heat: 30 });
+  useful.quality_score = 55; useful.trend_score = 30;
+  const ranked = forMe.rankEvents([rejected, useful], state, Date.parse("2026-08-22T00:00:00Z"), true);
+  assert.deepEqual(ranked.map((item) => item.event_id), ["bbbbbbbbbbbb", "aaaaaaaaaaaa"]);
+  assert.equal(forMe.fitScore(rejected, state, state.feedback), 0);
+  assert.ok(forMe.fitScore(useful, state, state.feedback) > 0);
+});
+
 test("new count uses ingestion time rather than an old publication date", () => {
   const olderArticleAddedToday = event("aaaaaaaaaaaa", {
     published: "2026-07-01T00:00:00Z",

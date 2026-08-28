@@ -58,6 +58,20 @@ class LitePayloadTests(unittest.TestCase):
         )
         self.assertEqual(fallback["events"][0]["source_badge"], "RSS")
 
+    def test_payload_separates_quality_and_trend_with_legacy_fallbacks(self):
+        scored = event(9, importance=72, heat=61)
+        scored["quality_score"] = 84
+        scored["trend_score"] = 47
+        legacy = event(10, importance=63, heat=58)
+        payload = build_lite_payload(
+            [scored, legacy], "2026-08-11T12:00:00+08:00",
+        )
+        by_id = {row["event_id"]: row for row in payload["events"]}
+        self.assertEqual(by_id[scored["event_id"]]["quality_score"], 84)
+        self.assertEqual(by_id[scored["event_id"]]["trend_score"], 47)
+        self.assertEqual(by_id[legacy["event_id"]]["quality_score"], 63)
+        self.assertEqual(by_id[legacy["event_id"]]["trend_score"], 58)
+
     def test_explicit_empty_home_ranking_does_not_fall_back_to_all_events(self):
         payload = build_lite_payload([event(1)], "2026-08-11T12:00:00+08:00", ranking=[])
         self.assertEqual(payload["home_event_ids"], [])

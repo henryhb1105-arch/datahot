@@ -9,13 +9,14 @@
 
   var EVENT_NAMES = [
     "session_start", "list_exposure", "detail_click", "outbound_click",
-    "favorite_toggle", "search", "filter", "weekly_brief_click", "daily_brief_click"
+    "favorite_toggle", "content_feedback", "search", "filter",
+    "weekly_brief_click", "daily_brief_click"
   ];
   var ALLOWED_FIELDS = [
     "schema_version", "event_uuid", "name", "ts", "environment", "site_id",
     "page", "event_id", "category", "source", "session_id", "device_id",
     "sequence", "viewport", "referrer", "action", "filter", "query_bucket",
-    "result_count"
+    "result_count", "feedback_reason"
   ];
   var PAGES = ["home", "for-me", "weekly", "daily", "topics", "topic", "hot", "favorites", "sources", "detail", "privacy", "other"];
   var CATEGORIES = ["agent", "platform", "bi", "product", "insight", ""];
@@ -46,12 +47,16 @@
     output.category = includes(CATEGORIES, String(output.category || "")) ? String(output.category || "") : "";
     output.source = cleanText(output.source, 80);
     output.filter = cleanText(output.filter, 40);
-    output.action = includes(["add", "remove"], output.action) ? output.action : "";
+    output.action = includes(["add", "remove", "useful", "not_useful"], output.action) ? output.action : "";
+    output.feedback_reason = includes([
+      "solid", "relevant", "novel", "source_discovery", "irrelevant",
+      "shallow", "marketing", "duplicate", "body_quality"
+    ], output.feedback_reason) ? output.feedback_reason : "";
     output.query_bucket = includes(["1-3", "4-8", "9+"], output.query_bucket) ? output.query_bucket : "";
     if (Object.prototype.hasOwnProperty.call(output, "result_count")) {
       output.result_count = Math.max(0, Math.min(100000, Number(output.result_count) || 0));
     }
-    ["event_id", "category", "source", "filter", "action", "query_bucket"].forEach(function (field) {
+    ["event_id", "category", "source", "filter", "action", "query_bucket", "feedback_reason"].forEach(function (field) {
       if (!output[field]) delete output[field];
     });
     return output;
@@ -242,7 +247,7 @@
     function emit(name, properties, dedupeWindow) {
       if (!active || !includes(EVENT_NAMES, name)) return;
       var props = properties || {};
-      var dedupeKey = [name, props.event_id || "", props.action || "", props.filter || "", props.query_bucket || ""].join("|");
+      var dedupeKey = [name, props.event_id || "", props.action || "", props.feedback_reason || "", props.filter || "", props.query_bucket || ""].join("|");
       var at = Date.now();
       if (lastSent.has(dedupeKey) && at - lastSent.get(dedupeKey) < (dedupeWindow || 750)) return;
       lastSent.set(dedupeKey, at);

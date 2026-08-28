@@ -32,6 +32,7 @@ QR_DIR = SITE / "qr"
 TOPIC_DIR = SITE / "topics"
 WEEKLY_DIR = SITE / "weekly"
 ANALYTICS_ASSET = ROOT / "pipeline" / "assets" / "analytics.js"
+CONTENT_FEEDBACK_ASSET = ROOT / "pipeline" / "assets" / "content-feedback.js"
 HOME_ASSET = ROOT / "pipeline" / "assets" / "home.js"
 FOR_ME_ASSET = ROOT / "pipeline" / "assets" / "for-me.js"
 FAVORITES_ASSET = ROOT / "pipeline" / "assets" / "favorites.js"
@@ -46,7 +47,7 @@ CAT_BADGE = {
 }
 CAT_LABEL = CATEGORY_LABELS
 WEEK_CN = "一二三四五六日"
-HEAT_FORMULA = "内容重要性45% + 新鲜度35%（48小时半衰）+ 社区信号10% + 多信源10%"
+HEAT_FORMULA = "内容质量45% + 趋势55%（48小时半衰新鲜度、社区信号与多信源印证）"
 UPDATE_MECHANISM = (
     "DataHot 通常在北京时间 02:17、08:17、14:17、20:17 自动启动更新。"
     "完成信源采集、筛选去重、AI 整理和静态发布后，页面时间才会变化，"
@@ -1328,6 +1329,26 @@ def render_detail(e, all_events, css, tts_item=None):
     main_link = esc(main_url)
     main_src_name = primary_item["source"]
     main_src = esc(main_src_name)
+    feedback_context = esc(json.dumps({
+        "topics": list(e.get("topics") or [])[:8],
+        "vendors": list(e.get("vendors") or [])[:8],
+        "source": main_src_name,
+    }, ensure_ascii=False, separators=(",", ":")))
+    feedback_html = f'''<section class="content-feedback" data-content-feedback data-event-id="{event_id}" data-feedback-context="{feedback_context}" aria-labelledby="contentFeedbackTitle">
+  <div class="content-feedback-main">
+    <div><h2 id="contentFeedbackTitle">这篇内容对你有用吗？</h2><p data-feedback-status aria-live="polite">反馈只用于改善内容筛选，不等同于收藏</p></div>
+    <div class="content-feedback-actions">
+      <button type="button" data-feedback-value="useful" aria-pressed="false">有用</button>
+      <button type="button" data-feedback-value="not_useful" aria-pressed="false">没用</button>
+    </div>
+  </div>
+  <div class="content-feedback-reasons" data-feedback-reasons="useful" hidden aria-label="有用的原因">
+    <span>可选原因</span><button type="button" data-feedback-reason="solid">内容扎实</button><button type="button" data-feedback-reason="relevant">贴合工作</button><button type="button" data-feedback-reason="novel">提供新观点</button><button type="button" data-feedback-reason="source_discovery">发现好信源</button>
+  </div>
+  <div class="content-feedback-reasons" data-feedback-reasons="not_useful" hidden aria-label="没用的原因">
+    <span>可选原因</span><button type="button" data-feedback-reason="irrelevant">不相关</button><button type="button" data-feedback-reason="shallow">太浅</button><button type="button" data-feedback-reason="marketing">营销软文</button><button type="button" data-feedback-reason="duplicate">内容重复</button><button type="button" data-feedback-reason="body_quality">正文质量差</button>
+  </div>
+</section>'''
     main_source_meta = (
         f'<a class="meta-source-link" href="{main_link}" target="_blank" '
         f'rel="noopener noreferrer" data-analytics="outbound" data-source="{main_src}" '
@@ -1476,6 +1497,7 @@ def render_detail(e, all_events, css, tts_item=None):
 {feed_discovery()}
 {analytics_head("../")}
 {favorites_head("../")}
+<script defer src="../content-feedback.js"></script>
 <script defer src="../detail.js"></script>
 <script type="application/ld+json">{jsonld}</script>
 <style>{css}
@@ -1544,6 +1566,18 @@ def render_detail(e, all_events, css, tts_item=None):
 .source-more>summary::-webkit-details-marker{{display:none}}
 .source-more>summary::after{{content:" ↓"}}
 .source-more[open]>summary::after{{content:" ↑"}}
+.content-feedback{{max-width:700px;margin:28px auto 22px;padding:18px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}}
+.content-feedback-main{{display:flex;align-items:center;justify-content:space-between;gap:18px}}
+.content-feedback h2{{font-size:14px;line-height:1.5;margin:0 0 3px;color:var(--ink)}}
+.content-feedback p{{font-size:11.5px;line-height:1.5;margin:0;color:var(--sub)}}
+.content-feedback-actions{{display:flex;gap:8px;flex:0 0 auto}}
+.content-feedback button{{min-height:38px;border:1px solid var(--line);border-radius:99px;background:var(--card);color:var(--txt2);font-size:12px;font-weight:700;padding:7px 14px;cursor:pointer}}
+.content-feedback button.on{{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}}
+.content-feedback-reasons{{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:12px}}
+.content-feedback-reasons[hidden]{{display:none}}
+.content-feedback-reasons span{{font-size:11px;color:var(--sub)}}
+.content-feedback-reasons button{{min-height:32px;font-size:11px;font-weight:600;padding:5px 10px}}
+@media(max-width:600px){{.content-feedback-main{{align-items:flex-start;flex-direction:column;gap:12px}}.content-feedback-actions{{width:100%}}.content-feedback-actions button{{flex:1}}}}
 @media(max-width:600px){{.source-report{{grid-template-columns:1fr;gap:0}}.source-report-date{{margin-top:1px}}}}
 .fulltext>:not(.cb-figure):not(.cb-table-shell){{max-width:700px;margin-left:auto;margin-right:auto}}
 .fulltext .cb-heading{{font-size:19px;line-height:1.55;margin-top:32px;margin-bottom:12px;color:var(--ink)}}
@@ -1635,6 +1669,7 @@ def render_detail(e, all_events, css, tts_item=None):
   {full_block}
   {topic_html}
 {supplement_sources}
+  {feedback_html}
   {related_html}
   </main>
   {toc_rail_html}
@@ -2358,7 +2393,7 @@ def render_for_me_page(css, data_url="data/latest-lite.json"):
     <div class="fm-empty" id="fmEmpty" hidden>暂时没有与你关注对象匹配的变化。可以调整关注，或稍后回来看看。</div>
 
     <section class="fm-section" id="fmFeed" aria-labelledby="fmFeedTitle">
-      <div class="fm-section-head"><h2 id="fmFeedTitle">关注动态</h2><p>按相关性、重要性和时效排序</p></div>
+      <div class="fm-section-head"><h2 id="fmFeedTitle">关注动态</h2><p>按内容质量、近期趋势和与你的适合度排序</p></div>
       <div class="fm-feed-list" id="fmFeedList"></div>
     </section>
 
@@ -2571,7 +2606,7 @@ def render_privacy_page(css):
     <p>DataHot 的匿名行为统计默认关闭，只有站点配置了 HTTPS 第一方接收端后才会启用。启用时仅记录页面类型、事件 ID、分类、来源、匿名会话与 30 天轮换的随机设备 ID。</p>
     <p style="margin-top:10px"><b>不会采集：</b>正文内容、完整搜索词、Cookie、姓名/邮箱、API Key、浏览器指纹、精确位置或跨站行为。浏览器的 Global Privacy Control / Do Not Track 会被自动尊重。</p>
     <p style="margin-top:10px"><b>搜索：</b>只记录长度区间（1–3 / 4–8 / 9+）和结果数量，不发送输入文字。</p>
-    <p style="margin-top:10px"><b>For Me 与收藏：</b>关注的主题和厂商、已读、不感兴趣与收藏状态只保存在本机浏览器，不会上传；清除本站浏览器数据即可重置。</p>
+    <p style="margin-top:10px"><b>For Me、收藏与内容反馈：</b>关注、已读、收藏和文章反馈默认保存在本机，用于立即调整个人排序。匿名统计启用时，文章反馈只会发送事件 ID、“有用/没用”和预设原因，不发送评价文字或正文；关闭匿名统计后不上传。</p>
   </div>
   <div class="scard">
     <div data-analytics-status style="font-size:13px;color:var(--txt2);margin-bottom:12px">读取状态中…</div>
@@ -2651,9 +2686,10 @@ def remove_retired_public_pages(site_root=SITE):
 def main():
     SITE.mkdir(parents=True, exist_ok=True)
     remove_retired_public_pages()
-    if not all(asset.exists() for asset in (ANALYTICS_ASSET, HOME_ASSET, FOR_ME_ASSET, FAVORITES_ASSET, DETAIL_ASSET, TTS_ASSET)):
+    if not all(asset.exists() for asset in (ANALYTICS_ASSET, CONTENT_FEEDBACK_ASSET, HOME_ASSET, FOR_ME_ASSET, FAVORITES_ASSET, DETAIL_ASSET, TTS_ASSET)):
         raise FileNotFoundError("missing browser asset")
     shutil.copyfile(ANALYTICS_ASSET, SITE / "analytics.js")
+    shutil.copyfile(CONTENT_FEEDBACK_ASSET, SITE / "content-feedback.js")
     shutil.copyfile(HOME_ASSET, SITE / "home.js")
     shutil.copyfile(FOR_ME_ASSET, SITE / "for-me.js")
     shutil.copyfile(FAVORITES_ASSET, SITE / "favorites.js")

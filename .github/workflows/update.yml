@@ -62,13 +62,21 @@ jobs:
       - name: 回归测试（Python + 浏览器事件客户端）
         run: |
           python3 -m unittest discover -s tests -v
-          node --test tests/analytics.test.js tests/favorites.test.js tests/for-me.test.js tests/home.test.js tests/tts-player.test.js
+          node --test tests/analytics.test.js tests/content-feedback.test.js tests/favorites.test.js tests/for-me.test.js tests/home.test.js tests/tts-player.test.js
 
       - name: 采集 → AI 加工 → 生成静态站
         env:
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           LLM_BASE_URL: "https://api.deepseek.com"
           LLM_MODEL: "deepseek-v4-flash"
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          DISCOVERY_OPENAI_ENABLED: ${{ vars.DISCOVERY_OPENAI_ENABLED || 'true' }}
+          DISCOVERY_OPENAI_MODEL: ${{ vars.DISCOVERY_OPENAI_MODEL || 'gpt-5.6' }}
+          DISCOVERY_INTERVAL_HOURS: ${{ vars.DISCOVERY_INTERVAL_HOURS || '20' }}
+          DISCOVERY_MAX_QUERIES: ${{ vars.DISCOVERY_MAX_QUERIES || '2' }}
+          DISCOVERY_HN_ENABLED: ${{ vars.DISCOVERY_HN_ENABLED || 'true' }}
+          DISCOVERY_HN_MAX_IDS: ${{ vars.DISCOVERY_HN_MAX_IDS || '30' }}
+          DISCOVERY_HN_MIN_SCORE: ${{ vars.DISCOVERY_HN_MIN_SCORE || '20' }}
           MAX_LLM_TOKENS_PER_RUN: ${{ vars.MAX_LLM_TOKENS_PER_RUN || '160000' }}
           MAX_LLM_TOKENS_PER_DAY: ${{ vars.MAX_LLM_TOKENS_PER_DAY || '1000000' }}
           MAX_COMPILE_EVENTS_PER_RUN: ${{ vars.MAX_COMPILE_EVENTS_PER_RUN || '8' }}
@@ -103,6 +111,7 @@ jobs:
           BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
           BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
         run: |
+          python3 pipeline/run_discovery.py
           python3 pipeline/run_update.py
           python3 pipeline/quarantine_content.py \
             --baseline "$RUNNER_TEMP/datahot-main-baseline/latest.json" \
@@ -131,7 +140,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: 定时更新数据 [skip ci]"
-          file_pattern: "site/data/** site/media/**"
+          file_pattern: "site/data/** site/media/** pipeline/discovery_state/**"
 
   publish:
     name: 请求统一 Pages 发布

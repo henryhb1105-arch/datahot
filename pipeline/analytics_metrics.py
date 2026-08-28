@@ -67,6 +67,20 @@ def compute_metrics(raw_events, parse_errors=0):
         for event in valid
         if event["name"] == "favorite_toggle" and event.get("action") == "add"
     }
+    feedback_by_reader_event = {}
+    for event in valid:
+        if event["name"] != "content_feedback":
+            continue
+        feedback_by_reader_event[(event["device_id"], event["event_id"])] = event
+    useful_feedback = sum(
+        event.get("action") == "useful"
+        for event in feedback_by_reader_event.values()
+    )
+    feedback_reasons = Counter(
+        event.get("feedback_reason")
+        for event in feedback_by_reader_event.values()
+        if event.get("feedback_reason")
+    )
     sessions = {event["session_id"] for event in valid if event["name"] == "session_start"}
     search_sessions = {event["session_id"] for event in valid if event["name"] == "search"}
     filter_sessions = {event["session_id"] for event in valid if event["name"] == "filter"}
@@ -113,6 +127,9 @@ def compute_metrics(raw_events, parse_errors=0):
         "detail_click_through_rate": _ratio(len(detail_pairs & exposure_pairs), len(exposure_pairs)),
         "outbound_click_rate": _ratio(len(outbound_pairs & detail_pairs), len(detail_pairs)),
         "favorite_rate": _ratio(len(favorite_add_pairs & exposure_pairs), len(exposure_pairs)),
+        "content_feedback_count": len(feedback_by_reader_event),
+        "useful_feedback_rate": _ratio(useful_feedback, len(feedback_by_reader_event)),
+        "content_feedback_reasons": dict(sorted(feedback_reasons.items())),
         "search_usage_rate": _ratio(len(search_sessions & sessions), len(sessions)),
         "filter_usage_rate": _ratio(len(filter_sessions & sessions), len(sessions)),
         "weekly_brief_click_rate": _ratio(len(brief_sessions & sessions), len(sessions)),

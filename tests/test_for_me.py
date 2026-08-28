@@ -49,8 +49,9 @@ class ForMeBuildTests(unittest.TestCase):
 
     def test_privacy_page_discloses_local_for_me_state(self):
         page = build_site.render_privacy_page("")
-        self.assertIn("For Me 与收藏", page)
-        self.assertIn("只保存在本机浏览器，不会上传", page)
+        self.assertIn("For Me、收藏与内容反馈", page)
+        self.assertIn("默认保存在本机", page)
+        self.assertIn("关闭匿名统计后不上传", page)
 
 
 if __name__ == "__main__":

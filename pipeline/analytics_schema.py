@@ -10,25 +10,33 @@ from datetime import datetime
 SCHEMA_VERSION = 1
 EVENT_NAMES = {
     "session_start", "list_exposure", "detail_click", "outbound_click",
-    "favorite_toggle", "search", "filter", "weekly_brief_click", "daily_brief_click",
+    "favorite_toggle", "content_feedback", "search", "filter",
+    "weekly_brief_click", "daily_brief_click",
 }
-PAGES = {"home", "weekly", "daily", "topics", "topic", "classics", "hot", "favorites", "sources", "detail", "privacy", "other"}
+PAGES = {"home", "for-me", "weekly", "daily", "topics", "topic", "classics", "hot", "favorites", "sources", "detail", "privacy", "other"}
 CATEGORIES = {"agent", "platform", "bi", "product", "insight", ""}
 VIEWPORTS = {"small", "medium", "large"}
 REFERRERS = {"direct", "internal", "search", "social", "other"}
-ACTIONS = {"add", "remove", ""}
+ACTIONS = {"add", "remove", "useful", "not_useful", ""}
+FEEDBACK_REASONS = {
+    "solid", "relevant", "novel", "source_discovery", "irrelevant",
+    "shallow", "marketing", "duplicate", "body_quality", "",
+}
 QUERY_BUCKETS = {"1-3", "4-8", "9+", ""}
 ALLOWED_FIELDS = {
     "schema_version", "event_uuid", "name", "ts", "environment", "site_id",
     "page", "event_id", "category", "source", "session_id", "device_id",
     "sequence", "viewport", "referrer", "action", "filter", "query_bucket",
-    "result_count",
+    "result_count", "feedback_reason",
 }
 REQUIRED_FIELDS = {
     "schema_version", "event_uuid", "name", "ts", "environment", "site_id",
     "page", "session_id", "device_id", "sequence", "viewport", "referrer",
 }
-EVENT_ID_REQUIRED = {"list_exposure", "detail_click", "outbound_click", "favorite_toggle"}
+EVENT_ID_REQUIRED = {
+    "list_exposure", "detail_click", "outbound_click", "favorite_toggle",
+    "content_feedback",
+}
 UUID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$", re.I)
 EVENT_ID_RE = re.compile(r"^[a-f0-9]{12}$")
 SITE_ID_RE = re.compile(r"^[a-z0-9_-]{1,40}$")
@@ -91,9 +99,13 @@ def validate_event(event):
         errors.append("referrer")
     if str(event.get("action") or "") not in ACTIONS:
         errors.append("action")
+    if str(event.get("feedback_reason") or "") not in FEEDBACK_REASONS:
+        errors.append("feedback_reason")
     if str(event.get("query_bucket") or "") not in QUERY_BUCKETS:
         errors.append("query_bucket")
     if event.get("name") == "favorite_toggle" and event.get("action") not in {"add", "remove"}:
+        errors.append("action_required")
+    if event.get("name") == "content_feedback" and event.get("action") not in {"useful", "not_useful"}:
         errors.append("action_required")
     if event.get("name") == "search" and event.get("query_bucket") not in {"1-3", "4-8", "9+"}:
         errors.append("query_bucket_required")

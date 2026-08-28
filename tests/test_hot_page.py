@@ -69,8 +69,8 @@ class HotPageTests(unittest.TestCase):
     def test_hot_page_explains_the_current_ranking_formula(self):
         page = build_site.render_hot_page([hot_event(1)], "")
 
-        self.assertIn("内容重要性45%", page)
-        self.assertIn("新鲜度35%（48小时半衰）", page)
+        self.assertIn("内容质量45%", page)
+        self.assertIn("趋势55%（48小时半衰新鲜度、社区信号与多信源印证）", page)
         self.assertIn("按热度降序，同一信源最多 2 条", page)
 
 

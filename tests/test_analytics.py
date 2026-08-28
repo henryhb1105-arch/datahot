@@ -46,6 +46,14 @@ class AnalyticsSchemaTests(unittest.TestCase):
         self.assertIn("action_required", validate_event(event(3, "favorite_toggle", event_id="aaaaaaaaaaaa")))
         self.assertIn("query_bucket_required", validate_event(event(4, "search")))
         self.assertIn("environment", validate_event(event(5, "session_start", environment="development")))
+        self.assertEqual(validate_event(event(
+            6, "content_feedback", event_id="aaaaaaaaaaaa",
+            action="not_useful", feedback_reason="marketing", page="detail",
+        )), [])
+        self.assertIn("feedback_reason", validate_event(event(
+            7, "content_feedback", event_id="aaaaaaaaaaaa",
+            action="useful", feedback_reason="free text", page="detail",
+        )))
 
     def test_insight_category_is_valid(self):
         self.assertEqual(validate_event(event(6, "session_start", category="insight")), [])
@@ -65,6 +73,8 @@ class AnalyticsMetricTests(unittest.TestCase):
             event(9, "list_exposure", session=2, device=2, event_id="bbbbbbbbbbbb"),
             event(10, "session_start", ts="2026-08-05T00:00:00+00:00", session=3, device=1),
             event(11, "session_start", ts="2026-08-10T00:00:00+00:00", session=4, device=3),
+            event(12, "content_feedback", session=1, device=1, event_id="aaaaaaaaaaaa",
+                  action="useful", feedback_reason="solid", page="detail"),
         ]
         return events
 
@@ -85,6 +95,9 @@ class AnalyticsMetricTests(unittest.TestCase):
         self.assertEqual(metrics["detail_click_through_rate"], 0.5)
         self.assertEqual(metrics["outbound_click_rate"], 1.0)
         self.assertEqual(metrics["favorite_rate"], 0.5)
+        self.assertEqual(metrics["content_feedback_count"], 1)
+        self.assertEqual(metrics["useful_feedback_rate"], 1.0)
+        self.assertEqual(metrics["content_feedback_reasons"], {"solid": 1})
         self.assertEqual(metrics["search_usage_rate"], 0.25)
         self.assertEqual(metrics["filter_usage_rate"], 0.25)
         self.assertEqual(metrics["seven_day_return_cohort"], 2)

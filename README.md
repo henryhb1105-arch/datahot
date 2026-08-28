@@ -1,17 +1,18 @@
 # DataHot · 数据领域 AI 资讯热榜
 
 监控 **Data Agent / AI 数据平台 / BI / 数据产品 / AI分析** 五个领域的资讯聚合站。
-多信源采集 → LLM 过滤加工（中文摘要 + 推荐理由 + 分类 + 热度分）→ 静态站点，每 6 小时自动更新。
+多信源采集与影子侦察 → LLM 过滤加工（摘要、分类、质量分）→ 静态站点，每 6 小时自动更新。
 
 ## 架构
 
 ```
 RSS/API 采集 ──► LLM 加工（DeepSeek）──► latest.json ──► 静态 HTML ──► GitHub Pages
-（12 个信源）    （过滤·摘要·推荐理由）      （跨次累积）     （无后端）
+影子侦察 ──────► 文章/信源候选池 ──────► 编辑试用与确认（不会自动公开）
 ```
 
 - `pipeline/sources.json` — 信源配置（`enabled: false` 的为待解封源）
 - `pipeline/run_update.py` — 采集 / 过滤 / LLM 加工 / 打分 / 数据输出
+- `pipeline/run_discovery.py` — 每日影子文章侦察与新信源候选池
 - `pipeline/build_site.py` — 静态页面渲染
 - `pipeline/lite_data.py` — 首页/搜索/收藏的轻量数据与首屏结构规则
 - `pipeline/check_links.py` — 全站本地 `href/src` 完整性检查（失效链接会阻断构建）
@@ -38,7 +39,8 @@ cd site && npm run dev   # 或 python3 -m http.server
 ## 部署
 
 GitHub Actions 每 6 小时自动运行（UTC 0/6/12/18 第 17 分），数据回写仓库、站点发布到 `gh-pages` 分支。
-仓库 Secrets 需配置：`LLM_API_KEY`（DeepSeek）。
+仓库 Secrets 需配置：`LLM_API_KEY`（DeepSeek）。可选配置 `OPENAI_API_KEY` 开启 Web Search
+侦察；未配置时 HN 官方 API 与已收录文章引用图仍会运行。
 
 ### DeepSeek 用量与预算
 
@@ -61,6 +63,14 @@ GitHub Actions 每 6 小时自动运行（UTC 0/6/12/18 第 17 分），数据�
 `pipeline/sources.json` 支持为每个信源独立配置 `fetch_interval_hours`、`max_candidates_per_run`、`lookback_days`、`require_published`、`path_include/path_exclude` 和 `include_keywords/exclude_keywords`。删除这些可选字段即回退到每 6 小时、单轮 20 条、7 天窗口、无关键词限制的默认行为。手动补数时可临时设置 `FORCE_SOURCE_FETCH=true` 绕过分频，不会改写信源配置。
 
 每轮的调度原因、预筛数、候选数、采用率、模型调用数和 Token 会写入 `site/data/sources_status.json`。连续三轮有候选但零采用时只记录降频建议，不会自动停用或删除信源。
+
+### 文章侦察与信源候选池
+
+定时更新会先运行影子侦察，结果只写入 `pipeline/discovery_state/` 和 Actions Summary，不会
+绕过现有审核进入公共页面。未知域名按 `DISCOVERED → PROBATION → ACTIVE` 管理；正式启用
+仍需检查抓取稳定性、全文质量、采用率和营销噪音。现有信源连续失败时只标记
+`DEGRADED`，不会自动删除。查询、状态、评分和人工复核说明见
+[`docs/source-discovery.md`](docs/source-discovery.md)。
 
 ### 事件优先加工流程
 
@@ -85,6 +95,9 @@ GitHub Actions 每 6 小时自动运行（UTC 0/6/12/18 第 17 分），数据�
 ### 隐私友好行为分析
 
 分析客户端默认关闭，只有配置公开 HTTPS 接收端后才在正式域名发送字段白名单事件；localhost、测试、GPC/DNT 和手动关闭均不发送。它不采集正文、完整搜索词、Cookie、身份、指纹或位置。事件 schema、去重规则、接收端契约和指标公式见 [`ANALYTICS.md`](ANALYTICS.md)，NDJSON 导出可用 `python3 pipeline/analytics_metrics.py export.ndjson` 先做质量校验再计算指标。
+
+详情页“有用/没用”反馈默认只保存在当前浏览器，并立即影响 For Me 的 `fit_score`。若匿名
+统计已启用，只会发送事件 ID、动作和固定原因枚举；收藏仍表示稍后阅读，不作为质量标签。
 
 首页默认只静态输出 20 条并使用不含正文的 `latest-lite.json` 完成加载更多、搜索和收藏；首屏厂商上限、栏目软阈值、当前体积基线和一键回滚见 [`PERFORMANCE.md`](PERFORMANCE.md)。
 

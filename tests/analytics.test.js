@@ -43,6 +43,21 @@ test("search values collapse to length buckets only", () => {
   assert.equal(analytics.queryBucket("private customer name"), "9+");
 });
 
+test("content feedback keeps only bounded enum signals", () => {
+  const clean = analytics.sanitizeEvent({
+    name: "content_feedback", event_id: "aaaaaaaaaaaa", action: "not_useful",
+    feedback_reason: "marketing", body: "must drop", page: "detail", site_id: "datahot"
+  });
+  assert.equal(clean.action, "not_useful");
+  assert.equal(clean.feedback_reason, "marketing");
+  assert.equal(Object.hasOwn(clean, "body"), false);
+  const invalid = analytics.sanitizeEvent({
+    name: "content_feedback", event_id: "aaaaaaaaaaaa", action: "useful",
+    feedback_reason: "free text", page: "detail", site_id: "datahot"
+  });
+  assert.equal(Object.hasOwn(invalid, "feedback_reason"), false);
+});
+
 test("page classifier never includes full URLs", () => {
   assert.equal(analytics.pageFromPath("/datahot/"), "home");
   assert.equal(analytics.pageFromPath("/datahot/index.html"), "home");
@@ -59,7 +74,7 @@ test("page classifier never includes full URLs", () => {
 test("minimum event model is explicitly enumerated", () => {
   for (const name of [
     "list_exposure", "detail_click", "outbound_click", "favorite_toggle",
-    "search", "filter", "weekly_brief_click", "daily_brief_click", "session_start",
+    "content_feedback", "search", "filter", "weekly_brief_click", "daily_brief_click", "session_start",
   ]) assert.ok(analytics.eventNames.includes(name));
   assert.equal(typeof analytics.observeList, "function");
 });

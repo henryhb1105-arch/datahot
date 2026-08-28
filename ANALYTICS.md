@@ -27,11 +27,12 @@
 | `detail_click` | 点击详情链接或整卡 | 同目标 750 ms 内一次 |
 | `outbound_click` | 详情页点击原文、信源或正文外链 | 同事件 750 ms 内一次 |
 | `favorite_toggle` | 添加/取消收藏 | 同事件和动作 750 ms 内一次 |
+| `content_feedback` | 详情页选择有用/没用及可选原因 | 同事件、动作和原因 750 ms 内一次 |
 | `search` | 搜索输入停止 600 ms | 同长度区间 3 秒内一次 |
 | `filter` | 点击主题筛选 | 同筛选 750 ms 内一次 |
 | `weekly_brief_click` | 点击标有 `data-analytics="weekly_brief"` 的周报入口 | 同入口 750 ms 内一次 |
 
-字段白名单在 `pipeline/analytics_schema.py`。上下文只包含：页面类型、事件 ID、分类、来源、随机 `session_id/device_id`、序号、宽度区间和来源类型区间。设备 ID 由第一方 localStorage 随机生成并每 30 天轮换，不读取 Cookie 或浏览器指纹。
+字段白名单在 `pipeline/analytics_schema.py`。上下文只包含：页面类型、事件 ID、分类、来源、随机 `session_id/device_id`、序号、宽度区间、来源类型区间，以及内容反馈的固定动作/原因枚举。设备 ID 由第一方 localStorage 随机生成并每 30 天轮换，不读取 Cookie 或浏览器指纹。
 
 不会发送正文、摘要、完整搜索词、URL/referrer 全文、API Key、姓名、邮箱、UA、IP 或位置。搜索只发送长度区间 `1-3 / 4-8 / 9+` 与结果数量。
 
@@ -48,6 +49,8 @@ python3 pipeline/analytics_metrics.py export.ndjson
 - 详情点击率 = 有详情点击的 `(session_id,event_id)` 曝光对 / 唯一曝光对
 - 外链点击率 = 有外链点击的详情点击对 / 唯一详情点击对
 - 收藏率 = 添加收藏的曝光对 / 唯一曝光对
+- 值得读比例 = 每个匿名设备对每篇文章的最后一次反馈中，`useful` 所占比例
+- 反馈原因分布 = `solid/relevant/novel/source_discovery/irrelevant/shallow/marketing/duplicate/body_quality` 的计数
 - 搜索/筛选使用率 = 使用该功能的会话 / `session_start` 会话
 - 7 日回访率 = 有至少 7 天完整观察窗的首次设备中，在第 1–7 天再次出现的设备占比
 - DAU = 每个 UTC 日期唯一匿名设备数

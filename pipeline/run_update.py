@@ -81,6 +81,7 @@ VENDOR_TAGS = {
     "Tableau Engineering（Medium）": ["Tableau"],
     "Google BigQuery Release Notes": ["Google", "BigQuery"],
     "Google Looker Release Notes": ["Google", "Looker"],
+    "Google Cloud Data Analytics Blog": ["Google", "Google Cloud"],
     "Microsoft Fabric Blog": ["Microsoft", "Fabric", "Power BI"],
     "Visier Blog": ["Visier"],
     "DuckDB Engineering Blog": ["DuckDB"],
@@ -224,22 +225,36 @@ def community_score(signal):
         return 0
     return min(100, round(math.log1p(signal) / math.log1p(1000) * 100))
 
+
+def _trend_points(published=None, signal=0, extra_sources=0, reference_time=None):
+    """Return the legacy 55-point non-quality portion of the heat formula."""
+    multi = min(10, 4 * max(0, int(extra_sources or 0)))
+    comm = min(10, 0.1 * community_score(signal))
+    fresh = 0.35 * freshness(published, reference_time=reference_time) * 100
+    return fresh + comm + multi
+
+
+def calc_trend_score(published=None, signal=0, extra_sources=0, reference_time=None):
+    """Recent attention score 0~100, independent from editorial quality."""
+    return round(min(100, _trend_points(
+        published, signal, extra_sources, reference_time=reference_time,
+    ) / 0.55))
+
 def calc_heat(
     importance=50, published=None, signal=0, extra_sources=0,
     reference_time=None,
 ):
-    """热度分 3.0：重要性45% + 48小时半衰新鲜度35% + 社区10% + 多信源10%。
+    """兼容综合分：内容质量45% + 独立趋势分55%。
 
-    新鲜度负责让近期内容自然上浮；重要性仍是最大的单项信号。社区与
-    多信源只做可信度加分，避免点赞量或重复报道主导榜单。
+    保持 heat 3.0 的数值语义不变，但把可解释的 quality_score 与
+    trend_score 分开持久化，避免把“好”“火”“适合我”混成一个信号。
     """
-    multi = min(10, 4 * max(0, int(extra_sources or 0)))
-    comm = min(10, 0.1 * community_score(signal))
     return round(min(
         100,
         0.45 * max(0, min(100, int(importance or 0)))
-        + 0.35 * freshness(published, reference_time=reference_time) * 100
-        + comm + multi,
+        + _trend_points(
+            published, signal, extra_sources, reference_time=reference_time,
+        ),
     ))
 
 # ── F5：HN 条目抓原文 ──────────────────────────────────────
@@ -583,16 +598,48 @@ ENRICH_RULES = """你是一个数据领域垂直资讯站的编辑。本站只�
 从下列封闭词表选择。只标记原文直接支持的对象、场景和决策关注；不得推测特定公司的内部需求。每个维度允许为空，宁缺毋滥：
 """ + work_tag_prompt() + """
 
-输出 JSON（不要输出多余内容）：
-{"relevant": true或false, "zh_title": "中文标题(≤40字)", "zh_summary": "中文摘要3-4句，保留产品名与数字，不得编造原文没有的信息", "reason": "推荐理由：为什么数据从业者应关注，1-2句", "category": "agent|platform|bi|product|insight", "shelf": "news 或 evergreen（方法论/框架/深度实践/报告解读等半年后仍值得读的标 evergreen，发布/融资/版本更新等时效内容标 news）", "topics": ["从主题词表选0-2个：""" + "/".join(TOPIC_NAMES) + """，没有合适的就空数组，宁缺毋滥"], "work_tags": {"product_objects": [], "use_cases": [], "decision_concerns": []}, "vendors": ["提到的数据厂商，如Snowflake/Databricks/PowerBI/帆软等，没有则空数组"], "importance": 1-100整数}"""
+【内容质量】
+质量与热度、个人兴趣分开判断。四项各给 0-25 分，并让 quality_score 等于四项之和：
+- originality：是否为第一方发布、原创研究、原创技术实践或原始数据，而非转载拼接
+- evidence_density：是否有数字、方法、代码、样本、图表或可核验事实
+- information_gain：相对常识和营销口号是否提供了明确的新信息
+- actionability_depth：是否讲清机制、边界和可采取的行动，而非只有结论
 
-ENRICH_RULE_VERSION = f"enrich-v3-{WORK_TAGS_VERSION}"
-INSIGHT_ENRICH_RULE_VERSION = f"enrich-insight-v2-{WORK_TAGS_VERSION}"
+输出 JSON（不要输出多余内容）：
+{"relevant": true或false, "zh_title": "中文标题(≤40字)", "zh_summary": "中文摘要3-4句，保留产品名与数字，不得编造原文没有的信息", "reason": "推荐理由：为什么数据从业者应关注，1-2句", "category": "agent|platform|bi|product|insight", "shelf": "news 或 evergreen（方法论/框架/深度实践/报告解读等半年后仍值得读的标 evergreen，发布/融资/版本更新等时效内容标 news）", "topics": ["从主题词表选0-2个：""" + "/".join(TOPIC_NAMES) + """，没有合适的就空数组，宁缺毋滥"], "work_tags": {"product_objects": [], "use_cases": [], "decision_concerns": []}, "vendors": ["提到的数据厂商，如Snowflake/Databricks/PowerBI/帆软等，没有则空数组"], "quality_breakdown": {"originality": 0-25整数, "evidence_density": 0-25整数, "information_gain": 0-25整数, "actionability_depth": 0-25整数}, "quality_score": 1-100整数, "importance": 与quality_score相同的兼容字段}"""
+
+ENRICH_RULE_VERSION = f"enrich-v4-quality-split-{WORK_TAGS_VERSION}"
+INSIGHT_ENRICH_RULE_VERSION = f"enrich-insight-v3-quality-split-{WORK_TAGS_VERSION}"
 INSIGHT_FOCUS_SOURCES = frozenset({
     "爱分析", "Visier Blog", "Indeed Hiring Lab", "Josh Bersin",
     "AIHR", "Handshake Network Trends", "Anthropic Economic Index",
 })
 REVIEW_REQUIRED_TIERS = frozenset({"low_precision", "community_targeted", "media_low"})
+QUALITY_DIMENSIONS = (
+    "originality", "evidence_density", "information_gain", "actionability_depth",
+)
+
+
+def normalize_quality_result(output, fallback=50):
+    """Return a bounded score and auditable 4x25 breakdown from model output."""
+    raw = output.get("quality_breakdown") if isinstance(output, dict) else None
+    breakdown = {}
+    if isinstance(raw, dict) and all(name in raw for name in QUALITY_DIMENSIONS):
+        for name in QUALITY_DIMENSIONS:
+            try:
+                breakdown[name] = max(0, min(25, int(raw.get(name, 0))))
+            except (TypeError, ValueError):
+                breakdown[name] = 0
+    if len(breakdown) == len(QUALITY_DIMENSIONS):
+        score = sum(breakdown.values())
+    else:
+        candidate = output.get("quality_score", output.get("importance", fallback))
+        try:
+            score = int(candidate)
+        except (TypeError, ValueError):
+            score = int(fallback or 50)
+        breakdown = {}
+    return max(1, min(100, score)), breakdown
 
 
 def requires_editorial_review(item):
@@ -619,11 +666,22 @@ def _cached_enrichment(it, cached):
     enrichment = cached.get("enrichment") or {}
     for key in (
         "zh_title", "zh_summary", "reason", "category", "category_label",
-        "vendors", "topics", "work_tags", "shelf", "importance", "heat",
+        "vendors", "topics", "work_tags", "shelf", "importance", "quality_score",
+        "quality_breakdown", "trend_score", "heat",
     ):
         if key in enrichment:
             it[key] = enrichment[key]
     normalize_category_label(it)
+    quality, breakdown = normalize_quality_result(it, it.get("importance", 50))
+    it["quality_score"] = quality
+    it["importance"] = quality
+    if breakdown:
+        it["quality_breakdown"] = breakdown
+    it["trend_score"] = calc_trend_score(
+        it.get("_pub_dt"), it.get("signal", 0),
+    )
+    it["heat"] = calc_heat(quality, it.get("_pub_dt"), it.get("signal", 0))
+    it["star"] = quality >= 75
     return it
 
 
@@ -632,7 +690,8 @@ def _cacheable_enrichment(it):
         key: it[key]
         for key in (
             "zh_title", "zh_summary", "reason", "category", "category_label",
-            "vendors", "topics", "work_tags", "shelf", "importance", "heat",
+            "vendors", "topics", "work_tags", "shelf", "importance", "quality_score",
+            "quality_breakdown", "trend_score", "heat",
         )
         if key in it
     }
@@ -762,9 +821,16 @@ def llm_enrich(items, cfg, *, generate_fulltext=True):
         it["topics"] = [t for t in (out.get("topics") or []) if t in TOPIC_NAMES][:2]
         it["work_tags"] = normalize_work_tags(out.get("work_tags"))
         it["shelf"] = out.get("shelf") if out.get("shelf") in ("news", "evergreen") else "news"
-        it["importance"] = int(out.get("importance", 50))
-        it["star"] = it["importance"] >= 75  # 精选由内容质量决定，不看信源出身
-        it["heat"] = calc_heat(it["importance"], it.get("_pub_dt"), it.get("signal", 0))
+        quality, breakdown = normalize_quality_result(out, 50)
+        it["quality_score"] = quality
+        it["importance"] = quality  # 兼容旧客户端和 Agent feed
+        if breakdown:
+            it["quality_breakdown"] = breakdown
+        it["trend_score"] = calc_trend_score(
+            it.get("_pub_dt"), it.get("signal", 0),
+        )
+        it["star"] = quality >= 75  # 精选只看内容质量，不看热度或信源出身
+        it["heat"] = calc_heat(quality, it.get("_pub_dt"), it.get("signal", 0))
         return it
 
     kept, pending = [], []
@@ -1547,11 +1613,14 @@ def backfill_event_metadata(events, cfg, *, now=None, limit=None, lookback_days=
                 event["work_tags"] = normalize_work_tags(out["work_tags"])
             if out.get("shelf") in {"news", "evergreen"}:
                 event["shelf"] = out["shelf"]
-            try:
-                event["importance"] = min(100, max(1, int(out.get("importance", event.get("importance", 50)))))
-            except (TypeError, ValueError):
-                pass
-            event["star"] = int(event.get("importance", 50) or 50) >= 75
+            quality, breakdown = normalize_quality_result(
+                out, event.get("quality_score", event.get("importance", 50)),
+            )
+            event["quality_score"] = quality
+            event["importance"] = quality
+            if breakdown:
+                event["quality_breakdown"] = breakdown
+            event["star"] = quality >= 75
             recalc_event_heat(event)
             nested = {
                 "run_id": LLM_USAGE.run_id,
@@ -2121,7 +2190,12 @@ def cluster_events(new_items, events, cfg, *, late_merge=True):
                         for sub in b["items"]:
                             a["items"].append(sub)
                         a["published"] = max(a["published"], b["published"])
-                        a["importance"] = max(a.get("importance", 50), b.get("importance", 50))
+                        a_quality = int(a.get("quality_score", a.get("importance", 50)) or 50)
+                        b_quality = int(b.get("quality_score", b.get("importance", 50)) or 50)
+                        if b_quality > a_quality and b.get("quality_breakdown"):
+                            a["quality_breakdown"] = b["quality_breakdown"]
+                        a["quality_score"] = max(a_quality, b_quality)
+                        a["importance"] = a["quality_score"]
                         a["signal"] = max(a.get("signal", 0), b.get("signal", 0))
                         recalc_event_heat(a)
                         a["vendors"] = list(dict.fromkeys(a.get("vendors", []) + b.get("vendors", [])))[:5]
@@ -2146,7 +2220,10 @@ def make_event(it):
         "content_format": it.get("content_format", ""),
         "category": it["category"], "category_label": it["category_label"],
         "vendors": it.get("vendors", []), "heat": it["heat"], "star": it.get("star", False),
-        "importance": it.get("importance", 50), "signal": it.get("signal", 0),
+        "importance": it.get("importance", 50),
+        "quality_score": it.get("quality_score", it.get("importance", 50)),
+        "trend_score": it.get("trend_score", 0),
+        "signal": it.get("signal", 0),
         "topics": it.get("topics", []), "shelf": it.get("shelf", "news"),
         "pinned": it.get("pinned", False),
         "published": it["published"],
@@ -2156,6 +2233,8 @@ def make_event(it):
     }
     if isinstance(it.get("work_tags"), dict):
         event["work_tags"] = normalize_work_tags(it["work_tags"])
+    if isinstance(it.get("quality_breakdown"), dict):
+        event["quality_breakdown"] = it["quality_breakdown"]
     for key in (
         "content_mode", "content_level", "source_language", "translation_status",
         "source_content_hash", "content_parse", "body_chars",
@@ -2165,13 +2244,22 @@ def make_event(it):
     return event
 
 def recalc_event_heat(e, reference_time=None):
-    """以真实发布时间计算事件热度；缺失时才回退首次收录时间。"""
+    """Recalculate independent quality/trend fields and compatibility heat."""
     published = e.get("published") or e.get("first_seen")
     pub = datetime.fromisoformat(str(published).replace("Z", "+00:00"))
-    e["heat"] = calc_heat(
-        e.get("importance", 50), pub, e.get("signal", 0), len(e["items"]) - 1,
+    quality = int(e.get("quality_score", e.get("importance", 50)) or 50)
+    quality = max(1, min(100, quality))
+    e["quality_score"] = quality
+    e["importance"] = quality
+    e["trend_score"] = calc_trend_score(
+        pub, e.get("signal", 0), len(e["items"]) - 1,
         reference_time=reference_time,
     )
+    e["heat"] = calc_heat(
+        quality, pub, e.get("signal", 0), len(e["items"]) - 1,
+        reference_time=reference_time,
+    )
+    e["star"] = quality >= 75
 
 def merge_into(e, it):
     e["items"].append({"id": it["id"], "source": it["source"], "link": it["link"],
@@ -2181,7 +2269,12 @@ def merge_into(e, it):
     fs_new = it.get("ingested_at") or it.get("published")
     if fs_new and (not e.get("first_seen") or fs_new < e["first_seen"]):
         e["first_seen"] = fs_new
-    e["importance"] = max(e.get("importance", 50), it.get("importance", 50))
+    event_quality = int(e.get("quality_score", e.get("importance", 50)) or 50)
+    item_quality = int(it.get("quality_score", it.get("importance", 50)) or 50)
+    if item_quality > event_quality and it.get("quality_breakdown"):
+        e["quality_breakdown"] = it["quality_breakdown"]
+    e["quality_score"] = max(event_quality, item_quality)
+    e["importance"] = e["quality_score"]
     e["signal"] = max(e.get("signal", 0), it.get("signal", 0))
     recalc_event_heat(e)
     if len(it.get("zh_summary", "")) > len(e.get("zh_summary", "")):
@@ -2477,7 +2570,10 @@ def main():
                     "vendors": VENDOR_TAGS.get(s["name"], []),
                     "vendor_default": s["type"] == "vendor",
                     "published": pub_iso, "ingested_at": now.astimezone(TZ).isoformat(), "_pub_dt": pub_dt,
-                    "signal": e.get("signal", 0), "importance": 50, "topics": [],
+                    "signal": e.get("signal", 0), "importance": 50,
+                    "quality_score": 50,
+                    "trend_score": calc_trend_score(pub_dt, e.get("signal", 0)),
+                    "topics": [],
                     "_slug_title": e.get("_slug_title", False),
                     "heat": calc_heat(50, pub_dt, e.get("signal", 0)),
                     "star": False,  # 精选由 LLM 加工时按重要性判定

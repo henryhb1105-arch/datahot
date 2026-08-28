@@ -10,6 +10,7 @@
   var STORAGE_KEY = "dh_for_me_v1";
   var SESSION_BASELINE_KEY = "dh_for_me_session_baseline_v1";
   var FAVORITES_KEY = "dh_favs";
+  var FEEDBACK_KEY = "dh_content_feedback_v1";
   var TOPIC_PRIORITY = [
     "Data Agent", "平台AI化", "语义层", "实时分析", "ChatBI", "湖仓",
     "BI变局", "数据人", "组织人才", "财务经营", "销售增长", "风险管理"
@@ -63,16 +64,67 @@
     }));
   }
 
+  function normalizeFeedbackStore(raw) {
+    var source = raw && typeof raw === "object" ? raw : {};
+    var entries = {};
+    Object.keys(source.entries && typeof source.entries === "object" ? source.entries : {}).slice(-300).forEach(function (id) {
+      var row = source.entries[id];
+      if (!/^[a-f0-9]{12}$/.test(id) || !row || ["useful", "not_useful"].indexOf(row.value) < 0) return;
+      entries[id] = {
+        value: row.value, reason: String(row.reason || ""),
+        topics: uniqueStrings(row.topics, 8), vendors: uniqueStrings(row.vendors, 8),
+        source: String(row.source || "").trim().slice(0, 80)
+      };
+    });
+    return { version: 1, entries: entries };
+  }
+
+  function overlap(left, right) {
+    var wanted = new Set(Array.isArray(right) ? right : []);
+    return (Array.isArray(left) ? left : []).filter(function (value) { return wanted.has(value); }).length;
+  }
+
+  function primarySource(event) {
+    return event.items && event.items[0] ? String(event.items[0].source || "") : "";
+  }
+
+  function feedbackSignal(event, feedback) {
+    var entries = feedback && feedback.entries && typeof feedback.entries === "object" ? feedback.entries : {};
+    var eventId = String(event.event_id || "");
+    var signal = 0;
+    Object.keys(entries).forEach(function (id) {
+      var row = entries[id];
+      var positive = row.value === "useful";
+      if (id === eventId) {
+        signal += positive ? 45 : -100;
+        return;
+      }
+      var topicOverlap = overlap(event.topics, row.topics);
+      var vendorOverlap = overlap(event.vendors, row.vendors);
+      var sourceMatch = row.source && row.source === primarySource(event);
+      if (positive) {
+        signal += Math.min(14, topicOverlap * 5 + vendorOverlap * 4 + (sourceMatch ? 3 : 0));
+      } else if (row.reason === "irrelevant") {
+        signal -= Math.min(18, topicOverlap * 7 + vendorOverlap * 5 + (sourceMatch ? 3 : 0));
+      }
+    });
+    return Math.max(-100, Math.min(45, signal));
+  }
+
+  function fitScore(event, state, feedback) {
+    var explicit = Math.min(45, matchReasons(event, state).length * 35);
+    return Math.max(0, Math.min(100, 50 + explicit + feedbackSignal(event, feedback)));
+  }
+
   function scoreEvent(event, state, now) {
-    var reasons = matchReasons(event, state);
     var ageDays = Math.max(0, (now - eventTime(event)) / 86400000);
     var freshness = Math.max(0, 18 - ageDays * 1.7);
-    var importance = Math.max(0, Math.min(100, Number(event.importance) || 50));
-    var heat = Math.max(0, Math.min(100, Number(event.heat) || 0));
+    var quality = Math.max(0, Math.min(100, Number(event.quality_score) || Number(event.importance) || 50));
+    var trend = Math.max(0, Math.min(100, Number(event.trend_score) || Number(event.heat) || 0));
+    var fit = fitScore(event, state, state.feedback);
     var sourceBonus = Math.min(12, Math.max(0, ((event.items || []).length - 1) * 4));
-    var explicit = reasons.length ? 100 + (reasons.length - 1) * 18 : 0;
     var favoriteBonus = state.favorites && state.favorites.indexOf(String(event.event_id || "")) >= 0 ? 10 : 0;
-    return explicit + importance * 0.35 + heat * 0.2 + freshness + sourceBonus + favoriteBonus;
+    return quality * 0.4 + trend * 0.25 + fit + freshness + sourceBonus + favoriteBonus;
   }
 
   function rankEvents(events, state, now, requireMatch) {
@@ -139,6 +191,7 @@
 
     var state = normalizeState(loadJson(storage, STORAGE_KEY, {}));
     state.favorites = uniqueStrings(loadJson(storage, FAVORITES_KEY, []), 500);
+    state.feedback = normalizeFeedbackStore(loadJson(storage, FEEDBACK_KEY, {}));
     var baseline = getSession(SESSION_BASELINE_KEY);
     if (!baseline) {
       baseline = state.lastVisit;
@@ -204,9 +257,6 @@
       var hours = Math.floor(minutes / 60);
       if (hours < 24) return "距离上次访问约 " + hours + " 小时";
       return "距离上次访问约 " + Math.floor(hours / 24) + " 天";
-    }
-    function primarySource(event) {
-      return event.items && event.items[0] ? String(event.items[0].source || "") : "";
     }
     function card(event, priority, context) {
       var id = String(event.event_id || "");
@@ -349,6 +399,10 @@
 
     refs.customize.addEventListener("click", function () { setupOpen = !setupOpen; render(); });
     refs.error.querySelector("button").addEventListener("click", function () { win.location.reload(); });
+    win.addEventListener("datahot:feedback", function () {
+      state.feedback = normalizeFeedbackStore(loadJson(storage, FEEDBACK_KEY, {}));
+      render();
+    });
     fetch(config.dataset.liteUrl || "data/latest-lite.json", { credentials: "same-origin" }).then(function (response) {
       if (!response.ok) throw new Error("HTTP " + response.status);
       return response.json();
@@ -364,6 +418,9 @@
     STORAGE_KEY: STORAGE_KEY,
     normalizeState: normalizeState,
     matchReasons: matchReasons,
+    normalizeFeedbackStore: normalizeFeedbackStore,
+    feedbackSignal: feedbackSignal,
+    fitScore: fitScore,
     scoreEvent: scoreEvent,
     rankEvents: rankEvents,
     isNewSince: isNewSince,

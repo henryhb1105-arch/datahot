@@ -40,7 +40,29 @@ def _clean(value, limit):
     return re.sub(r"\s+", " ", str(value or "")).strip()[:limit]
 
 
-def select_highlight(data, *, position=0, excluded_event_ids=None):
+def english_title(event, limit=92):
+    """Return a source-provided English title without inventing a translation."""
+    for item in event.get("items") or ():
+        if not isinstance(item, dict):
+            continue
+        title = _clean(item.get("title"), 180)
+        if not title:
+            continue
+        title = re.split(r"\s*(?:\\|\|)\s*", title, maxsplit=1)[0].strip()
+        letters = [character for character in title if character.isalpha()]
+        ascii_letters = [character for character in letters if character.isascii()]
+        if len(ascii_letters) < 8 or len(ascii_letters) / max(1, len(letters)) < 0.8:
+            continue
+        return title[:limit].rstrip()
+    return ""
+
+
+def bilingual_slot(now):
+    """Rotate one discovery-oriented bilingual post through all five time slots."""
+    return now.date().toordinal() % DAILY_SLOTS
+
+
+def select_highlight(data, *, position=0, excluded_event_ids=None, require_english=False):
     excluded_event_ids = {str(event_id) for event_id in (excluded_event_ids or ())}
     events = {str(event.get("event_id") or ""): event for event in data.get("events", [])}
     candidates = []
@@ -56,7 +78,11 @@ def select_highlight(data, *, position=0, excluded_event_ids=None):
         if event_id and event_id not in seen:
             candidates.append(event)
             seen.add(event_id)
-    available = [event for event in candidates if str(event.get("event_id") or "") not in excluded_event_ids]
+    available = [
+        event for event in candidates
+        if str(event.get("event_id") or "") not in excluded_event_ids
+        and (not require_english or english_title(event))
+    ]
     return available[position] if 0 <= position < len(available) else None
 
 
@@ -81,18 +107,24 @@ def should_use_image_card(now, slot, image):
     return bool(image) and (now.date().toordinal() + slot) % 2 == 0
 
 
-def build_post(event, *, slot=0, creative="text"):
+def build_post(event, *, slot=0, creative="text", bilingual=False):
     event_id = str(event.get("event_id") or "")
     if not re.fullmatch(r"[a-f0-9]{12}", event_id):
         raise ValueError("invalid event_id")
     title = _clean(event.get("zh_title"), 80)
+    source_title = english_title(event) if bilingual else ""
+    bilingual = bool(source_title)
     note = _clean(event.get("reason") or event.get("zh_summary"), 110)
     if creative not in {"card", "text"}:
         raise ValueError("creative must be card or text")
     url = tracked_url(event_id, creative=creative)
     tags = post_hashtags(event)
-    suffix = f"\n\n阅读全文：{url}\n{' '.join(tags)}"
-    prefix = f"DataHot 今日精选 {slot + 1}/{DAILY_SLOTS}｜{title}"
+    link_label = "Read / 中文全文" if bilingual else "阅读全文"
+    suffix = f"\n\n{link_label}：{url}\n{' '.join(tags)}"
+    prefix = (
+        f"DataHot data pick {slot + 1}/{DAILY_SLOTS}｜{source_title}"
+        if bilingual else f"DataHot 今日精选 {slot + 1}/{DAILY_SLOTS}｜{title}"
+    )
     available = max(0, 300 - len(prefix) - len(suffix) - 2)
     body = note[:available]
     text = prefix + (f"\n\n{body}" if body else "") + suffix
@@ -116,6 +148,9 @@ def build_post(event, *, slot=0, creative="text"):
         "canonical_url": f"{SITE_BASE}/e/{event_id}.html",
         "facets": facets,
         "creative": creative,
+        "language_variant": "bilingual" if bilingual else "zh",
+        "langs": ["en", "zh-CN"] if bilingual else ["zh-CN"],
+        "card_title": source_title if bilingual else title,
     }
 
 
@@ -274,7 +309,14 @@ def publish(data, *, handle, password, slot=0, now=None):
         event_id = _event_id_from_record(record)
         if event_id:
             used_event_ids.add(event_id)
-    event = select_highlight(data, excluded_event_ids=used_event_ids)
+    wants_bilingual = slot == bilingual_slot(now)
+    event = select_highlight(
+        data,
+        excluded_event_ids=used_event_ids,
+        require_english=wants_bilingual,
+    )
+    if not event and wants_bilingual:
+        event = select_highlight(data, excluded_event_ids=used_event_ids)
     if not event:
         return {"status": "skipped", "reason": "no_unused_event", "rkey": rkey}
     canonical_url = f"{SITE_BASE}/e/{event['event_id']}.html"
@@ -288,12 +330,12 @@ def publish(data, *, handle, password, slot=0, now=None):
         except (HTTPError, URLError, TimeoutError, ValueError, json.JSONDecodeError):
             thumb = None
     creative = "card" if thumb else "text"
-    post = build_post(event, slot=slot, creative=creative)
+    post = build_post(event, slot=slot, creative=creative, bilingual=wants_bilingual)
     record = {
         "$type": "app.bsky.feed.post",
         "text": post["text"],
         "facets": post["facets"],
-        "langs": ["zh-CN"],
+        "langs": post["langs"],
         "createdAt": now.astimezone(ZoneInfo("UTC")).isoformat().replace("+00:00", "Z"),
     }
     if thumb:
@@ -301,7 +343,7 @@ def publish(data, *, handle, password, slot=0, now=None):
             "$type": "app.bsky.embed.external",
             "external": {
                 "uri": post["url"],
-                "title": _clean(event.get("zh_title"), 120),
+                "title": post["card_title"],
                 "description": _clean(event.get("reason") or event.get("zh_summary"), 200),
                 "thumb": thumb,
             },
@@ -320,6 +362,7 @@ def publish(data, *, handle, password, slot=0, now=None):
         "event_id": event["event_id"],
         "slot": slot,
         "creative": creative,
+        "language_variant": post["language_variant"],
     }
 
 
@@ -348,11 +391,13 @@ def main(argv=None):
         if not event:
             print(json.dumps({"status": "skipped", "reason": "no_event"}, ensure_ascii=False))
             return 0
-        post = build_post(event, slot=args.slot)
+        now = datetime.now(TZ)
+        post = build_post(event, slot=args.slot, bilingual=args.slot == bilingual_slot(now))
         print(json.dumps({
             "status": "dry_run" if args.dry_run else "disabled",
             "event_id": event["event_id"],
             "text": post["text"],
+            "language_variant": post["language_variant"],
         }, ensure_ascii=False, indent=2))
         return 0
     if not handle or not password:

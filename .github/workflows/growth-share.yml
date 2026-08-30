@@ -11,6 +11,14 @@ on:
     - cron: "47 12 * * *"
   workflow_dispatch:
     inputs:
+      mode:
+        description: "运营动作"
+        required: true
+        default: "publish"
+        type: choice
+        options:
+          - "publish"
+          - "sync_profile"
       slot:
         description: "手动验证的分发位（0-4）"
         required: true
@@ -63,7 +71,13 @@ jobs:
       - name: 发布本时段精选
         env:
           GROWTH_BSKY_ENABLED: ${{ vars.GROWTH_BSKY_ENABLED || 'false' }}
+          GROWTH_MODE: ${{ inputs.mode || 'publish' }}
           GROWTH_SLOT: ${{ steps.slot.outputs.slot }}
           BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
           BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
-        run: python3 pipeline/growth_share.py --slot "$GROWTH_SLOT"
+        run: |
+          if [ "$GROWTH_MODE" = "sync_profile" ]; then
+            python3 pipeline/growth_share.py --sync-profile
+          else
+            python3 pipeline/growth_share.py --slot "$GROWTH_SLOT"
+          fi

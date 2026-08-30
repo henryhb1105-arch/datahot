@@ -40,13 +40,22 @@ class GrowthShareTests(unittest.TestCase):
         self.assertEqual(selected["event_id"], "cccccccccccc")
 
     def test_post_is_bounded_and_has_utf8_link_facet(self):
-        post = growth_share.build_post(self.event(title="数据" * 80), slot=4)
+        event = self.event(title="数据" * 80)
+        event["category"] = "agent"
+        post = growth_share.build_post(event, slot=4)
         self.assertLessEqual(len(post["text"]), 300)
         encoded = post["text"].encode("utf-8")
-        index = post["facets"][0]["index"]
-        self.assertEqual(encoded[index["byteStart"]:index["byteEnd"]].decode("utf-8"), post["url"])
+        for facet in post["facets"]:
+            index = facet["index"]
+            value = encoded[index["byteStart"]:index["byteEnd"]].decode("utf-8")
+            feature = facet["features"][0]
+            if feature["$type"].endswith("#link"):
+                self.assertEqual(value, post["url"])
+            else:
+                self.assertEqual(value, f'#{feature["tag"]}')
         self.assertNotIn("example.com", post["text"])
         self.assertIn("5/5", post["text"])
+        self.assertIn("#DataEngineering #AIAgents #数据", post["text"])
 
     def test_disabled_mode_never_calls_the_network(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -138,12 +147,42 @@ class GrowthShareTests(unittest.TestCase):
             with self.assertRaises(HTTPError):
                 growth_share._get_record(did="did:plc:test", token="token", rkey="example")
 
+    def test_profile_sync_preserves_avatar_and_is_idempotent(self):
+        existing = {
+            "uri": "at://did:plc:test/app.bsky.actor.profile/self",
+            "value": {"$type": "app.bsky.actor.profile", "avatar": {"ref": "blob"}},
+        }
+        responses = [
+            {"did": "did:plc:test", "accessJwt": "token"},
+            {"uri": "at://did:plc:test/app.bsky.actor.profile/self"},
+        ]
+        with patch.object(growth_share, "_get_record", return_value=existing), \
+                patch.object(growth_share, "_json_request", side_effect=responses) as request:
+            result = growth_share.sync_profile(handle="datahot.example", password="unit-test-only")
+        self.assertEqual(result["status"], "synced")
+        record = request.call_args_list[1].kwargs["payload"]["record"]
+        self.assertEqual(record["avatar"], {"ref": "blob"})
+        self.assertEqual(record["displayName"], growth_share.PROFILE_DISPLAY_NAME)
+        self.assertEqual(record["website"], "https://datahot.xiahongbin.com/")
+
+        synced = {"uri": existing["uri"], "value": {**existing["value"],
+            "displayName": growth_share.PROFILE_DISPLAY_NAME,
+            "description": growth_share.PROFILE_DESCRIPTION,
+            "website": growth_share.PROFILE_WEBSITE,
+        }}
+        with patch.object(growth_share, "_get_record", return_value=synced), \
+                patch.object(growth_share, "_json_request", return_value={"did": "did:plc:test", "accessJwt": "token"}) as request:
+            result = growth_share.sync_profile(handle="datahot.example", password="unit-test-only")
+        self.assertEqual(result["status"], "already_synced")
+        self.assertEqual(request.call_count, 1)
+
     def test_growth_workflow_has_five_daily_slots_and_deploy_does_not_post(self):
         workflow = (ROOT / ".github" / "workflows" / "growth-share.yml").read_text(encoding="utf-8")
         deploy = (ROOT / ".github" / "workflows" / "deploy.yml").read_text(encoding="utf-8")
         for cron in ("47 0 * * *", "47 3 * * *", "47 6 * * *", "47 9 * * *", "47 12 * * *"):
             self.assertIn(f'cron: "{cron}"', workflow)
         self.assertIn('python3 pipeline/growth_share.py --slot "$GROWTH_SLOT"', workflow)
+        self.assertIn("python3 pipeline/growth_share.py --sync-profile", workflow)
         self.assertNotIn("pipeline/growth_share.py", deploy)
 
 

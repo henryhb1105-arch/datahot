@@ -23,6 +23,7 @@ BSKY_API = "https://bsky.social/xrpc"
 SITE_BASE = "https://datahot.xiahongbin.com"
 TID_ALPHABET = "234567abcdefghijklmnopqrstuvwxyz"
 DAILY_SLOTS = 5
+IMAGE_CARD_CANDIDATE_LIMIT = 12
 MAX_CARD_IMAGE_BYTES = 1_000_000
 PROFILE_DISPLAY_NAME = "DataHot｜数据与 AI 热点"
 PROFILE_DESCRIPTION = "每天精选数据、分析与 AI 工程动态，关注 Data Agent、数据平台、实时计算与团队实践。每日 5 条，原文优先。"
@@ -62,6 +63,11 @@ def bilingual_slot(now):
     return now.date().toordinal() % DAILY_SLOTS
 
 
+def image_card_slot(now):
+    """Rotate one measurable image-card treatment independently of language."""
+    return (bilingual_slot(now) + 2) % DAILY_SLOTS
+
+
 def select_highlight(data, *, position=0, excluded_event_ids=None, require_english=False):
     excluded_event_ids = {str(event_id) for event_id in (excluded_event_ids or ())}
     events = {str(event.get("event_id") or ""): event for event in data.get("events", [])}
@@ -86,6 +92,30 @@ def select_highlight(data, *, position=0, excluded_event_ids=None, require_engli
     return available[position] if 0 <= position < len(available) else None
 
 
+def select_image_highlight(
+    data,
+    *,
+    excluded_event_ids=None,
+    require_english=False,
+    limit=IMAGE_CARD_CANDIDATE_LIMIT,
+):
+    """Return the highest-ranked eligible article with a safe first-party image."""
+    excluded_event_ids = {str(event_id) for event_id in (excluded_event_ids or ())}
+    for position in range(max(0, int(limit))):
+        event = select_highlight(
+            data,
+            position=position,
+            require_english=require_english,
+        )
+        if not event:
+            break
+        if str(event.get("event_id") or "") in excluded_event_ids:
+            continue
+        if social_image_for_event(event, SITE_BASE):
+            return event
+    return None
+
+
 def post_hashtags(event):
     tags = ["#DataEngineering"]
     category_tag = CATEGORY_HASHTAGS.get(str(event.get("category") or "").strip().lower())
@@ -103,8 +133,8 @@ def tracked_url(event_id, *, source="bluesky", creative="text"):
 
 
 def should_use_image_card(now, slot, image):
-    """Rotate card/text by day and slot so every time slot sees both variants."""
-    return bool(image) and (now.date().toordinal() + slot) % 2 == 0
+    """Use exactly one rotating treatment slot when a safe article image exists."""
+    return bool(image) and slot == image_card_slot(now)
 
 
 def build_post(event, *, slot=0, creative="text", bilingual=False):
@@ -302,21 +332,42 @@ def publish(data, *, handle, password, slot=0, now=None):
         return {"status": "already_published", "uri": existing.get("uri"), "rkey": rkey}
 
     used_event_ids = set()
+    treatment_slot = image_card_slot(now)
+    treatment_already_published = False
     for other_slot in range(DAILY_SLOTS):
         if other_slot == slot:
             continue
         record = _get_record(did=did, token=token, rkey=daily_slot_tid(now, other_slot))
+        if other_slot == treatment_slot and record:
+            treatment_already_published = True
         event_id = _event_id_from_record(record)
         if event_id:
             used_event_ids.add(event_id)
     wants_bilingual = slot == bilingual_slot(now)
-    event = select_highlight(
-        data,
-        excluded_event_ids=used_event_ids,
-        require_english=wants_bilingual,
-    )
+    reserved_card_event = None
+    if slot == treatment_slot or not treatment_already_published:
+        reserved_card_event = select_image_highlight(
+            data,
+            excluded_event_ids=used_event_ids,
+            require_english=wants_bilingual if slot == treatment_slot else False,
+        )
+    if slot == treatment_slot:
+        event = reserved_card_event
+        selection_exclusions = used_event_ids
+    else:
+        text_exclusions = set(used_event_ids)
+        if reserved_card_event:
+            text_exclusions.add(str(reserved_card_event.get("event_id") or ""))
+        selection_exclusions = text_exclusions
+        event = select_highlight(
+            data,
+            excluded_event_ids=text_exclusions,
+            require_english=wants_bilingual,
+        )
     if not event and wants_bilingual:
-        event = select_highlight(data, excluded_event_ids=used_event_ids)
+        event = select_highlight(data, excluded_event_ids=selection_exclusions)
+    if not event:
+        event = select_highlight(data, excluded_event_ids=selection_exclusions)
     if not event:
         return {"status": "skipped", "reason": "no_unused_event", "rkey": rkey}
     canonical_url = f"{SITE_BASE}/e/{event['event_id']}.html"

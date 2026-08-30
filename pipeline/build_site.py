@@ -24,6 +24,7 @@ from lite_data import (
 from weekly_brief import valid_brief as valid_weekly_brief
 from taxonomy import CATEGORY_LABELS, normalize_category_labels
 from site_config import SITE_BASE_URL, SITE_HOST
+from social_cards import social_image_for_event
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
@@ -1481,6 +1482,17 @@ def render_detail(e, all_events, css, tts_item=None):
         if vtags else ""
     )
     page_url = f"{SITE_BASE}/e/{event_id}.html"
+    social_image = social_image_for_event(e, SITE_BASE)
+    if social_image:
+        social_image_meta = (
+            f'<meta property="og:image" content="{esc(social_image["url"])}">\n'
+            f'<meta property="og:image:alt" content="{esc(social_image["alt"])}">\n'
+            f'<meta name="twitter:card" content="summary_large_image">\n'
+            f'<meta name="twitter:image" content="{esc(social_image["url"])}">\n'
+            f'<meta name="twitter:image:alt" content="{esc(social_image["alt"])}">'
+        )
+    else:
+        social_image_meta = '<meta name="twitter:card" content="summary">'
     jsonld_payload = {
         "@context": "https://schema.org", "@type": "NewsArticle",
         "headline": e["zh_title"], "description": e["zh_summary"][:150],
@@ -1489,6 +1501,8 @@ def render_detail(e, all_events, css, tts_item=None):
     }
     if main_url:
         jsonld_payload["isBasedOn"] = main_url
+    if social_image:
+        jsonld_payload["image"] = social_image["url"]
     jsonld = json_for_html(jsonld_payload)
     page = f'''<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
@@ -1501,6 +1515,7 @@ def render_detail(e, all_events, css, tts_item=None):
 <meta property="og:type" content="article">
 <meta property="og:url" content="{page_url}">
 <meta property="og:site_name" content="DataHot · 数据领域 AI 热榜">
+{social_image_meta}
 <link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">

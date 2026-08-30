@@ -21,6 +21,8 @@ test("client keeps only the documented field whitelist", () => {
     api_key: "secret",
     email: "person@example.com",
     latitude: 31.2,
+    acquisition_source: "bluesky",
+    acquisition_format: "card",
   });
   assert.equal(clean.schema_version, 1);
   assert.equal(clean.site_id, "datahot");
@@ -32,8 +34,27 @@ test("client keeps only the documented field whitelist", () => {
   }
   assert.deepEqual(Object.keys(clean).sort(), [
     "filter", "name", "page", "query_bucket", "result_count",
-    "schema_version", "site_id", "source",
+    "schema_version", "site_id", "source", "acquisition_source", "acquisition_format",
   ].sort());
+});
+
+test("acquisition attribution keeps only complete allowlisted pairs", () => {
+  assert.deepEqual(
+    analytics.acquisitionFromSearch("?utm_source=bluesky&utm_content=card&utm_campaign=private"),
+    { source: "bluesky", format: "card" },
+  );
+  assert.deepEqual(
+    analytics.acquisitionFromSearch("?utm_source=x&utm_content=text&secret=customer"),
+    { source: "x", format: "text" },
+  );
+  assert.deepEqual(analytics.acquisitionFromSearch("?utm_source=bluesky"), { source: "", format: "" });
+  assert.deepEqual(analytics.acquisitionFromSearch("?utm_source=email&utm_content=card"), { source: "", format: "" });
+  const partial = analytics.sanitizeEvent({
+    name: "page_view", site_id: "datahot", page: "detail", page_path: "/e/0123456789ab.html",
+    acquisition_source: "bluesky",
+  });
+  assert.equal(Object.hasOwn(partial, "acquisition_source"), false);
+  assert.equal(Object.hasOwn(partial, "acquisition_format"), false);
 });
 
 test("search values collapse to length buckets only", () => {

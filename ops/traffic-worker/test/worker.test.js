@@ -42,6 +42,7 @@ function payload(now) {
       schema_version: 1, event_uuid: uuid(1), name: "page_view", ts: now.toISOString(),
       environment: "production", site_id: "datahot", page: "home", page_path: "/",
       session_id: uuid(2), device_id: uuid(3), sequence: 1, viewport: "large", referrer: "direct",
+      acquisition_source: "bluesky", acquisition_format: "card",
     }],
   };
 }
@@ -68,6 +69,8 @@ test("collector accepts a bounded valid batch and reports duplicates", async () 
   assert.equal(response.status, 202);
   assert.deepEqual(await response.json(), { accepted: 0, rejected: 0, duplicate: 1 });
   assert.ok(db.calls.some((call) => call.sql.includes("INSERT OR IGNORE INTO events")));
+  const eventInsert = db.calls.find((call) => call.sql.includes("INSERT OR IGNORE INTO events"));
+  assert.deepEqual(eventInsert.args.slice(-2), ["bluesky", "card"]);
   assert.ok(db.calls.some((call) => call.sql.includes("INSERT INTO ingest_stats")));
 });
 
@@ -111,6 +114,12 @@ test("correct password creates a secure session that can access and leave the da
   }), environment, {});
   assert.equal(allowed.status, 200);
   assert.match(await allowed.text(), /DataHot 运营后台/);
+  assert.match(await (await handleRequest(new Request("https://admin.datahot.xiahongbin.com/assets/dashboard.js", {
+    headers: { Cookie: cookie },
+  }), environment, {})).text(), /renderAcquisition/);
+  assert.match(await (await handleRequest(new Request("https://admin.datahot.xiahongbin.com/", {
+    headers: { Cookie: cookie },
+  }), environment, {})).text(), /运营渠道/);
   assert.equal(allowed.headers.get("X-Robots-Tag"), "noindex, nofollow, noarchive");
 
   const [cookieName, token] = cookie.split("=");

@@ -113,13 +113,14 @@ export async function handleIngest(request, env, now = new Date()) {
       INSERT OR IGNORE INTO events (
         event_uuid, occurred_at, received_at, day_cst, name, page, page_path,
         event_id, device_id, session_id, referrer, viewport, category, source,
-        action, feedback_reason
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        action, feedback_reason, acquisition_source, acquisition_format
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       event.event_uuid, event.occurred_at, event.received_at, event.day_cst,
       event.name, event.page, event.page_path, event.event_id, event.device_id,
       event.session_id, event.referrer, event.viewport, event.category,
       event.source, event.action, event.feedback_reason,
+      event.acquisition_source, event.acquisition_format,
     ));
     const results = await env.DB.batch(statements);
     accepted = results.reduce((total, result) => total + Number(result?.meta?.changes || 0), 0);
@@ -150,7 +151,7 @@ export async function loadDashboardData(env, days, now = new Date()) {
   const measurementStart = env.MEASUREMENT_START_DATE || today;
   const goalStart = measurementStart > addDays(today, -89) ? measurementStart : addDays(today, -89);
   const queryStart = goalStart < start ? goalStart : start;
-  const [dailyResult, pagesResult, referrersResult, bounds, quality] = await Promise.all([
+  const [dailyResult, pagesResult, referrersResult, acquisitionResult, bounds, quality] = await Promise.all([
     env.DB.prepare(`
       SELECT day_cst AS day,
              SUM(CASE WHEN name = 'page_view' THEN 1 ELSE 0 END) AS pv,
@@ -168,6 +169,14 @@ export async function loadDashboardData(env, days, now = new Date()) {
       FROM events WHERE name = 'page_view' AND day_cst >= ?
       GROUP BY referrer ORDER BY uv DESC, pv DESC
     `).bind(start).all(),
+    env.DB.prepare(`
+      SELECT acquisition_source, COALESCE(acquisition_format, 'unknown') AS acquisition_format,
+             COUNT(*) AS pv, COUNT(DISTINCT device_id) AS uv
+      FROM events
+      WHERE name = 'page_view' AND day_cst >= ? AND acquisition_source IS NOT NULL
+      GROUP BY acquisition_source, acquisition_format
+      ORDER BY uv DESC, pv DESC, acquisition_source, acquisition_format
+    `).bind(start).all(),
     env.DB.prepare("SELECT MIN(received_at) AS first_event_at, MAX(received_at) AS last_event_at FROM events WHERE name = 'page_view'").first(),
     env.DB.prepare(`
       SELECT COALESCE(SUM(requests), 0) AS requests,
@@ -182,6 +191,7 @@ export async function loadDashboardData(env, days, now = new Date()) {
     daily: resultRows(dailyResult),
     top_pages: resultRows(pagesResult),
     referrers: resultRows(referrersResult),
+    acquisition: resultRows(acquisitionResult),
     bounds: bounds || {},
     quality: quality || {},
   }, {

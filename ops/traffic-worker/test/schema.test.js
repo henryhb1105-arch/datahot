@@ -26,11 +26,13 @@ function event(extra = {}) {
 }
 
 test("server accepts the public page view contract", () => {
-  const input = event();
+  const input = event({ acquisition_source: "bluesky", acquisition_format: "card" });
   assert.deepEqual(validateEvent(input, { now: Date.parse("2026-08-28T08:01:00Z"), siteId: "datahot" }), []);
   const stored = toStoredEvent(input, "2026-08-28T08:01:00.000Z");
   assert.equal(stored.day_cst, "2026-08-28");
   assert.equal(stored.page_path, "/e/0123456789ab.html");
+  assert.equal(stored.acquisition_source, "bluesky");
+  assert.equal(stored.acquisition_format, "card");
   assert.equal(Object.hasOwn(stored, "query_bucket"), false);
 });
 
@@ -39,6 +41,8 @@ test("server rejects private, stale, future, and unknown data", () => {
   assert.ok(validateEvent(event({ page_path: "/account/person@example.com" }), { now: Date.parse("2026-08-28T08:01:00Z") }).includes("page_path_required"));
   assert.ok(validateEvent(event({ ts: "2026-08-25T08:00:00Z" }), { now: Date.parse("2026-08-28T08:01:00Z") }).includes("timestamp_stale"));
   assert.ok(validateEvent(event({ ts: "2026-08-28T09:00:00Z" }), { now: Date.parse("2026-08-28T08:01:00Z") }).includes("timestamp_future"));
+  assert.ok(validateEvent(event({ acquisition_source: "bluesky" }), { now: Date.parse("2026-08-28T08:01:00Z") }).includes("acquisition_pair"));
+  assert.ok(validateEvent(event({ acquisition_source: "email", acquisition_format: "card" }), { now: Date.parse("2026-08-28T08:01:00Z") }).includes("acquisition_source"));
 });
 
 test("page paths and Shanghai calendar days are bounded", () => {

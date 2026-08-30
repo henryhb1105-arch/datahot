@@ -14,6 +14,7 @@ test("goal streak uses completed Shanghai days and excludes today", () => {
     daily,
     top_pages: [{ page_path: "/", pv: 10, uv: 7 }],
     referrers: [{ referrer: "direct", pv: 10, uv: 7 }],
+    acquisition: [{ acquisition_source: "bluesky", acquisition_format: "card", pv: 4, uv: 3 }],
     bounds: { first_event_at: "2026-08-10T00:00:00Z", last_event_at: "2026-08-28T07:59:00Z" },
     quality: { received_events: 100, accepted_events: 95, duplicate_events: 3, invalid_events: 2 },
   }, {
@@ -26,14 +27,16 @@ test("goal streak uses completed Shanghai days and excludes today", () => {
   assert.equal(result.headline.today.partial, true);
   assert.equal(result.headline.yesterday.uv, 13);
   assert.equal(result.quality.accepted_rate, 98);
+  assert.deepEqual(result.acquisition, [{ source: "bluesky", format: "card", pv: 4, uv: 3 }]);
 });
 
 test("no events are reported as unavailable rather than invented zero traffic", () => {
-  const result = buildDashboardSummary({ daily: [], top_pages: [], referrers: [], bounds: {}, quality: {} }, {
+  const result = buildDashboardSummary({ daily: [], top_pages: [], referrers: [], acquisition: [], bounds: {}, quality: {} }, {
     now: new Date("2026-08-28T08:00:00Z"), days: 7, measurementStart: "2026-08-29",
   });
   assert.equal(result.measurement.state, "waiting_for_first_event");
   assert.equal(result.headline.today.uv, null);
   assert.equal(result.headline.today.pv, null);
   assert.equal(result.quality.accepted_rate, null);
+  assert.deepEqual(result.acquisition, []);
 });

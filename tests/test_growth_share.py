@@ -56,6 +56,36 @@ class GrowthShareTests(unittest.TestCase):
         self.assertNotIn("example.com", post["text"])
         self.assertIn("5/5", post["text"])
         self.assertIn("#DataEngineering #AIAgents #数据", post["text"])
+        self.assertIn("utm_source=bluesky&utm_content=text", post["url"])
+        self.assertEqual(post["canonical_url"], "https://datahot.xiahongbin.com/e/aaaaaaaaaaaa.html")
+
+    def test_tracking_url_accepts_only_measurable_variants(self):
+        self.assertEqual(
+            growth_share.tracked_url("aaaaaaaaaaaa", source="x", creative="card"),
+            "https://datahot.xiahongbin.com/e/aaaaaaaaaaaa.html?utm_source=x&utm_content=card",
+        )
+        with self.assertRaises(ValueError):
+            growth_share.tracked_url("aaaaaaaaaaaa", source="newsletter", creative="card")
+
+    def test_social_card_uses_only_safe_first_party_article_figures(self):
+        event = self.event()
+        event["content_blocks"] = [
+            {"type": "figure", "cached_src": "../media/bbbbbbbbbbbb/wrong12345678.webp"},
+            {
+                "type": "figure", "cached_src": "../media/aaaaaaaaaaaa/123456789abc.webp",
+                "alt": "上下文相关图", "width": "1200", "height": "invalid",
+            },
+        ]
+        image = growth_share.social_image_for_event(event, growth_share.SITE_BASE)
+        self.assertEqual(image["url"], "https://datahot.xiahongbin.com/media/aaaaaaaaaaaa/123456789abc.webp")
+        self.assertEqual(image["alt"], "上下文相关图")
+        self.assertEqual(image["width"], 1200)
+        self.assertIsNone(image["height"])
+
+        event["content_blocks"] = [{
+            "type": "figure", "cached_src": "https://tracker.example/private.webp",
+        }]
+        self.assertIsNone(growth_share.social_image_for_event(event, growth_share.SITE_BASE))
 
     def test_disabled_mode_never_calls_the_network(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -134,6 +164,44 @@ class GrowthShareTests(unittest.TestCase):
         self.assertEqual(request.call_count, 2)
         self.assertIn("com.atproto.repo.putRecord", request.call_args_list[1].args[0])
         wait_until_live.assert_called_once_with("https://datahot.xiahongbin.com/e/bbbbbbbbbbbb.html")
+
+    def test_publish_adds_external_image_card_and_matching_attribution(self):
+        featured = self.event()
+        featured["content_blocks"] = [{
+            "type": "figure", "cached_src": "../media/aaaaaaaaaaaa/123456789abc.webp",
+            "alt": "文章证据图", "width": 1200, "height": 630,
+        }]
+        data = {"top": ["aaaaaaaaaaaa"], "events": [featured]}
+        responses = [
+            {"did": "did:plc:test", "accessJwt": "token"},
+            {"uri": "at://did:plc:test/app.bsky.feed.post/card"},
+        ]
+        blob = {"$type": "blob", "ref": {"$link": "bafyreicard"}, "mimeType": "image/webp", "size": 1234}
+        with patch.object(growth_share, "_get_record", side_effect=[None] * 5), \
+                patch.object(growth_share, "_json_request", side_effect=responses) as request, \
+                patch.object(growth_share, "wait_until_live"), \
+                patch.object(growth_share, "should_use_image_card", return_value=True), \
+                patch.object(growth_share, "_upload_image_blob", return_value=blob) as upload:
+            result = growth_share.publish(
+                data,
+                handle="datahot.example",
+                password="unit-test-only",
+                slot=3,
+                now=datetime(2026, 8, 28, 14, 30, tzinfo=growth_share.TZ),
+            )
+        self.assertEqual(result["creative"], "card")
+        upload.assert_called_once_with(
+            token="token",
+            image_url="https://datahot.xiahongbin.com/media/aaaaaaaaaaaa/123456789abc.webp",
+        )
+        record = request.call_args_list[1].kwargs["payload"]["record"]
+        external = record["embed"]["external"]
+        self.assertEqual(external["thumb"], blob)
+        self.assertEqual(
+            external["uri"],
+            "https://datahot.xiahongbin.com/e/aaaaaaaaaaaa.html?utm_source=bluesky&utm_content=card",
+        )
+        self.assertIn(external["uri"], record["text"])
 
     def test_unexpected_xrpc_400_is_not_treated_as_missing(self):
         invalid = HTTPError(

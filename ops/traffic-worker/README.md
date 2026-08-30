@@ -11,7 +11,7 @@
 - 登录成功后仅签发 12 小时有效的 `HttpOnly`、`Secure`、`SameSite=Strict` Cookie；退出时立即清除。
 - `workers.dev` 与预览 URL 必须关闭，避免绕过自有后台域名。
 - 接收端只允许 `https://datahot.xiahongbin.com`，单批最多 20 条、32 KiB。
-- 不读取或存储请求 IP、Header、UA、地理位置、Cookie、查询参数、完整 referrer、正文或完整搜索词。
+- 不读取或存储请求 IP、Header、UA、地理位置、Cookie、完整查询参数、完整 referrer、正文或完整搜索词。仅将 `utm_source` 与 `utm_content` 映射为 `bluesky|x`、`card|text` 四个白名单枚举，用于比较运营渠道和素材。
 - `event_uuid` 唯一约束负责传输去重，超过 90 天的原始事件每日清理。
 - `.dev.vars` 只可用于本机，禁止提交；生产环境只设置 `ADMIN_PASSWORD_HASH` 与 `SESSION_SECRET`，禁止提交。
 

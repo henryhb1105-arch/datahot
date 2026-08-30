@@ -93,6 +93,12 @@ export function buildDashboardSummary(raw, options = {}) {
     daily,
     top_pages: (raw.top_pages || []).map((row) => ({ page_path: row.page_path, pv: asNumber(row.pv), uv: asNumber(row.uv) })),
     referrers: (raw.referrers || []).map((row) => ({ referrer: row.referrer, pv: asNumber(row.pv), uv: asNumber(row.uv) })),
+    acquisition: (raw.acquisition || []).map((row) => ({
+      source: row.acquisition_source,
+      format: row.acquisition_format,
+      pv: asNumber(row.pv),
+      uv: asNumber(row.uv),
+    })),
     quality: {
       requests: asNumber(quality.requests),
       received_events: received,

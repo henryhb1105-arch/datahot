@@ -328,6 +328,16 @@ class ReleaseGuardTests(unittest.TestCase):
 
 
 class ReleaseWorkflowTests(unittest.TestCase):
+    def test_update_data_write_rebases_and_retries_main_push(self):
+        update = (ROOT / ".github" / "workflows" / "update.yml").read_text()
+
+        self.assertNotIn("stefanzweifel/git-auto-commit-action", update)
+        self.assertIn("git add -- site/data site/media pipeline/discovery_state", update)
+        self.assertIn("for attempt in 1 2 3", update)
+        self.assertIn("git fetch origin main", update)
+        self.assertIn("git rebase --autostash origin/main", update)
+        self.assertIn("git push origin HEAD:main", update)
+
     def test_all_pages_writes_route_through_guarded_deploy_workflow(self):
         update = (ROOT / ".github" / "workflows" / "update.yml").read_text()
         deploy = (ROOT / ".github" / "workflows" / "deploy.yml").read_text()

@@ -26,6 +26,7 @@ from taxonomy import CATEGORY_LABELS, normalize_category_labels
 from site_config import SITE_BASE_URL, SITE_HOST
 from social_cards import social_image_for_event
 from seo import absolute_public_url, public_sitemap_paths, write_search_discovery
+from indexnow import write_key_file as write_indexnow_key_file
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
@@ -3106,6 +3107,8 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
     )
     sitemap_count = write_search_discovery(SITE, sitemap_paths, site_base=SITE_BASE)
     print(f"[seo] sitemap.xml + robots.txt 校验通过：{sitemap_count} 个规范 URL")
+    indexnow_key = write_indexnow_key_file(SITE)
+    print(f"[seo] IndexNow 域名验证文件校验通过：{indexnow_key.name}")
     broken = check_site_links(SITE)
     if broken:
         print(f"[links] 构建失败：发现 {len(broken)} 个失效本地引用")

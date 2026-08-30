@@ -67,6 +67,14 @@ class GrowthShareTests(unittest.TestCase):
             now = start + timedelta(days=day)
             self.assertEqual(sum(slot == growth_share.bilingual_slot(now) for slot in range(5)), 1)
 
+    def test_one_image_card_slot_rotates_and_stays_distinct_from_bilingual(self):
+        start = datetime(2026, 8, 30, 8, 0, tzinfo=growth_share.TZ)
+        slots = [growth_share.image_card_slot(start + timedelta(days=offset)) for offset in range(5)]
+        self.assertEqual(set(slots), set(range(growth_share.DAILY_SLOTS)))
+        for day in range(5):
+            now = start + timedelta(days=day)
+            self.assertNotEqual(growth_share.image_card_slot(now), growth_share.bilingual_slot(now))
+
     def test_post_is_bounded_and_has_utf8_link_facet(self):
         event = self.event(title="数据" * 80)
         event["category"] = "agent"
@@ -131,6 +139,26 @@ class GrowthShareTests(unittest.TestCase):
             "type": "figure", "cached_src": "https://tracker.example/private.webp",
         }]
         self.assertIsNone(growth_share.social_image_for_event(event, growth_share.SITE_BASE))
+
+    def test_image_highlight_prefers_the_highest_ranked_safe_candidate(self):
+        unsafe = self.event("aaaaaaaaaaaa", "没有安全图片")
+        unsafe["content_blocks"] = [{"type": "figure", "cached_src": "https://tracker.example/a.webp"}]
+        safe = self.event("bbbbbbbbbbbb", "有安全图片")
+        safe["content_blocks"] = [{
+            "type": "figure", "cached_src": "../media/bbbbbbbbbbbb/123456789abc.webp",
+        }]
+        later = self.event("cccccccccccc", "更靠后的安全图片")
+        later["content_blocks"] = [{
+            "type": "figure", "cached_src": "../media/cccccccccccc/123456789abc.webp",
+        }]
+        data = {"top": [unsafe["event_id"], safe["event_id"], later["event_id"]],
+                "events": [unsafe, safe, later]}
+        self.assertEqual(growth_share.select_image_highlight(data)["event_id"], safe["event_id"])
+        self.assertEqual(
+            growth_share.select_image_highlight(data, excluded_event_ids={safe["event_id"]})["event_id"],
+            later["event_id"],
+        )
+        self.assertIsNone(growth_share.select_image_highlight(data, limit=1))
 
     def test_disabled_mode_never_calls_the_network(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -211,6 +239,35 @@ class GrowthShareTests(unittest.TestCase):
         self.assertIn("com.atproto.repo.putRecord", request.call_args_list[1].args[0])
         wait_until_live.assert_called_once_with("https://datahot.xiahongbin.com/e/bbbbbbbbbbbb.html")
 
+    def test_text_slot_reserves_the_daily_image_candidate(self):
+        now = datetime(2026, 8, 28, 14, 30, tzinfo=growth_share.TZ)
+        treatment_slot = growth_share.image_card_slot(now)
+        text_slot = next(slot for slot in range(growth_share.DAILY_SLOTS) if slot not in {
+            treatment_slot, growth_share.bilingual_slot(now),
+        })
+        card = self.event("aaaaaaaaaaaa", "保留给图文卡")
+        card["content_blocks"] = [{
+            "type": "figure", "cached_src": "../media/aaaaaaaaaaaa/123456789abc.webp",
+        }]
+        text = self.event("bbbbbbbbbbbb", "纯文字时段使用")
+        data = {"top": [card["event_id"], text["event_id"]], "events": [card, text]}
+        responses = [
+            {"did": "did:plc:test", "accessJwt": "token"},
+            {"uri": "at://did:plc:test/app.bsky.feed.post/text"},
+        ]
+        with patch.object(growth_share, "_get_record", side_effect=[None] * 5), \
+                patch.object(growth_share, "_json_request", side_effect=responses), \
+                patch.object(growth_share, "wait_until_live"):
+            result = growth_share.publish(
+                data,
+                handle="datahot.example",
+                password="unit-test-only",
+                slot=text_slot,
+                now=now,
+            )
+        self.assertEqual(result["event_id"], text["event_id"])
+        self.assertEqual(result["creative"], "text")
+
     def test_publish_uses_bilingual_record_only_for_the_rotating_slot(self):
         featured = self.english_event()
         data = {"top": [featured["event_id"]], "events": [featured]}
@@ -236,28 +293,30 @@ class GrowthShareTests(unittest.TestCase):
         self.assertTrue(record["text"].startswith("DataHot data pick 4/5｜"))
 
     def test_publish_adds_external_image_card_and_matching_attribution(self):
+        text_only = self.event("bbbbbbbbbbbb", "更靠前的纯文字候选")
         featured = self.event()
         featured["content_blocks"] = [{
             "type": "figure", "cached_src": "../media/aaaaaaaaaaaa/123456789abc.webp",
             "alt": "文章证据图", "width": 1200, "height": 630,
         }]
-        data = {"top": ["aaaaaaaaaaaa"], "events": [featured]}
+        data = {"top": ["bbbbbbbbbbbb", "aaaaaaaaaaaa"], "events": [text_only, featured]}
         responses = [
             {"did": "did:plc:test", "accessJwt": "token"},
             {"uri": "at://did:plc:test/app.bsky.feed.post/card"},
         ]
+        now = datetime(2026, 8, 28, 14, 30, tzinfo=growth_share.TZ)
+        slot = growth_share.image_card_slot(now)
         blob = {"$type": "blob", "ref": {"$link": "bafyreicard"}, "mimeType": "image/webp", "size": 1234}
         with patch.object(growth_share, "_get_record", side_effect=[None] * 5), \
                 patch.object(growth_share, "_json_request", side_effect=responses) as request, \
                 patch.object(growth_share, "wait_until_live"), \
-                patch.object(growth_share, "should_use_image_card", return_value=True), \
                 patch.object(growth_share, "_upload_image_blob", return_value=blob) as upload:
             result = growth_share.publish(
                 data,
                 handle="datahot.example",
                 password="unit-test-only",
-                slot=3,
-                now=datetime(2026, 8, 28, 14, 30, tzinfo=growth_share.TZ),
+                slot=slot,
+                now=now,
             )
         self.assertEqual(result["creative"], "card")
         upload.assert_called_once_with(
@@ -272,6 +331,33 @@ class GrowthShareTests(unittest.TestCase):
             "https://datahot.xiahongbin.com/e/aaaaaaaaaaaa.html?utm_source=bluesky&utm_content=card",
         )
         self.assertIn(external["uri"], record["text"])
+
+    def test_image_upload_failure_falls_back_to_tracked_text(self):
+        featured = self.event()
+        featured["content_blocks"] = [{
+            "type": "figure", "cached_src": "../media/aaaaaaaaaaaa/123456789abc.webp",
+        }]
+        data = {"top": [featured["event_id"]], "events": [featured]}
+        responses = [
+            {"did": "did:plc:test", "accessJwt": "token"},
+            {"uri": "at://did:plc:test/app.bsky.feed.post/text-fallback"},
+        ]
+        now = datetime(2026, 8, 28, 14, 30, tzinfo=growth_share.TZ)
+        with patch.object(growth_share, "_get_record", side_effect=[None] * 5), \
+                patch.object(growth_share, "_json_request", side_effect=responses) as request, \
+                patch.object(growth_share, "wait_until_live"), \
+                patch.object(growth_share, "_upload_image_blob", side_effect=ValueError("invalid image")):
+            result = growth_share.publish(
+                data,
+                handle="datahot.example",
+                password="unit-test-only",
+                slot=growth_share.image_card_slot(now),
+                now=now,
+            )
+        self.assertEqual(result["creative"], "text")
+        record = request.call_args_list[1].kwargs["payload"]["record"]
+        self.assertNotIn("embed", record)
+        self.assertIn("utm_source=bluesky&utm_content=text", record["text"])
 
     def test_unexpected_xrpc_400_is_not_treated_as_missing(self):
         invalid = HTTPError(

@@ -5,6 +5,7 @@ import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from urllib.error import HTTPError
 from unittest.mock import patch
 
 
@@ -137,12 +138,35 @@ class IndexNowTests(unittest.TestCase):
             FakeResponse(200, json.dumps({"source_sha": sha}).encode("utf-8")),
             FakeResponse(200, indexnow.INDEXNOW_KEY.encode("utf-8")),
         ])
+        requests = []
+
+        def opener(request, **_kwargs):
+            requests.append(request)
+            return next(responses)
+
         indexnow.wait_until_release_live(
             sha,
             attempts=1,
             delay=0,
-            opener=lambda *_args, **_kwargs: next(responses),
+            opener=opener,
         )
+        self.assertEqual(len(requests), 2)
+        for request in requests:
+            self.assertEqual(request.get_header("User-agent"), indexnow.INDEXNOW_USER_AGENT)
+
+    def test_live_wait_preserves_the_last_http_error_for_diagnosis(self):
+        sha = "a" * 40
+
+        def forbidden(request, **_kwargs):
+            raise HTTPError(request.full_url, 403, "Forbidden", {}, None)
+
+        with self.assertRaisesRegex(RuntimeError, "HTTP Error 403"):
+            indexnow.wait_until_release_live(
+                sha,
+                attempts=1,
+                delay=0,
+                opener=forbidden,
+            )
 
     def test_cli_dry_run_never_waits_or_submits(self):
         baseline = {"top": [], "sources": [], "events": []}

@@ -18,6 +18,7 @@ from site_config import DEFAULT_SITE_BASE_URL, resolve_site_base_url
 
 
 INDEXNOW_ENDPOINT = "https://api.indexnow.org/indexnow"
+INDEXNOW_USER_AGENT = "DataHotIndexNow/1.0"
 # IndexNow requires this ownership proof to be published at the site root. It is
 # intentionally public and is not an authentication credential.
 INDEXNOW_KEY = "2b62bfcff58e09f05baedd2543396778"  # gitleaks:allow
@@ -199,14 +200,22 @@ def wait_until_release_live(
         nonce = urlencode({"indexnow_release": expected_source_sha[:12], "attempt": attempt})
         try:
             status, body = _read_url(
-                Request(f"{base}/data/release.json?{nonce}", headers={"Cache-Control": "no-cache"}),
+                Request(f"{base}/data/release.json?{nonce}", headers={
+                    "Accept": "application/json",
+                    "Cache-Control": "no-cache",
+                    "User-Agent": INDEXNOW_USER_AGENT,
+                }),
                 opener=opener,
             )
             manifest = json.loads(body.decode("utf-8")) if status == 200 else {}
             if manifest.get("source_sha") != expected_source_sha:
                 raise RuntimeError("release manifest has not reached the expected source SHA")
             key_status, key_body = _read_url(
-                Request(f"{base}/{key_filename(key)}?{nonce}", headers={"Cache-Control": "no-cache"}),
+                Request(f"{base}/{key_filename(key)}?{nonce}", headers={
+                    "Accept": "text/plain",
+                    "Cache-Control": "no-cache",
+                    "User-Agent": INDEXNOW_USER_AGENT,
+                }),
                 opener=opener,
             )
             if key_status != 200 or key_body.decode("utf-8").strip() != key:
@@ -216,7 +225,8 @@ def wait_until_release_live(
             last_error = error
         if attempt + 1 < attempts:
             time.sleep(delay)
-    raise RuntimeError("published release or IndexNow key did not become live") from last_error
+    detail = f"{type(last_error).__name__}: {last_error}" if last_error else "unknown error"
+    raise RuntimeError(f"published release or IndexNow key did not become live: {detail}") from last_error
 
 
 def submit_urls(
@@ -244,7 +254,7 @@ def submit_urls(
         headers={
             "Accept": "application/json",
             "Content-Type": "application/json; charset=utf-8",
-            "User-Agent": "DataHotIndexNow/1.0",
+            "User-Agent": INDEXNOW_USER_AGENT,
         },
         method="POST",
     )

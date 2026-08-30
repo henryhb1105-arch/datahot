@@ -21,6 +21,16 @@ BSKY_API = "https://bsky.social/xrpc"
 SITE_BASE = "https://datahot.xiahongbin.com"
 TID_ALPHABET = "234567abcdefghijklmnopqrstuvwxyz"
 DAILY_SLOTS = 5
+PROFILE_DISPLAY_NAME = "DataHot｜数据与 AI 热点"
+PROFILE_DESCRIPTION = "每天精选数据、分析与 AI 工程动态，关注 Data Agent、数据平台、实时计算与团队实践。每日 5 条，原文优先。"
+PROFILE_WEBSITE = f"{SITE_BASE}/"
+CATEGORY_HASHTAGS = {
+    "agent": "#AIAgents",
+    "platform": "#DataPlatform",
+    "insight": "#Analytics",
+    "product": "#DataProducts",
+    "bi": "#BusinessIntelligence",
+}
 
 
 def _clean(value, limit):
@@ -47,6 +57,15 @@ def select_highlight(data, *, position=0, excluded_event_ids=None):
     return available[position] if 0 <= position < len(available) else None
 
 
+def post_hashtags(event):
+    tags = ["#DataEngineering"]
+    category_tag = CATEGORY_HASHTAGS.get(str(event.get("category") or "").strip().lower())
+    if category_tag:
+        tags.append(category_tag)
+    tags.append("#数据")
+    return tags
+
+
 def build_post(event, *, slot=0):
     event_id = str(event.get("event_id") or "")
     if not re.fullmatch(r"[a-f0-9]{12}", event_id):
@@ -54,7 +73,8 @@ def build_post(event, *, slot=0):
     title = _clean(event.get("zh_title"), 80)
     note = _clean(event.get("reason") or event.get("zh_summary"), 110)
     url = f"{SITE_BASE}/e/{event_id}.html"
-    suffix = f"\n\n阅读全文：{url}\n#DataAI #数据"
+    tags = post_hashtags(event)
+    suffix = f"\n\n阅读全文：{url}\n{' '.join(tags)}"
     prefix = f"DataHot 今日精选 {slot + 1}/{DAILY_SLOTS}｜{title}"
     available = max(0, 300 - len(prefix) - len(suffix) - 2)
     body = note[:available]
@@ -66,6 +86,13 @@ def build_post(event, *, slot=0):
         "index": {"byteStart": start, "byteEnd": start + len(link)},
         "features": [{"$type": "app.bsky.richtext.facet#link", "uri": url}],
     }]
+    for tag in tags:
+        encoded_tag = tag.encode("utf-8")
+        tag_start = encoded.index(encoded_tag)
+        facets.append({
+            "index": {"byteStart": tag_start, "byteEnd": tag_start + len(encoded_tag)},
+            "features": [{"$type": "app.bsky.richtext.facet#tag", "tag": tag[1:]}],
+        })
     return {"text": text, "url": url, "facets": facets}
 
 
@@ -126,9 +153,9 @@ def wait_until_live(url, *, attempts=12, delay=10):
     raise RuntimeError(f"详情页尚未在线，取消本次分发：{url}") from last_error
 
 
-def _get_record(*, did, token, rkey):
+def _get_record(*, did, token, rkey, collection="app.bsky.feed.post"):
     lookup = f"{BSKY_API}/com.atproto.repo.getRecord?" + urlencode({
-        "repo": did, "collection": "app.bsky.feed.post", "rkey": rkey,
+        "repo": did, "collection": collection, "rkey": rkey,
     })
     try:
         return _json_request(lookup, token=token)
@@ -144,6 +171,38 @@ def _event_id_from_record(record):
     value = (record or {}).get("value") or {}
     match = re.search(rf"{re.escape(SITE_BASE)}/e/([a-f0-9]{{12}})\.html", str(value.get("text") or ""))
     return match.group(1) if match else ""
+
+
+def sync_profile(*, handle, password):
+    session = _json_request(f"{BSKY_API}/com.atproto.server.createSession", payload={
+        "identifier": handle.strip().lower(),
+        "password": password,
+    })
+    did = session["did"]
+    token = session["accessJwt"]
+    existing = _get_record(
+        did=did,
+        token=token,
+        collection="app.bsky.actor.profile",
+        rkey="self",
+    )
+    record = dict((existing or {}).get("value") or {})
+    expected = {
+        "displayName": PROFILE_DISPLAY_NAME,
+        "description": PROFILE_DESCRIPTION,
+        "website": PROFILE_WEBSITE,
+    }
+    if all(record.get(key) == value for key, value in expected.items()):
+        return {"status": "already_synced", "uri": (existing or {}).get("uri")}
+    record.update({"$type": "app.bsky.actor.profile", **expected})
+    response = _json_request(f"{BSKY_API}/com.atproto.repo.putRecord", token=token, payload={
+        "repo": did,
+        "collection": "app.bsky.actor.profile",
+        "rkey": "self",
+        "validate": True,
+        "record": record,
+    })
+    return {"status": "synced", "uri": response.get("uri")}
 
 
 def publish(data, *, handle, password, slot=0, now=None):
@@ -202,9 +261,21 @@ def main(argv=None):
     parser.add_argument("--data", default="site/data/latest.json")
     parser.add_argument("--slot", type=int, choices=range(DAILY_SLOTS), default=0)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--sync-profile", action="store_true")
     args = parser.parse_args(argv)
-    data = json.loads(Path(args.data).read_text(encoding="utf-8"))
     enabled = os.getenv("GROWTH_BSKY_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}
+    handle = os.getenv("BSKY_HANDLE", "").strip()
+    password = os.getenv("BSKY_APP_PASSWORD", "").strip()
+    if args.sync_profile:
+        if not enabled:
+            print(json.dumps({"status": "disabled", "operation": "sync_profile"}, ensure_ascii=False))
+            return 0
+        if not handle or not password:
+            raise SystemExit("GROWTH_BSKY_ENABLED=true 但缺少 BSKY_HANDLE/BSKY_APP_PASSWORD")
+        print(json.dumps(sync_profile(handle=handle, password=password), ensure_ascii=False))
+        return 0
+
+    data = json.loads(Path(args.data).read_text(encoding="utf-8"))
     if args.dry_run or not enabled:
         event = select_highlight(data, position=args.slot)
         if not event:
@@ -217,8 +288,6 @@ def main(argv=None):
             "text": post["text"],
         }, ensure_ascii=False, indent=2))
         return 0
-    handle = os.getenv("BSKY_HANDLE", "").strip()
-    password = os.getenv("BSKY_APP_PASSWORD", "").strip()
     if not handle or not password:
         raise SystemExit("GROWTH_BSKY_ENABLED=true 但缺少 BSKY_HANDLE/BSKY_APP_PASSWORD")
     print(json.dumps(publish(data, handle=handle, password=password, slot=args.slot), ensure_ascii=False))

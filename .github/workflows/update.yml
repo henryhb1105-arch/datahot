@@ -137,10 +137,34 @@ jobs:
             --output "$RUNNER_TEMP/datahot-main-guard.json"
 
       - name: 数据回写仓库（跨次累积去重）
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "chore: 定时更新数据 [skip ci]"
-          file_pattern: "site/data/** site/media/** pipeline/discovery_state/**"
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- site/data site/media pipeline/discovery_state
+          if git diff --cached --quiet; then
+            echo "本轮没有需要回写的数据"
+            exit 0
+          fi
+          git commit -m "chore: 定时更新数据 [skip ci]"
+          for attempt in 1 2 3; do
+            echo "数据推送尝试 ${attempt}/3"
+            if ! git fetch origin main; then
+              echo "第 ${attempt} 次 fetch 失败"
+            elif ! git rebase --autostash origin/main; then
+              git rebase --abort || true
+              echo "::error::本轮数据与最新 main 发生冲突，需要人工处理"
+              exit 1
+            elif git push origin HEAD:main; then
+              exit 0
+            else
+              echo "第 ${attempt} 次 push 失败"
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              sleep $((attempt * 10))
+            fi
+          done
+          echo "::error::本轮数据连续三次推送失败"
+          exit 1
 
   publish:
     name: 请求统一 Pages 发布

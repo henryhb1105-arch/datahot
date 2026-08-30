@@ -3,7 +3,7 @@ import json
 import sys
 import tempfile
 import unittest
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from urllib.error import HTTPError
 from unittest.mock import patch
@@ -23,6 +23,14 @@ class GrowthShareTests(unittest.TestCase):
             "reason": "它提供了可复用的方法和清晰证据，适合数据团队今天阅读。",
         }
 
+    def english_event(self, event_id="cccccccccccc"):
+        event = self.event(event_id, "Anthropic经济指数：AI采用的地理与企业不均")
+        event["items"] = [{
+            "title": "Anthropic Economic Index: Uneven AI adoption \\ Anthropic",
+            "source": "Anthropic Economic Index",
+        }]
+        return event
+
     def test_selects_first_ranked_top_event(self):
         data = {"top": ["bbbbbbbbbbbb", "aaaaaaaaaaaa"], "events": [
             self.event("aaaaaaaaaaaa"), self.event("bbbbbbbbbbbb", "TOP 1"),
@@ -38,6 +46,26 @@ class GrowthShareTests(unittest.TestCase):
         self.assertEqual(growth_share.select_highlight(data, position=1)["event_id"], "aaaaaaaaaaaa")
         selected = growth_share.select_highlight(data, excluded_event_ids={"bbbbbbbbbbbb", "aaaaaaaaaaaa"})
         self.assertEqual(selected["event_id"], "cccccccccccc")
+
+    def test_english_discovery_selection_uses_source_title_without_translation(self):
+        data = {"top": ["aaaaaaaaaaaa", "cccccccccccc"], "events": [
+            self.event("aaaaaaaaaaaa"), self.english_event(),
+        ]}
+        selected = growth_share.select_highlight(data, require_english=True)
+        self.assertEqual(selected["event_id"], "cccccccccccc")
+        self.assertEqual(
+            growth_share.english_title(selected),
+            "Anthropic Economic Index: Uneven AI adoption",
+        )
+        self.assertEqual(growth_share.english_title(self.event()), "")
+
+    def test_one_bilingual_slot_rotates_across_all_five_times(self):
+        start = datetime(2026, 8, 30, 8, 0, tzinfo=growth_share.TZ)
+        slots = [growth_share.bilingual_slot(start + timedelta(days=offset)) for offset in range(5)]
+        self.assertEqual(set(slots), set(range(growth_share.DAILY_SLOTS)))
+        for day in range(5):
+            now = start + timedelta(days=day)
+            self.assertEqual(sum(slot == growth_share.bilingual_slot(now) for slot in range(5)), 1)
 
     def test_post_is_bounded_and_has_utf8_link_facet(self):
         event = self.event(title="数据" * 80)
@@ -58,6 +86,23 @@ class GrowthShareTests(unittest.TestCase):
         self.assertIn("#DataEngineering #AIAgents #数据", post["text"])
         self.assertIn("utm_source=bluesky&utm_content=text", post["url"])
         self.assertEqual(post["canonical_url"], "https://datahot.xiahongbin.com/e/aaaaaaaaaaaa.html")
+
+    def test_bilingual_post_is_bounded_has_matching_languages_and_facets(self):
+        post = growth_share.build_post(self.english_event(), slot=3, creative="card", bilingual=True)
+        self.assertLessEqual(len(post["text"]), 300)
+        self.assertTrue(post["text"].startswith(
+            "DataHot data pick 4/5｜Anthropic Economic Index: Uneven AI adoption"
+        ))
+        self.assertIn("Read / 中文全文：", post["text"])
+        self.assertEqual(post["langs"], ["en", "zh-CN"])
+        self.assertEqual(post["language_variant"], "bilingual")
+        self.assertEqual(post["card_title"], "Anthropic Economic Index: Uneven AI adoption")
+        encoded = post["text"].encode("utf-8")
+        for facet in post["facets"]:
+            index = facet["index"]
+            value = encoded[index["byteStart"]:index["byteEnd"]].decode("utf-8")
+            feature = facet["features"][0]
+            self.assertEqual(value, post["url"] if feature["$type"].endswith("#link") else f'#{feature["tag"]}')
 
     def test_tracking_url_accepts_only_measurable_variants(self):
         self.assertEqual(
@@ -161,9 +206,34 @@ class GrowthShareTests(unittest.TestCase):
             )
         self.assertEqual(result["status"], "published")
         self.assertEqual(result["event_id"], "bbbbbbbbbbbb")
+        self.assertEqual(result["language_variant"], "zh")
         self.assertEqual(request.call_count, 2)
         self.assertIn("com.atproto.repo.putRecord", request.call_args_list[1].args[0])
         wait_until_live.assert_called_once_with("https://datahot.xiahongbin.com/e/bbbbbbbbbbbb.html")
+
+    def test_publish_uses_bilingual_record_only_for_the_rotating_slot(self):
+        featured = self.english_event()
+        data = {"top": [featured["event_id"]], "events": [featured]}
+        responses = [
+            {"did": "did:plc:test", "accessJwt": "token"},
+            {"uri": "at://did:plc:test/app.bsky.feed.post/bilingual"},
+        ]
+        now = datetime(2026, 8, 30, 17, 47, tzinfo=growth_share.TZ)
+        self.assertEqual(growth_share.bilingual_slot(now), 3)
+        with patch.object(growth_share, "_get_record", side_effect=[None] * 5), \
+                patch.object(growth_share, "_json_request", side_effect=responses) as request, \
+                patch.object(growth_share, "wait_until_live"):
+            result = growth_share.publish(
+                data,
+                handle="datahot.example",
+                password="unit-test-only",
+                slot=3,
+                now=now,
+            )
+        self.assertEqual(result["language_variant"], "bilingual")
+        record = request.call_args_list[1].kwargs["payload"]["record"]
+        self.assertEqual(record["langs"], ["en", "zh-CN"])
+        self.assertTrue(record["text"].startswith("DataHot data pick 4/5｜"))
 
     def test_publish_adds_external_image_card_and_matching_attribution(self):
         featured = self.event()

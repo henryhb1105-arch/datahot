@@ -16,7 +16,7 @@
     "schema_version", "event_uuid", "name", "ts", "environment", "site_id",
     "page", "page_path", "event_id", "category", "source", "session_id", "device_id",
     "sequence", "viewport", "referrer", "action", "filter", "query_bucket",
-    "result_count", "feedback_reason"
+    "result_count", "feedback_reason", "acquisition_source", "acquisition_format"
   ];
   var PAGES = ["home", "for-me", "weekly", "daily", "topics", "topic", "classics", "hot", "favorites", "sources", "detail", "privacy", "other"];
   var CATEGORIES = ["agent", "platform", "bi", "product", "insight", ""];
@@ -24,6 +24,8 @@
   var SESSION_KEY = "dh_analytics_session_v1";
   var SESSION_STARTED_KEY = "dh_analytics_session_started_v1";
   var SEQUENCE_KEY = "dh_analytics_sequence_v1";
+  var ACQUISITION_SOURCE_KEY = "dh_analytics_acquisition_source_v1";
+  var ACQUISITION_FORMAT_KEY = "dh_analytics_acquisition_format_v1";
   var OPTOUT_KEY = "dh_analytics_optout_v1";
   var DEVICE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -70,10 +72,16 @@
       "shallow", "marketing", "duplicate", "body_quality"
     ], output.feedback_reason) ? output.feedback_reason : "";
     output.query_bucket = includes(["1-3", "4-8", "9+"], output.query_bucket) ? output.query_bucket : "";
+    output.acquisition_source = includes(["bluesky", "x"], output.acquisition_source) ? output.acquisition_source : "";
+    output.acquisition_format = includes(["card", "text"], output.acquisition_format) ? output.acquisition_format : "";
+    if (!output.acquisition_source || !output.acquisition_format) {
+      output.acquisition_source = "";
+      output.acquisition_format = "";
+    }
     if (Object.prototype.hasOwnProperty.call(output, "result_count")) {
       output.result_count = Math.max(0, Math.min(100000, Number(output.result_count) || 0));
     }
-    ["page_path", "event_id", "category", "source", "filter", "action", "query_bucket", "feedback_reason"].forEach(function (field) {
+    ["page_path", "event_id", "category", "source", "filter", "action", "query_bucket", "feedback_reason", "acquisition_source", "acquisition_format"].forEach(function (field) {
       if (!output[field]) delete output[field];
     });
     return output;
@@ -100,6 +108,20 @@
       "privacy.html": "privacy"
     };
     return pages[filename] || "other";
+  }
+
+  function acquisitionFromSearch(search) {
+    try {
+      var params = new URLSearchParams(String(search || ""));
+      var source = String(params.get("utm_source") || "").toLowerCase();
+      var format = String(params.get("utm_content") || "").toLowerCase();
+      if (!includes(["bluesky", "x"], source) || !includes(["card", "text"], format)) {
+        return { source: "", format: "" };
+      }
+      return { source: source, format: format };
+    } catch (_error) {
+      return { source: "", format: "" };
+    }
   }
 
   function boot(win) {
@@ -209,6 +231,14 @@
     if (!sessionId || !storageSet(session, SESSION_KEY, sessionId)) {
       active = false; updatePrivacyStatus(); return;
     }
+    var acquisition = acquisitionFromSearch(win.location.search);
+    if (acquisition.source) storageSet(session, ACQUISITION_SOURCE_KEY, acquisition.source);
+    else acquisition.source = storageGet(session, ACQUISITION_SOURCE_KEY) || "";
+    if (acquisition.format) storageSet(session, ACQUISITION_FORMAT_KEY, acquisition.format);
+    else acquisition.format = storageGet(session, ACQUISITION_FORMAT_KEY) || "";
+    if (!includes(["bluesky", "x"], acquisition.source) || !includes(["card", "text"], acquisition.format)) {
+      acquisition = { source: "", format: "" };
+    }
     var page = pageFromPath(win.location.pathname);
     var body = doc.body;
     var lastSent = new Map();
@@ -273,7 +303,8 @@
         environment: "production", site_id: config.siteId, page: page,
         page_path: safePagePath(win.location.pathname),
         session_id: sessionId, device_id: deviceRecord.id, sequence: nextSequence(),
-        viewport: viewportBucket(), referrer: referrerBucket()
+        viewport: viewportBucket(), referrer: referrerBucket(),
+        acquisition_source: acquisition.source, acquisition_format: acquisition.format
       }, props);
       var clean = sanitizeEvent(raw);
       if (!clean || !clean.event_uuid) return;
@@ -388,6 +419,7 @@
     sanitizeEvent: sanitizeEvent,
     queryBucket: queryBucket,
     pageFromPath: pageFromPath,
+    acquisitionFromSearch: acquisitionFromSearch,
     safePagePath: safePagePath,
     boot: boot,
     track: function () {}, flush: function () {}, disable: function () {}, enable: function () {},

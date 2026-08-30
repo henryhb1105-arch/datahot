@@ -61,6 +61,19 @@ class AnalyticsSchemaTests(unittest.TestCase):
     def test_insight_category_is_valid(self):
         self.assertEqual(validate_event(event(6, "session_start", category="insight")), [])
 
+    def test_acquisition_requires_a_complete_allowlisted_pair(self):
+        attributed = event(
+            11, "page_view", page_path="/e/aaaaaaaaaaaa.html", page="detail",
+            acquisition_source="bluesky", acquisition_format="card",
+        )
+        self.assertEqual(validate_event(attributed), [])
+        self.assertIn("acquisition_pair", validate_event(event(
+            12, "page_view", page_path="/", acquisition_source="x",
+        )))
+        self.assertIn("acquisition_source", validate_event(event(
+            13, "page_view", page_path="/", acquisition_source="newsletter", acquisition_format="text",
+        )))
+
 
 class AnalyticsMetricTests(unittest.TestCase):
     def sample(self):
@@ -74,7 +87,8 @@ class AnalyticsMetricTests(unittest.TestCase):
             event(6, "search", session=1, device=1, query_bucket="4-8", result_count=3),
             event(7, "filter", session=1, device=1, filter="data-agent"),
             event(8, "session_start", session=2, device=2),
-            event(14, "page_view", session=2, device=2, page_path="/", referrer="social"),
+            event(14, "page_view", session=2, device=2, page_path="/", referrer="social",
+                  acquisition_source="bluesky", acquisition_format="card"),
             event(9, "list_exposure", session=2, device=2, event_id="bbbbbbbbbbbb"),
             event(10, "session_start", ts="2026-08-05T00:00:00+00:00", session=3, device=1),
             event(11, "session_start", ts="2026-08-10T00:00:00+00:00", session=4, device=3),
@@ -111,6 +125,7 @@ class AnalyticsMetricTests(unittest.TestCase):
         self.assertEqual(metrics["daily_active_devices"], {"2026-08-01": 2})
         self.assertEqual(metrics["top_pages"], {"/": 2})
         self.assertEqual(metrics["page_view_referrers"], {"direct": 1, "social": 1})
+        self.assertEqual(metrics["page_view_acquisition"], {"bluesky:card": 1})
 
     def test_page_views_use_shanghai_natural_days(self):
         report = compute_metrics([
@@ -151,6 +166,10 @@ class AnalyticsBuildIntegrationTests(unittest.TestCase):
 
     def test_cards_and_detail_have_event_context_at_trigger_points(self):
         item = self.base_event()
+        item["content_blocks"] = [{
+            "type": "figure", "cached_src": "../media/aaaaaaaaaaaa/123456789abc.webp",
+            "alt": "文章原图", "width": 1200, "height": 630,
+        }]
         card = build_site.render_card(item)
         self.assertIn('data-analytics-list="1"', card)
         self.assertIn('data-event-id="aaaaaaaaaaaa"', card)
@@ -158,6 +177,12 @@ class AnalyticsBuildIntegrationTests(unittest.TestCase):
         self.assertIn('data-page="detail" data-event-id="aaaaaaaaaaaa"', detail)
         self.assertIn('data-analytics="outbound"', detail)
         self.assertIn('src="../analytics.js"', detail)
+        self.assertIn('<meta name="twitter:card" content="summary_large_image">', detail)
+        self.assertIn(
+            '<meta property="og:image" content="https://datahot.xiahongbin.com/media/aaaaaaaaaaaa/123456789abc.webp">',
+            detail,
+        )
+        self.assertIn('"image":"https://datahot.xiahongbin.com/media/aaaaaaaaaaaa/123456789abc.webp"', detail)
 
     def test_client_source_does_not_access_fingerprinting_or_location_apis(self):
         source = (ROOT / "pipeline" / "assets" / "analytics.js").read_text(encoding="utf-8")

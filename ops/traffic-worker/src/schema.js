@@ -8,7 +8,7 @@ export const ALLOWED_FIELDS = new Set([
   "schema_version", "event_uuid", "name", "ts", "environment", "site_id",
   "page", "page_path", "event_id", "category", "source", "session_id", "device_id",
   "sequence", "viewport", "referrer", "action", "filter", "query_bucket",
-  "result_count", "feedback_reason",
+  "result_count", "feedback_reason", "acquisition_source", "acquisition_format",
 ]);
 
 const REQUIRED_FIELDS = new Set([
@@ -19,6 +19,8 @@ const PAGES = new Set(["home", "for-me", "weekly", "daily", "topics", "topic", "
 const CATEGORIES = new Set(["agent", "platform", "bi", "product", "insight", ""]);
 const REFERRERS = new Set(["direct", "internal", "search", "social", "other"]);
 const VIEWPORTS = new Set(["small", "medium", "large"]);
+const ACQUISITION_SOURCES = new Set(["bluesky", "x", ""]);
+const ACQUISITION_FORMATS = new Set(["card", "text", ""]);
 const EVENT_ID_REQUIRED = new Set(["list_exposure", "detail_click", "outbound_click", "favorite_toggle", "content_feedback"]);
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const EVENT_ID_RE = /^[a-f0-9]{12}$/;
@@ -69,6 +71,9 @@ export function validateEvent(event, options = {}) {
   if (!Number.isInteger(event.sequence) || event.sequence < 1 || event.sequence > 1_000_000) errors.push("sequence");
   if (!VIEWPORTS.has(event.viewport)) errors.push("viewport");
   if (!REFERRERS.has(event.referrer)) errors.push("referrer");
+  if (!ACQUISITION_SOURCES.has(String(event.acquisition_source || ""))) errors.push("acquisition_source");
+  if (!ACQUISITION_FORMATS.has(String(event.acquisition_format || ""))) errors.push("acquisition_format");
+  if (Boolean(event.acquisition_source) !== Boolean(event.acquisition_format)) errors.push("acquisition_pair");
   if (event.action && !["add", "remove", "useful", "not_useful"].includes(event.action)) errors.push("action");
   if (event.query_bucket && !["1-3", "4-8", "9+"].includes(event.query_bucket)) errors.push("query_bucket");
   if (event.name === "favorite_toggle" && !["add", "remove"].includes(event.action)) errors.push("action_required");
@@ -97,5 +102,7 @@ export function toStoredEvent(event, receivedAt) {
     source: event.source || null,
     action: event.action || null,
     feedback_reason: event.feedback_reason || null,
+    acquisition_source: event.acquisition_source || null,
+    acquisition_format: event.acquisition_format || null,
   };
 }

@@ -102,6 +102,7 @@ def compute_metrics(raw_events, parse_errors=0):
     daily_page_views = Counter()
     top_pages = Counter()
     page_referrers = Counter()
+    page_acquisition = Counter()
     for event in valid:
         day = datetime.fromisoformat(event["ts"].replace("Z", "+00:00")).astimezone(SHANGHAI).date()
         activity[event["device_id"]].add(day)
@@ -110,6 +111,10 @@ def compute_metrics(raw_events, parse_errors=0):
             daily_page_views[day.isoformat()] += 1
             top_pages[event.get("page_path") or event["page"]] += 1
             page_referrers[event["referrer"]] += 1
+            if event.get("acquisition_source"):
+                page_acquisition[(
+                    event["acquisition_source"], event.get("acquisition_format") or "unknown"
+                )] += 1
     max_day = max((day for days in activity.values() for day in days), default=None)
     cohort, returned = 0, 0
     if max_day:
@@ -152,6 +157,10 @@ def compute_metrics(raw_events, parse_errors=0):
         "daily_page_views": dict(sorted(daily_page_views.items())),
         "top_pages": dict(top_pages.most_common()),
         "page_view_referrers": dict(sorted(page_referrers.items())),
+        "page_view_acquisition": {
+            f"{source}:{creative}": count
+            for (source, creative), count in sorted(page_acquisition.items())
+        },
     }
     return {"quality": quality, "metrics": metrics}
 

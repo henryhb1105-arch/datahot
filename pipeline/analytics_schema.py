@@ -23,11 +23,13 @@ FEEDBACK_REASONS = {
     "shallow", "marketing", "duplicate", "body_quality", "",
 }
 QUERY_BUCKETS = {"1-3", "4-8", "9+", ""}
+ACQUISITION_SOURCES = {"bluesky", "x", ""}
+ACQUISITION_FORMATS = {"card", "text", ""}
 ALLOWED_FIELDS = {
     "schema_version", "event_uuid", "name", "ts", "environment", "site_id",
     "page", "page_path", "event_id", "category", "source", "session_id", "device_id",
     "sequence", "viewport", "referrer", "action", "filter", "query_bucket",
-    "result_count", "feedback_reason",
+    "result_count", "feedback_reason", "acquisition_source", "acquisition_format",
 }
 REQUIRED_FIELDS = {
     "schema_version", "event_uuid", "name", "ts", "environment", "site_id",
@@ -112,6 +114,12 @@ def validate_event(event):
         errors.append("feedback_reason")
     if str(event.get("query_bucket") or "") not in QUERY_BUCKETS:
         errors.append("query_bucket")
+    if str(event.get("acquisition_source") or "") not in ACQUISITION_SOURCES:
+        errors.append("acquisition_source")
+    if str(event.get("acquisition_format") or "") not in ACQUISITION_FORMATS:
+        errors.append("acquisition_format")
+    if bool(event.get("acquisition_source")) != bool(event.get("acquisition_format")):
+        errors.append("acquisition_pair")
     if event.get("name") == "favorite_toggle" and event.get("action") not in {"add", "remove"}:
         errors.append("action_required")
     if event.get("name") == "content_feedback" and event.get("action") not in {"useful", "not_useful"}:

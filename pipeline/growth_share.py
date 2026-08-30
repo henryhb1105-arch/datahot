@@ -15,12 +15,15 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
 
+from social_cards import social_image_for_event
+
 
 TZ = ZoneInfo("Asia/Shanghai")
 BSKY_API = "https://bsky.social/xrpc"
 SITE_BASE = "https://datahot.xiahongbin.com"
 TID_ALPHABET = "234567abcdefghijklmnopqrstuvwxyz"
 DAILY_SLOTS = 5
+MAX_CARD_IMAGE_BYTES = 1_000_000
 PROFILE_DISPLAY_NAME = "DataHot｜数据与 AI 热点"
 PROFILE_DESCRIPTION = "每天精选数据、分析与 AI 工程动态，关注 Data Agent、数据平台、实时计算与团队实践。每日 5 条，原文优先。"
 PROFILE_WEBSITE = f"{SITE_BASE}/"
@@ -66,13 +69,27 @@ def post_hashtags(event):
     return tags
 
 
-def build_post(event, *, slot=0):
+def tracked_url(event_id, *, source="bluesky", creative="text"):
+    if source not in {"bluesky", "x"} or creative not in {"card", "text"}:
+        raise ValueError("source/creative must use the analytics allowlist")
+    query = urlencode({"utm_source": source, "utm_content": creative})
+    return f"{SITE_BASE}/e/{event_id}.html?{query}"
+
+
+def should_use_image_card(now, slot, image):
+    """Rotate card/text by day and slot so every time slot sees both variants."""
+    return bool(image) and (now.date().toordinal() + slot) % 2 == 0
+
+
+def build_post(event, *, slot=0, creative="text"):
     event_id = str(event.get("event_id") or "")
     if not re.fullmatch(r"[a-f0-9]{12}", event_id):
         raise ValueError("invalid event_id")
     title = _clean(event.get("zh_title"), 80)
     note = _clean(event.get("reason") or event.get("zh_summary"), 110)
-    url = f"{SITE_BASE}/e/{event_id}.html"
+    if creative not in {"card", "text"}:
+        raise ValueError("creative must be card or text")
+    url = tracked_url(event_id, creative=creative)
     tags = post_hashtags(event)
     suffix = f"\n\n阅读全文：{url}\n{' '.join(tags)}"
     prefix = f"DataHot 今日精选 {slot + 1}/{DAILY_SLOTS}｜{title}"
@@ -93,7 +110,13 @@ def build_post(event, *, slot=0):
             "index": {"byteStart": tag_start, "byteEnd": tag_start + len(encoded_tag)},
             "features": [{"$type": "app.bsky.richtext.facet#tag", "tag": tag[1:]}],
         })
-    return {"text": text, "url": url, "facets": facets}
+    return {
+        "text": text,
+        "url": url,
+        "canonical_url": f"{SITE_BASE}/e/{event_id}.html",
+        "facets": facets,
+        "creative": creative,
+    }
 
 
 def daily_slot_tid(now, slot=0):
@@ -126,6 +149,29 @@ def _json_request(url, *, payload=None, token=""):
     request = Request(url, data=body, headers=headers, method="POST" if body is not None else "GET")
     with urlopen(request, timeout=20) as response:
         return json.loads(response.read().decode("utf-8"))
+
+
+def _upload_image_blob(*, token, image_url):
+    image_request = Request(image_url, headers={"Accept": "image/*", "User-Agent": "DataHotGrowth/1.0"})
+    with urlopen(image_request, timeout=20) as response:
+        content_type = str(response.headers.get_content_type() or "").lower()
+        if content_type not in {"image/jpeg", "image/png", "image/webp"}:
+            raise ValueError("social card asset is not a supported raster image")
+        content = response.read(MAX_CARD_IMAGE_BYTES + 1)
+    if not content or len(content) > MAX_CARD_IMAGE_BYTES:
+        raise ValueError("social card image must be between 1 byte and 1 MB")
+    upload = Request(
+        f"{BSKY_API}/com.atproto.repo.uploadBlob",
+        data=content,
+        headers={"Authorization": f"Bearer {token}", "Content-Type": content_type, "Accept": "application/json"},
+        method="POST",
+    )
+    with urlopen(upload, timeout=20) as response:
+        payload = json.loads(response.read().decode("utf-8"))
+    blob = payload.get("blob") if isinstance(payload, dict) else None
+    if not isinstance(blob, dict):
+        raise ValueError("Bluesky image upload did not return a blob")
+    return blob
 
 
 def _xrpc_error_name(error):
@@ -231,8 +277,18 @@ def publish(data, *, handle, password, slot=0, now=None):
     event = select_highlight(data, excluded_event_ids=used_event_ids)
     if not event:
         return {"status": "skipped", "reason": "no_unused_event", "rkey": rkey}
-    post = build_post(event, slot=slot)
-    wait_until_live(post["url"])
+    canonical_url = f"{SITE_BASE}/e/{event['event_id']}.html"
+    wait_until_live(canonical_url)
+    image = social_image_for_event(event, SITE_BASE)
+    use_card = should_use_image_card(now, slot, image)
+    thumb = None
+    if use_card:
+        try:
+            thumb = _upload_image_blob(token=token, image_url=image["url"])
+        except (HTTPError, URLError, TimeoutError, ValueError, json.JSONDecodeError):
+            thumb = None
+    creative = "card" if thumb else "text"
+    post = build_post(event, slot=slot, creative=creative)
     record = {
         "$type": "app.bsky.feed.post",
         "text": post["text"],
@@ -240,6 +296,16 @@ def publish(data, *, handle, password, slot=0, now=None):
         "langs": ["zh-CN"],
         "createdAt": now.astimezone(ZoneInfo("UTC")).isoformat().replace("+00:00", "Z"),
     }
+    if thumb:
+        record["embed"] = {
+            "$type": "app.bsky.embed.external",
+            "external": {
+                "uri": post["url"],
+                "title": _clean(event.get("zh_title"), 120),
+                "description": _clean(event.get("reason") or event.get("zh_summary"), 200),
+                "thumb": thumb,
+            },
+        }
     response = _json_request(f"{BSKY_API}/com.atproto.repo.putRecord", token=token, payload={
         "repo": did,
         "collection": "app.bsky.feed.post",
@@ -253,6 +319,7 @@ def publish(data, *, handle, password, slot=0, now=None):
         "rkey": rkey,
         "event_id": event["event_id"],
         "slot": slot,
+        "creative": creative,
     }
 
 

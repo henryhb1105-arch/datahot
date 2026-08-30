@@ -54,6 +54,10 @@ jobs:
           mkdir -p "$baseline"
           git show origin/gh-pages:data/latest.json > "$baseline/latest.json"
           git ls-tree -r --name-only origin/gh-pages -- e/ > "$baseline/details.txt"
+          indexnow_key_file="$(PYTHONPATH=pipeline python3 -c 'from indexnow import key_filename; print(key_filename())')"
+          if git cat-file -e "origin/gh-pages:${indexnow_key_file}" 2>/dev/null; then
+            touch "$baseline/indexnow-key-present"
+          fi
           if git cat-file -e origin/gh-pages:data/release.json 2>/dev/null; then
             git show origin/gh-pages:data/release.json > "$baseline/release.json"
           fi
@@ -124,6 +128,24 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./site
           cname: datahot.xiahongbin.com
+
+      - name: 通知 IndexNow 本轮变化 URL
+        if: steps.release_guard.outputs.should_publish == 'true'
+        continue-on-error: true
+        env:
+          SITE_BASE_URL: "https://datahot.xiahongbin.com"
+        run: |
+          baseline="$RUNNER_TEMP/datahot-release-baseline"
+          bootstrap_args=()
+          if [ ! -f "$baseline/indexnow-key-present" ]; then
+            bootstrap_args+=(--bootstrap)
+          fi
+          python3 pipeline/indexnow.py \
+            --baseline-latest "$baseline/latest.json" \
+            --candidate-latest site/data/latest.json \
+            --site-root site \
+            --expected-source-sha "$(git rev-parse HEAD)" \
+            "${bootstrap_args[@]}"
 
       - name: 相同 source SHA 跳过重复发布
         if: steps.release_guard.outputs.should_publish != 'true'

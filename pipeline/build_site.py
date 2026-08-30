@@ -25,6 +25,7 @@ from weekly_brief import valid_brief as valid_weekly_brief
 from taxonomy import CATEGORY_LABELS, normalize_category_labels
 from site_config import SITE_BASE_URL, SITE_HOST
 from social_cards import social_image_for_event
+from seo import absolute_public_url, public_sitemap_paths, write_search_discovery
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
@@ -2088,7 +2089,7 @@ def render_topics_map(events, css, reference_time=None):
 </main>'''
     return page_shell(
         "主题地图 · DataHot", "按主题理解数据领域持续演进的技术主线与业务场景",
-        css, body, tabbar("topics"), active="topics",
+        css, body, tabbar("topics"), active="topics", canonical_path="topics.html",
     )
 
 
@@ -2212,14 +2213,28 @@ document.addEventListener('DOMContentLoaded',function(){
     return page_shell(
         f"{t['name']} · DataHot 主题", t["desc"], css, body,
         tabbar("topics", "../"), prefix="../", active="topics",
+        canonical_path=f"topics/{t['slug']}.html",
     )
 
-def page_shell(title, desc, css, body, tabbar_html, prefix="", active=""):
+def page_shell(
+    title, desc, css, body, tabbar_html, prefix="", active="", *,
+    canonical_path=None, indexable=True,
+):
+    canonical_head = ""
+    if canonical_path is not None:
+        page_url = absolute_public_url(canonical_path, SITE_BASE)
+        canonical_head = (
+            f'<link rel="canonical" href="{page_url}">\n'
+            f'<meta property="og:url" content="{page_url}">'
+        )
+    robots_head = "" if indexable else '<meta name="robots" content="noindex,follow">'
     return finalize_html_security(f'''<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(desc)}">
+{canonical_head}
+{robots_head}
 <link rel="icon" href="{prefix}favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="{prefix}icons/apple-touch-icon.png">
 <meta name="theme-color" content="#1a1d23">
@@ -2336,7 +2351,7 @@ def render_sources_page(events, payload, css):
 </div>
 '''
     return page_shell("信源 · DataHot", "DataHot 正在监控的公开信源与选源原则", css, body,
-                      tabbar("sources"), prefix="", active="sources")
+                      tabbar("sources"), prefix="", active="sources", canonical_path="sources.html")
 
 def render_hot_page(events, css, reference_time=None):
     """完整榜单：热度 TOP 9"""
@@ -2360,7 +2375,10 @@ def render_hot_page(events, css, reference_time=None):
   <div class="rank-list">{rows}</div>
   <details class="rank-note"><summary>热度如何计算</summary><p>{HEAT_FORMULA}；按热度降序，同一信源最多 2 条。</p></details>
 </main>"""
-    return page_shell("完整榜单 · DataHot", "数据领域近 7 天热度 TOP 9", css, body, tabbar("home"), prefix="", active="hot")
+    return page_shell(
+        "完整榜单 · DataHot", "数据领域近 7 天热度 TOP 9", css, body,
+        tabbar("home"), prefix="", active="hot", canonical_path="hot.html",
+    )
 
 def render_favorites_page(css, data_url="data/latest-lite.json"):
     """收藏页：本机快照优先，数据索引只用于补全旧版 event_id 收藏。"""
@@ -2379,7 +2397,10 @@ def render_favorites_page(css, data_url="data/latest-lite.json"):
   <div id="favList" aria-live="polite" aria-busy="true"><div class="favorites-loading">正在读取本机收藏…</div></div>
   <noscript><div class="favorites-empty"><div class="favorites-empty-inner"><h2>需要启用 JavaScript</h2><p>收藏保存在当前浏览器中，启用 JavaScript 后即可读取。</p></div></div></noscript>
 </main>'''
-    return page_shell("我的收藏 · DataHot", "你收藏的数据领域资讯", css, body, tabbar("favorites"), prefix="", active="favorites")
+    return page_shell(
+        "我的收藏 · DataHot", "你收藏的数据领域资讯", css, body,
+        tabbar("favorites"), prefix="", active="favorites", indexable=False,
+    )
 
 
 def render_for_me_page(css, data_url="data/latest-lite.json"):
@@ -2443,6 +2464,7 @@ def render_for_me_page(css, data_url="data/latest-lite.json"):
     return page_shell(
         "For Me · DataHot", "只看与你相关的数据与 AI 重要变化",
         css + FOR_ME_CSS, body, tabbar("for-me"), prefix="", active="for-me",
+        indexable=False,
     )
 
 
@@ -2503,6 +2525,7 @@ def _safe_source_url(value):
 
 def render_weekly_brief_page(
     brief, events, css, *, prefix="", archives=None, archive_prefix="weekly/",
+    canonical_path="weekly.html",
 ):
     if not brief:
         body = '''
@@ -2513,6 +2536,7 @@ def render_weekly_brief_page(
         return page_shell(
             "每周简报 · DataHot", "DataHot 每周数据 AI 高价值事件简报", css, body,
             tabbar("weekly", prefix), prefix=prefix, active="weekly",
+            canonical_path=canonical_path,
         )
 
     event_map = {event["event_id"]: event for event in events}
@@ -2611,6 +2635,7 @@ def render_weekly_brief_page(
     return page_shell(
         f"{brief.get('week_id')} 每周情报 · DataHot", brief.get("bottom_line") or "DataHot 每周情报",
         css, body, tabbar("weekly", prefix), prefix=prefix, active="weekly",
+        canonical_path=canonical_path,
     )
 
 
@@ -2642,7 +2667,7 @@ def render_privacy_page(css):
 </div>'''
     return page_shell(
         "隐私与匿名统计 · DataHot", "DataHot 的隐私友好匿名统计说明与关闭开关",
-        css, body, tabbar("privacy"), prefix="", active="privacy",
+        css, body, tabbar("privacy"), prefix="", active="privacy", canonical_path="privacy.html",
     )
 
 def write_detail_pages(all_events, css, detail_dir=None, tts_manifest=None, site_root=SITE):
@@ -2888,6 +2913,10 @@ def main():
 <meta property="og:title" content="DataHot · 数据领域 AI 热榜">
 <meta property="og:description" content="Data Agent / AI 数据平台 / BI / 数据产品 / AI分析的热点，每 6 小时自动更新。">
 <meta property="og:type" content="website">
+<meta property="og:url" content="{SITE_BASE}/">
+<meta property="og:site_name" content="DataHot · 数据领域 AI 热榜">
+<meta name="twitter:card" content="summary">
+<link rel="canonical" href="{SITE_BASE}/">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -3047,6 +3076,7 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
             render_weekly_brief_page(
                 archive_brief, all_events, css, prefix="../",
                 archives=weekly_archives, archive_prefix="",
+                canonical_path=f"weekly/{filename}",
             ),
             encoding="utf-8",
         )
@@ -3062,6 +3092,7 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
             render_agent_body(),
             tabbar("agent"),
             active="agent",
+            canonical_path="agent.html",
         ),
         encoding="utf-8",
     )
@@ -3069,6 +3100,12 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
 
     out = SITE / "index.html"
     out.write_text(page, encoding="utf-8")
+    sitemap_paths = public_sitemap_paths(
+        valid_ids, valid_topic_slugs, valid_weekly_pages,
+        weekly_enabled=weekly_enabled,
+    )
+    sitemap_count = write_search_discovery(SITE, sitemap_paths, site_base=SITE_BASE)
+    print(f"[seo] sitemap.xml + robots.txt 校验通过：{sitemap_count} 个规范 URL")
     broken = check_site_links(SITE)
     if broken:
         print(f"[links] 构建失败：发现 {len(broken)} 个失效本地引用")

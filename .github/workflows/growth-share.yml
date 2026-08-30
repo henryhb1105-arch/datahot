@@ -2,13 +2,19 @@ name: DataHot Bluesky 每日分发
 
 on:
   schedule:
-    # 北京时间 08:47 / 11:47 / 14:47 / 17:47 / 20:47，每次只发一条。
+    # 北京时间 08:47 / 11:47 / 14:47 / 17:47 / 20:47，每次只发一条；
+    # 每个时段 10 分钟后幂等补跑一次，GitHub 延迟或漏调度时仍有第二次机会。
     # 与 08:17 / 14:17 / 20:17 的内容更新错开，确保新详情页已经上线。
     - cron: "47 0 * * *"
+    - cron: "57 0 * * *"
     - cron: "47 3 * * *"
+    - cron: "57 3 * * *"
     - cron: "47 6 * * *"
+    - cron: "57 6 * * *"
     - cron: "47 9 * * *"
+    - cron: "57 9 * * *"
     - cron: "47 12 * * *"
+    - cron: "57 12 * * *"
   workflow_dispatch:
     inputs:
       mode:
@@ -58,11 +64,11 @@ jobs:
           GROWTH_MANUAL_SLOT: ${{ inputs.slot }}
         run: |
           case "$GROWTH_SCHEDULE" in
-            "47 0 * * *") slot=0 ;;
-            "47 3 * * *") slot=1 ;;
-            "47 6 * * *") slot=2 ;;
-            "47 9 * * *") slot=3 ;;
-            "47 12 * * *") slot=4 ;;
+            "47 0 * * *"|"57 0 * * *") slot=0 ;;
+            "47 3 * * *"|"57 3 * * *") slot=1 ;;
+            "47 6 * * *"|"57 6 * * *") slot=2 ;;
+            "47 9 * * *"|"57 9 * * *") slot=3 ;;
+            "47 12 * * *"|"57 12 * * *") slot=4 ;;
             "") slot="$GROWTH_MANUAL_SLOT" ;;
             *) echo "未知分发计划：$GROWTH_SCHEDULE" >&2; exit 1 ;;
           esac

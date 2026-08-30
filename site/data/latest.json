@@ -1,6 +1,2573 @@
 {
-  "generated_at": "2026-08-30T13:25:52.487931+08:00",
+  "generated_at": "2026-08-30T20:00:59.261573+08:00",
   "events": [
+    {
+      "event_id": "e29bdb5d7aef",
+      "zh_title": "Amplitude Agent Analytics新增访问控制与隐私脱敏",
+      "zh_summary": "Agent Analytics是Amplitude推出的Agent轨迹数据治理方案，通过基于角色的访问控制管理谁能查看会话、创建评估器或启用在途评估。它支持full、redacted等隐私模式，在SDK层面于数据离开应用前进行PII脱敏，并确保AI功能不超越用户已有权限。即使敏感文本不传输，信号、评估器和队列仍可保留，兼顾治理与洞察。",
+      "reason": "数据从业者应关注Agent可观测性与数据治理的落地机制，尤其是权限隔离和隐私脱敏如何在不损失分析能力的前提下实现。",
+      "full_zh": "Agent 追踪包含了你技术栈中最原始的数据。用户输入的准确词语、模型的回复、传递给每个工具的参数、跨度之间移动的状态。这正是团队犹豫是否将其发送到任何地方的原因，也是“咱们别把追踪数据导入另一个系统”是我们听到的关于 Agent Analytics 最常见的反对意见。\n\n所以我们构建了 Agent Analytics，以便你可以控制什么离开你的应用、谁能看到它、以及它存在多久。而大多数人忽略的部分是：即使敏感文本从未传输出网，你仍然保留信号、评估器和群体。治理不应让你付出洞察的代价。\n\n谁能看到追踪：基于角色的访问控制\n\n对 Agent Analytics 的访问通过 Amplitude 的基于角色的访问控制进行。三个权限控制着该产品：\n\n查看 Agent Analytics 对象允许角色打开会话、评估器及相关对象。角色需要使用该权限才能使用此产品。管理非活动评估和运行允许角色创建评估器并启动试运行。激活评估允许角色将评估器转为活跃或归档。\n\n你决定哪些角色拥有哪些权限，因此支持分析师可以读取会话，而只有你的机器学习负责人才能将评估器推入生产环境。\n\n同样的模式也管理着我们自己的 AI 功能。它们遵循你账户中已设置的权限和数据访问控制。当 AI 功能运行时，不会向用户授予新的数据访问权限。代表你操作的代理只能访问你已经获准查看的数据，并且不能超过你的权限。管理员可以审计用户输入和代理输出，因此有请求和返回内容的记录。你设置访问权限。它不是继承的。\n\n什么离开你的应用：PII 编辑和隐私模式\n\n对追踪的真正担忧是自由文本。用户在支持聊天中留下电话号码，现在它就在你的分析中。Agent Analytics 在 SDK 级别处理这一点，在数据离开你的基础设施之前，通过你设置的隐私模式。\n\n有三种模式：\n\nfull 是默认模式，它发送提示和响应文本，并默认开启个人可识别信息（PII）编辑。这是完全可配置和可扩展的，客户可以按需编辑，超越 SDK 自带的 PII 清理规则。metadata_only 发送令牌、延迟、模型和成本，不发送任何文本，这是针对受监管或敏感工作负载的设置。customer_enriched 只发送来自你自己评估堆栈的预评分摘要，不发送其他内容。\n\n我们默认编辑的一些字段包括电子邮件、电话、信用卡、社会安全号码、IP 地址。当这些值发送到 Amplitude Agent Analytics 时，生成的追踪将显示为 [email]、[phone]、[credit_card]、[ssn]、[ip_address]，以便隐藏实际值。\n\n包含文本的字段：消息文本、工具输入和输出、跨度输入和输出状态、系统提示、推理内容，只有在隐私模式允许时才发送。附件仅以元数据形式传递，从不包含文件内容。甚至工具定义也可以保持私密：我们发送工具模式的稳定哈希，以便你检测工具集变化，而不暴露模式本身。\n\nAgent Analytics 不需要 PII 也能工作。PII 值的编辑不会影响实际的即用信号或自定义评估。我们对每个已结束会话运行始终在线的信号：任务完成度、响应质量、用户摩擦、用户意图、会话安全性和基于代码的数据质量检查。仅会话安全性就将每个会话分类为正常、离题、提示注入、滥用、探测、不安全输出或数据泄露。你自己的评估器，无论是基于规则还是 LLM 作为评判者，都在此基础上运行。所有这些增强都读取结构和允许的字段，因此你可以看到计费会话任务完成失败并触发摩擦信号，而从未看到客户的号码。你掩盖敏感值但保留质量图景。\n\n它底下的信任层\n\n超过 4,900 家公司和财富 100 强中的 26% 在 Amplitude 上运行，超过 2,000 家信任它处理其数据。我们运行 GDPR、CCPA 和 HIPAA 项目，将签署涵盖实体的业务伙伴协议，并根据欧盟-美国数据隐私框架进行自我认证。数据存储在 AWS 中，位于美国或欧盟法兰克福地区（如果你需要欧盟居留权），基础设施已通过 ISO 27001 和 SOC 2 Type II 认证。完整的认证集在客户信任门户中。\n\nAI 方面同样严格。我们在合同中禁止我们的 AI 合作伙伴使用你的数据进行训练。在 AWS Bedrock 上的工作流将你的数据保留在 Amplitude 的 AWS 环境中，模型提供商从未收到它。使用 OpenAI 或 Google 的工作流通过零数据保留端点运行。如果你在欧盟数据中心配置，那么当你使用 Amplitude AI 时，你的数据永远不会离开欧盟。\n\n证据在于谁已经在这里发送敏感数据。ClearScore，处理数百万人的信用数据，是 Amplitude 在其安全页面上展示的案例研究。Salt Bank在 Amplitude 上建立了数字银行，并以 2 倍的优势超过了发布目标。ACKO，一家数字保险公司，通过 Amplitude 中衡量的 GenAI 提高了 13% 的转化率，并减少了一半的支持电话。The Economist Group使用 Agent Analytics 运行的方法为其 AI 质量设定了一个确切的数字。\n\n将代理性能与业务成果联系起来\n\n将追踪锁定在独立的可观测性工具中感觉更安全，但它搁置了最重要的一件事：代理质量与业务成果之间的联系。因为代理会话与你的产品事件共享 Amplitude 用户身份，你可以建立一个用户群组，其会话未完成，并将他们的 30 天留存率与会话成功的用户进行对比。纯可观测性工具无法进行这种关联。这就是发送数据的原因，而上述控制措施使其安全。\n\n我们已经开源了隐私/清理模式此处并随着时间推移，可以进一步扩展，将它们自动打包到SDK中。\n\n立即开始 → 几分钟内即可在Agent Analytics中进行埋点",
+      "content_blocks": [
+        {
+          "type": "paragraph",
+          "id": "b-f253b3c00150",
+          "children": [
+            {
+              "type": "text",
+              "text": "Agent 追踪包含了你技术栈中最原始的数据。用户输入的准确词语、模型的回复、传递给每个工具的参数、跨度之间移动的状态。这正是团队犹豫是否将其发送到任何地方的原因，也是",
+              "marks": [],
+              "id": "t-b8b3f674e5b7"
+            },
+            {
+              "type": "text",
+              "text": "“咱们别把追踪数据导入另一个系统”",
+              "marks": [
+                "em"
+              ],
+              "id": "t-e7cd89d25f32"
+            },
+            {
+              "type": "text",
+              "text": "是我们听到的关于 Agent Analytics 最常见的反对意见。",
+              "marks": [],
+              "id": "t-3f0c2ed96cf4"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-83124ca4e783",
+          "children": [
+            {
+              "type": "text",
+              "text": "所以我们构建了 Agent Analytics，以便你可以控制什么离开你的应用、谁能看到它、以及它存在多久。而大多数人忽略的部分是：即使敏感文本从未传输出网，你仍然保留信号、评估器和群体。治理不应让你付出洞察的代价。",
+              "marks": [],
+              "id": "t-cfb5874224a0"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-c2c8f1b2b941",
+          "children": [
+            {
+              "type": "text",
+              "text": "谁能看到追踪：基于角色的访问控制",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-c2870a7021d9"
+            }
+          ],
+          "level": 2
+        },
+        {
+          "type": "paragraph",
+          "id": "b-04d193157863",
+          "children": [
+            {
+              "type": "text",
+              "text": "对 Agent Analytics 的访问通过 Amplitude 的基于角色的访问控制进行。三个权限控制着该产品：",
+              "marks": [],
+              "id": "t-30a0046ac232"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "b-86c30ca7e416",
+          "ordered": false,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "查看 Agent Analytics 对象",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-3c8e709e03d3"
+                },
+                {
+                  "type": "text",
+                  "text": "允许角色打开会话、评估器及相关对象。角色需要使用该权限才能使用此产品。",
+                  "marks": [],
+                  "id": "t-3af3b4ac423f"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "管理非活动评估和运行",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-90ffee2a7a53"
+                },
+                {
+                  "type": "text",
+                  "text": "允许角色创建评估器并启动试运行。",
+                  "marks": [],
+                  "id": "t-bf7c7b074858"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "激活评估",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-6665fbcd189f"
+                },
+                {
+                  "type": "text",
+                  "text": "允许角色将评估器转为活跃或归档。",
+                  "marks": [],
+                  "id": "t-7f31102fc8d4"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-52b252df5954",
+          "children": [
+            {
+              "type": "text",
+              "text": "你决定哪些角色拥有哪些权限，因此支持分析师可以读取会话，而只有你的机器学习负责人才能将评估器推入生产环境。",
+              "marks": [],
+              "id": "t-004adf2baf41"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-b7b3e07d92f5",
+          "children": [
+            {
+              "type": "text",
+              "text": "同样的模式也管理着我们自己的 AI 功能。它们遵循你账户中已设置的权限和数据访问控制。当 AI 功能运行时，不会向用户授予新的数据访问权限。代表你操作的代理只能访问你已经获准查看的数据，并且不能超过你的权限。管理员可以审计用户输入和代理输出，因此有请求和返回内容的记录。你设置访问权限。它不是继承的。",
+              "marks": [],
+              "id": "t-c1e7707ec32d"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-a278f678df73",
+          "children": [
+            {
+              "type": "text",
+              "text": "什么离开你的应用：PII 编辑和隐私模式",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-daaf8ea4c6d1"
+            }
+          ],
+          "level": 2
+        },
+        {
+          "type": "paragraph",
+          "id": "b-2fb883bbb6d9",
+          "children": [
+            {
+              "type": "text",
+              "text": "对追踪的真正担忧是自由文本。用户在支持聊天中留下电话号码，现在它就在你的分析中。Agent Analytics 在 SDK 级别处理这一点，在数据离开你的基础设施之前，通过你设置的隐私模式。",
+              "marks": [],
+              "id": "t-96d7bb1284a8"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-8386b014fa9d",
+          "children": [
+            {
+              "type": "text",
+              "text": "有三种模式：",
+              "marks": [],
+              "id": "t-3825ca9d0468"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "b-1fcfd0cacbfa",
+          "ordered": false,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "full 是默认模式，它发送提示和响应文本，并默认开启个人可识别信息（PII）编辑。这是完全可配置和可扩展的，客户可以按需编辑，超越 SDK 自带的 PII 清理规则。",
+                  "marks": [],
+                  "id": "t-f56c40a0fbd8"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "metadata_only 发送令牌、延迟、模型和成本，不发送任何文本，这是针对受监管或敏感工作负载的设置。",
+                  "marks": [],
+                  "id": "t-c4a702ae265e"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "customer_enriched 只发送来自你自己评估堆栈的预评分摘要，不发送其他内容。",
+                  "marks": [],
+                  "id": "t-547b5b1c54c1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-1ac5c2a5e15a",
+          "children": [
+            {
+              "type": "text",
+              "text": "我们默认编辑的一些字段包括电子邮件、电话、信用卡、社会安全号码、IP 地址。当这些值发送到 Amplitude Agent Analytics 时，生成的追踪将显示为 [email]、[phone]、[credit_card]、[ssn]、[ip_address]，以便隐藏实际值。",
+              "marks": [],
+              "id": "t-fa0582e3bb78"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-8779e9bbe6f7",
+          "children": [
+            {
+              "type": "text",
+              "text": "包含文本的字段：消息文本、工具输入和输出、跨度输入和输出状态、系统提示、推理内容，只有在隐私模式允许时才发送。附件仅以元数据形式传递，从不包含文件内容。甚至工具定义也可以保持私密：我们发送工具模式的稳定哈希，以便你检测工具集变化，而不暴露模式本身。",
+              "marks": [],
+              "id": "t-895de058e943"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-71eeaae22534",
+          "children": [
+            {
+              "type": "text",
+              "text": "Agent Analytics 不需要 PII 也能工作。PII 值的编辑不会影响实际的即用信号或自定义评估。我们对每个已结束会话运行始终在线的信号：任务完成度、响应质量、用户摩擦、用户意图、会话安全性和基于代码的数据质量检查。仅会话安全性就将每个会话分类为正常、离题、提示注入、滥用、探测、不安全输出或数据泄露。你自己的评估器，无论是基于规则还是 LLM 作为评判者，都在此基础上运行。所有这些增强都读取结构和允许的字段，因此你可以看到计费会话任务完成失败并触发摩擦信号，而从未看到客户的号码。你掩盖敏感值但保留质量图景。",
+              "marks": [],
+              "id": "t-c2f7bcce93e3"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-da94aee865fc",
+          "children": [
+            {
+              "type": "text",
+              "text": "它底下的信任层",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-dee8d98afda7"
+            }
+          ],
+          "level": 2
+        },
+        {
+          "type": "paragraph",
+          "id": "b-aeb8a010df97",
+          "children": [
+            {
+              "type": "text",
+              "text": "超过 4,900 家公司和财富 100 强中的 26% 在 Amplitude 上运行，超过 2,000 家信任它处理其数据。我们运行 GDPR、CCPA 和 HIPAA 项目，将签署涵盖实体的业务伙伴协议，并根据欧盟-美国数据隐私框架进行自我认证。数据存储在 AWS 中，位于美国或欧盟法兰克福地区（如果你需要欧盟居留权），基础设施已通过 ISO 27001 和 SOC 2 Type II 认证。完整的认证集在",
+              "marks": [],
+              "id": "t-d6058eef00cc"
+            },
+            {
+              "type": "text",
+              "text": "客户信任门户",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://trust.amplitude.com/"
+                }
+              ],
+              "id": "t-da3632673e9e"
+            },
+            {
+              "type": "text",
+              "text": "中。",
+              "marks": [],
+              "id": "t-6776963e08fd"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-82adc61260ac",
+          "children": [
+            {
+              "type": "text",
+              "text": "AI 方面同样严格。我们在合同中禁止我们的 AI 合作伙伴使用你的数据进行训练。在 AWS Bedrock 上的工作流将你的数据保留在 Amplitude 的 AWS 环境中，模型提供商从未收到它。使用 OpenAI 或 Google 的工作流通过零数据保留端点运行。如果你在欧盟数据中心配置，那么当你使用 Amplitude AI 时，你的数据永远不会离开欧盟。",
+              "marks": [],
+              "id": "t-385f45b11391"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-7eb8b9519abd",
+          "children": [
+            {
+              "type": "text",
+              "text": "证据在于谁已经在这里发送敏感数据。",
+              "marks": [],
+              "id": "t-34fa589c75e9"
+            },
+            {
+              "type": "text",
+              "text": "ClearScore",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://amplitude.com/case-studies/how-clearscore-leveraged-data-to-navigate-business-challenges"
+                }
+              ],
+              "id": "t-13e182d3060b"
+            },
+            {
+              "type": "text",
+              "text": "，处理数百万人的信用数据，是 Amplitude 在其安全页面上展示的案例研究。",
+              "marks": [],
+              "id": "t-52bb1d49e5f5"
+            },
+            {
+              "type": "text",
+              "text": "Salt Bank",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://amplitude.com/case-studies/salt-bank"
+                }
+              ],
+              "id": "t-cc020279c130"
+            },
+            {
+              "type": "text",
+              "text": "在 Amplitude 上建立了数字银行，并以 2 倍的优势超过了发布目标。",
+              "marks": [],
+              "id": "t-51f40c48785f"
+            },
+            {
+              "type": "text",
+              "text": "ACKO",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://amplitude.com/blog/acko-drove-more-conversions-with-genai"
+                }
+              ],
+              "id": "t-411532ecba7a"
+            },
+            {
+              "type": "text",
+              "text": "，一家数字保险公司，通过 Amplitude 中衡量的 GenAI 提高了 13% 的转化率，并减少了一半的支持电话。",
+              "marks": [],
+              "id": "t-ae9a1bf936f2"
+            },
+            {
+              "type": "text",
+              "text": "The Economist Group",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://amplitude.com/blog/putting-a-number-on-ai-quality"
+                }
+              ],
+              "id": "t-0e8bdc034f8a"
+            },
+            {
+              "type": "text",
+              "text": "使用 Agent Analytics 运行的方法为其 AI 质量设定了一个确切的数字。",
+              "marks": [],
+              "id": "t-e289483048d2"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-e761f94e18fe",
+          "children": [
+            {
+              "type": "text",
+              "text": "将代理性能与业务成果联系起来",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-b8d418130648"
+            }
+          ],
+          "level": 2
+        },
+        {
+          "type": "paragraph",
+          "id": "b-da218e73e70c",
+          "children": [
+            {
+              "type": "text",
+              "text": "将追踪锁定在独立的可观测性工具中感觉更安全，但它搁置了最重要的一件事：代理质量与业务成果之间的联系。因为代理会话与你的产品事件共享 Amplitude 用户身份，你可以建立一个用户群组，其会话未完成，并将他们的 30 天留存率与会话成功的用户进行对比。纯可观测性工具无法进行这种关联。这就是发送数据的原因，而上述控制措施使其安全。",
+              "marks": [],
+              "id": "t-9a54d67f19da"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-53468a6bf8c0",
+          "children": [
+            {
+              "type": "text",
+              "text": "我们已经开源了隐私/清理模式",
+              "marks": [],
+              "id": "t-1edb87005fe2"
+            },
+            {
+              "type": "text",
+              "text": "此处",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://github.com/amplitude/Amplitude-AI-Node/blob/main/src/core/privacy.ts"
+                }
+              ],
+              "id": "t-9249b2b9df24"
+            },
+            {
+              "type": "text",
+              "text": "并随着时间推移，可以进一步扩展，将它们自动打包到SDK中。",
+              "marks": [],
+              "id": "t-5de90dec361f"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-f830cfe21d3e",
+          "children": [
+            {
+              "type": "text",
+              "text": "立即开始 → 几分钟内即可在Agent Analytics中进行埋点",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://amplitude.com/docs/amplitude-ai/agent-analytics/quickstart"
+                },
+                "strong"
+              ],
+              "id": "t-45bfe7c109b2"
+            }
+          ]
+        }
+      ],
+      "content_format": "blocks-v1",
+      "category": "agent",
+      "category_label": "Data Agent",
+      "vendors": [
+        "Amplitude"
+      ],
+      "heat": 61,
+      "star": true,
+      "importance": 90,
+      "quality_score": 90,
+      "trend_score": 37,
+      "signal": 0,
+      "topics": [
+        "Data Agent",
+        "平台AI化"
+      ],
+      "shelf": "news",
+      "pinned": false,
+      "published": "2026-08-29T07:13:57+08:00",
+      "first_seen": "2026-08-30T20:00:59.261573+08:00",
+      "items": [
+        {
+          "id": "e29bdb5d7aef",
+          "source": "Amplitude Blog",
+          "link": "https://amplitude.com/blog/agent-data-security",
+          "published": "2026-08-29T07:13:57+08:00",
+          "ingested_at": "2026-08-30T20:00:59.261573+08:00",
+          "title": "See how Agent Analytics governs agent trace data with access controls and privacy redaction making it safe to send us your agent traces."
+        }
+      ],
+      "work_tags": {
+        "taxonomy_version": "work-tags-v1",
+        "product_objects": [
+          "权限与治理"
+        ],
+        "use_cases": [
+          "生产评估与运营"
+        ],
+        "decision_concerns": [
+          "权限与安全"
+        ]
+      },
+      "quality_breakdown": {
+        "originality": 24,
+        "evidence_density": 22,
+        "information_gain": 22,
+        "actionability_depth": 22
+      },
+      "content_parse": {
+        "run_id": "github-33310062778-1",
+        "processor_version": "original-first-v7",
+        "attempted_at": "2026-08-30T20:02:32.090041+08:00",
+        "status": "ready",
+        "source": "Amplitude Blog",
+        "strategy": "nested_content",
+        "blocks": 22,
+        "text_chars": 6163,
+        "figures": 0,
+        "tables": 0,
+        "figures_discovered": 0,
+        "figures_selected": 0,
+        "figures_rejected": 0,
+        "candidate_count": 11,
+        "figures_rejected_author": 0,
+        "figures_rejected_decorative": 0,
+        "figures_rejected_duplicate": 0,
+        "figures_rejected_small": 0,
+        "figures_rejected_limit": 0,
+        "trimmed_tail_blocks": 0,
+        "trimmed_head_blocks": 0,
+        "trimmed_promotional_blocks": 0,
+        "trimmed_embedded_ui_blocks": 0,
+        "embedded_ui_components": 0,
+        "selected_depth": 8,
+        "selected_raw_blocks": 22,
+        "selected_raw_text_chars": 6163,
+        "broad_raw_blocks": 95,
+        "broad_raw_text_chars": 6737,
+        "parent_extra_blocks": 73,
+        "candidate_count_raw": 17,
+        "candidate_duplicates": 6,
+        "candidate_quality_rejected": 9,
+        "duplicate_blocks": 0,
+        "selected_score": 982.34,
+        "quality_status": "pass",
+        "selected_tag": "div",
+        "focus_ratio": 0.9148,
+        "link_ratio": 0.0201,
+        "duplicate_ratio": 0.0,
+        "selection_evidence": [
+          "prose_density",
+          "integrity_gate",
+          "nested_focus"
+        ],
+        "media": {
+          "figures": 0,
+          "cached": 0,
+          "link_only": 0,
+          "policy_version": "source-cdn-v1"
+        },
+        "content_mode": "translated",
+        "source_language": "other",
+        "translation_status": "complete",
+        "source_content_hash": "393979ecf80ac0db9a244976",
+        "translation": {
+          "run_id": "github-33310062778-1",
+          "policy_version": "faithful-translation-retry-v1",
+          "attempted_at": "2026-08-30T20:02:32.090089+08:00",
+          "purpose": "body_translation",
+          "status": "complete"
+        }
+      },
+      "content_mode": "translated",
+      "content_level": "translated",
+      "source_language": "other",
+      "translation_status": "complete",
+      "source_content_hash": "393979ecf80ac0db9a244976",
+      "body_chars": 2396
+    },
+    {
+      "event_id": "7365328d7b8e",
+      "zh_title": "Amplitude发布Agent Analytics：AI Agent团队为何需要它",
+      "zh_summary": "Amplitude 在构建自己的 AI Agent 时发现，传统产品分析无法判断 Agent 是否真的给出了有用回答。用户可能两分钟对话后愤怒离开，传统指标却显示为高活跃。为此他们推出 Agent Analytics，用于追踪回答质量、定位失败原因（prompt、缺失上下文、工具调用错误），并分析不良体验对留存和升级的影响。这为 AI Agent 的可观测性提供了新的思路。",
+      "reason": "Agent 质量评估是数据 Agent 落地中的关键难题；Amplitude 的实践展示了传统分析工具的盲区，值得所有构建和运营 Agent 的团队参考。",
+      "full_zh": "这篇博客文章由Amplitude首席AI产品经理Jacob Newman和产品营销负责人Nikhil Gangaraju共同撰写。\n\nAmplitude是一家产品分析公司。我们花了十多年时间帮助产品团队了解他们的用户正在做什么以及为什么这样做。漏斗、留存曲线和行为分群。我们深谙此道。然而，去年当我们开始构建自己的AI代理时，我们发现自己陷入了一个奇怪的境地：\n\n我们完全不知道我们的代理是否真的优秀。\n\n不是我们通常衡量产品的那种“优秀”。我们有参与度指标、激活率、NPS分数和离线评估。但没有一个能告诉我们我们需要知道的事情：当用户向我们的代理提问时，它是否给出了有用的答案？当它失败时，为什么失败？是提示词不好？缺少上下文？工具调用出错？如果用户体验不佳，他们是否会流失？如果他们体验很好，他们是否会更好地留存或升级？\n\n我们的职业生涯建立在这样的理念上：好产品来自对用户行为的理解。但当我们的“产品”变成了非确定性的AI代理时，我们整个可观测性栈就变得无关紧要了。因此我们构建了Agent Analytics来解决这个问题。\n\n借助Agent Analytics，我们最终能够回答最初无法回答的问题。本文将介绍我们是如何做到的。\n\n为什么传统产品分析对我们失效了\n\n我们现有的分析在其设计用途上仍然有效。我们可以看到有多少人打开了代理。我们可以跟踪会话时长、功能采用率和留存率。仪表板都是绿色的。图表都是向上向右的。\n\n但用户可能打开代理，进行两分钟的对话，然后愤怒地离开。在传统分析中，这显示为一次积极参与的会话。两分钟！多个事件触发了！漏斗显示“已激活”。而实际上，用户问了一个问题，代理产生了幻觉，用户认为我们的产品有问题。\n\n传统产品分析是为用户点击按钮和浏览页面的世界而构建的，产品行为是确定性的，你可以从行为中推断意图。代理颠覆了这一点。\n\n对于代理，用户明确表达意图（他们明确输入他们想要什么），但产品行为不可预测。代理可能以正确的顺序调用正确的工具并完美回答问题。或者它可能误解请求、调用错误的工具、凭空捏造数据，并自信地将垃圾作为洞察呈现。两条路径都会生成事件。在传统分析仪表板中它们看起来完全一样。\n\n我们开始意识到我们的盲区无处不在。\n\n我们无法衡量质量。代理的输出准确吗？它是否回答了用户的问题？传统分析跟踪的是发生了什么，而不是体验是否良好。对于生成自由格式响应的非确定性产品，这种区别是一个重大转变。我们也无法调试失败。当出现问题（对于代理，问题会以创造性的方式出现），没有系统的方法来理解导致问题的推理链。是系统提示太模糊？检索返回了不相关的上下文？还是模型尽管有正确信息却产生了幻觉？每种失败模式需要完全不同的修复。实验也是一团糟。在传统产品开发中，你对功能发布或流程更改进行A/B测试并衡量结果。对于代理，变量是提示词措辞、上下文窗口组成、工具选择逻辑、模型温度。结果是定性的：响应是否有意义？是否有帮助？用户是否信任它？我们的实验框架不是为此构建的。我们也无法衡量投资回报率。团队在问正确的问题：“优秀的代理交互是否会促使免费用户升级？”“当我们的代理产生幻觉时，我们付出了什么代价？”但由于除了浅层的参与数据外没有质量信号，没有人能回答这些问题。\n\n这个讽刺难以忽视。十年间我们告诉客户，没有好的分析就无法构建好的产品，而我们现在却在构建一个没有任何信号表明其是否有效的代理。\n\n我们与其他构建代理的团队交流过。模式是普遍的。每个人都在拼凑日志框架、LLM可观测性工具和一些感觉。可观测性工具给了我们追踪，所以你可以看到模型逐步做了什么，但这些追踪在基础设施层面运作。它们告诉你模型如何运行，而不是产品是否成功。另一方面，传统分析工具告诉我们代理周围的用户行为，但无法看到对话内部。\n\n没有人拥有完整的图景。所以我们构建了Agent Analytics。\n\n什么是Agent Analytics？\n\nAgent Analytics介于产品分析和LLM可观测性之间。它不是日志工具。也不是LLM追踪之上的仪表板层。它是一个系统，从用户角度理解你的AI代理作为产品的表现，并具有足够的深度来实际诊断和改进它。\n\n在构建Agent Analytics时，我们并没有打算取代工程师用来监控基础设施的深层技术追踪。相反，它充当桥梁，将技术信号转化为产品的语言，如用户留存、转化和意图。\n\n追踪是用户与代理之间对话的完整记录：多轮交互，包含意图、推理、工具使用和可评估的结果。与在追踪处停止的可观测性工具不同，Agent Analytics将这些对话分解为事件，可以直接在你已经用于其他所有事的相同漏斗、分群和留存分析中查询。\n\n当你将追踪作为分析的主要对象时，一些事情开始展开：\n\n你可以看到你的用户实际试图做什么。 Agent 分析按意图对用户查询进行聚类，展示最常见的请求，并告诉你 Agent 在哪些方面持续表现出色，哪些方面表现不佳。这是传统分析无法提供的产品市场契合信号。你不再需要从行为模式中猜测。相反，Agent 内的用户在向你传达信息。\n\n你可以追溯失败的根本原因。 当 Agent 失败时，你可以深入完整的追踪记录：用户问了什么，Agent 如何理解，调用了哪些工具，检索了哪些上下文，哪里出了问题。是提示词问题？工具问题？还是上下文问题？这正是 Agent 分析系统可操作性的体现。\n\n你可以大规模衡量质量。 每条追踪记录都会通过可配置的评估自动进行，以判断 Agent 是成功、部分成功还是失败。你可以跟踪随时间、用户群体和查询类型的质量变化。当你部署新的提示词或添加新工具时，你能持续看到生产环境中质量是上升还是下降。\n\nAgent 分析用产品信号为你的评估提供信息\n\n当我们以 76% 的通过率上线全球 Agent 在离线评估集上时，我们认为最困难的部分已经过去了。离线评估对于让 Agent 达到可信的基线至关重要，但它无法捕捉 Agent 上线后用户实际使用的多样性。我们精心挑选的“真实”问题集结果证明与真实用户输入的问题大相径庭。\n\n我们大力投资于构建离线评估作为 AI 开发生命周期的一部分。然而，离线评估永远无法代表生产环境中的完整问题空间。最接近真相的是在线信号：对真实对话、真实用户，以生产环境实际产生的规模和多样性进行的评估。然而，真正的突破来自将在线评估与产品数据结合之后。\n\n虽然现在有很多工具可以给生产环境中的追踪记录打分，但没有产品数据，它们就无法将该追踪记录与用户后续行为联系起来：他们是否在接下来一周升级，或者在接下来一个月流失，或者你最活跃的用户如何以不同于其他人的方式使用 Agent。通过在同一身份下捕获追踪记录以及同一用户在此之前和之后的所有行为，我们可以评估体验，而不仅仅是记录。产品数据告诉我们体验是否良好。在线评估在此基础上更好。\n\n了解 Agent 对话背后的完整图景\n\n另一个考虑因素是了解人们使用 Agent 完成任务的真实图景。知道“支付调度”失败率为 31%，而“一般问题”失败率仅为 3%，如果你能将它们与真实的产品结果联系起来，就可以采取行动。Agent 分析使用它已经生成的嵌入自动将对话聚类为主题，然后叠加每个主题的质量：任务完成度、摩擦、负面反馈。你接入后就能看到 Agent 被问及什么以及在哪里遇到困难，按主题分类，无需先构建仪表板。这也是从生产环境回到更好的离线数据集的最直接途径：失败最多的主题正是你的参考数据集应该覆盖但可能没有覆盖的部分。\n\n这里也需要清醒认识。实时主题聚类正在成为标配；我们不是唯一能对对话进行分组的。区别在于聚类连接到了什么。当一个主题聚类与你的其他产品数据共享用户身份时，“支付调度失败率为 31%”不再是一个质量统计数据，而成为一个业务问题：其中哪些失败让我们失去了续费，以及哪个主题的错误代价最高？\n\n实验驱动 Agent 行为的因素\n\n一旦 Agent 质量可衡量，实验的形式就改变了。不再是对表面 UI 更改进行 A/B 测试，而是对真正驱动 Agent 行为的输入进行实验：提示词变体、工具配置、上下文策略、模型参数。\n\n我们已经看到自主实验循环，Agent 在夜间运行数百个提示词变体并保留表现最好的。Shopify 的 Sidekick 团队构建了一个 LLM 驱动的模拟器 在夜间运行候选系统并选择获胜者。但这类系统优化的是模型质量指标，如验证损失。它们无法知道获胜变体是否提高了真实用户的留存率或转化率。\n\n借助 Agent 分析，你可以衡量变体对交互质量以及为 Agent 付费的下游结果的影响。\n\nAgent 分析如何与业务结果相关联\n\n每个构建 Agent 的团队最终都会问的问题：哪些交互驱动了我们的关键指标？Agent 是否提高了长期留存率？收入呢？哪些行为导致流失？\n\n回答这个问题实际上可以将 AI 从成本中心转变为收入项目。模型提供商（他们没有下游用户数据）和可观测性工具（他们没有产品分析）都无法单独实现这一点。在某些方面，这看起来像是 Agent 的归因建模。\n\n现有的可观测性工具专注于追踪本身。但用户打开你的 Agent 前五分钟在做什么？两分钟后呢？两天后呢？成功的交互是否导致了功能采用、升级或推荐？失败是否与 30 天后的流失相关？\n\n在 Agent 分析中，AI 会话数据和产品事件数据共享相同的用户身份。这些问题不再是数据工程项目。例如，我们在内部发现，拥有高质量 Agent 会话的 Amplitude 用户的留存率是遇到任务失败用户的 2.3 倍。\n\n让我们来看一个假设的例子：一个智能体同时处理产品推荐和退货。推荐会话以35%的比例转化为购买。然而，退货会话的转化率只有2%，并且运行成本高出3.5倍，因为智能体不断询问相同的信息，触发重试，并将对话拖长直到用户放弃。在这种情况下，你在最失败的事情上花费最多。\n\nAgent Analytics在一个地方同时显示这两个差距（质量和成本）。因此，与其问“我们的AI每月花费X”，不如问“为什么我们在效果最差的话题上每会话花费高出3.5倍？”\n\n可选内容的分析\n\n早期我们从对隐私敏感的客户那里听到的头号担忧是：“我们不能向您发送提示内容。”\n\n您不需要内容就能获得价值，但您需要内容才能获得全部价值。\n\n我们构建了隐私层级，作为采用的入门途径。即使在仅元数据的层级，您也能获得成本分析、留存细分以及如再生率和放弃率等行为信号。\n\n没有内容，您失去的是增强层：自动浮现的“您的退货智能体在企业用户的退款请求上失败”，无需任何人构建仪表板。\n\n结语\n\n我们构建Agent Analytics是因为我们必须这样做。我们当时正在构建一个智能体，却无法看到它是否在正常工作。现有工具只给了我们片面的信息，基础设施指标在这边，参与度数字在那边，但没有人将用户视角的完整故事串联起来。\n\n我们发现最有价值的是从失败到采取行动的过程。当我们看到特定用户群体遇到“幻觉循环”时，我们不仅记录它，还利用这些数据立即测试修复方案，或引导这些特定用户获得更好的结果。\n\n如果您现在正在构建智能体，您可能也有同样的感受。您发布新版本、更新系统提示、添加新工具，却并不真正知道它是否更好。您的团队可能因为缺乏自动化的质量衡量方式而手动审查轨迹。当出现问题时，您要翻遍分散的日志来重建发生的事情。您想尝试提示或工具，但没有严谨的方法来衡量影响。\n\n开始使用\n\n所有客户，包括我们的入门（免费）计划账户，都可以使用Agent Analytics。如果您正在开发智能体，或者任何这些内容听起来让您感兴趣，今天就立即开始。\n\n点击此处",
+      "content_blocks": [
+        {
+          "type": "paragraph",
+          "id": "b-7a010407935f",
+          "children": [
+            {
+              "type": "text",
+              "text": "这篇博客文章由Amplitude首席AI产品经理Jacob Newman和产品营销负责人Nikhil Gangaraju共同撰写。",
+              "marks": [
+                "em"
+              ],
+              "id": "t-cbee64bd18fd"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-27d3e3272bef",
+          "children": [
+            {
+              "type": "text",
+              "text": "Amplitude是一家产品分析公司。我们花了十多年时间帮助产品团队了解他们的用户正在做什么以及为什么这样做。漏斗、留存曲线和行为分群。我们深谙此道。然而，",
+              "marks": [],
+              "id": "t-8206bb096277"
+            },
+            {
+              "type": "text",
+              "text": "去年当我们开始构建自己的AI代理时，",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://amplitude.com/blog/the-last-bottleneck"
+                }
+              ],
+              "id": "t-8bb243f3afbe"
+            },
+            {
+              "type": "text",
+              "text": "我们发现自己陷入了一个奇怪的境地：",
+              "marks": [],
+              "id": "t-f361125a7af1"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-c5fb5d2cee52",
+          "children": [
+            {
+              "type": "text",
+              "text": "我们完全不知道我们的代理是否真的",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-d67923c1f466"
+            },
+            {
+              "type": "text",
+              "text": "优秀",
+              "marks": [
+                "strong",
+                "em"
+              ],
+              "id": "t-ea0c5ec90047"
+            },
+            {
+              "type": "text",
+              "text": "。",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-4092ce2fd2bb"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-e5522f944443",
+          "children": [
+            {
+              "type": "text",
+              "text": "不是我们通常衡量产品的那种“优秀”。我们有参与度指标、激活率、NPS分数和离线评估。但没有一个能告诉我们我们需要知道的事情：当用户向我们的代理提问时，它是否给出了有用的答案？当它失败时，为什么失败？是提示词不好？缺少上下文？工具调用出错？如果用户体验不佳，他们是否会流失？如果他们体验很好，他们是否会更好地留存或升级？",
+              "marks": [],
+              "id": "t-3d2fa46cf548"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-8754920b410b",
+          "children": [
+            {
+              "type": "text",
+              "text": "我们的职业生涯建立在这样的理念上：好产品来自对用户行为的理解。但当我们的“产品”变成了非确定性的AI代理时，我们整个可观测性栈就变得无关紧要了。因此我们构建了",
+              "marks": [],
+              "id": "t-ccdcc5eb7f14"
+            },
+            {
+              "type": "text",
+              "text": "Agent Analytics",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://amplitude.com/agent-analytics"
+                }
+              ],
+              "id": "t-e68003e7eec8"
+            },
+            {
+              "type": "text",
+              "text": "来解决这个问题。",
+              "marks": [],
+              "id": "t-71246989c9a9"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-dd25907eabfa",
+          "children": [
+            {
+              "type": "text",
+              "text": "借助Agent Analytics，我们最终能够回答最初无法回答的问题。本文将介绍我们是如何做到的。",
+              "marks": [],
+              "id": "t-3b0b3b2a273f"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-fc2d4efad14e",
+          "children": [
+            {
+              "type": "text",
+              "text": "为什么传统产品分析对我们失效了",
+              "marks": [],
+              "id": "t-2e2b1f29213e"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-e71db070b121",
+          "children": [
+            {
+              "type": "text",
+              "text": "我们现有的分析在其设计用途上仍然有效。我们可以看到有多少人打开了代理。我们可以跟踪会话时长、功能采用率和留存率。仪表板都是绿色的。图表都是向上向右的。",
+              "marks": [],
+              "id": "t-b3a9e1c3eb2d"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-47de01f7126f",
+          "children": [
+            {
+              "type": "text",
+              "text": "但用户可能打开代理，进行两分钟的对话，然后愤怒地离开。在传统分析中，这显示为一次积极参与的会话。两分钟！多个事件触发了！漏斗显示“已激活”。而实际上，用户问了一个问题，代理产生了幻觉，用户认为我们的产品有问题。",
+              "marks": [],
+              "id": "t-fbe93f164c20"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-8d327f53f569",
+          "children": [
+            {
+              "type": "text",
+              "text": "传统产品分析是为用户点击按钮和浏览页面的世界而构建的，产品行为是确定性的，你可以从行为中推断意图。代理颠覆了这一点。",
+              "marks": [],
+              "id": "t-211bc41f2f16"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-b0c903e436ee",
+          "children": [
+            {
+              "type": "text",
+              "text": "对于代理，用户明确表达意图（他们明确输入他们想要什么），但产品行为不可预测。代理可能以正确的顺序调用正确的工具并完美回答问题。或者它可能误解请求、调用错误的工具、凭空捏造数据，并自信地将垃圾作为洞察呈现。两条路径都会生成事件。在传统分析仪表板中它们看起来完全一样。",
+              "marks": [],
+              "id": "t-c23b0be167db"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-91fc537fb112",
+          "children": [
+            {
+              "type": "text",
+              "text": "我们开始意识到我们的盲区无处不在。",
+              "marks": [],
+              "id": "t-0844899b77f3"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "b-ac863c0e5d12",
+          "ordered": false,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "我们无法衡量质量。",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-5c28db622bfc"
+                },
+                {
+                  "type": "text",
+                  "text": "代理的输出准确吗？它是否回答了用户的问题？传统分析跟踪的是发生了什么，而不是体验是否良好。对于生成自由格式响应的非确定性产品，这种区别是一个重大转变。",
+                  "marks": [],
+                  "id": "t-0a8496e37aa1"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "我们也无法调试失败。",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-4e08bdc918a0"
+                },
+                {
+                  "type": "text",
+                  "text": "当出现问题（对于代理，问题会以创造性的方式出现），没有系统的方法来理解导致问题的推理链。是系统提示太模糊？检索返回了不相关的上下文？还是模型尽管有正确信息却产生了幻觉？每种失败模式需要完全不同的修复。",
+                  "marks": [],
+                  "id": "t-b52fdee8dfff"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "实验也是一团糟。",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-add690aa9678"
+                },
+                {
+                  "type": "text",
+                  "text": "在传统产品开发中，你对功能发布或流程更改进行A/B测试并衡量结果。对于代理，变量是提示词措辞、上下文窗口组成、工具选择逻辑、模型温度。结果是定性的：响应是否有意义？是否有帮助？用户是否信任它？我们的实验框架不是为此构建的。",
+                  "marks": [],
+                  "id": "t-b3e1e6c257c0"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "我们也无法衡量投资回报率。",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-190152366123"
+                },
+                {
+                  "type": "text",
+                  "text": "团队在问正确的问题：“优秀的代理交互是否会促使免费用户升级？”“当我们的代理产生幻觉时，我们付出了什么代价？”但由于除了浅层的参与数据外没有质量信号，没有人能回答这些问题。",
+                  "marks": [],
+                  "id": "t-ff820b5cb5c3"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-185d45553cf0",
+          "children": [
+            {
+              "type": "text",
+              "text": "这个讽刺难以忽视。十年间我们告诉客户，没有好的分析就无法构建好的产品，而我们现在却在构建一个没有任何信号表明其是否有效的代理。",
+              "marks": [],
+              "id": "t-082e0b8b3516"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-a992de81f9cc",
+          "children": [
+            {
+              "type": "text",
+              "text": "我们与其他构建代理的团队交流过。模式是普遍的。每个人都在拼凑日志框架、LLM可观测性工具和一些感觉。可观测性工具给了我们追踪，所以你可以看到模型逐步做了什么，但这些追踪在基础设施层面运作。它们告诉你模型如何运行，而不是产品是否成功。另一方面，传统分析工具告诉我们代理周围的用户行为，但无法看到对话内部。",
+              "marks": [],
+              "id": "t-48e91b9c5cf5"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-f2af216564ed",
+          "children": [
+            {
+              "type": "text",
+              "text": "没有人拥有完整的图景。所以我们构建了Agent Analytics。",
+              "marks": [],
+              "id": "t-0aff23f1b309"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-37f8de1bf503",
+          "children": [
+            {
+              "type": "text",
+              "text": "什么是Agent Analytics？",
+              "marks": [],
+              "id": "t-fbe0b3de1544"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-e9b4cb711c30",
+          "children": [
+            {
+              "type": "text",
+              "text": "Agent Analytics介于产品分析和LLM可观测性之间。它不是日志工具。也不是LLM追踪之上的仪表板层。它是一个系统，从用户角度理解你的AI代理作为产品的表现，并具有足够的深度来实际诊断和改进它。",
+              "marks": [],
+              "id": "t-72c8fca6a348"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-8df95f08b882",
+          "children": [
+            {
+              "type": "text",
+              "text": "在构建Agent Analytics时，我们并没有打算取代工程师用来监控基础设施的深层技术追踪。相反，它充当桥梁，将技术信号转化为产品的语言，如用户留存、转化和意图。",
+              "marks": [],
+              "id": "t-65bb91a783e2"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-9c1b7999670c",
+          "children": [
+            {
+              "type": "text",
+              "text": "追踪是用户与代理之间对话的完整记录：多轮交互，包含意图、推理、工具使用和可评估的结果。与在追踪处停止的可观测性工具不同，Agent Analytics将这些对话分解为事件，可以直接在你已经用于其他所有事的相同漏斗、分群和留存分析中查询。",
+              "marks": [],
+              "id": "t-0f1164c1a885"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-035516b02281",
+          "children": [
+            {
+              "type": "text",
+              "text": "当你将追踪作为分析的主要对象时，一些事情开始展开：",
+              "marks": [],
+              "id": "t-caff8e24c282"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-814049cbe2f8",
+          "children": [
+            {
+              "type": "text",
+              "text": "你可以看到你的用户实际试图做什么。",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-132cb3f436a5"
+            },
+            {
+              "type": "text",
+              "text": " Agent 分析按意图对用户查询进行聚类，展示最常见的请求，并告诉你 Agent 在哪些方面持续表现出色，哪些方面表现不佳。这是传统分析无法提供的产品市场契合信号。你不再需要从行为模式中猜测。相反，Agent 内的用户在向你传达信息。",
+              "marks": [],
+              "id": "t-914423512369"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-32f8dea7bfd6",
+          "children": [
+            {
+              "type": "text",
+              "text": "你可以追溯失败的根本原因。",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-5c1f779a75a2"
+            },
+            {
+              "type": "text",
+              "text": " 当 Agent 失败时，你可以深入完整的追踪记录：用户问了什么，Agent 如何理解，调用了哪些工具，检索了哪些上下文，哪里出了问题。是提示词问题？工具问题？还是上下文问题？这正是 Agent 分析系统可操作性的体现。",
+              "marks": [],
+              "id": "t-cc284a1590fc"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-62008a719512",
+          "children": [
+            {
+              "type": "text",
+              "text": "你可以大规模衡量质量。",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-7f5ca2087887"
+            },
+            {
+              "type": "text",
+              "text": " 每条追踪记录都会通过可配置的评估自动进行，以判断 Agent 是成功、部分成功还是失败。你可以跟踪随时间、用户群体和查询类型的质量变化。当你部署新的提示词或添加新工具时，你能持续看到生产环境中质量是上升还是下降。",
+              "marks": [],
+              "id": "t-5a2d41856147"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-c5080b08acc4",
+          "children": [
+            {
+              "type": "text",
+              "text": "Agent 分析用产品信号为你的评估提供信息",
+              "marks": [],
+              "id": "t-ada073718b91"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-c841f49e5ec2",
+          "children": [
+            {
+              "type": "text",
+              "text": "当我们",
+              "marks": [],
+              "id": "t-75e567a4c56b"
+            },
+            {
+              "type": "text",
+              "text": "以 76% 的通过率上线全球 Agent",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://amplitude.com/blog/ai-analytics-agents-task-based-evaluation"
+                }
+              ],
+              "id": "t-652efe09f834"
+            },
+            {
+              "type": "text",
+              "text": " 在离线评估集上时，我们认为最困难的部分已经过去了。离线评估对于让 Agent 达到可信的基线至关重要，但它无法捕捉 Agent 上线后用户实际使用的多样性。我们精心挑选的“真实”问题集结果证明与真实用户输入的问题大相径庭。",
+              "marks": [],
+              "id": "t-cf2dc7e8d47a"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-7e6f1d158029",
+          "children": [
+            {
+              "type": "text",
+              "text": "我们大力投资于",
+              "marks": [],
+              "id": "t-a2d2307f05b8"
+            },
+            {
+              "type": "text",
+              "text": "构建离线评估",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://amplitude.com/blog/eval-driven-development"
+                }
+              ],
+              "id": "t-d98eb64f8e64"
+            },
+            {
+              "type": "text",
+              "text": "作为 AI 开发生命周期的一部分。然而，离线评估永远无法代表生产环境中的完整问题空间。最接近真相的是在线信号：对真实对话、真实用户，以生产环境实际产生的规模和多样性进行的评估。然而，真正的突破来自将在线评估与产品数据结合之后。",
+              "marks": [],
+              "id": "t-e988723885f1"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-cfdadccb912f",
+          "children": [
+            {
+              "type": "text",
+              "text": "虽然现在有很多工具可以给生产环境中的追踪记录打分，但没有产品数据，它们就无法将该追踪记录与用户后续行为联系起来：他们是否在接下来一周升级，或者在接下来一个月流失，或者你最活跃的用户如何以不同于其他人的方式使用 Agent。通过在同一身份下捕获追踪记录以及同一用户在此之前和之后的所有行为，我们可以评估体验，而不仅仅是记录。产品数据告诉我们体验是否良好。在线评估在此基础上更好。",
+              "marks": [],
+              "id": "t-03be04b9e4ee"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-d6b380af18c9",
+          "children": [
+            {
+              "type": "text",
+              "text": "了解 Agent 对话背后的完整图景",
+              "marks": [],
+              "id": "t-b65527672790"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-6f3d0c873204",
+          "children": [
+            {
+              "type": "text",
+              "text": "另一个考虑因素是了解人们使用 Agent 完成任务的真实图景。知道“支付调度”失败率为 31%，而“一般问题”失败率仅为 3%，如果你能将它们与真实的产品结果联系起来，就可以采取行动。Agent 分析使用它已经生成的嵌入自动将对话聚类为主题，然后叠加每个主题的质量：任务完成度、摩擦、负面反馈。你接入后就能看到 Agent 被问及什么以及在哪里遇到困难，按主题分类，无需先构建仪表板。这也是从生产环境回到更好的离线数据集的最直接途径：失败最多的主题正是你的参考数据集应该覆盖但可能没有覆盖的部分。",
+              "marks": [],
+              "id": "t-949c6cbc7b4b"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-f0971d96b8c2",
+          "children": [
+            {
+              "type": "text",
+              "text": "这里也需要清醒认识。实时主题聚类正在成为标配；我们不是唯一能对对话进行分组的。区别在于聚类连接到了什么。当一个主题聚类与你的其他产品数据共享用户身份时，“支付调度失败率为 31%”不再是一个质量统计数据，而成为一个业务问题：其中哪些失败让我们失去了续费，以及哪个主题的错误代价最高？",
+              "marks": [],
+              "id": "t-b842e8bc8218"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-502c2a0276fe",
+          "children": [
+            {
+              "type": "text",
+              "text": " 实验驱动 Agent 行为的因素",
+              "marks": [],
+              "id": "t-b523910ec03d"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-fa3dc7219649",
+          "children": [
+            {
+              "type": "text",
+              "text": "一旦 Agent 质量可衡量，实验的形式就改变了。不再是对表面 UI 更改进行 A/B 测试，而是对真正驱动 Agent 行为的输入进行实验：提示词变体、工具配置、上下文策略、模型参数。",
+              "marks": [],
+              "id": "t-96bc4bf0d15f"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-e11ace26de01",
+          "children": [
+            {
+              "type": "text",
+              "text": "我们已经看到自主实验循环，Agent 在夜间运行数百个提示词变体并保留表现最好的。Shopify 的 Sidekick 团队",
+              "marks": [],
+              "id": "t-ac5adc23f83e"
+            },
+            {
+              "type": "text",
+              "text": "构建了一个 LLM 驱动的模拟器",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://shopify.engineering/building-production-ready-agentic-systems"
+                }
+              ],
+              "id": "t-3c056c0f0975"
+            },
+            {
+              "type": "text",
+              "text": " 在夜间运行候选系统并选择获胜者。但这类系统优化的是模型质量指标，如验证损失。它们无法知道获胜变体是否提高了真实用户的留存率或转化率。 ",
+              "marks": [],
+              "id": "t-fc6ea33ebb83"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-96fcd206c1e9",
+          "children": [
+            {
+              "type": "text",
+              "text": "借助 Agent 分析，你可以衡量变体对交互质量以及为 Agent 付费的下游结果的影响。",
+              "marks": [],
+              "id": "t-08d8ff683d61"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-928aa70b7265",
+          "children": [
+            {
+              "type": "text",
+              "text": "Agent 分析如何与业务结果相关联",
+              "marks": [],
+              "id": "t-35b4cbfb2a43"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-d85a4872ff6f",
+          "children": [
+            {
+              "type": "text",
+              "text": "每个构建 Agent 的团队最终都会问的问题：哪些交互驱动了我们的关键指标？Agent 是否提高了长期留存率？收入呢？哪些行为导致流失？",
+              "marks": [],
+              "id": "t-1fca45c6322d"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-fde6d37fba19",
+          "children": [
+            {
+              "type": "text",
+              "text": "回答这个问题实际上可以将 AI 从成本中心转变为收入项目。模型提供商（他们没有下游用户数据）和可观测性工具（他们没有产品分析）都无法单独实现这一点。在某些方面，这看起来像是 Agent 的归因建模。",
+              "marks": [],
+              "id": "t-6afe4f3ab9b3"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-c62356457c8d",
+          "children": [
+            {
+              "type": "text",
+              "text": "现有的可观测性工具专注于追踪本身。但用户打开你的 Agent 前五分钟在做什么？两分钟后呢？两天后呢？成功的交互是否导致了功能采用、升级或推荐？失败是否与 30 天后的流失相关？",
+              "marks": [],
+              "id": "t-aae755b43e4a"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-7fcf08f0001b",
+          "children": [
+            {
+              "type": "text",
+              "text": "在 Agent 分析中，AI 会话数据和产品事件数据共享相同的用户身份。这些问题不再是数据工程项目。例如，我们在内部发现，拥有高质量 Agent 会话的 Amplitude 用户的留存率是遇到任务失败用户的 2.3 倍。",
+              "marks": [],
+              "id": "t-ba4b280c95a2"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-f2a75c4f5d12",
+          "children": [
+            {
+              "type": "text",
+              "text": "让我们来看一个假设的例子：一个智能体同时处理产品推荐和退货。推荐会话以35%的比例转化为购买。然而，退货会话的转化率只有2%，并且运行成本高出3.5倍，因为智能体不断询问相同的信息，触发重试，并将对话拖长直到用户放弃。在这种情况下，你在最失败的事情上花费最多。",
+              "marks": [],
+              "id": "t-5f13727db5d3"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-c965a49bfc71",
+          "children": [
+            {
+              "type": "text",
+              "text": "Agent Analytics在一个地方同时显示这两个差距（质量和成本）。因此，与其问“我们的AI每月花费X”，不如问“为什么我们在效果最差的话题上每会话花费高出3.5倍？”",
+              "marks": [],
+              "id": "t-2332a6f4d145"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-c5f4cccb5df4",
+          "children": [
+            {
+              "type": "text",
+              "text": "可选内容的分析",
+              "marks": [],
+              "id": "t-5ba5659e3d85"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-d4c4f97ee010",
+          "children": [
+            {
+              "type": "text",
+              "text": "早期我们从对隐私敏感的客户那里听到的头号担忧是：“我们不能向您发送提示内容。”",
+              "marks": [],
+              "id": "t-9e5037c89b61"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-b3d32ea7e1d6",
+          "children": [
+            {
+              "type": "text",
+              "text": "您不需要内容就能获得价值，但您需要内容才能获得全部价值。",
+              "marks": [],
+              "id": "t-3456736f30f3"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-815cbccb1061",
+          "children": [
+            {
+              "type": "text",
+              "text": "我们构建了隐私层级，作为采用的入门途径。即使在仅元数据的层级，您也能获得成本分析、留存细分以及如再生率和放弃率等行为信号。",
+              "marks": [],
+              "id": "t-2e942873d6f5"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-0bd067019eba",
+          "children": [
+            {
+              "type": "text",
+              "text": "没有内容，您失去的是增强层：自动浮现的“您的退货智能体在企业用户的退款请求上失败”，无需任何人构建仪表板。",
+              "marks": [],
+              "id": "t-17ea2279c715"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-0c7668a97f3a",
+          "children": [
+            {
+              "type": "text",
+              "text": "结语",
+              "marks": [],
+              "id": "t-1292ab82832a"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-f83fee30d085",
+          "children": [
+            {
+              "type": "text",
+              "text": "我们构建Agent Analytics是因为我们必须这样做。我们当时正在构建一个智能体，却无法看到它是否在正常工作。现有工具只给了我们片面的信息，基础设施指标在这边，参与度数字在那边，但没有人将用户视角的完整故事串联起来。",
+              "marks": [],
+              "id": "t-03f4a3a214b0"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-8ea79c92ebcf",
+          "children": [
+            {
+              "type": "text",
+              "text": "我们发现最有价值的是从失败到采取行动的过程。当我们看到特定用户群体遇到“幻觉循环”时，我们不仅记录它，还利用这些数据立即测试修复方案，或引导这些特定用户获得更好的结果。",
+              "marks": [],
+              "id": "t-1a2cfd854fa9"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-b12068f3efcf",
+          "children": [
+            {
+              "type": "text",
+              "text": "如果您现在正在构建智能体，您可能也有同样的感受。您发布新版本、更新系统提示、添加新工具，却并不真正知道它是否更好。您的团队可能因为缺乏自动化的质量衡量方式而手动审查轨迹。当出现问题时，您要翻遍分散的日志来重建发生的事情。您想尝试提示或工具，但没有严谨的方法来衡量影响。",
+              "marks": [],
+              "id": "t-39a31fde9289"
+            }
+          ]
+        },
+        {
+          "type": "figure",
+          "id": "b-e88b19e427e3",
+          "src": "https://amplitude.com/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2Fl5rq9j6r%2Fproduction%2F1e4c2988df90a60c148efb178c757032b55bc448-1440x1080.png%3Fw%3D400%26h%3D300&w=828&q=75&dpl=dpl_7asxed4WKyPeAgGSsh2j79KExiv2",
+          "alt": "",
+          "caption": "",
+          "source_url": "https://amplitude.com/blog/agent-analytics",
+          "cached_src": "../media/7365328d7b8e/e535e12378da75b0c7e0048e.webp",
+          "width": 400,
+          "height": 300,
+          "mime": "image/webp",
+          "size_bytes": 9284,
+          "media_status": "cached"
+        },
+        {
+          "type": "heading",
+          "id": "b-e11d62331854",
+          "children": [
+            {
+              "type": "text",
+              "text": "开始使用",
+              "marks": [],
+              "id": "t-c35fb1119959"
+            }
+          ],
+          "level": 4
+        },
+        {
+          "type": "paragraph",
+          "id": "b-48c565face1b",
+          "children": [
+            {
+              "type": "text",
+              "text": "所有客户，包括我们的入门（免费）计划账户，都可以使用Agent Analytics。如果您正在开发智能体，或者任何这些内容听起来让您感兴趣，今天就立即开始。",
+              "marks": [],
+              "id": "t-800bdfc9e4ad"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-4c97002f1c21",
+          "children": [
+            {
+              "type": "text",
+              "text": "点击此处",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://amplitude.com/agent-analytics"
+                }
+              ],
+              "id": "t-428a4ae3ff81"
+            }
+          ]
+        }
+      ],
+      "content_format": "blocks-v1",
+      "category": "agent",
+      "category_label": "Data Agent",
+      "vendors": [
+        "Amplitude"
+      ],
+      "heat": 55,
+      "star": true,
+      "importance": 79,
+      "quality_score": 79,
+      "trend_score": 36,
+      "signal": 0,
+      "topics": [
+        "Data Agent"
+      ],
+      "shelf": "news",
+      "pinned": false,
+      "published": "2026-08-29T04:00:17+08:00",
+      "first_seen": "2026-08-30T20:00:59.261573+08:00",
+      "items": [
+        {
+          "id": "7365328d7b8e",
+          "source": "Amplitude Blog",
+          "link": "https://amplitude.com/blog/agent-analytics",
+          "published": "2026-08-29T04:00:17+08:00",
+          "ingested_at": "2026-08-30T20:00:59.261573+08:00",
+          "title": "Why We Created Agent Analytics, and Why Every Team Building AI Agents Needs It"
+        }
+      ],
+      "work_tags": {
+        "taxonomy_version": "work-tags-v1",
+        "product_objects": [
+          "Agent接口与工具"
+        ],
+        "use_cases": [
+          "生产评估与运营"
+        ],
+        "decision_concerns": [
+          "可靠性与评估",
+          "用户采用与业务价值"
+        ]
+      },
+      "quality_breakdown": {
+        "originality": 22,
+        "evidence_density": 18,
+        "information_gain": 20,
+        "actionability_depth": 19
+      },
+      "content_parse": {
+        "run_id": "github-33310062778-1",
+        "processor_version": "original-first-v7",
+        "attempted_at": "2026-08-30T20:03:02.085512+08:00",
+        "status": "ready",
+        "source": "Amplitude Blog",
+        "strategy": "nested_content",
+        "blocks": 55,
+        "text_chars": 14233,
+        "figures": 1,
+        "tables": 0,
+        "figures_discovered": 1,
+        "figures_selected": 1,
+        "figures_rejected": 0,
+        "candidate_count": 11,
+        "figures_rejected_author": 0,
+        "figures_rejected_decorative": 0,
+        "figures_rejected_duplicate": 0,
+        "figures_rejected_small": 0,
+        "figures_rejected_limit": 0,
+        "trimmed_tail_blocks": 0,
+        "trimmed_head_blocks": 0,
+        "trimmed_promotional_blocks": 0,
+        "trimmed_embedded_ui_blocks": 0,
+        "embedded_ui_components": 0,
+        "selected_depth": 8,
+        "selected_raw_blocks": 55,
+        "selected_raw_text_chars": 14233,
+        "broad_raw_blocks": 95,
+        "broad_raw_text_chars": 15092,
+        "parent_extra_blocks": 40,
+        "candidate_count_raw": 17,
+        "candidate_duplicates": 6,
+        "candidate_quality_rejected": 9,
+        "duplicate_blocks": 0,
+        "selected_score": 1056.27,
+        "quality_status": "pass",
+        "selected_tag": "div",
+        "focus_ratio": 0.9431,
+        "link_ratio": 0.0119,
+        "duplicate_ratio": 0.0,
+        "selection_evidence": [
+          "prose_density",
+          "integrity_gate",
+          "nested_focus"
+        ],
+        "media": {
+          "figures": 1,
+          "cached": 1,
+          "link_only": 0,
+          "policy_version": "source-cdn-v1"
+        },
+        "content_mode": "translated",
+        "source_language": "other",
+        "translation_status": "complete",
+        "source_content_hash": "06f2abca5af4938676968ce7",
+        "translation": {
+          "run_id": "github-33310062778-1",
+          "policy_version": "faithful-translation-retry-v1",
+          "attempted_at": "2026-08-30T20:03:02.085560+08:00",
+          "purpose": "body_translation",
+          "status": "complete"
+        }
+      },
+      "content_mode": "translated",
+      "content_level": "translated",
+      "source_language": "other",
+      "translation_status": "complete",
+      "source_content_hash": "06f2abca5af4938676968ce7",
+      "body_chars": 4782
+    },
+    {
+      "event_id": "8feab1f0fa88",
+      "zh_title": "从工单到产品真相：用支持数据驱动产品改进",
+      "zh_summary": "客服支持工单中蕴含着产品问题的早期信号，但常被埋没在非结构化对话和分散系统中。文章提出，将支持对话与真实行为数据结合，可以帮助产品团队更早发现客户摩擦、优先处理高影响修复，并建立持续改进闭环。作者认为，CX与产品团队紧密协作能把工单从被动解决转变为战略产品情报，最终减少工单量、改善体验并加速产品迭代。",
+      "reason": "数据从业者可借鉴如何将非结构化支持数据转化为可指导产品决策的信号，是一套可复用的数据产品方法论。",
+      "full_zh": "客户支持代理处在第一线。他们直接与客户互动，比任何其他团队都多。他们最先听到客户对产品的喜欢（和不喜欢）之处，并且常常是第一个发现造成客户阻力的问题。这使得客户体验团队对产品管理同行来说价值连城。\n\n支持工单中充满客户信号，常常包含产品问题的第一个迹象，但这些见解往往埋藏在非结构化对话、分散的系统和被动的工作流程中。\n\n如果您的支持和产品团队能够解锁所有这些见解，将每个工单转化为战略性的产品情报，会怎样？在这个世界里，支持不仅解决战术性问题，还能揭示产品战略需要演进的地方。通过紧密合作，产品团队也从只是发布功能，升级到闭环支持所发现的问题。\n\n让我们探索领先的客户体验和产品领导者如何将支持对话与真实的行为数据联系起来，以更早地发现摩擦，优先处理高影响的修复，并建立一个持续改进的循环。这个新的高速循环将减少工单，改善客户体验，并加速产品开发速度。\n\n支持团队坐拥未被开采的产品金矿\n\n客户支持代理每月处理数百个支持咨询，经常同时管理跨工单、电话、电子邮件和聊天的多个对话。每个对话都提供了客户如何与产品互动、产品给他们带来什么感受以及他们希望看到哪些变化的见解。\n\n然而，比单个对话更强大的是总体趋势。支持团队往往最先注意到与常见痛点、未满足期望、入门困惑和破损工作流相关的趋势。过去，这些趋势会在会议室里浮出水面，一个代理分享一个观察，另一个说“我也有客户这么说”，接着又一个，又一个。\n\n虽然这种情况偶尔还会发生，但客户体验分析解决方案使得系统性地发现问题变得更容易。然而，观察结果往往仍停留在客户体验职能内部。问题经过支持管理视角的过滤，产品团队只听到客户体验领导者认为最重要或最紧迫的事项。\n\n但产品团队想要（并且需要）听到并理解所有内容，以优化和构建用户喜爱的产品。支持对话提供了即时、未经过滤的反馈，补充了行为分析已经暗示的内容。客户体验支持见解为产品经理提供了另一个重要的数据点——这是无价的。\n\n从解决工单到诊断产品问题\n\n近年来，高管们（终于）意识到支持团队远不止是工单接收者，将支持职能的认知从成本中心转变为价值中心。提供卓越的客户体验不再仅仅是竞争优势，而是战略要务，而支持团队是实现这一目标的核心。\n\n产品领导者尤其现在认识到与支持团队紧密合作的未被开发的潜力。今天的支持团队不仅回应客户问题，还能解读表明产品问题的模式。这对产品团队来说是梦想成真，因为：\n\n模式更早出现，可以更快修复通过持续反馈循环，产品质量提高当支持大规模减少摩擦时，客户体验改善\n\n随着支持承担新角色（从只是解决工单到诊断产品问题），它创建了一种新的支持-产品合作伙伴关系，各方都受益：\n\n产品团队获得见解，以使用客户真实声音而非直觉来更快地构建和优化产品客户体验团队加深产品理解，使每个代理成为更有效的解决问题者客户受益于更好、更可靠的产品，关于潜在问题的主动沟通，以及有权能的支持代理\n\n缺失的环节：将支持数据与产品行为连接起来\n\n在大多数组织中，产品和客户体验领导者定期会面讨论观察和机会。虽然这很好，但它是断断续续且不完整的，只提供了客户产品行为的快照。两个团队需要实时访问正在发生的事情，但支持数据往往是非结构化的、被动的，并且与产品工作流脱节。\n\n好消息是，现在有更好的工作方式。Amplitude帮助支持和产品团队倾听每个客户，一直，在任何渠道，包括他们在产品中的行为。最重要的是，Amplitude帮助您理解客户信号，以便更快采取行动。\n\nAI反馈告诉您客户在支持工单、评论和调查中实际说了什么，浮现重要的见解并向您展示具体该做什么。代理式AI分析所有数据，并将其分类为可操作的产品和客户体验类别。\n\n与其他使用在通用互联网内容上训练的现成模型（GPT、Claude等）的解决方案不同，AI反馈的LLM原生解决方案专门针对产品反馈模式训练。这意味着它可以自动将大量非结构化用户反馈数据提炼为可操作的功能请求、投诉和其他产品见解列表。AI反馈不只是搜索关键词或生成像聊天机器人那样的摘要段落。相反，它为您提供恰到好处的细节来构建有影响力的东西——使您的产品和客户体验团队能够倾听所有客户并改善结果。\n\nAI：支持团队的完美产品分析师\n\n将相关支持对话分组以暴露隐藏的产品问题检测异常：与中断、新版本等相关的突然峰涌预测升级风险：小问题如果不干预会变成大问题自动为产品经理和支持团队总结主题\n\n通过AI反馈，支持团队受益于：\n\nAI自动标记和聚类相似问题从海量个体工单中得出的结构化洞察可见重复问题的真实规模和影响\n\n同样，产品团队受益于：\n\n行为分析显示哪些用户群体遇到最多摩擦漏斗揭示产品具体在何处出现问题影响分析显示问题对激活、转化、留存的影响程度\n\nAI反馈自动捕获来自支持工单、调查、评论、社交媒体和通话脚本的反馈，统一在一个仪表板中。\n\n示例：非结构化工单数据变为可操作的产品洞察\n\n让我们通过一个实际示例来了解AI反馈如何将非结构化数据转化为更好的产品。假设它扫描客户支持对话和在线评论，发现最常见的请求是更好的发货通知。它甚至可以计算出该反馈出现了500次。\n\n这很好。大多数客户体验分析解决方案都能做到这一点。但你需要更多上下文来采取有意义的行动。发货通知需要改进什么？客户想要更频繁的通知？更少频率？在流程中更早？在不同渠道？AI反馈将深入分析这500条评论，以准确理解客户的需求。\n\n还有另一个巨大的好处：由于客户体验、产品和营销数据都在一个地方，你可以通过分析会话重放或叠加行为数据来更深入地理解用户体验。会话重放或叠加行为数据。你可以轻松创建请求更好通知的用户群组，并深入挖掘以找到更多细节。你可以研究他们的产品内行为，观看他们与通知互动的重放，或创建有针对性的调查以获取更多关于他们对通知看法的信息。\n\n通过共享产品和支持数据的视图，你可以真正理解用户说什么和做什么。\n\n群组、调查和会话重放闭环了从反馈到行动的路径——将噪音转化为下一步行动。\n\n如何将工单转化为推动产品决策的趋势\n\n虽然AI反馈完成了繁重的工作，但支持团队和产品团队仍然需要可重复的流程来将这些洞察付诸实践。使用这个操作框架将支持智能转化为产品策略。\n\n自动捕获和标记：AI将原始支持工单转化为结构化类别和主题。聚类重复问题：将相似问题分组以了解数量和潜在的产品根本原因。通过行为分析量化：识别哪些问题发生最频繁以及在产品中的位置。按业务影响排序：哪些问题影响核心用户、收入驱动的工作流或关键漏斗？暴露产品就绪的洞察：将支持模式转化为待办事项、用户体验修复和路线图优先级。闭环：产品发布改进，支持量下降，客户体验更顺畅。\n\nReplit：支持智能的实际应用\n\nReplit团队致力于通过其全栈解决方案让任何人无论技术背景如何都能实现数字创意。他们的使命是赋能每个人。Replit的使命是让任何人都能通过他们的全栈解决方案将数字创意变为现实，无论其技术背景如何，都能大规模构建应用。Amol Jain，产品工程主管，表示工程师和产品经理一直都知道与构建相关的问题和用户投诉。然而，在AI反馈出现之前，很难确定这些问题中哪个最大或最突出。\n\n“在过去，提取数据、查看每个来源并手动组合它们的工作量非常大，”他解释道。“AI反馈能够收集所有这些数据，真正分析并汇总，并将其转化为一份按优先级排序的用户抱怨问题列表，这让我们很容易确定投资方向，真正优先处理我们应该立即解决的问题。”\n\n“在过去，提取数据、查看每个来源并手动组合它们的工作量非常大——而AI反馈只需点击几下就能完成？这相当神奇。”\n\nAmol Jain\n\nReplit产品工程主管\n\n利用支持智能和Amplitude推动产品与支持飞轮\n\n没有伟大的体验是在孤岛中建立的——无论是产品、支持还是其他方面。客户要求无缝、互联的体验。实现这一目标的唯一途径是对客户的行为和言论有清晰、统一的洞察。当你利用丰富的支持数据，并将其与产品和行为数据相结合时，就能实现更好的工作方式。\n\n当支持团队和产品团队共享相同的数据时，他们就能构建客户真正喜爱的体验。Amplitude是使这种合作成为可能的连接组织。",
+      "content_blocks": [
+        {
+          "type": "paragraph",
+          "id": "b-655ab0a12f54",
+          "children": [
+            {
+              "type": "text",
+              "text": "客户支持代理处在第一线。他们直接与客户互动，比任何其他团队都多。他们最先听到客户对产品的喜欢（和不喜欢）之处，并且常常是第一个发现造成客户阻力的问题。这使得客户体验团队对产品管理同行来说价值连城。",
+              "marks": [],
+              "id": "t-dd0ef687faaf"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-d6834d7e3199",
+          "children": [
+            {
+              "type": "text",
+              "text": "支持工单中充满客户信号，常常包含产品问题的第一个迹象，但这些见解往往埋藏在非结构化对话、分散的系统和被动的工作流程中。",
+              "marks": [],
+              "id": "t-84482565af4d"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-cce9091c9cab",
+          "children": [
+            {
+              "type": "text",
+              "text": "如果您的支持和产品团队能够解锁所有这些见解，将每个工单转化为战略性的产品情报，会怎样？在这个世界里，支持不仅解决战术性问题，还能揭示产品战略需要演进的地方。通过紧密合作，产品团队也从只是发布功能，升级到闭环支持所发现的问题。",
+              "marks": [],
+              "id": "t-efef8cecd4c5"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-85abf0758e17",
+          "children": [
+            {
+              "type": "text",
+              "text": "让我们探索领先的客户体验和产品领导者如何将支持对话与真实的行为数据联系起来，以更早地发现摩擦，优先处理高影响的修复，并建立一个持续改进的循环。这个新的高速循环将减少工单，改善客户体验，并加速产品开发速度。",
+              "marks": [],
+              "id": "t-d0a721f39072"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-d91ed0870988",
+          "children": [
+            {
+              "type": "text",
+              "text": "支持团队坐拥未被开采的产品金矿",
+              "marks": [],
+              "id": "t-f0967910455e"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-2bffbbd784c4",
+          "children": [
+            {
+              "type": "text",
+              "text": "客户支持代理每月处理数百个支持咨询，经常同时管理跨工单、电话、电子邮件和聊天的多个对话。每个对话都提供了客户如何与产品互动、产品给他们带来什么感受以及他们希望看到哪些变化的见解。",
+              "marks": [],
+              "id": "t-79fed0af3967"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-c2baf719163d",
+          "children": [
+            {
+              "type": "text",
+              "text": "然而，比单个对话更强大的是总体趋势。支持团队往往最先注意到与常见痛点、未满足期望、入门困惑和破损工作流相关的趋势。过去，这些趋势会在会议室里浮出水面，一个代理分享一个观察，另一个说“我也有客户这么说”，接着又一个，又一个。",
+              "marks": [],
+              "id": "t-21cad45862e2"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-a51af42757e0",
+          "children": [
+            {
+              "type": "text",
+              "text": "虽然这种情况偶尔还会发生，但客户体验分析解决方案使得系统性地发现问题变得更容易。然而，观察结果往往仍停留在客户体验职能内部。问题经过支持管理视角的过滤，产品团队只听到客户体验领导者认为最重要或最紧迫的事项。",
+              "marks": [],
+              "id": "t-162610d7f2fa"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-c8ef93e37f3d",
+          "children": [
+            {
+              "type": "text",
+              "text": "但产品团队想要（并且需要）听到并理解所有内容，以优化和构建用户喜爱的产品。支持对话提供了即时、未经过滤的反馈，补充了行为分析已经暗示的内容。客户体验支持见解为产品经理提供了另一个重要的数据点——这是无价的。",
+              "marks": [],
+              "id": "t-f4f7f84eefb3"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-a74d2f6a8af7",
+          "children": [
+            {
+              "type": "text",
+              "text": "从解决工单到诊断产品问题",
+              "marks": [],
+              "id": "t-c3f261e9caf7"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-60f5a5c69cd2",
+          "children": [
+            {
+              "type": "text",
+              "text": "近年来，高管们（终于）意识到支持团队远不止是工单接收者，将支持职能的认知从成本中心转变为价值中心。提供卓越的客户体验不再仅仅是竞争优势，而是战略要务，而支持团队是实现这一目标的核心。",
+              "marks": [],
+              "id": "t-14ac76b9952c"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-e38931641256",
+          "children": [
+            {
+              "type": "text",
+              "text": "产品领导者尤其现在认识到与支持团队紧密合作的未被开发的潜力。今天的支持团队不仅回应客户问题，还能解读表明产品问题的模式。这对产品团队来说是梦想成真，因为：",
+              "marks": [],
+              "id": "t-2bb506d67fed"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "b-e3aa631bfd79",
+          "ordered": false,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "模式更早出现，可以更快修复",
+                  "marks": [],
+                  "id": "t-e615864fd6b2"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "通过持续反馈循环，产品质量提高",
+                  "marks": [],
+                  "id": "t-a95668ad99f2"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "当支持大规模减少摩擦时，客户体验改善",
+                  "marks": [],
+                  "id": "t-9376b97f40de"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-bc7c13fe42a1",
+          "children": [
+            {
+              "type": "text",
+              "text": "随着支持承担新角色（从只是解决工单到诊断产品问题），它创建了一种新的支持-产品合作伙伴关系，各方都受益：",
+              "marks": [],
+              "id": "t-6571be45ce8b"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "b-71d541723c30",
+          "ordered": false,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "产品团队获得见解，以使用客户真实声音而非直觉来更快地构建和优化产品",
+                  "marks": [],
+                  "id": "t-b7057f887c53"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "客户体验团队加深产品理解，使每个代理成为更有效的解决问题者",
+                  "marks": [],
+                  "id": "t-d5ec32684549"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "客户受益于更好、更可靠的产品，关于潜在问题的主动沟通，以及有权能的支持代理",
+                  "marks": [],
+                  "id": "t-a41587545f3f"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-baf6d7a35a97",
+          "children": [
+            {
+              "type": "text",
+              "text": "缺失的环节：将支持数据与产品行为连接起来",
+              "marks": [],
+              "id": "t-a8c354f46889"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-e0e0a0652cff",
+          "children": [
+            {
+              "type": "text",
+              "text": "在大多数组织中，产品和客户体验领导者定期会面讨论观察和机会。虽然这很好，但它是断断续续且不完整的，只提供了客户产品行为的快照。两个团队需要实时访问正在发生的事情，但支持数据往往是非结构化的、被动的，并且与产品工作流脱节。",
+              "marks": [],
+              "id": "t-b28fc7f890c8"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-6f2c2a84a1c0",
+          "children": [
+            {
+              "type": "text",
+              "text": "好消息是，现在有更好的工作方式。Amplitude帮助支持和产品团队倾听每个客户，一直，在任何渠道，包括他们在产品中的行为。最重要的是，Amplitude帮助您理解客户信号，以便更快采取行动。",
+              "marks": [],
+              "id": "t-5f40553bc2e7"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-b8567258c3a1",
+          "children": [
+            {
+              "type": "text",
+              "text": "AI反馈",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://amplitude.com/ai-feedback"
+                }
+              ],
+              "id": "t-e614e048a106"
+            },
+            {
+              "type": "text",
+              "text": "告诉您客户在支持工单、评论和调查中实际说了什么，浮现重要的见解并向您展示具体该做什么。代理式AI分析所有数据，并将其分类为可操作的产品和客户体验类别。",
+              "marks": [],
+              "id": "t-e002470ae0e1"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-bd6798411bab",
+          "children": [
+            {
+              "type": "text",
+              "text": "与其他使用在通用互联网内容上训练的现成模型（GPT、Claude等）的解决方案不同，AI反馈的LLM原生解决方案专门针对产品反馈模式训练。这意味着它可以自动将大量非结构化用户反馈数据提炼为可操作的功能请求、投诉和其他产品见解列表。AI反馈不只是搜索关键词或生成像聊天机器人那样的摘要段落。相反，它为您提供恰到好处的细节来构建有影响力的东西——使您的产品和客户体验团队能够倾听所有客户并改善结果。",
+              "marks": [],
+              "id": "t-d613f8e70a02"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-4c66b150190e",
+          "children": [
+            {
+              "type": "text",
+              "text": "AI：支持团队的完美产品分析师",
+              "marks": [],
+              "id": "t-4cec953c0496"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "b-c7302f222ac2",
+          "ordered": false,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "将相关支持对话分组以暴露隐藏的产品问题",
+                  "marks": [],
+                  "id": "t-199661995c53"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "检测异常：与中断、新版本等相关的突然峰涌",
+                  "marks": [],
+                  "id": "t-f56edde1f4b5"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "预测升级风险：小问题如果不干预会变成大问题",
+                  "marks": [],
+                  "id": "t-ebb8a81f91d7"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "自动为产品经理和支持团队总结主题",
+                  "marks": [],
+                  "id": "t-73d73bf1a7ae"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-16312b544968",
+          "children": [
+            {
+              "type": "text",
+              "text": "通过AI反馈，支持团队受益于：",
+              "marks": [],
+              "id": "t-e7cc1e54c159"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "b-00c423519545",
+          "ordered": false,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "AI自动标记和聚类相似问题",
+                  "marks": [],
+                  "id": "t-f923764e2efa"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "从海量个体工单中得出的结构化洞察",
+                  "marks": [],
+                  "id": "t-f6b2cf5d5864"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "可见重复问题的真实规模和影响",
+                  "marks": [],
+                  "id": "t-17062faa53c7"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-163e5181c48f",
+          "children": [
+            {
+              "type": "text",
+              "text": "同样，产品团队受益于：",
+              "marks": [],
+              "id": "t-a3e65ee259c1"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "b-0e5178624687",
+          "ordered": false,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "行为分析显示哪些用户群体遇到最多摩擦",
+                  "marks": [],
+                  "id": "t-3fc86c3b8a00"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "漏斗揭示产品具体在何处出现问题",
+                  "marks": [],
+                  "id": "t-f5eb011477cb"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "影响分析显示问题对激活、转化、留存的影响程度",
+                  "marks": [],
+                  "id": "t-e4007033f497"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-a45866f0587c",
+          "children": [
+            {
+              "type": "text",
+              "text": "AI反馈自动捕获来自支持工单、调查、评论、社交媒体和通话脚本的反馈，统一在一个仪表板中。",
+              "marks": [],
+              "id": "t-0100190ad4cf"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-68e8a2c50a56",
+          "children": [
+            {
+              "type": "text",
+              "text": "示例：非结构化工单数据变为可操作的产品洞察",
+              "marks": [],
+              "id": "t-d59f69a99dfc"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-a58d49b316f0",
+          "children": [
+            {
+              "type": "text",
+              "text": "让我们通过一个实际示例来了解AI反馈如何将非结构化数据转化为更好的产品。假设它扫描客户支持对话和在线评论，发现最常见的请求是更好的发货通知。它甚至可以计算出该反馈出现了500次。",
+              "marks": [],
+              "id": "t-0dd5b5b701eb"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-4f0f689bb31d",
+          "children": [
+            {
+              "type": "text",
+              "text": "这很好。大多数客户体验分析解决方案都能做到这一点。但你需要更多上下文来采取有意义的行动。发货通知需要改进什么？客户想要更频繁的通知？更少频率？在流程中更早？在不同渠道？AI反馈将深入分析这500条评论，以准确理解客户的需求。",
+              "marks": [],
+              "id": "t-f9f5eb5b250d"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-c6e2ff0950f8",
+          "children": [
+            {
+              "type": "text",
+              "text": "还有另一个巨大的好处：由于客户体验、产品和营销数据都在一个地方，你可以通过分析会话重放或叠加行为数据来更深入地理解用户体验。",
+              "marks": [],
+              "id": "t-d9da4592f173"
+            },
+            {
+              "type": "text",
+              "text": "会话重放",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://amplitude.com/session-replay"
+                }
+              ],
+              "id": "t-d75dfea65941"
+            },
+            {
+              "type": "text",
+              "text": "或叠加行为数据。你可以轻松创建请求更好通知的用户群组，并深入挖掘以找到更多细节。你可以研究他们的产品内行为，观看他们与通知互动的重放，或创建有针对性的调查以获取更多关于他们对通知看法的信息。",
+              "marks": [],
+              "id": "t-e6923d07b73d"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-e6d587f955b2",
+          "children": [
+            {
+              "type": "text",
+              "text": "通过共享产品和支持数据的视图，你可以真正理解用户说什么和做什么。",
+              "marks": [],
+              "id": "t-5b9a6629a5dc"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-b0f1bbd8ed9f",
+          "children": [
+            {
+              "type": "text",
+              "text": "群组、调查和会话重放闭环了从反馈到行动的路径——将噪音转化为下一步行动。",
+              "marks": [],
+              "id": "t-bfe4160b04c6"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-49d1f5a33b03",
+          "children": [
+            {
+              "type": "text",
+              "text": "如何将工单转化为推动产品决策的趋势",
+              "marks": [],
+              "id": "t-26f3dc5c8b64"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-00150cc67315",
+          "children": [
+            {
+              "type": "text",
+              "text": "虽然AI反馈完成了繁重的工作，但支持团队和产品团队仍然需要可重复的流程来将这些洞察付诸实践。使用这个操作框架将支持智能转化为产品策略。",
+              "marks": [],
+              "id": "t-0795ddfcfbe4"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "b-164d67b4f8c8",
+          "ordered": true,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "自动捕获和标记：",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-55f5a07675c3"
+                },
+                {
+                  "type": "text",
+                  "text": "AI将原始支持工单转化为结构化类别和主题。",
+                  "marks": [],
+                  "id": "t-0a49d4eeadfb"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "聚类重复问题：",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-eb6688e6c2e0"
+                },
+                {
+                  "type": "text",
+                  "text": "将相似问题分组以了解数量和潜在的产品根本原因。",
+                  "marks": [],
+                  "id": "t-5747edf243d8"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "通过行为分析量化：",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-9c882b311524"
+                },
+                {
+                  "type": "text",
+                  "text": "识别哪些问题发生最频繁以及在产品中的位置。",
+                  "marks": [],
+                  "id": "t-9bf6bef21350"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "按业务影响排序：",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-3048b1840afc"
+                },
+                {
+                  "type": "text",
+                  "text": "哪些问题影响核心用户、收入驱动的工作流或关键漏斗？",
+                  "marks": [],
+                  "id": "t-d4cd8b0da19d"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "暴露产品就绪的洞察：",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-6592ca7a1814"
+                },
+                {
+                  "type": "text",
+                  "text": "将支持模式转化为待办事项、用户体验修复和路线图优先级。",
+                  "marks": [],
+                  "id": "t-9a972ef78373"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "闭环：",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-b4cc8578762a"
+                },
+                {
+                  "type": "text",
+                  "text": "产品发布改进，支持量下降，客户体验更顺畅。",
+                  "marks": [],
+                  "id": "t-4edbd431c586"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-c36986a00016",
+          "children": [
+            {
+              "type": "text",
+              "text": "Replit：支持智能的实际应用",
+              "marks": [],
+              "id": "t-2b3274a3ea99"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-65a178d9a1cc",
+          "children": [
+            {
+              "type": "text",
+              "text": "Replit团队致力于通过其全栈解决方案让任何人无论技术背景如何都能实现数字创意。他们的使命是赋能每个人。",
+              "marks": [],
+              "id": "t-d74b7ffee7f1"
+            },
+            {
+              "type": "text",
+              "text": "Replit",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://replit.com/"
+                }
+              ],
+              "id": "t-7e567170241d"
+            },
+            {
+              "type": "text",
+              "text": "的使命是让任何人都能通过他们的全栈解决方案将数字创意变为现实，无论其技术背景如何，都能大规模构建应用。",
+              "marks": [],
+              "id": "t-1043e407537d"
+            },
+            {
+              "type": "text",
+              "text": "Amol Jain",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://www.linkedin.com/in/jainamol/"
+                }
+              ],
+              "id": "t-8c3e224b2f7c"
+            },
+            {
+              "type": "text",
+              "text": "，产品工程主管，表示工程师和产品经理一直都知道与构建相关的问题和用户投诉。然而，在AI反馈出现之前，很难确定这些问题中哪个最大或最突出。",
+              "marks": [],
+              "id": "t-b1ba2e48d1b9"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-ba7b06fa80d7",
+          "children": [
+            {
+              "type": "text",
+              "text": "“在过去，提取数据、查看每个来源并手动组合它们的工作量非常大，”他解释道。“AI反馈能够收集所有这些数据，真正分析并汇总，并将其转化为一份按优先级排序的用户抱怨问题列表，这让我们很容易确定投资方向，真正优先处理我们应该立即解决的问题。”",
+              "marks": [],
+              "id": "t-3c8a2d6ac3ec"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-5d7d91cafaae",
+          "children": [
+            {
+              "type": "text",
+              "text": "“在过去，提取数据、查看每个来源并手动组合它们的工作量非常大——而AI反馈只需点击几下就能完成？这相当神奇。”",
+              "marks": [],
+              "id": "t-8f6e980025a8"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-02868f3ca994",
+          "children": [
+            {
+              "type": "text",
+              "text": "Amol Jain",
+              "marks": [],
+              "id": "t-4f7456b9553d"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-65ee0444dae0",
+          "children": [
+            {
+              "type": "text",
+              "text": "Replit产品工程主管",
+              "marks": [],
+              "id": "t-cdbad3aa4ad9"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-a01d62d7a9e6",
+          "children": [
+            {
+              "type": "text",
+              "text": "利用支持智能和Amplitude推动产品与支持飞轮",
+              "marks": [],
+              "id": "t-c9c774bc933f"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-11a9d6d58124",
+          "children": [
+            {
+              "type": "text",
+              "text": "没有伟大的体验是在孤岛中建立的——无论是产品、支持还是其他方面。客户要求无缝、互联的体验。实现这一目标的唯一途径是对客户的行为和言论有清晰、统一的洞察。当你利用丰富的支持数据，并将其与产品和行为数据相结合时，就能实现更好的工作方式。",
+              "marks": [],
+              "id": "t-523886a28974"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-e57dd11cf053",
+          "children": [
+            {
+              "type": "text",
+              "text": "当支持团队和产品团队共享相同的数据时，他们就能构建客户真正喜爱的体验。Amplitude是使这种合作成为可能的连接组织。",
+              "marks": [],
+              "id": "t-3cce0c52c274"
+            }
+          ]
+        }
+      ],
+      "content_format": "blocks-v1",
+      "category": "product",
+      "category_label": "数据产品",
+      "vendors": [],
+      "heat": 42,
+      "star": false,
+      "importance": 52,
+      "quality_score": 52,
+      "trend_score": 34,
+      "signal": 0,
+      "topics": [
+        "客户运营"
+      ],
+      "shelf": "evergreen",
+      "pinned": false,
+      "published": "2026-08-29T01:10:28+08:00",
+      "first_seen": "2026-08-30T20:00:59.261573+08:00",
+      "items": [
+        {
+          "id": "8feab1f0fa88",
+          "source": "Amplitude Blog",
+          "link": "https://amplitude.com/blog/support-data-powers-better-products",
+          "published": "2026-08-29T01:10:28+08:00",
+          "ingested_at": "2026-08-30T20:00:59.261573+08:00",
+          "title": "From Tickets to Product Truth: How Support Data Powers Better Products"
+        }
+      ],
+      "work_tags": {
+        "taxonomy_version": "work-tags-v1",
+        "product_objects": [],
+        "use_cases": [],
+        "decision_concerns": [
+          "用户采用与业务价值"
+        ]
+      },
+      "quality_breakdown": {
+        "originality": 20,
+        "evidence_density": 8,
+        "information_gain": 10,
+        "actionability_depth": 14
+      },
+      "content_parse": {
+        "run_id": "github-33310062778-1",
+        "processor_version": "original-first-v7",
+        "attempted_at": "2026-08-30T20:03:24.646869+08:00",
+        "status": "ready",
+        "source": "Amplitude Blog",
+        "strategy": "nested_content",
+        "blocks": 45,
+        "text_chars": 10802,
+        "figures": 0,
+        "tables": 0,
+        "figures_discovered": 0,
+        "figures_selected": 0,
+        "figures_rejected": 0,
+        "candidate_count": 13,
+        "figures_rejected_author": 0,
+        "figures_rejected_decorative": 0,
+        "figures_rejected_duplicate": 0,
+        "figures_rejected_small": 0,
+        "figures_rejected_limit": 0,
+        "trimmed_tail_blocks": 0,
+        "trimmed_head_blocks": 0,
+        "trimmed_promotional_blocks": 1,
+        "trimmed_embedded_ui_blocks": 0,
+        "embedded_ui_components": 0,
+        "selected_depth": 8,
+        "selected_raw_blocks": 46,
+        "selected_raw_text_chars": 10917,
+        "broad_raw_blocks": 95,
+        "broad_raw_text_chars": 11864,
+        "parent_extra_blocks": 49,
+        "candidate_count_raw": 19,
+        "candidate_duplicates": 6,
+        "candidate_quality_rejected": 11,
+        "duplicate_blocks": 0,
+        "selected_score": 1015.74,
+        "quality_status": "pass",
+        "selected_tag": "div",
+        "focus_ratio": 0.9202,
+        "link_ratio": 0.0038,
+        "duplicate_ratio": 0.0,
+        "selection_evidence": [
+          "terminal_promotion_removed",
+          "prose_density",
+          "integrity_gate",
+          "nested_focus"
+        ],
+        "media": {
+          "figures": 0,
+          "cached": 0,
+          "link_only": 0,
+          "policy_version": "source-cdn-v1"
+        },
+        "content_mode": "translated",
+        "source_language": "other",
+        "translation_status": "complete",
+        "source_content_hash": "252a9d4d73eca31b4f6ab1bd",
+        "translation": {
+          "run_id": "github-33310062778-1",
+          "policy_version": "faithful-translation-retry-v1",
+          "attempted_at": "2026-08-30T20:03:24.646913+08:00",
+          "purpose": "body_translation",
+          "status": "complete"
+        }
+      },
+      "content_mode": "translated",
+      "content_level": "translated",
+      "source_language": "other",
+      "translation_status": "complete",
+      "source_content_hash": "252a9d4d73eca31b4f6ab1bd",
+      "body_chars": 3334
+    },
     {
       "event_id": "fb6358d08535",
       "zh_title": "Anthropic经济指数：AI采用的地理与企业不均",
@@ -4039,7 +6606,7 @@
       "star": true,
       "importance": 89,
       "quality_score": 89,
-      "trend_score": 13,
+      "trend_score": 12,
       "signal": 0,
       "topics": [
         "组织人才"
@@ -6218,11 +8785,11 @@
       "vendors": [
         "DeepSeek"
       ],
-      "heat": 61,
+      "heat": 59,
       "star": true,
       "importance": 80,
       "quality_score": 80,
-      "trend_score": 45,
+      "trend_score": 41,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -6339,11 +8906,11 @@
       "vendors": [
         "腾讯云"
       ],
-      "heat": 37,
+      "heat": 36,
       "star": false,
       "importance": 40,
       "quality_score": 40,
-      "trend_score": 35,
+      "trend_score": 32,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -6798,11 +9365,11 @@
       "vendors": [
         "华为云"
       ],
-      "heat": 52,
+      "heat": 50,
       "star": false,
       "importance": 60,
       "quality_score": 60,
-      "trend_score": 46,
+      "trend_score": 42,
       "signal": 0,
       "topics": [
         "平台AI化",
@@ -8278,7 +10845,7 @@
       "star": true,
       "importance": 85,
       "quality_score": 85,
-      "trend_score": 3,
+      "trend_score": 2,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -11306,7 +13873,7 @@
       "vendors": [
         "DuckDB"
       ],
-      "heat": 37,
+      "heat": 36,
       "star": true,
       "importance": 79,
       "quality_score": 79,
@@ -12267,11 +14834,11 @@
       "vendors": [
         "TOTVS"
       ],
-      "heat": 62,
+      "heat": 60,
       "star": true,
       "importance": 79,
       "quality_score": 79,
-      "trend_score": 49,
+      "trend_score": 44,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -12842,11 +15409,11 @@
       "vendors": [
         "Amplitude"
       ],
-      "heat": 50,
+      "heat": 48,
       "star": false,
       "importance": 65,
       "quality_score": 65,
-      "trend_score": 38,
+      "trend_score": 34,
       "signal": 0,
       "topics": [
         "实时分析"
@@ -13377,11 +15944,11 @@
         "Snowflake",
         "Amplitude"
       ],
-      "heat": 42,
+      "heat": 40,
       "star": false,
       "importance": 47,
       "quality_score": 47,
-      "trend_score": 38,
+      "trend_score": 34,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -13922,11 +16489,11 @@
       "vendors": [
         "Amplitude"
       ],
-      "heat": 51,
+      "heat": 49,
       "star": false,
       "importance": 68,
       "quality_score": 68,
-      "trend_score": 38,
+      "trend_score": 34,
       "signal": 0,
       "topics": [
         "数据人"
@@ -15276,11 +17843,11 @@
       "vendors": [
         "Amplitude"
       ],
-      "heat": 64,
+      "heat": 62,
       "star": true,
       "importance": 95,
       "quality_score": 95,
-      "trend_score": 39,
+      "trend_score": 36,
       "signal": 0,
       "topics": [
         "财务经营",
@@ -15739,11 +18306,11 @@
       "vendors": [
         "Amplitude"
       ],
-      "heat": 47,
+      "heat": 45,
       "star": false,
       "importance": 58,
       "quality_score": 58,
-      "trend_score": 38,
+      "trend_score": 34,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -16321,11 +18888,11 @@
         "Amplitude",
         "HubSpot"
       ],
-      "heat": 45,
+      "heat": 44,
       "star": false,
       "importance": 55,
       "quality_score": 55,
-      "trend_score": 38,
+      "trend_score": 34,
       "signal": 0,
       "topics": [
         "组织人才"
@@ -17496,11 +20063,11 @@
         "Looker",
         "dbt"
       ],
-      "heat": 54,
+      "heat": 52,
       "star": true,
       "importance": 80,
       "quality_score": 80,
-      "trend_score": 33,
+      "trend_score": 30,
       "signal": 0,
       "topics": [
         "BI变局"
@@ -19231,11 +21798,11 @@
         "TiDB",
         "Prisma"
       ],
-      "heat": 54,
+      "heat": 52,
       "star": false,
       "importance": 74,
       "quality_score": 74,
-      "trend_score": 37,
+      "trend_score": 34,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -20214,7 +22781,7 @@
       "star": true,
       "importance": 91,
       "quality_score": 91,
-      "trend_score": 20,
+      "trend_score": 19,
       "signal": 0,
       "topics": [
         "组织人才"
@@ -23058,11 +25625,11 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 54,
+      "heat": 52,
       "star": false,
       "importance": 71,
       "quality_score": 71,
-      "trend_score": 40,
+      "trend_score": 36,
       "signal": 0,
       "topics": [
         "ChatBI",
@@ -23951,11 +26518,11 @@
         "Databricks",
         "Trackunit"
       ],
-      "heat": 51,
+      "heat": 50,
       "star": false,
       "importance": 68,
       "quality_score": 68,
-      "trend_score": 38,
+      "trend_score": 34,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -24880,11 +27447,11 @@
         "Databricks",
         "Microsoft"
       ],
-      "heat": 54,
+      "heat": 52,
       "star": false,
       "importance": 73,
       "quality_score": 73,
-      "trend_score": 38,
+      "trend_score": 34,
       "signal": 0,
       "topics": [
         "湖仓"
@@ -26789,11 +29356,11 @@
       "vendors": [
         "ClickHouse"
       ],
-      "heat": 54,
+      "heat": 52,
       "star": true,
       "importance": 76,
       "quality_score": 76,
-      "trend_score": 35,
+      "trend_score": 32,
       "signal": 0,
       "topics": [
         "实时分析"
@@ -27478,11 +30045,11 @@
         "Hightouch",
         "Databricks"
       ],
-      "heat": 48,
+      "heat": 47,
       "star": true,
       "importance": 82,
       "quality_score": 82,
-      "trend_score": 21,
+      "trend_score": 19,
       "signal": 0,
       "topics": [
         "实时分析"
@@ -29616,11 +32183,11 @@
         "Tableau",
         "Apache Airflow"
       ],
-      "heat": 59,
+      "heat": 57,
       "star": true,
       "importance": 86,
       "quality_score": 86,
-      "trend_score": 37,
+      "trend_score": 34,
       "signal": 0,
       "topics": [
         "湖仓"
@@ -31471,11 +34038,11 @@
       "vendors": [
         "Fivetran"
       ],
-      "heat": 55,
+      "heat": 53,
       "star": false,
       "importance": 73,
       "quality_score": 73,
-      "trend_score": 41,
+      "trend_score": 37,
       "signal": 0,
       "topics": [
         "数据人"
@@ -32459,11 +35026,11 @@
       "vendors": [
         "PowerBI"
       ],
-      "heat": 51,
+      "heat": 49,
       "star": false,
       "importance": 73,
       "quality_score": 73,
-      "trend_score": 32,
+      "trend_score": 29,
       "signal": 0,
       "topics": [
         "数据人"
@@ -32932,11 +35499,11 @@
       "vendors": [
         "DuckDB Labs"
       ],
-      "heat": 54,
+      "heat": 52,
       "star": false,
       "importance": 73,
       "quality_score": 73,
-      "trend_score": 38,
+      "trend_score": 34,
       "signal": 0,
       "topics": [
         "湖仓"
@@ -33051,11 +35618,11 @@
       "category": "product",
       "category_label": "数据产品",
       "vendors": [],
-      "heat": 25,
+      "heat": 23,
       "star": false,
       "importance": 10,
       "quality_score": 10,
-      "trend_score": 38,
+      "trend_score": 34,
       "signal": 0,
       "topics": [
         "数据人"
@@ -33105,11 +35672,11 @@
       "vendors": [
         "腾讯云"
       ],
-      "heat": 50,
+      "heat": 48,
       "star": false,
       "importance": 65,
       "quality_score": 65,
-      "trend_score": 37,
+      "trend_score": 34,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -34119,11 +36686,11 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 59,
+      "heat": 57,
       "star": true,
       "importance": 82,
       "quality_score": 82,
-      "trend_score": 40,
+      "trend_score": 36,
       "signal": 0,
       "topics": [
         "数据人"
@@ -35719,11 +38286,11 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 59,
+      "heat": 57,
       "star": true,
       "importance": 82,
       "quality_score": 82,
-      "trend_score": 40,
+      "trend_score": 36,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -36368,11 +38935,11 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 59,
+      "heat": 57,
       "star": true,
       "importance": 85,
       "quality_score": 85,
-      "trend_score": 38,
+      "trend_score": 34,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -41519,11 +44086,11 @@
       "vendors": [
         "神州数码"
       ],
-      "heat": 53,
+      "heat": 51,
       "star": true,
       "importance": 76,
       "quality_score": 76,
-      "trend_score": 35,
+      "trend_score": 31,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -42537,11 +45104,11 @@
       "category": "bi",
       "category_label": "BI 与可视化",
       "vendors": [],
-      "heat": 45,
+      "heat": 44,
       "star": false,
       "importance": 67,
       "quality_score": 67,
-      "trend_score": 28,
+      "trend_score": 25,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -43376,11 +45943,11 @@
       "vendors": [
         "Amplitude"
       ],
-      "heat": 45,
+      "heat": 43,
       "star": false,
       "importance": 65,
       "quality_score": 65,
-      "trend_score": 28,
+      "trend_score": 25,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -44063,11 +46630,11 @@
       "category": "product",
       "category_label": "数据产品",
       "vendors": [],
-      "heat": 39,
+      "heat": 37,
       "star": false,
       "importance": 52,
       "quality_score": 52,
-      "trend_score": 28,
+      "trend_score": 25,
       "signal": 0,
       "topics": [
         "客户运营",
@@ -44254,7 +46821,7 @@
       "star": false,
       "importance": 30,
       "quality_score": 30,
-      "trend_score": 15,
+      "trend_score": 13,
       "signal": 0,
       "topics": [
         "组织人才"
@@ -46206,11 +48773,11 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 59,
+      "heat": 58,
       "star": true,
       "importance": 95,
       "quality_score": 95,
-      "trend_score": 30,
+      "trend_score": 27,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -46962,11 +49529,11 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 27,
+      "heat": 26,
       "star": false,
       "importance": 42,
       "quality_score": 42,
-      "trend_score": 14,
+      "trend_score": 13,
       "signal": 0,
       "topics": [
         "财务经营",
@@ -47847,11 +50414,11 @@
       "vendors": [
         "Metabase"
       ],
-      "heat": 51,
+      "heat": 50,
       "star": true,
       "importance": 89,
       "quality_score": 89,
-      "trend_score": 21,
+      "trend_score": 19,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -51698,7 +54265,7 @@
       "star": true,
       "importance": 87,
       "quality_score": 87,
-      "trend_score": 15,
+      "trend_score": 13,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -55569,7 +58136,7 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 47,
+      "heat": 45,
       "star": false,
       "importance": 72,
       "signal": 0,
@@ -55669,7 +58236,7 @@
       "source_content_hash": "a9d6a1af42d7bbe3ce53b25f",
       "body_chars": 2028,
       "quality_score": 72,
-      "trend_score": 26
+      "trend_score": 24
     },
     {
       "event_id": "70dc45860539",
@@ -56280,7 +58847,7 @@
         "Databricks",
         "Lovelytics"
       ],
-      "heat": 42,
+      "heat": 41,
       "star": false,
       "importance": 62,
       "signal": 0,
@@ -56384,7 +58951,7 @@
       "source_content_hash": "3473bb2038bc44735dfa7370",
       "body_chars": 2017,
       "quality_score": 62,
-      "trend_score": 26
+      "trend_score": 23
     },
     {
       "event_id": "a18fcf7ace27",
@@ -57478,7 +60045,7 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 51,
+      "heat": 50,
       "star": true,
       "importance": 82,
       "signal": 0,
@@ -57585,7 +60152,7 @@
       "source_content_hash": "52f5118bd1ca513f032e40a7",
       "body_chars": 4543,
       "quality_score": 82,
-      "trend_score": 26
+      "trend_score": 23
     },
     {
       "event_id": "6038dd3650c1",
@@ -61309,7 +63876,7 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 46,
+      "heat": 45,
       "star": false,
       "importance": 72,
       "signal": 0,
@@ -61418,7 +63985,7 @@
       "source_content_hash": "5b28b5a5023840d6ed1ad277",
       "body_chars": 61554,
       "quality_score": 72,
-      "trend_score": 25
+      "trend_score": 23
     },
     {
       "event_id": "e3de08c4636a",
@@ -63167,7 +65734,7 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 44,
+      "heat": 43,
       "star": false,
       "importance": 70,
       "signal": 0,
@@ -63269,7 +65836,7 @@
       "source_content_hash": "49a2a77fa9ad5573ff27abc5",
       "body_chars": 6457,
       "quality_score": 70,
-      "trend_score": 23
+      "trend_score": 21
     },
     {
       "event_id": "9ee13d67ebf3",
@@ -63842,7 +66409,7 @@
         "dbt Labs",
         "dbt"
       ],
-      "heat": 45,
+      "heat": 44,
       "star": false,
       "importance": 68,
       "signal": 0,
@@ -63947,7 +66514,7 @@
       "source_content_hash": "221c7ec1d5b4a09c65af1242",
       "body_chars": 1369,
       "quality_score": 68,
-      "trend_score": 26
+      "trend_score": 24
     },
     {
       "event_id": "f6162b805044",
@@ -64127,7 +66694,7 @@
       "vendors": [
         "ThoughtSpot"
       ],
-      "heat": 48,
+      "heat": 47,
       "star": false,
       "importance": 72,
       "signal": 0,
@@ -64230,7 +66797,7 @@
       "source_content_hash": "8f3578387bc3eef3a61634f5",
       "body_chars": 1319,
       "quality_score": 72,
-      "trend_score": 29
+      "trend_score": 26
     },
     {
       "event_id": "0ef0564c116b",
@@ -65061,7 +67628,7 @@
       "vendors": [
         "ClickHouse"
       ],
-      "heat": 49,
+      "heat": 47,
       "star": true,
       "importance": 75,
       "signal": 0,
@@ -65166,7 +67733,7 @@
       "source_content_hash": "10874e58f8530582a219168e",
       "body_chars": 4279,
       "quality_score": 75,
-      "trend_score": 27
+      "trend_score": 25
     },
     {
       "event_id": "ac7f62f35ef1",
@@ -66949,7 +69516,7 @@
       "vendors": [
         "AWS"
       ],
-      "heat": 41,
+      "heat": 40,
       "star": false,
       "importance": 60,
       "signal": 0,
@@ -67051,7 +69618,7 @@
       "source_content_hash": "f58316724adc11227ee609e4",
       "body_chars": 8229,
       "quality_score": 60,
-      "trend_score": 26
+      "trend_score": 24
     },
     {
       "event_id": "45280e8ace9a",
@@ -69232,7 +71799,7 @@
       "vendors": [
         "AWS"
       ],
-      "heat": 47,
+      "heat": 46,
       "star": false,
       "importance": 72,
       "signal": 0,
@@ -69339,7 +71906,7 @@
       "source_content_hash": "5acc11fa5ca3c36311e6c524",
       "body_chars": 9511,
       "quality_score": 72,
-      "trend_score": 26
+      "trend_score": 24
     },
     {
       "event_id": "d89b42ab29e1",
@@ -70124,7 +72691,7 @@
       "category": "product",
       "category_label": "数据产品",
       "vendors": [],
-      "heat": 36,
+      "heat": 35,
       "star": false,
       "importance": 52,
       "signal": 0,
@@ -70220,7 +72787,7 @@
       "source_content_hash": "182fddc463cf7afd71d5be43",
       "body_chars": 1872,
       "quality_score": 52,
-      "trend_score": 23
+      "trend_score": 21
     },
     {
       "event_id": "e0a99392bc14",
@@ -71186,7 +73753,7 @@
       "category": "insight",
       "category_label": "AI分析",
       "vendors": [],
-      "heat": 39,
+      "heat": 38,
       "star": false,
       "importance": 58,
       "signal": 0,
@@ -71276,7 +73843,7 @@
       "source_content_hash": "dc7e5204d42e1f9bde5d55a6",
       "body_chars": 5464,
       "quality_score": 58,
-      "trend_score": 23
+      "trend_score": 21
     },
     {
       "event_id": "d1f8a4b05ddf",
@@ -72459,7 +75026,7 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 52,
+      "heat": 51,
       "star": true,
       "importance": 85,
       "signal": 0,
@@ -72554,7 +75121,7 @@
       "source_content_hash": "f1655643910ce7569e5a62a5",
       "body_chars": 5857,
       "quality_score": 85,
-      "trend_score": 25
+      "trend_score": 23
     },
     {
       "event_id": "86beae9f2748",
@@ -77032,7 +79599,7 @@
       "category": "agent",
       "category_label": "Data Agent",
       "vendors": [],
-      "heat": 50,
+      "heat": 49,
       "star": true,
       "importance": 82,
       "signal": 0,
@@ -77132,7 +79699,7 @@
       "source_content_hash": "ace82ea90a46a03c5782f91b",
       "body_chars": 21577,
       "quality_score": 82,
-      "trend_score": 24
+      "trend_score": 22
     },
     {
       "event_id": "84f3f8c2dafc",
@@ -77335,7 +79902,7 @@
       "vendors": [
         "百度"
       ],
-      "heat": 43,
+      "heat": 42,
       "star": false,
       "importance": 65,
       "signal": 0,
@@ -77433,7 +80000,7 @@
       "source_content_hash": "251b4e9acb3db779811b9396",
       "body_chars": 1429,
       "quality_score": 65,
-      "trend_score": 25
+      "trend_score": 22
     },
     {
       "event_id": "3ab0ee43451d",
@@ -78101,7 +80668,7 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 52,
+      "heat": 51,
       "star": true,
       "importance": 82,
       "signal": 0,
@@ -78208,7 +80775,7 @@
       "source_content_hash": "f405d478ea905cf11987b72b",
       "body_chars": 2762,
       "quality_score": 82,
-      "trend_score": 28
+      "trend_score": 26
     },
     {
       "event_id": "86ba4a36a84c",
@@ -78865,7 +81432,7 @@
       "category": "bi",
       "category_label": "BI 与可视化",
       "vendors": [],
-      "heat": 42,
+      "heat": 41,
       "star": false,
       "importance": 60,
       "signal": 0,
@@ -78965,7 +81532,7 @@
       "source_content_hash": "be9d813ae90b47be03a1d501",
       "body_chars": 1367,
       "quality_score": 60,
-      "trend_score": 28
+      "trend_score": 25
     },
     {
       "event_id": "b8c871673575",
@@ -79039,7 +81606,7 @@
       "vendors": [
         "Amplitude"
       ],
-      "heat": 46,
+      "heat": 45,
       "star": false,
       "importance": 68,
       "signal": 0,
@@ -79137,7 +81704,7 @@
       "source_content_hash": "9a3bbb5ea71b0df4506628d5",
       "body_chars": 236,
       "quality_score": 68,
-      "trend_score": 28
+      "trend_score": 25
     },
     {
       "event_id": "66e29f373297",
@@ -79878,7 +82445,7 @@
       "category": "product",
       "category_label": "数据产品",
       "vendors": [],
-      "heat": 45,
+      "heat": 43,
       "star": false,
       "importance": 65,
       "signal": 0,
@@ -79974,7 +82541,7 @@
       "source_content_hash": "31e21915e6887276cf48ce65",
       "body_chars": 2192,
       "quality_score": 65,
-      "trend_score": 28
+      "trend_score": 25
     },
     {
       "event_id": "d256128c2be7",
@@ -80806,7 +83373,7 @@
       "vendors": [
         "Fivetran"
       ],
-      "heat": 43,
+      "heat": 42,
       "star": false,
       "importance": 70,
       "signal": 0,
@@ -80912,7 +83479,7 @@
       "source_content_hash": "05279e51f333863b146935ed",
       "body_chars": 2212,
       "quality_score": 70,
-      "trend_score": 20
+      "trend_score": 18
     },
     {
       "event_id": "fb749e18d61f",
@@ -81388,7 +83955,7 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 40,
+      "heat": 39,
       "star": false,
       "importance": 65,
       "signal": 0,
@@ -81490,7 +84057,7 @@
       "source_content_hash": "b10e49ac0ba25860b1f04469",
       "body_chars": 3817,
       "quality_score": 65,
-      "trend_score": 20
+      "trend_score": 18
     },
     {
       "event_id": "21aaca4de4c7",
@@ -82266,7 +84833,7 @@
         "PingCAP",
         "TiDB"
       ],
-      "heat": 38,
+      "heat": 37,
       "star": false,
       "importance": 72,
       "signal": 0,
@@ -82365,7 +84932,7 @@
       "source_content_hash": "e37a5b95b7117fee1f905dc6",
       "body_chars": 4068,
       "quality_score": 72,
-      "trend_score": 10
+      "trend_score": 9
     },
     {
       "event_id": "1fca16761613",
@@ -88815,7 +91382,7 @@
       "vendors": [
         "ClickHouse"
       ],
-      "heat": 41,
+      "heat": 40,
       "star": false,
       "importance": 68,
       "signal": 0,
@@ -88917,7 +91484,7 @@
       "source_content_hash": "98bcf466989d573cb3bdbace",
       "body_chars": 13337,
       "quality_score": 68,
-      "trend_score": 18
+      "trend_score": 17
     },
     {
       "event_id": "79c21caab6c3",
@@ -94335,7 +96902,7 @@
       "vendors": [
         "AWS"
       ],
-      "heat": 43,
+      "heat": 42,
       "star": false,
       "importance": 72,
       "signal": 0,
@@ -94439,7 +97006,7 @@
       "source_content_hash": "2c00609078202496ae3f9ae0",
       "body_chars": 33275,
       "quality_score": 72,
-      "trend_score": 19
+      "trend_score": 18
     },
     {
       "event_id": "fc5abd1fbca7",
@@ -96130,7 +98697,7 @@
         "AWS",
         "Amazon MSK"
       ],
-      "heat": 43,
+      "heat": 42,
       "star": false,
       "importance": 72,
       "signal": 0,
@@ -96233,7 +98800,7 @@
       "source_content_hash": "8441b2b4561a40a05594c1dc",
       "body_chars": 4184,
       "quality_score": 72,
-      "trend_score": 19
+      "trend_score": 18
     },
     {
       "event_id": "bd0a61be6b17",
@@ -97162,7 +99729,7 @@
         "AWS",
         "Amazon MSK"
       ],
-      "heat": 38,
+      "heat": 37,
       "star": false,
       "importance": 62,
       "signal": 0,
@@ -97266,7 +99833,7 @@
       "source_content_hash": "07699bc5d6ffb93ab22a1446",
       "body_chars": 3660,
       "quality_score": 62,
-      "trend_score": 19
+      "trend_score": 17
     },
     {
       "event_id": "bb635a23106c",
@@ -97663,7 +100230,7 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 37,
+      "heat": 36,
       "star": false,
       "importance": 60,
       "signal": 0,
@@ -97761,7 +100328,7 @@
       "source_content_hash": "eee488aa8f81016ed75afb36",
       "body_chars": 472,
       "quality_score": 60,
-      "trend_score": 18
+      "trend_score": 16
     },
     {
       "event_id": "973421af8576",
@@ -98394,7 +100961,7 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 35,
+      "heat": 34,
       "star": false,
       "importance": 55,
       "signal": 0,
@@ -98492,7 +101059,7 @@
       "source_content_hash": "bf29e6293438940b79c121a5",
       "body_chars": 597,
       "quality_score": 55,
-      "trend_score": 18
+      "trend_score": 16
     },
     {
       "event_id": "eaca584690ea",
@@ -99550,7 +102117,7 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 35,
+      "heat": 34,
       "star": false,
       "importance": 55,
       "signal": 0,
@@ -99650,7 +102217,7 @@
       "source_content_hash": "072542233c1de0983e5d07cc",
       "body_chars": 1349,
       "quality_score": 55,
-      "trend_score": 18
+      "trend_score": 16
     },
     {
       "event_id": "330462890c94",
@@ -99893,7 +102460,7 @@
       "vendors": [
         "Aloudata"
       ],
-      "heat": 40,
+      "heat": 39,
       "star": false,
       "importance": 60,
       "signal": 0,
@@ -99999,7 +102566,7 @@
       "source_content_hash": "5e5d8e36c6bc526ad546802c",
       "body_chars": 1434,
       "quality_score": 60,
-      "trend_score": 23
+      "trend_score": 22
     },
     {
       "event_id": "4abb08d9439d",
@@ -100359,7 +102926,7 @@
       "vendors": [
         "Aloudata"
       ],
-      "heat": 36,
+      "heat": 35,
       "star": false,
       "importance": 60,
       "signal": 0,
@@ -100460,7 +103027,7 @@
       "source_content_hash": "ce65f35ab4068ae310dc978d",
       "body_chars": 1780,
       "quality_score": 60,
-      "trend_score": 16
+      "trend_score": 14
     },
     {
       "event_id": "cb4caeef1889",
@@ -100968,7 +103535,7 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 40,
+      "heat": 39,
       "star": false,
       "importance": 70,
       "signal": 0,
@@ -101076,7 +103643,7 @@
       "source_content_hash": "18fd899639761e31001e7e76",
       "body_chars": 2098,
       "quality_score": 70,
-      "trend_score": 15
+      "trend_score": 14
     },
     {
       "event_id": "4f8c0a7d39f2",
@@ -101837,7 +104404,7 @@
       "category": "agent",
       "category_label": "Data Agent",
       "vendors": [],
-      "heat": 42,
+      "heat": 41,
       "star": false,
       "importance": 72,
       "signal": 0,
@@ -101938,7 +104505,7 @@
       "source_content_hash": "5a412c7ab6a8c8ee129f22be",
       "body_chars": 5204,
       "quality_score": 72,
-      "trend_score": 17
+      "trend_score": 16
     },
     {
       "event_id": "d4736cba9e07",
@@ -104441,7 +107008,7 @@
       "vendors": [
         "Diagrid"
       ],
-      "heat": 36,
+      "heat": 35,
       "star": false,
       "importance": 60,
       "signal": 0,
@@ -104547,7 +107114,7 @@
       "source_content_hash": "635c867893fb38a231afd0aa",
       "body_chars": 1688,
       "quality_score": 60,
-      "trend_score": 16
+      "trend_score": 15
     },
     {
       "event_id": "dfbb5c441b55",
@@ -104850,7 +107417,7 @@
       "source_content_hash": "b5db5b45272a155110134b73",
       "body_chars": 2241,
       "quality_score": 85,
-      "trend_score": 22
+      "trend_score": 21
     },
     {
       "event_id": "4b74ba76aba5",
@@ -107557,7 +110124,7 @@
       "vendors": [
         "DuckDB"
       ],
-      "heat": 34,
+      "heat": 33,
       "star": false,
       "importance": 62,
       "signal": 0,
@@ -107657,7 +110224,7 @@
       "source_content_hash": "6e661288053b5a0a2f2bd5cd",
       "body_chars": 25433,
       "quality_score": 62,
-      "trend_score": 10
+      "trend_score": 9
     },
     {
       "event_id": "2ce94d63e438",
@@ -110079,7 +112646,7 @@
         "Dify",
         "滴普"
       ],
-      "heat": 41,
+      "heat": 40,
       "star": false,
       "importance": 72,
       "signal": 0,
@@ -110179,7 +112746,7 @@
       "source_content_hash": "6a50130ede3b72e6ab5b55f3",
       "body_chars": 13229,
       "quality_score": 72,
-      "trend_score": 15
+      "trend_score": 14
     },
     {
       "event_id": "fe27a272d0ce",
@@ -111714,7 +114281,7 @@
       "vendors": [
         "拓尔思"
       ],
-      "heat": 40,
+      "heat": 39,
       "star": false,
       "importance": 70,
       "signal": 0,
@@ -111807,7 +114374,7 @@
       "source_content_hash": "15782c3989b8b3b070d2fe70",
       "body_chars": 6273,
       "quality_score": 70,
-      "trend_score": 15
+      "trend_score": 14
     },
     {
       "event_id": "657606c702fa",
@@ -112953,7 +115520,7 @@
       "source_content_hash": "81a792d741e8ef17d38c5c11",
       "body_chars": 3921,
       "quality_score": 72,
-      "trend_score": 15
+      "trend_score": 13
     },
     {
       "event_id": "0916566e9991",
@@ -113666,7 +116233,7 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 35,
+      "heat": 34,
       "star": false,
       "importance": 62,
       "signal": 0,
@@ -113772,7 +116339,7 @@
       "source_content_hash": "41dc59fb8d6bae4bf2da8800",
       "body_chars": 2756,
       "quality_score": 62,
-      "trend_score": 13
+      "trend_score": 12
     },
     {
       "event_id": "98029c1b119e",
@@ -114857,7 +117424,7 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 41,
+      "heat": 40,
       "star": true,
       "importance": 75,
       "signal": 0,
@@ -114959,7 +117526,7 @@
       "source_content_hash": "663be6a46b315746f2416f6c",
       "body_chars": 4623,
       "quality_score": 75,
-      "trend_score": 13
+      "trend_score": 12
     },
     {
       "event_id": "e59669c8e20d",
@@ -115744,7 +118311,7 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 40,
+      "heat": 39,
       "star": false,
       "importance": 72,
       "signal": 0,
@@ -115848,7 +118415,7 @@
       "source_content_hash": "2840e6bea1614d9453dd9509",
       "body_chars": 3264,
       "quality_score": 72,
-      "trend_score": 13
+      "trend_score": 12
     },
     {
       "event_id": "db5674e1e03f",
@@ -116772,7 +119339,7 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 38,
+      "heat": 37,
       "star": false,
       "importance": 70,
       "signal": 0,
@@ -116874,7 +119441,7 @@
       "source_content_hash": "90cb40606fb04a2452850ae6",
       "body_chars": 3663,
       "quality_score": 70,
-      "trend_score": 12
+      "trend_score": 11
     },
     {
       "event_id": "d5cc6c757eb2",
@@ -119175,7 +121742,7 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 38,
+      "heat": 37,
       "star": false,
       "importance": 72,
       "signal": 0,
@@ -119732,7 +122299,7 @@
       "vendors": [
         "dbt Labs"
       ],
-      "heat": 42,
+      "heat": 41,
       "star": true,
       "importance": 75,
       "signal": 0,
@@ -119836,7 +122403,7 @@
       "source_content_hash": "8ffd45ca2ed74b1750014485",
       "body_chars": 1468,
       "quality_score": 75,
-      "trend_score": 15
+      "trend_score": 13
     },
     {
       "event_id": "28640dc36b12",
@@ -120278,7 +122845,7 @@
         "Snowflake",
         "dbt"
       ],
-      "heat": 34,
+      "heat": 33,
       "star": false,
       "importance": 62,
       "signal": 0,
@@ -120386,7 +122953,7 @@
       "source_content_hash": "6d3a9015aa80ac781cbb528b",
       "body_chars": 2722,
       "quality_score": 62,
-      "trend_score": 10
+      "trend_score": 9
     },
     {
       "event_id": "5427b4d9824d",
@@ -121929,7 +124496,7 @@
         "AWS",
         "Amazon"
       ],
-      "heat": 31,
+      "heat": 30,
       "star": false,
       "importance": 52,
       "signal": 0,
@@ -122031,7 +124598,7 @@
       "source_content_hash": "4edd1137799169d0192a0f6a",
       "body_chars": 10584,
       "quality_score": 52,
-      "trend_score": 14
+      "trend_score": 13
     },
     {
       "event_id": "1cffe8c0886e",
@@ -123955,7 +126522,7 @@
         "AWS",
         "Google BigQuery"
       ],
-      "heat": 43,
+      "heat": 42,
       "star": false,
       "importance": 70,
       "signal": 0,
@@ -124070,7 +126637,7 @@
       "source_content_hash": "640ca97658e41739521ff6ee",
       "body_chars": 12520,
       "quality_score": 70,
-      "trend_score": 20
+      "trend_score": 19
     },
     {
       "event_id": "337ec019d63a",
@@ -127082,7 +129649,7 @@
       "source_content_hash": "e4aa0cdd59e65051eda3b107",
       "body_chars": 6846,
       "quality_score": 80,
-      "trend_score": 13
+      "trend_score": 12
     },
     {
       "event_id": "d11f81e0d82c",
@@ -127356,7 +129923,7 @@
       "vendors": [
         "DuckDB Labs"
       ],
-      "heat": 38,
+      "heat": 37,
       "star": false,
       "importance": 70,
       "signal": 0,
@@ -127454,7 +130021,7 @@
       "source_content_hash": "10e4e70fedbbf5a6355aca10",
       "body_chars": 2151,
       "quality_score": 70,
-      "trend_score": 11
+      "trend_score": 10
     },
     {
       "event_id": "340d835ba088",
@@ -129363,7 +131930,7 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 40,
+      "heat": 39,
       "star": false,
       "importance": 72,
       "signal": 0,
@@ -129468,7 +132035,7 @@
       "source_content_hash": "61e882390c5982fb116dfe07",
       "body_chars": 4664,
       "quality_score": 72,
-      "trend_score": 14
+      "trend_score": 13
     },
     {
       "event_id": "f653a1cf5c4b",
@@ -130847,7 +133414,7 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 51,
+      "heat": 50,
       "star": true,
       "importance": 80,
       "signal": 0,
@@ -130973,7 +133540,7 @@
       "source_content_hash": "4218e84f2f7d733d69e0cd1e",
       "body_chars": 12974,
       "quality_score": 80,
-      "trend_score": 27
+      "trend_score": 26
     },
     {
       "event_id": "d8bcddb80c7a",
@@ -131843,7 +134410,7 @@
       "vendors": [
         "Amplitude"
       ],
-      "heat": 31,
+      "heat": 30,
       "star": false,
       "importance": 55,
       "signal": 0,
@@ -131947,7 +134514,7 @@
       "source_content_hash": "4862247054b769949c5a2ffa",
       "body_chars": 2551,
       "quality_score": 55,
-      "trend_score": 11
+      "trend_score": 10
     },
     {
       "event_id": "13ea46c500cf",
@@ -132560,7 +135127,7 @@
       "source_content_hash": "80d4ff2979c0eaf4b36471eb",
       "body_chars": 3095,
       "quality_score": 62,
-      "trend_score": 12
+      "trend_score": 11
     },
     {
       "event_id": "6202212eeef3",
@@ -133061,7 +135628,7 @@
       "source_content_hash": "86b0cbcde26a450b9dfb883e",
       "body_chars": 2168,
       "quality_score": 62,
-      "trend_score": 12
+      "trend_score": 11
     },
     {
       "event_id": "ef078442f7a9",
@@ -134645,7 +137212,7 @@
       "source_content_hash": "607791583e165c71ae4c8eff",
       "body_chars": 3499,
       "quality_score": 75,
-      "trend_score": 10
+      "trend_score": 9
     },
     {
       "event_id": "a0dfec66106c",
@@ -136582,7 +139149,7 @@
       "vendors": [
         "ClickHouse"
       ],
-      "heat": 35,
+      "heat": 34,
       "star": false,
       "importance": 65,
       "signal": 0,
@@ -136687,7 +139254,7 @@
       "source_content_hash": "6ce004e1b1ba4c3f56b526b2",
       "body_chars": 26915,
       "quality_score": 65,
-      "trend_score": 10
+      "trend_score": 9
     },
     {
       "event_id": "10b6595d9b0a",
@@ -138674,7 +141241,7 @@
       "source_content_hash": "1e377cfe31bf0e39336908af",
       "body_chars": 7330,
       "quality_score": 72,
-      "trend_score": 20
+      "trend_score": 19
     },
     {
       "event_id": "981b415c17ed",
@@ -140373,7 +142940,7 @@
       "vendors": [
         "字节跳动"
       ],
-      "heat": 38,
+      "heat": 37,
       "star": false,
       "importance": 70,
       "signal": 0,
@@ -140475,7 +143042,7 @@
       "source_content_hash": "3479d5738874a0b78fdfc5da",
       "body_chars": 4328,
       "quality_score": 70,
-      "trend_score": 12
+      "trend_score": 11
     },
     {
       "event_id": "e2adb769c3f5",
@@ -141412,7 +143979,7 @@
         "Glean",
         "dbt"
       ],
-      "heat": 39,
+      "heat": 38,
       "star": false,
       "importance": 72,
       "signal": 0,
@@ -141512,7 +144079,7 @@
       "source_content_hash": "07d2ced86da60c24bb4ac37d",
       "body_chars": 4956,
       "quality_score": 72,
-      "trend_score": 12
+      "trend_score": 11
     },
     {
       "event_id": "01c578964b47",
@@ -143260,7 +145827,7 @@
       "vendors": [
         "DuckDB"
       ],
-      "heat": 35,
+      "heat": 34,
       "star": false,
       "importance": 65,
       "signal": 0,
@@ -143358,7 +145925,7 @@
       "source_content_hash": "10d836ce84b925f6fb534fd1",
       "body_chars": 7498,
       "quality_score": 65,
-      "trend_score": 10
+      "trend_score": 9
     },
     {
       "event_id": "d2b5cfdbe7ec",
@@ -144061,7 +146628,7 @@
       "vendors": [
         "ThoughtSpot"
       ],
-      "heat": 34,
+      "heat": 33,
       "star": false,
       "importance": 62,
       "signal": 0,
@@ -144167,7 +146734,7 @@
       "source_content_hash": "572f4f3d5fcb00e728cf53d7",
       "body_chars": 3652,
       "quality_score": 62,
-      "trend_score": 11
+      "trend_score": 10
     },
     {
       "event_id": "812f1f1cfbf8",
@@ -146553,7 +149120,7 @@
       "vendors": [
         "AWS"
       ],
-      "heat": 37,
+      "heat": 36,
       "star": false,
       "importance": 70,
       "signal": 0,
@@ -146657,7 +149224,7 @@
       "source_content_hash": "351f23964ceae4d0672a9807",
       "body_chars": 9180,
       "quality_score": 70,
-      "trend_score": 10
+      "trend_score": 9
     },
     {
       "event_id": "277b74fefc97",
@@ -148820,7 +151387,7 @@
       "vendors": [
         "AWS"
       ],
-      "heat": 35,
+      "heat": 34,
       "star": false,
       "importance": 65,
       "signal": 0,
@@ -148924,7 +151491,7 @@
       "source_content_hash": "f6becbbacebe36d3b0044122",
       "body_chars": 7563,
       "quality_score": 65,
-      "trend_score": 10
+      "trend_score": 9
     },
     {
       "event_id": "df34fda18d4f",
@@ -151974,7 +154541,7 @@
       "source_content_hash": "861e8e930e09c9feff19f4fa",
       "body_chars": 3370,
       "quality_score": 80,
-      "trend_score": 10
+      "trend_score": 9
     },
     {
       "event_id": "f4faeb6a40d3",
@@ -153504,7 +156071,7 @@
       "source_content_hash": "7c8052fdfc6cfba62329e61a",
       "body_chars": 8381,
       "quality_score": 76,
-      "trend_score": 9
+      "trend_score": 8
     },
     {
       "event_id": "ecaefd096734",
@@ -155051,7 +157618,7 @@
       "source_content_hash": "6c4797e0d874ba253273a6dd",
       "body_chars": 3984,
       "quality_score": 72,
-      "trend_score": 9
+      "trend_score": 8
     },
     {
       "event_id": "f76b86977b69",
@@ -159113,7 +161680,7 @@
         "百度智能云",
         "质变科技"
       ],
-      "heat": 43,
+      "heat": 42,
       "star": true,
       "importance": 85,
       "signal": 0,
@@ -159211,7 +161778,7 @@
       "source_content_hash": "99b0dab4e4b90e94e77a65ef",
       "body_chars": 14715,
       "quality_score": 85,
-      "trend_score": 8
+      "trend_score": 7
     },
     {
       "event_id": "424b235d79d4",
@@ -159968,7 +162535,7 @@
       "source_content_hash": "f27d0de3192ba6af0c056dc8",
       "body_chars": 2362,
       "quality_score": 55,
-      "trend_score": 8
+      "trend_score": 7
     },
     {
       "event_id": "321b0d0fad9a",
@@ -160400,7 +162967,7 @@
       "source_content_hash": "bcf0e022ff065d0503652d3b",
       "body_chars": 2154,
       "quality_score": 72,
-      "trend_score": 7
+      "trend_score": 6
     },
     {
       "event_id": "5c3a552147a1",
@@ -160923,7 +163490,7 @@
       "source_content_hash": "ff60531f999225b06c744872",
       "body_chars": 1991,
       "quality_score": 68,
-      "trend_score": 7
+      "trend_score": 6
     },
     {
       "event_id": "3ac4a7c0c3c6",
@@ -161344,7 +163911,7 @@
       "category": "agent",
       "category_label": "Data Agent",
       "vendors": [],
-      "heat": 38,
+      "heat": 37,
       "star": false,
       "importance": 65,
       "signal": 85,
@@ -165170,7 +167737,7 @@
       "source_content_hash": "26b75e7c0c7630190b9ccab7",
       "body_chars": 3208,
       "quality_score": 70,
-      "trend_score": 5
+      "trend_score": 4
     },
     {
       "event_id": "d7c6d34e3d28",
@@ -169523,7 +172090,7 @@
       "source_content_hash": "c5e7d52fbc4ef9d152bfc9bb",
       "body_chars": 2188,
       "quality_score": 72,
-      "trend_score": 3
+      "trend_score": 2
     },
     {
       "event_id": "8c48e9aeec01",
@@ -175621,7 +178188,7 @@
       "source_content_hash": "6275d800db6f0d622333d211",
       "body_chars": 4027,
       "quality_score": 62,
-      "trend_score": 3
+      "trend_score": 2
     },
     {
       "event_id": "75210254bb59",
@@ -178938,7 +181505,7 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 39,
+      "heat": 38,
       "star": true,
       "importance": 82,
       "signal": 0,
@@ -184382,7 +186949,7 @@
       "source_content_hash": "d285214b90aaba6a6146ac89",
       "body_chars": 8378,
       "quality_score": 75,
-      "trend_score": 2
+      "trend_score": 1
     },
     {
       "event_id": "2edb0885e1af",
@@ -186993,7 +189560,7 @@
       "vendors": [
         "Aloudata"
       ],
-      "heat": 35,
+      "heat": 34,
       "star": true,
       "importance": 75,
       "signal": 0,
@@ -188328,7 +190895,7 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 29,
+      "heat": 28,
       "star": false,
       "importance": 62,
       "signal": 0,
@@ -211297,9 +213864,9 @@
         ]
       },
       "content_parse": {
-        "run_id": "github-32624409294-1",
+        "run_id": "github-33310062778-1",
         "processor_version": "original-first-v7",
-        "attempted_at": "2026-08-23T15:03:07.010211+08:00",
+        "attempted_at": "2026-08-30T20:03:25.748347+08:00",
         "status": "skipped",
         "source": "Snowflake Engineering（Medium）",
         "strategy": "fetch_failed",
@@ -212369,7 +214936,7 @@
       "category": "insight",
       "category_label": "AI分析",
       "vendors": [],
-      "heat": 36,
+      "heat": 35,
       "star": true,
       "importance": 78,
       "signal": 0,
@@ -231895,7 +234462,7 @@
       "vendors": [
         "Handshake"
       ],
-      "heat": 41,
+      "heat": 40,
       "star": false,
       "importance": 72,
       "signal": 0,
@@ -289992,7 +292559,7 @@
         "BigQuery",
         "Google Cloud"
       ],
-      "heat": 54,
+      "heat": 53,
       "star": false,
       "importance": 70,
       "signal": 0,
@@ -290149,7 +292716,7 @@
       "translation_status": "failed",
       "source_content_hash": "3907a79213df9e15b816330c",
       "quality_score": 70,
-      "trend_score": 41
+      "trend_score": 39
     },
     {
       "event_id": "ba8377c644db",
@@ -303821,9 +306388,9 @@
       ],
       "content_format": "blocks-v1",
       "content_parse": {
-        "run_id": "github-32611680523-1",
+        "run_id": "github-33310062778-1",
         "processor_version": "original-first-v7",
-        "attempted_at": "2026-08-23T10:05:20.734580+08:00",
+        "attempted_at": "2026-08-30T20:04:53.799104+08:00",
         "status": "ready",
         "source": "Claude 官方博客",
         "strategy": "semantic_container",
@@ -303866,6 +306433,7 @@
           "integrity_gate",
           "semantic_container"
         ],
+        "reason": "JSONDecodeError",
         "media": {
           "figures": 0,
           "cached": 0,
@@ -303874,7 +306442,7 @@
         },
         "content_mode": "original",
         "source_language": "other",
-        "translation_status": "unavailable",
+        "translation_status": "failed",
         "source_content_hash": "9ff5bbb3a040987e3037bdc5",
         "metadata_translation": {
           "run_id": "github-31759703410-1",
@@ -303884,17 +306452,18 @@
           "status": "complete"
         },
         "translation": {
-          "run_id": "github-32611680523-1",
+          "run_id": "github-33310062778-1",
           "policy_version": "faithful-translation-retry-v1",
-          "attempted_at": "2026-08-23T10:05:20.734623+08:00",
+          "attempted_at": "2026-08-30T20:04:53.799146+08:00",
           "purpose": "body_translation_backfill",
-          "status": "unavailable"
+          "status": "failed",
+          "error": "JSONDecodeError"
         }
       },
       "content_mode": "original",
       "content_level": "original",
       "source_language": "other",
-      "translation_status": "unavailable",
+      "translation_status": "failed",
       "source_content_hash": "9ff5bbb3a040987e3037bdc5",
       "body_chars": 29715,
       "work_tags": {
@@ -381114,16 +383683,27 @@
   ],
   "top": [
     "b1206f2af34f",
-    "6597afea514d",
-    "4fa13c7cd30d"
+    "e29bdb5d7aef",
+    "6597afea514d"
   ],
   "sources": [
     {
       "name": "爱分析",
       "ok": true,
-      "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:211m_remaining",
+      "new": 1,
+      "fetched": 7,
+      "eligible": 3,
+      "prefiltered": 4,
+      "prefilter_dropped": {
+        "time": 0,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 4,
+        "excluded": 0
+      },
+      "skipped_seen": 2,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 12.0,
@@ -381141,7 +383721,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1203m_remaining",
+      "skip_reason": "frequency_gate:807m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -381157,7 +383737,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1203m_remaining",
+      "skip_reason": "frequency_gate:807m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -381173,7 +383753,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1203m_remaining",
+      "skip_reason": "frequency_gate:807m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -381193,7 +383773,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1203m_remaining",
+      "skip_reason": "frequency_gate:807m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -381211,7 +383791,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1203m_remaining",
+      "skip_reason": "frequency_gate:807m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -381231,7 +383811,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1203m_remaining",
+      "skip_reason": "frequency_gate:807m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -381251,7 +383831,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1203m_remaining",
+      "skip_reason": "frequency_gate:807m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -381267,9 +383847,20 @@
     {
       "name": "SHRM Research",
       "ok": true,
-      "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:75m_remaining",
+      "new": 2,
+      "fetched": 20107,
+      "eligible": 27,
+      "prefiltered": 20080,
+      "prefilter_dropped": {
+        "time": 18401,
+        "missing_date": 0,
+        "path": 1613,
+        "keyword": 66,
+        "excluded": 0
+      },
+      "skipped_seen": 0,
+      "limit_reached": true,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 48.0,
@@ -381286,9 +383877,20 @@
     {
       "name": "Mercer Insights",
       "ok": true,
-      "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:75m_remaining",
+      "new": 2,
+      "fetched": 2305,
+      "eligible": 39,
+      "prefiltered": 2266,
+      "prefilter_dropped": {
+        "time": 1873,
+        "missing_date": 0,
+        "path": 302,
+        "keyword": 88,
+        "excluded": 3
+      },
+      "skipped_seen": 1,
+      "limit_reached": true,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 48.0,
@@ -381307,7 +383909,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1203m_remaining",
+      "skip_reason": "frequency_gate:807m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -381325,7 +383927,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1203m_remaining",
+      "skip_reason": "frequency_gate:807m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -381343,9 +383945,20 @@
     {
       "name": "Microsoft WorkLab",
       "ok": true,
-      "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:75m_remaining",
+      "new": 2,
+      "fetched": 285,
+      "eligible": 33,
+      "prefiltered": 252,
+      "prefilter_dropped": {
+        "time": 147,
+        "missing_date": 4,
+        "path": 17,
+        "keyword": 84,
+        "excluded": 0
+      },
+      "skipped_seen": 1,
+      "limit_reached": true,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 48.0,
@@ -381363,9 +383976,20 @@
     {
       "name": "Lightcast Research",
       "ok": true,
-      "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:75m_remaining",
+      "new": 2,
+      "fetched": 1533,
+      "eligible": 48,
+      "prefiltered": 1485,
+      "prefilter_dropped": {
+        "time": 0,
+        "missing_date": 0,
+        "path": 1428,
+        "keyword": 57,
+        "excluded": 0
+      },
+      "skipped_seen": 3,
+      "limit_reached": true,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 48.0,
@@ -381382,9 +384006,20 @@
     {
       "name": "Snowflake Release Notes",
       "ok": true,
-      "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:123m_remaining",
+      "new": 2,
+      "fetched": 6,
+      "eligible": 6,
+      "prefiltered": 0,
+      "prefilter_dropped": {
+        "time": 0,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 4,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "structured_high",
         "fetch_interval_hours": 6.0,
@@ -381399,8 +384034,19 @@
       "name": "Aloudata 博客",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:123m_remaining",
+      "fetched": 90,
+      "eligible": 0,
+      "prefiltered": 90,
+      "prefilter_dropped": {
+        "time": 90,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 0,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -381415,8 +384061,19 @@
       "name": "Aloudata 动态",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:123m_remaining",
+      "fetched": 57,
+      "eligible": 3,
+      "prefiltered": 54,
+      "prefilter_dropped": {
+        "time": 54,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 3,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -381431,8 +384088,19 @@
       "name": "Databricks Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:123m_remaining",
+      "fetched": 10,
+      "eligible": 10,
+      "prefiltered": 0,
+      "prefilter_dropped": {
+        "time": 0,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 10,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -381447,8 +384115,19 @@
       "name": "dbt Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:123m_remaining",
+      "fetched": 20,
+      "eligible": 2,
+      "prefiltered": 18,
+      "prefilter_dropped": {
+        "time": 18,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 2,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -381463,8 +384142,19 @@
       "name": "ThoughtSpot Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:123m_remaining",
+      "fetched": 10,
+      "eligible": 3,
+      "prefiltered": 7,
+      "prefilter_dropped": {
+        "time": 7,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 3,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -381482,8 +384172,19 @@
       "name": "Metabase Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:123m_remaining",
+      "fetched": 10,
+      "eligible": 1,
+      "prefiltered": 9,
+      "prefilter_dropped": {
+        "time": 9,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 1,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -381501,7 +384202,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1203m_remaining",
+      "skip_reason": "frequency_gate:807m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -381520,8 +384221,19 @@
       "name": "ClickHouse Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:123m_remaining",
+      "fetched": 20,
+      "eligible": 8,
+      "prefiltered": 12,
+      "prefilter_dropped": {
+        "time": 12,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 8,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -381536,8 +384248,19 @@
       "name": "AWS Big Data Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:123m_remaining",
+      "fetched": 20,
+      "eligible": 13,
+      "prefiltered": 7,
+      "prefilter_dropped": {
+        "time": 7,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 13,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -381552,8 +384275,19 @@
       "name": "Fivetran Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:123m_remaining",
+      "fetched": 20,
+      "eligible": 4,
+      "prefiltered": 16,
+      "prefilter_dropped": {
+        "time": 16,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 4,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -381568,8 +384302,19 @@
       "name": "StarRocks Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:123m_remaining",
+      "fetched": 10,
+      "eligible": 0,
+      "prefiltered": 10,
+      "prefilter_dropped": {
+        "time": 10,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 0,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -381585,7 +384330,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1203m_remaining",
+      "skip_reason": "frequency_gate:807m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -381602,8 +384347,19 @@
       "name": "帆软",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:123m_remaining",
+      "fetched": 10,
+      "eligible": 0,
+      "prefiltered": 10,
+      "prefilter_dropped": {
+        "time": 10,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 0,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -381621,7 +384377,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1203m_remaining",
+      "skip_reason": "frequency_gate:807m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -381637,7 +384393,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1203m_remaining",
+      "skip_reason": "frequency_gate:807m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -381653,7 +384409,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1203m_remaining",
+      "skip_reason": "frequency_gate:807m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -381669,7 +384425,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1203m_remaining",
+      "skip_reason": "frequency_gate:807m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -381683,9 +384439,20 @@
     {
       "name": "InfoQ（AI/数据工程）",
       "ok": true,
-      "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:211m_remaining",
+      "new": 8,
+      "fetched": 15,
+      "eligible": 14,
+      "prefiltered": 1,
+      "prefilter_dropped": {
+        "time": 1,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 4,
+      "limit_reached": true,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "media_targeted",
         "fetch_interval_hours": 12.0,
@@ -381701,7 +384468,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1203m_remaining",
+      "skip_reason": "frequency_gate:807m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -381717,7 +384484,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1203m_remaining",
+      "skip_reason": "frequency_gate:807m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -381731,9 +384498,20 @@
     {
       "name": "Hacker News（数据关键词）",
       "ok": true,
-      "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:211m_remaining",
+      "new": 3,
+      "fetched": 9,
+      "eligible": 3,
+      "prefiltered": 6,
+      "prefilter_dropped": {
+        "time": 6,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 0,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "community_targeted",
         "fetch_interval_hours": 12.0,
@@ -381747,20 +384525,9 @@
     {
       "name": "Bluesky 数据社区",
       "ok": true,
-      "new": 10,
-      "fetched": 12,
-      "eligible": 12,
-      "prefiltered": 0,
-      "prefilter_dropped": {
-        "time": 0,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 0,
-        "excluded": 0
-      },
-      "skipped_seen": 0,
-      "limit_reached": true,
-      "schedule_reason": "interval_elapsed",
+      "new": 0,
+      "skipped": true,
+      "skip_reason": "frequency_gate:324m_remaining",
       "control": {
         "tier": "community_targeted",
         "fetch_interval_hours": 12.0,
@@ -381775,8 +384542,19 @@
       "name": "Snowflake Engineering（Medium）",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:123m_remaining",
+      "fetched": 10,
+      "eligible": 10,
+      "prefiltered": 0,
+      "prefilter_dropped": {
+        "time": 0,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 10,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -381792,9 +384570,20 @@
     {
       "name": "Microsoft Power BI（Power Platform Blog）",
       "ok": true,
-      "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:123m_remaining",
+      "new": 1,
+      "fetched": 10,
+      "eligible": 1,
+      "prefiltered": 9,
+      "prefilter_dropped": {
+        "time": 9,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 0,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -381811,8 +384600,19 @@
       "name": "Hex Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:211m_remaining",
+      "fetched": 390,
+      "eligible": 1,
+      "prefiltered": 389,
+      "prefilter_dropped": {
+        "time": 377,
+        "missing_date": 11,
+        "path": 0,
+        "keyword": 1,
+        "excluded": 0
+      },
+      "skipped_seen": 1,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -381829,9 +384629,20 @@
     {
       "name": "Amplitude Blog",
       "ok": true,
-      "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:211m_remaining",
+      "new": 5,
+      "fetched": 2069,
+      "eligible": 656,
+      "prefiltered": 1413,
+      "prefilter_dropped": {
+        "time": 620,
+        "missing_date": 0,
+        "path": 1,
+        "keyword": 792,
+        "excluded": 0
+      },
+      "skipped_seen": 6,
+      "limit_reached": true,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -381848,9 +384659,20 @@
     {
       "name": "Netflix Technology Blog",
       "ok": true,
-      "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:211m_remaining",
+      "new": 1,
+      "fetched": 10,
+      "eligible": 2,
+      "prefiltered": 8,
+      "prefilter_dropped": {
+        "time": 8,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 1,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "engineering_targeted",
         "fetch_interval_hours": 12.0,
@@ -381867,19 +384689,8 @@
       "name": "Google Cloud Data Analytics Blog",
       "ok": true,
       "new": 0,
-      "fetched": 8,
-      "eligible": 8,
-      "prefiltered": 0,
-      "prefilter_dropped": {
-        "time": 0,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 0,
-        "excluded": 0
-      },
-      "skipped_seen": 8,
-      "limit_reached": false,
-      "schedule_reason": "interval_elapsed",
+      "skipped": true,
+      "skip_reason": "frequency_gate:324m_remaining",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -381899,8 +384710,19 @@
       "name": "Google BigQuery Release Notes",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:123m_remaining",
+      "fetched": 20,
+      "eligible": 4,
+      "prefiltered": 16,
+      "prefilter_dropped": {
+        "time": 16,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 4,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "structured_high",
         "fetch_interval_hours": 6.0,
@@ -381918,8 +384740,19 @@
       "name": "Google Looker Release Notes",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:211m_remaining",
+      "fetched": 20,
+      "eligible": 1,
+      "prefiltered": 19,
+      "prefilter_dropped": {
+        "time": 17,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 2,
+        "excluded": 0
+      },
+      "skipped_seen": 1,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "structured_high",
         "fetch_interval_hours": 12.0,
@@ -381937,8 +384770,19 @@
       "name": "Microsoft Fabric Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:211m_remaining",
+      "fetched": 10,
+      "eligible": 0,
+      "prefiltered": 10,
+      "prefilter_dropped": {
+        "time": 10,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 0,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -381957,8 +384801,19 @@
       "name": "DuckDB Engineering Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:123m_remaining",
+      "fetched": 10,
+      "eligible": 6,
+      "prefiltered": 4,
+      "prefilter_dropped": {
+        "time": 3,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 1
+      },
+      "skipped_seen": 6,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -381976,8 +384831,19 @@
       "name": "Apache Iceberg Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:211m_remaining",
+      "fetched": 13,
+      "eligible": 1,
+      "prefiltered": 12,
+      "prefilter_dropped": {
+        "time": 12,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 1,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 12.0,
@@ -381994,8 +384860,19 @@
       "name": "TiDB Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:211m_remaining",
+      "fetched": 10,
+      "eligible": 2,
+      "prefiltered": 8,
+      "prefilter_dropped": {
+        "time": 7,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 1
+      },
+      "skipped_seen": 2,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -382013,8 +384890,19 @@
       "name": "Apache Doris Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:211m_remaining",
+      "fetched": 20,
+      "eligible": 0,
+      "prefiltered": 20,
+      "prefilter_dropped": {
+        "time": 20,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 0,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -382031,26 +384919,28 @@
     }
   ],
   "structured_content": {
-    "run_id": "github-33294590212-1",
-    "attempted": 4,
-    "ready": 3,
-    "figures": 5,
+    "run_id": "github-33310062778-1",
+    "attempted": 7,
+    "ready": 6,
+    "figures": 6,
     "tables": 2,
-    "media_cached": 1,
+    "media_cached": 2,
     "media_link_only": 4,
-    "candidate_duplicates": 29,
-    "candidate_quality_rejected": 14,
+    "candidate_duplicates": 47,
+    "candidate_quality_rejected": 43,
     "strategies": {
       "semantic_container": 3,
-      "fetch_failed": 1
+      "fetch_failed": 1,
+      "nested_content": 3
     },
     "quality_statuses": {
-      "pass": 3,
+      "pass": 6,
       "unknown": 1
     },
     "content_modes": {
-      "translated": 3,
-      "unknown": 1
+      "translated": 5,
+      "unknown": 1,
+      "original": 1
     },
     "fallbacks": {
       "no_usable_original": 1
@@ -382063,6 +384953,13 @@
         "tables": 1,
         "media_cached": 0
       },
+      "Snowflake Engineering（Medium）": {
+        "attempted": 1,
+        "ready": 0,
+        "figures": 0,
+        "tables": 0,
+        "media_cached": 0
+      },
       "Claude 官方博客": {
         "attempted": 2,
         "ready": 2,
@@ -382070,32 +384967,32 @@
         "tables": 1,
         "media_cached": 1
       },
-      "Snowflake Engineering（Medium）": {
-        "attempted": 1,
-        "ready": 0,
-        "figures": 0,
+      "Amplitude Blog": {
+        "attempted": 3,
+        "ready": 3,
+        "figures": 1,
         "tables": 0,
-        "media_cached": 0
+        "media_cached": 1
       }
     },
     "catalog": {
-      "events": 300,
-      "structured": 287,
-      "renderable": 286,
-      "current_pass": 280,
+      "events": 303,
+      "structured": 290,
+      "renderable": 289,
+      "current_pass": 283,
       "parser_debt": 7,
-      "display_trimmed": 3,
+      "display_trimmed": 2,
       "display_suspect": 0,
       "embedded_ui_trimmed": 0,
       "embedded_ui_blocks": 0,
       "modes": {
-        "original": 55,
+        "original": 56,
         "ai_fallback": 3,
-        "translated": 232,
+        "translated": 234,
         "missing": 10
       },
       "processor_versions": {
-        "original-first-v7": 297,
+        "original-first-v7": 300,
         "missing": 2,
         "original-first-v1": 1
       }
@@ -382114,8 +385011,8 @@
       "eligible": 25,
       "attempted": 12,
       "ready": 3,
-      "original": 0,
-      "translated": 3,
+      "original": 1,
+      "translated": 2,
       "deferred_foreign": 8,
       "deferred_budget": 8,
       "stored_original_retries": 11,

@@ -314,11 +314,16 @@ class GrowthShareTests(unittest.TestCase):
         self.assertEqual(result["status"], "already_synced")
         self.assertEqual(request.call_count, 1)
 
-    def test_growth_workflow_has_five_daily_slots_and_deploy_does_not_post(self):
+    def test_growth_workflow_has_five_idempotent_daily_slots_with_retries(self):
         workflow = (ROOT / ".github" / "workflows" / "growth-share.yml").read_text(encoding="utf-8")
         deploy = (ROOT / ".github" / "workflows" / "deploy.yml").read_text(encoding="utf-8")
-        for cron in ("47 0 * * *", "47 3 * * *", "47 6 * * *", "47 9 * * *", "47 12 * * *"):
-            self.assertIn(f'cron: "{cron}"', workflow)
+        for hour, slot in ((0, 0), (3, 1), (6, 2), (9, 3), (12, 4)):
+            primary = f"47 {hour} * * *"
+            retry = f"57 {hour} * * *"
+            self.assertIn(f'cron: "{primary}"', workflow)
+            self.assertIn(f'cron: "{retry}"', workflow)
+            self.assertIn(f'"{primary}"|"{retry}") slot={slot}', workflow)
+        self.assertEqual(workflow.count("- cron:"), 10)
         self.assertIn('python3 pipeline/growth_share.py --slot "$GROWTH_SLOT"', workflow)
         self.assertIn("python3 pipeline/growth_share.py --sync-profile", workflow)
         self.assertNotIn("pipeline/growth_share.py", deploy)

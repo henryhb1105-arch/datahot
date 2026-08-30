@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-87tqZFhfGETL5HkyCJ/OHisjsA54GU6DSBZbud/qYMw=' 'sha256-Q//hzqJBfYj3lN2i/tE5/m81oOA6MV6XDIKB0w0CTjo='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-17YJvYWN1LaCgDATVwkxVYvXznMUDgLw5K/zoM8JCN0=' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-Q//hzqJBfYj3lN2i/tE5/m81oOA6MV6XDIKB0w0CTjo='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Claude Code指南：CLAUDE.md、技能、钩子与子代理的使用时机 · DataHot</title>
@@ -11,6 +11,11 @@
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://datahot.xiahongbin.com/e/63587adfe4de.html">
 <meta property="og:site_name" content="DataHot · 数据领域 AI 热榜">
+<meta property="og:image" content="https://datahot.xiahongbin.com/media/63587adfe4de/022ad04c5ecd284301be8c56.png">
+<meta property="og:image:alt" content="技能通过系统提示触发。">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://datahot.xiahongbin.com/media/63587adfe4de/022ad04c5ecd284301be8c56.png">
+<meta name="twitter:image:alt" content="技能通过系统提示触发。">
 <link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
@@ -21,7 +26,7 @@
 <script defer src="../favorites.js"></script>
 <script defer src="../content-feedback.js"></script>
 <script defer src="../detail.js"></script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"Claude Code指南：CLAUDE.md、技能、钩子与子代理的使用时机","description":"本文是Anthropic官方发布的Claude Code使用指南，详细解释了规则（Rules）、技能（Skills）、钩子（Hooks）和子代理（Subagents）四种配置机制的区别与适用场景。规则可配置路径作用域以按需加载，技能通过斜杠命令或自动匹配触发，子代理则用于分工协作。文中给出具体建议，","datePublished":"2026-06-18T08:00:00+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://claude.com/blog/steering-claude-code-skills-hooks-rules-subagents-and-more"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"Claude Code指南：CLAUDE.md、技能、钩子与子代理的使用时机","description":"本文是Anthropic官方发布的Claude Code使用指南，详细解释了规则（Rules）、技能（Skills）、钩子（Hooks）和子代理（Subagents）四种配置机制的区别与适用场景。规则可配置路径作用域以按需加载，技能通过斜杠命令或自动匹配触发，子代理则用于分工协作。文中给出具体建议，","datePublished":"2026-06-18T08:00:00+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://claude.com/blog/steering-claude-code-skills-hooks-rules-subagents-and-more","image":"https://datahot.xiahongbin.com/media/63587adfe4de/022ad04c5ecd284301be8c56.png"}</script>
 <style>
   :root{
     color-scheme: light dark;

@@ -84,6 +84,48 @@ class GrowthShareTests(unittest.TestCase):
             self.assertNotEqual(growth_share.hook_first_slot(now), growth_share.bilingual_slot(now))
             self.assertNotEqual(growth_share.hook_first_slot(now), growth_share.image_card_slot(now))
 
+    def test_stale_cron_cannot_consume_the_next_local_days_rkey(self):
+        delayed = datetime(2026, 8, 31, 0, 59, tzinfo=growth_share.TZ)
+        state = growth_share.scheduled_run_state("57 12 * * *", now=delayed)
+        self.assertTrue(state["stale"])
+        self.assertEqual(state["scheduled_at"], "2026-08-30T12:57:00Z")
+        self.assertEqual(state["delay_seconds"], 4 * 60 * 60 + 2 * 60)
+
+        on_time = datetime(2026, 8, 31, 20, 59, tzinfo=growth_share.TZ)
+        state = growth_share.scheduled_run_state("57 12 * * *", now=on_time)
+        self.assertFalse(state["stale"])
+        self.assertEqual(state["delay_seconds"], 2 * 60)
+
+    def test_scheduled_cron_validation_rejects_dynamic_or_invalid_values(self):
+        for schedule in ("", "*/5 12 * * *", "61 12 * * *", "57 24 * * *", "57 12 * *"):
+            with self.subTest(schedule=schedule), self.assertRaises(ValueError):
+                growth_share.scheduled_run_state(schedule)
+
+    def test_stale_schedule_exits_before_reading_data_or_authenticating(self):
+        stale = {
+            "stale": True,
+            "scheduled_at": "2026-08-30T12:57:00Z",
+            "delay_seconds": 14520,
+        }
+        with patch.dict(growth_share.os.environ, {
+            "GROWTH_BSKY_ENABLED": "true",
+            "BSKY_HANDLE": "datahot.example",
+            "BSKY_APP_PASSWORD": "unit-test-only",
+        }, clear=False), patch.object(
+            growth_share, "scheduled_run_state", return_value=stale,
+        ), patch.object(
+            growth_share.Path, "read_text", side_effect=AssertionError("data must not be read"),
+        ), patch.object(growth_share, "publish") as publish, patch("builtins.print") as output:
+            result = growth_share.main([
+                "--slot", "4", "--scheduled-cron", "57 12 * * *",
+            ])
+        self.assertEqual(result, 0)
+        publish.assert_not_called()
+        payload = json.loads(output.call_args.args[0])
+        self.assertEqual(payload["status"], "skipped")
+        self.assertEqual(payload["reason"], "stale_schedule")
+        self.assertEqual(payload["slot"], 4)
+
     def test_post_is_bounded_and_has_utf8_link_facet(self):
         event = self.event(title="数据" * 80)
         event["category"] = "agent"
@@ -606,7 +648,9 @@ class GrowthShareTests(unittest.TestCase):
             self.assertIn(f'cron: "{retry}"', workflow)
             self.assertIn(f'"{primary}"|"{retry}") slot={slot}', workflow)
         self.assertEqual(workflow.count("- cron:"), 10)
-        self.assertIn('python3 pipeline/growth_share.py --slot "$GROWTH_SLOT"', workflow)
+        self.assertIn('args=(--slot "$GROWTH_SLOT")', workflow)
+        self.assertIn('args+=(--scheduled-cron "$GROWTH_SCHEDULE")', workflow)
+        self.assertIn('python3 pipeline/growth_share.py "${args[@]}"', workflow)
         self.assertIn("python3 pipeline/growth_share.py --sync-handle", workflow)
         self.assertIn("python3 pipeline/growth_share.py --sync-profile", workflow)
         self.assertNotIn("pipeline/growth_share.py", deploy)

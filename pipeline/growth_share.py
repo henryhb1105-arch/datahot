@@ -30,6 +30,7 @@ IMAGE_CARD_CANDIDATE_LIMIT = 12
 MAX_CARD_IMAGE_BYTES = 1_000_000
 RECENT_POST_LOOKBACK_DAYS = 7
 RECENT_POST_LIMIT = 100
+MAX_SCHEDULE_DELAY = timedelta(minutes=90)
 PROFILE_DISPLAY_NAME = "DataHot｜数据与 AI 热点"
 PROFILE_DESCRIPTION = (
     "每天精选数据、分析与 AI 工程动态，关注 Data Agent、数据平台、实时计算与团队实践。"
@@ -222,6 +223,31 @@ def daily_slot_tid(now, slot=0):
 def daily_tid(now):
     """Backward-compatible alias for the original first daily slot."""
     return daily_slot_tid(now, 0)
+
+
+def scheduled_run_state(schedule, *, now=None, max_delay=MAX_SCHEDULE_DELAY):
+    """Reject a delayed daily cron before it can consume a later day's rkey."""
+    fields = str(schedule or "").strip().split()
+    if len(fields) != 5 or fields[2:] != ["*", "*", "*"]:
+        raise ValueError("scheduled cron must be a fixed daily minute/hour expression")
+    try:
+        minute, hour = int(fields[0]), int(fields[1])
+    except ValueError as error:
+        raise ValueError("scheduled cron minute/hour must be integers") from error
+    if not 0 <= minute <= 59 or not 0 <= hour <= 23:
+        raise ValueError("scheduled cron minute/hour is out of range")
+
+    now = now or datetime.now(TZ)
+    utc_now = now.astimezone(ZoneInfo("UTC"))
+    scheduled_at = utc_now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+    if scheduled_at > utc_now:
+        scheduled_at -= timedelta(days=1)
+    delay = utc_now - scheduled_at
+    return {
+        "stale": delay > max_delay,
+        "scheduled_at": scheduled_at.isoformat().replace("+00:00", "Z"),
+        "delay_seconds": int(delay.total_seconds()),
+    }
 
 
 def _json_request(url, *, payload=None, token=""):
@@ -527,6 +553,7 @@ def main(argv=None):
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--sync-profile", action="store_true")
     parser.add_argument("--sync-handle", action="store_true")
+    parser.add_argument("--scheduled-cron", default="")
     args = parser.parse_args(argv)
     enabled = os.getenv("GROWTH_BSKY_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}
     handle = os.getenv("BSKY_HANDLE", "").strip()
@@ -547,6 +574,18 @@ def main(argv=None):
             raise SystemExit("GROWTH_BSKY_ENABLED=true 但缺少 BSKY_HANDLE/BSKY_APP_PASSWORD")
         print(json.dumps(sync_profile(handle=handle, password=password), ensure_ascii=False))
         return 0
+
+    if args.scheduled_cron:
+        schedule_state = scheduled_run_state(args.scheduled_cron)
+        if schedule_state["stale"]:
+            print(json.dumps({
+                "status": "skipped",
+                "reason": "stale_schedule",
+                "slot": args.slot,
+                "scheduled_at": schedule_state["scheduled_at"],
+                "delay_seconds": schedule_state["delay_seconds"],
+            }, ensure_ascii=False))
+            return 0
 
     data = json.loads(Path(args.data).read_text(encoding="utf-8"))
     if args.dry_run or not enabled:

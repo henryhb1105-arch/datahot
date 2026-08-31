@@ -81,6 +81,7 @@ jobs:
           GROWTH_BSKY_ENABLED: ${{ vars.GROWTH_BSKY_ENABLED || 'false' }}
           GROWTH_MODE: ${{ inputs.mode || 'publish' }}
           GROWTH_SLOT: ${{ steps.slot.outputs.slot }}
+          GROWTH_SCHEDULE: ${{ github.event.schedule }}
           BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
           BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
         run: |
@@ -88,6 +89,12 @@ jobs:
             "sync_handle") python3 pipeline/growth_share.py --sync-handle ;;
             "sync_profile") python3 pipeline/growth_share.py --sync-profile ;;
             "audit") python3 pipeline/bluesky_audit.py ;;
-            "publish") python3 pipeline/growth_share.py --slot "$GROWTH_SLOT" ;;
+            "publish")
+              args=(--slot "$GROWTH_SLOT")
+              if [ -n "$GROWTH_SCHEDULE" ]; then
+                args+=(--scheduled-cron "$GROWTH_SCHEDULE")
+              fi
+              python3 pipeline/growth_share.py "${args[@]}"
+              ;;
             *) echo "未知运营动作：$GROWTH_MODE" >&2; exit 1 ;;
           esac

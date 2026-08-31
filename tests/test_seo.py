@@ -57,6 +57,24 @@ class SitemapTests(unittest.TestCase):
         self.assertEqual(locations, [f"{SITE_BASE}/", f"{SITE_BASE}/e/a.html", f"{SITE_BASE}/e/b.html"])
         self.assertEqual(validate_sitemap(payload, site_base=SITE_BASE), [])
 
+    def test_sitemap_emits_valid_per_url_lastmod_dates(self):
+        payload = build_sitemap(
+            ["", "e/a.html"], SITE_BASE,
+            lastmod_by_path={"": "2026-08-31", "e/a.html": "2026-08-29"},
+        )
+        root = ET.fromstring(payload)
+        rows = {
+            item.find("sm:loc", NS).text: item.find("sm:lastmod", NS).text
+            for item in root.findall("sm:url", NS)
+        }
+        self.assertEqual(rows, {
+            f"{SITE_BASE}/": "2026-08-31",
+            f"{SITE_BASE}/e/a.html": "2026-08-29",
+        })
+        self.assertEqual(validate_sitemap(payload, site_base=SITE_BASE), [])
+        with self.assertRaises(ValueError):
+            build_sitemap([""], SITE_BASE, lastmod_by_path={"": "2026-08-31T12:00:00Z"})
+
     def test_invalid_or_missing_urls_are_rejected(self):
         with self.assertRaises(ValueError):
             absolute_public_url("../admin.html", SITE_BASE)
@@ -88,6 +106,10 @@ class SitemapTests(unittest.TestCase):
 
 
 class SearchMetadataTests(unittest.TestCase):
+    def test_sitemap_date_treats_naive_source_times_as_shanghai_local(self):
+        self.assertEqual(build_site.sitemap_date("2026-08-31T23:30:00", "fallback"), "2026-08-31")
+        self.assertEqual(build_site.sitemap_date("invalid", "2026-08-30"), "2026-08-30")
+
     def test_page_shell_can_emit_canonical_url_and_noindex(self):
         document = build_site.page_shell(
             "标题", "描述", "", "", "", canonical_path="topics.html",

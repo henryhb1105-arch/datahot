@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
+from datetime import date
 from pathlib import Path, PurePosixPath
 from urllib.parse import urlsplit
 
@@ -61,10 +62,25 @@ def public_sitemap_paths(
     return tuple(sorted({_normalize_path(path) for path in paths}, key=lambda value: (value != "", value)))
 
 
-def build_sitemap(paths, site_base: str) -> bytes:
+def _normalize_lastmod(value: str) -> str:
+    candidate = str(value or "").strip()
+    try:
+        parsed = date.fromisoformat(candidate)
+    except ValueError as exc:
+        raise ValueError(f"invalid sitemap lastmod: {value!r}") from exc
+    if parsed.isoformat() != candidate:
+        raise ValueError(f"invalid sitemap lastmod: {value!r}")
+    return candidate
+
+
+def build_sitemap(paths, site_base: str, *, lastmod_by_path=None) -> bytes:
     """Build a deterministic Sitemap Protocol document containing canonical URLs."""
     ET.register_namespace("", SITEMAP_NAMESPACE)
     root = ET.Element(f"{{{SITEMAP_NAMESPACE}}}urlset")
+    normalized_lastmod = {
+        _normalize_path(path): _normalize_lastmod(value)
+        for path, value in (lastmod_by_path or {}).items()
+    }
     normalized_paths = sorted(
         {_normalize_path(path) for path in paths}, key=lambda value: (value != "", value),
     )
@@ -73,6 +89,8 @@ def build_sitemap(paths, site_base: str) -> bytes:
     for path in normalized_paths:
         url = ET.SubElement(root, f"{{{SITEMAP_NAMESPACE}}}url")
         ET.SubElement(url, f"{{{SITEMAP_NAMESPACE}}}loc").text = absolute_public_url(path, site_base)
+        if path in normalized_lastmod:
+            ET.SubElement(url, f"{{{SITEMAP_NAMESPACE}}}lastmod").text = normalized_lastmod[path]
     return b'<?xml version="1.0" encoding="UTF-8"?>\n' + ET.tostring(root, encoding="utf-8") + b"\n"
 
 
@@ -115,6 +133,16 @@ def validate_sitemap(payload: bytes, *, site_base: str, site_root=None):
             target = Path(site_root) / (relative or "index.html")
             if not target.is_file():
                 errors.append(f"missing:{location}")
+    for url in root.findall(f"{{{SITEMAP_NAMESPACE}}}url"):
+        lastmods = url.findall(f"{{{SITEMAP_NAMESPACE}}}lastmod")
+        if len(lastmods) > 1:
+            errors.append("duplicate_lastmod")
+            continue
+        if lastmods:
+            try:
+                _normalize_lastmod(lastmods[0].text or "")
+            except ValueError:
+                errors.append(f"invalid_lastmod:{lastmods[0].text or ''}")
     return errors
 
 
@@ -127,10 +155,10 @@ def robots_text(site_base: str) -> str:
     )
 
 
-def write_search_discovery(site_root, paths, *, site_base: str):
+def write_search_discovery(site_root, paths, *, site_base: str, lastmod_by_path=None):
     """Write and validate sitemap.xml plus the root robots.txt discovery pointer."""
     site_root = Path(site_root)
-    sitemap = build_sitemap(paths, site_base)
+    sitemap = build_sitemap(paths, site_base, lastmod_by_path=lastmod_by_path)
     errors = validate_sitemap(sitemap, site_base=site_base, site_root=site_root)
     if errors:
         raise RuntimeError(f"invalid sitemap: {', '.join(errors[:10])}")

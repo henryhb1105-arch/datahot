@@ -1,6 +1,992 @@
 {
-  "generated_at": "2026-08-31T10:29:43.461413+08:00",
+  "generated_at": "2026-08-31T13:36:16.965801+08:00",
   "events": [
+    {
+      "event_id": "c23dcf4cbf7b",
+      "zh_title": "Snowflake用户级配额正式GA，支持AI功能用量限制",
+      "zh_summary": "Snowflake 8月15日至19日的版本说明显示，用户级配额功能正式可用，允许配额管理员为单个用户设置月度/每日信用额度，并可覆盖AI Functions、Cortex Agents等AI功能。管理员可配置阈值通知，并在用户达到配额后自动阻止其AI访问，配置变更约5-10分钟生效。同时新增账户级视图QUOTA_ACCESS_BLOCK_HISTORY，用于查看所有被阻止用户。",
+      "reason": "数据平台管理者可借此控制AI功能成本和用户资源消耗，是平台AI化后治理与成本管理的关键实践。",
+      "full_zh": "10.29 版本说明：2026年8月15日 - 2026年8月19日¶\n\n注意\n\n此版本已完成。有关这些版本说明的预发布版本与最终版本之间的差异，请参阅版本说明变更日志。\n\n成本管理更新¶\n\n每用户配额（正式发布）¶\n\n每用户配额现已正式发布。每用户配额允许配额管理员为单个用户设置每月和每日信用额度，并在各种可配置阈值处通知用户。配额可针对账户中的所有用户或标签过滤的子集，并涵盖仓库计算和AI功能域，包括AI函数、Snowflake CoCo、Cortex Agents和Snowflake CoWork。对于AI功能，管理员可以配置配额，在用户达到AI配额限制时自动阻止其AI访问，并在周期重置时解除阻止。\n\n随着正式发布，包括以下更新：\n\n可配置的最终用户阻止通知：当启用阻止执行时，管理员现在可以控制被阻止的用户是否收到电子邮件通知。向SET_BLOCK_ENFORCEMENT_ENABLED传递第二个布尔参数。例如，SET_BLOCK_ENFORCEMENT_ENABLED(TRUE, TRUE)启用执行并向被阻止的用户发送电子邮件通知。今后，最终用户通知将默认禁用，管理员必须显式启用最终用户通知。月度或每日通知阈值目标设定：通知阈值现在可以限定为月度或每日信用额度。将'MONTHLY'或'DAILY'作为第四个参数传递给ADD_NOTIFICATION_THRESHOLD。ACCOUNT_USAGE.QUOTA_ACCESS_BLOCK_HISTORY视图：新的账户级视图，显示账户中所有配额中被阻止的所有用户。更快的执行传播：配置更改现在大约在5-10分钟内传播（以前最多15分钟）。\n\n以下公共预览方法在正式发布时已被替换或删除：\n\nGET_ACTIVE_BLOCKS()被替换为GET_ACTIVE_BLOCKS_V2()。GET_PER_USER_USAGE_PREVIEW()和SET_REFRESH_TIER()不再可用。配额评估现在在几分钟内对所有账户进行；不需要单独的刷新层级设置。\n\n有关更多信息，请参阅每用户配额。\n\n成本异常异常监控器（预览）¶\n\n在此版本中，Snowflake荣幸地宣布公开预览异常监控器。到目前为止，Snowflake检测整个账户或整个组织的成本异常，这可能过于粗糙，无法捕捉单个团队或项目内的激增。异常监控器允许您使用对象标签和服务类型定义自己的范围，因此您可以单独监控业务单元、成本中心或项目。\n\nSnowflake每天将消耗归属于每个监控器，对其运行相同的检测算法，并可向特定于该监控器的通知列表发送电子邮件。每个账户最多可有20个监控器，每个监控器跟踪信用或AI信用。\n\n您可以使用Snowsight或SQL处理异常监控器。\n\nSnowsight： 异常选项卡在成本管理现在包括用于选择监控器、选择信用族以及从标签和服务类型构建范围的过滤器。您可以在保存之前查看范围产生的异常，并在重新标记资源后重新计算监控器。有关更多信息，请参阅在Snowsight中处理异常监控器。  ANOMALY_INSIGHTS类：新方法创建、更新、读取和删除监控器，管理每个监控器的通知列表，并测试配置而不保存。有关更多信息，请参阅处理异常监控器。\n\n版本说明变更日志¶\n\n公告更新日期版本说明初始发布（预览）2026年8月13日每用户配额（正式发布）已添加至成本管理更新2026年8月14日版本说明最终发布2026年8月20日",
+      "content_blocks": [
+        {
+          "type": "heading",
+          "id": "b-2250301d7425",
+          "children": [
+            {
+              "type": "text",
+              "text": "10.29 版本说明：2026年8月15日 - 2026年8月19日",
+              "marks": [],
+              "id": "t-871e9aa2da52"
+            },
+            {
+              "type": "text",
+              "text": "¶",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://docs.snowflake.com/en/release-notes/2026/10_29#1029-release-notes-aug-15-2026-aug-19-2026"
+                }
+              ],
+              "id": "t-d1e0dab65e0c"
+            }
+          ],
+          "level": 2
+        },
+        {
+          "type": "paragraph",
+          "id": "b-0da15eb6ccfa",
+          "children": [
+            {
+              "type": "text",
+              "text": "注意",
+              "marks": [],
+              "id": "t-1d79d606811b"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-7c3b2400d3a2",
+          "children": [
+            {
+              "type": "text",
+              "text": "此版本已完成。有关这些版本说明的预发布版本与最终版本之间的差异，请参阅",
+              "marks": [],
+              "id": "t-3d96176301dc"
+            },
+            {
+              "type": "text",
+              "text": "版本说明变更日志",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://docs.snowflake.com/en/release-notes/2026/10_29#label-rel-notes-change-log-10-29"
+                }
+              ],
+              "id": "t-93e74bc92d15"
+            },
+            {
+              "type": "text",
+              "text": "。",
+              "marks": [],
+              "id": "t-f27b8ff18282"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-f833840354db",
+          "children": [
+            {
+              "type": "text",
+              "text": "成本管理更新",
+              "marks": [],
+              "id": "t-003eb80c5533"
+            },
+            {
+              "type": "text",
+              "text": "¶",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://docs.snowflake.com/en/release-notes/2026/10_29#cost-management-updates"
+                }
+              ],
+              "id": "t-34ef9a2d6fdc"
+            }
+          ],
+          "level": 2
+        },
+        {
+          "type": "heading",
+          "id": "b-5a95f855c884",
+          "children": [
+            {
+              "type": "text",
+              "text": "每用户配额（",
+              "marks": [],
+              "id": "t-9258922d29f6"
+            },
+            {
+              "type": "text",
+              "text": "正式发布",
+              "marks": [
+                "em"
+              ],
+              "id": "t-04ea6a330230"
+            },
+            {
+              "type": "text",
+              "text": "）",
+              "marks": [],
+              "id": "t-325ed027e2ef"
+            },
+            {
+              "type": "text",
+              "text": "¶",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://docs.snowflake.com/en/release-notes/2026/10_29#per-user-quotas-general-availability"
+                }
+              ],
+              "id": "t-cdf744de4382"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-c52fbe3a3968",
+          "children": [
+            {
+              "type": "text",
+              "text": "每用户配额现已正式发布。每用户配额允许配额管理员为单个用户设置每月和每日信用额度，并在各种可配置阈值处通知用户。配额可针对账户中的所有用户或标签过滤的子集，并涵盖仓库计算和AI功能域，包括AI函数、Snowflake CoCo、Cortex Agents和Snowflake CoWork。对于AI功能，管理员可以配置配额，在用户达到AI配额限制时自动阻止其AI访问，并在周期重置时解除阻止。",
+              "marks": [],
+              "id": "t-1a8b1148eaf8"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-1e0b18f66fb1",
+          "children": [
+            {
+              "type": "text",
+              "text": "随着正式发布，包括以下更新：",
+              "marks": [],
+              "id": "t-cabf2511b751"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "b-c2fd038c2318",
+          "ordered": false,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "可配置的最终用户阻止通知",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-c9163a704e44"
+                },
+                {
+                  "type": "text",
+                  "text": "：当启用阻止执行时，管理员现在可以控制被阻止的用户是否收到电子邮件通知。向",
+                  "marks": [],
+                  "id": "t-25d3c3d4a427"
+                },
+                {
+                  "type": "text",
+                  "text": "SET_BLOCK_ENFORCEMENT_ENABLED",
+                  "marks": [
+                    "code"
+                  ],
+                  "id": "t-5dd8eec1c1ad"
+                },
+                {
+                  "type": "text",
+                  "text": "传递第二个布尔参数。例如，",
+                  "marks": [],
+                  "id": "t-c259e2062ca6"
+                },
+                {
+                  "type": "text",
+                  "text": "SET_BLOCK_ENFORCEMENT_ENABLED(TRUE, TRUE)",
+                  "marks": [
+                    "code"
+                  ],
+                  "id": "t-4ef90080ced0"
+                },
+                {
+                  "type": "text",
+                  "text": "启用执行并向被阻止的用户发送电子邮件通知。今后，最终用户通知将默认禁用，管理员必须显式启用最终用户通知。",
+                  "marks": [],
+                  "id": "t-a61404ef74f8"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "月度或每日通知阈值目标设定",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-4f174f21d9c8"
+                },
+                {
+                  "type": "text",
+                  "text": "：通知阈值现在可以限定为月度或每日信用额度。将",
+                  "marks": [],
+                  "id": "t-46cf8e09afd5"
+                },
+                {
+                  "type": "text",
+                  "text": "'MONTHLY'",
+                  "marks": [
+                    "code"
+                  ],
+                  "id": "t-40ec5f263180"
+                },
+                {
+                  "type": "text",
+                  "text": "或",
+                  "marks": [],
+                  "id": "t-9ece0308e11d"
+                },
+                {
+                  "type": "text",
+                  "text": "'DAILY'",
+                  "marks": [
+                    "code"
+                  ],
+                  "id": "t-5b09d36ee0bd"
+                },
+                {
+                  "type": "text",
+                  "text": "作为第四个参数传递给",
+                  "marks": [],
+                  "id": "t-8f015ebf28e8"
+                },
+                {
+                  "type": "text",
+                  "text": "ADD_NOTIFICATION_THRESHOLD",
+                  "marks": [
+                    "code"
+                  ],
+                  "id": "t-dd97f1da1c36"
+                },
+                {
+                  "type": "text",
+                  "text": "。",
+                  "marks": [],
+                  "id": "t-71977ebb6a27"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "ACCOUNT_USAGE.QUOTA_ACCESS_BLOCK_HISTORY",
+                  "marks": [
+                    "strong",
+                    "code"
+                  ],
+                  "id": "t-40c956e633bc"
+                },
+                {
+                  "type": "text",
+                  "text": "视图",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-32c466732e9c"
+                },
+                {
+                  "type": "text",
+                  "text": "：新的账户级视图，显示账户中所有配额中被阻止的所有用户。",
+                  "marks": [],
+                  "id": "t-36ce0370dd02"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "更快的执行传播",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-b011e7906168"
+                },
+                {
+                  "type": "text",
+                  "text": "：配置更改现在大约在5-10分钟内传播（以前最多15分钟）。",
+                  "marks": [],
+                  "id": "t-c9afda8dd1a2"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-9369dcdf3864",
+          "children": [
+            {
+              "type": "text",
+              "text": "以下公共预览方法在正式发布时已被替换或删除：",
+              "marks": [],
+              "id": "t-7c730b9de14f"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "b-59d0dbd31051",
+          "ordered": false,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "GET_ACTIVE_BLOCKS()",
+                  "marks": [
+                    "code"
+                  ],
+                  "id": "t-222dab9a10d8"
+                },
+                {
+                  "type": "text",
+                  "text": "被替换为",
+                  "marks": [],
+                  "id": "t-113d4d52e1e9"
+                },
+                {
+                  "type": "text",
+                  "text": "GET_ACTIVE_BLOCKS_V2()",
+                  "marks": [
+                    "code"
+                  ],
+                  "id": "t-0021e6ac47bc"
+                },
+                {
+                  "type": "text",
+                  "text": "。",
+                  "marks": [],
+                  "id": "t-607d5e041730"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "GET_PER_USER_USAGE_PREVIEW()",
+                  "marks": [
+                    "code"
+                  ],
+                  "id": "t-08ea77904724"
+                },
+                {
+                  "type": "text",
+                  "text": "和",
+                  "marks": [],
+                  "id": "t-19ab7da81e63"
+                },
+                {
+                  "type": "text",
+                  "text": "SET_REFRESH_TIER()",
+                  "marks": [
+                    "code"
+                  ],
+                  "id": "t-db9573ddd3f1"
+                },
+                {
+                  "type": "text",
+                  "text": "不再可用。配额评估现在在几分钟内对所有账户进行；不需要单独的刷新层级设置。",
+                  "marks": [],
+                  "id": "t-13e7b34c3415"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-fcd4158f1c42",
+          "children": [
+            {
+              "type": "text",
+              "text": "有关更多信息，请参阅",
+              "marks": [],
+              "id": "t-8266dfd99fb0"
+            },
+            {
+              "type": "text",
+              "text": "每用户配额",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://docs.snowflake.com/user-guide/budgets/per-user-quotas"
+                }
+              ],
+              "id": "t-0196aa74ac83"
+            },
+            {
+              "type": "text",
+              "text": "。",
+              "marks": [],
+              "id": "t-7a9af0af94b4"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-ac90483da9a7",
+          "children": [
+            {
+              "type": "text",
+              "text": "成本异常异常监控器（",
+              "marks": [],
+              "id": "t-694d47edee30"
+            },
+            {
+              "type": "text",
+              "text": "预览",
+              "marks": [
+                "em"
+              ],
+              "id": "t-2aaab0a0606f"
+            },
+            {
+              "type": "text",
+              "text": "）",
+              "marks": [],
+              "id": "t-ce2c03add63e"
+            },
+            {
+              "type": "text",
+              "text": "¶",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://docs.snowflake.com/en/release-notes/2026/10_29#anomaly-monitors-for-cost-anomalies-preview"
+                }
+              ],
+              "id": "t-4441ab5f9492"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-191af8f18f66",
+          "children": [
+            {
+              "type": "text",
+              "text": "在此版本中，Snowflake荣幸地宣布公开预览",
+              "marks": [],
+              "id": "t-62036712fb44"
+            },
+            {
+              "type": "text",
+              "text": "异常监控器",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://docs.snowflake.com/user-guide/cost-anomalies#label-cost-anomaly-monitors"
+                }
+              ],
+              "id": "t-6129cc21c25d"
+            },
+            {
+              "type": "text",
+              "text": "。到目前为止，Snowflake检测整个账户或整个组织的成本异常，这可能过于粗糙，无法捕捉单个团队或项目内的激增。异常监控器允许您使用",
+              "marks": [],
+              "id": "t-d384dfc088aa"
+            },
+            {
+              "type": "text",
+              "text": "对象标签",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://docs.snowflake.com/user-guide/object-tagging/introduction"
+                }
+              ],
+              "id": "t-41860d054970"
+            },
+            {
+              "type": "text",
+              "text": "和",
+              "marks": [],
+              "id": "t-535b7810ca7a"
+            },
+            {
+              "type": "text",
+              "text": "服务类型",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://docs.snowflake.com/sql-reference/service-types"
+                }
+              ],
+              "id": "t-dfc3c7cd4ad6"
+            },
+            {
+              "type": "text",
+              "text": "定义自己的范围，因此您可以单独监控业务单元、成本中心或项目。",
+              "marks": [],
+              "id": "t-e0790ac969b3"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-dea1eb307e6c",
+          "children": [
+            {
+              "type": "text",
+              "text": "Snowflake每天将消耗归属于每个监控器，对其运行相同的检测算法，并可向特定于该监控器的通知列表发送电子邮件。每个账户最多可有20个监控器，每个监控器跟踪信用或AI信用。",
+              "marks": [],
+              "id": "t-ec88efe7ad45"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-3f97cf8276fe",
+          "children": [
+            {
+              "type": "text",
+              "text": "您可以使用Snowsight或SQL处理异常监控器。",
+              "marks": [],
+              "id": "t-86470582b0b6"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "b-82aa8a3e6cc5",
+          "ordered": false,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": " ",
+                  "marks": [],
+                  "id": "t-e2948571d03e"
+                },
+                {
+                  "type": "text",
+                  "text": "Snowsight：",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-4bc8481b6840"
+                },
+                {
+                  "type": "text",
+                  "text": " ",
+                  "marks": [],
+                  "id": "t-5a08ff534d5f"
+                },
+                {
+                  "type": "text",
+                  "text": "异常",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-67a2617419a4"
+                },
+                {
+                  "type": "text",
+                  "text": "选项卡在",
+                  "marks": [],
+                  "id": "t-8fbb97c59122"
+                },
+                {
+                  "type": "text",
+                  "text": "成本管理",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-f915c5c78dc8"
+                },
+                {
+                  "type": "text",
+                  "text": "现在包括用于选择监控器、选择信用族以及从标签和服务类型构建范围的过滤器。您可以在保存之前查看范围产生的异常，并在重新标记资源后重新计算监控器。有关更多信息，请参阅",
+                  "marks": [],
+                  "id": "t-8cabdd125b44"
+                },
+                {
+                  "type": "text",
+                  "text": "在Snowsight中处理异常监控器",
+                  "marks": [
+                    {
+                      "type": "link",
+                      "href": "https://docs.snowflake.com/user-guide/cost-anomalies-ui#label-cost-anomaly-monitors-ui"
+                    }
+                  ],
+                  "id": "t-af07f46bd384"
+                },
+                {
+                  "type": "text",
+                  "text": "。 ",
+                  "marks": [],
+                  "id": "t-e7483aa29b2a"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": " ",
+                  "marks": [],
+                  "id": "t-a166925fa221"
+                },
+                {
+                  "type": "text",
+                  "text": "ANOMALY_INSIGHTS类：",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-ae2eec616d83"
+                },
+                {
+                  "type": "text",
+                  "text": "新方法创建、更新、读取和删除监控器，管理每个监控器的通知列表，并测试配置而不保存。有关更多信息，请参阅",
+                  "marks": [],
+                  "id": "t-7ce25342f98a"
+                },
+                {
+                  "type": "text",
+                  "text": "处理异常监控器",
+                  "marks": [
+                    {
+                      "type": "link",
+                      "href": "https://docs.snowflake.com/user-guide/cost-anomalies-class#label-cost-anomaly-monitors-class"
+                    }
+                  ],
+                  "id": "t-be33dfe3341c"
+                },
+                {
+                  "type": "text",
+                  "text": "。 ",
+                  "marks": [],
+                  "id": "t-2765927badc6"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-33f798931171",
+          "children": [
+            {
+              "type": "text",
+              "text": "版本说明变更日志",
+              "marks": [],
+              "id": "t-b1bf7981a43d"
+            },
+            {
+              "type": "text",
+              "text": "¶",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://docs.snowflake.com/en/release-notes/2026/10_29#release-notes-change-log"
+                }
+              ],
+              "id": "t-2651a6db22d2"
+            }
+          ],
+          "level": 2
+        },
+        {
+          "type": "table",
+          "id": "b-36312c1b2c91",
+          "rows": [
+            {
+              "cells": [
+                {
+                  "header": true,
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "公告",
+                      "marks": [],
+                      "id": "t-e9578e910f9f"
+                    }
+                  ]
+                },
+                {
+                  "header": true,
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "更新",
+                      "marks": [],
+                      "id": "t-3133b58d72fc"
+                    }
+                  ]
+                },
+                {
+                  "header": true,
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "日期",
+                      "marks": [],
+                      "id": "t-50217340da0e"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "header": false,
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "版本说明",
+                      "marks": [],
+                      "id": "t-00475ad0e0c7"
+                    }
+                  ]
+                },
+                {
+                  "header": false,
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "初始发布（预览）",
+                      "marks": [],
+                      "id": "t-d5fee71de42b"
+                    }
+                  ]
+                },
+                {
+                  "header": false,
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "2026年8月13日",
+                      "marks": [],
+                      "id": "t-73179126336f"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "header": false,
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "每用户配额（正式发布）",
+                      "marks": [
+                        "em"
+                      ],
+                      "id": "t-674ec88e40bf"
+                    }
+                  ]
+                },
+                {
+                  "header": false,
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "已添加",
+                      "marks": [
+                        "strong"
+                      ],
+                      "id": "t-0e20109b9455"
+                    },
+                    {
+                      "type": "text",
+                      "text": "至",
+                      "marks": [],
+                      "id": "t-a66d284afb33"
+                    },
+                    {
+                      "type": "text",
+                      "text": "成本管理更新",
+                      "marks": [
+                        "em"
+                      ],
+                      "id": "t-5bf8863006bb"
+                    }
+                  ]
+                },
+                {
+                  "header": false,
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "2026年8月14日",
+                      "marks": [],
+                      "id": "t-c6bd043c401f"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "cells": [
+                {
+                  "header": false,
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "版本说明",
+                      "marks": [],
+                      "id": "t-1f94f122fd73"
+                    }
+                  ]
+                },
+                {
+                  "header": false,
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "最终发布",
+                      "marks": [],
+                      "id": "t-74727a615ae9"
+                    }
+                  ]
+                },
+                {
+                  "header": false,
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "2026年8月20日",
+                      "marks": [],
+                      "id": "t-243641d588b6"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "content_format": "blocks-v1",
+      "category": "platform",
+      "category_label": "AI 数据平台",
+      "vendors": [
+        "Snowflake"
+      ],
+      "heat": 71,
+      "star": true,
+      "importance": 80,
+      "quality_score": 80,
+      "trend_score": 64,
+      "signal": 0,
+      "topics": [
+        "平台AI化"
+      ],
+      "shelf": "news",
+      "pinned": false,
+      "published": null,
+      "first_seen": "2026-08-31T13:36:16.965801+08:00",
+      "items": [
+        {
+          "id": "c23dcf4cbf7b",
+          "source": "Snowflake Release Notes",
+          "link": "https://docs.snowflake.com/en/release-notes/2026/10_29",
+          "published": null,
+          "ingested_at": "2026-08-31T13:36:16.965801+08:00",
+          "title": "10.29 Release Notes: Aug 15, 2026 - Aug 19, 2026 | Snowflake Documentation"
+        }
+      ],
+      "work_tags": {
+        "taxonomy_version": "work-tags-v1",
+        "product_objects": [
+          "权限与治理"
+        ],
+        "use_cases": [
+          "生产评估与运营"
+        ],
+        "decision_concerns": [
+          "成本与性能",
+          "权限与安全"
+        ]
+      },
+      "quality_breakdown": {
+        "originality": 22,
+        "evidence_density": 20,
+        "information_gain": 20,
+        "actionability_depth": 18
+      },
+      "content_parse": {
+        "run_id": "github-33360959033-1",
+        "processor_version": "original-first-v7",
+        "attempted_at": "2026-08-31T13:37:01.377803+08:00",
+        "status": "ready",
+        "source": "Snowflake Release Notes",
+        "strategy": "article",
+        "blocks": 18,
+        "text_chars": 3820,
+        "figures": 0,
+        "tables": 1,
+        "figures_discovered": 0,
+        "figures_selected": 0,
+        "figures_rejected": 0,
+        "candidate_count": 3,
+        "figures_rejected_author": 0,
+        "figures_rejected_decorative": 0,
+        "figures_rejected_duplicate": 0,
+        "figures_rejected_small": 0,
+        "figures_rejected_limit": 0,
+        "trimmed_tail_blocks": 0,
+        "trimmed_head_blocks": 0,
+        "trimmed_promotional_blocks": 0,
+        "trimmed_embedded_ui_blocks": 0,
+        "embedded_ui_components": 0,
+        "selected_depth": 9,
+        "selected_raw_blocks": 18,
+        "selected_raw_text_chars": 3820,
+        "broad_raw_blocks": 66,
+        "broad_raw_text_chars": 3885,
+        "parent_extra_blocks": 48,
+        "candidate_count_raw": 10,
+        "candidate_duplicates": 7,
+        "candidate_quality_rejected": 1,
+        "duplicate_blocks": 0,
+        "selected_score": 1039.61,
+        "quality_status": "pass",
+        "selected_tag": "article",
+        "focus_ratio": 0.9833,
+        "link_ratio": 0.039,
+        "duplicate_ratio": 0.0,
+        "selection_evidence": [
+          "prose_density",
+          "integrity_gate",
+          "article_element"
+        ],
+        "media": {
+          "figures": 0,
+          "cached": 0,
+          "link_only": 0,
+          "policy_version": "source-cdn-v1"
+        },
+        "content_mode": "translated",
+        "source_language": "other",
+        "translation_status": "complete",
+        "source_content_hash": "2a7abaafe48f91bea04ae470",
+        "translation": {
+          "run_id": "github-33360959033-1",
+          "policy_version": "faithful-translation-retry-v1",
+          "attempted_at": "2026-08-31T13:37:01.377848+08:00",
+          "purpose": "body_translation",
+          "status": "complete"
+        }
+      },
+      "content_mode": "translated",
+      "content_level": "translated",
+      "source_language": "other",
+      "translation_status": "complete",
+      "source_content_hash": "2a7abaafe48f91bea04ae470",
+      "body_chars": 1441
+    },
     {
       "event_id": "cc5c540a68f6",
       "zh_title": "从数据格式到完整引擎：2026数据库系统演进趋势与TDSQL实践",
@@ -14,11 +1000,11 @@
       "vendors": [
         "腾讯云"
       ],
-      "heat": 48,
+      "heat": 47,
       "star": false,
       "importance": 74,
       "quality_score": 74,
-      "trend_score": 26,
+      "trend_score": 25,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -292,11 +1278,11 @@
       "vendors": [
         "Cloudflare"
       ],
-      "heat": 57,
+      "heat": 55,
       "star": false,
       "importance": 56,
       "quality_score": 56,
-      "trend_score": 57,
+      "trend_score": 55,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -1445,11 +2431,11 @@
       "vendors": [
         "Amplitude"
       ],
-      "heat": 58,
+      "heat": 57,
       "star": true,
       "importance": 95,
       "quality_score": 95,
-      "trend_score": 28,
+      "trend_score": 27,
       "signal": 0,
       "topics": [
         "客户运营"
@@ -2062,11 +3048,11 @@
       "vendors": [
         "Amplitude"
       ],
-      "heat": 49,
+      "heat": 48,
       "star": false,
       "importance": 74,
       "quality_score": 74,
-      "trend_score": 28,
+      "trend_score": 27,
       "signal": 0,
       "topics": [
         "销售增长",
@@ -2908,11 +3894,11 @@
       "vendors": [
         "ThoughtSpot"
       ],
-      "heat": 49,
+      "heat": 48,
       "star": false,
       "importance": 70,
       "quality_score": 70,
-      "trend_score": 32,
+      "trend_score": 30,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -3036,11 +4022,11 @@
       "vendors": [
         "Thinking Machines"
       ],
-      "heat": 61,
+      "heat": 60,
       "star": true,
       "importance": 80,
       "quality_score": 80,
-      "trend_score": 45,
+      "trend_score": 44,
       "signal": 11,
       "topics": [
         "ChatBI",
@@ -3614,11 +4600,11 @@
       "vendors": [
         "Amplitude"
       ],
-      "heat": 57,
+      "heat": 56,
       "star": true,
       "importance": 90,
       "quality_score": 90,
-      "trend_score": 30,
+      "trend_score": 29,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -4618,7 +5604,7 @@
       "star": true,
       "importance": 79,
       "quality_score": 79,
-      "trend_score": 29,
+      "trend_score": 28,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -5586,11 +6572,11 @@
       "category": "product",
       "category_label": "数据产品",
       "vendors": [],
-      "heat": 39,
+      "heat": 38,
       "star": false,
       "importance": 52,
       "quality_score": 52,
-      "trend_score": 28,
+      "trend_score": 27,
       "signal": 0,
       "topics": [
         "客户运营"
@@ -9733,7 +10719,7 @@
       "star": true,
       "importance": 89,
       "quality_score": 89,
-      "trend_score": 10,
+      "trend_score": 9,
       "signal": 0,
       "topics": [
         "组织人才"
@@ -11916,7 +12902,7 @@
       "star": true,
       "importance": 80,
       "quality_score": 80,
-      "trend_score": 33,
+      "trend_score": 32,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -12037,7 +13023,7 @@
       "star": false,
       "importance": 40,
       "quality_score": 40,
-      "trend_score": 26,
+      "trend_score": 25,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -12072,7 +13058,53 @@
       "content_level": "summary",
       "source_language": "unknown",
       "translation_status": "not_applicable",
-      "body_chars": 101
+      "body_chars": 101,
+      "content_parse": {
+        "run_id": "github-33360959033-1",
+        "processor_version": "original-first-v7",
+        "attempted_at": "2026-08-31T13:38:31.764863+08:00",
+        "status": "skipped",
+        "source": "InfoQ 中文",
+        "strategy": "document_fallback",
+        "blocks": 0,
+        "text_chars": 0,
+        "figures": 0,
+        "tables": 0,
+        "figures_discovered": 1,
+        "figures_selected": 0,
+        "figures_rejected": 1,
+        "candidate_count": 0,
+        "figures_rejected_author": 0,
+        "figures_rejected_decorative": 1,
+        "figures_rejected_duplicate": 0,
+        "figures_rejected_small": 0,
+        "figures_rejected_limit": 0,
+        "trimmed_tail_blocks": 0,
+        "trimmed_head_blocks": 0,
+        "trimmed_promotional_blocks": 0,
+        "trimmed_embedded_ui_blocks": 0,
+        "embedded_ui_components": 0,
+        "selected_depth": 0,
+        "selected_raw_blocks": 1,
+        "selected_raw_text_chars": 58,
+        "broad_raw_blocks": 1,
+        "broad_raw_text_chars": 76,
+        "parent_extra_blocks": 0,
+        "candidate_count_raw": 0,
+        "candidate_duplicates": 0,
+        "candidate_quality_rejected": 0,
+        "duplicate_blocks": 0,
+        "selected_score": 14.83,
+        "quality_status": "suspect",
+        "quality_flags": [
+          "boundary_evidence_missing"
+        ],
+        "selected_tag": "document",
+        "focus_ratio": 1.0,
+        "link_ratio": 0.0,
+        "duplicate_ratio": 0.0,
+        "reason": "no_usable_original"
+      }
     },
     {
       "event_id": "30ebc1fa59ae",
@@ -12492,11 +13524,11 @@
       "vendors": [
         "华为云"
       ],
-      "heat": 46,
+      "heat": 45,
       "star": false,
       "importance": 60,
       "quality_score": 60,
-      "trend_score": 34,
+      "trend_score": 33,
       "signal": 0,
       "topics": [
         "平台AI化",
@@ -17961,11 +18993,11 @@
       "vendors": [
         "TOTVS"
       ],
-      "heat": 55,
+      "heat": 54,
       "star": true,
       "importance": 79,
       "quality_score": 79,
-      "trend_score": 36,
+      "trend_score": 34,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -18536,11 +19568,11 @@
       "vendors": [
         "Amplitude"
       ],
-      "heat": 45,
+      "heat": 44,
       "star": false,
       "importance": 65,
       "quality_score": 65,
-      "trend_score": 28,
+      "trend_score": 27,
       "signal": 0,
       "topics": [
         "实时分析"
@@ -19075,7 +20107,7 @@
       "star": false,
       "importance": 47,
       "quality_score": 47,
-      "trend_score": 28,
+      "trend_score": 27,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -19616,11 +20648,11 @@
       "vendors": [
         "Amplitude"
       ],
-      "heat": 46,
+      "heat": 45,
       "star": false,
       "importance": 68,
       "quality_score": 68,
-      "trend_score": 28,
+      "trend_score": 27,
       "signal": 0,
       "topics": [
         "数据人"
@@ -20970,11 +22002,11 @@
       "vendors": [
         "Amplitude"
       ],
-      "heat": 59,
+      "heat": 58,
       "star": true,
       "importance": 95,
       "quality_score": 95,
-      "trend_score": 29,
+      "trend_score": 28,
       "signal": 0,
       "topics": [
         "财务经营",
@@ -21437,7 +22469,7 @@
       "star": false,
       "importance": 58,
       "quality_score": 58,
-      "trend_score": 28,
+      "trend_score": 27,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -22015,11 +23047,11 @@
         "Amplitude",
         "HubSpot"
       ],
-      "heat": 40,
+      "heat": 39,
       "star": false,
       "importance": 55,
       "quality_score": 55,
-      "trend_score": 28,
+      "trend_score": 27,
       "signal": 0,
       "topics": [
         "组织人才"
@@ -23194,7 +24226,7 @@
       "star": true,
       "importance": 80,
       "quality_score": 80,
-      "trend_score": 24,
+      "trend_score": 23,
       "signal": 0,
       "topics": [
         "BI变局"
@@ -24925,11 +25957,11 @@
         "TiDB",
         "Prisma"
       ],
-      "heat": 49,
+      "heat": 48,
       "star": false,
       "importance": 74,
       "quality_score": 74,
-      "trend_score": 28,
+      "trend_score": 26,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -28752,11 +29784,11 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 48,
+      "heat": 47,
       "star": false,
       "importance": 71,
       "quality_score": 71,
-      "trend_score": 29,
+      "trend_score": 28,
       "signal": 0,
       "topics": [
         "ChatBI",
@@ -29645,11 +30677,11 @@
         "Databricks",
         "Trackunit"
       ],
-      "heat": 46,
+      "heat": 45,
       "star": false,
       "importance": 68,
       "quality_score": 68,
-      "trend_score": 28,
+      "trend_score": 27,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -30578,7 +31610,7 @@
       "star": false,
       "importance": 73,
       "quality_score": 73,
-      "trend_score": 28,
+      "trend_score": 27,
       "signal": 0,
       "topics": [
         "湖仓"
@@ -32483,11 +33515,11 @@
       "vendors": [
         "ClickHouse"
       ],
-      "heat": 49,
+      "heat": 48,
       "star": true,
       "importance": 76,
       "quality_score": 76,
-      "trend_score": 26,
+      "trend_score": 25,
       "signal": 0,
       "topics": [
         "实时分析"
@@ -35310,11 +36342,11 @@
         "Tableau",
         "Apache Airflow"
       ],
-      "heat": 54,
+      "heat": 53,
       "star": true,
       "importance": 86,
       "quality_score": 86,
-      "trend_score": 28,
+      "trend_score": 26,
       "signal": 0,
       "topics": [
         "湖仓"
@@ -37169,7 +38201,7 @@
       "star": false,
       "importance": 73,
       "quality_score": 73,
-      "trend_score": 30,
+      "trend_score": 29,
       "signal": 0,
       "topics": [
         "数据人"
@@ -38153,11 +39185,11 @@
       "vendors": [
         "PowerBI"
       ],
-      "heat": 46,
+      "heat": 45,
       "star": false,
       "importance": 73,
       "quality_score": 73,
-      "trend_score": 24,
+      "trend_score": 23,
       "signal": 0,
       "topics": [
         "数据人"
@@ -38626,11 +39658,11 @@
       "vendors": [
         "DuckDB Labs"
       ],
-      "heat": 48,
+      "heat": 47,
       "star": false,
       "importance": 73,
       "quality_score": 73,
-      "trend_score": 28,
+      "trend_score": 27,
       "signal": 0,
       "topics": [
         "湖仓"
@@ -38745,11 +39777,11 @@
       "category": "product",
       "category_label": "数据产品",
       "vendors": [],
-      "heat": 20,
+      "heat": 19,
       "star": false,
       "importance": 10,
       "quality_score": 10,
-      "trend_score": 28,
+      "trend_score": 26,
       "signal": 0,
       "topics": [
         "数据人"
@@ -38803,7 +39835,7 @@
       "star": false,
       "importance": 65,
       "quality_score": 65,
-      "trend_score": 28,
+      "trend_score": 26,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -39813,11 +40845,11 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 53,
+      "heat": 52,
       "star": true,
       "importance": 82,
       "quality_score": 82,
-      "trend_score": 29,
+      "trend_score": 28,
       "signal": 0,
       "topics": [
         "数据人"
@@ -41413,11 +42445,11 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 53,
+      "heat": 52,
       "star": true,
       "importance": 82,
       "quality_score": 82,
-      "trend_score": 29,
+      "trend_score": 28,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -42062,11 +43094,11 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 54,
+      "heat": 53,
       "star": true,
       "importance": 85,
       "quality_score": 85,
-      "trend_score": 28,
+      "trend_score": 27,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -47217,7 +48249,7 @@
       "star": true,
       "importance": 76,
       "quality_score": 76,
-      "trend_score": 26,
+      "trend_score": 24,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -48235,7 +49267,7 @@
       "star": false,
       "importance": 67,
       "quality_score": 67,
-      "trend_score": 21,
+      "trend_score": 20,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -49070,11 +50102,11 @@
       "vendors": [
         "Amplitude"
       ],
-      "heat": 41,
+      "heat": 40,
       "star": false,
       "importance": 65,
       "quality_score": 65,
-      "trend_score": 21,
+      "trend_score": 20,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -49757,11 +50789,11 @@
       "category": "product",
       "category_label": "数据产品",
       "vendors": [],
-      "heat": 35,
+      "heat": 34,
       "star": false,
       "importance": 52,
       "quality_score": 52,
-      "trend_score": 21,
+      "trend_score": 20,
       "signal": 0,
       "topics": [
         "客户运营",
@@ -49948,7 +50980,7 @@
       "star": false,
       "importance": 30,
       "quality_score": 30,
-      "trend_score": 11,
+      "trend_score": 10,
       "signal": 0,
       "topics": [
         "组织人才"
@@ -51900,11 +52932,11 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 55,
+      "heat": 54,
       "star": true,
       "importance": 95,
       "quality_score": 95,
-      "trend_score": 22,
+      "trend_score": 21,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -52656,7 +53688,7 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 25,
+      "heat": 24,
       "star": false,
       "importance": 42,
       "quality_score": 42,
@@ -57392,7 +58424,7 @@
       "star": true,
       "importance": 87,
       "quality_score": 87,
-      "trend_score": 11,
+      "trend_score": 10,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -61263,7 +62295,7 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 43,
+      "heat": 42,
       "star": false,
       "importance": 72,
       "signal": 0,
@@ -61363,7 +62395,7 @@
       "source_content_hash": "a9d6a1af42d7bbe3ce53b25f",
       "body_chars": 2028,
       "quality_score": 72,
-      "trend_score": 19
+      "trend_score": 18
     },
     {
       "event_id": "70dc45860539",
@@ -62078,7 +63110,7 @@
       "source_content_hash": "3473bb2038bc44735dfa7370",
       "body_chars": 2017,
       "quality_score": 62,
-      "trend_score": 19
+      "trend_score": 18
     },
     {
       "event_id": "a18fcf7ace27",
@@ -63279,7 +64311,7 @@
       "source_content_hash": "52f5118bd1ca513f032e40a7",
       "body_chars": 4543,
       "quality_score": 82,
-      "trend_score": 19
+      "trend_score": 18
     },
     {
       "event_id": "6038dd3650c1",
@@ -67003,7 +68035,7 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 43,
+      "heat": 42,
       "star": false,
       "importance": 72,
       "signal": 0,
@@ -67112,7 +68144,7 @@
       "source_content_hash": "5b28b5a5023840d6ed1ad277",
       "body_chars": 61554,
       "quality_score": 72,
-      "trend_score": 19
+      "trend_score": 18
     },
     {
       "event_id": "e3de08c4636a",
@@ -68861,7 +69893,7 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 41,
+      "heat": 40,
       "star": false,
       "importance": 70,
       "signal": 0,
@@ -68963,7 +69995,7 @@
       "source_content_hash": "49a2a77fa9ad5573ff27abc5",
       "body_chars": 6457,
       "quality_score": 70,
-      "trend_score": 17
+      "trend_score": 16
     },
     {
       "event_id": "9ee13d67ebf3",
@@ -69924,7 +70956,7 @@
       "source_content_hash": "8f3578387bc3eef3a61634f5",
       "body_chars": 1319,
       "quality_score": 72,
-      "trend_score": 21
+      "trend_score": 20
     },
     {
       "event_id": "0ef0564c116b",
@@ -70755,7 +71787,7 @@
       "vendors": [
         "ClickHouse"
       ],
-      "heat": 45,
+      "heat": 44,
       "star": true,
       "importance": 75,
       "signal": 0,
@@ -70860,7 +71892,7 @@
       "source_content_hash": "10874e58f8530582a219168e",
       "body_chars": 4279,
       "quality_score": 75,
-      "trend_score": 20
+      "trend_score": 19
     },
     {
       "event_id": "ac7f62f35ef1",
@@ -72643,7 +73675,7 @@
       "vendors": [
         "AWS"
       ],
-      "heat": 38,
+      "heat": 37,
       "star": false,
       "importance": 60,
       "signal": 0,
@@ -75033,7 +76065,7 @@
       "source_content_hash": "5acc11fa5ca3c36311e6c524",
       "body_chars": 9511,
       "quality_score": 72,
-      "trend_score": 19
+      "trend_score": 18
     },
     {
       "event_id": "d89b42ab29e1",
@@ -75818,7 +76850,7 @@
       "category": "product",
       "category_label": "数据产品",
       "vendors": [],
-      "heat": 33,
+      "heat": 32,
       "star": false,
       "importance": 52,
       "signal": 0,
@@ -75914,7 +76946,7 @@
       "source_content_hash": "182fddc463cf7afd71d5be43",
       "body_chars": 1872,
       "quality_score": 52,
-      "trend_score": 17
+      "trend_score": 16
     },
     {
       "event_id": "e0a99392bc14",
@@ -76880,7 +77912,7 @@
       "category": "insight",
       "category_label": "AI分析",
       "vendors": [],
-      "heat": 36,
+      "heat": 35,
       "star": false,
       "importance": 58,
       "signal": 0,
@@ -76970,7 +78002,7 @@
       "source_content_hash": "dc7e5204d42e1f9bde5d55a6",
       "body_chars": 5464,
       "quality_score": 58,
-      "trend_score": 17
+      "trend_score": 16
     },
     {
       "event_id": "d1f8a4b05ddf",
@@ -78153,7 +79185,7 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 49,
+      "heat": 48,
       "star": true,
       "importance": 85,
       "signal": 0,
@@ -78248,7 +79280,7 @@
       "source_content_hash": "f1655643910ce7569e5a62a5",
       "body_chars": 5857,
       "quality_score": 85,
-      "trend_score": 19
+      "trend_score": 18
     },
     {
       "event_id": "86beae9f2748",
@@ -82726,7 +83758,7 @@
       "category": "agent",
       "category_label": "Data Agent",
       "vendors": [],
-      "heat": 47,
+      "heat": 46,
       "star": true,
       "importance": 82,
       "signal": 0,
@@ -82826,7 +83858,7 @@
       "source_content_hash": "ace82ea90a46a03c5782f91b",
       "body_chars": 21577,
       "quality_score": 82,
-      "trend_score": 18
+      "trend_score": 17
     },
     {
       "event_id": "84f3f8c2dafc",
@@ -83127,7 +84159,7 @@
       "source_content_hash": "251b4e9acb3db779811b9396",
       "body_chars": 1429,
       "quality_score": 65,
-      "trend_score": 18
+      "trend_score": 17
     },
     {
       "event_id": "3ab0ee43451d",
@@ -83902,7 +84934,7 @@
       "source_content_hash": "f405d478ea905cf11987b72b",
       "body_chars": 2762,
       "quality_score": 82,
-      "trend_score": 21
+      "trend_score": 20
     },
     {
       "event_id": "86ba4a36a84c",
@@ -84659,7 +85691,7 @@
       "source_content_hash": "be9d813ae90b47be03a1d501",
       "body_chars": 1367,
       "quality_score": 60,
-      "trend_score": 21
+      "trend_score": 20
     },
     {
       "event_id": "b8c871673575",
@@ -84733,7 +85765,7 @@
       "vendors": [
         "Amplitude"
       ],
-      "heat": 42,
+      "heat": 41,
       "star": false,
       "importance": 68,
       "signal": 0,
@@ -84831,7 +85863,7 @@
       "source_content_hash": "9a3bbb5ea71b0df4506628d5",
       "body_chars": 236,
       "quality_score": 68,
-      "trend_score": 21
+      "trend_score": 20
     },
     {
       "event_id": "66e29f373297",
@@ -85572,7 +86604,7 @@
       "category": "product",
       "category_label": "数据产品",
       "vendors": [],
-      "heat": 41,
+      "heat": 40,
       "star": false,
       "importance": 65,
       "signal": 0,
@@ -85668,7 +86700,7 @@
       "source_content_hash": "31e21915e6887276cf48ce65",
       "body_chars": 2192,
       "quality_score": 65,
-      "trend_score": 21
+      "trend_score": 20
     },
     {
       "event_id": "d256128c2be7",
@@ -86500,7 +87532,7 @@
       "vendors": [
         "Fivetran"
       ],
-      "heat": 40,
+      "heat": 39,
       "star": false,
       "importance": 70,
       "signal": 0,
@@ -86606,7 +87638,7 @@
       "source_content_hash": "05279e51f333863b146935ed",
       "body_chars": 2212,
       "quality_score": 70,
-      "trend_score": 15
+      "trend_score": 14
     },
     {
       "event_id": "fb749e18d61f",
@@ -87184,7 +88216,7 @@
       "source_content_hash": "b10e49ac0ba25860b1f04469",
       "body_chars": 3817,
       "quality_score": 65,
-      "trend_score": 15
+      "trend_score": 14
     },
     {
       "event_id": "21aaca4de4c7",
@@ -102960,7 +103992,7 @@
       "source_content_hash": "07699bc5d6ffb93ab22a1446",
       "body_chars": 3660,
       "quality_score": 62,
-      "trend_score": 14
+      "trend_score": 13
     },
     {
       "event_id": "bb635a23106c",
@@ -105693,7 +106725,7 @@
       "source_content_hash": "5e5d8e36c6bc526ad546802c",
       "body_chars": 1434,
       "quality_score": 60,
-      "trend_score": 19
+      "trend_score": 18
     },
     {
       "event_id": "4abb08d9439d",
@@ -106154,7 +107186,7 @@
       "source_content_hash": "ce65f35ab4068ae310dc978d",
       "body_chars": 1780,
       "quality_score": 60,
-      "trend_score": 12
+      "trend_score": 11
     },
     {
       "event_id": "cb4caeef1889",
@@ -106662,7 +107694,7 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 38,
+      "heat": 37,
       "star": false,
       "importance": 70,
       "signal": 0,
@@ -107632,7 +108664,7 @@
       "source_content_hash": "5a412c7ab6a8c8ee129f22be",
       "body_chars": 5204,
       "quality_score": 72,
-      "trend_score": 13
+      "trend_score": 12
     },
     {
       "event_id": "d4736cba9e07",
@@ -110135,7 +111167,7 @@
       "vendors": [
         "Diagrid"
       ],
-      "heat": 34,
+      "heat": 33,
       "star": false,
       "importance": 60,
       "signal": 0,
@@ -110241,7 +111273,7 @@
       "source_content_hash": "635c867893fb38a231afd0aa",
       "body_chars": 1688,
       "quality_score": 60,
-      "trend_score": 12
+      "trend_score": 11
     },
     {
       "event_id": "dfbb5c441b55",
@@ -113351,7 +114383,7 @@
       "source_content_hash": "6e661288053b5a0a2f2bd5cd",
       "body_chars": 25433,
       "quality_score": 62,
-      "trend_score": 8
+      "trend_score": 7
     },
     {
       "event_id": "2ce94d63e438",
@@ -117408,7 +118440,7 @@
       "vendors": [
         "拓尔思"
       ],
-      "heat": 38,
+      "heat": 37,
       "star": false,
       "importance": 70,
       "signal": 0,
@@ -118647,7 +119679,7 @@
       "source_content_hash": "81a792d741e8ef17d38c5c11",
       "body_chars": 3921,
       "quality_score": 72,
-      "trend_score": 11
+      "trend_score": 10
     },
     {
       "event_id": "0916566e9991",
@@ -119466,7 +120498,7 @@
       "source_content_hash": "41dc59fb8d6bae4bf2da8800",
       "body_chars": 2756,
       "quality_score": 62,
-      "trend_score": 10
+      "trend_score": 9
     },
     {
       "event_id": "98029c1b119e",
@@ -120653,7 +121685,7 @@
       "source_content_hash": "663be6a46b315746f2416f6c",
       "body_chars": 4623,
       "quality_score": 75,
-      "trend_score": 10
+      "trend_score": 9
     },
     {
       "event_id": "e59669c8e20d",
@@ -121438,7 +122470,7 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 38,
+      "heat": 37,
       "star": false,
       "importance": 72,
       "signal": 0,
@@ -121542,7 +122574,7 @@
       "source_content_hash": "2840e6bea1614d9453dd9509",
       "body_chars": 3264,
       "quality_score": 72,
-      "trend_score": 10
+      "trend_score": 9
     },
     {
       "event_id": "db5674e1e03f",
@@ -122568,7 +123600,7 @@
       "source_content_hash": "90cb40606fb04a2452850ae6",
       "body_chars": 3663,
       "quality_score": 70,
-      "trend_score": 9
+      "trend_score": 8
     },
     {
       "event_id": "d5cc6c757eb2",
@@ -125426,7 +126458,7 @@
       "vendors": [
         "dbt Labs"
       ],
-      "heat": 40,
+      "heat": 39,
       "star": true,
       "importance": 75,
       "signal": 0,
@@ -125530,7 +126562,7 @@
       "source_content_hash": "8ffd45ca2ed74b1750014485",
       "body_chars": 1468,
       "quality_score": 75,
-      "trend_score": 11
+      "trend_score": 10
     },
     {
       "event_id": "28640dc36b12",
@@ -126080,7 +127112,7 @@
       "source_content_hash": "6d3a9015aa80ac781cbb528b",
       "body_chars": 2722,
       "quality_score": 62,
-      "trend_score": 8
+      "trend_score": 7
     },
     {
       "event_id": "5427b4d9824d",
@@ -132776,7 +133808,7 @@
       "source_content_hash": "e4aa0cdd59e65051eda3b107",
       "body_chars": 6846,
       "quality_score": 80,
-      "trend_score": 10
+      "trend_score": 9
     },
     {
       "event_id": "d11f81e0d82c",
@@ -138159,7 +139191,7 @@
       "vendors": [
         "Indeed"
       ],
-      "heat": 33,
+      "heat": 32,
       "star": false,
       "importance": 62,
       "signal": 0,
@@ -138254,7 +139286,7 @@
       "source_content_hash": "80d4ff2979c0eaf4b36471eb",
       "body_chars": 3095,
       "quality_score": 62,
-      "trend_score": 9
+      "trend_score": 8
     },
     {
       "event_id": "6202212eeef3",
@@ -138655,7 +139687,7 @@
       "vendors": [
         "Indeed"
       ],
-      "heat": 33,
+      "heat": 32,
       "star": false,
       "importance": 62,
       "signal": 0,
@@ -138755,7 +139787,7 @@
       "source_content_hash": "86b0cbcde26a450b9dfb883e",
       "body_chars": 2168,
       "quality_score": 62,
-      "trend_score": 9
+      "trend_score": 8
     },
     {
       "event_id": "ef078442f7a9",
@@ -140339,7 +141371,7 @@
       "source_content_hash": "607791583e165c71ae4c8eff",
       "body_chars": 3499,
       "quality_score": 75,
-      "trend_score": 8
+      "trend_score": 7
     },
     {
       "event_id": "a0dfec66106c",
@@ -142381,7 +143413,7 @@
       "source_content_hash": "6ce004e1b1ba4c3f56b526b2",
       "body_chars": 26915,
       "quality_score": 65,
-      "trend_score": 8
+      "trend_score": 7
     },
     {
       "event_id": "10b6595d9b0a",
@@ -144368,7 +145400,7 @@
       "source_content_hash": "1e377cfe31bf0e39336908af",
       "body_chars": 7330,
       "quality_score": 72,
-      "trend_score": 17
+      "trend_score": 16
     },
     {
       "event_id": "981b415c17ed",
@@ -146169,7 +147201,7 @@
       "source_content_hash": "3479d5738874a0b78fdfc5da",
       "body_chars": 4328,
       "quality_score": 70,
-      "trend_score": 9
+      "trend_score": 8
     },
     {
       "event_id": "e2adb769c3f5",
@@ -149052,7 +150084,7 @@
       "source_content_hash": "10d836ce84b925f6fb534fd1",
       "body_chars": 7498,
       "quality_score": 65,
-      "trend_score": 8
+      "trend_score": 7
     },
     {
       "event_id": "d2b5cfdbe7ec",
@@ -159198,7 +160230,7 @@
       "source_content_hash": "7c8052fdfc6cfba62329e61a",
       "body_chars": 8381,
       "quality_score": 76,
-      "trend_score": 7
+      "trend_score": 6
     },
     {
       "event_id": "ecaefd096734",
@@ -164807,7 +165839,7 @@
         "百度智能云",
         "质变科技"
       ],
-      "heat": 42,
+      "heat": 41,
       "star": true,
       "importance": 85,
       "signal": 0,
@@ -165662,7 +166694,7 @@
       "source_content_hash": "f27d0de3192ba6af0c056dc8",
       "body_chars": 2362,
       "quality_score": 55,
-      "trend_score": 6
+      "trend_score": 5
     },
     {
       "event_id": "321b0d0fad9a",
@@ -166971,7 +168003,7 @@
       "source_content_hash": "c3ce73d1a33e8ecced4ba040",
       "body_chars": 965,
       "quality_score": 70,
-      "trend_score": 5
+      "trend_score": 4
     },
     {
       "event_id": "216e10034e63",
@@ -168485,7 +169517,7 @@
       "source_content_hash": "0cfba13d7cd29529690abb5e",
       "body_chars": 5451,
       "quality_score": 62,
-      "trend_score": 3
+      "trend_score": 2
     },
     {
       "event_id": "7be0c18da6ba",
@@ -291965,7 +292997,7 @@
         "BigQuery",
         "Google Cloud"
       ],
-      "heat": 51,
+      "heat": 50,
       "star": false,
       "importance": 70,
       "signal": 0,
@@ -292122,7 +293154,7 @@
       "translation_status": "failed",
       "source_content_hash": "3907a79213df9e15b816330c",
       "quality_score": 70,
-      "trend_score": 35
+      "trend_score": 34
     },
     {
       "event_id": "ba8377c644db",
@@ -305794,9 +306826,9 @@
       ],
       "content_format": "blocks-v1",
       "content_parse": {
-        "run_id": "github-33350592303-1",
+        "run_id": "github-33360959033-1",
         "processor_version": "original-first-v7",
-        "attempted_at": "2026-08-31T10:31:23.972292+08:00",
+        "attempted_at": "2026-08-31T13:38:29.804670+08:00",
         "status": "ready",
         "source": "Claude 官方博客",
         "strategy": "semantic_container",
@@ -305858,9 +306890,9 @@
           "status": "complete"
         },
         "translation": {
-          "run_id": "github-33350592303-1",
+          "run_id": "github-33360959033-1",
           "policy_version": "faithful-translation-retry-v1",
-          "attempted_at": "2026-08-31T10:31:23.972333+08:00",
+          "attempted_at": "2026-08-31T13:38:29.804709+08:00",
           "purpose": "body_translation_backfill",
           "status": "failed",
           "error": "JSONDecodeError"
@@ -383110,9 +384142,9 @@
     }
   ],
   "top": [
+    "c23dcf4cbf7b",
     "afa110f519ff",
-    "b1206f2af34f",
-    "797acf2223dd"
+    "b1206f2af34f"
   ],
   "sources": [
     {
@@ -383120,7 +384152,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:577m_remaining",
+      "skip_reason": "frequency_gate:390m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 12.0,
@@ -383138,7 +384170,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1393m_remaining",
+      "skip_reason": "frequency_gate:1207m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -383154,7 +384186,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1393m_remaining",
+      "skip_reason": "frequency_gate:1207m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -383170,7 +384202,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1393m_remaining",
+      "skip_reason": "frequency_gate:1207m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -383190,7 +384222,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1393m_remaining",
+      "skip_reason": "frequency_gate:1207m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -383208,7 +384240,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1393m_remaining",
+      "skip_reason": "frequency_gate:1207m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -383228,7 +384260,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1393m_remaining",
+      "skip_reason": "frequency_gate:1207m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -383248,7 +384280,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1393m_remaining",
+      "skip_reason": "frequency_gate:1207m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -383266,7 +384298,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:2011m_remaining",
+      "skip_reason": "frequency_gate:1824m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 48.0,
@@ -383285,7 +384317,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:2011m_remaining",
+      "skip_reason": "frequency_gate:1824m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 48.0,
@@ -383304,7 +384336,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1393m_remaining",
+      "skip_reason": "frequency_gate:1207m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -383322,7 +384354,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1393m_remaining",
+      "skip_reason": "frequency_gate:1207m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -383342,7 +384374,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:2011m_remaining",
+      "skip_reason": "frequency_gate:1824m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 48.0,
@@ -383362,7 +384394,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:2011m_remaining",
+      "skip_reason": "frequency_gate:1824m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 48.0,
@@ -383379,9 +384411,20 @@
     {
       "name": "Snowflake Release Notes",
       "ok": true,
-      "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:37m_remaining",
+      "new": 4,
+      "fetched": 6,
+      "eligible": 6,
+      "prefiltered": 0,
+      "prefilter_dropped": {
+        "time": 0,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 2,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "structured_high",
         "fetch_interval_hours": 6.0,
@@ -383396,8 +384439,19 @@
       "name": "Aloudata 博客",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:37m_remaining",
+      "fetched": 90,
+      "eligible": 0,
+      "prefiltered": 90,
+      "prefilter_dropped": {
+        "time": 90,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 0,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -383412,8 +384466,19 @@
       "name": "Aloudata 动态",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:37m_remaining",
+      "fetched": 57,
+      "eligible": 3,
+      "prefiltered": 54,
+      "prefilter_dropped": {
+        "time": 54,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 3,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -383428,8 +384493,19 @@
       "name": "Databricks Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:37m_remaining",
+      "fetched": 10,
+      "eligible": 10,
+      "prefiltered": 0,
+      "prefilter_dropped": {
+        "time": 0,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 10,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -383444,8 +384520,19 @@
       "name": "dbt Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:37m_remaining",
+      "fetched": 20,
+      "eligible": 2,
+      "prefiltered": 18,
+      "prefilter_dropped": {
+        "time": 18,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 2,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -383460,8 +384547,19 @@
       "name": "ThoughtSpot Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:37m_remaining",
+      "fetched": 10,
+      "eligible": 4,
+      "prefiltered": 6,
+      "prefilter_dropped": {
+        "time": 6,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 4,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -383479,8 +384577,19 @@
       "name": "Metabase Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:37m_remaining",
+      "fetched": 10,
+      "eligible": 1,
+      "prefiltered": 9,
+      "prefilter_dropped": {
+        "time": 9,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 1,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -383498,7 +384607,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1393m_remaining",
+      "skip_reason": "frequency_gate:1207m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -383517,8 +384626,19 @@
       "name": "ClickHouse Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:37m_remaining",
+      "fetched": 20,
+      "eligible": 7,
+      "prefiltered": 13,
+      "prefilter_dropped": {
+        "time": 13,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 7,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -383533,8 +384653,19 @@
       "name": "AWS Big Data Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:37m_remaining",
+      "fetched": 20,
+      "eligible": 13,
+      "prefiltered": 7,
+      "prefilter_dropped": {
+        "time": 7,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 13,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -383549,8 +384680,19 @@
       "name": "Fivetran Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:37m_remaining",
+      "fetched": 20,
+      "eligible": 3,
+      "prefiltered": 17,
+      "prefilter_dropped": {
+        "time": 17,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 3,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -383565,8 +384707,19 @@
       "name": "StarRocks Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:37m_remaining",
+      "fetched": 10,
+      "eligible": 0,
+      "prefiltered": 10,
+      "prefilter_dropped": {
+        "time": 10,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 0,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -383582,7 +384735,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1393m_remaining",
+      "skip_reason": "frequency_gate:1207m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -383599,8 +384752,19 @@
       "name": "帆软",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:37m_remaining",
+      "fetched": 10,
+      "eligible": 0,
+      "prefiltered": 10,
+      "prefilter_dropped": {
+        "time": 10,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 0,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -383618,7 +384782,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1393m_remaining",
+      "skip_reason": "frequency_gate:1207m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -383634,7 +384798,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1393m_remaining",
+      "skip_reason": "frequency_gate:1207m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -383650,7 +384814,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1393m_remaining",
+      "skip_reason": "frequency_gate:1207m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -383666,7 +384830,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1393m_remaining",
+      "skip_reason": "frequency_gate:1207m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -383682,7 +384846,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:577m_remaining",
+      "skip_reason": "frequency_gate:390m_remaining",
       "control": {
         "tier": "media_targeted",
         "fetch_interval_hours": 12.0,
@@ -383698,7 +384862,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1393m_remaining",
+      "skip_reason": "frequency_gate:1207m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -383714,7 +384878,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1393m_remaining",
+      "skip_reason": "frequency_gate:1207m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -383730,7 +384894,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:577m_remaining",
+      "skip_reason": "frequency_gate:390m_remaining",
       "control": {
         "tier": "community_targeted",
         "fetch_interval_hours": 12.0,
@@ -383746,7 +384910,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:397m_remaining",
+      "skip_reason": "frequency_gate:211m_remaining",
       "control": {
         "tier": "community_targeted",
         "fetch_interval_hours": 12.0,
@@ -383761,8 +384925,19 @@
       "name": "Snowflake Engineering（Medium）",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:37m_remaining",
+      "fetched": 10,
+      "eligible": 10,
+      "prefiltered": 0,
+      "prefilter_dropped": {
+        "time": 0,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 10,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -383778,9 +384953,20 @@
     {
       "name": "Microsoft Power BI（Power Platform Blog）",
       "ok": true,
-      "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:37m_remaining",
+      "new": 1,
+      "fetched": 10,
+      "eligible": 1,
+      "prefiltered": 9,
+      "prefilter_dropped": {
+        "time": 9,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 0,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -383798,7 +384984,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:577m_remaining",
+      "skip_reason": "frequency_gate:390m_remaining",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -383817,7 +385003,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:577m_remaining",
+      "skip_reason": "frequency_gate:390m_remaining",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -383836,7 +385022,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:577m_remaining",
+      "skip_reason": "frequency_gate:390m_remaining",
       "control": {
         "tier": "engineering_targeted",
         "fetch_interval_hours": 12.0,
@@ -383854,7 +385040,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:397m_remaining",
+      "skip_reason": "frequency_gate:211m_remaining",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -383874,8 +385060,19 @@
       "name": "Google BigQuery Release Notes",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:37m_remaining",
+      "fetched": 20,
+      "eligible": 4,
+      "prefiltered": 16,
+      "prefilter_dropped": {
+        "time": 16,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 4,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "structured_high",
         "fetch_interval_hours": 6.0,
@@ -383894,7 +385091,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:577m_remaining",
+      "skip_reason": "frequency_gate:390m_remaining",
       "control": {
         "tier": "structured_high",
         "fetch_interval_hours": 12.0,
@@ -383913,7 +385110,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:577m_remaining",
+      "skip_reason": "frequency_gate:390m_remaining",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -383932,8 +385129,19 @@
       "name": "DuckDB Engineering Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:37m_remaining",
+      "fetched": 10,
+      "eligible": 6,
+      "prefiltered": 4,
+      "prefilter_dropped": {
+        "time": 4,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 6,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -383952,7 +385160,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:577m_remaining",
+      "skip_reason": "frequency_gate:390m_remaining",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 12.0,
@@ -383970,7 +385178,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:577m_remaining",
+      "skip_reason": "frequency_gate:390m_remaining",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -383989,7 +385197,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:577m_remaining",
+      "skip_reason": "frequency_gate:390m_remaining",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -384006,33 +385214,45 @@
     }
   ],
   "structured_content": {
-    "run_id": "github-33350592303-1",
-    "attempted": 3,
-    "ready": 3,
-    "figures": 1,
-    "tables": 1,
+    "run_id": "github-33360959033-1",
+    "attempted": 5,
+    "ready": 4,
+    "figures": 5,
+    "tables": 3,
     "media_cached": 1,
-    "media_link_only": 0,
-    "candidate_duplicates": 23,
-    "candidate_quality_rejected": 20,
+    "media_link_only": 4,
+    "candidate_duplicates": 36,
+    "candidate_quality_rejected": 15,
     "strategies": {
-      "nested_content": 1,
-      "semantic_container": 2
+      "document_fallback": 1,
+      "semantic_container": 3,
+      "article": 1
     },
     "quality_statuses": {
-      "pass": 3
+      "suspect": 1,
+      "pass": 4
     },
     "content_modes": {
-      "translated": 2,
+      "unknown": 1,
+      "translated": 3,
       "original": 1
     },
-    "fallbacks": {},
+    "fallbacks": {
+      "no_usable_original": 1
+    },
     "by_source": {
-      "Amplitude Blog": {
+      "InfoQ 中文": {
         "attempted": 1,
-        "ready": 1,
+        "ready": 0,
         "figures": 0,
         "tables": 0,
+        "media_cached": 0
+      },
+      "InfoQ（AI/数据工程）": {
+        "attempted": 1,
+        "ready": 1,
+        "figures": 4,
+        "tables": 1,
         "media_cached": 0
       },
       "Claude 官方博客": {
@@ -384041,27 +385261,34 @@
         "figures": 1,
         "tables": 1,
         "media_cached": 1
+      },
+      "Snowflake Release Notes": {
+        "attempted": 1,
+        "ready": 1,
+        "figures": 0,
+        "tables": 1,
+        "media_cached": 0
       }
     },
     "catalog": {
-      "events": 305,
-      "structured": 290,
-      "renderable": 289,
-      "current_pass": 283,
+      "events": 306,
+      "structured": 291,
+      "renderable": 290,
+      "current_pass": 284,
       "parser_debt": 7,
-      "display_trimmed": 1,
+      "display_trimmed": 2,
       "display_suspect": 0,
       "embedded_ui_trimmed": 0,
       "embedded_ui_blocks": 0,
       "modes": {
         "ai_fallback": 5,
-        "translated": 235,
-        "original": 55,
+        "translated": 237,
+        "original": 54,
         "missing": 10
       },
       "processor_versions": {
-        "original-first-v7": 303,
-        "missing": 2
+        "original-first-v7": 305,
+        "missing": 1
       }
     },
     "metadata_backfill": {
@@ -384075,16 +385302,16 @@
     },
     "backfill": {
       "foreign_limit": 6,
-      "eligible": 23,
+      "eligible": 22,
       "attempted": 12,
       "ready": 3,
       "original": 1,
       "translated": 2,
-      "deferred_foreign": 9,
-      "deferred_budget": 9,
-      "stored_original_retries": 12,
+      "deferred_foreign": 8,
+      "deferred_budget": 8,
+      "stored_original_retries": 11,
       "parser_debt_eligible": 7,
-      "skipped": 0,
+      "skipped": 1,
       "failed": 0,
       "planned": 3
     },

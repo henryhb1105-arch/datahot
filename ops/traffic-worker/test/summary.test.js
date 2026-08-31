@@ -27,6 +27,7 @@ test("goal streak uses completed Shanghai days and excludes today", () => {
   assert.equal(result.headline.today.partial, true);
   assert.equal(result.headline.yesterday.uv, 13);
   assert.equal(result.quality.accepted_rate, 98);
+  assert.match(result.measurement.exclusions, /自动化浏览器/);
   assert.deepEqual(result.acquisition, [{ source: "bluesky", format: "card", pv: 4, uv: 3 }]);
 });
 

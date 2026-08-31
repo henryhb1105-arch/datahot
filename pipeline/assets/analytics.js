@@ -173,6 +173,10 @@
         )
       );
     }
+
+    function automatedBrowser() {
+      return Boolean(win.navigator && win.navigator.webdriver === true);
+    }
     function validEndpoint(value) {
       try {
         var parsed = new URL(value);
@@ -207,7 +211,7 @@
     active = Boolean(
       config.enabled && config.environment === "production" &&
       win.location.hostname === config.productionHost && validEndpoint(config.endpoint) &&
-      storageGet(local, OPTOUT_KEY) !== "1" && !privacySignal()
+      !automatedBrowser() && storageGet(local, OPTOUT_KEY) !== "1" && !privacySignal()
     );
     updatePrivacyStatus();
     if (!active) {

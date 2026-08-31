@@ -7,6 +7,7 @@ if (!config.includes('workers_dev = false')) failures.push("workers.dev 必须�
 if (!config.includes('preview_urls = false')) failures.push("预览地址必须关闭");
 if (!config.includes('admin.datahot.xiahongbin.com')) failures.push("缺少私有后台域名");
 if (!config.includes('metrics.datahot.xiahongbin.com')) failures.push("缺少采集域名");
+if (!config.includes('MEASUREMENT_START_DATE = "2026-09-01"')) failures.push("正式 UV 目标必须从 2026-09-01 的干净数据开始");
 
 if (failures.length) {
   console.error(failures.join("\n"));

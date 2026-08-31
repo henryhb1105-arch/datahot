@@ -74,7 +74,7 @@ export function buildDashboardSummary(raw, options = {}) {
       first_event_at: firstEventAt,
       last_event_at: lastEventAt,
       measured_uv_definition: "当日产生合法 page_view 的 30 天随机设备 ID 去重数",
-      exclusions: "GPC、DNT、主动退出、测试域名、机器人未执行脚本及非法事件不计入",
+      exclusions: "GPC、DNT、主动退出、自动化浏览器、测试域名、机器人未执行脚本及非法事件不计入",
     },
     goal: {
       daily_uv_target: targetUv,

@@ -26,7 +26,10 @@ DAILY_SLOTS = 5
 IMAGE_CARD_CANDIDATE_LIMIT = 12
 MAX_CARD_IMAGE_BYTES = 1_000_000
 PROFILE_DISPLAY_NAME = "DataHot｜数据与 AI 热点"
-PROFILE_DESCRIPTION = "每天精选数据、分析与 AI 工程动态，关注 Data Agent、数据平台、实时计算与团队实践。每日 5 条，原文优先。"
+PROFILE_DESCRIPTION = (
+    "每天精选数据、分析与 AI 工程动态，关注 Data Agent、数据平台、实时计算与团队实践。"
+    "每日 5 条，原文优先。\nhttps://datahot.xiahongbin.com/"
+)
 PROFILE_WEBSITE = f"{SITE_BASE}/"
 CATEGORY_HASHTAGS = {
     "agent": "#AIAgents",

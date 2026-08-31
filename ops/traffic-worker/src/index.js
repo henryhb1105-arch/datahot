@@ -5,6 +5,8 @@ import { addDays, buildDashboardSummary } from "./summary.js";
 
 const MAX_BODY_BYTES = 32 * 1024;
 const MAX_BATCH_EVENTS = 20;
+const ADMIN_LOGIN_RATE_LIMIT_KEY = "datahot-admin-login";
+const ADMIN_LOGIN_RATE_LIMIT_SECONDS = 60;
 
 function json(payload, status = 200, extraHeaders = {}) {
   return new Response(JSON.stringify(payload), {
@@ -144,6 +146,17 @@ async function adminAuthorized(request, env) {
   return sessionAuthorized(request, env);
 }
 
+async function adminLoginRateLimitState(env) {
+  const limiter = env.ADMIN_LOGIN_RATE_LIMITER;
+  if (!limiter || typeof limiter.limit !== "function") return "unavailable";
+  try {
+    const result = await limiter.limit({ key: ADMIN_LOGIN_RATE_LIMIT_KEY });
+    return result?.success === true ? "allowed" : "limited";
+  } catch {
+    return "unavailable";
+  }
+}
+
 export async function loadDashboardData(env, days, now = new Date()) {
   const rangeDays = [7, 30, 90].includes(Number(days)) ? Number(days) : 30;
   const today = shanghaiDay(now);
@@ -218,6 +231,19 @@ async function handleAdmin(request, env) {
       const declaredLength = Number(request.headers.get("Content-Length") || 0);
       if (!contentType.startsWith("application/x-www-form-urlencoded") || declaredLength > 2048) {
         return new Response("Invalid request", { status: 400, headers: adminHeaders("text/plain; charset=utf-8") });
+      }
+      const rateLimitState = await adminLoginRateLimitState(env);
+      if (rateLimitState === "unavailable") {
+        return new Response("Authentication is temporarily unavailable", {
+          status: 503,
+          headers: adminHeaders("text/plain; charset=utf-8", { "Retry-After": String(ADMIN_LOGIN_RATE_LIMIT_SECONDS) }),
+        });
+      }
+      if (rateLimitState === "limited") {
+        return new Response("Too many login attempts", {
+          status: 429,
+          headers: adminHeaders("text/plain; charset=utf-8", { "Retry-After": String(ADMIN_LOGIN_RATE_LIMIT_SECONDS) }),
+        });
       }
       const body = await request.text();
       if (new TextEncoder().encode(body).byteLength > 2048) {

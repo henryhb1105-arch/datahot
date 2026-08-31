@@ -8,6 +8,7 @@
 ## 安全与隐私边界
 
 - 后台使用 Worker 原生密码登录，密码哈希与会话签名密钥均使用 Cloudflare 加密 secret，明文密码只保存在管理员 Mac 钥匙串中。
+- 登录提交使用 Worker 原生限流绑定：每个 Cloudflare 节点最多 5 次/60 秒。限流使用固定后台键，不读取、保存或依赖访问者 IP；绑定缺失或异常时登录入口拒绝服务而不是绕过保护。
 - 登录成功后仅签发 12 小时有效的 `HttpOnly`、`Secure`、`SameSite=Strict` Cookie；退出时立即清除。
 - `workers.dev` 与预览 URL 必须关闭，避免绕过自有后台域名。
 - 接收端只允许 `https://datahot.xiahongbin.com`，单批最多 20 条、32 KiB。
@@ -32,12 +33,12 @@ npm test
 2. 应用远端 migration。
 3. 生成高强度管理员密码，将明文只存入 Mac 钥匙串；其 SHA-256 写入 Worker secret `ADMIN_PASSWORD_HASH`，并设置独立随机 `SESSION_SECRET`。两项均不得提交到仓库。
 4. 部署 Worker，确认两个 Custom Domain 已激活且 `workers.dev`、preview URL 均关闭。
-5. 分别验证：未登录跳转登录页、错误密码被拦截、管理员密码可打开并退出；采集域名不能打开后台。
-7. 设置 GitHub Actions Variables：
+5. 分别验证：未登录跳转登录页、错误密码被拦截、限流绑定存在、管理员密码可打开并退出；采集域名不能打开后台。
+6. 设置 GitHub Actions Variables：
    - `ANALYTICS_ENABLED=true`
    - `ANALYTICS_ENDPOINT=https://metrics.datahot.xiahongbin.com/v1/events`
    - `ANALYTICS_SITE_ID=datahot`
-8. 发布 DataHot，验证正式页面产生第一条真实 `page_view`，再开始目标自然日计时。
+7. 发布 DataHot，验证正式页面产生第一条真实 `page_view`，再开始目标自然日计时。
 
 当前正式目标从 `2026-09-01` 起计算。此前数据用于管道验收，不计入连续 14 天达标；客户端会在创建匿名 ID 前排除 `navigator.webdriver=true` 的自动化浏览器。
 

@@ -20,6 +20,19 @@ function fakeDb(changes = 1) {
   };
 }
 
+function fakeRateLimiter(results = [true]) {
+  const calls = [];
+  return {
+    calls,
+    async limit(options) {
+      calls.push(options);
+      const success = results.length ? results.shift() : true;
+      if (success instanceof Error) throw success;
+      return { success };
+    },
+  };
+}
+
 function env(db = fakeDb()) {
   return {
     DB: db,
@@ -29,6 +42,7 @@ function env(db = fakeDb()) {
     SITE_ID: "datahot",
     ADMIN_PASSWORD_HASH: createHash("sha256").update("correct horse battery staple").digest("hex"),
     SESSION_SECRET: "test-session-secret-that-is-at-least-32-characters",
+    ADMIN_LOGIN_RATE_LIMITER: fakeRateLimiter(),
   };
 }
 
@@ -86,11 +100,41 @@ test("admin host redirects to login and fails closed for a wrong password", asyn
 
   const rejected = await handleRequest(new Request("https://admin.datahot.xiahongbin.com/login", {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    headers: { "Content-Type": "application/x-www-form-urlencoded", "CF-Connecting-IP": "203.0.113.5" },
     body: "password=wrong-password-value",
   }), environment, {});
   assert.equal(rejected.status, 401);
   assert.equal(rejected.headers.get("Set-Cookie"), null);
+  assert.deepEqual(environment.ADMIN_LOGIN_RATE_LIMITER.calls, [{ key: "datahot-admin-login" }]);
+});
+
+test("admin login rate limit returns 429 without evaluating credentials", async () => {
+  const environment = env();
+  environment.ADMIN_LOGIN_RATE_LIMITER = fakeRateLimiter([false]);
+  const response = await handleRequest(new Request("https://admin.datahot.xiahongbin.com/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ password: "correct horse battery staple" }),
+  }), environment, {});
+  assert.equal(response.status, 429);
+  assert.equal(response.headers.get("Retry-After"), "60");
+  assert.equal(response.headers.get("Set-Cookie"), null);
+  assert.deepEqual(environment.ADMIN_LOGIN_RATE_LIMITER.calls, [{ key: "datahot-admin-login" }]);
+});
+
+test("admin login fails closed when the rate limit binding is missing or unavailable", async () => {
+  for (const limiter of [undefined, fakeRateLimiter([new Error("binding unavailable")])]) {
+    const environment = env();
+    environment.ADMIN_LOGIN_RATE_LIMITER = limiter;
+    const response = await handleRequest(new Request("https://admin.datahot.xiahongbin.com/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ password: "correct horse battery staple" }),
+    }), environment, {});
+    assert.equal(response.status, 503);
+    assert.equal(response.headers.get("Retry-After"), "60");
+    assert.equal(response.headers.get("Set-Cookie"), null);
+  }
 });
 
 test("correct password creates a secure session that can access and leave the dashboard", async () => {

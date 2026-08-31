@@ -3,8 +3,8 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>每周简报 · DataHot</title>
-<meta name="description" content="DataHot 每周数据 AI 高价值事件简报">
+<title>2026-W35 每周情报 · DataHot</title>
+<meta name="description" content="Agent可观测性与安全机制进入密集发布期，成本/延迟权衡有首个量化案例；DuckDB迈向分布式，但均处早期。">
 <link rel="canonical" href="https://datahot.xiahongbin.com/weekly.html">
 <meta property="og:url" content="https://datahot.xiahongbin.com/weekly.html">
 
@@ -633,8 +633,89 @@ main,.layout>*,.hotlist>*{min-width:0}
 </div></header>
 
 <div class="wrap" style="padding:28px 20px 60px;max-width:860px">
-  <div class="section-title"><h2>每周简报</h2><span>每周一发布</span></div>
-  <div class="scard" style="font-size:13.5px;color:var(--txt2);line-height:1.8">本期周报正在进行跨事件聚类、历史基线比较和证据校验。AI 或校验暂时不可用时不会发布规则摘要；首页、热榜和详情页仍可正常浏览。</div>
+  <div class="section-title"><h2><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> 每周情报</h2><span>2026-08-24 至 2026-08-30 · 每周一次</span></div>
+  <div class="weekly-archive"><span style="font-size:12px;color:var(--sub);padding:6px 2px">历史周报</span><a class="on" href="weekly/2026-W35.html">2026-W35</a><a class="" href="weekly/2026-W34.html">2026-W34</a><a class="" href="weekly/2026-W33.html">2026-W33</a><a class="" href="weekly/2026-W32.html">2026-W32</a></div>
+  <div class="scard weekly-summary">
+    <div class="weekly-kicker">DATAHOT WEEKLY · 2026-08-24 至 2026-08-30</div>
+    <h1>Agent安全、成本权衡与DuckDB分布式</h1>
+    <p>Agent可观测性与安全机制进入密集发布期，成本/延迟权衡有首个量化案例；DuckDB迈向分布式，但均处早期。</p>
+    <div class="weekly-meta" style="margin-top:10px;color:#aeb4be;font-size:11px">3 个信号 · 约 3 分钟读完 · 过去 4 周基线完整 · 2026-08-31 10:29 更新</div>
+  </div>
+  <div class="section-title"><h2>本周与你有关</h2><span>最多 3 个，不凑数</span></div>
+  <div class="weekly-themes"><article class="weekly-theme">
+  <div class="weekly-badges">
+    <span class="weekly-pill priority-test">安排测试</span>
+    <span class="weekly-pill">明显增强</span>
+    <span class="weekly-pill">高置信</span>
+  </div>
+  <h2>Agent可观测性与安全机制密集发布</h2>
+  <div class="weekly-anchor"><b>具体锚点</b>　Amplitude Agent Analytics（访问控制、隐私脱敏）；Cloudflare Agent Tracing；Snowflake CoCo Restricted Session Scope与托管设置（managed settings）、Dogwood策略语言。</div>
+  <p>本周Agent可观测性与安全机制密集发布，Amplitude、Cloudflare、Snowflake等厂商在同一周推出相关产品，且Snowflake两周内连续发布RSS和托管设置。这标志着Agent从演示走向生产时，团队对质量与安全的需求成为共同驱动力。但部分产品仍处Beta，且有损耗，需实际测试验证。</p>
+  <div class="weekly-why"><b>这对你意味着什么</b>　你的Agent若投入生产，需监控其行为并确保权限可控。这些工具提供访问控制、隐私脱敏和跟踪能力，能降低风险。尤其是Snowflake的托管设置和受限会话范围，可能简化你现有的权限管理。</div>
+  <div class="weekly-action"><b>安排测试</b>选择Amplitude或Cloudflare的Agent追踪工具进行小范围试点，评估其在你常用框架下的记录准确性与性能损耗。同时，留意Snowflake的RSS与托管设置，若你使用Snowflake，可考虑在开发环境测试其权限限制效果。</div>
+  <div class="weekly-signal-meta">过去4周仅有Amplitude和Cloudflare的单一事件，本周多个厂商密集发布，且Amplitude从封闭测试转向正式发布。 · 至少两个独立供应商（Amplitude、Cloudflare、Snowflake）在同一周发布Agent可观测性或权限控制产品，且Snowflake两周内连续推出RSS和托管设置，证据方向一致。</div>
+</article><article class="weekly-theme">
+  <div class="weekly-badges">
+    <span class="weekly-pill priority-test">安排测试</span>
+    <span class="weekly-pill">早期信号</span>
+    <span class="weekly-pill">中等置信</span>
+  </div>
+  <h2>Agent成本/延迟权衡成为实验焦点</h2>
+  <div class="weekly-anchor"><b>具体锚点</b>　Amplitude Global Agent从Claude Sonnet 4.6切换到Gemini 3 Flash，成本降52.3%，延迟升87.7%，有效行动转化率持平。</div>
+  <p>Amplitude的实验显示，将Claude Sonnet 4.6切换至Gemini 3 Flash后，成本下降52.3%，延迟上升87.7%，有效行动转化率持平。这是首个量化Agent成本/延迟权衡的案例，但仅来自单一供应商，无基线对比，需谨慎对待。</p>
+  <div class="weekly-why"><b>这对你意味着什么</b>　这表明通过模型切换可在成本与延迟间做取舍，且可能不影响转化率。若你的Agent流量大，优化模型选择或可显著节省成本，但需手动测试延迟是否影响用户体验。</div>
+  <div class="weekly-action"><b>安排测试</b>选取一个非关键Agent流程，对比不同模型在成本、延迟与任务完成率上的差异。若结果类似，可考虑在生产环境逐步切换，并监控用户反馈。</div>
+  <div class="weekly-signal-meta">过去4周仅有讨论成本配额的通用指南，无此具体量化实验。 · 本周Amplitude的单次实验提供了量化数据，但仅有一个独立来源，且无基线对比。</div>
+</article><article class="weekly-theme">
+  <div class="weekly-badges">
+    <span class="weekly-pill priority-watch">继续观察</span>
+    <span class="weekly-pill">新出现</span>
+    <span class="weekly-pill">中等置信</span>
+  </div>
+  <h2>DuckDB向分布式与云原生迈进</h2>
+  <div class="weekly-anchor"><b>具体锚点</b>　DuckDB v2.0预览版Cyanoptera引入客户端/服务器模式与CONNECT SQL；AWS签署协议收购DuckLabs。</div>
+  <p>DuckDB v2.0预览版引入客户端/服务器模式与CONNECT SQL，AWS签署协议收购DuckLabs，两者共同指向DuckDB迈向分布式与云原生。但收购尚未完成，v2.0仍为预览，方向虽明确，实际影响需观望。</p>
+  <div class="weekly-why"><b>这对你意味着什么</b>　DuckDB若成为AWS的数据分析组件，可能影响你未来的数据基础设施选型。分布式架构或使其适用于更大规模数据，但目前尚早，不必急于投入。</div>
+  <div class="weekly-action"><b>继续观察</b>持续关注DuckDB v2.0正式版发布及AWS整合动态。若你当前使用DuckDB，可关注其新功能，但暂无需调整现有架构。</div>
+  <div class="weekly-signal-meta">过去4周无DuckDB分布式相关事件，仅有JSON函数和解析器更新。 · 本周DuckDB v2.0预览与AWS收购DuckLabs共同指向分布式方向，但两者均处于早期，且无两周前的基线。</div>
+</article></div>
+  <div class="section-title"><h2>判断边界</h2><span>反证、缺口与下周验证</span></div>
+  <div class="weekly-secondary">
+    <div class="scard"><b>不要过度解读</b>不要过度解读单一供应商的成本实验为普遍规律；Cloudflare追踪工具仍Beta，且有损耗；DuckDB收购与v2.0均未落地，不宜视为已进入主流。</div>
+    <div class="scard"><b>当前不确定性</b>DuckDB被AWS收购后的开源治理与架构演进方向尚不明确；v2.0正式版尚未发布，市场接受度未知。Amplitude成本实验缺乏基线，结果可能受特定场景影响。</div>
+    <div class="scard"><b>下周验证问题</b>DuckDB v2.0正式版是否如期发布，以及AWS将如何整合DuckDB至其数据栈？</div>
+  </div>
+  <div class="section-title"><h2>证据</h2><span>标题仅在索引中出现</span></div><details class="weekly-evidence">
+  <summary>证据索引 · 9 条（默认折叠）</summary>
+  <a class="weekly-evidence-row" href="e/e29bdb5d7aef.html" data-analytics-list="1" data-event-id="e29bdb5d7aef" data-source="Amplitude Blog">
+  <span>Amplitude Agent Analytics新增访问控制与隐私脱敏</span>
+  <span>Amplitude Blog · 站内详情</span>
+</a><a class="weekly-evidence-row" href="e/7365328d7b8e.html" data-analytics-list="1" data-event-id="7365328d7b8e" data-source="Amplitude Blog">
+  <span>Amplitude推出Agent Analytics，解决AI Agent质量评估难题</span>
+  <span>Amplitude Blog · 站内详情</span>
+</a><a class="weekly-evidence-row" href="e/793bf0db27f1.html" data-analytics-list="1" data-event-id="793bf0db27f1" data-source="Snowflake Engineering（Medium）">
+  <span>Snowflake CoCo 托管设置：统一所有开发机的AI策略</span>
+  <span>Snowflake Engineering（Medium） · 站内详情</span>
+</a><a class="weekly-evidence-row" href="e/a4673d84447b.html" data-analytics-list="1" data-event-id="a4673d84447b" data-source="Snowflake Engineering（Medium）">
+  <span>Snowflake为CoCo推出受限会话范围，限制AI Agent权限</span>
+  <span>Snowflake Engineering（Medium） · 站内详情</span>
+</a><a class="weekly-evidence-row" href="e/321b0d0fad9a.html" data-analytics-list="1" data-event-id="321b0d0fad9a" data-source="InfoQ 中文">
+  <span>亚马逊云科技开源Dogwood：为AI智能体工具调用立规矩</span>
+  <span>InfoQ 中文 · 站内详情</span>
+</a><a class="weekly-evidence-row" href="https://www.infoq.cn/article/IBYDTeu3rse9tH3549wf?utm_source=rss&amp;utm_medium=article" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-analytics-list="1" data-event-id="357602395f41" data-source="InfoQ 中文">
+  <span>Cloudflare 推出 Agent Tracing：不同框架 Payload 默认记录策略存在差异</span>
+  <span>InfoQ 中文 · 原始信源 ↗</span>
+</a><a class="weekly-evidence-row" href="e/b1206f2af34f.html" data-analytics-list="1" data-event-id="b1206f2af34f" data-source="Amplitude Blog">
+  <span>如何平衡AI Agent推理成本与用户体验</span>
+  <span>Amplitude Blog · 站内详情</span>
+</a><a class="weekly-evidence-row" href="e/dfbb5c441b55.html" data-analytics-list="1" data-event-id="dfbb5c441b55" data-source="DuckDB Engineering Blog">
+  <span>DuckLabs加入AWS，DuckDB等项目保持开源</span>
+  <span>DuckDB Engineering Blog · 站内详情</span>
+</a><a class="weekly-evidence-row" href="e/db68c6894b95.html" data-analytics-list="1" data-event-id="db68c6894b95" data-source="InfoQ 中文">
+  <span>DuckDB v2.0 重磅预览：从嵌入式数据库迈向分布式架构</span>
+  <span>InfoQ 中文 · 站内详情</span>
+</a>
+</details>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a> · <a href="https://bsky.app/profile/datahot.xiahongbin.com" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Bluesky" style="color:var(--sub);text-decoration:underline">Bluesky</a></footer>
 <nav class="tabbar" aria-label="移动端主导航">

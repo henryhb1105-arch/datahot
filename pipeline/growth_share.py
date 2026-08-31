@@ -119,12 +119,11 @@ def select_image_highlight(
         event = select_highlight(
             data,
             position=position,
+            excluded_event_ids=excluded_event_ids,
             require_english=require_english,
         )
         if not event:
             break
-        if str(event.get("event_id") or "") in excluded_event_ids:
-            continue
         if social_image_for_event(event, SITE_BASE):
             return event
     return None

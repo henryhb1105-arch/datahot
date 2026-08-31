@@ -8,7 +8,7 @@ import json
 import os
 import re
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
@@ -25,6 +25,8 @@ TID_ALPHABET = "234567abcdefghijklmnopqrstuvwxyz"
 DAILY_SLOTS = 5
 IMAGE_CARD_CANDIDATE_LIMIT = 12
 MAX_CARD_IMAGE_BYTES = 1_000_000
+RECENT_POST_LOOKBACK_DAYS = 7
+RECENT_POST_LIMIT = 100
 PROFILE_DISPLAY_NAME = "DataHot｜数据与 AI 热点"
 PROFILE_DESCRIPTION = (
     "每天精选数据、分析与 AI 工程动态，关注 Data Agent、数据平台、实时计算与团队实践。"
@@ -287,6 +289,32 @@ def _event_id_from_record(record):
     return match.group(1) if match else ""
 
 
+def _recent_published_event_ids(*, did, token, now, lookback_days=RECENT_POST_LOOKBACK_DAYS):
+    """Return DataHot articles already posted during the rolling lookback window."""
+    lookup = f"{BSKY_API}/com.atproto.repo.listRecords?" + urlencode({
+        "repo": did,
+        "collection": "app.bsky.feed.post",
+        "limit": RECENT_POST_LIMIT,
+    })
+    payload = _json_request(lookup, token=token)
+    cutoff = now.astimezone(ZoneInfo("UTC")) - timedelta(days=max(0, int(lookback_days)))
+    event_ids = set()
+    for record in payload.get("records") or ():
+        if not isinstance(record, dict):
+            continue
+        created_at = str(((record.get("value") or {}).get("createdAt") or "")).strip()
+        try:
+            created = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+        except ValueError:
+            continue
+        if created.tzinfo is None or created.astimezone(ZoneInfo("UTC")) < cutoff:
+            continue
+        event_id = _event_id_from_record(record)
+        if event_id:
+            event_ids.add(event_id)
+    return event_ids
+
+
 def sync_profile(*, handle, password):
     session = _json_request(f"{BSKY_API}/com.atproto.server.createSession", payload={
         "identifier": handle.strip().lower(),
@@ -334,7 +362,8 @@ def publish(data, *, handle, password, slot=0, now=None):
     if existing:
         return {"status": "already_published", "uri": existing.get("uri"), "rkey": rkey}
 
-    used_event_ids = set()
+    recent_event_ids = _recent_published_event_ids(did=did, token=token, now=now)
+    used_event_ids = set(recent_event_ids)
     treatment_slot = image_card_slot(now)
     treatment_already_published = False
     for other_slot in range(DAILY_SLOTS):
@@ -372,7 +401,12 @@ def publish(data, *, handle, password, slot=0, now=None):
     if not event:
         event = select_highlight(data, excluded_event_ids=selection_exclusions)
     if not event:
-        return {"status": "skipped", "reason": "no_unused_event", "rkey": rkey}
+        return {
+            "status": "skipped",
+            "reason": "no_unused_event",
+            "rkey": rkey,
+            "recent_excluded_count": len(recent_event_ids),
+        }
     canonical_url = f"{SITE_BASE}/e/{event['event_id']}.html"
     wait_until_live(canonical_url)
     image = social_image_for_event(event, SITE_BASE)
@@ -417,6 +451,7 @@ def publish(data, *, handle, password, slot=0, now=None):
         "slot": slot,
         "creative": creative,
         "language_variant": post["language_variant"],
+        "recent_excluded_count": len(recent_event_ids),
     }
 
 

@@ -92,6 +92,12 @@ def compute_metrics(raw_events, parse_errors=0):
         event["session_id"] for event in valid
         if event["name"] in {"weekly_brief_click", "daily_brief_click"}
     }
+    share_sessions = {
+        event["session_id"] for event in valid if event["name"] == "share_action"
+    }
+    share_actions = Counter(
+        event.get("action") for event in valid if event["name"] == "share_action"
+    )
     orphan_session_events = sum(
         1 for event in valid
         if event["name"] != "session_start" and event["session_id"] not in sessions
@@ -149,6 +155,8 @@ def compute_metrics(raw_events, parse_errors=0):
         "search_usage_rate": _ratio(len(search_sessions & sessions), len(sessions)),
         "filter_usage_rate": _ratio(len(filter_sessions & sessions), len(sessions)),
         "weekly_brief_click_rate": _ratio(len(brief_sessions & sessions), len(sessions)),
+        "share_usage_rate": _ratio(len(share_sessions & sessions), len(sessions)),
+        "share_actions": dict(sorted(share_actions.items())),
         "seven_day_return_rate": _ratio(returned, cohort),
         "seven_day_return_cohort": cohort,
         "daily_active_devices": {

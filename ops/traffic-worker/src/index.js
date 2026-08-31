@@ -164,7 +164,7 @@ export async function loadDashboardData(env, days, now = new Date()) {
   const measurementStart = env.MEASUREMENT_START_DATE || today;
   const goalStart = measurementStart > addDays(today, -89) ? measurementStart : addDays(today, -89);
   const queryStart = goalStart < start ? goalStart : start;
-  const [dailyResult, pagesResult, referrersResult, acquisitionResult, bounds, quality] = await Promise.all([
+  const [dailyResult, pagesResult, referrersResult, acquisitionResult, sharingResult, bounds, quality] = await Promise.all([
     env.DB.prepare(`
       SELECT day_cst AS day,
              SUM(CASE WHEN name = 'page_view' THEN 1 ELSE 0 END) AS pv,
@@ -190,6 +190,12 @@ export async function loadDashboardData(env, days, now = new Date()) {
       GROUP BY acquisition_source, acquisition_format
       ORDER BY uv DESC, pv DESC, acquisition_source, acquisition_format
     `).bind(start).all(),
+    env.DB.prepare(`
+      SELECT action, COUNT(*) AS events, COUNT(DISTINCT device_id) AS uv
+      FROM events
+      WHERE name = 'share_action' AND day_cst >= ? AND action IS NOT NULL
+      GROUP BY action ORDER BY events DESC, action
+    `).bind(start).all(),
     env.DB.prepare("SELECT MIN(received_at) AS first_event_at, MAX(received_at) AS last_event_at FROM events WHERE name = 'page_view'").first(),
     env.DB.prepare(`
       SELECT COALESCE(SUM(requests), 0) AS requests,
@@ -205,6 +211,7 @@ export async function loadDashboardData(env, days, now = new Date()) {
     top_pages: resultRows(pagesResult),
     referrers: resultRows(referrersResult),
     acquisition: resultRows(acquisitionResult),
+    sharing: resultRows(sharingResult),
     bounds: bounds || {},
     quality: quality || {},
   }, {

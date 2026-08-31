@@ -9,7 +9,7 @@
 
   var EVENT_NAMES = [
     "session_start", "page_view", "list_exposure", "detail_click", "outbound_click",
-    "favorite_toggle", "content_feedback", "search", "filter",
+    "favorite_toggle", "content_feedback", "share_action", "search", "filter",
     "weekly_brief_click", "daily_brief_click"
   ];
   var ALLOWED_FIELDS = [
@@ -66,7 +66,10 @@
     output.category = includes(CATEGORIES, String(output.category || "")) ? String(output.category || "") : "";
     output.source = cleanText(output.source, 80);
     output.filter = cleanText(output.filter, 40);
-    output.action = includes(["add", "remove", "useful", "not_useful"], output.action) ? output.action : "";
+    output.action = includes([
+      "add", "remove", "useful", "not_useful",
+      "open", "copy", "native", "poster", "save"
+    ], output.action) ? output.action : "";
     output.feedback_reason = includes([
       "solid", "relevant", "novel", "source_discovery", "irrelevant",
       "shallow", "marketing", "duplicate", "body_quality"
@@ -374,6 +377,14 @@
       }
       var brief = event.target.closest('[data-analytics="weekly_brief"]');
       if (brief) emit("weekly_brief_click", context(brief.closest("[data-event-id]") || body), 750);
+
+      var share = event.target.closest("[data-share-action]");
+      if (share) {
+        var shareAction = share.getAttribute("data-share-action") || "";
+        if (includes(["open", "copy", "native", "poster", "save"], shareAction)) {
+          emit("share_action", Object.assign(context(body), { action: shareAction }), 750);
+        }
+      }
 
       var anchor = event.target.closest("a[href]");
       if (anchor) {

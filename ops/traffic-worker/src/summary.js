@@ -99,6 +99,11 @@ export function buildDashboardSummary(raw, options = {}) {
       pv: asNumber(row.pv),
       uv: asNumber(row.uv),
     })),
+    sharing: (raw.sharing || []).map((row) => ({
+      action: row.action,
+      events: asNumber(row.events),
+      uv: asNumber(row.uv),
+    })),
     quality: {
       requests: asNumber(quality.requests),
       received_events: received,

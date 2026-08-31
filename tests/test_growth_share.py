@@ -209,6 +209,38 @@ class GrowthShareTests(unittest.TestCase):
         self.assertIsNone(result)
         self.assertEqual(request.call_count, 1)
 
+    def test_recent_history_keeps_only_datahot_posts_inside_the_lookback(self):
+        now = datetime(2026, 8, 31, 9, 0, tzinfo=growth_share.TZ)
+        payload = {"records": [
+            {
+                "value": {
+                    "createdAt": "2026-08-31T00:52:51Z",
+                    "text": "今日 https://datahot.xiahongbin.com/e/aaaaaaaaaaaa.html?utm_source=bluesky",
+                },
+            },
+            {
+                "value": {
+                    "createdAt": "2026-08-23T00:00:00Z",
+                    "text": "过期 https://datahot.xiahongbin.com/e/bbbbbbbbbbbb.html",
+                },
+            },
+            {
+                "value": {
+                    "createdAt": "2026-08-30T00:00:00Z",
+                    "text": "外站 https://example.com/e/cccccccccccc.html",
+                },
+            },
+            {"value": {"createdAt": "invalid", "text": "坏时间 https://datahot.xiahongbin.com/e/dddddddddddd.html"}},
+        ]}
+        with patch.object(growth_share, "_json_request", return_value=payload) as request:
+            event_ids = growth_share._recent_published_event_ids(
+                did="did:plc:test", token="token", now=now,
+            )
+        self.assertEqual(event_ids, {"aaaaaaaaaaaa"})
+        self.assertIn("com.atproto.repo.listRecords", request.call_args.args[0])
+        self.assertIn("limit=100", request.call_args.args[0])
+        self.assertEqual(request.call_args.kwargs["token"], "token")
+
     def test_publish_excludes_articles_already_used_by_other_slots(self):
         data = {"top": ["aaaaaaaaaaaa", "bbbbbbbbbbbb"], "events": [
             self.event("aaaaaaaaaaaa"), self.event("bbbbbbbbbbbb", "第二条"),
@@ -222,7 +254,8 @@ class GrowthShareTests(unittest.TestCase):
             {"did": "did:plc:test", "accessJwt": "token"},
             {"uri": "at://did:plc:test/app.bsky.feed.post/example"},
         ]
-        with patch.object(growth_share, "_get_record", side_effect=records), \
+        with patch.object(growth_share, "_recent_published_event_ids", return_value=set()), \
+                patch.object(growth_share, "_get_record", side_effect=records), \
                 patch.object(growth_share, "_json_request", side_effect=responses) as request, \
                 patch.object(growth_share, "wait_until_live") as wait_until_live:
             result = growth_share.publish(
@@ -238,6 +271,30 @@ class GrowthShareTests(unittest.TestCase):
         self.assertEqual(request.call_count, 2)
         self.assertIn("com.atproto.repo.putRecord", request.call_args_list[1].args[0])
         wait_until_live.assert_called_once_with("https://datahot.xiahongbin.com/e/bbbbbbbbbbbb.html")
+
+    def test_publish_excludes_articles_used_on_recent_days(self):
+        data = {"top": ["aaaaaaaaaaaa", "bbbbbbbbbbbb"], "events": [
+            self.event("aaaaaaaaaaaa", "昨天发过"), self.event("bbbbbbbbbbbb", "今天的新文章"),
+        ]}
+        responses = [
+            {"did": "did:plc:test", "accessJwt": "token"},
+            {"uri": "at://did:plc:test/app.bsky.feed.post/example"},
+        ]
+        now = datetime(2026, 8, 31, 9, 0, tzinfo=growth_share.TZ)
+        with patch.object(growth_share, "_recent_published_event_ids", return_value={"aaaaaaaaaaaa"}) as recent, \
+                patch.object(growth_share, "_get_record", side_effect=[None] * 5), \
+                patch.object(growth_share, "_json_request", side_effect=responses), \
+                patch.object(growth_share, "wait_until_live"):
+            result = growth_share.publish(
+                data,
+                handle="datahot.example",
+                password="unit-test-only",
+                slot=0,
+                now=now,
+            )
+        self.assertEqual(result["event_id"], "bbbbbbbbbbbb")
+        self.assertEqual(result["recent_excluded_count"], 1)
+        recent.assert_called_once_with(did="did:plc:test", token="token", now=now)
 
     def test_text_slot_reserves_the_daily_image_candidate(self):
         now = datetime(2026, 8, 28, 14, 30, tzinfo=growth_share.TZ)
@@ -255,7 +312,8 @@ class GrowthShareTests(unittest.TestCase):
             {"did": "did:plc:test", "accessJwt": "token"},
             {"uri": "at://did:plc:test/app.bsky.feed.post/text"},
         ]
-        with patch.object(growth_share, "_get_record", side_effect=[None] * 5), \
+        with patch.object(growth_share, "_recent_published_event_ids", return_value=set()), \
+                patch.object(growth_share, "_get_record", side_effect=[None] * 5), \
                 patch.object(growth_share, "_json_request", side_effect=responses), \
                 patch.object(growth_share, "wait_until_live"):
             result = growth_share.publish(
@@ -277,7 +335,8 @@ class GrowthShareTests(unittest.TestCase):
         ]
         now = datetime(2026, 8, 30, 17, 47, tzinfo=growth_share.TZ)
         self.assertEqual(growth_share.bilingual_slot(now), 3)
-        with patch.object(growth_share, "_get_record", side_effect=[None] * 5), \
+        with patch.object(growth_share, "_recent_published_event_ids", return_value=set()), \
+                patch.object(growth_share, "_get_record", side_effect=[None] * 5), \
                 patch.object(growth_share, "_json_request", side_effect=responses) as request, \
                 patch.object(growth_share, "wait_until_live"):
             result = growth_share.publish(
@@ -307,7 +366,8 @@ class GrowthShareTests(unittest.TestCase):
         now = datetime(2026, 8, 28, 14, 30, tzinfo=growth_share.TZ)
         slot = growth_share.image_card_slot(now)
         blob = {"$type": "blob", "ref": {"$link": "bafyreicard"}, "mimeType": "image/webp", "size": 1234}
-        with patch.object(growth_share, "_get_record", side_effect=[None] * 5), \
+        with patch.object(growth_share, "_recent_published_event_ids", return_value=set()), \
+                patch.object(growth_share, "_get_record", side_effect=[None] * 5), \
                 patch.object(growth_share, "_json_request", side_effect=responses) as request, \
                 patch.object(growth_share, "wait_until_live"), \
                 patch.object(growth_share, "_upload_image_blob", return_value=blob) as upload:
@@ -343,7 +403,8 @@ class GrowthShareTests(unittest.TestCase):
             {"uri": "at://did:plc:test/app.bsky.feed.post/text-fallback"},
         ]
         now = datetime(2026, 8, 28, 14, 30, tzinfo=growth_share.TZ)
-        with patch.object(growth_share, "_get_record", side_effect=[None] * 5), \
+        with patch.object(growth_share, "_recent_published_event_ids", return_value=set()), \
+                patch.object(growth_share, "_get_record", side_effect=[None] * 5), \
                 patch.object(growth_share, "_json_request", side_effect=responses) as request, \
                 patch.object(growth_share, "wait_until_live"), \
                 patch.object(growth_share, "_upload_image_blob", side_effect=ValueError("invalid image")):

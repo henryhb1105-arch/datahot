@@ -39,4 +39,6 @@ npm test
    - `ANALYTICS_SITE_ID=datahot`
 8. 发布 DataHot，验证正式页面产生第一条真实 `page_view`，再开始目标自然日计时。
 
+当前正式目标从 `2026-09-01` 起计算。此前数据用于管道验收，不计入连续 14 天达标；客户端会在创建匿名 ID 前排除 `navigator.webdriver=true` 的自动化浏览器。
+
 所有线上变更仍遵循仓库 Issue、独立工作树和统一 Pages 发布规则。

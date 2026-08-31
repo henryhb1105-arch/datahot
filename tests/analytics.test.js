@@ -111,3 +111,56 @@ test("minimum event model is explicitly enumerated", () => {
   ]) assert.ok(analytics.eventNames.includes(name));
   assert.equal(typeof analytics.observeList, "function");
 });
+
+test("automated browsers never create identifiers or send events", () => {
+  let storageTouches = 0;
+  let sends = 0;
+  const storage = {
+    getItem() { storageTouches += 1; throw new Error("automation must not read storage"); },
+    setItem() { storageTouches += 1; throw new Error("automation must not write storage"); },
+    removeItem() { storageTouches += 1; throw new Error("automation must not mutate storage"); },
+  };
+  const attributes = {
+    "data-enabled": "true",
+    "data-endpoint": "https://metrics.datahot.xiahongbin.com/v1/events",
+    "data-site-id": "datahot",
+    "data-environment": "production",
+    "data-production-host": "datahot.xiahongbin.com",
+  };
+  const document = {
+    body: { dataset: {} },
+    querySelector(selector) {
+      if (selector === 'meta[name="datahot-analytics"]') {
+        return { getAttribute(name) { return attributes[name] || ""; } };
+      }
+      return null;
+    },
+    querySelectorAll() { return []; },
+    addEventListener() {},
+    getElementById() { return null; },
+  };
+  const win = {
+    document,
+    navigator: {
+      webdriver: true,
+      sendBeacon() { sends += 1; return true; },
+    },
+    localStorage: storage,
+    sessionStorage: storage,
+    location: {
+      hostname: "datahot.xiahongbin.com",
+      pathname: "/",
+      search: "",
+      origin: "https://datahot.xiahongbin.com",
+      href: "https://datahot.xiahongbin.com/",
+    },
+    crypto: { randomUUID() { throw new Error("automation must not create IDs"); } },
+    addEventListener() {},
+    setTimeout() { throw new Error("automation must not schedule sends"); },
+    clearTimeout() {},
+  };
+
+  assert.doesNotThrow(() => analytics.boot(win));
+  assert.equal(storageTouches, 0);
+  assert.equal(sends, 0);
+});

@@ -188,6 +188,7 @@ class AnalyticsBuildIntegrationTests(unittest.TestCase):
         source = (ROOT / "pipeline" / "assets" / "analytics.js").read_text(encoding="utf-8")
         for forbidden in ("navigator.userAgent", "document.cookie", "geolocation", "canvas.toDataURL", "innerText"):
             self.assertNotIn(forbidden, source)
+        self.assertIn("navigator.webdriver === true", source)
 
 
 if __name__ == "__main__":

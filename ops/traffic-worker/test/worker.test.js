@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
-import { handleIngest, handleRequest } from "../src/index.js";
+import { handleIngest, handleRequest, handleScheduled } from "../src/index.js";
 
 function fakeDb(changes = 1) {
   const calls = [];
@@ -86,6 +86,25 @@ test("collector accepts a bounded valid batch and reports duplicates", async () 
   const eventInsert = db.calls.find((call) => call.sql.includes("INSERT OR IGNORE INTO events"));
   assert.deepEqual(eventInsert.args.slice(-2), ["bluesky", "card"]);
   assert.ok(db.calls.some((call) => call.sql.includes("INSERT INTO ingest_stats")));
+});
+
+test("scheduled maintenance reconciles accepted rows without inventing request outcomes", async () => {
+  const db = fakeDb();
+  const environment = env(db);
+  environment.RETENTION_DAYS = "90";
+
+  await handleScheduled(environment, new Date("2026-09-01T17:15:00.000Z"));
+
+  assert.equal(db.calls.length, 3);
+  const reconciliation = db.calls.find((call) => call.sql.includes("SELECT received_day"));
+  assert.ok(reconciliation);
+  assert.match(reconciliation.sql, /datetime\(received_at, '\+8 hours'\)/);
+  assert.match(reconciliation.sql, /received_events = MAX\(received_events, excluded\.received_events\)/);
+  assert.match(reconciliation.sql, /accepted_events = MAX\(accepted_events, excluded\.accepted_events\)/);
+  assert.doesNotMatch(reconciliation.sql, /requests =/);
+  assert.doesNotMatch(reconciliation.sql, /duplicate_events =/);
+  assert.doesNotMatch(reconciliation.sql, /invalid_events =/);
+  assert.deepEqual(reconciliation.args, ["2026-06-05"]);
 });
 
 test("admin host redirects to login and fails closed for a wrong password", async () => {

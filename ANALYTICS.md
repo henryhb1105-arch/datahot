@@ -40,10 +40,10 @@
 ## 生产接收端与私有后台
 
 - 接收端：`https://metrics.datahot.xiahongbin.com/v1/events`，仅接受来自 DataHot 正式域名的 `text/plain` 小批量请求。
-- 私有后台：`https://admin.datahot.xiahongbin.com`，由 Cloudflare Access 登录保护，Worker 内还会再次核对唯一管理员身份。
+- 私有后台：`https://admin.datahot.xiahongbin.com`，由 Worker 原生后台密码与 12 小时签名 Cookie 保护；登录提交每个 Cloudflare 节点最多 5 次/60 秒，固定限流键不采集 IP，绑定异常时拒绝登录。
 - 存储：Cloudflare D1；`event_uuid` 为主键幂等去重，原始事件 90 天后由定时任务删除。
 - 绕过保护：`workers.dev` 和预览地址均关闭；后台响应带 `noindex`、`no-store`、禁止嵌入和严格 CSP。
-- 代码与运行手册：`ops/traffic-worker/`。仓库不会保存管理员邮箱、Access Token 或访问明细。
+- 代码与运行手册：`ops/traffic-worker/`。仓库不会保存管理员明文密码、会话密钥或访问明细。
 
 ## 数据质量与指标
 

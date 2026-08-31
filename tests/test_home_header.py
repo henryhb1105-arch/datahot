@@ -1,4 +1,5 @@
 import sys
+import tempfile
 import unittest
 from datetime import datetime, timezone
 from pathlib import Path
@@ -16,13 +17,19 @@ class HomeHeaderTests(unittest.TestCase):
         sidebar = build_site.sidebar("home")
         self.assertEqual(
             build_site.BLUESKY_PROFILE_URL,
-            "https://bsky.app/profile/henryhb1105.bsky.social",
+            "https://bsky.app/profile/datahot.xiahongbin.com",
         )
         self.assertIn('data-analytics="outbound"', build_site.BLUESKY_FOOTER_LINK)
         self.assertIn('data-source="Bluesky"', build_site.BLUESKY_FOOTER_LINK)
         self.assertIn(build_site.BLUESKY_FOOTER_LINK, sidebar)
         self.assertEqual(source.count("{BLUESKY_FOOTER_LINK}"), 4)
         self.assertNotIn('class="mi" href="https://bsky.app/', sidebar)
+
+    def test_domain_handle_verification_contains_only_the_account_did(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = build_site.write_bluesky_handle_verification(directory)
+            self.assertEqual(path, Path(directory) / ".well-known" / "atproto-did")
+            self.assertEqual(path.read_bytes(), build_site.BLUESKY_DID.encode("utf-8"))
 
     def test_brand_is_a_refresh_link_and_update_explanation_is_accessible(self):
         generated = datetime(2026, 8, 12, 8, 20, tzinfo=timezone.utc)

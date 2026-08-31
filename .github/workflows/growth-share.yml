@@ -24,6 +24,7 @@ on:
         type: choice
         options:
           - "publish"
+          - "sync_handle"
           - "sync_profile"
           - "audit"
       slot:
@@ -84,6 +85,7 @@ jobs:
           BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
         run: |
           case "$GROWTH_MODE" in
+            "sync_handle") python3 pipeline/growth_share.py --sync-handle ;;
             "sync_profile") python3 pipeline/growth_share.py --sync-profile ;;
             "audit") python3 pipeline/bluesky_audit.py ;;
             "publish") python3 pipeline/growth_share.py --slot "$GROWTH_SLOT" ;;

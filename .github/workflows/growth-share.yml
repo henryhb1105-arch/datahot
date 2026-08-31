@@ -25,6 +25,7 @@ on:
         options:
           - "publish"
           - "sync_profile"
+          - "audit"
       slot:
         description: "手动验证的分发位（0-4）"
         required: true
@@ -74,7 +75,7 @@ jobs:
           esac
           echo "slot=$slot" >> "$GITHUB_OUTPUT"
 
-      - name: 发布本时段精选
+      - name: 执行运营动作
         env:
           GROWTH_BSKY_ENABLED: ${{ vars.GROWTH_BSKY_ENABLED || 'false' }}
           GROWTH_MODE: ${{ inputs.mode || 'publish' }}
@@ -82,8 +83,9 @@ jobs:
           BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
           BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
         run: |
-          if [ "$GROWTH_MODE" = "sync_profile" ]; then
-            python3 pipeline/growth_share.py --sync-profile
-          else
-            python3 pipeline/growth_share.py --slot "$GROWTH_SLOT"
-          fi
+          case "$GROWTH_MODE" in
+            "sync_profile") python3 pipeline/growth_share.py --sync-profile ;;
+            "audit") python3 pipeline/bluesky_audit.py ;;
+            "publish") python3 pipeline/growth_share.py --slot "$GROWTH_SLOT" ;;
+            *) echo "未知运营动作：$GROWTH_MODE" >&2; exit 1 ;;
+          esac

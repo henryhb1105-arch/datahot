@@ -3,6 +3,8 @@
 监控 **Data Agent / AI 数据平台 / BI / 数据产品 / AI分析** 五个领域的资讯聚合站。
 多信源采集与影子侦察 → LLM 过滤加工（摘要、分类、质量分）→ 静态站点，每 6 小时自动更新。
 
+**[访问 DataHot →](https://datahot.xiahongbin.com/)**
+
 ## 架构
 
 ```

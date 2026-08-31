@@ -300,15 +300,41 @@ export async function handleRequest(request, env, ctx) {
   return new Response("Not found", { status: 404 });
 }
 
+export async function handleScheduled(env, now = new Date()) {
+  const retentionDays = integerSetting(env.RETENTION_DAYS, 90, 30, 365);
+  const cutoff = new Date(now.getTime() - retentionDays * 86_400_000).toISOString();
+  const statsCutoff = shanghaiDay(new Date(now.getTime() - Math.max(120, retentionDays) * 86_400_000));
+  // The event insert and its aggregate ledger update are separate D1 operations.
+  // If the second operation is interrupted, rebuild the accepted-event floor from
+  // retained rows without inventing requests, duplicates, or invalid events.
+  const reconcileStart = shanghaiDay(new Date(now.getTime() - (retentionDays - 1) * 86_400_000));
+  await env.DB.batch([
+    env.DB.prepare("DELETE FROM events WHERE occurred_at < ?").bind(cutoff),
+    env.DB.prepare("DELETE FROM ingest_stats WHERE day_cst < ?").bind(statsCutoff),
+    env.DB.prepare(`
+      INSERT INTO ingest_stats (
+        day_cst, requests, received_events, accepted_events,
+        duplicate_events, invalid_events, last_received_at
+      )
+      SELECT received_day, 0, COUNT(*), COUNT(*), 0, 0, MAX(received_at)
+      FROM (
+        SELECT substr(datetime(received_at, '+8 hours'), 1, 10) AS received_day,
+               received_at
+        FROM events
+      )
+      WHERE received_day >= ?
+      GROUP BY received_day
+      ON CONFLICT(day_cst) DO UPDATE SET
+        received_events = MAX(received_events, excluded.received_events),
+        accepted_events = MAX(accepted_events, excluded.accepted_events),
+        last_received_at = MAX(last_received_at, excluded.last_received_at)
+    `).bind(reconcileStart),
+  ]);
+}
+
 export default {
   fetch: handleRequest,
   async scheduled(_controller, env) {
-    const retentionDays = integerSetting(env.RETENTION_DAYS, 90, 30, 365);
-    const cutoff = new Date(Date.now() - retentionDays * 86_400_000).toISOString();
-    const statsCutoff = shanghaiDay(new Date(Date.now() - Math.max(120, retentionDays) * 86_400_000));
-    await env.DB.batch([
-      env.DB.prepare("DELETE FROM events WHERE occurred_at < ?").bind(cutoff),
-      env.DB.prepare("DELETE FROM ingest_stats WHERE day_cst < ?").bind(statsCutoff),
-    ]);
+    await handleScheduled(env);
   },
 };

@@ -226,6 +226,28 @@ class GrowthShareTests(unittest.TestCase):
         )
         self.assertIsNone(growth_share.select_image_highlight(data, limit=1))
 
+    def test_image_highlight_applies_limit_after_excluding_recent_posts(self):
+        excluded = self.event("000000000000", "最近已发布")
+        unsafe = [
+            self.event(f"{number:012x}", f"无图候选 {number}")
+            for number in range(1, 12)
+        ]
+        safe = self.event("ffffffffffff", "限制范围内仍有可用图片")
+        safe["content_blocks"] = [{
+            "type": "figure",
+            "cached_src": "../media/ffffffffffff/123456789abc.webp",
+        }]
+        events = [excluded, *unsafe, safe]
+        data = {"top": [event["event_id"] for event in events], "events": events}
+
+        selected = growth_share.select_image_highlight(
+            data,
+            excluded_event_ids={excluded["event_id"]},
+            limit=12,
+        )
+
+        self.assertEqual(selected["event_id"], safe["event_id"])
+
     def test_disabled_mode_never_calls_the_network(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "latest.json"

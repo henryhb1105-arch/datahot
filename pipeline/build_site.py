@@ -995,6 +995,18 @@ def fmt_date(iso):
     d = datetime.fromisoformat(iso).astimezone(TZ)
     return d.strftime("%Y-%m-%d %H:%M")
 
+def sitemap_date(iso, fallback):
+    """Return a conservative Shanghai calendar date for sitemap lastmod."""
+    if not iso:
+        return fallback
+    try:
+        value = datetime.fromisoformat(str(iso))
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=TZ)
+        return value.astimezone(TZ).date().isoformat()
+    except (TypeError, ValueError):
+        return fallback
+
 def day_key(iso):
     return datetime.fromisoformat(iso).astimezone(TZ).date()
 
@@ -3122,7 +3134,29 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
         valid_ids, valid_topic_slugs, valid_weekly_pages,
         weekly_enabled=weekly_enabled,
     )
-    sitemap_count = write_search_discovery(SITE, sitemap_paths, site_base=SITE_BASE)
+    sitemap_day = gen.astimezone(TZ).date().isoformat()
+    sitemap_lastmod = {path: sitemap_day for path in sitemap_paths}
+    for event in all_events:
+        detail_path = f'e/{safe_event_id(event["event_id"])}.html'
+        if detail_path in sitemap_lastmod:
+            sitemap_lastmod[detail_path] = sitemap_date(
+                event.get("first_seen") or event.get("published"), sitemap_day,
+            )
+    if weekly_enabled and weekly_brief:
+        sitemap_lastmod["weekly.html"] = sitemap_date(
+            weekly_brief.get("generated_at"), sitemap_day,
+        )
+    for archive_brief in weekly_archives:
+        filename = f'{str(archive_brief.get("week_id") or "")}.html'
+        archive_path = f"weekly/{filename}"
+        if archive_path in sitemap_lastmod:
+            sitemap_lastmod[archive_path] = sitemap_date(
+                archive_brief.get("generated_at"), sitemap_day,
+            )
+    sitemap_count = write_search_discovery(
+        SITE, sitemap_paths, site_base=SITE_BASE,
+        lastmod_by_path=sitemap_lastmod,
+    )
     print(f"[seo] sitemap.xml + robots.txt 校验通过：{sitemap_count} 个规范 URL")
     indexnow_key = write_indexnow_key_file(SITE)
     print(f"[seo] IndexNow 域名验证文件校验通过：{indexnow_key.name}")

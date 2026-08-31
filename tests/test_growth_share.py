@@ -400,6 +400,10 @@ class GrowthShareTests(unittest.TestCase):
         self.assertEqual(result["status"], "already_synced")
         self.assertEqual(request.call_count, 1)
 
+    def test_profile_description_exposes_the_production_site(self):
+        self.assertIn("https://datahot.xiahongbin.com/", growth_share.PROFILE_DESCRIPTION)
+        self.assertLessEqual(len(growth_share.PROFILE_DESCRIPTION), 256)
+
     def test_growth_workflow_has_five_idempotent_daily_slots_with_retries(self):
         workflow = (ROOT / ".github" / "workflows" / "growth-share.yml").read_text(encoding="utf-8")
         deploy = (ROOT / ".github" / "workflows" / "deploy.yml").read_text(encoding="utf-8")

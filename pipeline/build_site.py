@@ -44,7 +44,9 @@ TTS_ASSET = ROOT / "pipeline" / "assets" / "tts-player.js"
 TTS_MANIFEST = SITE / "data" / "tts-manifest.json"
 TZ = timezone(timedelta(hours=8))
 SITE_BASE = SITE_BASE_URL
-BLUESKY_PROFILE_URL = "https://bsky.app/profile/henryhb1105.bsky.social"
+BLUESKY_DID = "did:plc:hw6oq3mktrtycjkskm4nokbl"
+BLUESKY_HANDLE = "datahot.xiahongbin.com"
+BLUESKY_PROFILE_URL = f"https://bsky.app/profile/{BLUESKY_HANDLE}"
 BLUESKY_FOOTER_LINK = (
     f'<a href="{BLUESKY_PROFILE_URL}" target="_blank" rel="noopener noreferrer" '
     'data-analytics="outbound" data-source="Bluesky" '
@@ -2741,9 +2743,18 @@ def remove_retired_public_pages(site_root=SITE):
             retired_page.unlink()
 
 
+def write_bluesky_handle_verification(site_root=SITE):
+    """Publish the DID proof required for the DataHot domain handle."""
+    path = Path(site_root) / ".well-known" / "atproto-did"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(BLUESKY_DID, encoding="utf-8")
+    return path
+
+
 def main():
     SITE.mkdir(parents=True, exist_ok=True)
     remove_retired_public_pages()
+    write_bluesky_handle_verification()
     if not all(asset.exists() for asset in (ANALYTICS_ASSET, CONTENT_FEEDBACK_ASSET, HOME_ASSET, FOR_ME_ASSET, FAVORITES_ASSET, DETAIL_ASSET, TTS_ASSET)):
         raise FileNotFoundError("missing browser asset")
     shutil.copyfile(ANALYTICS_ASSET, SITE / "analytics.js")

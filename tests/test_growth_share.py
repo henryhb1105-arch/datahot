@@ -516,6 +516,76 @@ class GrowthShareTests(unittest.TestCase):
         self.assertIn("https://datahot.xiahongbin.com/", growth_share.PROFILE_DESCRIPTION)
         self.assertLessEqual(len(growth_share.PROFILE_DESCRIPTION), 256)
 
+    def test_handle_sync_requires_verified_domain_and_preserves_the_account_did(self):
+        responses = [
+            {
+                "did": growth_share.ACCOUNT_DID,
+                "handle": growth_share.LEGACY_HANDLE,
+                "accessJwt": "token",
+            },
+            {"did": growth_share.ACCOUNT_DID},
+            {},
+        ]
+        with patch.object(growth_share, "_json_request", side_effect=responses) as request:
+            result = growth_share.sync_handle(
+                handle=growth_share.LEGACY_HANDLE,
+                password="unit-test-only",
+            )
+        self.assertEqual(result["status"], "synced")
+        self.assertEqual(result["previous_handle"], growth_share.LEGACY_HANDLE)
+        self.assertEqual(result["handle"], growth_share.VERIFIED_HANDLE)
+        self.assertEqual(result["did"], growth_share.ACCOUNT_DID)
+        update = request.call_args_list[2]
+        self.assertTrue(update.args[0].endswith("/com.atproto.identity.updateHandle"))
+        self.assertEqual(update.kwargs["payload"], {"handle": growth_share.VERIFIED_HANDLE})
+
+    def test_handle_sync_is_idempotent_after_the_domain_is_active(self):
+        responses = [
+            {
+                "did": growth_share.ACCOUNT_DID,
+                "handle": growth_share.VERIFIED_HANDLE,
+                "accessJwt": "token",
+            },
+            {"did": growth_share.ACCOUNT_DID},
+        ]
+        with patch.object(growth_share, "_json_request", side_effect=responses) as request:
+            result = growth_share.sync_handle(
+                handle=growth_share.VERIFIED_HANDLE,
+                password="unit-test-only",
+            )
+        self.assertEqual(result["status"], "already_synced")
+        self.assertEqual(request.call_count, 2)
+
+    def test_handle_sync_stops_before_mutation_on_identity_mismatch(self):
+        bad_session = {
+            "did": "did:plc:not-datahot",
+            "handle": growth_share.LEGACY_HANDLE,
+            "accessJwt": "token",
+        }
+        with patch.object(growth_share, "_json_request", return_value=bad_session) as request:
+            with self.assertRaisesRegex(RuntimeError, "DID"):
+                growth_share.sync_handle(
+                    handle=growth_share.LEGACY_HANDLE,
+                    password="unit-test-only",
+                )
+        self.assertEqual(request.call_count, 1)
+
+        responses = [
+            {
+                "did": growth_share.ACCOUNT_DID,
+                "handle": growth_share.LEGACY_HANDLE,
+                "accessJwt": "token",
+            },
+            {"did": "did:plc:not-datahot"},
+        ]
+        with patch.object(growth_share, "_json_request", side_effect=responses) as request:
+            with self.assertRaisesRegex(RuntimeError, "域名"):
+                growth_share.sync_handle(
+                    handle=growth_share.LEGACY_HANDLE,
+                    password="unit-test-only",
+                )
+        self.assertEqual(request.call_count, 2)
+
     def test_growth_workflow_has_five_idempotent_daily_slots_with_retries(self):
         workflow = (ROOT / ".github" / "workflows" / "growth-share.yml").read_text(encoding="utf-8")
         deploy = (ROOT / ".github" / "workflows" / "deploy.yml").read_text(encoding="utf-8")
@@ -527,6 +597,7 @@ class GrowthShareTests(unittest.TestCase):
             self.assertIn(f'"{primary}"|"{retry}") slot={slot}', workflow)
         self.assertEqual(workflow.count("- cron:"), 10)
         self.assertIn('python3 pipeline/growth_share.py --slot "$GROWTH_SLOT"', workflow)
+        self.assertIn("python3 pipeline/growth_share.py --sync-handle", workflow)
         self.assertIn("python3 pipeline/growth_share.py --sync-profile", workflow)
         self.assertNotIn("pipeline/growth_share.py", deploy)
 

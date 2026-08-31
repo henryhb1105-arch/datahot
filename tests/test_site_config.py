@@ -44,6 +44,11 @@ class SiteConfigTests(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertNotIn(legacy, path.read_text(encoding="utf-8"))
 
+    def test_public_site_builder_uses_the_verified_bluesky_domain_handle(self):
+        source = (ROOT / "pipeline" / "build_site.py").read_text(encoding="utf-8")
+        self.assertIn('BLUESKY_HANDLE = "datahot.xiahongbin.com"', source)
+        self.assertNotIn("bsky.app/profile/henryhb1105.bsky.social", source)
+
 
 if __name__ == "__main__":
     unittest.main()

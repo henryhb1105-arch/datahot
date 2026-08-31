@@ -21,6 +21,9 @@ from social_cards import social_image_for_event
 TZ = ZoneInfo("Asia/Shanghai")
 BSKY_API = "https://bsky.social/xrpc"
 SITE_BASE = "https://datahot.xiahongbin.com"
+ACCOUNT_DID = "did:plc:hw6oq3mktrtycjkskm4nokbl"
+LEGACY_HANDLE = "henryhb1105.bsky.social"
+VERIFIED_HANDLE = "datahot.xiahongbin.com"
 TID_ALPHABET = "234567abcdefghijklmnopqrstuvwxyz"
 DAILY_SLOTS = 5
 IMAGE_CARD_CANDIDATE_LIMIT = 12
@@ -359,6 +362,46 @@ def sync_profile(*, handle, password):
     return {"status": "synced", "uri": response.get("uri")}
 
 
+def sync_handle(*, handle, password):
+    """Move the known DataHot DID to its verified domain handle safely."""
+    session = _json_request(f"{BSKY_API}/com.atproto.server.createSession", payload={
+        "identifier": handle.strip().lower(),
+        "password": password,
+    })
+    did = str(session.get("did") or "")
+    current_handle = str(session.get("handle") or "").strip().lower()
+    token = session["accessJwt"]
+    if did != ACCOUNT_DID:
+        raise RuntimeError("Bluesky 会话 DID 与 DataHot 账号不一致，取消域名切换")
+    if current_handle not in {LEGACY_HANDLE, VERIFIED_HANDLE}:
+        raise RuntimeError("Bluesky 当前 handle 不在允许的迁移范围，取消域名切换")
+
+    lookup = f"{BSKY_API}/com.atproto.identity.resolveHandle?" + urlencode({
+        "handle": VERIFIED_HANDLE,
+    })
+    resolved = _json_request(lookup)
+    if str(resolved.get("did") or "") != ACCOUNT_DID:
+        raise RuntimeError("DataHot 域名尚未解析到目标 DID，取消域名切换")
+    if current_handle == VERIFIED_HANDLE:
+        return {
+            "status": "already_synced",
+            "handle": VERIFIED_HANDLE,
+            "did": ACCOUNT_DID,
+        }
+
+    _json_request(
+        f"{BSKY_API}/com.atproto.identity.updateHandle",
+        token=token,
+        payload={"handle": VERIFIED_HANDLE},
+    )
+    return {
+        "status": "synced",
+        "previous_handle": current_handle,
+        "handle": VERIFIED_HANDLE,
+        "did": ACCOUNT_DID,
+    }
+
+
 def publish(data, *, handle, password, slot=0, now=None):
     now = now or datetime.now(TZ)
     if not 0 <= slot < DAILY_SLOTS:
@@ -480,10 +523,19 @@ def main(argv=None):
     parser.add_argument("--slot", type=int, choices=range(DAILY_SLOTS), default=0)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--sync-profile", action="store_true")
+    parser.add_argument("--sync-handle", action="store_true")
     args = parser.parse_args(argv)
     enabled = os.getenv("GROWTH_BSKY_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}
     handle = os.getenv("BSKY_HANDLE", "").strip()
     password = os.getenv("BSKY_APP_PASSWORD", "").strip()
+    if args.sync_handle:
+        if not enabled:
+            print(json.dumps({"status": "disabled", "operation": "sync_handle"}, ensure_ascii=False))
+            return 0
+        if not handle or not password:
+            raise SystemExit("GROWTH_BSKY_ENABLED=true 但缺少 BSKY_HANDLE/BSKY_APP_PASSWORD")
+        print(json.dumps(sync_handle(handle=handle, password=password), ensure_ascii=False))
+        return 0
     if args.sync_profile:
         if not enabled:
             print(json.dumps({"status": "disabled", "operation": "sync_profile"}, ensure_ascii=False))

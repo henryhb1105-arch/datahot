@@ -44,6 +44,12 @@ TTS_ASSET = ROOT / "pipeline" / "assets" / "tts-player.js"
 TTS_MANIFEST = SITE / "data" / "tts-manifest.json"
 TZ = timezone(timedelta(hours=8))
 SITE_BASE = SITE_BASE_URL
+BLUESKY_PROFILE_URL = "https://bsky.app/profile/henryhb1105.bsky.social"
+BLUESKY_FOOTER_LINK = (
+    f'<a href="{BLUESKY_PROFILE_URL}" target="_blank" rel="noopener noreferrer" '
+    'data-analytics="outbound" data-source="Bluesky" '
+    'style="color:var(--sub);text-decoration:underline">Bluesky</a>'
+)
 CAT_BADGE = {
     "agent": "b-agent", "platform": "b-platform", "bi": "b-bi",
     "product": "b-product", "insight": "b-insight",
@@ -698,7 +704,7 @@ def sidebar(active, gen=None, prefix=""):
             f'<div class="slogo"><a href="{prefix}index.html" data-smart-home-return{logo_label} style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div>'
             + menu +
             tools +
-            f'<div class="sfoot">{foot}每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a><br>数据领域 AI 资讯分享</div></aside>')
+            f'<div class="sfoot">{foot}每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a> · {BLUESKY_FOOTER_LINK}<br>数据领域 AI 资讯分享</div></aside>')
 
 
 def render_home_brand_update(gen):
@@ -1703,7 +1709,7 @@ def render_detail(e, all_events, css, tts_item=None):
   {toc_rail_html}
   </div>
 </div>
-<footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
+<footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a> · {BLUESKY_FOOTER_LINK}</footer>
 {tabbar("home", "../")}
 {tts_script}
 </body></html>'''
@@ -2250,7 +2256,7 @@ def page_shell(
   <div class="logo"><a href="{prefix}index.html" style="text-decoration:none">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
 {body}
-<footer>DataHot，数据领域AI资讯分享 · <a href="{prefix}privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
+<footer>DataHot，数据领域AI资讯分享 · <a href="{prefix}privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a> · {BLUESKY_FOOTER_LINK}</footer>
 {tabbar_html}
 </body></html>''')
 
@@ -2962,7 +2968,7 @@ def main():
 </aside>
 </div></div>
 
-<footer>DataHot，数据领域AI资讯分享 · <a href="privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a></footer>
+<footer>DataHot，数据领域AI资讯分享 · <a href="privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a> · {BLUESKY_FOOTER_LINK}</footer>
 <button id="backToTop" class="back-to-top" type="button" aria-label="回到顶部" title="回到顶部" aria-hidden="true" tabindex="-1"><span aria-hidden="true">↑</span></button>
 {tabbar("home")}
 

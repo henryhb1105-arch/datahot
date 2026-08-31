@@ -11,6 +11,19 @@ import build_site  # noqa: E402
 
 
 class HomeHeaderTests(unittest.TestCase):
+    def test_existing_footer_social_area_promotes_bluesky_without_a_nav_item(self):
+        source = (ROOT / "pipeline" / "build_site.py").read_text(encoding="utf-8")
+        sidebar = build_site.sidebar("home")
+        self.assertEqual(
+            build_site.BLUESKY_PROFILE_URL,
+            "https://bsky.app/profile/henryhb1105.bsky.social",
+        )
+        self.assertIn('data-analytics="outbound"', build_site.BLUESKY_FOOTER_LINK)
+        self.assertIn('data-source="Bluesky"', build_site.BLUESKY_FOOTER_LINK)
+        self.assertIn(build_site.BLUESKY_FOOTER_LINK, sidebar)
+        self.assertEqual(source.count("{BLUESKY_FOOTER_LINK}"), 4)
+        self.assertNotIn('class="mi" href="https://bsky.app/', sidebar)
+
     def test_brand_is_a_refresh_link_and_update_explanation_is_accessible(self):
         generated = datetime(2026, 8, 12, 8, 20, tzinfo=timezone.utc)
         header = build_site.render_home_brand_update(generated)

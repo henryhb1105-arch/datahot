@@ -73,6 +73,11 @@ def image_card_slot(now):
     return (bilingual_slot(now) + 2) % DAILY_SLOTS
 
 
+def hook_first_slot(now):
+    """Rotate one title-first text treatment without overlapping other variants."""
+    return (bilingual_slot(now) + 3) % DAILY_SLOTS
+
+
 def select_highlight(data, *, position=0, excluded_event_ids=None, require_english=False):
     excluded_event_ids = {str(event_id) for event_id in (excluded_event_ids or ())}
     events = {str(event.get("event_id") or ""): event for event in data.get("events", [])}
@@ -142,7 +147,7 @@ def should_use_image_card(now, slot, image):
     return bool(image) and slot == image_card_slot(now)
 
 
-def build_post(event, *, slot=0, creative="text", bilingual=False):
+def build_post(event, *, slot=0, creative="text", bilingual=False, hook_first=False):
     event_id = str(event.get("event_id") or "")
     if not re.fullmatch(r"[a-f0-9]{12}", event_id):
         raise ValueError("invalid event_id")
@@ -155,11 +160,17 @@ def build_post(event, *, slot=0, creative="text", bilingual=False):
     url = tracked_url(event_id, creative=creative)
     tags = post_hashtags(event)
     link_label = "Read / 中文全文" if bilingual else "阅读全文"
-    suffix = f"\n\n{link_label}：{url}\n{' '.join(tags)}"
-    prefix = (
+    brand_label = (
         f"DataHot data pick {slot + 1}/{DAILY_SLOTS}｜{source_title}"
         if bilingual else f"DataHot 今日精选 {slot + 1}/{DAILY_SLOTS}｜{title}"
     )
+    if hook_first:
+        prefix = source_title if bilingual else title
+        compact_label = f"DataHot data pick {slot + 1}/{DAILY_SLOTS}" if bilingual else f"DataHot 今日精选 {slot + 1}/{DAILY_SLOTS}"
+        suffix = f"\n\n{compact_label} · {link_label}：{url}\n{' '.join(tags)}"
+    else:
+        prefix = brand_label
+        suffix = f"\n\n{link_label}：{url}\n{' '.join(tags)}"
     available = max(0, 300 - len(prefix) - len(suffix) - 2)
     body = note[:available]
     text = prefix + (f"\n\n{body}" if body else "") + suffix
@@ -183,6 +194,7 @@ def build_post(event, *, slot=0, creative="text", bilingual=False):
         "canonical_url": f"{SITE_BASE}/e/{event_id}.html",
         "facets": facets,
         "creative": creative,
+        "copy_variant": "hook_first" if hook_first else "brand_first",
         "language_variant": "bilingual" if bilingual else "zh",
         "langs": ["en", "zh-CN"] if bilingual else ["zh-CN"],
         "card_title": source_title if bilingual else title,
@@ -418,7 +430,13 @@ def publish(data, *, handle, password, slot=0, now=None):
         except (HTTPError, URLError, TimeoutError, ValueError, json.JSONDecodeError):
             thumb = None
     creative = "card" if thumb else "text"
-    post = build_post(event, slot=slot, creative=creative, bilingual=wants_bilingual)
+    post = build_post(
+        event,
+        slot=slot,
+        creative=creative,
+        bilingual=wants_bilingual,
+        hook_first=slot == hook_first_slot(now),
+    )
     record = {
         "$type": "app.bsky.feed.post",
         "text": post["text"],
@@ -450,6 +468,7 @@ def publish(data, *, handle, password, slot=0, now=None):
         "event_id": event["event_id"],
         "slot": slot,
         "creative": creative,
+        "copy_variant": post["copy_variant"],
         "language_variant": post["language_variant"],
         "recent_excluded_count": len(recent_event_ids),
     }
@@ -481,11 +500,17 @@ def main(argv=None):
             print(json.dumps({"status": "skipped", "reason": "no_event"}, ensure_ascii=False))
             return 0
         now = datetime.now(TZ)
-        post = build_post(event, slot=args.slot, bilingual=args.slot == bilingual_slot(now))
+        post = build_post(
+            event,
+            slot=args.slot,
+            bilingual=args.slot == bilingual_slot(now),
+            hook_first=args.slot == hook_first_slot(now),
+        )
         print(json.dumps({
             "status": "dry_run" if args.dry_run else "disabled",
             "event_id": event["event_id"],
             "text": post["text"],
+            "copy_variant": post["copy_variant"],
             "language_variant": post["language_variant"],
         }, ensure_ascii=False, indent=2))
         return 0

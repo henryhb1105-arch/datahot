@@ -75,6 +75,15 @@ class GrowthShareTests(unittest.TestCase):
             now = start + timedelta(days=day)
             self.assertNotEqual(growth_share.image_card_slot(now), growth_share.bilingual_slot(now))
 
+    def test_one_hook_first_slot_rotates_and_never_overlaps_other_variants(self):
+        start = datetime(2026, 8, 30, 8, 0, tzinfo=growth_share.TZ)
+        slots = [growth_share.hook_first_slot(start + timedelta(days=offset)) for offset in range(5)]
+        self.assertEqual(set(slots), set(range(growth_share.DAILY_SLOTS)))
+        for day in range(5):
+            now = start + timedelta(days=day)
+            self.assertNotEqual(growth_share.hook_first_slot(now), growth_share.bilingual_slot(now))
+            self.assertNotEqual(growth_share.hook_first_slot(now), growth_share.image_card_slot(now))
+
     def test_post_is_bounded_and_has_utf8_link_facet(self):
         event = self.event(title="数据" * 80)
         event["category"] = "agent"
@@ -111,6 +120,21 @@ class GrowthShareTests(unittest.TestCase):
             value = encoded[index["byteStart"]:index["byteEnd"]].decode("utf-8")
             feature = facet["features"][0]
             self.assertEqual(value, post["url"] if feature["$type"].endswith("#link") else f'#{feature["tag"]}')
+
+    def test_hook_first_post_leads_with_reader_value_and_keeps_tracking_intact(self):
+        event = self.event(title="为什么数据团队需要先治理 Agent 轨迹")
+        event["category"] = "agent"
+        post = growth_share.build_post(event, slot=2, hook_first=True)
+        self.assertTrue(post["text"].startswith("为什么数据团队需要先治理 Agent 轨迹\n\n"))
+        self.assertIn("DataHot 今日精选 3/5 · 阅读全文：", post["text"])
+        self.assertNotIn("DataHot 今日精选 3/5｜", post["text"])
+        self.assertEqual(post["copy_variant"], "hook_first")
+        self.assertEqual(post["creative"], "text")
+        self.assertLessEqual(len(post["text"]), 300)
+        encoded = post["text"].encode("utf-8")
+        link_facet = next(facet for facet in post["facets"] if facet["features"][0]["$type"].endswith("#link"))
+        index = link_facet["index"]
+        self.assertEqual(encoded[index["byteStart"]:index["byteEnd"]].decode("utf-8"), post["url"])
 
     def test_tracking_url_accepts_only_measurable_variants(self):
         self.assertEqual(
@@ -350,6 +374,33 @@ class GrowthShareTests(unittest.TestCase):
         record = request.call_args_list[1].kwargs["payload"]["record"]
         self.assertEqual(record["langs"], ["en", "zh-CN"])
         self.assertTrue(record["text"].startswith("DataHot data pick 4/5｜"))
+
+    def test_publish_marks_the_rotating_hook_first_text_slot(self):
+        featured = self.event("dddddddddddd", "标题先给读者价值")
+        data = {"top": [featured["event_id"]], "events": [featured]}
+        responses = [
+            {"did": "did:plc:test", "accessJwt": "token"},
+            {"uri": "at://did:plc:test/app.bsky.feed.post/hook"},
+        ]
+        now = datetime(2026, 8, 31, 14, 47, tzinfo=growth_share.TZ)
+        slot = growth_share.hook_first_slot(now)
+        self.assertNotEqual(slot, growth_share.image_card_slot(now))
+        self.assertNotEqual(slot, growth_share.bilingual_slot(now))
+        with patch.object(growth_share, "_recent_published_event_ids", return_value=set()), \
+                patch.object(growth_share, "_get_record", side_effect=[None] * 5), \
+                patch.object(growth_share, "_json_request", side_effect=responses) as request, \
+                patch.object(growth_share, "wait_until_live"):
+            result = growth_share.publish(
+                data,
+                handle="datahot.example",
+                password="unit-test-only",
+                slot=slot,
+                now=now,
+            )
+        self.assertEqual(result["creative"], "text")
+        self.assertEqual(result["copy_variant"], "hook_first")
+        record = request.call_args_list[1].kwargs["payload"]["record"]
+        self.assertTrue(record["text"].startswith("标题先给读者价值\n\n"))
 
     def test_publish_adds_external_image_card_and_matching_attribution(self):
         text_only = self.event("bbbbbbbbbbbb", "更靠前的纯文字候选")

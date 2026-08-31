@@ -57,6 +57,12 @@ class AnalyticsSchemaTests(unittest.TestCase):
             7, "content_feedback", event_id="aaaaaaaaaaaa",
             action="useful", feedback_reason="free text", page="detail",
         )))
+        self.assertEqual(validate_event(event(
+            14, "share_action", event_id="aaaaaaaaaaaa", action="copy", page="detail",
+        )), [])
+        self.assertIn("action_required", validate_event(event(
+            15, "share_action", event_id="aaaaaaaaaaaa", page="detail",
+        )))
 
     def test_insight_category_is_valid(self):
         self.assertEqual(validate_event(event(6, "session_start", category="insight")), [])
@@ -94,6 +100,8 @@ class AnalyticsMetricTests(unittest.TestCase):
             event(11, "session_start", ts="2026-08-10T00:00:00+00:00", session=4, device=3),
             event(12, "content_feedback", session=1, device=1, event_id="aaaaaaaaaaaa",
                   action="useful", feedback_reason="solid", page="detail"),
+            event(15, "share_action", session=1, device=1, event_id="aaaaaaaaaaaa",
+                  action="copy", page="detail"),
         ]
         return events
 
@@ -119,6 +127,8 @@ class AnalyticsMetricTests(unittest.TestCase):
         self.assertEqual(metrics["content_feedback_reasons"], {"solid": 1})
         self.assertEqual(metrics["search_usage_rate"], 0.25)
         self.assertEqual(metrics["filter_usage_rate"], 0.25)
+        self.assertEqual(metrics["share_usage_rate"], 0.25)
+        self.assertEqual(metrics["share_actions"], {"copy": 1})
         self.assertEqual(metrics["seven_day_return_cohort"], 2)
         self.assertEqual(metrics["seven_day_return_rate"], 0.5)
         self.assertEqual(metrics["daily_page_views"], {"2026-08-01": 2})
@@ -189,6 +199,8 @@ class AnalyticsBuildIntegrationTests(unittest.TestCase):
         for forbidden in ("navigator.userAgent", "document.cookie", "geolocation", "canvas.toDataURL", "innerText"):
             self.assertNotIn(forbidden, source)
         self.assertIn("navigator.webdriver === true", source)
+        self.assertIn('event.target.closest("[data-share-action]")', source)
+        self.assertIn('emit("share_action"', source)
 
 
 if __name__ == "__main__":

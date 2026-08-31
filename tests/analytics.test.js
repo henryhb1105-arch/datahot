@@ -79,6 +79,20 @@ test("content feedback keeps only bounded enum signals", () => {
   assert.equal(Object.hasOwn(invalid, "feedback_reason"), false);
 });
 
+test("share actions keep only bounded anonymous intent signals", () => {
+  const clean = analytics.sanitizeEvent({
+    name: "share_action", event_id: "aaaaaaaaaaaa", action: "native",
+    page: "detail", site_id: "datahot", recipient: "private contact",
+  });
+  assert.equal(clean.action, "native");
+  assert.equal(Object.hasOwn(clean, "recipient"), false);
+  const invalid = analytics.sanitizeEvent({
+    name: "share_action", event_id: "aaaaaaaaaaaa", action: "send_to_person",
+    page: "detail", site_id: "datahot",
+  });
+  assert.equal(Object.hasOwn(invalid, "action"), false);
+});
+
 test("page classifier never includes full URLs", () => {
   assert.equal(analytics.pageFromPath("/datahot/"), "home");
   assert.equal(analytics.pageFromPath("/datahot/index.html"), "home");
@@ -107,7 +121,7 @@ test("page path keeps only public relative routes and drops query data", () => {
 test("minimum event model is explicitly enumerated", () => {
   for (const name of [
     "list_exposure", "detail_click", "outbound_click", "favorite_toggle",
-    "content_feedback", "search", "filter", "weekly_brief_click", "daily_brief_click", "session_start", "page_view",
+    "content_feedback", "share_action", "search", "filter", "weekly_brief_click", "daily_brief_click", "session_start", "page_view",
   ]) assert.ok(analytics.eventNames.includes(name));
   assert.equal(typeof analytics.observeList, "function");
 });

@@ -10,14 +10,17 @@ from datetime import datetime
 SCHEMA_VERSION = 1
 EVENT_NAMES = {
     "session_start", "page_view", "list_exposure", "detail_click", "outbound_click",
-    "favorite_toggle", "content_feedback", "search", "filter",
+    "favorite_toggle", "content_feedback", "share_action", "search", "filter",
     "weekly_brief_click", "daily_brief_click",
 }
 PAGES = {"home", "for-me", "weekly", "daily", "topics", "topic", "classics", "hot", "favorites", "sources", "detail", "privacy", "other"}
 CATEGORIES = {"agent", "platform", "bi", "product", "insight", ""}
 VIEWPORTS = {"small", "medium", "large"}
 REFERRERS = {"direct", "internal", "search", "social", "other"}
-ACTIONS = {"add", "remove", "useful", "not_useful", ""}
+ACTIONS = {
+    "add", "remove", "useful", "not_useful",
+    "open", "copy", "native", "poster", "save", "",
+}
 FEEDBACK_REASONS = {
     "solid", "relevant", "novel", "source_discovery", "irrelevant",
     "shallow", "marketing", "duplicate", "body_quality", "",
@@ -37,7 +40,7 @@ REQUIRED_FIELDS = {
 }
 EVENT_ID_REQUIRED = {
     "list_exposure", "detail_click", "outbound_click", "favorite_toggle",
-    "content_feedback",
+    "content_feedback", "share_action",
 }
 UUID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$", re.I)
 EVENT_ID_RE = re.compile(r"^[a-f0-9]{12}$")
@@ -123,6 +126,8 @@ def validate_event(event):
     if event.get("name") == "favorite_toggle" and event.get("action") not in {"add", "remove"}:
         errors.append("action_required")
     if event.get("name") == "content_feedback" and event.get("action") not in {"useful", "not_useful"}:
+        errors.append("action_required")
+    if event.get("name") == "share_action" and event.get("action") not in {"open", "copy", "native", "poster", "save"}:
         errors.append("action_required")
     if event.get("name") == "search" and event.get("query_bucket") not in {"1-3", "4-8", "9+"}:
         errors.append("query_bucket_required")

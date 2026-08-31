@@ -179,10 +179,10 @@ test("correct password creates a secure session that can access and leave the da
   assert.match(await allowed.text(), /DataHot 运营后台/);
   assert.match(await (await handleRequest(new Request("https://admin.datahot.xiahongbin.com/assets/dashboard.js", {
     headers: { Cookie: cookie },
-  }), environment, {})).text(), /renderAcquisition/);
+  }), environment, {})).text(), /renderSharing/);
   assert.match(await (await handleRequest(new Request("https://admin.datahot.xiahongbin.com/", {
     headers: { Cookie: cookie },
-  }), environment, {})).text(), /运营渠道/);
+  }), environment, {})).text(), /内容分享/);
   assert.equal(allowed.headers.get("X-Robots-Tag"), "noindex, nofollow, noarchive");
 
   const [cookieName, token] = cookie.split("=");

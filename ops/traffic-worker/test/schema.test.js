@@ -45,6 +45,17 @@ test("server rejects private, stale, future, and unknown data", () => {
   assert.ok(validateEvent(event({ acquisition_source: "email", acquisition_format: "card" }), { now: Date.parse("2026-08-28T08:01:00Z") }).includes("acquisition_source"));
 });
 
+test("server accepts only bounded share actions with a public event id", () => {
+  const shared = event({ name: "share_action", event_id: "0123456789ab", action: "copy" });
+  assert.deepEqual(validateEvent(shared, { now: Date.parse("2026-08-28T08:01:00Z") }), []);
+  assert.ok(validateEvent(event({ name: "share_action", action: "copy" }), {
+    now: Date.parse("2026-08-28T08:01:00Z"),
+  }).includes("event_id_required"));
+  assert.ok(validateEvent(event({ name: "share_action", event_id: "0123456789ab", action: "private_recipient" }), {
+    now: Date.parse("2026-08-28T08:01:00Z"),
+  }).includes("action"));
+});
+
 test("page paths and Shanghai calendar days are bounded", () => {
   assert.equal(safePagePath("/"), "/");
   assert.equal(safePagePath("/topics/data-agent.html"), "/topics/data-agent.html");

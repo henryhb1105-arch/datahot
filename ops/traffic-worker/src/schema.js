@@ -1,6 +1,6 @@
 export const EVENT_NAMES = new Set([
   "session_start", "page_view", "list_exposure", "detail_click", "outbound_click",
-  "favorite_toggle", "content_feedback", "search", "filter",
+  "favorite_toggle", "content_feedback", "share_action", "search", "filter",
   "weekly_brief_click", "daily_brief_click",
 ]);
 
@@ -21,7 +21,7 @@ const REFERRERS = new Set(["direct", "internal", "search", "social", "other"]);
 const VIEWPORTS = new Set(["small", "medium", "large"]);
 const ACQUISITION_SOURCES = new Set(["bluesky", "x", ""]);
 const ACQUISITION_FORMATS = new Set(["card", "text", ""]);
-const EVENT_ID_REQUIRED = new Set(["list_exposure", "detail_click", "outbound_click", "favorite_toggle", "content_feedback"]);
+const EVENT_ID_REQUIRED = new Set(["list_exposure", "detail_click", "outbound_click", "favorite_toggle", "content_feedback", "share_action"]);
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const EVENT_ID_RE = /^[a-f0-9]{12}$/;
 const PAGE_PATH_RE = /^\/(?:|(?:index|for-me|weekly|daily|topics|classics|hot|favorites|sources|privacy)\.html|topics\/[a-z0-9-]{1,60}\.html|weekly\/\d{4}-W\d{2}\.html|e\/[a-f0-9]{12}\.html)$/;
@@ -74,10 +74,14 @@ export function validateEvent(event, options = {}) {
   if (!ACQUISITION_SOURCES.has(String(event.acquisition_source || ""))) errors.push("acquisition_source");
   if (!ACQUISITION_FORMATS.has(String(event.acquisition_format || ""))) errors.push("acquisition_format");
   if (Boolean(event.acquisition_source) !== Boolean(event.acquisition_format)) errors.push("acquisition_pair");
-  if (event.action && !["add", "remove", "useful", "not_useful"].includes(event.action)) errors.push("action");
+  if (event.action && ![
+    "add", "remove", "useful", "not_useful",
+    "open", "copy", "native", "poster", "save",
+  ].includes(event.action)) errors.push("action");
   if (event.query_bucket && !["1-3", "4-8", "9+"].includes(event.query_bucket)) errors.push("query_bucket");
   if (event.name === "favorite_toggle" && !["add", "remove"].includes(event.action)) errors.push("action_required");
   if (event.name === "content_feedback" && !["useful", "not_useful"].includes(event.action)) errors.push("action_required");
+  if (event.name === "share_action" && !["open", "copy", "native", "poster", "save"].includes(event.action)) errors.push("action_required");
   if (event.feedback_reason && !["solid", "relevant", "novel", "source_discovery", "irrelevant", "shallow", "marketing", "duplicate", "body_quality"].includes(event.feedback_reason)) errors.push("feedback_reason");
   if (event.name === "search" && !["1-3", "4-8", "9+"].includes(event.query_bucket)) errors.push("query_bucket_required");
   if (Object.hasOwn(event, "result_count") && (!Number.isInteger(event.result_count) || event.result_count < 0 || event.result_count > 100_000)) errors.push("result_count");

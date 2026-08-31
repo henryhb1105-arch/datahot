@@ -483,6 +483,16 @@ class GrowthShareTests(unittest.TestCase):
             with self.assertRaises(HTTPError):
                 growth_share._get_record(did="did:plc:test", token="token", rkey="example")
 
+    def test_json_request_accepts_an_empty_success_response(self):
+        with patch.object(growth_share, "urlopen") as open_url:
+            open_url.return_value.__enter__.return_value.read.return_value = b""
+            result = growth_share._json_request(
+                "https://bsky.social/xrpc/com.atproto.identity.updateHandle",
+                payload={"handle": growth_share.VERIFIED_HANDLE},
+                token="token",
+            )
+        self.assertEqual(result, {})
+
     def test_profile_sync_preserves_avatar_and_is_idempotent(self):
         existing = {
             "uri": "at://did:plc:test/app.bsky.actor.profile/self",

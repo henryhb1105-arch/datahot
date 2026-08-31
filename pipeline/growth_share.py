@@ -233,7 +233,10 @@ def _json_request(url, *, payload=None, token=""):
         headers["Authorization"] = f"Bearer {token}"
     request = Request(url, data=body, headers=headers, method="POST" if body is not None else "GET")
     with urlopen(request, timeout=20) as response:
-        return json.loads(response.read().decode("utf-8"))
+        response_body = response.read()
+        if not response_body.strip():
+            return {}
+        return json.loads(response_body.decode("utf-8"))
 
 
 def _upload_image_blob(*, token, image_url):

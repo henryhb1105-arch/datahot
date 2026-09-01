@@ -677,6 +677,14 @@ class GrowthShareTests(unittest.TestCase):
         self.assertIn("python3 pipeline/growth_share.py --sync-profile", workflow)
         self.assertNotIn("pipeline/growth_share.py", deploy)
 
+    def test_growth_workflow_has_idempotent_same_day_tag_fallback(self):
+        workflow = (ROOT / ".github" / "workflows" / "growth-share.yml").read_text(encoding="utf-8")
+        self.assertIn('      - "growth-*"', workflow)
+        self.assertIn('^growth-([0-9]{4}-[0-9]{2}-[0-9]{2})-slot([0-4])$', workflow)
+        self.assertIn('today="$(TZ=Asia/Shanghai date +%F)"', workflow)
+        self.assertIn("if: steps.slot.outputs.skip != 'true'", workflow)
+        self.assertIn('with:\n          ref: main', workflow)
+
 
 if __name__ == "__main__":
     unittest.main()

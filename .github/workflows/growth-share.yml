@@ -15,6 +15,12 @@ on:
     - cron: "57 9 * * *"
     - cron: "47 12 * * *"
     - cron: "57 12 * * *"
+  # GitHub Schedule 没有准点 SLA。自然重试仍未落帖时，运营任务可通过 SSH
+  # 推送唯一的 growth-YYYY-MM-DD-slotN tag 触发同一条 Actions 发布链路；
+  # tag 与稳定 rkey 双重幂等，不把 Bluesky 凭据带到本地。
+  push:
+    tags:
+      - "growth-*"
   workflow_dispatch:
     inputs:
       mode:
@@ -62,21 +68,45 @@ jobs:
       - name: 解析本次分发位
         id: slot
         env:
+          GROWTH_EVENT: ${{ github.event_name }}
+          GROWTH_REF: ${{ github.ref_name }}
           GROWTH_SCHEDULE: ${{ github.event.schedule }}
           GROWTH_MANUAL_SLOT: ${{ inputs.slot }}
         run: |
-          case "$GROWTH_SCHEDULE" in
-            "47 0 * * *"|"57 0 * * *") slot=0 ;;
-            "47 3 * * *"|"57 3 * * *") slot=1 ;;
-            "47 6 * * *"|"57 6 * * *") slot=2 ;;
-            "47 9 * * *"|"57 9 * * *") slot=3 ;;
-            "47 12 * * *"|"57 12 * * *") slot=4 ;;
-            "") slot="$GROWTH_MANUAL_SLOT" ;;
-            *) echo "未知分发计划：$GROWTH_SCHEDULE" >&2; exit 1 ;;
+          skip=false
+          case "$GROWTH_EVENT" in
+            "schedule")
+              case "$GROWTH_SCHEDULE" in
+                "47 0 * * *"|"57 0 * * *") slot=0 ;;
+                "47 3 * * *"|"57 3 * * *") slot=1 ;;
+                "47 6 * * *"|"57 6 * * *") slot=2 ;;
+                "47 9 * * *"|"57 9 * * *") slot=3 ;;
+                "47 12 * * *"|"57 12 * * *") slot=4 ;;
+                *) echo "未知分发计划：$GROWTH_SCHEDULE" >&2; exit 1 ;;
+              esac
+              ;;
+            "workflow_dispatch") slot="$GROWTH_MANUAL_SLOT" ;;
+            "push")
+              if [[ "$GROWTH_REF" =~ ^growth-([0-9]{4}-[0-9]{2}-[0-9]{2})-slot([0-4])$ ]]; then
+                trigger_date="${BASH_REMATCH[1]}"
+                slot="${BASH_REMATCH[2]}"
+              else
+                echo "非法增长触发 tag：$GROWTH_REF" >&2
+                exit 1
+              fi
+              today="$(TZ=Asia/Shanghai date +%F)"
+              if [ "$trigger_date" != "$today" ]; then
+                echo "跳过过期增长触发 tag：$GROWTH_REF（今天 $today）"
+                skip=true
+              fi
+              ;;
+            *) echo "未知触发事件：$GROWTH_EVENT" >&2; exit 1 ;;
           esac
           echo "slot=$slot" >> "$GITHUB_OUTPUT"
+          echo "skip=$skip" >> "$GITHUB_OUTPUT"
 
       - name: 执行运营动作
+        if: steps.slot.outputs.skip != 'true'
         env:
           GROWTH_BSKY_ENABLED: ${{ vars.GROWTH_BSKY_ENABLED || 'false' }}
           GROWTH_MODE: ${{ inputs.mode || 'publish' }}

@@ -1,22 +1,23 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-09-01T21:04:16.796792+00:00
-- 本轮原始发现：3
-- 未收录文章候选：6
-- 新信源候选：5
+- 生成时间：2026-09-02T21:05:03.144248+00:00
+- 本轮原始发现：4
+- 未收录文章候选：7
+- 新信源候选：6
 - 已收录链接去重：0
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
 
 ## 发现通道
 
 - openai_web_search: skipped · OPENAI_API_KEY 未配置
-- hn_official: ok · 1 条
+- hn_official: ok · 2 条
 - accepted_link_graph: ok · 2 条
 
 ## 优先检查的新信源
 
 - **www.infoq.com** · PROBATION · 2 篇 · accepted_link_graph
 - **www.snowflake.com** · PROBATION · 1 篇 · accepted_link_graph
+- **help.mistral.ai** · PROBATION · 1 篇 · hn
 - **www.epa.gov** · DISCOVERED · 1 篇 · hn
 - **dgl.cx** · DISCOVERED · 1 篇 · hn
 - **datacolada.org** · DISCOVERED · 1 篇 · hn
@@ -24,6 +25,7 @@
 ## 优先检查的文章
 
 - [Evidence of Fraud in an Influential Study About Procrastination](https://datacolada.org/138) · hn
+- [Can I opt out of my input or output data being used for training?](https://help.mistral.ai/en/articles/455207-can-i-opt-out-of-my-input-or-output-data-being-used-for-training) · hn
 - [EPA says power for data centers can sidestep pollution laws](https://www.epa.gov/newsreleases/epa-issues-permitting-guidance-further-president-trumps-agenda-promoting-data-centers) · hn
 - [SQLite as a Document Database (2020)](https://dgl.cx/2020/06/sqlite-json-support) · hn
 - [www.snowflake.com](https://www.snowflake.com/en/blog/enterprise-ai-agents-agentic-ai) · accepted_link_graph

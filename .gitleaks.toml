@@ -14,3 +14,16 @@ regexTarget = "line"
 regexes = [
   '''https://docs\.google\.com/forms/(?:d|d/e)/[A-Za-z0-9_-]+/(?:edit|viewform)\?resourcekey=0-[A-Za-z0-9_-]{16,64}(?:["'&<[:space:]]|$)''',
 ]
+
+# Some vendor documentation uses this literal value in copyable curl examples.
+# Scope the exception to the curl Authorization rule and to the complete,
+# vendor-specific placeholder so real Bearer tokens continue to fail closed.
+[[rules]]
+id = "curl-auth-header"
+
+[[rules.allowlists]]
+description = "Cohere documentation Bearer-token placeholder"
+regexTarget = "secret"
+regexes = [
+  '''^YOUR_COHERE_API_KEY$''',
+]

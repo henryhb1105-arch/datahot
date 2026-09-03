@@ -12,6 +12,7 @@ from release_policy import (  # noqa: E402
     event_recency_time,
     should_retain_event,
 )
+from product_cases import product_case_event_ids  # noqa: E402
 
 
 NOW = datetime(2026, 8, 22, tzinfo=timezone.utc)
@@ -19,6 +20,18 @@ CUTOFF = NOW - timedelta(days=8)
 
 
 class ReleasePolicyTests(unittest.TestCase):
+    def test_curated_product_cases_are_protected_without_becoming_evergreen(self):
+        case_ids = product_case_event_ids()
+        self.assertGreaterEqual(len(case_ids), 8)
+        self.assertTrue(case_ids.issubset(PROTECTED_EVENT_IDS))
+        case_id = next(iter(case_ids))
+        self.assertTrue(should_retain_event({
+            "event_id": case_id,
+            "shelf": "news",
+            "published": (NOW - timedelta(days=30)).isoformat(),
+            "first_seen": (NOW - timedelta(days=30)).isoformat(),
+        }, cutoff=CUTOFF))
+
     def test_protected_news_survives_after_normal_retention_window(self):
         event_id = next(iter(PROTECTED_EVENT_IDS))
         event = {

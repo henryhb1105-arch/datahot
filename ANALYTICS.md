@@ -64,6 +64,6 @@ python3 pipeline/analytics_metrics.py export.ndjson
 - 7 日回访率 = 有至少 7 天完整观察窗的首次设备中，在第 1–7 天再次出现的设备占比
 - PV = 每个 Asia/Shanghai 自然日合法 `page_view` 数
 - 可测 UV = 每个 Asia/Shanghai 自然日产生合法 `page_view` 的唯一匿名设备数
-- 热门页面 = 公开相对页面路径上的 PV 与可测 UV；同一设备访问多个页面时会分别进入各页面 UV
+- 热门页面 = 公开相对页面路径上的 PV 与可测 UV；同一设备访问多个页面时会分别进入各页面 UV。案例库使用独立页面类型 `cases` 与路径 `/cases.html`，可与资讯首页分开观察
 
 报告同时给出合法率、解析失败、未知字段、缺字段和传输重复数。数据质量未达标前不得据此做产品决策。

@@ -27,7 +27,7 @@ EVENT_ID_RE = re.compile(r"[a-f0-9]{12}")
 MAX_URLS = 10_000
 BOOTSTRAP_WINDOW_HOURS = 24
 BOOTSTRAP_EVENT_LIMIT = 20
-PUBLIC_LISTING_PATHS = ("", "hot.html", "topics.html", "sources.html")
+PUBLIC_LISTING_PATHS = ("", "hot.html", "cases.html", "topics.html")
 
 
 def validate_key(key: str) -> str:
@@ -163,7 +163,7 @@ def changed_public_urls(
     listings_changed = bool(changed_ids) or baseline.get("top") != candidate.get("top")
     sources_changed = baseline.get("sources") != candidate.get("sources")
     if listings_changed:
-        paths.update(PUBLIC_LISTING_PATHS[:3])
+        paths.update(PUBLIC_LISTING_PATHS)
         topics_dir = Path(site_root) / "topics"
         if topics_dir.is_dir():
             paths.update(f"topics/{path.name}" for path in topics_dir.glob("*.html"))

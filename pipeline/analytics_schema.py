@@ -13,7 +13,7 @@ EVENT_NAMES = {
     "favorite_toggle", "content_feedback", "share_action", "search", "filter",
     "weekly_brief_click", "daily_brief_click",
 }
-PAGES = {"home", "for-me", "weekly", "daily", "topics", "topic", "classics", "hot", "favorites", "sources", "detail", "privacy", "other"}
+PAGES = {"home", "for-me", "cases", "weekly", "daily", "topics", "topic", "classics", "hot", "favorites", "sources", "detail", "privacy", "other"}
 CATEGORIES = {"agent", "platform", "bi", "product", "insight", ""}
 VIEWPORTS = {"small", "medium", "large"}
 REFERRERS = {"direct", "internal", "search", "social", "other"}
@@ -45,7 +45,7 @@ EVENT_ID_REQUIRED = {
 UUID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$", re.I)
 EVENT_ID_RE = re.compile(r"^[a-f0-9]{12}$")
 PAGE_PATH_RE = re.compile(
-    r"^/(?:$|(?:index|for-me|weekly|daily|topics|classics|hot|favorites|sources|privacy)\.html$|"
+    r"^/(?:$|(?:index|for-me|cases|weekly|daily|topics|classics|hot|favorites|sources|privacy)\.html$|"
     r"topics/[a-z0-9-]{1,60}\.html$|weekly/\d{4}-W\d{2}\.html$|e/[a-f0-9]{12}\.html$)"
 )
 SITE_ID_RE = re.compile(r"^[a-z0-9_-]{1,40}$")

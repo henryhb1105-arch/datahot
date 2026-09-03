@@ -12,6 +12,7 @@ SITEMAP_NAMESPACE = "http://www.sitemaps.org/schemas/sitemap/0.9"
 PUBLIC_ROOT_PAGES = (
     "",
     "hot.html",
+    "cases.html",
     "topics.html",
     "sources.html",
     "weekly.html",

@@ -27,6 +27,7 @@ from site_config import SITE_BASE_URL, SITE_HOST
 from social_cards import social_image_for_event
 from seo import absolute_public_url, public_sitemap_paths, write_search_discovery
 from indexnow import write_key_file as write_indexnow_key_file
+from product_cases import find_case_hero, load_product_cases
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
@@ -40,6 +41,7 @@ HOME_ASSET = ROOT / "pipeline" / "assets" / "home.js"
 FOR_ME_ASSET = ROOT / "pipeline" / "assets" / "for-me.js"
 FAVORITES_ASSET = ROOT / "pipeline" / "assets" / "favorites.js"
 DETAIL_ASSET = ROOT / "pipeline" / "assets" / "detail.js"
+CASES_ASSET = ROOT / "pipeline" / "assets" / "cases.js"
 TTS_ASSET = ROOT / "pipeline" / "assets" / "tts-player.js"
 TTS_MANIFEST = SITE / "data" / "tts-manifest.json"
 TZ = timezone(timedelta(hours=8))
@@ -596,6 +598,83 @@ main,.layout>*,.hotlist>*{min-width:0}
 }
 """
 
+CASES_CSS = """
+.cases-page{max-width:1080px;padding:30px 20px 72px}
+.cases-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:18px}
+.cases-eyebrow{margin:0 0 7px;color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.cases-head h1{margin:0;font-size:30px;line-height:1.25;letter-spacing:-.025em}
+.cases-head p{max-width:640px;margin:7px 0 0;color:var(--txt2);font-size:13.5px;line-height:1.7}
+.cases-count{flex:0 0 auto;margin-bottom:2px;color:var(--sub);font-size:12px;white-space:nowrap}
+.cases-controls{display:grid;grid-template-columns:minmax(240px,1.1fr) minmax(0,2fr);gap:14px;margin-bottom:20px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.cases-search-wrap{display:flex;align-items:center;position:relative}
+.cases-search-wrap svg{position:absolute;left:13px;color:var(--sub);pointer-events:none}
+.cases-search{width:100%;min-height:44px;border:1px solid var(--line);border-radius:10px;padding:9px 13px 9px 39px;background:var(--bg);color:var(--ink);font:inherit;font-size:13px;outline:none}
+.cases-search:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.cases-filter-groups{display:grid;gap:9px}
+.cases-filter-group{display:grid;grid-template-columns:66px minmax(0,1fr);gap:9px;align-items:center;min-width:0}
+.cases-filter-label{color:var(--sub);font-size:11.5px;font-weight:700;white-space:nowrap}
+.cases-filter-row{display:flex;gap:6px;min-width:0;overflow-x:auto;scrollbar-width:none}
+.cases-filter-row::-webkit-scrollbar{display:none}
+.cases-filter{appearance:none;flex:0 0 auto;min-height:34px;border:1px solid var(--line);border-radius:99px;padding:5px 11px;background:var(--bg);color:var(--sub);font:inherit;font-size:11.5px;cursor:pointer;white-space:nowrap}
+.cases-filter.on{border-color:var(--ink);background:var(--ink);color:var(--bg);font-weight:750}
+.cases-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.case-card{display:flex;min-width:0;flex-direction:column;overflow:hidden;border:1px solid var(--line);border-radius:15px;background:var(--card);transition:border-color .15s ease,box-shadow .15s ease,transform .15s ease}
+.case-card[hidden]{display:none}
+.case-card-media{display:block;position:relative;aspect-ratio:16/9;overflow:hidden;border-bottom:1px solid var(--line);background:var(--soft)}
+.case-card-media img{display:block;width:100%;height:100%;object-fit:contain;background:var(--soft)}
+.case-card-type{position:absolute;left:10px;top:10px;display:inline-flex;align-items:center;min-height:24px;padding:3px 8px;border-radius:99px;background:rgba(26,29,35,.84);color:#fff;font-size:10px;font-weight:800;backdrop-filter:blur(6px)}
+.case-card-body{display:flex;min-width:0;flex:1;flex-direction:column;padding:16px}
+.case-card-kicker{display:flex;align-items:center;gap:7px;min-width:0;margin-bottom:8px;color:var(--accent);font-size:11px;font-weight:750}
+.case-card-kicker span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.case-card-kicker span+span::before{content:"·";margin-right:7px;color:var(--line)}
+.case-card h2{margin:0;font-size:18px;line-height:1.45;letter-spacing:-.01em}
+.case-card-title{color:var(--ink);text-decoration:none}
+.case-card-problem,.case-card-solution{display:-webkit-box;overflow:hidden;margin:9px 0 0;color:var(--txt2);font-size:12.5px;line-height:1.65;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.case-card-solution{margin-top:5px}
+.case-card-problem b,.case-card-solution b{color:var(--ink);font-size:11px}
+.case-card-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.case-card-tags span{display:inline-flex;align-items:center;min-height:25px;padding:3px 8px;border-radius:7px;background:var(--soft);color:var(--txt2);font-size:10.5px}
+.case-card-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:14px;color:var(--sub);font-size:10.5px}
+.case-card-open{color:var(--accent);font-size:11.5px;font-weight:750;white-space:nowrap}
+.cases-empty{display:none;min-height:240px;padding:40px 18px;border:1px solid var(--line);border-radius:14px;background:var(--card);place-items:center;text-align:center;color:var(--sub);font-size:13px;line-height:1.7}
+.cases-empty.show{display:grid}
+.cases-search:focus-visible,.cases-filter:focus-visible,.case-card-media:focus-visible,.case-card-title:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(hover:hover) and (pointer:fine){.case-card:hover{border-color:#c9ced8;box-shadow:0 8px 24px rgba(0,0,0,.07);transform:translateY(-1px)}.case-card:hover h2{color:var(--accent)}}
+@media(max-width:820px){.cases-controls{grid-template-columns:1fr}.cases-grid{grid-template-columns:1fr}}
+@media(max-width:600px){
+  .cases-page{padding:20px var(--mobile-page-right) calc(42px + env(safe-area-inset-bottom)) var(--mobile-page-left)}
+  .cases-head{display:block;margin-bottom:15px}.cases-head h1{font-size:25px}.cases-head p{font-size:13px}.cases-count{display:block;margin-top:9px}
+  .cases-controls{gap:12px;margin-left:calc(-1 * var(--mobile-page-left));margin-right:calc(-1 * var(--mobile-page-right));padding:12px var(--mobile-page-right) 14px var(--mobile-page-left);border-left:0;border-right:0;border-radius:0}
+  .cases-filter-group{grid-template-columns:1fr;gap:5px}.cases-filter-row{margin-left:calc(-1 * var(--mobile-page-left));margin-right:calc(-1 * var(--mobile-page-right));padding-left:var(--mobile-page-left);padding-right:var(--mobile-page-right)}
+  .cases-filter{min-height:40px;padding:7px 12px}.cases-grid{gap:13px}.case-card-body{padding:15px}.case-card h2{font-size:17px}
+}
+"""
+
+CASE_DETAIL_CSS = """
+.product-case-breakdown{max-width:700px;margin:18px auto 30px;padding:0;border:1px solid var(--line);border-radius:14px;background:var(--card);overflow:hidden}
+.product-case-head{padding:18px 20px;background:var(--soft);background:linear-gradient(135deg,color-mix(in srgb,var(--accent-soft) 62%,var(--card)),var(--card));border-bottom:1px solid var(--line)}
+.product-case-kicker{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;color:var(--accent);font-size:10.5px;font-weight:800;letter-spacing:.08em}
+.product-case-kicker a{display:inline-flex;align-items:center;min-height:32px;color:var(--accent);font-size:11px;letter-spacing:0;text-decoration:none}
+.product-case-head h2{margin:0;font-size:20px;line-height:1.4}
+.product-case-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.product-case-meta span{display:inline-flex;align-items:center;min-height:24px;padding:3px 8px;border:1px solid var(--line);border-radius:99px;background:var(--card);color:var(--txt2);font-size:10.5px}
+.product-case-problem{margin:0;padding:16px 20px;border-bottom:1px solid var(--soft);color:var(--txt2);font-size:13.5px;line-height:1.75}
+.product-case-problem b{display:block;margin-bottom:3px;color:var(--ink);font-size:11px}
+.product-case-sections{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0}
+.product-case-section{padding:16px 20px;border-bottom:1px solid var(--soft)}
+.product-case-section:nth-child(odd){border-right:1px solid var(--soft)}
+.product-case-section h3{margin:0 0 8px;color:var(--ink);font-size:12px;line-height:1.4}
+.product-case-section ul{margin:0;padding-left:18px;color:var(--txt2);font-size:12.5px;line-height:1.7}
+.product-case-section li+li{margin-top:5px}
+.product-case-section.is-official h3{color:var(--ink)}
+.product-case-section.is-interpretation{background:var(--soft);background:color-mix(in srgb,var(--accent-soft) 30%,var(--card))}
+.product-case-section.is-interpretation h3{color:var(--accent)}
+.product-case-note{grid-column:1/-1;margin:0;padding:12px 20px;color:var(--sub);font-size:10.5px;line-height:1.6}
+.product-case-kicker a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(hover:hover) and (pointer:fine){.product-case-kicker a:hover{color:var(--ink)}}
+@media(max-width:600px){.product-case-breakdown{margin:16px auto 24px}.product-case-head,.product-case-problem,.product-case-section{padding-left:15px;padding-right:15px}.product-case-sections{grid-template-columns:1fr}.product-case-section:nth-child(odd){border-right:0}.product-case-head h2{font-size:18px}}
+"""
+
 FOR_ME_CSS = """
 .for-me-page{max-width:1040px;padding:34px 20px 72px}
 .fm-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:start;margin-bottom:18px}
@@ -685,7 +764,8 @@ def sidebar(active, gen=None, prefix=""):
     """桌面端左侧菜单栏（≥1200px 显示，窄屏由底部 Tab 承担导航）"""
     menu_active = "home" if active == "hot" else active
     items = [("热榜", "flame", "index.html", "home"),
-             ("关注", "radar", "for-me.html", "for-me")]
+             ("关注", "radar", "for-me.html", "for-me"),
+             ("案例", "image", "cases.html", "cases")]
     if weekly_brief_enabled():
         items.append(("周报", "calendar", "weekly.html", "weekly"))
     items += [("主题", "map", "topics.html", "topics"),
@@ -797,7 +877,7 @@ def weekly_brief_enabled():
 def tabbar(active, prefix=""):
     items = [("热榜", ic("flame",20), "index.html", "home"),
              ("关注", ic("radar",20), "for-me.html", "for-me"),
-             ("主题", ic("map",20), "topics.html", "topics"),
+             ("案例", ic("image",20), "cases.html", "cases"),
              ("收藏", ic("star",20), "favorites.html", "favorites")]
     primary = "".join(
         f'<a href="{prefix}{u}" class="{"on" if k == active else ""}"'
@@ -807,6 +887,7 @@ def tabbar(active, prefix=""):
     if weekly_brief_enabled():
         more_items.append(("每周简报", "calendar", "weekly.html", "weekly"))
     more_items += [
+        ("主题", "map", "topics.html", "topics"),
         ("完整榜单", "list", "hot.html", "hot"),
         ("信源", "rss", "sources.html", "sources"),
         ("接入 Agent", "sparkle", "agent.html", "agent"),
@@ -1014,7 +1095,7 @@ def detail_url(e):
     return f'e/{safe_event_id(e["event_id"])}.html'
 
 def load_css():
-    css = open(ROOT / "ui-mockup" / "index.html").read()
+    css = (ROOT / "ui-mockup" / "index.html").read_text(encoding="utf-8")
     return css.split("<style>", 1)[1].split("</style>", 1)[0]
 
 def sources_html(e, link=False):
@@ -1337,7 +1418,53 @@ def render_supplement_sources(event, primary_item):
     )
 
 
-def render_detail(e, all_events, css, tts_item=None):
+def _case_list_section(title, values, class_name=""):
+    values = [str(value).strip() for value in (values or []) if str(value).strip()]
+    if not values:
+        return ""
+    items = "".join(f"<li>{esc(value)}</li>" for value in values)
+    suffix = f" {class_name}" if class_name else ""
+    return f'''<section class="product-case-section{suffix}">
+  <h3>{esc(title)}</h3>
+  <ul>{items}</ul>
+</section>'''
+
+
+def render_product_case_breakdown(product_case):
+    """Render an editorial product-design lens without presenting inference as fact."""
+    if not product_case:
+        return ""
+    observed_at = str(product_case.get("observed_at") or "")[:10]
+    sections = "".join([
+        _case_list_section("功能模块", product_case.get("modules")),
+        _case_list_section("关键交互", product_case.get("interactions")),
+        _case_list_section("官方说明", product_case.get("official_facts"), "is-official"),
+        _case_list_section("DataHot 解读", product_case.get("datahot_interpretation"), "is-interpretation"),
+        _case_list_section("收益与代价", product_case.get("tradeoffs")),
+        _case_list_section("可以借鉴", product_case.get("takeaways")),
+        _case_list_section("不宜照搬", product_case.get("limitations")),
+    ])
+    meta = "".join(
+        f"<span>{esc(value)}</span>"
+        for value in (
+            product_case.get("product_type"), product_case.get("task_type"),
+            f"核验 {observed_at}" if observed_at else "",
+        ) if value
+    )
+    return f'''<section class="product-case-breakdown" aria-labelledby="productCaseTitle">
+  <header class="product-case-head">
+    <div class="product-case-kicker"><span>产品设计拆解 · PRODUCT DESIGN CASE</span><a href="../cases.html">查看案例库 →</a></div>
+    <h2 id="productCaseTitle">{esc(product_case.get("product") or "产品设计拆解")}</h2>
+    <div class="product-case-meta">{meta}</div>
+  </header>
+  <p class="product-case-problem"><b>要解决的问题</b>{esc(product_case.get("user_problem") or "")}</p>
+  <div class="product-case-sections">{sections}
+    <p class="product-case-note">“官方说明”仅记录公开材料明确表达的事实；“DataHot 解读”是基于界面与流程的产品判断。</p>
+  </div>
+</section>'''
+
+
+def render_detail(e, all_events, css, tts_item=None, product_case=None):
     event_id = safe_event_id(e["event_id"])
     tts_button, tts_player, tts_script = render_tts_ui(tts_item)
     related = select_related_events(e, all_events)
@@ -1352,6 +1479,9 @@ def render_detail(e, all_events, css, tts_item=None):
         f'<h4 id="relatedEventsTitle">{ic("list")} 相关事件</h4>{rel_html}</section>'
         if rel_html else ""
     )
+    case_breakdown_html = render_product_case_breakdown(product_case)
+    detail_back_href = "../cases.html" if product_case else "../index.html"
+    detail_back_label = "返回案例" if product_case else "返回"
     primary_item = detail_primary_item(e)
     supplement_sources = render_supplement_sources(e, primary_item)
     tchips = "".join(
@@ -1550,6 +1680,7 @@ def render_detail(e, all_events, css, tts_item=None):
 <script type="application/ld+json">{jsonld}</script>
 <style>{css}
 {SHARED_CSS}
+{CASE_DETAIL_CSS if product_case else ""}
 .article{{max-width:1040px;margin:0 auto;padding:36px 20px 60px}}
 .article-layout{{max-width:1000px;margin:0 auto}}
 .article-content{{max-width:840px;margin:0 auto}}
@@ -1685,13 +1816,13 @@ def render_detail(e, all_events, css, tts_item=None):
 @media(max-width:1199px){{.article-layout.has-toc{{display:block}}.article-layout.has-toc .article-content{{margin:0 auto}}.article-toc-rail{{display:none}}.article-toc-mobile{{display:block}}}}
 @media(max-width:600px){{.article{{padding-left:16px;padding-right:16px}}.article h1{{font-size:24px;line-height:1.45}}.fulltext>:not(.cb-figure):not(.cb-table-shell){{max-width:none}}.fulltext p,.fulltext li{{font-size:16px;line-height:1.82}}.content-footer{{align-items:flex-start;flex-direction:column;gap:4px}}.original-footer-link{{align-self:flex-end}}.related-meta{{max-width:88px}}}}
 </style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="{event_id}" data-category="{esc(e["category"])}" data-source="{main_src}">
-{sidebar("home", prefix="../")}
+{sidebar("cases" if product_case else "home", prefix="../")}
 <header class="detail-brand-header"><div class="wrap nav">
   <div class="logo"><a href="../index.html" data-smart-home-return>Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
 <div class="article">
   <div class="topbar detail-context">
-    <a class="back" href="../index.html" data-smart-back aria-label="返回"><span aria-hidden="true">←</span><span class="back-label">返回</span></a>
+    <a class="back" href="{detail_back_href}" data-smart-back aria-label="{detail_back_label}"><span aria-hidden="true">←</span><span class="back-label">{detail_back_label}</span></a>
     <span class="sharebtns">
       {favorite_button(e, class_name="sbtn ghost favbtn", label="收藏")}
 {("      " + tts_button) if tts_button else ""}
@@ -1712,6 +1843,7 @@ def render_detail(e, all_events, css, tts_item=None):
   </div>
   <h1>{esc(e["zh_title"])}</h1>
 {("  " + tts_player) if tts_player else ""}
+  {case_breakdown_html}
   {brief_html}
   {toc_mobile_html}
   {full_block}
@@ -1724,7 +1856,7 @@ def render_detail(e, all_events, css, tts_item=None):
   </div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a> · {BLUESKY_FOOTER_LINK}</footer>
-{tabbar("home", "../")}
+{tabbar("cases" if product_case else "home", "../")}
 {tts_script}
 </body></html>'''
     return finalize_html_security(
@@ -2274,6 +2406,113 @@ def page_shell(
 {tabbar_html}
 </body></html>''')
 
+def _case_root_media_url(cached_src):
+    """Convert a validated detail-relative cache path for a root-level page."""
+    value = str(cached_src or "").replace("\\", "/")
+    while value.startswith("../"):
+        value = value[3:]
+    return value
+
+
+def render_cases_page(product_cases, events, css):
+    """Curated product-design cases: a compact working surface, not another news feed."""
+    event_map = {str(event.get("event_id") or ""): event for event in events}
+    product_type_order = ("Data Agent", "数据平台", "BI/数据应用")
+    task_type_order = ("找数据", "问数据", "做分析", "看结果", "管任务", "做治理")
+    prepared = []
+    for product_case in product_cases:
+        event = event_map.get(str(product_case.get("event_id") or ""))
+        hero = find_case_hero(event, product_case) if event else None
+        if not event or not hero:
+            continue
+        prepared.append((product_case, event, hero))
+
+    product_types = sorted(
+        {str(case.get("product_type") or "") for case, _, _ in prepared if case.get("product_type")},
+        key=lambda value: (product_type_order.index(value) if value in product_type_order else len(product_type_order), value),
+    )
+    task_types = sorted(
+        {str(case.get("task_type") or "") for case, _, _ in prepared if case.get("task_type")},
+        key=lambda value: (task_type_order.index(value) if value in task_type_order else len(task_type_order), value),
+    )
+
+    def filter_row(kind, values):
+        buttons = [
+            f'<button class="cases-filter on" type="button" data-case-filter-kind="{kind}" '
+            f'data-case-filter-value="" aria-pressed="true">全部</button>'
+        ]
+        buttons.extend(
+            f'<button class="cases-filter" type="button" data-case-filter-kind="{kind}" '
+            f'data-case-filter-value="{esc(value)}" aria-pressed="false">{esc(value)}</button>'
+            for value in values
+        )
+        return "".join(buttons)
+
+    cards = []
+    for product_case, event, hero in prepared:
+        product = str(product_case.get("product") or event.get("zh_title") or "产品案例")
+        product_type = str(product_case.get("product_type") or "")
+        task_type = str(product_case.get("task_type") or "")
+        problem = str(product_case.get("user_problem") or "")
+        solution_values = product_case.get("datahot_interpretation") or []
+        solution = str(solution_values[0]) if solution_values else ""
+        modules = [str(value) for value in (product_case.get("modules") or []) if str(value).strip()][:3]
+        tags = "".join(f"<span>{esc(value)}</span>" for value in modules)
+        observed_at = str(product_case.get("observed_at") or "")[:10]
+        figure_count = sum(
+            1 for block in (event.get("content_blocks") or [])
+            if isinstance(block, dict) and block.get("type") == "figure" and block.get("cached_src")
+        )
+        search_text = " ".join([
+            product, product_type, task_type, problem, solution,
+            *modules, *[str(value) for value in (product_case.get("interactions") or [])],
+        ]).casefold()
+        alt = str(hero.get("alt") or hero.get("caption") or f"{product} 产品界面")
+        source_name = str(((event.get("items") or [{}])[0]).get("source") or "")
+        cards.append(f'''<article class="case-card" data-case-card data-analytics-list="1" data-event-id="{esc(event['event_id'])}" data-category="{esc(event.get('category') or '')}" data-source="{esc(source_name)}" data-product-type="{esc(product_type)}" data-task-type="{esc(task_type)}" data-search="{esc(search_text)}">
+  <a class="case-card-media" href="{detail_url(event)}" data-event-id="{esc(event['event_id'])}">
+    <img src="{esc(_case_root_media_url(hero.get('cached_src')))}" alt="{esc(alt)}" loading="lazy" decoding="async">
+    <span class="case-card-type">{esc(product_type)}</span>
+  </a>
+  <div class="case-card-body">
+    <div class="case-card-kicker"><span>{esc(task_type)}</span></div>
+    <h2><a class="case-card-title" href="{detail_url(event)}">{esc(product)}</a></h2>
+    <p class="case-card-problem"><b>问题：</b>{esc(problem)}</p>
+    {f'<p class="case-card-solution"><b>设计解读：</b>{esc(solution)}</p>' if solution else ''}
+    {f'<div class="case-card-tags" aria-label="主要功能模块">{tags}</div>' if tags else ''}
+    <div class="case-card-foot"><span>{figure_count} 张原文图 · 核验 {esc(observed_at)}</span><a class="case-card-open" href="{detail_url(event)}">查看拆解 →</a></div>
+  </div>
+</article>''')
+
+    cards_html = "".join(cards)
+    if not cards_html:
+        cards_html = ""
+    body = f'''
+<main class="wrap cases-page" data-cases-page>
+  <header class="cases-head">
+    <div><p class="cases-eyebrow">PRODUCT DESIGN LIBRARY</p><h1>数据产品设计库</h1><p>从真实产品界面和完整操作流程，拆解功能、交互、设计理由与适用边界。</p></div>
+    <span class="cases-count"><span data-case-count>{len(prepared)}</span> 个案例</span>
+  </header>
+  <section class="cases-controls" aria-label="筛选案例">
+    <label class="cases-search-wrap">{ic("search", 17)}<input class="cases-search" type="search" data-case-search placeholder="搜索产品、问题或功能" aria-label="搜索案例" autocomplete="off"></label>
+    <div class="cases-filter-groups">
+      <div class="cases-filter-group"><span class="cases-filter-label">产品形态</span><div class="cases-filter-row">{filter_row("product", product_types)}</div></div>
+      <div class="cases-filter-group"><span class="cases-filter-label">设计任务</span><div class="cases-filter-row">{filter_row("task", task_types)}</div></div>
+    </div>
+  </section>
+  <div class="cases-grid" data-case-grid aria-live="polite">{cards_html}</div>
+  <div class="cases-empty{' show' if not prepared else ''}" data-case-empty><div><b>没有匹配的案例</b><br>换个产品形态、设计任务或关键词试试。</div></div>
+  <noscript><p class="cases-empty show">启用 JavaScript 后可以搜索和筛选；案例内容仍可直接浏览。</p></noscript>
+</main>
+<script defer src="cases.js"></script>'''
+    return page_shell(
+        "数据产品设计库 · DataHot",
+        "用真实界面和操作流程拆解 Data Agent、数据平台、BI 与数据应用的产品设计。",
+        css + CASES_CSS, body, tabbar("cases"), prefix="", active="cases",
+        canonical_path="cases.html",
+    )
+
+
 def render_sources_page(events, payload, css):
     """公开信源页：信源目录、异常提示与单一推荐入口。"""
     ss_path = SITE / "data" / "sources_status.json"
@@ -2691,12 +2930,19 @@ def render_privacy_page(css):
         css, body, tabbar("privacy"), prefix="", active="privacy", canonical_path="privacy.html",
     )
 
-def write_detail_pages(all_events, css, detail_dir=None, tts_manifest=None, site_root=SITE):
+def write_detail_pages(
+    all_events, css, detail_dir=None, tts_manifest=None, site_root=SITE,
+    product_cases=None,
+):
     """All events retained in latest.json keep a stable detail page."""
     detail_dir = Path(detail_dir) if detail_dir is not None else DETAIL_DIR
     detail_dir.mkdir(parents=True, exist_ok=True)
     valid_ids = set()
     tts_manifest = tts_manifest or {"items": {}}
+    case_by_event_id = {
+        str(product_case.get("event_id") or ""): product_case
+        for product_case in (product_cases or [])
+    }
     for event in all_events:
         event_id = safe_event_id(event["event_id"])
         filename = event_id + ".html"
@@ -2705,6 +2951,7 @@ def write_detail_pages(all_events, css, detail_dir=None, tts_manifest=None, site
             render_detail(
                 event, all_events, css,
                 tts_item=tts_item_for_event(tts_manifest, event_id, site_root=site_root),
+                product_case=case_by_event_id.get(event_id),
             ), encoding="utf-8",
         )
     for path in detail_dir.glob("*.html"):
@@ -2767,7 +3014,7 @@ def main():
     SITE.mkdir(parents=True, exist_ok=True)
     remove_retired_public_pages()
     write_bluesky_handle_verification()
-    if not all(asset.exists() for asset in (ANALYTICS_ASSET, CONTENT_FEEDBACK_ASSET, HOME_ASSET, FOR_ME_ASSET, FAVORITES_ASSET, DETAIL_ASSET, TTS_ASSET)):
+    if not all(asset.exists() for asset in (ANALYTICS_ASSET, CONTENT_FEEDBACK_ASSET, HOME_ASSET, FOR_ME_ASSET, FAVORITES_ASSET, DETAIL_ASSET, CASES_ASSET, TTS_ASSET)):
         raise FileNotFoundError("missing browser asset")
     shutil.copyfile(ANALYTICS_ASSET, SITE / "analytics.js")
     shutil.copyfile(CONTENT_FEEDBACK_ASSET, SITE / "content-feedback.js")
@@ -2775,12 +3022,14 @@ def main():
     shutil.copyfile(FOR_ME_ASSET, SITE / "for-me.js")
     shutil.copyfile(FAVORITES_ASSET, SITE / "favorites.js")
     shutil.copyfile(DETAIL_ASSET, SITE / "detail.js")
+    shutil.copyfile(CASES_ASSET, SITE / "cases.js")
     shutil.copyfile(TTS_ASSET, SITE / "tts-player.js")
     payload = json.load(open(SITE / "data" / "latest.json"))
     all_events = payload["events"]
     normalize_category_labels(all_events)
     for event in all_events:
         safe_event_id(event.get("event_id"))
+    product_cases = load_product_cases(events=all_events)
     qualified_events = [event for event in all_events if is_list_eligible(event)]
     weekly_enabled = weekly_brief_enabled()
     weekly_brief = load_weekly_brief() if weekly_enabled else None
@@ -2834,6 +3083,7 @@ def main():
     valid_qr_ids = write_qr_assets(all_events)
     valid_ids = write_detail_pages(
         all_events, css, tts_manifest=load_tts_manifest(), site_root=SITE,
+        product_cases=product_cases,
     )
     if {Path(name).stem for name in valid_qr_ids} != {Path(name).stem for name in valid_ids}:
         raise RuntimeError("detail pages and local QR assets are inconsistent")
@@ -3081,6 +3331,7 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
 
     page = finalize_html_security(page)
     (SITE / "sources.html").write_text(render_sources_page(timeline_events, payload, css), encoding="utf-8")
+    (SITE / "cases.html").write_text(render_cases_page(product_cases, all_events, css), encoding="utf-8")
     (SITE / "hot.html").write_text(
         render_hot_page(hot_window_events, css, reference_time=gen), encoding="utf-8",
     )

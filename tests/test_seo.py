@@ -33,6 +33,7 @@ class SitemapTests(unittest.TestCase):
             ["2026-W32.html"],
         )
         self.assertIn("", paths)
+        self.assertIn("cases.html", paths)
         self.assertIn("e/abc123.html", paths)
         self.assertIn("topics/data-agent.html", paths)
         self.assertIn("weekly/2026-W32.html", paths)

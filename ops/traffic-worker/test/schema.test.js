@@ -58,6 +58,7 @@ test("server accepts only bounded share actions with a public event id", () => {
 
 test("page paths and Shanghai calendar days are bounded", () => {
   assert.equal(safePagePath("/"), "/");
+  assert.equal(safePagePath("/cases.html"), "/cases.html");
   assert.equal(safePagePath("/topics/data-agent.html"), "/topics/data-agent.html");
   assert.equal(safePagePath("/search.html?q=private"), "");
   assert.equal(safePagePath("/index.html/private"), "");

@@ -1,6 +1,6 @@
 # DataHot · 数据领域 AI 资讯热榜
 
-监控 **Data Agent / AI 数据平台 / BI / 数据产品 / AI分析** 五个领域的资讯聚合站。
+监控 **Data Agent / AI 数据平台 / BI / 数据产品 / AI分析** 五个领域的资讯聚合站，并用真实界面持续沉淀数据产品设计案例。
 多信源采集与影子侦察 → LLM 过滤加工（摘要、分类、质量分）→ 静态站点，每 6 小时自动更新。
 
 **[访问 DataHot →](https://datahot.xiahongbin.com/)**
@@ -15,6 +15,8 @@ RSS/API 采集 ──► LLM 加工（DeepSeek）──► latest.json ──►
 - `pipeline/sources.json` — 信源配置（`enabled: false` 的为待解封源）
 - `pipeline/run_update.py` — 采集 / 过滤 / LLM 加工 / 打分 / 数据输出
 - `pipeline/run_discovery.py` — 每日影子文章侦察与新信源候选池
+- `pipeline/product_cases.json` — 编辑精选的数据产品设计案例，复用既有事件与安全缓存截图
+- `pipeline/product_cases.py` — 案例字段、事件和代表截图校验
 - `pipeline/build_site.py` — 静态页面渲染
 - `pipeline/lite_data.py` — 首页/搜索/收藏的轻量数据与首屏结构规则
 - `pipeline/check_links.py` — 全站本地 `href/src` 完整性检查（失效链接会阻断构建）
@@ -102,6 +104,12 @@ GitHub Actions 每 6 小时自动运行（UTC 0/6/12/18 第 17 分），数据�
 统计已启用，只会发送事件 ID、动作和固定原因枚举；收藏仍表示稍后阅读，不作为质量标签。
 
 首页默认只静态输出 20 条并使用不含正文的 `latest-lite.json` 完成加载更多、搜索和收藏；首屏厂商上限、栏目软阈值、当前体积基线和一键回滚见 [`PERFORMANCE.md`](PERFORMANCE.md)。
+
+### 数据产品设计案例库
+
+[`cases.html`](https://datahot.xiahongbin.com/cases.html) 不是另一条新闻流，而是从已收录内容中人工选择有真实产品界面和可观察流程的案例。案例页支持按产品形态、设计任务和关键词筛选；详情页在保留原始图文与原文链接的基础上，补充用户问题、功能模块、关键交互、收益与代价、可借鉴点和限制。
+
+`pipeline/product_cases.json` 只引用稳定 `event_id` 与正文中的 `hero_figure_id`，不复制媒体地址。构建时会验证事件仍存在、代表图已安全缓存，并严格分开“官方说明”和“DataHot 解读”；入选事件受保留策略保护，但不会因此进入热榜或被改成常青资讯。
 
 ### 每周简报
 

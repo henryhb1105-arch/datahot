@@ -71,7 +71,7 @@ class IndexNowTests(unittest.TestCase):
                 baseline, candidate, site_root=directory, site_base=SITE_BASE,
             )
         for path in (
-            "", "hot.html", "topics.html", "sources.html", "topics/data-agent.html",
+            "", "hot.html", "cases.html", "topics.html", "sources.html", "topics/data-agent.html",
             "e/aaaaaaaaaaaa.html", "e/bbbbbbbbbbbb.html", "e/cccccccccccc.html",
         ):
             expected = f"{SITE_BASE}/{path}" if path else f"{SITE_BASE}/"

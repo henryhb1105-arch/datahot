@@ -73,9 +73,9 @@ class ReleaseGuardTests(unittest.TestCase):
         candidate = payload(*self.protected, self.recent, event("recent-b"))
         manifest = self.assess(candidate)
         self.assertTrue(manifest["should_publish"])
-        self.assertEqual(manifest["event_count"], 4)
+        self.assertEqual(manifest["event_count"], len(self.protected) + 2)
         self.assertEqual(manifest["recent_event_count"], 2)
-        self.assertEqual(manifest["detail_count"], 4)
+        self.assertEqual(manifest["detail_count"], len(self.protected) + 2)
         self.assertEqual(manifest["overrides"], [])
         self.assertFalse(manifest["allow_shrink"])
         self.assertEqual(
@@ -291,7 +291,8 @@ class ReleaseGuardTests(unittest.TestCase):
 
     def test_detail_page_count_regression_is_blocked(self):
         candidate = payload(*self.protected, self.recent)
-        with self.assertRaisesRegex(ReleaseGuardError, "details 4 -> 3"):
+        expected = f"details {len(self.baseline_ids) + 1} -> {len(self.baseline_ids)}"
+        with self.assertRaisesRegex(ReleaseGuardError, expected):
             self.assess(
                 candidate,
                 baseline_details=self.baseline_ids | {"historical-detail"},

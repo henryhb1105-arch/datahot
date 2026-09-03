@@ -48,6 +48,7 @@ class AnalyticsSchemaTests(unittest.TestCase):
         self.assertIn("environment", validate_event(event(5, "session_start", environment="development")))
         self.assertIn("page_path_required", validate_event(event(8, "page_view")))
         self.assertEqual(validate_event(event(9, "page_view", page_path="/e/aaaaaaaaaaaa.html", page="detail")), [])
+        self.assertEqual(validate_event(event(16, "page_view", page_path="/cases.html", page="cases")), [])
         self.assertIn("page_path", validate_event(event(10, "session_start", page_path="/private?email=x")))
         self.assertEqual(validate_event(event(
             6, "content_feedback", event_id="aaaaaaaaaaaa",

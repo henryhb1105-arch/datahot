@@ -4368,13 +4368,13 @@
    "source_id": "Snowflake Release Notes",
    "content_hash": "51a3efd2dcaefbb7080d0267d2a012dfe3c2ae2bf57d3ee34ee1c682fec60104",
    "status": "accepted",
-   "decided_at": "2026-08-18T09:53:00.310469+08:00",
+   "decided_at": "2026-09-04T01:49:09.498181+08:00",
    "model": "deepseek-v4-flash",
-   "rule_version": "enrich-v3-work-tags-v1",
+   "rule_version": "enrich-v4-quality-split-work-tags-v1",
    "enrichment": {
-    "zh_title": "Snowflake发布10.27版本更新：动态表语句正式可用",
-    "zh_summary": "Snowflake发布2026年8月2日至8月6日的版本说明，其中CREATE OR ALTER DYNAMIC TABLE正式全面可用。该命令整合了创建与修改动态表的功能，若表不存在则创建，若存在则按定义更新，若已匹配则无操作。该更新简化了数据管道中动态表的管理流程。",
-    "reason": "数据平台从业者需关注Snowflake动态表管理能力的演进，该功能可提升数据管道维护效率。",
+    "zh_title": "Snowflake发布CREATE OR ALTER DYNAMIC TABLE正式可用",
+    "zh_summary": "Snowflake 10.27版本发布说明宣布CREATE OR ALTER DYNAMIC TABLE正式可用。该命令合并了CREATE DYNAMIC TABLE与ALTER DYNAMIC TABLE功能：若动态表不存在则按定义创建；若已存在则更新为语句定义，并尽可能保持数据不变；若定义一致则无操作。该更新属于数据管道能力。",
+    "reason": "Snowflake动态表是自动化数据管道的关键能力，GA后用户可更简单地实现声明式数据转换，值得数仓/湖仓从业者关注。",
     "category": "platform",
     "category_label": "AI 数据平台",
     "vendors": [
@@ -4385,13 +4385,27 @@
     ],
     "work_tags": {
      "taxonomy_version": "work-tags-v1",
-     "product_objects": [],
-     "use_cases": [],
-     "decision_concerns": []
+     "product_objects": [
+      "数据资产"
+     ],
+     "use_cases": [
+      "生产评估与运营"
+     ],
+     "decision_concerns": [
+      "可维护性与复用"
+     ]
     },
     "shelf": "news",
-    "importance": 60,
-    "heat": 62
+    "importance": 70,
+    "quality_score": 70,
+    "quality_breakdown": {
+     "originality": 20,
+     "evidence_density": 15,
+     "information_gain": 20,
+     "actionability_depth": 15
+    },
+    "trend_score": 64,
+    "heat": 66
    }
   },
   "2de4a7f9ca64062817fbc4f2edb3541f336e4f4bd100c194e50b926a0a8a9f49": {
@@ -4399,13 +4413,13 @@
    "source_id": "Snowflake Release Notes",
    "content_hash": "78b14a76eae612ab716a702b0961a3109c25e330a69db0450247a24574bb8938",
    "status": "accepted",
-   "decided_at": "2026-08-18T09:53:03.393498+08:00",
+   "decided_at": "2026-09-04T01:49:15.395382+08:00",
    "model": "deepseek-v4-flash",
-   "rule_version": "enrich-v3-work-tags-v1",
+   "rule_version": "enrich-v4-quality-split-work-tags-v1",
    "enrichment": {
-    "zh_title": "Snowflake 10.26 版本说明：成本异常告警通知集成正式可用",
-    "zh_summary": "Snowflake 发布 10.26 版本说明，覆盖 2026 年 7 月 24 日至 31 日的更新。该版本包含多个行为变更包，状态包括默认禁用、默认启用和全面生效等不同阶段。主要新增功能为成本异常告警的通知集成，支持通过 Slack、短信或 webhook 发送通知，并可通过 SNOWFLAKE.LOCAL.ANOMALY_INSIGHTS 类进行管理。",
-    "reason": "数据平台用户可及时了解 Snowflake 成本异常告警的通知方式与行为变更状态，有助于生产环境评估与成本管理。",
+    "zh_title": "Snowflake 10.26发布说明：成本异常告警支持通知集成",
+    "zh_summary": "Snowflake发布2026年7月24日至31日期间10.26版本说明，包含多个行为变更包状态调整。SQL更新部分新增成本异常告警通知集成的通用可用性，用户可通过注册通知集成，将成本异常发送至Slack、短信或webhook。相关新方法位于SNOWFLAKE.LOCAL.ANOMALY_INSIGHTS类，支持账户级和组织级成本异常提醒。",
+    "reason": "Snowflake平台用户需要跟进行为变更包状态和成本异常通知能力，以管理数据平台运维成本与正常变更。",
     "category": "platform",
     "category_label": "AI 数据平台",
     "vendors": [
@@ -4415,14 +4429,24 @@
     "work_tags": {
      "taxonomy_version": "work-tags-v1",
      "product_objects": [],
-     "use_cases": [],
+     "use_cases": [
+      "生产评估与运营"
+     ],
      "decision_concerns": [
       "成本与性能"
      ]
     },
     "shelf": "news",
-    "importance": 55,
-    "heat": 60
+    "importance": 70,
+    "quality_score": 70,
+    "quality_breakdown": {
+     "originality": 25,
+     "evidence_density": 20,
+     "information_gain": 15,
+     "actionability_depth": 10
+    },
+    "trend_score": 64,
+    "heat": 66
    }
   },
   "d24ad7b83c8ec07040020d4932eab278b75f8fea83c2f0b14c033b7ccaf8ddda": {
@@ -9777,21 +9801,22 @@
    "source_id": "DuckDB Engineering Blog",
    "content_hash": "828ffc13b1a1e63305ce128f0d25a39111dcf12962db061e8fca7990f369e358",
    "status": "accepted",
-   "decided_at": "2026-08-26T21:19:55.441882+08:00",
+   "decided_at": "2026-09-04T01:50:08.867467+08:00",
    "model": "deepseek-v4-flash",
-   "rule_version": "enrich-v3-work-tags-v1",
+   "rule_version": "enrich-v4-quality-split-work-tags-v1",
    "enrichment": {
-    "zh_title": "DuckLabs加入AWS，DuckDB等项目保持开源",
-    "zh_summary": "DuckLabs宣布将作为子公司加入亚马逊云服务（AWS），预计于9月初生效。DuckDB、DuckLake、Quack及相关扩展将继续以MIT许可证在非营利DuckDB基金会管理下保持免费与开源。项目路线图、许可和治理模式均无变化，基金会将设立利益相关者咨询委员会以影响项目方向。",
-    "reason": "DuckDB是分析领域广泛使用的开源引擎，其公司归属变化影响生态治理与长期发展，数据从业者应关注后续资源投入与方向。",
+    "zh_title": "DuckLabs并入AWS，DuckDB等保持开源",
+    "zh_summary": "DuckLabs宣布将作为新子公司加入AWS，预计于9月初生效。DuckDB、DuckLake、Quack等项目的路线图、MIT许可证及治理模式保持不变，由非营利组织DuckDB Foundation继续管理。基金会将设立利益相关方咨询委员会以影响项目方向，并解除社区支持限制。",
+    "reason": "DuckDB是数据分析和湖仓场景中广泛使用的开源引擎，其归属变动直接影响数据从业者的技术选型和生态预期，值得关注。",
     "category": "platform",
     "category_label": "AI 数据平台",
     "vendors": [
      "DuckDB",
-     "AWS",
-     "DuckLabs"
+     "AWS"
     ],
-    "topics": [],
+    "topics": [
+     "湖仓"
+    ],
     "work_tags": {
      "taxonomy_version": "work-tags-v1",
      "product_objects": [],
@@ -9799,8 +9824,16 @@
      "decision_concerns": []
     },
     "shelf": "news",
-    "importance": 75,
-    "heat": 63
+    "importance": 56,
+    "quality_score": 56,
+    "quality_breakdown": {
+     "originality": 20,
+     "evidence_density": 10,
+     "information_gain": 18,
+     "actionability_depth": 8
+    },
+    "trend_score": 3,
+    "heat": 27
    }
   },
   "2dca627e88f24a2876e987c1db141b4cd7c3e77a00c4aa54afd9c740b5f4a09f": {
@@ -14948,9 +14981,9 @@
   "38efb52d2d7801023433d575976bfd5b07400269f0b78600df6705712167ad92": {
    "normalized_url": "https://www.infoq.com/news/2026/09/infoq-online-cohorts-sept-2026",
    "source_id": "InfoQ（AI/数据工程）",
-   "content_hash": "070e9b78b47345fccf57a3b83b0699b02448f4d95bf43c44be2804d2bb16b066",
+   "content_hash": "8a7923a357db7cdf5fa78625fdd7f16385299815c283907b2b56053804b9a2d7",
    "status": "rejected",
-   "decided_at": "2026-09-02T05:05:36.269944+08:00",
+   "decided_at": "2026-09-04T01:49:21.872722+08:00",
    "model": "deepseek-v4-flash",
    "rule_version": "enrich-v4-quality-split-work-tags-v1"
   },
@@ -15698,18 +15731,18 @@
   "13c7c46069b278f7975c5d425621a49bb42fd2895d9ad25c28273b3d769541da": {
    "normalized_url": "https://degenerateart.beehiiv.com/p/complete-control",
    "source_id": "Bluesky 数据社区",
-   "content_hash": "bf399fec835b9ab2267b4c163e40730d110bf3235cb089a733852cfcaf8af270",
+   "content_hash": "c878ffcae69a9ee7a9796f615c16579b397f995913458b1f478e6bff3578b084",
    "status": "rejected",
-   "decided_at": "2026-09-03T12:36:43.149163+08:00",
+   "decided_at": "2026-09-04T01:49:21.872749+08:00",
    "model": "deepseek-v4-flash",
    "rule_version": "enrich-v4-quality-split-work-tags-v1"
   },
   "989d8de1a17f20e7b508f8ec1bd1ce30079bf047a09d01f7738629ab19f798e3": {
    "normalized_url": "https://bsky.app/profile/josephpolitano.bsky.social/post/3muik4kiqkk2m",
    "source_id": "Bluesky 数据社区",
-   "content_hash": "21bfc0e5983f0a8be10bda23bdd35a4ced315e2805f98784bcc18280d29a43c2",
+   "content_hash": "7a6eac2020f12c68f33405facf8e1d18ae076e3aa3c97d5748159429f730e487",
    "status": "rejected",
-   "decided_at": "2026-09-03T12:36:43.149172+08:00",
+   "decided_at": "2026-09-04T01:49:21.872758+08:00",
    "model": "deepseek-v4-flash",
    "rule_version": "enrich-v4-quality-split-work-tags-v1"
   },
@@ -16297,9 +16330,9 @@
   "246ee55274fb1ddc88975203ecfdf55ad294f692677cc71a92887c5c939948a5": {
    "normalized_url": "https://www.mlive.com/news/kalamazoo/2026/06/michigan-data-center-expansion-would-nix-bitcoin-mining-launch-ai-computing.html",
    "source_id": "Bluesky 数据社区",
-   "content_hash": "9d57dccf3178b56155c5fafcf297aeb8acd51a8f46d7a48db9dd2aee26c22efc",
+   "content_hash": "13253c9e49c94f30bd0cbb8fc2b2c73bf1b38f1556e2feaedd58a29ebe4b48ee",
    "status": "rejected",
-   "decided_at": "2026-09-03T12:36:43.149114+08:00",
+   "decided_at": "2026-09-04T01:49:21.872739+08:00",
    "model": "deepseek-v4-flash",
    "rule_version": "enrich-v4-quality-split-work-tags-v1"
   },
@@ -16956,25 +16989,410 @@
    "decided_at": "2026-09-04T00:28:40.853652+08:00",
    "model": "deepseek-v4-flash",
    "rule_version": "enrich-v4-quality-split-work-tags-v1"
+  },
+  "c963391a95c390b388e6463d900aee332d4fcbf552b0bcb978ded2800be4e2d7": {
+   "normalized_url": "https://clickhouse.com/blog/introducing-scheduled-upgrades-in-clickhouse-managed-postgres",
+   "source_id": "ClickHouse Blog",
+   "content_hash": "681384f0527b8953855f2de9788c691b8ab4f5f4fe9b7acf80347a0f4897bca6",
+   "status": "accepted",
+   "decided_at": "2026-09-04T01:49:17.280795+08:00",
+   "model": "deepseek-v4-flash",
+   "rule_version": "enrich-v4-quality-split-work-tags-v1",
+   "enrichment": {
+    "zh_title": "ClickHouse托管Postgres支持自定义升级维护窗口",
+    "zh_summary": "ClickHouse Managed Postgres 新增计划升级功能，Scale及Enterprise用户可自定义两小时维护窗口，Enterprise还可进一步指定一周中的具体维护日。该功能让平台升级在用户设定的低负载时段执行，避免与业务高峰冲突。手动变更、紧急磁盘扩容和只读副本升级不受该窗口限制。",
+    "reason": "数据库运维团队可借此控制托管Postgres的升级时机，降低平台维护对核心业务的影响，是数据库服务可维护性方面的实用更新。",
+    "category": "platform",
+    "category_label": "AI 数据平台",
+    "vendors": [
+     "ClickHouse"
+    ],
+    "topics": [],
+    "work_tags": {
+     "taxonomy_version": "work-tags-v1",
+     "product_objects": [],
+     "use_cases": [
+      "生产评估与运营"
+     ],
+     "decision_concerns": [
+      "可维护性与复用"
+     ]
+    },
+    "shelf": "news",
+    "importance": 66,
+    "quality_score": 66,
+    "quality_breakdown": {
+     "originality": 20,
+     "evidence_density": 12,
+     "information_gain": 16,
+     "actionability_depth": 18
+    },
+    "trend_score": 62,
+    "heat": 64
+   }
+  },
+  "7b6409f5e683588433a5ae9b26207ae4404003c4fe38fae6f350d29cdf9c4165": {
+   "normalized_url": "https://clickhouse.com/blog/neon-to-clickhouse-managed-postgres",
+   "source_id": "ClickHouse Blog",
+   "content_hash": "d5d81a48ef0567015370448d11e6862f701b31283dd119de7dab3907bdabb2dd",
+   "status": "accepted",
+   "decided_at": "2026-09-04T01:49:21.872617+08:00",
+   "model": "deepseek-v4-flash",
+   "rule_version": "enrich-v4-quality-split-work-tags-v1",
+   "enrichment": {
+    "zh_title": "从Neon Postgres迁移到ClickHouse Managed Postgres",
+    "zh_summary": "ClickHouse官方博客分享了三支团队将生产Postgres工作负载从Neon迁移到ClickHouse Managed Postgres的案例。迁移原因包括负载下的可靠性问题、性能不稳定、基础设施成本和网络传输费用上升。迁移后，团队报告了更稳定的查询性能、更少运维问题和更低成本；Infinitas Learning在相同schema下p99查询延迟从秒级降至个位数毫秒，且通过ClickPipes在数小时内完成数据迁移。",
+    "reason": "真实迁移案例展示了托管Postgres在扩展阶段的性能与成本权衡，以及ClickPipes支持快速数据迁移的实践价值，对维护数据基础设施的从业者有参考意义。",
+    "category": "platform",
+    "category_label": "AI 数据平台",
+    "vendors": [
+     "ClickHouse",
+     "Neon"
+    ],
+    "topics": [],
+    "work_tags": {
+     "taxonomy_version": "work-tags-v1",
+     "product_objects": [],
+     "use_cases": [
+      "数据接入"
+     ],
+     "decision_concerns": [
+      "成本与性能",
+      "可靠性与评估"
+     ]
+    },
+    "shelf": "evergreen",
+    "importance": 66,
+    "quality_score": 66,
+    "quality_breakdown": {
+     "originality": 16,
+     "evidence_density": 21,
+     "information_gain": 17,
+     "actionability_depth": 12
+    },
+    "trend_score": 35,
+    "heat": 49
+   }
+  },
+  "90fb9310ce2aa3e73a717910faad39e8501f6544e1db5d05d5c890b79d994b6d": {
+   "normalized_url": "https://aws.amazon.com/blogs/big-data/network-connectivity-patterns-for-the-next-generation-of-amazon-opensearch-serverless",
+   "source_id": "AWS Big Data Blog",
+   "content_hash": "0263f1e040a57ab3051950f822288a967630a5b70c800243de3743263a13977e",
+   "status": "accepted",
+   "decided_at": "2026-09-04T01:49:21.872650+08:00",
+   "model": "deepseek-v4-flash",
+   "rule_version": "enrich-v4-quality-split-work-tags-v1",
+   "enrichment": {
+    "zh_title": "Amazon OpenSearch Serverless 下一代私网连接模式",
+    "zh_summary": "AWS 官方介绍了 OpenSearch Serverless 下一代私网访问连接方式：不再需要在每个消费 VPC 中创建 VPC 端点并配置 Route 53 Profiles、自定义私有 hosted zone 或 resolver inbound endpoints，而是改用标准 AWS PrivateLink 接口端点，并原生支持私有 DNS。集合端点基于 on.aws 域，分为单集合端点与账户级区域端点，后者通过 x-amz-aoss-collection-name 请求头指定目标集合。文章还按区域和账户边界给出了 9 种架构模式的 DNS 解析与数据流量路径。",
+    "reason": "数据平台工程师在规划 OpenSearch Serverless 私网访问、跨账户或多区域连接时，可直接对照这些模式，减少此前复杂的 DNS 编排与维护负担。",
+    "category": "platform",
+    "category_label": "AI 数据平台",
+    "vendors": [
+     "AWS"
+    ],
+    "topics": [],
+    "work_tags": {
+     "taxonomy_version": "work-tags-v1",
+     "product_objects": [],
+     "use_cases": [],
+     "decision_concerns": [
+      "权限与安全"
+     ]
+    },
+    "shelf": "evergreen",
+    "importance": 70,
+    "quality_score": 70,
+    "quality_breakdown": {
+     "originality": 20,
+     "evidence_density": 16,
+     "information_gain": 17,
+     "actionability_depth": 17
+    },
+    "trend_score": 62,
+    "heat": 66
+   }
+  },
+  "bd7cf9e4483e1ad38befbafc9c8b5b0da930492356a338e047f736183cd49688": {
+   "normalized_url": "https://aws.amazon.com/blogs/big-data/how-moovit-achieved-33-cost-optimization-through-architectural-modernization",
+   "source_id": "AWS Big Data Blog",
+   "content_hash": "9644bd8be5194b7c105965d125a911559e5118ee74283bccab0857f5700ae11b",
+   "status": "accepted",
+   "decided_at": "2026-09-04T01:49:21.872663+08:00",
+   "model": "deepseek-v4-flash",
+   "rule_version": "enrich-v4-quality-split-work-tags-v1",
+   "enrichment": {
+    "zh_title": "Moovit通过架构现代化实现33%成本优化",
+    "zh_summary": "Moovit是Mobileye旗下MaaS出行解决方案提供商，其数据平台处理大量出行、应用和运营数据。随着业务增长，单一Amazon Redshift集群成本不断上升。Moovit通过构建多引擎Lakehouse架构，将工作负载分配到Provisioned Redshift、Redshift Serverless与Amazon EMR Serverless等合适引擎，使Redshift集群规模缩减50%，并实现33%的成本优化。文中还介绍了洞察工作负载模式、清理非必要负载、筛选卸载候选并成功完成POC的实践方法。",
+    "reason": "展示了一套从单体仓库走向多引擎湖仓的完整迁移与评估方法，对数据平台团队在控制成本的同时提升架构灵活性有直接借鉴价值。",
+    "category": "platform",
+    "category_label": "AI 数据平台",
+    "vendors": [
+     "AWS"
+    ],
+    "topics": [
+     "湖仓"
+    ],
+    "work_tags": {
+     "taxonomy_version": "work-tags-v1",
+     "product_objects": [],
+     "use_cases": [
+      "数据接入"
+     ],
+     "decision_concerns": [
+      "成本与性能",
+      "可靠性与评估"
+     ]
+    },
+    "shelf": "evergreen",
+    "importance": 92,
+    "quality_score": 92,
+    "quality_breakdown": {
+     "originality": 22,
+     "evidence_density": 25,
+     "information_gain": 22,
+     "actionability_depth": 23
+    },
+    "trend_score": 62,
+    "heat": 76
+   }
+  },
+  "302b7ce488988a31d875bdacac7fb0b84d831e07b9d1ad1b017ed76e6793add2": {
+   "normalized_url": "https://www.infoq.com/news/2026/09/cohere-multimodal-parse",
+   "source_id": "InfoQ（AI/数据工程）",
+   "content_hash": "cf695180f11cb6cb3595600474474e147dbcaf722c53c4e0a0fe58a73cb4211a",
+   "status": "accepted",
+   "decided_at": "2026-09-04T01:49:21.872677+08:00",
+   "model": "deepseek-v4-flash",
+   "rule_version": "enrich-v4-quality-split-work-tags-v1",
+   "enrichment": {
+    "zh_title": "Cohere发布Parse 5多模态文档解析模型",
+    "zh_summary": "Cohere发布Parse 5，一个23亿参数的多模态文档解析模型，可将财务报表、论文等复杂PDF转换为Markdown，并输出边界框坐标用于视觉定位。ParseBench基准基于2000多个企业页面评估，Parse 5在表格抽取、内容保真、语义格式等维度平均得分79.2。它采用自定义4亿参数视觉编码器和2B语言模型，目标是替代基于规则的OCR管线。",
+    "reason": "文档解析是从非结构化数据到可分析数据的关键入口，该产品展示了多模态模型在企业数据接入与治理环节的落地进展，数据平台从业者值得关注。",
+    "category": "platform",
+    "category_label": "AI 数据平台",
+    "vendors": [
+     "Cohere"
+    ],
+    "topics": [],
+    "work_tags": {
+     "taxonomy_version": "work-tags-v1",
+     "product_objects": [],
+     "use_cases": [
+      "数据接入"
+     ],
+     "decision_concerns": [
+      "准确性与语义一致性"
+     ]
+    },
+    "shelf": "news",
+    "importance": 59,
+    "quality_score": 59,
+    "quality_breakdown": {
+     "originality": 12,
+     "evidence_density": 22,
+     "information_gain": 15,
+     "actionability_depth": 10
+    },
+    "trend_score": 54,
+    "heat": 56
+   }
+  },
+  "5010174b2b49bba1a57d236ab76461d6c0f83714b5aea5e1b51212973d751ca5": {
+   "normalized_url": "http://archive.today/2026.08.31-161014/https://www.stltoday.com/news/local/government-politics/article_8536d633-db00-4dbe-b9db-7de0e8ede87c.html",
+   "source_id": "Bluesky 数据社区",
+   "content_hash": "8ae15da1e1a8f1f1e254f21d302d70fa7150555e3487544a534b0f9d73e1eb11",
+   "status": "rejected",
+   "decided_at": "2026-09-04T01:49:21.872766+08:00",
+   "model": "deepseek-v4-flash",
+   "rule_version": "enrich-v4-quality-split-work-tags-v1"
+  },
+  "b6940a00aa9dc36641373105d0002274e7a92846652cf9339e2e762a2b4145a9": {
+   "normalized_url": "https://medium.com/snowflake/snowflake-powered-fleet-predictive-maintenance-analytics-dashboard-484e7d2188c1?source=rss----34b6daafc07---4",
+   "source_id": "Snowflake Engineering（Medium）",
+   "content_hash": "62fd34f9c1d9c739335851b0c4e3dbf26dde6f1c1551d2762edf2a4ef8ffd8b8",
+   "status": "accepted",
+   "decided_at": "2026-09-04T01:49:21.872780+08:00",
+   "model": "deepseek-v4-flash",
+   "rule_version": "enrich-v4-quality-split-work-tags-v1",
+   "enrichment": {
+    "zh_title": "用Snowflake数据构建车队预测性维护分析仪表盘",
+    "zh_summary": "本文演示了使用Snowflake中的车辆遥测数据构建预测性维护仪表盘的方法。通过SQL查询完成原始记录到分析数据集的转化，并利用Dashtera实现交互式可视化。仪表盘涵盖车队健康KPI、风险分布、使用量风险分层、相关性分析、时间序列监测和车队健康评分。该方案将存储、分析逻辑与可视化分离，以SQL作为核心，适合设备运维监控场景。",
+    "reason": "数据从业者可借鉴一套结合数仓SQL分析与BI可视化的可复用范式，用于设备预测性维护场景的仪表盘建设。",
+    "category": "bi",
+    "category_label": "BI 与可视化",
+    "vendors": [
+     "Snowflake",
+     "Dashtera"
+    ],
+    "topics": [
+     "风险管理"
+    ],
+    "work_tags": {
+     "taxonomy_version": "work-tags-v1",
+     "product_objects": [
+      "报表与可视化"
+     ],
+     "use_cases": [
+      "看板与报告"
+     ],
+     "decision_concerns": [
+      "可维护性与复用"
+     ]
+    },
+    "shelf": "evergreen",
+    "importance": 45,
+    "quality_score": 45,
+    "quality_breakdown": {
+     "originality": 15,
+     "evidence_density": 10,
+     "information_gain": 10,
+     "actionability_depth": 10
+    },
+    "trend_score": 60,
+    "heat": 53
+   }
+  },
+  "e162861430dc025c85db57e9edb5523c50264a9efb283cf3642f8762f66c068b": {
+   "normalized_url": "https://amplitude.com/blog/funnel-analysis",
+   "source_id": "Amplitude Blog",
+   "content_hash": "afab99b14957d69f4bc97d54a566bdcb4ea9a7d4390c2ddc4ec79d64bab79b6c",
+   "status": "accepted",
+   "decided_at": "2026-09-04T01:49:21.872791+08:00",
+   "model": "deepseek-v4-flash",
+   "rule_version": "enrich-v4-quality-split-work-tags-v1",
+   "enrichment": {
+    "zh_title": "漏斗分析是什么？定义、示例与工具",
+    "zh_summary": "漏斗分析是一种分析用户从起点到转化点之间事件序列的方法，帮助产品与市场经理理解用户在数字触点上的行为与障碍。文章以免费试用转付费为例，展示了从打开邮件、点击CTA、创建账户到转为付费用户的四步漏斗，并介绍了多种漏斗分析用途与可用工具。核心思路是通过定位每一步的流失摩擦，改善用户体验并提升转化率。",
+    "reason": "漏斗分析是用户行为分析与转化优化的基础方法，文中对概念、场景和工具有系统梳理，适合数据从业者搭建转化指标体系或做客户旅程分析时参考。",
+    "category": "product",
+    "category_label": "数据产品",
+    "vendors": [],
+    "topics": [
+     "客户运营"
+    ],
+    "work_tags": {
+     "taxonomy_version": "work-tags-v1",
+     "product_objects": [],
+     "use_cases": [],
+     "decision_concerns": [
+      "用户采用与业务价值"
+     ]
+    },
+    "shelf": "evergreen",
+    "importance": 44,
+    "quality_score": 44,
+    "quality_breakdown": {
+     "originality": 10,
+     "evidence_density": 12,
+     "information_gain": 10,
+     "actionability_depth": 12
+    },
+    "trend_score": 57,
+    "heat": 51
+   }
+  },
+  "268a35ffd2523b7163a65172fbee28179b1f3adea286cb40dee2e60fd26fb70c": {
+   "normalized_url": "https://amplitude.com/blog/product-development",
+   "source_id": "Amplitude Blog",
+   "content_hash": "af98eb0f2ba72593c0cb2113a78a3eddddb6e0b8a69966f7e9569b12b0fc60b1",
+   "status": "rejected",
+   "decided_at": "2026-09-04T01:49:21.872800+08:00",
+   "model": "deepseek-v4-flash",
+   "rule_version": "enrich-v4-quality-split-work-tags-v1"
+  },
+  "9efe3dd2e852928e53eacfe8c10fe0673d76180d99514c92cb254c703dc5fbb7": {
+   "normalized_url": "https://amplitude.com/blog/build-measure-learn-the-product-management-lifecycle-loop",
+   "source_id": "Amplitude Blog",
+   "content_hash": "2cc2a81510704febe9efc8078ee646e7b7483b21d8392ce8f66b0cbc702e4928",
+   "status": "rejected",
+   "decided_at": "2026-09-04T01:49:21.872811+08:00",
+   "model": "deepseek-v4-flash",
+   "rule_version": "enrich-v4-quality-split-work-tags-v1"
+  },
+  "e2779d760237017e2b2f43f87abd7e7a1db8db8962c74e36a7768ad2b3290649": {
+   "normalized_url": "https://amplitude.com/blog/experiment-feature-management",
+   "source_id": "Amplitude Blog",
+   "content_hash": "039e33633c79cbb5fe26ee16767ce20649a9bc82ca701ef39d8f973b689551d1",
+   "status": "accepted",
+   "decided_at": "2026-09-04T01:49:55.962639+08:00",
+   "model": "deepseek-v4-flash",
+   "rule_version": "enrich-v4-quality-split-work-tags-v1",
+   "enrichment": {
+    "zh_title": "Amplitude发布Experiment：A/B测试与功能管理新方案",
+    "zh_summary": "Amplitude推出Amplitude Experiment，将A/B测试、功能管理与客户行为分析整合在同一系统中，支持从假设到分析的端到端实验工作流。该方案通过Design、Rollout、Learn三个阶段，帮助团队面向细分客户运行实验，并远程配置产品体验，从而规模化实验并驱动增长。",
+    "reason": "数据从业者可关注实验/功能管理与行为分析整合的实践方式，以解决传统A/B测试工具与用户分析、定向能力割裂的问题。",
+    "category": "bi",
+    "category_label": "BI 与可视化",
+    "vendors": [
+     "Amplitude"
+    ],
+    "topics": [
+     "客户运营"
+    ],
+    "work_tags": {
+     "taxonomy_version": "work-tags-v1",
+     "product_objects": [],
+     "use_cases": [],
+     "decision_concerns": [
+      "用户采用与业务价值"
+     ]
+    },
+    "shelf": "news",
+    "importance": 59,
+    "quality_score": 59,
+    "quality_breakdown": {
+     "originality": 25,
+     "evidence_density": 10,
+     "information_gain": 14,
+     "actionability_depth": 10
+    },
+    "trend_score": 57,
+    "heat": 58
+   }
+  },
+  "a6725aea4c9278ef2d983557135e5416c2b3f5c7b54822dcf3a1fc3202a7719b": {
+   "normalized_url": "https://amplitude.com/blog/product-management-tools",
+   "source_id": "Amplitude Blog",
+   "content_hash": "f9529b4059d3ea076494966af872ad432055a7e531475c0afaaa41e6d3bb48ac",
+   "status": "accepted",
+   "decided_at": "2026-09-04T01:50:08.867429+08:00",
+   "model": "deepseek-v4-flash",
+   "rule_version": "enrich-v4-quality-split-work-tags-v1",
+   "enrichment": {
+    "zh_title": "2026年14款最佳产品管理工具盘点（附资深PM建议）",
+    "zh_summary": "原文盘点2026年14款最佳产品管理工具，覆盖项目管理、产品分析与洞察、协作、产品设计与市场情报等类别，并提到Aha!、Jira、monday.com、Productboard、Amplitude、Tableau等代表产品。文中引用BetterCloud数据称，2024年企业平均使用106个SaaS应用，低于2023年的112个，因此重点不是堆工具，而是围绕团队工作方式选择合适组合。文章认为好的工具栈能帮助产品团队从洞察转向行动，用数据而非猜测做决策。",
+    "reason": "来自数据领域厂商官方博客的工具栈盘点，能帮助数据从业者理解产品经理眼中数据分析与BI工具所处位置，以及产品侧选型时关注的价值。",
+    "category": "bi",
+    "category_label": "BI 与可视化",
+    "vendors": [
+     "Amplitude",
+     "Tableau"
+    ],
+    "topics": [],
+    "work_tags": {
+     "taxonomy_version": "work-tags-v1",
+     "product_objects": [],
+     "use_cases": [],
+     "decision_concerns": [
+      "用户采用与业务价值"
+     ]
+    },
+    "shelf": "evergreen",
+    "importance": 50,
+    "quality_score": 50,
+    "quality_breakdown": {
+     "originality": 14,
+     "evidence_density": 13,
+     "information_gain": 13,
+     "actionability_depth": 10
+    },
+    "trend_score": 57,
+    "heat": 54
+   }
   }
  },
  "runs": [
-  {
-   "run_id": "github-32941316966-1",
-   "started_at": "2026-08-26T15:10:20.792318+08:00",
-   "finished_at": "2026-08-26T15:14:19.322952+08:00",
-   "lookups": 0,
-   "hits": 0,
-   "accepted_hits": 0,
-   "rejected_hits": 0,
-   "misses": 0,
-   "expired": 0,
-   "content_changed": 0,
-   "version_invalidated": 0,
-   "error_backoff_hits": 0,
-   "error_retries": 0,
-   "writes": 0
-  },
   {
    "run_id": "github-32973208890-1",
    "started_at": "2026-08-26T21:17:51.514978+08:00",
@@ -17758,23 +18176,39 @@
    "error_backoff_hits": 0,
    "error_retries": 0,
    "writes": 22
+  },
+  {
+   "run_id": "github-33786378302-1",
+   "started_at": "2026-09-04T01:47:50.346541+08:00",
+   "finished_at": "2026-09-04T01:54:41.576372+08:00",
+   "lookups": 47,
+   "hits": 21,
+   "accepted_hits": 0,
+   "rejected_hits": 21,
+   "misses": 26,
+   "expired": 0,
+   "content_changed": 4,
+   "version_invalidated": 3,
+   "error_backoff_hits": 0,
+   "error_retries": 0,
+   "writes": 19
   }
  ],
  "last_stats": {
-  "run_id": "github-33778465623-1",
-  "started_at": "2026-09-04T00:27:09.854164+08:00",
-  "finished_at": "2026-09-04T00:30:12.081423+08:00",
-  "lookups": 41,
-  "hits": 10,
+  "run_id": "github-33786378302-1",
+  "started_at": "2026-09-04T01:47:50.346541+08:00",
+  "finished_at": "2026-09-04T01:54:41.576372+08:00",
+  "lookups": 47,
+  "hits": 21,
   "accepted_hits": 0,
-  "rejected_hits": 10,
-  "misses": 31,
+  "rejected_hits": 21,
+  "misses": 26,
   "expired": 0,
-  "content_changed": 0,
-  "version_invalidated": 0,
+  "content_changed": 4,
+  "version_invalidated": 3,
   "error_backoff_hits": 0,
   "error_retries": 0,
-  "writes": 22
+  "writes": 19
  },
- "updated_at": "2026-09-04T00:30:12.081423+08:00"
+ "updated_at": "2026-09-04T01:54:41.576372+08:00"
 }

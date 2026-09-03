@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>数据产品设计库 · DataHot</title>
+<meta name="description" content="用真实界面和操作流程拆解 Data Agent、数据平台、BI 与数据应用的产品设计。">
+<link rel="canonical" href="https://datahot.xiahongbin.com/cases.html">
+<meta property="og:url" content="https://datahot.xiahongbin.com/cases.html">
+
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="theme-color" content="#1a1d23">
+<link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://datahot.xiahongbin.com/feed.xml">
+<meta name="datahot-analytics" data-enabled="true" data-endpoint="https://metrics.datahot.xiahongbin.com/v1/events" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
+<script defer src="analytics.js"></script>
+<script defer src="favorites.js"></script>
+<style>
+  :root{
+    color-scheme: light dark;
+    --bg:#f6f7f9; --card:#ffffff; --ink:#1a1d23; --sub:#6b7280; --line:#e5e7eb;
+    --accent:#d94f2b; --accent-soft:#fdf0ec;
+    --blue:#2563eb; --green:#0f9d6c; --purple:#7c3aed; --amber:#b45309;
+    --txt2:#4b5563; --txt3:#374151; --soft:#f3f4f6; --hover:#f0f1f3;
+    --header-bg:rgba(255,255,255,.92); --tabbar-bg:rgba(255,255,255,.95);
+    --mobile-page-left:14px; --mobile-page-right:14px;
+    --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#121417; --card:#1e2126; --ink:#e9ebef; --sub:#9aa1ab; --line:#2e323a;
+      --accent:#e5603c; --accent-soft:rgba(229,96,60,.16);
+      --blue:#6ea8ff; --green:#34c98e; --purple:#a78bfa; --amber:#e0a455;
+      --txt2:#b6bcc6; --txt3:#cdd2da; --soft:#2a2e35; --hover:#2a2e35;
+      --header-bg:rgba(18,20,23,.92); --tabbar-bg:rgba(30,33,38,.95);
+    }
+    .tab.on,.fchip.on{background:var(--ink);color:#121417}
+    .sidebar a.mi.on{background:rgba(229,96,60,.14);color:var(--accent)}
+    .sub-box input,.tlsearch{color:var(--ink)}
+    .mock-banner{background:#000}
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 20px}
+
+  /* ── 顶部导航 ── */
+  header{position:sticky;top:0;z-index:50;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+  .nav{display:flex;align-items:center;gap:18px;min-height:56px}
+  .logo{font-size:20px;font-weight:800;letter-spacing:-.5px}
+  .logo em{font-style:normal;color:var(--accent)}
+  .logo .tag{font-size:11px;font-weight:500;color:var(--sub);margin-left:8px;border:1px solid var(--line);border-radius:99px;padding:2px 8px;vertical-align:middle}
+  .home-logo{display:inline-flex;align-items:center;border-radius:8px}
+  .home-logo:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+  .update-info{position:relative;margin-left:auto}
+  .update-info summary{list-style:none}
+  .update-info summary::-webkit-details-marker{display:none}
+  .upd-time{font-size:11.5px;color:var(--sub);white-space:nowrap;display:inline-flex;align-items:center;gap:4px;padding:5px 8px;border-radius:99px;cursor:help;transition:background .15s,color .15s}
+  .update-info:focus-within .upd-time,.update-info[open] .upd-time{background:var(--hover);color:var(--ink)}
+  .upd-time:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .update-popover{position:absolute;right:0;top:calc(100% + 9px);z-index:90;width:min(330px,calc(100vw - 28px));padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);box-shadow:0 12px 32px rgba(0,0,0,.14);font-size:12.5px;line-height:1.7;color:var(--txt2);white-space:normal;opacity:0;visibility:hidden;transform:translateY(-4px);pointer-events:none;transition:opacity .15s,transform .15s,visibility .15s}
+  .update-popover b{display:block;margin-bottom:3px;color:var(--ink);font-size:13px}
+  .update-info:not(.is-dismissed):focus-within .update-popover,.update-info[open]:not(.is-dismissed) .update-popover{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto}
+  .tabs{display:flex;gap:4px;flex:1}
+  .tab{padding:6px 14px;border-radius:99px;font-size:14px;color:var(--sub);cursor:pointer;white-space:nowrap}
+  .tab.on{background:var(--ink);color:#fff;font-weight:600}
+  .search{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:6px 14px;font-size:13px;color:var(--sub);min-width:180px;cursor:pointer}
+  .btn-sub{background:var(--accent);color:#fff;border-radius:99px;padding:7px 16px;font-size:13px;font-weight:600;white-space:nowrap}
+
+  .layout{display:grid;grid-template-columns:1fr 320px;gap:24px;padding:28px 0 60px}
+  @media(max-width:1199px){.layout{grid-template-columns:1fr}}
+
+  /* ── 移动端导航适配 ── */
+  @media(max-width:1199px){
+    .nav{flex-wrap:wrap;height:auto;padding:8px 0;gap:10px;min-height:52px}
+    .logo{font-size:19px}
+    .logo .tag{display:none}
+    .tabs{order:3;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
+    .tabs::-webkit-scrollbar{display:none}
+    .tab{flex-shrink:0;padding:5px 12px;font-size:13px}
+    .search{margin-left:auto;min-width:0;padding:5px 12px}
+    .btn-sub{display:none}
+  }
+
+  /* ── iPhone 体验适配 ── */
+  @media(max-width:600px){
+    :root{--mobile-page-left:max(14px,env(safe-area-inset-left));--mobile-page-right:max(14px,env(safe-area-inset-right))}
+    body{-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+    .wrap{padding:0 14px}
+    .section-title h2{font-size:17px}
+    .hotlist{grid-template-columns:1fr;gap:10px}
+    .hot{padding:14px 16px}
+    .hot h3{font-size:14px}
+    .item{padding:14px 16px;border-radius:12px}
+    .item h3{font-size:15px;overflow-wrap:anywhere}
+    .item .sum{font-size:13px;line-height:1.7;overflow-wrap:anywhere}
+    .item .top{font-size:11px;gap:4px}
+    .heatnum{font-size:12px}
+    .why{font-size:12.5px;line-height:1.7}
+    .brief{padding:16px 18px}
+    .brief p{font-size:13.5px}
+    .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-left:calc(-1 * var(--mobile-page-left));margin-right:calc(-1 * var(--mobile-page-right));padding:4px calc(var(--mobile-page-right) + 18px) 12px var(--mobile-page-left);scroll-padding-left:var(--mobile-page-left);scroll-padding-right:var(--mobile-page-right)}
+    .chiprow::after{display:block;content:"";position:sticky;right:0;flex:0 0 18px;width:18px;margin-left:-18px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+    .chiprow::-webkit-scrollbar{display:none}
+    .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:44px;display:inline-flex;align-items:center}
+    .tab,.fchip,.chip{touch-action:manipulation}
+    aside{align-self:start;position:sticky;top:20px}
+    aside .card{padding:14px 16px}
+    .article{padding:20px 14px 48px}
+    .article h1{font-size:20px}
+    .article .body{font-size:14.5px}
+    .fulltext p{font-size:14px}
+    .cta{width:100%;text-align:center;padding:13px 0;font-size:15px}
+    .day-head .date{font-size:15px}
+  }
+  @media(min-width:1280px){.wrap{max-width:1320px}}
+
+  /* ── 每周简报 ── */
+  .brief{background:linear-gradient(135deg,#1a1d23 0%,#2b2418 60%,#3d2412 100%);color:#fff;border-radius:var(--radius);padding:22px 26px;margin-bottom:22px;position:relative;overflow:hidden}
+  .brief .label{font-size:12px;letter-spacing:2px;color:#f5b48a;font-weight:700;margin-bottom:8px}
+  .brief p{font-size:15px;line-height:1.8;color:#f3f4f6}
+  .brief .meta{margin-top:10px;font-size:12px;color:#9ca3af}
+  .brief::after{content:"⚡";position:absolute;right:18px;top:14px;font-size:42px;opacity:.25}
+
+  /* ── 热点榜 ── */
+  .section-title{display:flex;align-items:baseline;gap:10px;margin:6px 0 14px}
+  .section-title h2{font-size:19px;font-weight:800}
+  .section-title span{font-size:12px;color:var(--sub)}
+  .timeline-toolbar{align-items:center;flex-wrap:nowrap}
+  .timeline-toolbar h2,.timeline-toolbar .timeline-count{white-space:nowrap}
+  .timeline-searchbox{display:flex;align-items:center;min-width:0;width:min(150px,40vw);margin-left:auto}
+  .timeline-searchbox .tlsearch{margin-left:0;min-width:0;flex:1 1 0}
+  .timeline-clear{appearance:none;display:inline-grid;place-items:center;min-width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:var(--sub);cursor:pointer;margin-left:4px;font:inherit}
+  .timeline-count{font-size:11px;color:var(--sub)}
+  @media(max-width:600px){
+    .timeline-toolbar{gap:8px}
+    .timeline-searchbox{width:min(120px,34vw)}
+    .timeline-searchbox .tlsearch,.timeline-searchbox .tlsearch:focus{width:100%}
+    .timeline-clear{min-width:44px;height:44px}
+  }
+  .hotlist{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:30px}
+  @media(max-width:600px){.hotlist{grid-template-columns:1fr;gap:10px}}
+  @media(max-width:1399px) and (min-width:601px){.hotlist{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .hot{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;position:relative;transition:.15s;cursor:pointer}
+  .hot .rank{position:absolute;top:-1px;left:16px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:0 0 8px 8px}
+  .hot .heat{position:absolute;top:12px;right:16px;font-size:12px;color:var(--accent);font-weight:700}
+  .hot h3{font-size:15px;font-weight:700;margin:14px 0 8px;line-height:1.5}
+  .hot .sources{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
+  .src{font-size:11px;background:var(--soft);color:var(--sub);border-radius:6px;padding:2px 8px}
+  .src.more{background:var(--accent-soft);color:var(--accent)}
+
+  /* ── 时间轴 ── */
+  .day{margin-bottom:8px}
+  .day-head{display:flex;align-items:center;gap:12px;margin:22px 0 12px}
+  .day-head .date{font-size:17px;font-weight:800}
+  .day-head .info{font-size:12px;color:var(--sub)}
+  .day-head::after{content:"";flex:1;height:1px;background:var(--line)}
+  .back-to-top{display:none}
+  @media(max-width:600px){
+    .home-page .home-header{position:static}
+    .home-page #timeline .day-head{position:sticky;top:0;z-index:35;min-height:40px;margin:18px -14px 12px;padding:0 14px;justify-content:space-between;background:var(--bg);border-bottom:1px solid var(--line)}
+    .home-page #timeline .day-head .date,.home-page #timeline .day-head .info{white-space:nowrap}
+    .home-page #timeline .day-head::after{display:none}
+    .back-to-top{position:fixed;right:16px;bottom:calc(70px + env(safe-area-inset-bottom));z-index:69;width:44px;height:44px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;background:var(--ink);color:var(--bg);box-shadow:0 6px 20px rgba(0,0,0,.18);font-size:22px;line-height:1;cursor:pointer;touch-action:manipulation;opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .18s ease,transform .18s ease}
+    .back-to-top.show{opacity:1;transform:translateY(0);pointer-events:auto}
+    .back-to-top:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+  }
+  .item{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin-bottom:12px;transition:.15s;cursor:pointer}
+  @media(hover:hover) and (pointer:fine){
+    .update-info:hover .upd-time,.tab:hover{background:var(--hover);color:var(--ink)}
+    .update-info:not(.is-dismissed):hover .update-popover{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto}
+    .hot:hover,.item:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+    .hot a:hover,.item a:hover{color:var(--accent)}
+  }
+  @media(hover:none) and (pointer:coarse){
+    .hot:active,.item:active{border-color:#d1d5db;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+  }
+  .fchip:focus-visible,.timeline-clear:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  }
+  .item .top{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub)}
+  .card-source{display:flex;align-items:center;gap:6px;min-width:0;flex:1 1 auto;overflow:hidden;white-space:nowrap}
+  .card-source-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;color:var(--txt3)}
+  .card-time{flex:0 0 auto;white-space:nowrap}
+  .badge{font-weight:600;border-radius:6px;padding:1px 8px;font-size:11px}
+  .b-agent{background:#eef2ff;color:var(--blue)}
+  .b-platform{background:#ecfdf5;color:var(--green)}
+  .b-bi{background:#f5f3ff;color:var(--purple)}
+  .b-product{background:#fef7e8;color:var(--amber)}
+  .b-insight{background:#fff1f2;color:#be123c}
+  .star{color:var(--accent);font-weight:700}
+  .item .heatnum{flex:0 0 auto;white-space:nowrap;font-weight:800;color:var(--accent);font-size:13px}
+  .item .heatnum.is-featured{padding:2px 7px;border-radius:99px;background:var(--accent-soft)}
+  .item h3{font-size:16px;font-weight:700;margin:8px 0 6px;line-height:1.55}
+  .item .sum{font-size:13.5px;color:var(--txt2);line-height:1.75}
+  .item .also{margin-top:10px;font-size:12px;color:var(--sub)}
+  .item .also b{color:var(--ink)}
+  .why{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;font-size:13px;color:var(--txt2);line-height:1.75}
+.why .w{color:var(--accent);font-weight:700;white-space:nowrap;font-size:12px;letter-spacing:1px}
+.why .w svg{vertical-align:-2px}
+  .vendors{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
+  .vtag{font-size:11px;border:1px dashed var(--line);color:var(--sub);border-radius:99px;padding:1px 10px;cursor:default}
+  
+
+  /* ── 侧栏 ── */
+  aside .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
+  aside h4{font-size:14px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+  .vendor-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--soft);font-size:13px;cursor:pointer}
+  .vendor-row:last-child{border-bottom:none}
+  .vendor-row .n{width:16px;color:var(--sub);font-size:12px}
+  .vendor-row .count{margin-left:auto;font-size:12px;color:var(--accent);font-weight:700}
+  .up{transform:scale(.8)}
+  .sub-box input{width:100%;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:8px;outline:none}
+  .sub-box button{width:100%;background:var(--ink);color:var(--bg);border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer}
+  .status{font-size:12.5px;color:var(--sub);line-height:2}
+  .status b{color:var(--green)}
+  .legend{display:flex;flex-direction:column;gap:6px;font-size:12.5px}
+  .legend .row{display:flex;align-items:center;gap:8px;color:var(--sub)}
+
+  footer{border-top:1px solid var(--line);padding:26px 0;text-align:center;font-size:12px;color:var(--sub)}
+  .mock-banner{background:#1a1d23;color:#fff;text-align:center;font-size:12px;padding:7px;letter-spacing:1px}
+  .mock-banner b{color:#f5b48a}
+
+.cases-page{max-width:1080px;padding:30px 20px 72px}
+.cases-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:18px}
+.cases-eyebrow{margin:0 0 7px;color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.cases-head h1{margin:0;font-size:30px;line-height:1.25;letter-spacing:-.025em}
+.cases-head p{max-width:640px;margin:7px 0 0;color:var(--txt2);font-size:13.5px;line-height:1.7}
+.cases-count{flex:0 0 auto;margin-bottom:2px;color:var(--sub);font-size:12px;white-space:nowrap}
+.cases-controls{display:grid;grid-template-columns:minmax(240px,1.1fr) minmax(0,2fr);gap:14px;margin-bottom:20px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.cases-search-wrap{display:flex;align-items:center;position:relative}
+.cases-search-wrap svg{position:absolute;left:13px;color:var(--sub);pointer-events:none}
+.cases-search{width:100%;min-height:44px;border:1px solid var(--line);border-radius:10px;padding:9px 13px 9px 39px;background:var(--bg);color:var(--ink);font:inherit;font-size:13px;outline:none}
+.cases-search:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.cases-filter-groups{display:grid;gap:9px}
+.cases-filter-group{display:grid;grid-template-columns:66px minmax(0,1fr);gap:9px;align-items:center;min-width:0}
+.cases-filter-label{color:var(--sub);font-size:11.5px;font-weight:700;white-space:nowrap}
+.cases-filter-row{display:flex;gap:6px;min-width:0;overflow-x:auto;scrollbar-width:none}
+.cases-filter-row::-webkit-scrollbar{display:none}
+.cases-filter{appearance:none;flex:0 0 auto;min-height:34px;border:1px solid var(--line);border-radius:99px;padding:5px 11px;background:var(--bg);color:var(--sub);font:inherit;font-size:11.5px;cursor:pointer;white-space:nowrap}
+.cases-filter.on{border-color:var(--ink);background:var(--ink);color:var(--bg);font-weight:750}
+.cases-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.case-card{display:flex;min-width:0;flex-direction:column;overflow:hidden;border:1px solid var(--line);border-radius:15px;background:var(--card);transition:border-color .15s ease,box-shadow .15s ease,transform .15s ease}
+.case-card[hidden]{display:none}
+.case-card-media{display:block;position:relative;aspect-ratio:16/9;overflow:hidden;border-bottom:1px solid var(--line);background:var(--soft)}
+.case-card-media img{display:block;width:100%;height:100%;object-fit:contain;background:var(--soft)}
+.case-card-type{position:absolute;left:10px;top:10px;display:inline-flex;align-items:center;min-height:24px;padding:3px 8px;border-radius:99px;background:rgba(26,29,35,.84);color:#fff;font-size:10px;font-weight:800;backdrop-filter:blur(6px)}
+.case-card-body{display:flex;min-width:0;flex:1;flex-direction:column;padding:16px}
+.case-card-kicker{display:flex;align-items:center;gap:7px;min-width:0;margin-bottom:8px;color:var(--accent);font-size:11px;font-weight:750}
+.case-card-kicker span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.case-card-kicker span+span::before{content:"·";margin-right:7px;color:var(--line)}
+.case-card h2{margin:0;font-size:18px;line-height:1.45;letter-spacing:-.01em}
+.case-card-title{color:var(--ink);text-decoration:none}
+.case-card-problem,.case-card-solution{display:-webkit-box;overflow:hidden;margin:9px 0 0;color:var(--txt2);font-size:12.5px;line-height:1.65;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.case-card-solution{margin-top:5px}
+.case-card-problem b,.case-card-solution b{color:var(--ink);font-size:11px}
+.case-card-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.case-card-tags span{display:inline-flex;align-items:center;min-height:25px;padding:3px 8px;border-radius:7px;background:var(--soft);color:var(--txt2);font-size:10.5px}
+.case-card-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:14px;color:var(--sub);font-size:10.5px}
+.case-card-open{color:var(--accent);font-size:11.5px;font-weight:750;white-space:nowrap}
+.cases-empty{display:none;min-height:240px;padding:40px 18px;border:1px solid var(--line);border-radius:14px;background:var(--card);place-items:center;text-align:center;color:var(--sub);font-size:13px;line-height:1.7}
+.cases-empty.show{display:grid}
+.cases-search:focus-visible,.cases-filter:focus-visible,.case-card-media:focus-visible,.case-card-title:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(hover:hover) and (pointer:fine){.case-card:hover{border-color:#c9ced8;box-shadow:0 8px 24px rgba(0,0,0,.07);transform:translateY(-1px)}.case-card:hover h2{color:var(--accent)}}
+@media(max-width:820px){.cases-controls{grid-template-columns:1fr}.cases-grid{grid-template-columns:1fr}}
+@media(max-width:600px){
+  .cases-page{padding:20px var(--mobile-page-right) calc(42px + env(safe-area-inset-bottom)) var(--mobile-page-left)}
+  .cases-head{display:block;margin-bottom:15px}.cases-head h1{font-size:25px}.cases-head p{font-size:13px}.cases-count{display:block;margin-top:9px}
+  .cases-controls{gap:12px;margin-left:calc(-1 * var(--mobile-page-left));margin-right:calc(-1 * var(--mobile-page-right));padding:12px var(--mobile-page-right) 14px var(--mobile-page-left);border-left:0;border-right:0;border-radius:0}
+  .cases-filter-group{grid-template-columns:1fr;gap:5px}.cases-filter-row{margin-left:calc(-1 * var(--mobile-page-left));margin-right:calc(-1 * var(--mobile-page-right));padding-left:var(--mobile-page-left);padding-right:var(--mobile-page-right)}
+  .cases-filter{min-height:40px;padding:7px 12px}.cases-grid{gap:13px}.case-card-body{padding:15px}.case-card h2{font-size:17px}
+}
+
+
+body{overflow-x:clip}
+main,.layout>*,.hotlist>*{min-width:0}
+.d-only{display:inline-block}
+@media(max-width:1199px){.d-only{display:none}}
+.chip{display:inline-block;font-size:11px;background:#eef2ff;color:var(--blue);border-radius:99px;padding:1px 10px;text-decoration:none}
+.tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
+.tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
+.chiprow{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 18px 12px 0;margin-bottom:4px;position:relative;scroll-padding-inline:8px}
+.chiprow::after{display:block;content:"";position:sticky;right:0;flex:0 0 18px;width:18px;margin-left:-18px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+.chiprow::-webkit-scrollbar{display:none}
+.chiprow .fchip{appearance:none;flex-shrink:0;min-height:36px;font:inherit;font-size:12.5px;line-height:1.4;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
+.chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
+@media(max-width:600px){
+  .home-page>.wrap{padding-left:var(--mobile-page-left);padding-right:var(--mobile-page-right)}
+  .chiprow{gap:6px;margin-left:calc(-1 * var(--mobile-page-left));margin-right:calc(-1 * var(--mobile-page-right));padding:4px calc(var(--mobile-page-right) + 18px) 12px var(--mobile-page-left);scroll-padding-left:var(--mobile-page-left);scroll-padding-right:var(--mobile-page-right)}
+  .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:44px;display:inline-flex;align-items:center}
+}
+@media (prefers-color-scheme: dark){
+  .chip{background:rgba(110,168,255,.16);color:#6ea8ff}
+  .chiprow .fchip.on{background:var(--ink);color:#121417;border-color:var(--ink)}
+  .chiprow .fchip{background:var(--card);color:var(--sub);border-color:var(--line)}
+}
+.scard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 20px;margin-bottom:14px}
+.source-page{padding:30px 20px 60px;max-width:820px}
+.source-intro{margin-bottom:30px}
+.source-intro h1{font-size:27px;line-height:1.35;margin:0 0 10px}
+.source-intro p{font-size:14px;line-height:1.8;color:var(--txt2);margin:0;max-width:720px}
+.source-alert{margin-top:14px;padding:10px 12px;border-left:3px solid var(--amber);background:var(--soft);border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.7;color:var(--txt2)}
+.source-alert b{color:var(--ink);margin-right:6px}
+.source-group{margin:0 0 28px}
+.source-group-head{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:8px}
+.source-group-head h2{font-size:16px;line-height:1.4;margin:0}
+.source-group-head span{font-size:11.5px;color:var(--sub)}
+.source-row{display:flex;align-items:center;gap:12px;min-height:49px;border-bottom:1px solid var(--soft)}
+.source-name{display:inline-flex;align-items:center;gap:4px;min-width:0;color:var(--ink);font-size:13.5px;font-weight:650;line-height:1.5;text-decoration:none}
+.source-name svg{flex:0 0 auto}
+.source-focus{margin-left:auto;color:var(--sub);font-size:11.5px;line-height:1.45;text-align:right}
+.source-health{color:var(--amber);font-size:11.5px;white-space:nowrap}
+.source-disabled{margin:2px 0 28px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.source-disabled summary{cursor:pointer;padding:13px 0;font-size:13px;font-weight:650;color:var(--txt2)}
+.source-disabled .source-row{align-items:flex-start;padding:11px 0;min-height:0}
+.source-disabled-reason{margin-left:auto;max-width:62%;font-size:11.5px;line-height:1.6;color:var(--sub);text-align:right}
+.source-contribute{display:flex;align-items:center;gap:18px;background:var(--soft);border-radius:var(--radius);padding:17px 18px;margin-bottom:20px}
+.source-contribute-copy{min-width:0;flex:1}
+.source-contribute h2{font-size:15px;margin:0 0 4px}
+.source-contribute p{font-size:12.5px;line-height:1.6;color:var(--sub);margin:0}
+.source-cta{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border-radius:99px;background:var(--ink);color:var(--bg);padding:8px 14px;font-size:12px;font-weight:650;text-decoration:none}
+.source-principle{font-size:12px;line-height:1.75;color:var(--sub);margin:0}
+@media(max-width:600px){
+  .source-page{padding:22px 18px 52px}
+  .source-intro{margin-bottom:25px}
+  .source-intro h1{font-size:24px}
+  .source-row{gap:8px}
+  .source-name{font-size:13px;min-height:44px}
+  .source-focus{max-width:45%;font-size:11px}
+  .source-disabled .source-row{display:block}
+  .source-disabled-reason{max-width:none;margin:4px 0 0;text-align:left}
+  .source-contribute{align-items:flex-start;flex-direction:column;gap:12px}
+}
+.crow{display:flex;align-items:baseline;gap:8px;padding:9px 0;border-bottom:1px solid var(--soft);text-decoration:none;color:var(--ink)}
+.crow:last-child{border-bottom:none}
+.cpin{width:18px;flex-shrink:0;font-size:12px}
+.ctitle{font-size:13.5px;font-weight:600;line-height:1.55;flex:1}
+.cmeta{font-size:11px;color:var(--sub);white-space:nowrap}
+.favbtn{appearance:none;min-width:36px;min-height:36px;border:none;background:none;color:var(--sub);cursor:pointer;padding:6px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%}
+.favbtn.on{color:var(--accent)}
+.favbtn.on svg{fill:currentColor}
+.favbtn svg{pointer-events:none}
+.favbtn .sbtn-label{pointer-events:none}
+.fav-toast{position:fixed;left:50%;bottom:28px;z-index:100;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 28px);min-height:44px;padding:8px 10px 8px 16px;border-radius:99px;background:rgba(26,29,35,.94);box-shadow:0 10px 30px rgba(0,0,0,.18);color:#fff;font-size:13px;line-height:1.4;opacity:0;pointer-events:none;transform:translate(-50%,12px);transition:opacity .2s ease,transform .2s ease}
+.fav-toast.show{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+.fav-toast-action{appearance:none;min-height:36px;border:0;border-radius:99px;padding:6px 12px;background:rgba(255,255,255,.14);color:#fff;font:inherit;font-size:12px;font-weight:750;cursor:pointer;white-space:nowrap}
+.fav-entry{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--sub);white-space:nowrap;text-decoration:none}
+.privacy-btn{min-height:44px;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:9px 16px;font-size:12.5px;font-weight:650;cursor:pointer;margin:4px 6px 4px 0}
+.privacy-btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.load-more{display:block;margin:18px auto 4px;border:1px solid var(--line);background:var(--card);color:var(--txt2);border-radius:99px;padding:9px 22px;font-size:12.5px;font-weight:650;cursor:pointer}
+.load-more[hidden]{display:none}
+.load-more[disabled]{opacity:.65;cursor:default}
+.filter-error b{display:block;margin-bottom:5px;color:var(--ink);font-size:14px}
+.filter-error p{margin:0;color:var(--sub);font-size:12.5px;line-height:1.7}
+.filter-error-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.filter-error-actions button{min-height:44px;border:1px solid var(--line);border-radius:99px;padding:8px 15px;background:var(--card);color:var(--ink);font:inherit;font-size:12.5px;font-weight:650;cursor:pointer}
+.filter-error-actions button:first-child{border-color:var(--accent);background:var(--accent);color:#fff}
+.weekly-strip{display:flex;align-items:stretch;min-height:52px;margin-bottom:16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);overflow:hidden}
+.weekly-strip[hidden]{display:none}
+.weekly-strip-link{display:flex;align-items:center;gap:10px;min-width:0;min-height:52px;flex:1;padding:0 4px 0 14px;color:var(--ink);text-decoration:none}
+.weekly-strip-label{flex:0 0 auto;border-radius:99px;padding:3px 8px;background:var(--accent-soft);color:var(--accent);font-size:11px;font-weight:750;white-space:nowrap}
+.weekly-strip-title{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:700}
+.weekly-strip-view{flex:0 0 auto;color:var(--accent);font-size:12px;font-weight:700;white-space:nowrap}
+.weekly-dismiss{appearance:none;display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;min-height:44px;margin:4px;border:0;border-radius:50%;background:transparent;color:var(--sub);cursor:pointer}
+.weekly-dismiss svg{pointer-events:none}
+.today-hot{margin-bottom:12px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);overflow:hidden}
+.today-hot-head{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:34px;padding:0 12px;border-bottom:1px solid var(--soft)}
+.today-hot-head h2{margin:0;font-size:12px;line-height:1.3;font-weight:800;letter-spacing:.04em;color:var(--ink)}
+.today-hot-more{flex:0 0 auto;color:var(--accent);font-size:11.5px;font-weight:700;text-decoration:none;white-space:nowrap}
+.today-hot-list{display:block}
+.today-hot-row{display:grid;grid-template-columns:22px minmax(0,1fr) auto;align-items:center;gap:8px;min-height:35px;padding:0 12px;color:var(--ink);text-decoration:none}
+.today-hot-row+.today-hot-row{border-top:1px solid var(--soft)}
+.today-hot-rank{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:5px;background:var(--soft);color:var(--sub);font-size:10px;font-weight:800;font-variant-numeric:tabular-nums}
+.today-hot-row.is-lead .today-hot-rank{background:var(--accent);color:#fff}
+.today-hot-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;font-weight:650}
+.today-hot-row.is-lead .today-hot-title{font-weight:750}
+.today-hot-heat{display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;color:var(--accent);font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.top-rank{flex:0 0 auto;border-radius:5px;padding:2px 6px;background:var(--accent);color:#fff;font-size:10px;font-weight:800;line-height:1.3;white-space:nowrap}
+.vendor-card-head{justify-content:space-between}
+.vendor-card-title{display:inline-flex;align-items:center;gap:6px}
+.vendor-card-link{margin-left:auto;color:var(--accent);font-size:11px;font-weight:650;text-decoration:none;white-space:nowrap}
+.vendor-row{color:var(--ink);text-decoration:none}
+@media(max-width:360px){
+  .weekly-strip-link{gap:7px;padding-left:10px}
+  .weekly-strip-label{padding:3px 7px}
+  .weekly-strip-view-arrow{display:none}
+}
+@media(max-width:600px){
+  .weekly-strip{min-height:48px;margin-bottom:10px}
+  .weekly-strip-link{min-height:48px}
+  .today-hot{margin-bottom:8px}
+  .today-hot-head{min-height:32px;padding:0 10px}
+  .today-hot-head h2{font-size:11.5px}
+  .today-hot-more{font-size:11px}
+  .today-hot-row{grid-template-columns:20px minmax(0,1fr) auto;gap:7px;min-height:34px;padding:0 10px}
+  .today-hot-rank{width:18px;height:18px;font-size:9.5px}
+  .today-hot-title{font-size:12px}
+  .today-hot-heat{font-size:10.5px}
+  .top-rank{padding:2px 5px;font-size:9.5px}
+}
+.weekly-summary{background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border:0;padding:20px 22px}
+.weekly-summary h1{font-size:25px;line-height:1.4;margin:4px 0 8px}
+.weekly-summary p{font-size:14px;line-height:1.75;color:#e5e7eb;margin:0}
+.weekly-change{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.12);font-size:13px;line-height:1.7;color:#f3f4f6}
+.weekly-change:last-child{border-bottom:0}
+.weekly-themes{display:grid;gap:14px}
+.weekly-theme{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px}
+.weekly-theme h2{font-size:19px;line-height:1.5;margin:9px 0 12px}
+.weekly-theme p{font-size:13.5px;line-height:1.85;color:var(--txt2);margin:0 0 12px}
+.weekly-badges{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.weekly-pill{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:99px;padding:3px 8px;font-size:10.5px;color:var(--sub)}
+.weekly-pill.priority-now{border-color:#dc2626;color:#b91c1c;background:#fef2f2}
+.weekly-pill.priority-test{border-color:#d97706;color:#b45309;background:#fffbeb}
+.weekly-pill.priority-watch{border-color:#2563eb;color:#1d4ed8;background:#eff6ff}
+.weekly-pill.priority-ignore{color:var(--sub);background:var(--soft)}
+.weekly-anchor{background:var(--soft);border-left:3px solid var(--accent);padding:10px 12px;border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.75;color:var(--txt2);margin:0 0 14px}
+.weekly-anchor b,.weekly-why b{color:var(--ink)}
+.weekly-why{font-size:13px;line-height:1.8;color:var(--txt2);border-top:1px solid var(--soft);padding-top:12px}
+.weekly-action{margin-top:12px;background:#fff8ed;border:1px solid #f3d5aa;border-radius:9px;padding:11px 12px;font-size:13px;line-height:1.75;color:var(--txt2)}
+.weekly-action b{color:#9a4f08;margin-right:7px}
+.weekly-signal-meta{font-size:11px;color:var(--sub);margin-top:12px}
+.weekly-secondary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.weekly-secondary .scard{font-size:12.5px;line-height:1.75;color:var(--txt2)}
+.weekly-secondary b{display:block;color:var(--ink);font-size:12px;margin-bottom:6px}
+.weekly-evidence{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:0 18px}
+.weekly-evidence summary{cursor:pointer;padding:15px 0;font-size:13px;font-weight:700;color:var(--ink)}
+.weekly-evidence-row{display:flex;gap:12px;align-items:baseline;padding:11px 0;border-top:1px solid var(--soft);text-decoration:none;color:var(--ink)}
+.weekly-evidence-row span:first-child{font-size:13px;line-height:1.55;flex:1}
+.weekly-evidence-row span:last-child{font-size:10.5px;color:var(--sub);white-space:nowrap}
+.weekly-archive{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 22px}
+.weekly-archive a{font-size:12px;color:var(--sub);border:1px solid var(--line);border-radius:99px;padding:5px 10px;text-decoration:none}
+.weekly-archive a.on{border-color:var(--accent);color:var(--accent)}
+@media (prefers-color-scheme: dark){
+  .weekly-pill.priority-now{border-color:#ef7b7b;color:#ffaaaa;background:rgba(220,38,38,.14)}
+  .weekly-pill.priority-test{border-color:#d89a3d;color:#f2bd70;background:rgba(217,119,6,.14)}
+  .weekly-pill.priority-watch{border-color:#6ea8ff;color:#9cc3ff;background:rgba(37,99,235,.14)}
+  .weekly-action{background:rgba(217,119,6,.12);border-color:rgba(242,189,112,.38);color:var(--txt2)}
+  .weekly-action b{color:#f2bd70}
+}
+@media(max-width:700px){
+  .weekly-summary{padding:16px 20px}
+  .weekly-summary h1{font-size:23px}
+  .weekly-theme{padding:17px}
+  .weekly-theme h2{font-size:17px}
+  .weekly-secondary{grid-template-columns:1fr}
+  .weekly-evidence-row{align-items:flex-start;flex-direction:column;gap:4px}
+  .weekly-evidence-row span:last-child{white-space:normal}
+}
+.hrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--soft);text-decoration:none;color:var(--ink)}
+.hrow:last-child{border-bottom:none}
+.hrow .rk{font-size:15px;font-weight:800;color:var(--accent);width:26px;flex-shrink:0;text-align:center}
+.hrow .ht{flex:1;font-size:14px;font-weight:600;line-height:1.5}
+.hrow .hm{font-size:11px;color:var(--sub);white-space:nowrap}
+.rank-page{padding:28px 20px 60px;max-width:900px}
+.rank-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.rank-head h1{display:flex;align-items:center;gap:7px;font-size:20px;line-height:1.4;margin:0}
+.rank-head p{font-size:12px;color:var(--sub);margin:0}
+.rank-list{padding:6px 18px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+.rank-row{display:grid;grid-template-columns:26px minmax(0,1fr) minmax(150px,auto);align-items:center;gap:12px;min-height:48px;padding:12px 0;border-bottom:1px solid var(--soft);color:var(--ink);text-decoration:none}
+.rank-row:last-child{border-bottom:none}
+.rank-no{font-size:14px;font-weight:750;color:var(--sub);font-variant-numeric:tabular-nums;text-align:center}
+.rank-no.is-top{color:var(--accent);font-size:16px;font-weight:850}
+.rank-title{min-width:0;font-size:14px;font-weight:650;line-height:1.5}
+.rank-meta{display:flex;align-items:center;justify-content:flex-end;gap:9px;min-width:0;max-width:280px;color:var(--sub);font-size:11px}
+.rank-source{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank-heat{display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;color:var(--accent);font-weight:700;white-space:nowrap}
+.rank-note{margin-top:8px;color:var(--sub);font-size:12px}
+.rank-note summary{display:flex;align-items:center;width:max-content;max-width:100%;min-height:44px;cursor:pointer;list-style:none}
+.rank-note summary::-webkit-details-marker{display:none}
+.rank-note summary::after{content:" ↓";margin-left:4px}
+.rank-note[open] summary::after{content:" ↑"}
+.rank-note p{margin:0 0 8px;line-height:1.7}
+@media(max-width:600px){
+  .rank-page{padding:18px 14px calc(32px + env(safe-area-inset-bottom))}
+  .rank-head{display:block;margin-bottom:14px}
+  .rank-head h1{font-size:22px}
+  .rank-head p{margin-top:4px;font-size:12px}
+  .rank-list{display:grid;gap:10px;padding:0;background:transparent;border:0;border-radius:0}
+  .rank-row{grid-template-columns:30px minmax(0,1fr);grid-template-rows:auto auto;align-items:start;gap:5px 10px;min-height:76px;padding:13px 14px;background:var(--card);border:1px solid var(--line);border-radius:12px}
+  .rank-row:last-child{border-bottom:1px solid var(--line)}
+  .rank-no{grid-row:1/3;padding-top:1px;font-size:14px;text-align:left}
+  .rank-no.is-top{font-size:17px}
+  .rank-title{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;font-size:15px;line-height:1.5}
+  .rank-meta{grid-column:2;justify-content:flex-start;max-width:none;width:100%;gap:8px}
+  .rank-source{flex:1}
+  .rank-note{margin-top:4px}
+}
+.srcbadge{font-size:10px;border:1px solid var(--line);border-radius:5px;padding:0 5px;color:var(--sub);flex-shrink:0;line-height:1.6}
+.sidebar{display:none}
+@media(min-width:1200px){
+  body.has-sb{padding-left:224px}
+  body.has-sb>header{display:none}
+  .sidebar{display:flex;position:fixed;left:0;top:0;bottom:0;width:224px;flex-direction:column;background:var(--card);border-right:1px solid var(--line);padding:22px 16px;z-index:40}
+  .sidebar .slogo{font-size:20px;font-weight:800;margin-bottom:26px}
+  .sidebar .slogo em{font-style:normal;color:var(--accent)}
+  .sidebar .sidebar-nav{display:grid}
+  .sidebar a.mi{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:14px;color:var(--sub);text-decoration:none;margin-bottom:2px}
+  .sidebar a.mi.on{background:var(--ink);color:var(--bg);font-weight:600}
+  .sidebar .sidebar-tools{margin-top:auto;padding-top:14px;border-top:1px solid var(--line)}
+  .sidebar .sidebar-tools a.mi{margin-bottom:0;font-size:12.5px}
+  .sidebar .sfoot{margin-top:10px;font-size:11.5px;color:var(--sub);line-height:1.8}
+}
+.hot .hsum{font-size:12.5px;color:var(--txt2);line-height:1.65;margin:6px 0 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hot .htime{margin-left:auto;font-size:11px;color:var(--sub)}
+.hot .sources{align-items:center}
+.hot .sources .favbtn{flex:0 0 auto;margin:-8px -8px -8px 0}
+.tabbar{display:none}
+.more-mask,.more-sheet{display:none}
+@media(max-width:1199px){
+  body{padding-bottom:64px}
+  footer{padding-bottom:96px}
+  body.mobile-section{padding-top:env(safe-area-inset-top)}
+  .section-brand-header,.detail-brand-header{display:none}
+  .tabbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));position:fixed;bottom:0;left:0;right:0;background:var(--tabbar-bg);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:70;padding:0 0 env(safe-area-inset-bottom)}
+  .tabbar a,.tabbar button{appearance:none;border:0;background:transparent;min-width:0;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 2px 5px;font:inherit;font-size:11px;color:var(--sub);text-decoration:none;gap:2px;cursor:pointer;touch-action:manipulation}
+  .tabbar .ico{display:grid;place-items:center;height:22px}
+  .tabbar a.on,.tabbar button.on{color:var(--accent);font-weight:650}
+  .more-mask{display:block;position:fixed;inset:0;background:rgba(0,0,0,.42);opacity:0;pointer-events:none;transition:opacity .22s ease;z-index:78}
+  .more-mask.show{opacity:1;pointer-events:auto}
+  .more-sheet{display:block;position:fixed;left:0;right:0;bottom:0;z-index:80;max-height:70vh;overflow:auto;background:var(--card);border-radius:18px 18px 0 0;padding:8px 16px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -14px 40px rgba(0,0,0,.18);transform:translateY(110%);transition:transform .28s cubic-bezier(.32,.72,.35,1)}
+  .more-sheet.show{transform:translateY(0)}
+  .more-handle{width:36px;height:4px;border-radius:99px;background:var(--line);margin:2px auto 12px}
+  .more-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .more-head h2{font-size:18px}
+  .more-close{appearance:none;border:0;background:var(--soft);color:var(--sub);width:44px;height:44px;border-radius:50%;font-size:18px;cursor:pointer}
+  .more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .more-link{display:flex;align-items:center;gap:11px;min-height:58px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);text-decoration:none;color:var(--ink)}
+  .more-link .more-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent);flex:0 0 auto}
+  .more-link span:last-child{min-width:0;font-size:13px;font-weight:650}
+  .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  body.more-open{overflow:hidden}
+}
+.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.fav-toast-action:focus-visible,.favorites-search:focus-visible,.favorites-filter:focus-visible,.favorites-empty-cta:focus-visible,.favorite-card-main:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.today-hot-row:focus-visible,.today-hot-more:focus-visible,.rank-row:focus-visible,.rank-note summary:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible,.tcard-main:focus-visible,.tchild-link:focus-visible,.scenario-row:focus-visible,.topic-back:focus-visible,.topic-follow:focus-visible,.topic-recent-card:focus-visible,.topic-update-row:focus-visible,.topic-load-more:focus-visible,.topic-vendors summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:600px){.favbtn{min-width:44px;min-height:44px}}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+.topic-map-page,.topic-page{max-width:900px;padding-top:28px;padding-bottom:60px}
+.topic-map-intro{font-size:13px;color:var(--sub);line-height:1.7;margin:-4px 0 26px}
+.topic-family{margin-top:26px}
+.topic-family:first-of-type{margin-top:0}
+.topic-family-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.topic-family-head h2{font-size:17px;font-weight:800}
+.topic-family-head p{font-size:12px;color:var(--sub)}
+.tgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;min-width:0}
+@media(max-width:960px){.tgrid{grid-template-columns:minmax(0,1fr)}}
+.tcard{min-width:0;width:100%;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);display:flex;flex-direction:column;transition:.15s}
+.tcard-main{display:block;min-width:0;padding:18px 20px;text-decoration:none;color:var(--ink);flex:1}
+.tcard h3{font-size:17px;font-weight:800;margin-bottom:6px}
+.tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:12px}
+.topic-counts{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;font-weight:650}
+.topic-counts .recent{color:var(--accent)}
+.topic-counts .total{color:var(--sub);font-weight:500}
+.tchildren{display:flex;align-items:center;gap:7px;border-top:1px solid var(--soft);padding:10px 20px;font-size:11.5px;color:var(--sub)}
+.tchild-link{display:inline-flex;align-items:center;min-height:30px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-weight:650;padding:3px 10px;text-decoration:none}
+.scenario-list{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.scenario-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 16px;align-items:center;min-height:58px;padding:10px 16px;border-bottom:1px solid var(--soft);color:var(--ink);text-decoration:none}
+.scenario-row:last-child{border-bottom:none}
+.scenario-copy{min-width:0}
+.scenario-name{display:block;font-size:14px;font-weight:750}
+.scenario-desc{display:block;margin-top:2px;font-size:11.5px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scenario-count{font-size:11.5px;color:var(--sub);white-space:nowrap}
+.scenario-count.is-active{color:var(--accent);font-weight:650}
+.topic-hero{margin-bottom:24px}
+.topic-back{display:inline-flex;align-items:center;min-height:36px;color:var(--sub);font-size:13px;text-decoration:none}
+.topic-hero h1{font-size:28px;font-weight:800;margin:10px 0 6px}
+.topic-hero-desc{font-size:14px;color:var(--sub);line-height:1.7;margin:0 0 8px}
+.topic-follow{display:inline-flex;align-items:center;justify-content:center;min-height:40px;margin:7px 0 4px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink);font-size:12.5px;font-weight:700;text-decoration:none}
+.topic-parent{font-size:12px;color:var(--sub);margin-top:9px}
+.topic-parent a{color:var(--accent);font-weight:650;text-decoration:none}
+.topic-section{margin-top:24px}
+.topic-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:10px}
+.topic-section-head h2{font-size:16px;font-weight:800}
+.topic-section-head p{font-size:11.5px;color:var(--sub);text-align:right}
+.topic-recent-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.topic-recent-wrap{position:relative;min-width:0}
+.topic-recent-card{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;text-decoration:none;color:var(--ink)}
+.topic-recent-wrap .topic-recent-card{display:block;height:100%;padding-right:54px}
+.topic-recent-fav{position:absolute;top:7px;right:7px;z-index:2}
+.topic-recent-card h3{font-size:14px;line-height:1.55;margin:6px 0}
+.topic-recent-card p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-size:12px;line-height:1.65;color:var(--txt2)}
+.topic-recent-meta{font-size:10.5px;color:var(--sub)}
+.topic-empty{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:15px 16px;color:var(--sub);font-size:12.5px}
+.topic-reading{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:6px 16px 10px}
+.topic-updates{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.topic-update-row{display:grid;grid-template-columns:88px minmax(0,1fr) 150px;gap:12px;align-items:center;min-height:52px;padding:9px 14px;border-bottom:1px solid var(--soft);color:var(--ink);text-decoration:none}
+.topic-update-row:last-child{border-bottom:none}
+.topic-update-row.is-extra{display:none}
+.topic-update-date{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums}
+.topic-update-title{min-width:0;font-size:13px;font-weight:650;line-height:1.5}
+.topic-update-source{min-width:0;font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+.topic-load-more{appearance:none;width:100%;min-height:48px;margin-top:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:12.5px;font-weight:650;cursor:pointer}
+.topic-vendors{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:0 14px}
+.topic-vendors summary{display:flex;align-items:center;justify-content:space-between;min-height:48px;font-size:12.5px;font-weight:650;cursor:pointer;list-style:none}
+.topic-vendors summary::-webkit-details-marker{display:none}
+.topic-vendors summary span{color:var(--sub);font-size:11px;font-weight:500}
+.topic-vendors[open] summary span{color:var(--accent)}
+.topic-vendors .vendors{padding:0 0 14px;margin-top:0}
+@media(max-width:720px){.topic-recent-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){
+  .topic-map-page,.topic-page{padding-top:18px;padding-right:var(--mobile-page-right);padding-left:var(--mobile-page-left)}
+  .topic-map-intro{margin-bottom:22px}
+  .topic-family-head{display:block}
+  .topic-family-head p{margin-top:3px}
+  .tcard-main{padding:15px 16px}
+  .tchildren{padding:8px 16px}
+  .scenario-row{padding:10px 14px}
+  .scenario-desc{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .topic-hero h1{font-size:26px}
+  .topic-follow{min-height:44px}
+  .topic-section-head{display:block}
+  .topic-section-head p{text-align:left;margin-top:3px}
+  .topic-update-row{grid-template-columns:70px minmax(0,1fr);gap:3px 10px;padding:10px 12px}
+  .topic-update-source{grid-column:2;text-align:left}
+}
+.favorites-page{max-width:900px;min-height:calc(100vh - 145px);padding:28px 20px 60px}
+.favorites-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:18px}
+.favorites-title{display:flex;align-items:center;gap:8px;margin:0;font-size:22px;line-height:1.35}
+.favorites-count{color:var(--sub);font-size:12px;font-weight:500;white-space:nowrap}
+.favorites-trust{margin:6px 0 0;color:var(--sub);font-size:12px;line-height:1.6}
+.favorites-trust a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.favorites-tools{margin-bottom:16px}
+.favorites-search{width:min(360px,100%);min-height:44px;border:1px solid var(--line);border-radius:99px;padding:9px 15px;background:var(--card);color:var(--ink);font:inherit;font-size:13px;outline:none}
+.favorites-search:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.favorites-filters{display:flex;gap:7px;overflow-x:auto;margin-top:10px;padding-bottom:2px;scrollbar-width:none}
+.favorites-filters::-webkit-scrollbar{display:none}
+.favorites-filter{appearance:none;flex:0 0 auto;min-height:36px;border:1px solid var(--line);border-radius:99px;padding:6px 13px;background:var(--card);color:var(--sub);font:inherit;font-size:12px;cursor:pointer}
+.favorites-filter.on{border-color:var(--ink);background:var(--ink);color:var(--bg);font-weight:700}
+.favorites-group{margin:0 0 18px}
+.favorites-group h2{margin:0 0 8px;color:var(--sub);font-size:12px;font-weight:700}
+.favorites-list{display:grid;gap:10px}
+.favorite-card{display:grid;grid-template-columns:minmax(0,1fr) 48px;align-items:start;background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+.favorite-card-main{min-width:0;padding:15px 4px 15px 17px;color:var(--ink);text-decoration:none}
+.favorite-card-top{display:flex;align-items:center;gap:7px;margin-bottom:6px;color:var(--sub);font-size:10.5px;line-height:1.4}
+.favorite-card-topic{max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-radius:99px;padding:2px 8px;background:var(--soft);color:var(--txt2)}
+.favorite-card-saved{margin-left:auto;white-space:nowrap}
+.favorite-card h3{margin:0;font-size:15px;line-height:1.5}
+.favorite-card-summary{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;margin:6px 0 0;color:var(--txt2);font-size:12.5px;line-height:1.65}
+.favorite-card-meta{display:flex;align-items:center;gap:7px;margin-top:8px;color:var(--sub);font-size:11px;line-height:1.4}
+.favorite-card-meta span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.favorite-card>.favbtn{align-self:center;margin:4px 4px 4px 0}
+.favorites-empty{display:grid;place-items:center;min-height:330px;padding:34px 20px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);text-align:center}
+.favorites-empty-inner{max-width:360px}
+.favorites-empty-icon{display:grid;place-items:center;width:54px;height:54px;margin:0 auto 14px;border-radius:50%;background:var(--soft);color:var(--sub)}
+.favorites-empty h2{margin:0 0 7px;font-size:17px}
+.favorites-empty p{margin:0;color:var(--sub);font-size:12.5px;line-height:1.75}
+.favorites-empty-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin-top:17px;border-radius:99px;padding:8px 17px;background:var(--ink);color:var(--bg);font-size:12.5px;font-weight:700;text-decoration:none}
+.favorites-loading{padding:22px 0;color:var(--sub);font-size:13px}
+@media(max-width:600px){
+  .favorites-page{min-height:calc(100dvh - 145px - env(safe-area-inset-bottom));padding:20px 14px calc(36px + env(safe-area-inset-bottom))}
+  .favorites-head{display:block;margin-bottom:15px}
+  .favorites-title{font-size:21px}
+  .favorites-trust{font-size:11.5px}
+  .favorites-search{width:100%}
+  .favorite-card{grid-template-columns:minmax(0,1fr) 52px}
+  .favorite-card-main{padding:14px 2px 14px 14px}
+  .favorite-card h3{font-size:15px}
+  .favorite-card>.favbtn{margin-right:4px}
+  .favorites-empty{min-height:350px;padding:32px 18px}
+  .fav-toast{bottom:calc(68px + env(safe-area-inset-bottom))}
+}
+@media(hover:hover) and (pointer:fine){
+  .chip:hover{background:#dbe4ff}
+  a.source-name:hover,.crow:hover .ctitle,.fav-entry:hover,.weekly-evidence-row:hover span:first-child,.hrow:hover .ht,.rank-row:hover .rank-title{color:var(--accent)}
+  .source-cta:hover{opacity:.86}
+  .load-more:hover,.weekly-archive a:hover{border-color:var(--accent);color:var(--accent)}
+  .weekly-strip:hover{border-color:var(--accent)}
+  .weekly-strip-link:hover .weekly-strip-title,.weekly-dismiss:hover{color:var(--accent)}
+  .today-hot-row:hover .today-hot-title,.today-hot-more:hover{color:var(--accent)}
+  .sidebar a.mi:hover{background:var(--hover);color:var(--ink)}
+  .tcard:hover,.topic-recent-card:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+  .tcard-main:hover h3,.scenario-row:hover .scenario-name,.topic-update-row:hover .topic-update-title,.topic-follow:hover{color:var(--accent)}
+}
+@media(prefers-color-scheme:dark) and (hover:hover) and (pointer:fine){
+  .chip:hover{background:rgba(110,168,255,.26)}
+}
+
+</style></head><body class="has-sb mobile-section" data-nav-active="cases">
+<aside class="sidebar"><div class="slogo"><a href="index.html" data-smart-home-return style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><nav class="sidebar-nav" aria-label="主导航"><a class="mi" href="index.html" data-smart-home-return><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="for-me.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg>关注</a><a class="mi on" href="cases.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg>案例</a><a class="mi" href="weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>周报</a><a class="mi" href="topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>收藏</a><a class="mi" href="sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a></nav><nav class="sidebar-tools" aria-label="工具"><a class="mi" href="agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a></nav><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a> · <a href="https://bsky.app/profile/datahot.xiahongbin.com" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Bluesky" style="color:var(--sub);text-decoration:underline">Bluesky</a><br>数据领域 AI 资讯分享</div></aside>
+<header class="section-brand-header"><div class="wrap nav">
+  <div class="logo"><a href="index.html" style="text-decoration:none">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
+</div></header>
+
+<main class="wrap cases-page" data-cases-page>
+  <header class="cases-head">
+    <div><p class="cases-eyebrow">PRODUCT DESIGN LIBRARY</p><h1>数据产品设计库</h1><p>从真实产品界面和完整操作流程，拆解功能、交互、设计理由与适用边界。</p></div>
+    <span class="cases-count"><span data-case-count>12</span> 个案例</span>
+  </header>
+  <section class="cases-controls" aria-label="筛选案例">
+    <label class="cases-search-wrap"><svg width="17" height="17" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input class="cases-search" type="search" data-case-search placeholder="搜索产品、问题或功能" aria-label="搜索案例" autocomplete="off"></label>
+    <div class="cases-filter-groups">
+      <div class="cases-filter-group"><span class="cases-filter-label">产品形态</span><div class="cases-filter-row"><button class="cases-filter on" type="button" data-case-filter-kind="product" data-case-filter-value="" aria-pressed="true">全部</button><button class="cases-filter" type="button" data-case-filter-kind="product" data-case-filter-value="Data Agent" aria-pressed="false">Data Agent</button><button class="cases-filter" type="button" data-case-filter-kind="product" data-case-filter-value="数据平台" aria-pressed="false">数据平台</button><button class="cases-filter" type="button" data-case-filter-kind="product" data-case-filter-value="BI/数据应用" aria-pressed="false">BI/数据应用</button></div></div>
+      <div class="cases-filter-group"><span class="cases-filter-label">设计任务</span><div class="cases-filter-row"><button class="cases-filter on" type="button" data-case-filter-kind="task" data-case-filter-value="" aria-pressed="true">全部</button><button class="cases-filter" type="button" data-case-filter-kind="task" data-case-filter-value="问数据" aria-pressed="false">问数据</button><button class="cases-filter" type="button" data-case-filter-kind="task" data-case-filter-value="做分析" aria-pressed="false">做分析</button><button class="cases-filter" type="button" data-case-filter-kind="task" data-case-filter-value="看结果" aria-pressed="false">看结果</button><button class="cases-filter" type="button" data-case-filter-kind="task" data-case-filter-value="管任务" aria-pressed="false">管任务</button><button class="cases-filter" type="button" data-case-filter-kind="task" data-case-filter-value="做治理" aria-pressed="false">做治理</button></div></div>
+    </div>
+  </section>
+  <div class="cases-grid" data-case-grid aria-live="polite"><article class="case-card" data-case-card data-analytics-list="1" data-event-id="1590ce86fc2a" data-category="agent" data-source="Databricks Blog" data-product-type="Data Agent" data-task-type="问数据" data-search="databricks genie one data agent 问数据 用户得到 ai 答案后，还要在多个工具之间核验数据、编辑报告和分享结果，首个答案很快，后续行动却很慢。 首页按“发起、复用、调度、定制”组织任务，比按模型或数据库对象导航更接近业务用户心智。 全局提问框 agents 与 discover 导航 文档、技能与定时任务 从桌面全局启动器直接发起问题 在 web 端与桌面端继续同一对话 将已整理的对话保存为可复用 agent 或分享只读链接 在会话内上传企业文件并调用连接工具">
+  <a class="case-card-media" href="e/1590ce86fc2a.html" data-event-id="1590ce86fc2a">
+    <img src="media/1590ce86fc2a/8d95746622991c30af6a71bd.png" alt="Genie One桌面应用" loading="lazy" decoding="async">
+    <span class="case-card-type">Data Agent</span>
+  </a>
+  <div class="case-card-body">
+    <div class="case-card-kicker"><span>问数据</span></div>
+    <h2><a class="case-card-title" href="e/1590ce86fc2a.html">Databricks Genie One</a></h2>
+    <p class="case-card-problem"><b>问题：</b>用户得到 AI 答案后，还要在多个工具之间核验数据、编辑报告和分享结果，首个答案很快，后续行动却很慢。</p>
+    <p class="case-card-solution"><b>设计解读：</b>首页按“发起、复用、调度、定制”组织任务，比按模型或数据库对象导航更接近业务用户心智。</p>
+    <div class="case-card-tags" aria-label="主要功能模块"><span>全局提问框</span><span>Agents 与 Discover 导航</span><span>文档、技能与定时任务</span></div>
+    <div class="case-card-foot"><span>2 张原文图 · 核验 2026-08-29</span><a class="case-card-open" href="e/1590ce86fc2a.html">查看拆解 →</a></div>
+  </div>
+</article><article class="case-card" data-case-card data-analytics-list="1" data-event-id="775f063ddfa3" data-category="agent" data-source="Databricks Blog" data-product-type="Data Agent" data-task-type="做分析" data-search="databricks genie agents data agent 做分析 开放式业务问题需要多步拆解、反复查询和综合论证，单轮 text-to-sql 无法交代过程，也难以让用户核验结论。 把计划、查询和重试显示为可展开的进度树，能在不淹没结论的前提下提供可审查性。 问题与可分享状态栏 agent 推理计划 分步查询与工具执行 在聊天模式与多步 agent 模式之间选择 展开思考区查看分析计划与执行进度 围绕中间结果追问或重试查询 将对话分享给协作者或 agent 作者审查">
+  <a class="case-card-media" href="e/775f063ddfa3.html" data-event-id="775f063ddfa3">
+    <img src="media/775f063ddfa3/b1a3fc3a14524b5606072b95.png" alt="Agent 模式" loading="lazy" decoding="async">
+    <span class="case-card-type">Data Agent</span>
+  </a>
+  <div class="case-card-body">
+    <div class="case-card-kicker"><span>做分析</span></div>
+    <h2><a class="case-card-title" href="e/775f063ddfa3.html">Databricks Genie Agents</a></h2>
+    <p class="case-card-problem"><b>问题：</b>开放式业务问题需要多步拆解、反复查询和综合论证，单轮 Text-to-SQL 无法交代过程，也难以让用户核验结论。</p>
+    <p class="case-card-solution"><b>设计解读：</b>把计划、查询和重试显示为可展开的进度树，能在不淹没结论的前提下提供可审查性。</p>
+    <div class="case-card-tags" aria-label="主要功能模块"><span>问题与可分享状态栏</span><span>Agent 推理计划</span><span>分步查询与工具执行</span></div>
+    <div class="case-card-foot"><span>3 张原文图 · 核验 2026-09-03</span><a class="case-card-open" href="e/775f063ddfa3.html">查看拆解 →</a></div>
+  </div>
+</article><article class="case-card" data-case-card data-analytics-list="1" data-event-id="83357b7d65a2" data-category="agent" data-source="Snowflake Engineering（Medium）" data-product-type="Data Agent" data-task-type="管任务" data-search="snowflake cowork automations data agent 管任务 周报、经营巡检等重复分析依赖人工发起和整理，普通定时任务又只会执行固定 sql，难以处理需要重新规划的自然语言任务。 把调度建议放在分析交付之后，比让用户去独立设置页重新描述任务更符合当下意图。 automations 列表 自然语言任务指令 频率与调度配置 从一次分析结果直接确认或调整调度频率 通过表单输入名称、自然语言指令和运行时间 在列表中查看运行状态与历史结果 在聊天内列出、暂停、改期或删除自动化">
+  <a class="case-card-media" href="e/83357b7d65a2.html" data-event-id="83357b7d65a2">
+    <img src="media/83357b7d65a2/74b5c7d231096f2289eee182.png" alt="图1：Snowsight 中的 Automations 选项卡——管理定时 AI 报告的中心枢纽。" loading="lazy" decoding="async">
+    <span class="case-card-type">Data Agent</span>
+  </a>
+  <div class="case-card-body">
+    <div class="case-card-kicker"><span>管任务</span></div>
+    <h2><a class="case-card-title" href="e/83357b7d65a2.html">Snowflake CoWork Automations</a></h2>
+    <p class="case-card-problem"><b>问题：</b>周报、经营巡检等重复分析依赖人工发起和整理，普通定时任务又只会执行固定 SQL，难以处理需要重新规划的自然语言任务。</p>
+    <p class="case-card-solution"><b>设计解读：</b>把调度建议放在分析交付之后，比让用户去独立设置页重新描述任务更符合当下意图。</p>
+    <div class="case-card-tags" aria-label="主要功能模块"><span>Automations 列表</span><span>自然语言任务指令</span><span>频率与调度配置</span></div>
+    <div class="case-card-foot"><span>12 张原文图 · 核验 2026-08-21</span><a class="case-card-open" href="e/83357b7d65a2.html">查看拆解 →</a></div>
+  </div>
+</article><article class="case-card" data-case-card data-analytics-list="1" data-event-id="2621c2f3f508" data-category="agent" data-source="AWS Big Data Blog" data-product-type="Data Agent" data-task-type="做治理" data-search="opensearch agent health data agent 做治理 传统测试只能判断代码是否运行，无法说明 agent 的多步行为是否符合预期，团队缺少从 trace 到评估结论的统一审查界面。 将“裁判理由”和“原始 trace”放在同一运行下，可避免用户只看通过率而无法追问证据。 测试用例定义 trace 与工具调用明细 judge evaluation 定义用户目标与期望行为后发起运行 在测试输出、trace、裁判结果与批注标签之间切换 展开单个匹配项查看裁判理由和分项指标 根据失败原因审查建议，再将用例纳入基准比较">
+  <a class="case-card-media" href="e/2621c2f3f508.html" data-event-id="2621c2f3f508">
+    <img src="media/2621c2f3f508/aaba3e7b29cc4959042676d1.png" alt="Agent Health 评估报告，显示多个标签页中的测试结果" loading="lazy" decoding="async">
+    <span class="case-card-type">Data Agent</span>
+  </a>
+  <div class="case-card-body">
+    <div class="case-card-kicker"><span>做治理</span></div>
+    <h2><a class="case-card-title" href="e/2621c2f3f508.html">OpenSearch Agent Health</a></h2>
+    <p class="case-card-problem"><b>问题：</b>传统测试只能判断代码是否运行，无法说明 Agent 的多步行为是否符合预期，团队缺少从 Trace 到评估结论的统一审查界面。</p>
+    <p class="case-card-solution"><b>设计解读：</b>将“裁判理由”和“原始 Trace”放在同一运行下，可避免用户只看通过率而无法追问证据。</p>
+    <div class="case-card-tags" aria-label="主要功能模块"><span>测试用例定义</span><span>Trace 与工具调用明细</span><span>Judge Evaluation</span></div>
+    <div class="case-card-foot"><span>4 张原文图 · 核验 2026-09-02</span><a class="case-card-open" href="e/2621c2f3f508.html">查看拆解 →</a></div>
+  </div>
+</article><article class="case-card" data-case-card data-analytics-list="1" data-event-id="402c6e3ce47a" data-category="agent" data-source="AWS Big Data Blog" data-product-type="Data Agent" data-task-type="管任务" data-search="aws devops agent + spark troubleshooting agent data agent 管任务 spark 作业失败的线索散落在告警、日志、事件记录和代码中，内置云 api 又看不到执行器内存等 spark 内部证据。 配置流程先选能力、再选工具，是把“插件已连接”与“agent 可使用哪些权限”分层表达。 agent space 能力管理 mcp server 工具选择 调查启动面板 在 agent space 中添加受管 mcp 服务器并勾选所需工具 从 cloudwatch 告警或单条聊天指令发起调查 在时间线中查看云 api 与 mcp 工具如何交替执行 打开 root cause 标签查看影响、根因、关键证据和缓解方案">
+  <a class="case-card-media" href="e/402c6e3ce47a.html" data-event-id="402c6e3ce47a">
+    <img src="media/402c6e3ce47a/67c0e254a759871c3490966d.png" alt="Root cause tab showing impact, root causes, and key findings for the memory failure" loading="lazy" decoding="async">
+    <span class="case-card-type">Data Agent</span>
+  </a>
+  <div class="case-card-body">
+    <div class="case-card-kicker"><span>管任务</span></div>
+    <h2><a class="case-card-title" href="e/402c6e3ce47a.html">AWS DevOps Agent + Spark Troubleshooting Agent</a></h2>
+    <p class="case-card-problem"><b>问题：</b>Spark 作业失败的线索散落在告警、日志、事件记录和代码中，内置云 API 又看不到执行器内存等 Spark 内部证据。</p>
+    <p class="case-card-solution"><b>设计解读：</b>配置流程先选能力、再选工具，是把“插件已连接”与“Agent 可使用哪些权限”分层表达。</p>
+    <div class="case-card-tags" aria-label="主要功能模块"><span>Agent Space 能力管理</span><span>MCP Server 工具选择</span><span>调查启动面板</span></div>
+    <div class="case-card-foot"><span>9 张原文图 · 核验 2026-09-02</span><a class="case-card-open" href="e/402c6e3ce47a.html">查看拆解 →</a></div>
+  </div>
+</article><article class="case-card" data-case-card data-analytics-list="1" data-event-id="bb69209c8d0f" data-category="platform" data-source="Snowflake Engineering（Medium）" data-product-type="数据平台" data-task-type="管任务" data-search="snowflake openflow 数据平台 管任务 可视化数据管道通过导出、改名和重新导入在环境间流转，既看不到变更差异，也容易丢失运行状态和环境参数。 把 git 操作放到画布对象的上下文菜单，保留了可视化建模的心智，又不迫使用户先离开画布。 可视化 process group 画布 git registry client 分支、提交与本地变更菜单 在 controller settings 中注册限定仓库的 github 客户端 将画布上的 process group 纳入版本控制 从 process group 右键菜单创建分支、提交或查看变更 经过 pr 审查后，让生产环境从 main 拉取已合并版本">
+  <a class="case-card-media" href="e/bb69209c8d0f.html" data-event-id="bb69209c8d0f">
+    <img src="media/bb69209c8d0f/2c17d808257006cc5c8fee39.png" alt="Snowflake Openflow 产品界面" loading="lazy" decoding="async">
+    <span class="case-card-type">数据平台</span>
+  </a>
+  <div class="case-card-body">
+    <div class="case-card-kicker"><span>管任务</span></div>
+    <h2><a class="case-card-title" href="e/bb69209c8d0f.html">Snowflake Openflow</a></h2>
+    <p class="case-card-problem"><b>问题：</b>可视化数据管道通过导出、改名和重新导入在环境间流转，既看不到变更差异，也容易丢失运行状态和环境参数。</p>
+    <p class="case-card-solution"><b>设计解读：</b>把 Git 操作放到画布对象的上下文菜单，保留了可视化建模的心智，又不迫使用户先离开画布。</p>
+    <div class="case-card-tags" aria-label="主要功能模块"><span>可视化 Process Group 画布</span><span>Git Registry Client</span><span>分支、提交与本地变更菜单</span></div>
+    <div class="case-card-foot"><span>12 张原文图 · 核验 2026-08-29</span><a class="case-card-open" href="e/bb69209c8d0f.html">查看拆解 →</a></div>
+  </div>
+</article><article class="case-card" data-case-card data-analytics-list="1" data-event-id="729c4b318a8b" data-category="platform" data-source="AWS Big Data Blog" data-product-type="数据平台" data-task-type="做治理" data-search="opensearch search relevance workbench 数据平台 做治理 查询日志只记录用户搜了什么，不能说明用户看到、点击或放弃了哪些结果，搜索团队因此无法在上线前量化排序调整是否改善。 该流程把行为信号、评判集、方案对比和发布指标分成可复用对象，使搜索优化不再依赖一次性脚本。 ubi 行为事件索引 真实流量查询集 相关性评判列表 从 ubi_queries 中的真实流量抽样建立查询集 选择隐式点击类型与位置偏差修正模型生成评判 对比两个搜索配置的重合度和排名偏移 在覆盖率、精确率、map 和 ndcg 之间切换并下钻失败查询">
+  <a class="case-card-media" href="e/729c4b318a8b.html" data-event-id="729c4b318a8b">
+    <img src="media/729c4b318a8b/5d0f9c9dd71738e793f24d0d.png" alt="搜索评估结果，显示覆盖率、精确率、MAP和NDCG在10时以及逐查询详细信息" loading="lazy" decoding="async">
+    <span class="case-card-type">数据平台</span>
+  </a>
+  <div class="case-card-body">
+    <div class="case-card-kicker"><span>做治理</span></div>
+    <h2><a class="case-card-title" href="e/729c4b318a8b.html">OpenSearch Search Relevance Workbench</a></h2>
+    <p class="case-card-problem"><b>问题：</b>查询日志只记录用户搜了什么，不能说明用户看到、点击或放弃了哪些结果，搜索团队因此无法在上线前量化排序调整是否改善。</p>
+    <p class="case-card-solution"><b>设计解读：</b>该流程把行为信号、评判集、方案对比和发布指标分成可复用对象，使搜索优化不再依赖一次性脚本。</p>
+    <div class="case-card-tags" aria-label="主要功能模块"><span>UBI 行为事件索引</span><span>真实流量查询集</span><span>相关性评判列表</span></div>
+    <div class="case-card-foot"><span>7 张原文图 · 核验 2026-09-01</span><a class="case-card-open" href="e/729c4b318a8b.html">查看拆解 →</a></div>
+  </div>
+</article><article class="case-card" data-case-card data-analytics-list="1" data-event-id="52613ad8696c" data-category="platform" data-source="AWS Big Data Blog" data-product-type="数据平台" data-task-type="做分析" data-search="amazon sagemaker unified studio notebooks 数据平台 做分析 一条 bronze→silver→gold 管道往往同时维护 etl 代码、调度 dag 和 cdc 状态，分析开发者需要在多个工具中切换并处理错误。 将 ai 修复入口放在出错单元格的就地菜单中，比要求用户另开对话并重述上下文更高效。 数据目录与 s3 tables 入口 notebook 工作区 运行时引擎选择 在 unified studio 中创建 s3 tables 目录与 notebook 为 notebook 选择 athena spark 或 glue spark 计算连接 使用自然语言生成 sql，再在 sql 单元格中执行 单元格出错时从 fix with ai 打开 data agent 修复上下文">
+  <a class="case-card-media" href="e/52613ad8696c.html" data-event-id="52613ad8696c">
+    <img src="media/52613ad8696c/e8249da33a1bf292e276db47.png" alt="用于解决单元格错误的 Fix with AI 按钮和数据代理聊天机器人" loading="lazy" decoding="async">
+    <span class="case-card-type">数据平台</span>
+  </a>
+  <div class="case-card-body">
+    <div class="case-card-kicker"><span>做分析</span></div>
+    <h2><a class="case-card-title" href="e/52613ad8696c.html">Amazon SageMaker Unified Studio Notebooks</a></h2>
+    <p class="case-card-problem"><b>问题：</b>一条 Bronze→Silver→Gold 管道往往同时维护 ETL 代码、调度 DAG 和 CDC 状态，分析开发者需要在多个工具中切换并处理错误。</p>
+    <p class="case-card-solution"><b>设计解读：</b>将 AI 修复入口放在出错单元格的就地菜单中，比要求用户另开对话并重述上下文更高效。</p>
+    <div class="case-card-tags" aria-label="主要功能模块"><span>数据目录与 S3 Tables 入口</span><span>Notebook 工作区</span><span>运行时引擎选择</span></div>
+    <div class="case-card-foot"><span>12 张原文图 · 核验 2026-09-03</span><a class="case-card-open" href="e/52613ad8696c.html">查看拆解 →</a></div>
+  </div>
+</article><article class="case-card" data-case-card data-analytics-list="1" data-event-id="a64173b0e40c" data-category="platform" data-source="AWS Big Data Blog" data-product-type="数据平台" data-task-type="做治理" data-search="sagemaker unified studio + lake formation 数据平台 做治理 当湖仓增长到数千张表和多个数据域时，逐表授权容易产生权限漂移，分析用户也难以理解为何同一查询对不同身份的结果不同。 用成功与拒绝的对照状态演示权限，比只展示策略配置页更容易让产品、安全和业务共同验收。 iam identity center 用户与组 lf-tag 数据分类 基于标签的访问策略 为数据资产继承或补充 lf-tags 将 identity center 组映射到标签策略 用不同业务身份进入 unified studio 查询各自数据域 对比授权查询的结果与跨域查询的拒绝反馈">
+  <a class="case-card-media" href="e/a64173b0e40c.html" data-event-id="a64173b0e40c">
+    <img src="media/a64173b0e40c/a147e8bf59cc8176fbbe762c.png" alt="SageMaker Unified Studio results: Sarah’s successful query on us_sales_summary" loading="lazy" decoding="async">
+    <span class="case-card-type">数据平台</span>
+  </a>
+  <div class="case-card-body">
+    <div class="case-card-kicker"><span>做治理</span></div>
+    <h2><a class="case-card-title" href="e/a64173b0e40c.html">SageMaker Unified Studio + Lake Formation</a></h2>
+    <p class="case-card-problem"><b>问题：</b>当湖仓增长到数千张表和多个数据域时，逐表授权容易产生权限漂移，分析用户也难以理解为何同一查询对不同身份的结果不同。</p>
+    <p class="case-card-solution"><b>设计解读：</b>用成功与拒绝的对照状态演示权限，比只展示策略配置页更容易让产品、安全和业务共同验收。</p>
+    <div class="case-card-tags" aria-label="主要功能模块"><span>IAM Identity Center 用户与组</span><span>LF-Tag 数据分类</span><span>基于标签的访问策略</span></div>
+    <div class="case-card-foot"><span>12 张原文图 · 核验 2026-08-07</span><a class="case-card-open" href="e/a64173b0e40c.html">查看拆解 →</a></div>
+  </div>
+</article><article class="case-card" data-case-card data-analytics-list="1" data-event-id="6d4892f9d110" data-category="insight" data-source="Databricks Blog" data-product-type="BI/数据应用" data-task-type="看结果" data-search="southern company scout bi/数据应用 看结果 风暴期间，停电、客户、地形、人员和预计恢复时间散落在多个系统，调度与现场团队很难共享同一张实时运营图景。 首屏同时呈现地理范围、事件规模、客户影响和恢复速率，对应运营指挥中“哪里、多严重、影响谁、处理多快”四个核心问题。 分层运营导航 停电地图与威胁等级 事件与客户状态图表 按不同运营公司与输配电范围切换视图 在地图上查看停电区域、威胁等级与时间回放 从总览下钻到事件、客户和设备类型分布 按公司或区域展开事件明细以支持人员与设备调度">
+  <a class="case-card-media" href="e/6d4892f9d110.html" data-event-id="6d4892f9d110">
+    <img src="media/6d4892f9d110/053960ecc2acdc8e41990a33.png" alt="image4.png" loading="lazy" decoding="async">
+    <span class="case-card-type">BI/数据应用</span>
+  </a>
+  <div class="case-card-body">
+    <div class="case-card-kicker"><span>看结果</span></div>
+    <h2><a class="case-card-title" href="e/6d4892f9d110.html">Southern Company SCOUT</a></h2>
+    <p class="case-card-problem"><b>问题：</b>风暴期间，停电、客户、地形、人员和预计恢复时间散落在多个系统，调度与现场团队很难共享同一张实时运营图景。</p>
+    <p class="case-card-solution"><b>设计解读：</b>首屏同时呈现地理范围、事件规模、客户影响和恢复速率，对应运营指挥中“哪里、多严重、影响谁、处理多快”四个核心问题。</p>
+    <div class="case-card-tags" aria-label="主要功能模块"><span>分层运营导航</span><span>停电地图与威胁等级</span><span>事件与客户状态图表</span></div>
+    <div class="case-card-foot"><span>1 张原文图 · 核验 2026-09-03</span><a class="case-card-open" href="e/6d4892f9d110.html">查看拆解 →</a></div>
+  </div>
+</article><article class="case-card" data-case-card data-analytics-list="1" data-event-id="9809cc8aea4d" data-category="platform" data-source="AWS Big Data Blog" data-product-type="BI/数据应用" data-task-type="看结果" data-search="amazon quicksight 成本看板 bi/数据应用 看结果 sagemaker unified studio 的自定义项目标签不会自动传播到通过 ui 创建的动态资源，财务和平台团队无法按成本中心或团队追踪项目消耗。 看板先把成本责任维度放到全局筛选器，再并列展示成本中心与具体项目，能在管理视角和排查视角之间快速切换。 成本中心与项目筛选器 按成本中心分组的支出图 按 unified studio 项目分组的支出图 使用域、项目或自定义成本中心缩小范围 对比成本中心之间的支出结构 下钻到单个 studio 项目查看资源消耗 将异常项目与其标签责任人联系起来">
+  <a class="case-card-media" href="e/9809cc8aea4d.html" data-event-id="9809cc8aea4d">
+    <img src="media/9809cc8aea4d/e20b5ff84471b3cb6cd3898d.png" alt="Amazon Quick Sight 仪表板，显示按成本中心和按项目划分的成本条形图，以及域和项目筛选器" loading="lazy" decoding="async">
+    <span class="case-card-type">BI/数据应用</span>
+  </a>
+  <div class="case-card-body">
+    <div class="case-card-kicker"><span>看结果</span></div>
+    <h2><a class="case-card-title" href="e/9809cc8aea4d.html">Amazon QuickSight 成本看板</a></h2>
+    <p class="case-card-problem"><b>问题：</b>SageMaker Unified Studio 的自定义项目标签不会自动传播到通过 UI 创建的动态资源，财务和平台团队无法按成本中心或团队追踪项目消耗。</p>
+    <p class="case-card-solution"><b>设计解读：</b>看板先把成本责任维度放到全局筛选器，再并列展示成本中心与具体项目，能在管理视角和排查视角之间快速切换。</p>
+    <div class="case-card-tags" aria-label="主要功能模块"><span>成本中心与项目筛选器</span><span>按成本中心分组的支出图</span><span>按 Unified Studio 项目分组的支出图</span></div>
+    <div class="case-card-foot"><span>6 张原文图 · 核验 2026-08-21</span><a class="case-card-open" href="e/9809cc8aea4d.html">查看拆解 →</a></div>
+  </div>
+</article><article class="case-card" data-case-card data-analytics-list="1" data-event-id="ecaefd096734" data-category="bi" data-source="ThoughtSpot Blog" data-product-type="BI/数据应用" data-task-type="看结果" data-search="thoughtspot charts ai / chartspec bi/数据应用 看结果 用户用自然语言要求比较、趋势和强调时，如果让 llm 直接选图表类型或生成渲染代码，输出很难验证、修订、复现和跨引擎渲染。 让模型只做分析判断、让代码负责结构构造，是把生成式 ui 从“任意代码”收缩为“可验证中间表示”。 自然语言分析意图 类型化 chartspec 标记、编码通道与条件规则 用自然语言说明比较、趋势、分布或强调目标 将意图分解为封闭的分析判断，再由代码构造规范 验证 chartspec 后路由到原生图表、模板或沙箱程序 通过后续语句修改堆叠、双轴、分面或强调条件">
+  <a class="case-card-media" href="e/ecaefd096734.html" data-event-id="ecaefd096734">
+    <img src="media/ecaefd096734/7cb67949e1f6eea7bb6e638d.png" alt="ThoughtSpot Charts AI / ChartSpec 产品界面" loading="lazy" decoding="async">
+    <span class="case-card-type">BI/数据应用</span>
+  </a>
+  <div class="case-card-body">
+    <div class="case-card-kicker"><span>看结果</span></div>
+    <h2><a class="case-card-title" href="e/ecaefd096734.html">ThoughtSpot Charts AI / ChartSpec</a></h2>
+    <p class="case-card-problem"><b>问题：</b>用户用自然语言要求比较、趋势和强调时，如果让 LLM 直接选图表类型或生成渲染代码，输出很难验证、修订、复现和跨引擎渲染。</p>
+    <p class="case-card-solution"><b>设计解读：</b>让模型只做分析判断、让代码负责结构构造，是把生成式 UI 从“任意代码”收缩为“可验证中间表示”。</p>
+    <div class="case-card-tags" aria-label="主要功能模块"><span>自然语言分析意图</span><span>类型化 ChartSpec</span><span>标记、编码通道与条件规则</span></div>
+    <div class="case-card-foot"><span>6 张原文图 · 核验 2026-08-24</span><a class="case-card-open" href="e/ecaefd096734.html">查看拆解 →</a></div>
+  </div>
+</article></div>
+  <div class="cases-empty" data-case-empty><div><b>没有匹配的案例</b><br>换个产品形态、设计任务或关键词试试。</div></div>
+  <noscript><p class="cases-empty show">启用 JavaScript 后可以搜索和筛选；案例内容仍可直接浏览。</p></noscript>
+</main>
+<script defer src="cases.js"></script>
+<footer>DataHot，数据领域AI资讯分享 · <a href="privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a> · <a href="https://bsky.app/profile/datahot.xiahongbin.com" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Bluesky" style="color:var(--sub);text-decoration:underline">Bluesky</a></footer>
+<nav class="tabbar" aria-label="移动端主导航">
+  <a href="index.html" class="" data-home-top><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="for-me.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg></span><span>关注</span></a><a href="cases.html" class="on"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg></span><span>案例</span></a><a href="favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>
+  <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
+</nav>
+<div class="more-mask" data-more-mask aria-hidden="true"></div>
+<section class="more-sheet" id="mobileMoreSheet" role="dialog" aria-modal="true" aria-labelledby="mobileMoreTitle" aria-hidden="true">
+  <div class="more-handle" aria-hidden="true"></div>
+  <div class="more-head"><h2 id="mobileMoreTitle">更多</h2><button class="more-close" type="button" data-more-close aria-label="关闭更多导航">×</button></div>
+  <div class="more-grid"><a class="more-link" href="weekly.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span>每周简报</span></a><a class="more-link" href="topics.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a class="more-link" href="hot.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></span><span>完整榜单</span></a><a class="more-link" href="sources.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span><span>信源</span></a><a class="more-link" href="agent.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg></span><span>接入 Agent</span></a><a class="more-link" href="privacy.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg></span><span>隐私说明</span></a></div>
+</section>
+<script>
+(function(){
+  var homeLink=document.querySelector('[data-home-top]');
+  if(homeLink) homeLink.addEventListener('click',function(event){
+    if(document.body&&document.body.classList.contains('home-page')) return;
+    var button=event.button==null?0:event.button;
+    if(event.defaultPrevented||button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey) return;
+    try{
+      var current=new URL(window.location.href);
+      var target=new URL(homeLink.href,current);
+      var source=new URL(document.referrer,current);
+      var targetRoot=target.pathname.replace(/index\.html$/,'');
+      var sourceIsHome=source.origin===target.origin&&(source.pathname===target.pathname||source.pathname===targetRoot);
+      if(!sourceIsHome||window.history.length<=1) return;
+      window.sessionStorage.setItem('datahotForceHomeTop','1');
+      event.preventDefault();window.history.back();
+    }catch(error){}
+  });
+  var trigger=document.querySelector('[data-more-open]');
+  var sheet=document.getElementById('mobileMoreSheet');
+  var mask=document.querySelector('[data-more-mask]');
+  var closeBtn=document.querySelector('[data-more-close]');
+  if(!trigger||!sheet||!mask||!closeBtn) return;
+  var background=Array.from(document.body.children).filter(function(node){return node!==sheet&&node!==mask&&node.tagName!=='SCRIPT'});
+  function setMore(open){
+    if(!open) background.forEach(function(node){node.removeAttribute('inert')});
+    trigger.setAttribute('aria-expanded',open?'true':'false');
+    sheet.setAttribute('aria-hidden',open?'false':'true');
+    sheet.classList.toggle('show',open);
+    mask.classList.toggle('show',open);
+    document.body.classList.toggle('more-open',open);
+    if(open){background.forEach(function(node){node.setAttribute('inert','')});closeBtn.focus()}else trigger.focus();
+  }
+  trigger.addEventListener('click',function(){setMore(true)});
+  closeBtn.addEventListener('click',function(){setMore(false)});
+  mask.addEventListener('click',function(){setMore(false)});
+  document.addEventListener('keydown',function(event){
+    if(!sheet.classList.contains('show')) return;
+    if(event.key==='Escape'){setMore(false);return}
+    if(event.key!=='Tab') return;
+    var focusable=Array.from(sheet.querySelectorAll('a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])'));
+    if(!focusable.length) return;
+    var first=focusable[0],last=focusable[focusable.length-1];
+    if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+    else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+  });
+})();
+</script>
+</body></html>

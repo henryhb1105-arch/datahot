@@ -27,7 +27,7 @@ from site_config import SITE_BASE_URL, SITE_HOST
 from social_cards import social_image_for_event
 from seo import absolute_public_url, public_sitemap_paths, write_search_discovery
 from indexnow import write_key_file as write_indexnow_key_file
-from product_cases import find_case_hero, load_product_cases
+from product_cases import DESIGN_QUESTIONS, find_case_hero, load_product_cases
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
@@ -599,54 +599,105 @@ main,.layout>*,.hotlist>*{min-width:0}
 """
 
 CASES_CSS = """
-.cases-page{max-width:1080px;padding:30px 20px 72px}
-.cases-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:18px}
+.cases-page{max-width:1180px;padding:28px 20px 96px}
+.cases-head{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:18px}
 .cases-eyebrow{margin:0 0 7px;color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
 .cases-head h1{margin:0;font-size:30px;line-height:1.25;letter-spacing:-.025em}
-.cases-head p{max-width:640px;margin:7px 0 0;color:var(--txt2);font-size:13.5px;line-height:1.7}
-.cases-count{flex:0 0 auto;margin-bottom:2px;color:var(--sub);font-size:12px;white-space:nowrap}
-.cases-controls{display:grid;grid-template-columns:minmax(240px,1.1fr) minmax(0,2fr);gap:14px;margin-bottom:20px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.cases-head p{max-width:690px;margin:7px 0 0;color:var(--txt2);font-size:13.5px;line-height:1.7}
+.cases-count{flex:0 0 auto;margin-top:25px;color:var(--sub);font-size:12px;white-space:nowrap}
+.cases-question-nav{margin-bottom:14px}
+.cases-question-label{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:8px;color:var(--ink);font-size:12px;font-weight:800}
+.cases-question-label span{color:var(--sub);font-size:10.5px;font-weight:500}
+.cases-question-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px;min-width:0}
+.cases-question{appearance:none;min-width:0;min-height:68px;border:1px solid var(--line);border-radius:11px;padding:9px 10px;background:var(--card);color:var(--ink);font:inherit;text-align:left;cursor:pointer;transition:border-color .15s ease,background .15s ease,transform .15s ease}
+.cases-question b,.cases-question span{display:block}
+.cases-question b{font-size:11.5px;line-height:1.35}
+.cases-question span{display:-webkit-box;overflow:hidden;margin-top:3px;color:var(--sub);font-size:9.5px;line-height:1.4;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.cases-question.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.cases-question.on span{color:var(--accent)}
+.cases-controls{display:grid;grid-template-columns:minmax(260px,1fr) auto auto;gap:10px;align-items:start;margin-bottom:17px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
 .cases-search-wrap{display:flex;align-items:center;position:relative}
 .cases-search-wrap svg{position:absolute;left:13px;color:var(--sub);pointer-events:none}
 .cases-search{width:100%;min-height:44px;border:1px solid var(--line);border-radius:10px;padding:9px 13px 9px 39px;background:var(--bg);color:var(--ink);font:inherit;font-size:13px;outline:none}
 .cases-search:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.cases-filter-groups{display:grid;gap:9px}
+.cases-more-filters{position:relative;min-width:122px}
+.cases-more-filters summary{display:flex;align-items:center;justify-content:center;min-height:44px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--bg);color:var(--txt2);font-size:11.5px;font-weight:700;cursor:pointer;list-style:none;white-space:nowrap}
+.cases-more-filters summary::-webkit-details-marker{display:none}
+.cases-more-filters summary::after{content:"⌄";margin-left:7px;color:var(--sub);font-size:12px}
+.cases-more-filters[open] summary{border-color:var(--ink);color:var(--ink)}
+.cases-more-filters[open] summary::after{transform:rotate(180deg)}
+.cases-filter-groups{display:grid;position:absolute;right:0;top:50px;z-index:12;width:min(580px,calc(100vw - 48px));gap:10px;padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--card);box-shadow:0 14px 34px rgba(0,0,0,.13)}
 .cases-filter-group{display:grid;grid-template-columns:66px minmax(0,1fr);gap:9px;align-items:center;min-width:0}
 .cases-filter-label{color:var(--sub);font-size:11.5px;font-weight:700;white-space:nowrap}
 .cases-filter-row{display:flex;gap:6px;min-width:0;overflow-x:auto;scrollbar-width:none}
 .cases-filter-row::-webkit-scrollbar{display:none}
-.cases-filter{appearance:none;flex:0 0 auto;min-height:34px;border:1px solid var(--line);border-radius:99px;padding:5px 11px;background:var(--bg);color:var(--sub);font:inherit;font-size:11.5px;cursor:pointer;white-space:nowrap}
+.cases-filter{appearance:none;flex:0 0 auto;min-height:36px;border:1px solid var(--line);border-radius:99px;padding:6px 11px;background:var(--bg);color:var(--sub);font:inherit;font-size:11.5px;cursor:pointer;white-space:nowrap}
 .cases-filter.on{border-color:var(--ink);background:var(--ink);color:var(--bg);font-weight:750}
-.cases-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.cases-result-tools{display:flex;align-items:center;justify-content:flex-end;gap:8px;min-height:44px;color:var(--sub);font-size:11.5px;white-space:nowrap}
+.cases-reset{appearance:none;min-height:34px;border:0;border-radius:8px;padding:5px 8px;background:transparent;color:var(--accent);font:inherit;font-size:11px;font-weight:700;cursor:pointer}
+.cases-reset[hidden]{display:none}
+.cases-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 .case-card{display:flex;min-width:0;flex-direction:column;overflow:hidden;border:1px solid var(--line);border-radius:15px;background:var(--card);transition:border-color .15s ease,box-shadow .15s ease,transform .15s ease}
 .case-card[hidden]{display:none}
 .case-card-media{display:block;position:relative;aspect-ratio:16/9;overflow:hidden;border-bottom:1px solid var(--line);background:var(--soft)}
 .case-card-media img{display:block;width:100%;height:100%;object-fit:contain;background:var(--soft)}
 .case-card-type{position:absolute;left:10px;top:10px;display:inline-flex;align-items:center;min-height:24px;padding:3px 8px;border-radius:99px;background:rgba(26,29,35,.84);color:#fff;font-size:10px;font-weight:800;backdrop-filter:blur(6px)}
-.case-card-body{display:flex;min-width:0;flex:1;flex-direction:column;padding:16px}
-.case-card-kicker{display:flex;align-items:center;gap:7px;min-width:0;margin-bottom:8px;color:var(--accent);font-size:11px;font-weight:750}
+.case-card-figures{position:absolute;right:9px;top:9px;display:inline-flex;align-items:center;min-height:23px;padding:3px 7px;border-radius:99px;background:rgba(255,255,255,.88);color:#35383f;font-size:9px;font-weight:750;backdrop-filter:blur(6px)}
+.case-card-body{display:flex;min-width:0;flex:1;flex-direction:column;padding:14px}
+.case-card-kicker{display:flex;align-items:center;gap:7px;min-width:0;margin-bottom:7px;color:var(--accent);font-size:10.5px;font-weight:750}
 .case-card-kicker span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .case-card-kicker span+span::before{content:"·";margin-right:7px;color:var(--line)}
-.case-card h2{margin:0;font-size:18px;line-height:1.45;letter-spacing:-.01em}
+.case-card h2{margin:0;font-size:16.5px;line-height:1.42;letter-spacing:-.01em}
 .case-card-title{color:var(--ink);text-decoration:none}
-.case-card-problem,.case-card-solution{display:-webkit-box;overflow:hidden;margin:9px 0 0;color:var(--txt2);font-size:12.5px;line-height:1.65;-webkit-box-orient:vertical;-webkit-line-clamp:2}
-.case-card-solution{margin-top:5px}
-.case-card-problem b,.case-card-solution b{color:var(--ink);font-size:11px}
-.case-card-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
-.case-card-tags span{display:inline-flex;align-items:center;min-height:25px;padding:3px 8px;border-radius:7px;background:var(--soft);color:var(--txt2);font-size:10.5px}
-.case-card-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:14px;color:var(--sub);font-size:10.5px}
-.case-card-open{color:var(--accent);font-size:11.5px;font-weight:750;white-space:nowrap}
+.case-card-problem{display:-webkit-box;overflow:hidden;margin:8px 0 0;color:var(--txt2);font-size:11.5px;line-height:1.58;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.case-card-problem b{color:var(--ink);font-size:10px}
+.case-card-takeaway{display:-webkit-box;overflow:hidden;margin:10px 0 0;padding:9px 10px;border-radius:9px;background:var(--accent-soft);color:var(--txt2);font-size:11.5px;line-height:1.55;-webkit-box-orient:vertical;-webkit-line-clamp:3}
+.case-card-takeaway b{display:block;margin-bottom:2px;color:var(--accent);font-size:9.5px;letter-spacing:.06em}
+.case-card-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}
+.case-card-tags span{display:inline-flex;align-items:center;min-height:23px;padding:3px 7px;border-radius:7px;background:var(--soft);color:var(--txt2);font-size:9.5px}
+.case-card-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:12px}
+.case-card-compare,.case-card-open{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border-radius:9px;padding:6px 9px;font:inherit;font-size:10.5px;font-weight:750;white-space:nowrap}
+.case-card-compare{appearance:none;border:1px solid var(--line);background:var(--bg);color:var(--txt2);cursor:pointer}
+.case-card-compare[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.case-card-open{margin-left:auto;color:var(--accent);text-decoration:none}
 .cases-empty{display:none;min-height:240px;padding:40px 18px;border:1px solid var(--line);border-radius:14px;background:var(--card);place-items:center;text-align:center;color:var(--sub);font-size:13px;line-height:1.7}
 .cases-empty.show{display:grid}
-.cases-search:focus-visible,.cases-filter:focus-visible,.case-card-media:focus-visible,.case-card-title:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media(hover:hover) and (pointer:fine){.case-card:hover{border-color:#c9ced8;box-shadow:0 8px 24px rgba(0,0,0,.07);transform:translateY(-1px)}.case-card:hover h2{color:var(--accent)}}
-@media(max-width:820px){.cases-controls{grid-template-columns:1fr}.cases-grid{grid-template-columns:1fr}}
+.case-compare-bar{position:fixed;left:calc(50% + 92px);bottom:18px;z-index:42;display:flex;align-items:center;gap:12px;width:min(720px,calc(100vw - 230px));min-height:58px;border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:8px 10px 8px 15px;background:rgba(25,28,34,.94);box-shadow:0 15px 38px rgba(0,0,0,.24);color:#fff;backdrop-filter:blur(12px)}
+.case-compare-bar[hidden]{display:none}
+.case-compare-status{min-width:0;flex:1;font-size:11.5px;line-height:1.5}
+.case-compare-status b{display:block;font-size:12.5px}
+.case-compare-clear,.case-compare-open,.case-compare-close{appearance:none;min-height:40px;border-radius:9px;padding:7px 12px;font:inherit;font-size:11px;font-weight:750;cursor:pointer}
+.case-compare-clear{border:0;background:transparent;color:#cfd3dc}
+.case-compare-open{border:1px solid #fff;background:#fff;color:#1a1d23}
+.case-compare-open:disabled{opacity:.42;cursor:not-allowed}
+.case-compare-dialog{width:min(1040px,calc(100vw - 36px));max-height:86dvh;border:1px solid var(--line);border-radius:16px;padding:0;background:var(--card);color:var(--ink);box-shadow:0 24px 80px rgba(0,0,0,.28)}
+.case-compare-dialog::backdrop{background:rgba(16,18,22,.6);backdrop-filter:blur(3px)}
+.case-compare-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:17px 18px;border-bottom:1px solid var(--line)}
+.case-compare-head h2{margin:0;font-size:19px}
+.case-compare-head p{margin:4px 0 0;color:var(--sub);font-size:11px}
+.case-compare-close{border:1px solid var(--line);background:var(--bg);color:var(--txt2)}
+.case-compare-scroll{max-height:calc(86dvh - 82px);overflow:auto}
+.case-compare-table{width:100%;min-width:720px;border-collapse:separate;border-spacing:0;font-size:12px;line-height:1.65}
+.case-compare-table th,.case-compare-table td{min-width:210px;padding:13px 15px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+.case-compare-table th:first-child{position:sticky;left:0;z-index:3;min-width:120px;width:120px;background:var(--soft);color:var(--sub);font-size:10.5px}
+.case-compare-table thead th{position:sticky;top:0;z-index:2;background:var(--card);color:var(--ink);font-size:13px}
+.case-compare-table thead th:first-child{z-index:4}
+.case-compare-table a{color:var(--accent);font-weight:750;text-decoration:none}
+.cases-search:focus-visible,.cases-filter:focus-visible,.cases-question:focus-visible,.cases-reset:focus-visible,.cases-more-filters summary:focus-visible,.case-card-media:focus-visible,.case-card-title:focus-visible,.case-card-compare:focus-visible,.case-card-open:focus-visible,.case-compare-clear:focus-visible,.case-compare-open:focus-visible,.case-compare-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(hover:hover) and (pointer:fine){.case-card:hover{border-color:#c9ced8;box-shadow:0 8px 24px rgba(0,0,0,.07);transform:translateY(-1px)}.case-card:hover h2{color:var(--accent)}.cases-question:hover{border-color:#c9ced8;transform:translateY(-1px)}}
+@media(max-width:1080px){.cases-question-row{display:flex;overflow-x:auto;padding-bottom:3px;scrollbar-width:none;scroll-snap-type:x proximity}.cases-question-row::-webkit-scrollbar{display:none}.cases-question{flex:0 0 150px;scroll-snap-align:start}.cases-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:720px){.cases-grid{grid-template-columns:1fr}.case-compare-bar{left:50%;width:calc(100vw - 28px)}}
 @media(max-width:600px){
-  .cases-page{padding:20px var(--mobile-page-right) calc(42px + env(safe-area-inset-bottom)) var(--mobile-page-left)}
-  .cases-head{display:block;margin-bottom:15px}.cases-head h1{font-size:25px}.cases-head p{font-size:13px}.cases-count{display:block;margin-top:9px}
-  .cases-controls{gap:12px;margin-left:calc(-1 * var(--mobile-page-left));margin-right:calc(-1 * var(--mobile-page-right));padding:12px var(--mobile-page-right) 14px var(--mobile-page-left);border-left:0;border-right:0;border-radius:0}
-  .cases-filter-group{grid-template-columns:1fr;gap:5px}.cases-filter-row{margin-left:calc(-1 * var(--mobile-page-left));margin-right:calc(-1 * var(--mobile-page-right));padding-left:var(--mobile-page-left);padding-right:var(--mobile-page-right)}
-  .cases-filter{min-height:40px;padding:7px 12px}.cases-grid{gap:13px}.case-card-body{padding:15px}.case-card h2{font-size:17px}
+  .cases-page{padding:18px var(--mobile-page-right) calc(108px + env(safe-area-inset-bottom)) var(--mobile-page-left)}
+  .cases-head{display:block;margin-bottom:14px}.cases-head h1{font-size:24px}.cases-head p{font-size:12.5px}.cases-count{display:none}
+  .cases-question-label span{display:none}.cases-question-row{margin-left:calc(-1 * var(--mobile-page-left));margin-right:calc(-1 * var(--mobile-page-right));padding:0 var(--mobile-page-right) 3px var(--mobile-page-left)}
+  .cases-question{flex-basis:142px;min-height:64px}
+  .cases-controls{grid-template-columns:minmax(0,1fr) auto;margin-left:calc(-1 * var(--mobile-page-left));margin-right:calc(-1 * var(--mobile-page-right));padding:10px var(--mobile-page-right) 10px var(--mobile-page-left);border-left:0;border-right:0;border-radius:0}
+  .cases-result-tools{grid-column:1/-1;justify-content:space-between;min-height:22px}.cases-more-filters{min-width:112px}.cases-filter-groups{position:fixed;left:14px;right:14px;top:auto;bottom:calc(72px + env(safe-area-inset-bottom));width:auto;max-height:50dvh;overflow:auto}
+  .cases-filter-group{grid-template-columns:1fr;gap:6px}.cases-filter{min-height:40px;padding:7px 12px}
+  .cases-grid{gap:11px}.case-card{display:grid;grid-template-columns:116px minmax(0,1fr)}.case-card-media{height:100%;min-height:238px;aspect-ratio:auto;border-right:1px solid var(--line);border-bottom:0}.case-card-type,.case-card-figures{display:none}.case-card-body{padding:12px}.case-card h2{font-size:15px}.case-card-kicker{margin-bottom:5px}.case-card-problem{font-size:11px}.case-card-takeaway{padding:8px;font-size:11px;-webkit-line-clamp:3}.case-card-tags{display:none}.case-card-foot{padding-top:9px}.case-card-compare,.case-card-open{min-height:44px;padding:6px 8px}
+  .case-compare-bar{bottom:calc(68px + env(safe-area-inset-bottom));gap:7px;min-height:58px;padding-left:12px}.case-compare-status{font-size:10px}.case-compare-status b{font-size:11.5px}.case-compare-clear{display:none}.case-compare-open{padding-left:10px;padding-right:10px}
+  .case-compare-dialog{width:calc(100vw - 18px);max-height:88dvh}.case-compare-head{padding:14px}.case-compare-head h2{font-size:17px}.case-compare-scroll{max-height:calc(88dvh - 74px)}
 }
 """
 
@@ -657,7 +708,8 @@ CASE_DETAIL_CSS = """
 .product-case-kicker a{display:inline-flex;align-items:center;min-height:32px;color:var(--accent);font-size:11px;letter-spacing:0;text-decoration:none}
 .product-case-head h2{margin:0;font-size:20px;line-height:1.4}
 .product-case-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
-.product-case-meta span{display:inline-flex;align-items:center;min-height:24px;padding:3px 8px;border:1px solid var(--line);border-radius:99px;background:var(--card);color:var(--txt2);font-size:10.5px}
+.product-case-meta span,.product-case-meta a{display:inline-flex;align-items:center;min-height:24px;padding:3px 8px;border:1px solid var(--line);border-radius:99px;background:var(--card);color:var(--txt2);font-size:10.5px;text-decoration:none}
+.product-case-meta a{border-color:var(--accent-soft);color:var(--accent)}
 .product-case-problem{margin:0;padding:16px 20px;border-bottom:1px solid var(--soft);color:var(--txt2);font-size:13.5px;line-height:1.75}
 .product-case-problem b{display:block;margin-bottom:3px;color:var(--ink);font-size:11px}
 .product-case-sections{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0}
@@ -670,8 +722,8 @@ CASE_DETAIL_CSS = """
 .product-case-section.is-interpretation{background:var(--soft);background:color-mix(in srgb,var(--accent-soft) 30%,var(--card))}
 .product-case-section.is-interpretation h3{color:var(--accent)}
 .product-case-note{grid-column:1/-1;margin:0;padding:12px 20px;color:var(--sub);font-size:10.5px;line-height:1.6}
-.product-case-kicker a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media(hover:hover) and (pointer:fine){.product-case-kicker a:hover{color:var(--ink)}}
+.product-case-kicker a:focus-visible,.product-case-meta a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(hover:hover) and (pointer:fine){.product-case-kicker a:hover{color:var(--ink)}.product-case-meta a:hover{border-color:var(--accent)}}
 @media(max-width:600px){.product-case-breakdown{margin:16px auto 24px}.product-case-head,.product-case-problem,.product-case-section{padding-left:15px;padding-right:15px}.product-case-sections{grid-template-columns:1fr}.product-case-section:nth-child(odd){border-right:0}.product-case-head h2{font-size:18px}}
 """
 
@@ -1455,6 +1507,11 @@ def render_product_case_breakdown(product_case):
             product_case.get("product_type"), product_case.get("task_type"),
             f"核验 {observed_at}" if observed_at else "",
         ) if value
+    )
+    meta += "".join(
+        f'<a href="../cases.html?question={quote(str(question))}">{esc(question)}</a>'
+        for question in (product_case.get("design_questions") or [])
+        if str(question).strip()
     )
     return f'''<section class="product-case-breakdown" aria-labelledby="productCaseTitle">
   <header class="product-case-head">
@@ -2420,10 +2477,18 @@ def _case_root_media_url(cached_src):
 
 
 def render_cases_page(product_cases, events, css):
-    """Curated product-design cases: a compact working surface, not another news feed."""
+    """A question-led product-design reference and comparison workspace."""
     event_map = {str(event.get("event_id") or ""): event for event in events}
     product_type_order = ("Data Agent", "数据平台", "BI/数据应用")
     task_type_order = ("找数据", "问数据", "做分析", "看结果", "管任务", "做治理")
+    question_prompts = {
+        "入口与提问": "如何降低开始成本？",
+        "任务编排": "如何展示过程与进度？",
+        "结果表达": "如何让结果可行动？",
+        "可信与溯源": "如何让结论可核验？",
+        "语义与上下文": "如何让 Agent 懂业务？",
+        "治理与评估": "如何控制并持续变好？",
+    }
     prepared = []
     for product_case in product_cases:
         event = event_map.get(str(product_case.get("event_id") or ""))
@@ -2431,6 +2496,13 @@ def render_cases_page(product_cases, events, css):
         if not event or not hero:
             continue
         prepared.append((product_case, event, hero))
+    prepared.sort(
+        key=lambda item: (
+            str(item[0].get("observed_at") or ""),
+            str(item[1].get("published") or item[1].get("first_seen") or ""),
+        ),
+        reverse=True,
+    )
 
     product_types = sorted(
         {str(case.get("product_type") or "") for case, _, _ in prepared if case.get("product_type")},
@@ -2440,6 +2512,13 @@ def render_cases_page(product_cases, events, css):
         {str(case.get("task_type") or "") for case, _, _ in prepared if case.get("task_type")},
         key=lambda value: (task_type_order.index(value) if value in task_type_order else len(task_type_order), value),
     )
+    question_counts = {
+        question: sum(
+            question in (case.get("design_questions") or [])
+            for case, _, _ in prepared
+        )
+        for question in DESIGN_QUESTIONS
+    }
 
     def filter_row(kind, values):
         buttons = [
@@ -2453,66 +2532,104 @@ def render_cases_page(product_cases, events, css):
         )
         return "".join(buttons)
 
+    question_buttons = [
+        f'''<button class="cases-question on" type="button" data-case-filter-kind="question" data-case-filter-value="" aria-pressed="true">
+  <b>全部案例</b><span>浏览 {len(prepared)} 个已拆解案例</span>
+</button>'''
+    ]
+    question_buttons.extend(
+        f'''<button class="cases-question" type="button" data-case-filter-kind="question" data-case-filter-value="{esc(question)}" aria-pressed="false">
+  <b>{esc(question)} · {question_counts[question]}</b><span>{esc(question_prompts[question])}</span>
+</button>'''
+        for question in DESIGN_QUESTIONS
+    )
+
     cards = []
     for product_case, event, hero in prepared:
         product = str(product_case.get("product") or event.get("zh_title") or "产品案例")
         product_type = str(product_case.get("product_type") or "")
         task_type = str(product_case.get("task_type") or "")
+        design_questions = [
+            str(value) for value in (product_case.get("design_questions") or [])
+            if str(value).strip()
+        ]
         problem = str(product_case.get("user_problem") or "")
         solution_values = product_case.get("datahot_interpretation") or []
         solution = str(solution_values[0]) if solution_values else ""
-        modules = [str(value) for value in (product_case.get("modules") or []) if str(value).strip()][:3]
+        takeaway_values = product_case.get("takeaways") or []
+        takeaway = str(takeaway_values[0]) if takeaway_values else ""
+        tradeoff_values = product_case.get("tradeoffs") or []
+        tradeoff = str(tradeoff_values[0]) if tradeoff_values else ""
+        all_modules = [
+            str(value) for value in (product_case.get("modules") or [])
+            if str(value).strip()
+        ]
+        modules = all_modules[:2]
         tags = "".join(f"<span>{esc(value)}</span>" for value in modules)
-        observed_at = str(product_case.get("observed_at") or "")[:10]
         figure_count = sum(
             1 for block in (event.get("content_blocks") or [])
             if isinstance(block, dict) and block.get("type") == "figure" and block.get("cached_src")
         )
         search_text = " ".join([
-            product, product_type, task_type, problem, solution,
-            *modules, *[str(value) for value in (product_case.get("interactions") or [])],
+            product, product_type, task_type, problem, solution, takeaway, tradeoff,
+            *design_questions, *all_modules,
+            *[str(value) for value in (product_case.get("interactions") or [])],
         ]).casefold()
-        alt = str(hero.get("alt") or hero.get("caption") or f"{product} 产品界面")
+        alt = str(hero.get("alt") or hero.get("caption") or f"{product} 设计案例代表图")
         source_name = str(((event.get("items") or [{}])[0]).get("source") or "")
-        cards.append(f'''<article class="case-card" data-case-card data-analytics-list="1" data-event-id="{esc(event['event_id'])}" data-category="{esc(event.get('category') or '')}" data-source="{esc(source_name)}" data-product-type="{esc(product_type)}" data-task-type="{esc(task_type)}" data-search="{esc(search_text)}">
-  <a class="case-card-media" href="{detail_url(event)}" data-event-id="{esc(event['event_id'])}">
+        detail_href = detail_url(event)
+        cards.append(f'''<article class="case-card" data-case-card data-case-id="{esc(event['event_id'])}" data-analytics-list="1" data-event-id="{esc(event['event_id'])}" data-category="{esc(event.get('category') or '')}" data-source="{esc(source_name)}" data-product-type="{esc(product_type)}" data-task-type="{esc(task_type)}" data-design-questions="{esc('|'.join(design_questions))}" data-search="{esc(search_text)}" data-compare-product="{esc(product)}" data-compare-problem="{esc(problem)}" data-compare-pattern="{esc(solution)}" data-compare-modules="{esc(' · '.join(all_modules))}" data-compare-takeaway="{esc(takeaway)}" data-compare-tradeoff="{esc(tradeoff)}" data-compare-url="{esc(detail_href)}">
+  <a class="case-card-media" href="{detail_href}" data-event-id="{esc(event['event_id'])}">
     <img src="{esc(_case_root_media_url(hero.get('cached_src')))}" alt="{esc(alt)}" loading="lazy" decoding="async">
     <span class="case-card-type">{esc(product_type)}</span>
+    <span class="case-card-figures">{figure_count} 张原文图</span>
   </a>
   <div class="case-card-body">
-    <div class="case-card-kicker"><span>{esc(task_type)}</span></div>
-    <h2><a class="case-card-title" href="{detail_url(event)}">{esc(product)}</a></h2>
-    <p class="case-card-problem"><b>问题：</b>{esc(problem)}</p>
-    {f'<p class="case-card-solution"><b>设计解读：</b>{esc(solution)}</p>' if solution else ''}
+    <div class="case-card-kicker"><span>{esc(task_type)}</span>{f'<span>{esc(design_questions[0])}</span>' if design_questions else ''}</div>
+    <h2><a class="case-card-title" href="{detail_href}">{esc(product)}</a></h2>
+    <p class="case-card-problem"><b>要解决：</b>{esc(problem)}</p>
+    {f'<p class="case-card-takeaway"><b>可借鉴</b>{esc(takeaway)}</p>' if takeaway else ''}
     {f'<div class="case-card-tags" aria-label="主要功能模块">{tags}</div>' if tags else ''}
-    <div class="case-card-foot"><span>{figure_count} 张原文图 · 核验 {esc(observed_at)}</span><a class="case-card-open" href="{detail_url(event)}">查看拆解 →</a></div>
+    <div class="case-card-foot"><button class="case-card-compare" type="button" data-case-compare-toggle aria-pressed="false">加入对比</button><a class="case-card-open" href="{detail_href}">完整拆解 →</a></div>
   </div>
 </article>''')
 
     cards_html = "".join(cards)
-    if not cards_html:
-        cards_html = ""
     body = f'''
 <main class="wrap cases-page" data-cases-page>
   <header class="cases-head">
-    <div><p class="cases-eyebrow">PRODUCT DESIGN LIBRARY</p><h1>数据产品设计库</h1><p>从真实产品界面和完整操作流程，拆解功能、交互、设计理由与适用边界。</p></div>
+    <div><p class="cases-eyebrow">PRODUCT DESIGN LIBRARY</p><h1>数据产品设计库</h1><p>带着设计问题来，比较真实产品的界面、交互与取舍，把灵感带回你的 Data Agent 和数据平台。</p></div>
     <span class="cases-count"><span data-case-count>{len(prepared)}</span> 个案例</span>
   </header>
+  <nav class="cases-question-nav" aria-label="从设计问题开始">
+    <div class="cases-question-label">从设计问题开始<span>先选困惑，再看不同产品如何处理</span></div>
+    <div class="cases-question-row">{''.join(question_buttons)}</div>
+  </nav>
   <section class="cases-controls" aria-label="筛选案例">
     <label class="cases-search-wrap">{ic("search", 17)}<input class="cases-search" type="search" data-case-search placeholder="搜索产品、问题或功能" aria-label="搜索案例" autocomplete="off"></label>
-    <div class="cases-filter-groups">
+    <details class="cases-more-filters" data-case-more-filters><summary>更多筛选</summary><div class="cases-filter-groups">
       <div class="cases-filter-group"><span class="cases-filter-label">产品形态</span><div class="cases-filter-row">{filter_row("product", product_types)}</div></div>
-      <div class="cases-filter-group"><span class="cases-filter-label">设计任务</span><div class="cases-filter-row">{filter_row("task", task_types)}</div></div>
-    </div>
+      <div class="cases-filter-group"><span class="cases-filter-label">用户任务</span><div class="cases-filter-row">{filter_row("task", task_types)}</div></div>
+    </div></details>
+    <div class="cases-result-tools"><span><span data-case-count>{len(prepared)}</span> 个匹配</span><button class="cases-reset" type="button" data-case-reset hidden>清除筛选</button></div>
   </section>
   <div class="cases-grid" data-case-grid aria-live="polite">{cards_html}</div>
-  <div class="cases-empty{' show' if not prepared else ''}" data-case-empty><div><b>没有匹配的案例</b><br>换个产品形态、设计任务或关键词试试。</div></div>
+  <div class="cases-empty{' show' if not prepared else ''}" data-case-empty><div><b>没有匹配的案例</b><br>换个设计问题、产品形态、用户任务或关键词试试。</div></div>
   <noscript><p class="cases-empty show">启用 JavaScript 后可以搜索和筛选；案例内容仍可直接浏览。</p></noscript>
 </main>
+<aside class="case-compare-bar" data-case-compare-bar hidden aria-live="polite">
+  <div class="case-compare-status" data-case-compare-status><b>已选 0 / 3</b>至少选择 2 个案例</div>
+  <button class="case-compare-clear" type="button" data-case-compare-clear>清空</button>
+  <button class="case-compare-open" type="button" data-case-compare-open disabled>开始对比</button>
+</aside>
+<dialog class="case-compare-dialog" data-case-compare-dialog aria-labelledby="caseCompareTitle">
+  <header class="case-compare-head"><div><h2 id="caseCompareTitle">案例横向对比</h2><p>比较问题、设计模式、模块、可借鉴点与边界；手机可左右滑动。</p></div><button class="case-compare-close" type="button" data-case-compare-close>关闭</button></header>
+  <div class="case-compare-scroll" data-case-compare-content></div>
+</dialog>
 <script defer src="cases.js"></script>'''
     return page_shell(
         "数据产品设计库 · DataHot",
-        "用真实界面和操作流程拆解 Data Agent、数据平台、BI 与数据应用的产品设计。",
+        "按真实设计问题比较 Data Agent、数据平台、BI 与数据应用的界面、交互和取舍。",
         css + CASES_CSS, body, tabbar("cases"), prefix="", active="cases",
         canonical_path="cases.html",
     )

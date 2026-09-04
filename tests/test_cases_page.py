@@ -48,6 +48,7 @@ def product_case():
         "product": "Databricks Genie One",
         "product_type": "Data Agent",
         "task_type": "问数据",
+        "design_questions": ["入口与提问", "可信与溯源"],
         "hero_figure_id": "b-hero12345678",
         "user_problem": "业务用户难以在多个工具间完成从问题到结果的分析。",
         "modules": ["桌面入口", "文件协作", "Agent 配置"],
@@ -76,24 +77,29 @@ class ProductCasesPageTests(unittest.TestCase):
         self.assertIn('href="topics.html"', more)
         self.assertIn('href="cases.html" class="on"', primary)
 
-    def test_cases_page_exposes_search_two_filters_and_responsive_cards(self):
+    def test_cases_page_leads_with_design_questions_and_supports_comparison(self):
         page = build_site.render_cases_page(
             [product_case()], [case_event()], build_site.load_css(),
         )
         self.assertIn("数据产品设计库", page)
         self.assertIn("data-case-search", page)
+        self.assertIn('data-case-filter-kind="question"', page)
         self.assertIn('data-case-filter-kind="product"', page)
         self.assertIn('data-case-filter-kind="task"', page)
         self.assertIn('data-product-type="Data Agent"', page)
         self.assertIn('data-task-type="问数据"', page)
+        self.assertIn('data-design-questions="入口与提问|可信与溯源"', page)
         self.assertIn('data-analytics-list="1" data-event-id="abcdef123456"', page)
         self.assertIn('src="media/abcdef123456/hero123456789.png"', page)
-        self.assertIn("问题：", page)
-        self.assertIn("设计解读：", page)
+        self.assertIn("从设计问题开始", page)
+        self.assertIn("要解决：", page)
+        self.assertIn("可借鉴", page)
         self.assertIn("1 张原文图", page)
         self.assertIn('class="case-card-title"', page)
-        self.assertIn("grid-template-columns:repeat(2,minmax(0,1fr))", page)
-        self.assertIn("@media(max-width:820px)", page)
+        self.assertIn("grid-template-columns:repeat(3,minmax(0,1fr))", page)
+        self.assertIn("data-case-compare-toggle", page)
+        self.assertIn("data-case-compare-dialog", page)
+        self.assertIn("@media(max-width:600px)", page)
         self.assertIn('src="cases.js"', page)
 
     def test_selected_detail_adds_design_breakdown_without_removing_reader_actions(self):
@@ -102,6 +108,7 @@ class ProductCasesPageTests(unittest.TestCase):
             event, [event], build_site.load_css(), product_case=product_case(),
         )
         self.assertIn("产品设计拆解", page)
+        self.assertIn("cases.html?question=", page)
         self.assertIn("官方说明", page)
         self.assertIn("DataHot 解读", page)
         self.assertIn("不能据此推断所有权限治理能力", page)

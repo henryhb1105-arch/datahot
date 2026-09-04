@@ -38,6 +38,10 @@ class ProductCaseManifestTests(unittest.TestCase):
         )
         self.assertGreaterEqual(len({case["task_type"] for case in cases}), 4)
         self.assertEqual(
+            set(product_cases.DESIGN_QUESTIONS),
+            {question for case in cases for question in case["design_questions"]},
+        )
+        self.assertEqual(
             product_cases.product_case_event_ids(MANIFEST_PATH),
             frozenset(case["event_id"] for case in cases),
         )
@@ -106,6 +110,30 @@ class ProductCaseManifestTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "must keep official_facts"):
                 product_cases.load_product_cases(path, events=self.payload)
 
+    def test_loader_rejects_unknown_design_questions(self):
+        payload = copy.deepcopy(self.manifest)
+        payload["cases"][0]["design_questions"] = ["做个酷炫页面"]
+
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "product_cases.json"
+            path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "unsupported values"):
+                product_cases.load_product_cases(path, events=self.payload)
+
+    def test_validation_requires_every_design_question_to_have_a_case(self):
+        payload = copy.deepcopy(self.manifest)
+        for case in payload["cases"]:
+            case["design_questions"] = [
+                question for question in case["design_questions"]
+                if question != "入口与提问"
+            ] or ["任务编排"]
+
+        errors = product_cases.validation_errors(payload, self.payload)
+        self.assertTrue(any(
+            "do not cover design questions: 入口与提问" in error
+            for error in errors
+        ))
+
     def test_missing_manifest_is_an_empty_optional_feature(self):
         path = ROOT / "pipeline" / "not-present-product-cases.json"
         self.assertFalse(path.exists())
@@ -115,4 +143,3 @@ class ProductCaseManifestTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

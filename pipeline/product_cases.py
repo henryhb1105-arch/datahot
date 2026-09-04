@@ -10,16 +10,25 @@ from pathlib import Path
 
 
 PRODUCT_CASES_PATH = Path(__file__).with_name("product_cases.json")
-SCHEMA_VERSION = "product-cases-v1"
+SCHEMA_VERSION = "product-cases-v2"
 MIN_CASES = 8
-MAX_CASES = 12
+MAX_CASES = 24
 PRODUCT_TYPES = frozenset({"Data Agent", "数据平台", "BI/数据应用"})
 TASK_TYPES = frozenset({"找数据", "问数据", "做分析", "看结果", "管任务", "做治理"})
+DESIGN_QUESTIONS = (
+    "入口与提问",
+    "任务编排",
+    "结果表达",
+    "可信与溯源",
+    "语义与上下文",
+    "治理与评估",
+)
 REQUIRED_FIELDS = frozenset({
     "event_id",
     "product",
     "product_type",
     "task_type",
+    "design_questions",
     "hero_figure_id",
     "user_problem",
     "modules",
@@ -32,6 +41,7 @@ REQUIRED_FIELDS = frozenset({
     "observed_at",
 })
 LIST_FIELDS = (
+    "design_questions",
     "modules",
     "interactions",
     "official_facts",
@@ -97,6 +107,7 @@ def validation_errors(payload, events=None):
     seen_event_ids = set()
     product_types = set()
     task_types = set()
+    covered_design_questions = set()
 
     for index, case in enumerate(cases):
         prefix = f"cases[{index}]"
@@ -133,6 +144,18 @@ def validation_errors(payload, events=None):
             errors.append(f"{prefix}.task_type is not in the closed vocabulary")
         else:
             task_types.add(task_type)
+
+        design_questions = case.get("design_questions")
+        if isinstance(design_questions, list):
+            unsupported_questions = sorted(set(design_questions) - set(DESIGN_QUESTIONS))
+            if unsupported_questions:
+                errors.append(
+                    f"{prefix}.design_questions contains unsupported values: "
+                    f"{', '.join(unsupported_questions)}"
+                )
+            covered_design_questions.update(
+                question for question in design_questions if question in DESIGN_QUESTIONS
+            )
 
         figure_id = case.get("hero_figure_id")
         if not isinstance(figure_id, str) or not FIGURE_ID_RE.fullmatch(figure_id):
@@ -199,6 +222,14 @@ def validation_errors(payload, events=None):
         errors.append(f"cases do not cover product types: {', '.join(missing_types)}")
     if cases and len(task_types) < 4:
         errors.append("cases must cover at least four task types")
+    if cases and not set(DESIGN_QUESTIONS).issubset(covered_design_questions):
+        missing_questions = [
+            question for question in DESIGN_QUESTIONS
+            if question not in covered_design_questions
+        ]
+        errors.append(
+            f"cases do not cover design questions: {', '.join(missing_questions)}"
+        )
     return errors
 
 
@@ -221,4 +252,3 @@ def load_product_cases(path=PRODUCT_CASES_PATH, events=None):
 def product_case_event_ids(path=PRODUCT_CASES_PATH):
     """Return selected event ids for release-retention and indexing rules."""
     return frozenset(case["event_id"] for case in load_product_cases(path))
-

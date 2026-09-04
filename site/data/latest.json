@@ -2,6 +2,1008 @@
   "generated_at": "2026-09-04T05:03:53.222828+08:00",
   "events": [
     {
+      "event_id": "8f1d134628cf",
+      "zh_title": "数据 Agent 真正缺的不是更强模型，而是上下文层",
+      "zh_summary": "a16z 认为，数据 Agent 的主要瓶颈已经不只是 Text-to-SQL，而是缺少持续更新的业务上下文。现代上下文层应成为传统语义层的超集，同时覆盖指标定义、规范实体、身份解析、隐性业务规则和治理要求。文章给出从数据接入、自动构建、人工补充、API/MCP 连接到反馈回流的五步架构，并梳理了数据平台、AI 数据分析产品和独立上下文层公司的竞争位置。",
+      "reason": "这篇文章把数据 Agent 的产品问题从“模型会不会写 SQL”推进到“系统如何持续获得可信业务语义”，对设计数据平台、Data Agent 和语义治理模块都有直接参考价值。",
+      "full_zh": "## 核心判断\n\n数据 Agent 的瓶颈并不只在模型推理或 SQL 生成。即使 Agent 已连接数仓、能调用工具并拥有完整界面，它仍可能无法回答“上季度收入增长是多少”这类看似简单的问题，因为收入口径、财务季度、事实来源和历史例外往往分散在模型、文档与团队经验中。\n\n## 上下文层是什么\n\n文章将现代上下文层定义为传统语义层的超集。除了收入、流失率、ARPU 等指标定义，它还要覆盖规范实体、身份解析、业务规则、隐性知识、治理要求与来源优先级，并能同时容纳代码和自然语言。目标不是再建一份静态文档，而是为 Agent 提供可调用、可维护、可追溯的业务语义。\n\n## 五步落地路径\n\n第一步是接入结构化与非结构化数据；第二步利用查询历史、dbt、LookML 等高信号来源自动构建初始上下文；第三步由业务与数据团队补充隐含、条件化和历史形成的规则；第四步通过 API 或 MCP 把上下文暴露给 Agent；第五步把错误修正、数据变化和用户新要求持续回写，让上下文层成为活的知识体系。\n\n## 产品与架构启示\n\n数据 Agent 产品不应只设计聊天框和 SQL 执行链路，还需要上下文发现、规则编辑、来源追溯、冲突处理、权限治理、反馈修正与版本维护等能力。上下文质量决定了 Agent 能否从一次性 Demo 走向稳定生产。\n\n## 市场方向\n\n文章把相关参与者分为三类：拥有数据重力的平台，如 Databricks 和 Snowflake；已经提供 AI 数据分析体验并逐步补强上下文的公司；以及从零构建专用上下文层的新公司。作者认为市场仍处于早期，未来的关键问题包括上下文层应部署在哪里、是否需要多处共存，以及它会不会成为独立产品类别。",
+      "content_blocks": [
+        {
+          "type": "heading",
+          "id": "b-5d4c1cb2d88c",
+          "children": [
+            {
+              "type": "text",
+              "text": "The context on context",
+              "marks": [],
+              "id": "t-67c1aec5204b"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-bdd0d020703e",
+          "children": [
+            {
+              "type": "text",
+              "text": "Recently in the world of data and AI agents, ",
+              "marks": [],
+              "id": "t-fcb7d164e089"
+            },
+            {
+              "type": "text",
+              "text": "context layers and graphs",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-3ae1aa61cc72"
+            },
+            {
+              "type": "text",
+              "text": " have emerged as an interesting topic of discussion. In fact, it’s difficult today to have a conversation with an organization working with data and AI and not have the topic of context come up.",
+              "marks": [],
+              "id": "t-5f02372d8977"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-ec3dc78beb54",
+          "children": [
+            {
+              "type": "text",
+              "text": "And for good reason. Over the past year, the market has realized that data and analytics agents are essentially useless without the right context – they aren’t able to tease apart vague questions, decipher business definitions, and reason across disparate data effectively.",
+              "marks": [],
+              "id": "t-218a89beda4f"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-a8a7f5a84c3f",
+          "children": [
+            {
+              "type": "text",
+              "text": "It’s not their fault, of course. The modern data stack has undergone a decade+ transition from disparate data sources to consolidated data and cleaned definitions (which is good), but even then the consolidation is never perfect and a lot of messiness is introduced. The general market evolution has been as follows:",
+              "marks": [],
+              "id": "t-64aa4f9975a2"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "b-0f51eafeb0d8",
+          "ordered": true,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "The rise of the modern data stack",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-f7a5c54ec3e1"
+                },
+                {
+                  "type": "text",
+                  "text": " – We’ve covered the transformational rise of the modern data stack with Tristan Handy from dbt in the past and in our own reference architectures. The general evolution over the past decade has transformed data architectures across ingestion, transformation, warehousing, and storage to centralize data and make it quickly and easily accessible. The idea is then with cleanly organized data, teams could simply write SQL to derive data from their data warehouses, power charts/dashboards, and enable business intelligence across an entire organization.",
+                  "marks": [],
+                  "id": "t-063a8d69574f"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "The agent frenzy",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-135d0ad5293b"
+                },
+                {
+                  "type": "text",
+                  "text": " – In 2024 moving into 2025 as LLM capabilities increased, essentially every single organization wanted to build and deploy agents on top of their existing data stacks. We’ve previously discussed how we define agents, but from an organizational point of view the natural allure of more work being done with greater efficiency and less time naturally led to the gravitation towards agentic workflows. Companies attempted to build “chat with your data” chatbots, support agents, etc. The frenzy was both bottoms-up and tops-down – developers wanted to make use of the newest, shiniest LLM capability and leadership applied AI adoption pressure to increase automation and reduce costs.",
+                  "marks": [],
+                  "id": "t-63e4c6a3f4fd"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Hitting the wall",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-354032caf36a"
+                },
+                {
+                  "type": "text",
+                  "text": " – Despite the initial optimism, it quickly became clear that most of these efforts failed. Organizations tried to deploy their agents but ran into a wall. MIT famously published their “State of AI in Business 2025” report which stated that with AI deployments, “most fail due to brittle workflows, lack of contextual learning, and misalignment with day-to-day operations.”",
+                  "marks": [],
+                  "id": "t-e423b075a8f7"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-747802b30e4c",
+          "children": [
+            {
+              "type": "text",
+              "text": "A crucial reason agents didn’t work well was ",
+              "marks": [],
+              "id": "t-187d492204be"
+            },
+            {
+              "type": "text",
+              "text": "a lack of proper data context",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-fb8bbab64326"
+            },
+            {
+              "type": "text",
+              "text": ". Enterprise data today is still incredibly disparate and messy – and because of that, data agents struggled to answer basic questions like “what was revenue growth last quarter?” across various data architectures amassing structured and unstructured data.",
+              "marks": [],
+              "id": "t-36eaf3630321"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-7ace27b1988a",
+          "children": [
+            {
+              "type": "text",
+              "text": "Just like how the vision of fully self-serve analytics of years ago fell short, the vision for data agents seemed to fall short as well.",
+              "marks": [],
+              "id": "t-5f2e9673b601"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-5b798814f6e3",
+          "children": [
+            {
+              "type": "text",
+              "text": "The context problem – beyond just text to SQL",
+              "marks": [],
+              "id": "t-514cd3ef8b46"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-c7a77564ca0f",
+          "children": [
+            {
+              "type": "text",
+              "text": "So why did that initial era of agent deployments struggle? At first, many believed the issue to be a fundamental data reasoning and SQL/Python codegen gap on the model side. The general idea was that a model should be able to take in a natural language query as an initial input, reason over existing data systems, and generate corresponding SQL code in traditional business intelligence (BI) fashion to pull the right data and answer the initial question accordingly.",
+              "marks": [],
+              "id": "t-f55b5d4c8b26"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-15fa3970f696",
+          "children": [
+            {
+              "type": "text",
+              "text": "If the model failed or wasn’t accurate, the gap was chalked up to the model not being good at SQL with the expectation that model performance would improve.",
+              "marks": [],
+              "id": "t-db4013288f3b"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-62d797bbd2ce",
+          "children": [
+            {
+              "type": "text",
+              "text": "This is not entirely false. While model capabilities have improved dramatically for use cases like codegen and mathematical reasoning, they still lag behind on the data side (as evidenced through SQL benchmarks like Spider 2.0 and Bird Bench). There have undoubtedly been big leaps in models’ abilities, but we’ve quickly learned that the problem extends beyond just text to SQL.",
+              "marks": [],
+              "id": "t-b81db554cc16"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-85da05a858fd",
+          "children": [
+            {
+              "type": "text",
+              "text": "To crystallize things and break down the revenue growth example a bit more:",
+              "marks": [],
+              "id": "t-1996d2b087ae"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "b-84ddaeea5379",
+          "ordered": true,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Let’s say a data agent is constructed internally within an organization. It’s built to leverage modern foundational models, connected to all the right data sources, and is hooked up to a nice UI to field data questions from internal users.",
+                  "marks": [],
+                  "id": "t-a4320ca4b40e"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Our query comes in. “What was revenue growth last quarter?” A deceptively simple question that is typically easily answered by a quick glance at a Looker or Tableau dashboard – shouldn’t be a challenge for an advanced, intelligent agent!",
+                  "marks": [],
+                  "id": "t-69227b6f7c37"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Challenge #1 – how does the agent know how revenue or quarters are actually defined?",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-1fd72badc628"
+                },
+                {
+                  "type": "text",
+                  "text": " Revenue is actually a business definition that isn’t hard-coded into a warehouse or pipeline. Is the user looking for run rate revenue or ARR? Fiscal quarter reporting may not be normalized for all organizations and could be a completely different three month period depending on the company you ask. What’s the right time window to look at?",
+                  "marks": [],
+                  "id": "t-c38a3f2666be"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Luckily the head of the data platform steps in and says – “we’ve built semantic layers to solve this exact problem. We capture our revenue definition there.” And – the agent should be able to ingest all semantic layers as context. A promising potential solution, but the team takes a look at a couple of YAML files and realizes that they were updated by a data team member that left last year, no longer used by BI tools, and also doesn’t include the two new product lines that have launched since then. The agent has no idea how revenue is actually defined today.",
+                  "marks": [],
+                  "id": "t-20eb6a5a09e3"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "To overcome this blocker, a team member hard codes the exact revenue and timeframe definitions. The data agent continues chugging along but quickly runs into ",
+                  "marks": [],
+                  "id": "t-ee99b3f5a0c7"
+                },
+                {
+                  "type": "text",
+                  "text": "challenge #2 – where are the right data sources? Which ones are the right sources of truth?",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-fe66c1ee2edd"
+                },
+                {
+                  "type": "text",
+                  "text": " Raw data is split across multiple tables and warehouses. The finance team uses the fct_revenue table which could be correct, but the data team has materialized views created like mv_revenue_monthly and mv_customer_mrr.",
+                  "marks": [],
+                  "id": "t-b3e9f0cbdd6b"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-8c0748c0c5c6",
+          "children": [
+            {
+              "type": "text",
+              "text": "It’s clear that data agents need access to a repository of up-to-date business definitions and data sources to overcome these problems.",
+              "marks": [],
+              "id": "t-20ca865cd812"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-379af294da33",
+          "children": [
+            {
+              "type": "text",
+              "text": "Enter the context layer",
+              "marks": [],
+              "id": "t-407795d44d0c"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-5a486aae2033",
+          "children": [
+            {
+              "type": "text",
+              "text": "The crux of the problem at hand is that ",
+              "marks": [],
+              "id": "t-482591c31662"
+            },
+            {
+              "type": "text",
+              "text": "the agent isn’t given the proper business context to answer",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-0643157050fc"
+            },
+            {
+              "type": "text",
+              "text": " even the most basic questions. This is representative of a larger gap that’s present in building automated AI systems within organizations – there needs to be up-to-date and maintained context that not only understands how an enterprise works and how the data systems are structured, but also maintains the tribal knowledge to tie everything together.",
+              "marks": [],
+              "id": "t-ea3164fbcc23"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-68e3e6d571ff",
+          "children": [
+            {
+              "type": "text",
+              "text": "This has led to the evolution of the context layer. Many names have emerged in discussion today – context OS, context engine, contextual data layer, ontology, and more – but the underlying concept remains the same. Tie together all of an enterprise’s messy data, add a contextual layer on top that helps agents understand business logic, and package it such that the context can be supplied to agents.",
+              "marks": [],
+              "id": "t-67b61555d349"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-b77b0fba2d36",
+          "children": [
+            {
+              "type": "text",
+              "text": "Context management déjà vu",
+              "marks": [],
+              "id": "t-c641d470c993"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-671bd8dd9b83",
+          "children": [
+            {
+              "type": "text",
+              "text": "But wait. Doesn’t what we’re describing sound eerily similar to a semantic layer…? There are indeed some similarities, but at the end of the day if agent workflows are to become truly autonomous they need a bit more than how semantic layers currently manifest.",
+              "marks": [],
+              "id": "t-883e95effe82"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-076822edf4fa",
+          "children": [
+            {
+              "type": "text",
+              "text": "A traditional semantic layer in the context of BI is great for specific metric definitions (like revenue, churn, ARPU). However, they are usually hand constructed by data teams using very specific syntax through a dedicated layer like LookML and are connected directly to a BI tool like Looker.",
+              "marks": [],
+              "id": "t-6b190dd74af0"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-d49ec361e91a",
+          "children": [
+            {
+              "type": "text",
+              "text": "A modern data context layer should essentially become a superset of what a semantic layer would traditionally cover. Sure, specific metric definitions can be hard-coded, but a modern context layer should include more to ensure agent autonomy – canonical entities, identity resolution, specific instructions to dissect tribal knowledge, proper governance guidance, and more.",
+              "marks": [],
+              "id": "t-e547ddeffc80"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-cfeac4f585eb",
+          "children": [
+            {
+              "type": "text",
+              "text": "This piece will primarily focus on data context that ties together traditional systems of record. An equally important and overlapping opportunity is also capturing an organization’s decisions and workflow logic so truly multipurpose agents can be built that are properly grounded in all of an organization’s data and decisioning context.",
+              "marks": [],
+              "id": "t-e05dfbe8f8a2"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-90052e62633f",
+          "children": [
+            {
+              "type": "text",
+              "text": "Putting it all together",
+              "marks": [],
+              "id": "t-abfbec742054"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-0956af233820",
+          "children": [
+            {
+              "type": "text",
+              "text": "Based on our recent conversations with customers and understanding their needs, here’s what we believe a modern context layer paired with an agentic data system could look like, broken down step-by-step:",
+              "marks": [],
+              "id": "t-5562f190cc08"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-f6aa753b3cea",
+          "children": [
+            {
+              "type": "text",
+              "text": "1) ",
+              "marks": [],
+              "id": "t-733cfe4633b6"
+            },
+            {
+              "type": "text",
+              "text": "Accessing the right data",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-ff0abb8884e6"
+            },
+            {
+              "type": "text",
+              "text": " – the first order of business is ensuring all the right data is accessible. This is table stakes. Ideally an organization would be implementing some form of the modern data stack with some degree of unification through a lakehouse architecture. Even then, we’d want to ensure the agent has access to all the data it needs, which may extend beyond just what’s available in warehouses and operational apps. This includes tribal knowledge captured in internal systems, GDrive/Slack, etc.",
+              "marks": [],
+              "id": "t-ea51783ab94d"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-396fdd0f103f",
+          "children": [
+            {
+              "type": "text",
+              "text": "2) ",
+              "marks": [],
+              "id": "t-fac5df846606"
+            },
+            {
+              "type": "text",
+              "text": "Automated context construction",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-dead323e6d09"
+            },
+            {
+              "type": "text",
+              "text": " – once all the right data is accessible, the next step is starting the construction of the context layer. The benefit of using LLMs is that a lot of the initial context gathering can be done in an automated way. An emphasis of focus should be on high signal context – for example, looking through past query history can be high signal in determining the most referenced tables and most common joins, and data modeling solutions like dbt or LookML can provide clear definitions for business metrics.",
+              "marks": [],
+              "id": "t-c14301945f9b"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-5ded8cdf43a2",
+          "children": [
+            {
+              "type": "text",
+              "text": "3) ",
+              "marks": [],
+              "id": "t-4e59d41d8c6d"
+            },
+            {
+              "type": "text",
+              "text": "Human refinement",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-7ccf3c57414b"
+            },
+            {
+              "type": "text",
+              "text": " – Automated context construction may be able to form a large portion of the context corpus, but it can’t create the full picture. It’s tempting to set agents loose and have them collect all internal knowledge, but some of the most important context is implicit, conditional, and historically contingent, and only exists as tribal knowledge inside teams.",
+              "marks": [],
+              "id": "t-d85642f7dcc5"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-787f1cc16867",
+          "children": [
+            {
+              "type": "text",
+              "text": "Human input provides the final crucial links that enable true agent automation. For example – “for CRM data, look at Affinity for all new USCAN deals from 2025 onwards but Salesforce for all global leads before that.”",
+              "marks": [],
+              "id": "t-ed842ca0ab5b"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-16bcf434f780",
+          "children": [
+            {
+              "type": "text",
+              "text": "In this way the context layer can become a multi-dimensional corpus where code lives alongside natural language, capturing any context an agent might need. Just like developers can set up .cursorrules files to guide agents and control output behavior, data practitioners can maintain rules and guidelines.",
+              "marks": [],
+              "id": "t-65f181bc9c7f"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-ee3279f65393",
+          "children": [
+            {
+              "type": "text",
+              "text": "4) ",
+              "marks": [],
+              "id": "t-db5bc110e349"
+            },
+            {
+              "type": "text",
+              "text": "Agent connection",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-82026ebb69c5"
+            },
+            {
+              "type": "text",
+              "text": " – once the context layer is properly constructed, it just needs to be exposed to agents and accessible real-time. This can typically be done through API or MCP.",
+              "marks": [],
+              "id": "t-b75a4a20862e"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-d877e03d3bf0",
+          "children": [
+            {
+              "type": "text",
+              "text": "5) ",
+              "marks": [],
+              "id": "t-4eb22413358a"
+            },
+            {
+              "type": "text",
+              "text": "Self-updating context flows",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-4fa6a52baf3d"
+            },
+            {
+              "type": "text",
+              "text": " – While the initial system has been set up correctly, data systems are never static and as a result the context layer shouldn’t be either. Data sources and formats can change upstream and individuals may have custom instructions they’ll want to add and modify based on changing business requirements. In the case a data agent provides incorrect data and requires accuracy refinement, that should of course be incorporated back into the context layer. In this way the context layer becomes a living and constantly evolving corpus.",
+              "marks": [],
+              "id": "t-cbe4e886a832"
+            }
+          ]
+        },
+        {
+          "type": "figure",
+          "id": "b-53bc1d52d2ab",
+          "src": "https://d1lamhf6l6yk6d.cloudfront.net/uploads/2026/03/Modern-Context-Layer-WP-INFRA-1.png",
+          "alt": "",
+          "caption": "",
+          "source_url": "https://a16z.com/your-data-agents-need-context/",
+          "cached_src": "../media/8f1d134628cf/fd01549eca81c8127c30211f.png",
+          "width": 2000,
+          "height": 1920,
+          "mime": "image/png",
+          "size_bytes": 188533,
+          "media_status": "cached"
+        },
+        {
+          "type": "paragraph",
+          "id": "b-37ee59a45fa2",
+          "children": [
+            {
+              "type": "text",
+              "text": "One takeaway from this whole exercise is that building a proper data agent is no small feat. It’s a blend of technical challenges related to data infrastructure and engineering with human operational challenges related to tribal knowledge collection.",
+              "marks": [],
+              "id": "t-00a171aa6445"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-67aa75d744b9",
+          "children": [
+            {
+              "type": "text",
+              "text": "The OpenAI team recently published ",
+              "marks": [],
+              "id": "t-c9f8326c6c79"
+            },
+            {
+              "type": "text",
+              "text": "a fantastic piece",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://openai.com/index/inside-our-in-house-data-agent/"
+                }
+              ],
+              "id": "t-a0683262d06a"
+            },
+            {
+              "type": "text",
+              "text": " detailing the creation of their own internal data agent. It’s a transparent detail of a very detailed and elegant implementation – but points to the long journey required to get there. Similarly, Palantir has a long history of constructing ontologies for organizations that provide clear context from messy data, and have built a big business doing so.",
+              "marks": [],
+              "id": "t-0a8cca3daf09"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-021f2470cbb2",
+          "children": [
+            {
+              "type": "text",
+              "text": "Market direction",
+              "marks": [],
+              "id": "t-6c6f64c97263"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-92f241491bef",
+          "children": [
+            {
+              "type": "text",
+              "text": "Naturally, that opens up a window for an external solution. Realistically not every enterprise can (or should) build this in house, and we’re starting to see various solutions coming to market already.",
+              "marks": [],
+              "id": "t-b6a5a48badf7"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-5cd84e950ed2",
+          "children": [
+            {
+              "type": "text",
+              "text": "While we believe we’re still early in seeing solutions come to fruition, the below is a high level market map of solutions being built:",
+              "marks": [],
+              "id": "t-cda7ac9db9b7"
+            }
+          ]
+        },
+        {
+          "type": "figure",
+          "id": "b-87bc4f251718",
+          "src": "https://d1lamhf6l6yk6d.cloudfront.net/uploads/2026/03/Data-Agent-Market-Map-WP-INFRA-2-1.png",
+          "alt": "",
+          "caption": "",
+          "source_url": "https://a16z.com/your-data-agents-need-context/",
+          "cached_src": "../media/8f1d134628cf/2aaeb92d350bc3b1be197fa7.png",
+          "width": 2000,
+          "height": 948,
+          "mime": "image/png",
+          "size_bytes": 151313,
+          "media_status": "cached"
+        },
+        {
+          "type": "paragraph",
+          "id": "b-db4177aa888b",
+          "children": [
+            {
+              "type": "text",
+              "text": "To break the categories down:",
+              "marks": [],
+              "id": "t-32191554a670"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-dcb56ec76fb6",
+          "children": [
+            {
+              "type": "text",
+              "text": "Data gravity platforms",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-2f219c6e605f"
+            },
+            {
+              "type": "text",
+              "text": " – platforms like Databricks and Snowflake have already gone through the motions of data ingestion, transformation, and storage and data gravity is powerful. They are already working on AI data analyst products like Databricks Genie and Snowflake Cortex Analyst which are built on top of data warehouses and utilize foundational models for text to SQL to allow users to ask questions about their data in natural language.",
+              "marks": [],
+              "id": "t-2d2982907baa"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-6b7cba6b3787",
+          "children": [
+            {
+              "type": "text",
+              "text": "While these platforms don’t have super sophisticated context layer functionalities per se, they do allow for lightweight semantic modeling and there’s a feasible path forward through either company acquisition or in-house development for context layers to be brought in on platform.",
+              "marks": [],
+              "id": "t-8abf5ecbcb3d"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-a38376598c31",
+          "children": [
+            {
+              "type": "text",
+              "text": "Existing “AI data analyst companies”",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-40e954c06865"
+            },
+            {
+              "type": "text",
+              "text": " – there’s a wave of companies that have already emerged utilizing AI to allow customers to chat with your data. Many have realized through time in market that the key to effective data agents is actually building the relevant context layer. As a result, some have evolved to encompass data context construction as a key part of their products.",
+              "marks": [],
+              "id": "t-6e1adc4970a9"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-b3defe5bcbff",
+          "children": [
+            {
+              "type": "text",
+              "text": "New, dedicated context layer companies",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-2e7fe6f52254"
+            },
+            {
+              "type": "text",
+              "text": " – a new category of company has emerged that is building context layers from the ground up. They will have to go through our journey above of ingesting data, collecting tribal knowledge, and more – and will have to do so for each individual customer they work with.",
+              "marks": [],
+              "id": "t-3c33ae32745f"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-6ed2ac7266e3",
+          "children": [
+            {
+              "type": "text",
+              "text": "Looking forward",
+              "marks": [],
+              "id": "t-27a9d5b42b75"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-c980780f1520",
+          "children": [
+            {
+              "type": "text",
+              "text": "We are at an interesting point in time of market development, where the problem of a lack of context has become apparent, but we are still in the early innings of building solutions.",
+              "marks": [],
+              "id": "t-b549fab8733c"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-84052c84bf43",
+          "children": [
+            {
+              "type": "text",
+              "text": "The future is exciting – perhaps the vision of truly self-serve analytics can be fully realized, and BI, data analytics, and data science can be transformed through AI.",
+              "marks": [],
+              "id": "t-cf24f11b8262"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-c50ecb776373",
+          "children": [
+            {
+              "type": "text",
+              "text": "Naturally, many open questions still remain. Where will this context layer live? Can it live in multiple places? Will it be its own standalone product?",
+              "marks": [],
+              "id": "t-dc4541e2b22d"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-0b82ebe63b75",
+          "children": [
+            {
+              "type": "text",
+              "text": "We remain excited about the opportunities for innovation here. If you’re building in the space, we’d love to chat! Please reach out at jcui@a16z.com or ",
+              "marks": [],
+              "id": "t-ea88bc37495a"
+            },
+            {
+              "type": "text",
+              "text": "@jasonscui",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://x.com/JasonSCui"
+                }
+              ],
+              "id": "t-8a46ee54b395"
+            },
+            {
+              "type": "text",
+              "text": " on X.",
+              "marks": [],
+              "id": "t-27df6a1e5a91"
+            }
+          ]
+        }
+      ],
+      "content_format": "blocks-v1",
+      "category": "agent",
+      "category_label": "Data Agent",
+      "vendors": [
+        "Databricks",
+        "Snowflake",
+        "OpenAI",
+        "Palantir"
+      ],
+      "heat": 67,
+      "star": true,
+      "importance": 94,
+      "signal": 0,
+      "topics": [
+        "Data Agent",
+        "语义层"
+      ],
+      "shelf": "evergreen",
+      "pinned": true,
+      "published": "2026-03-10T22:00:21+08:00",
+      "first_seen": "2026-09-04T09:55:00+08:00",
+      "items": [
+        {
+          "id": "8f1d134628cf",
+          "source": "a16z",
+          "link": "https://a16z.com/your-data-agents-need-context/",
+          "published": "2026-03-10T22:00:21+08:00",
+          "ingested_at": "2026-09-04T09:55:00+08:00",
+          "title": "Your Data Agents Need Context"
+        },
+        {
+          "id": "94ac98336877",
+          "source": "X 线索·@JasonSCui",
+          "link": "https://x.com/JasonSCui/status/2031371431129526446",
+          "published": "2026-03-10T22:07:44+08:00",
+          "ingested_at": "2026-09-04T09:55:00+08:00",
+          "title": "Jason Cui 分享：Your Data Agents Need Context"
+        }
+      ],
+      "discovery_url": "https://x.com/JasonSCui/status/2031371431129526446",
+      "discovery_source": "X·@JasonSCui",
+      "content_mode": "original",
+      "content_level": "original",
+      "source_language": "en",
+      "translation_status": "unavailable",
+      "source_content_hash": "8b21c9b92b9066b3cddbff37",
+      "content_parse": {
+        "run_id": "local-47bb044b1d42",
+        "processor_version": "original-first-v7",
+        "attempted_at": "2026-09-04T09:53:04.698752+08:00",
+        "status": "ready",
+        "source": "a16z",
+        "strategy": "nested_content",
+        "blocks": 48,
+        "text_chars": 14496,
+        "figures": 2,
+        "tables": 0,
+        "figures_discovered": 2,
+        "figures_selected": 2,
+        "figures_rejected": 0,
+        "candidate_count": 14,
+        "figures_rejected_author": 0,
+        "figures_rejected_decorative": 0,
+        "figures_rejected_duplicate": 0,
+        "figures_rejected_small": 0,
+        "figures_rejected_limit": 0,
+        "trimmed_tail_blocks": 0,
+        "trimmed_head_blocks": 0,
+        "trimmed_promotional_blocks": 0,
+        "trimmed_embedded_ui_blocks": 0,
+        "embedded_ui_components": 0,
+        "selected_depth": 10,
+        "selected_raw_blocks": 48,
+        "selected_raw_text_chars": 14496,
+        "broad_raw_blocks": 158,
+        "broad_raw_text_chars": 23616,
+        "parent_extra_blocks": 110,
+        "candidate_count_raw": 25,
+        "candidate_duplicates": 11,
+        "candidate_quality_rejected": 10,
+        "duplicate_blocks": 0,
+        "selected_score": 1063.11,
+        "quality_status": "pass",
+        "selected_tag": "div",
+        "focus_ratio": 0.6138,
+        "link_ratio": 0.0019,
+        "duplicate_ratio": 0.0,
+        "selection_evidence": [
+          "prose_density",
+          "integrity_gate",
+          "nested_focus"
+        ],
+        "media": {
+          "figures": 2,
+          "cached": 2,
+          "link_only": 0,
+          "policy_version": "source-cdn-v1"
+        },
+        "content_mode": "original",
+        "source_language": "en",
+        "translation_status": "unavailable",
+        "source_content_hash": "8b21c9b92b9066b3cddbff37",
+        "reason": "manual_reviewed_source_capture"
+      },
+      "body_chars": 14496,
+      "quality_score": 94,
+      "work_tags": {
+        "product_objects": [
+          "知识与上下文",
+          "指标与语义"
+        ],
+        "use_cases": [
+          "Agent构建",
+          "指标问答"
+        ],
+        "decision_concerns": [
+          "准确性与语义一致性",
+          "可维护性与复用"
+        ]
+      }
+    },
+    {
       "event_id": "973421af8576",
       "zh_title": "Snowflake 10.26发布说明：成本异常告警支持通知集成",
       "zh_summary": "Snowflake发布2026年7月24日至31日期间10.26版本说明，包含多个行为变更包状态调整。SQL更新部分新增成本异常告警通知集成的通用可用性，用户可通过注册通知集成，将成本异常发送至Slack、短信或webhook。相关新方法位于SNOWFLAKE.LOCAL.ANOMALY_INSIGHTS类，支持账户级和组织级成本异常提醒。",

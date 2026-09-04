@@ -30,14 +30,20 @@
       q: String(state.q || ""),
       topic: String(state.topic || "all"),
       category: normalizedCategory(state.category),
+      editorial: Boolean(state.editorial),
       page: 1
     };
     if (selection.all) {
+      next.topic = "all"; next.category = ""; next.editorial = false;
+    } else if (selection.editorial) {
+      next.editorial = !next.editorial;
       next.topic = "all"; next.category = "";
     } else if (selection.category) {
+      next.editorial = false;
       next.category = selection.category === next.category ? "" : normalizedCategory(selection.category);
       if (next.category === "insight" && INSIGHT_TOPICS.indexOf(next.topic) < 0) next.topic = "all";
     } else if (selection.topic) {
+      next.editorial = false;
       next.topic = selection.topic === next.topic ? "all" : selection.topic;
       if (next.category === "insight" && next.topic !== "all" && INSIGHT_TOPICS.indexOf(next.topic) < 0) {
         next.category = "";
@@ -48,10 +54,12 @@
 
   function stateFromSearch(search) {
     var params = new URLSearchParams(String(search || "").replace(/^\?/, ""));
+    var editorial = params.get("view") === "editor";
     return {
       q: String(params.get("q") || "").trim(),
-      topic: String(params.get("topic") || "all").trim() || "all",
-      category: normalizedCategory(params.get("category")),
+      topic: editorial ? "all" : (String(params.get("topic") || "all").trim() || "all"),
+      category: editorial ? "" : normalizedCategory(params.get("category")),
+      editorial: editorial,
       page: normalizedPage(params.get("page"))
     };
   }
@@ -59,8 +67,9 @@
   function searchForState(state) {
     var params = new URLSearchParams();
     if (state.q) params.set("q", state.q);
-    if (state.topic && state.topic !== "all") params.set("topic", state.topic);
-    if (normalizedCategory(state.category)) params.set("category", normalizedCategory(state.category));
+    if (state.editorial) params.set("view", "editor");
+    if (!state.editorial && state.topic && state.topic !== "all") params.set("topic", state.topic);
+    if (!state.editorial && normalizedCategory(state.category)) params.set("category", normalizedCategory(state.category));
     if (normalizedPage(state.page) > 1) params.set("page", String(normalizedPage(state.page)));
     var query = params.toString();
     return query ? "?" + query : "";
@@ -205,8 +214,10 @@
   function filterEvents(events, state) {
     var topic = state.topic && state.topic !== "all" ? state.topic : "";
     var category = normalizedCategory(state.category);
+    var editorial = Boolean(state.editorial);
     var q = String(state.q || "").toLocaleLowerCase("zh-CN");
-    return (events || []).filter(function (event) {
+    var filtered = (events || []).filter(function (event) {
+      if (editorial && !event.editorial_pick) return false;
       if (category && event.category !== category) return false;
       if (topic && (event.topics || []).indexOf(topic) < 0) return false;
       if (!q) return true;
@@ -215,6 +226,13 @@
         .join(" ").toLocaleLowerCase("zh-CN");
       return text.indexOf(q) >= 0;
     });
+    if (editorial) {
+      filtered.sort(function (left, right) {
+        var byCurated = String(right.curated_at || "").localeCompare(String(left.curated_at || ""));
+        return byCurated || String(right.event_id || "").localeCompare(String(left.event_id || ""));
+      });
+    }
+    return filtered;
   }
 
   function visibleEvents(events, state, pageSize) {
@@ -228,6 +246,7 @@
   function hasActiveFilter(state) {
     return Boolean(
       String(state && state.q || "") ||
+      Boolean(state && state.editorial) ||
       String(state && state.topic || "all") !== "all" ||
       normalizedCategory(state && state.category)
     );
@@ -254,12 +273,26 @@
 
   function cardTime(event) {
     var value = event.published || event.first_seen;
+    if (event.editorial_pick && event.curated_at) {
+      var curated = monthDay(event.curated_at);
+      var published = monthDay(event.published);
+      return published ? curated + " 收录 · 原文 " + published : curated + " 收录";
+    }
     if (!value) return "";
     var date = new Date(value);
     if (Number.isNaN(date.getTime())) return "";
     return new Intl.DateTimeFormat("zh-CN", {
       timeZone: "Asia/Shanghai", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit",
       hour12: false
+    }).format(date).replace(/\//g, "-");
+  }
+
+  function monthDay(value) {
+    if (!value) return "";
+    var date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return new Intl.DateTimeFormat("zh-CN", {
+      timeZone: "Asia/Shanghai", month: "2-digit", day: "2-digit"
     }).format(date).replace(/\//g, "-");
   }
 
@@ -286,9 +319,12 @@
     }).join("");
     var reason = event.reason ? '<div class="why"><span><span class="w">推荐理由：</span>' +
       escapeHtml(cleanReason(event.reason)) + "</span></div>" : "";
-    var also = (event.items || []).length > 1 ? '<div class="also">另有 <b>' +
-      ((event.items || []).length - 1) + " 家信源</b>报道</div>" : "";
-    var status = event.star ? "精选" : "";
+    var additionalSources = (event.items || []).slice(1).map(function (item) {
+      return escapeHtml(item.source || "");
+    }).filter(Boolean);
+    var also = additionalSources.length ? '<div class="also">另有 <b>' +
+      additionalSources.length + " 家信源</b>报道：" + additionalSources.join(" · ") + "</div>" : "";
+    var status = event.editorial_pick ? "编辑精选" : "";
     var heat = Number(event.heat || 0);
     var heatLabel = status ? status + " " + heat : String(heat);
     var topRank = topRanks && topRanks[event.event_id];
@@ -308,7 +344,8 @@
       original_url: ""
     };
     return '<div class="item" data-cat="' + escapeHtml(event.category) + '" data-topics="' +
-      escapeHtml((event.topics || []).join("|")) + '" data-link="' + url +
+      escapeHtml((event.topics || []).join("|")) + '" data-editorial="' +
+      (event.editorial_pick ? "true" : "false") + '" data-link="' + url +
       '" data-analytics-list="1" data-event-id="' + escapeHtml(event.event_id) +
       '" data-category="' + escapeHtml(event.category) + '" data-source="' + escapeHtml(source) + '">' +
       '<div class="top card-meta"><span class="card-source"><span class="srcbadge">' + escapeHtml(sourceBadge) +
@@ -322,10 +359,12 @@
       ((topics || vendors) ? '<div class="vendors">' + topics + vendors + "</div>" : "") + "</div>";
   }
 
-  function renderTimeline(events, topRanks) {
+  function renderTimeline(events, topRanks, editorialView) {
     var groups = [], byKey = new Map();
     events.forEach(function (event) {
-      var parts = dateParts(event.published || event.first_seen);
+      var parts = dateParts(
+        editorialView && event.editorial_pick ? event.curated_at : (event.published || event.first_seen)
+      );
       if (!byKey.has(parts.key)) {
         var group = { parts: parts, events: [] };
         byKey.set(parts.key, group); groups.push(group);
@@ -353,6 +392,7 @@
     var count = doc.getElementById("rCount");
     var qInput = doc.getElementById("q");
     var qClear = doc.getElementById("qClear");
+    var timelineTitle = doc.querySelector && doc.querySelector("[data-timeline-title]");
     var backToTop = doc.getElementById("backToTop");
     var pageSize = Math.max(1, parseInt(config.dataset.pageSize || "20", 10));
     var total = Math.max(0, parseInt(config.dataset.total || "0", 10));
@@ -470,7 +510,7 @@
       return payloadPromise;
     }
     function restoreInitialTimeline() {
-      state = { q: "", topic: "all", category: "", page: 1 };
+      state = { q: "", topic: "all", category: "", editorial: false, page: 1 };
       if (qInput) qInput.value = "";
       if (qClear) qClear.style.display = "none";
       root.innerHTML = initialTimeline;
@@ -493,7 +533,7 @@
       }
       return fetchEvents().then(function (events) {
         var result = visibleEvents(events, state, pageSize);
-        root.innerHTML = renderTimeline(result.visible, topRanks) || '<div class="scard" style="color:var(--sub)">没有匹配的事件</div>';
+        root.innerHTML = renderTimeline(result.visible, topRanks, state.editorial) || '<div class="scard" style="color:var(--sub)">没有匹配的事件</div>';
         syncTodayLabels();
         count.textContent = String(result.filtered.length);
         if (qClear) qClear.style.display = state.q ? "" : "none";
@@ -528,21 +568,24 @@
     function syncChips() {
       doc.querySelectorAll("#chiprow .fchip").forEach(function (chip) {
         var isAll = chip.dataset.topic === "all";
+        var isEditorial = chip.dataset.editorial === "true";
         var selected = isAll
-          ? (!state.category && state.topic === "all")
-          : (chip.dataset.category
+          ? (!state.editorial && !state.category && state.topic === "all")
+          : (isEditorial ? state.editorial : (chip.dataset.category
             ? chip.dataset.category === state.category
-            : chip.dataset.topic === state.topic);
+            : chip.dataset.topic === state.topic));
         chip.classList.toggle("on", selected);
         chip.setAttribute("aria-pressed", selected ? "true" : "false");
       });
+      if (timelineTitle) timelineTitle.textContent = state.editorial ? "编辑精选" : "时间轴";
     }
     doc.querySelectorAll("#chiprow .fchip").forEach(function (chip) {
       chip.addEventListener("click", function () {
         state = filterStateAfterSelection(state, {
           all: chip.dataset.topic === "all",
+          editorial: chip.dataset.editorial === "true",
           category: chip.dataset.category || "",
-          topic: chip.dataset.category ? "" : (chip.dataset.topic || "")
+          topic: (chip.dataset.category || chip.dataset.editorial) ? "" : (chip.dataset.topic || "")
         });
         syncChips();
         refresh();
@@ -600,7 +643,7 @@
       );
     }
     var initialRender = null;
-    if (state.q || state.topic !== "all" || state.category || state.page > 1) initialRender = refresh();
+    if (state.q || state.topic !== "all" || state.category || state.editorial || state.page > 1) initialRender = refresh();
     else {
       var prefetch = function () { fetchEvents().catch(function () {}); };
       if (typeof win.requestIdleCallback === "function") win.requestIdleCallback(prefetch, { timeout: 1500 });

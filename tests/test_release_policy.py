@@ -13,6 +13,7 @@ from release_policy import (  # noqa: E402
     should_retain_event,
 )
 from product_cases import product_case_event_ids  # noqa: E402
+from editorial_picks import editorial_pick_event_ids  # noqa: E402
 
 
 NOW = datetime(2026, 8, 22, tzinfo=timezone.utc)
@@ -20,6 +21,18 @@ CUTOFF = NOW - timedelta(days=8)
 
 
 class ReleasePolicyTests(unittest.TestCase):
+    def test_editorial_picks_are_permanently_protected(self):
+        pick_ids = editorial_pick_event_ids()
+        self.assertEqual(len(pick_ids), 12)
+        self.assertTrue(pick_ids.issubset(PROTECTED_EVENT_IDS))
+        for event_id in pick_ids:
+            self.assertTrue(should_retain_event({
+                "event_id": event_id,
+                "shelf": "news",
+                "published": (NOW - timedelta(days=180)).isoformat(),
+                "first_seen": (NOW - timedelta(days=180)).isoformat(),
+            }, cutoff=CUTOFF))
+
     def test_curated_product_cases_are_protected_without_becoming_evergreen(self):
         case_ids = product_case_event_ids()
         self.assertGreaterEqual(len(case_ids), 8)

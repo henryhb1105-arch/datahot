@@ -15,7 +15,9 @@ RSS/API 采集 ──► LLM 加工（DeepSeek）──► latest.json ──►
 - `pipeline/sources.json` — 信源配置（`enabled: false` 的为待解封源）
 - `pipeline/run_update.py` — 采集 / 过滤 / LLM 加工 / 打分 / 数据输出
 - `pipeline/run_discovery.py` — 每日影子文章侦察与新信源候选池
-- `pipeline/product_cases.json` — 编辑精选的数据产品设计案例，复用既有事件与安全缓存截图
+- `pipeline/editorial_picks.json` — 主编明确选中的永久文章清单；记录规范原文、X 发现链接与精选时间
+- `pipeline/editorial_picks.py` — 精选清单校验、数据标记与长期保留入口
+- `pipeline/product_cases.json` — 人工整理的数据产品设计案例，复用既有事件与安全缓存截图
 - `pipeline/product_cases.py` — 案例字段、事件和代表截图校验
 - `pipeline/build_site.py` — 静态页面渲染
 - `pipeline/lite_data.py` — 首页/搜索/收藏的轻量数据与首屏结构规则
@@ -23,6 +25,10 @@ RSS/API 采集 ──► LLM 加工（DeepSeek）──► latest.json ──►
 - `pipeline/config.json` — 本地 LLM 密钥（**已 gitignore，不要提交**）
 - `.github/workflows/update.yml` — 每 6 小时定时运行 + 自动发布 Pages
 - `.github/workflows/deploy.yml` — 源码合并后只构建/测试/发布，不调用 DeepSeek
+
+“编辑精选”只在主编明确要求“加入 DataHot”时登记；仅让 DataHot 查看或评估链接不自动公开。
+同一规范原文再次收录时补充 X 发现来源，不新建重复事件。`star` 仍只代表自动质量分，不能作为
+人工精选标记；`editorial_picks.json` 中的事件会跨普通新闻保留周期永久存在。
 
 ## 本地运行
 

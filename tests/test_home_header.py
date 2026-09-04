@@ -56,6 +56,12 @@ class HomeHeaderTests(unittest.TestCase):
         self.assertNotIn("不限时间 · 每批 {DEFAULT_PAGE_SIZE} 条", source)
         self.assertIn('data-category="insight">AI分析</button>', source)
         self.assertIn('placeholder="搜索"', source)
+        self.assertIn(
+            'data-topic="all">全部</button>\n'
+            '    <button class="fchip" type="button" aria-pressed="false" '
+            'data-editorial="true">编辑精选</button>',
+            source,
+        )
 
     def test_completed_progressive_timeline_hides_load_more_button(self):
         self.assertIn(".load-more[hidden]{display:none}", build_site.SHARED_CSS)
@@ -181,7 +187,7 @@ class HomeHeaderTests(unittest.TestCase):
         self.assertIn("@media(prefers-reduced-motion:reduce)", build_site.SHARED_CSS)
         self.assertIn(".agent-copy{appearance:none;min-height:44px", build_site.AGENT_PAGE_CSS)
 
-    def test_timeline_card_metadata_is_compact_and_semantically_unambiguous(self):
+    def test_quality_star_does_not_look_like_a_human_editorial_pick(self):
         item = {
             "event_id": "123456789abc", "zh_title": "标题", "zh_summary": "摘要",
             "reason": "理由", "category": "platform", "topics": [], "vendors": [],
@@ -194,8 +200,10 @@ class HomeHeaderTests(unittest.TestCase):
         self.assertIn('class="top card-meta"', card)
         self.assertIn('class="srcbadge">RSS</span>', card)
         self.assertIn('class="card-source-name">Google BigQuery Release Notes</span>', card)
-        self.assertIn('class="heatnum is-featured"', card)
-        self.assertIn("精选 59", card)
+        self.assertIn('class="heatnum"', card)
+        self.assertNotIn('class="heatnum is-featured"', card)
+        self.assertNotIn("编辑精选", card)
+        self.assertNotIn("精选 59", card)
         self.assertIn('aria-label="收藏"', card)
         self.assertIn('aria-pressed="false"', card)
         self.assertIn('M19 21l-7-4.5L5 21', card)
@@ -206,6 +214,26 @@ class HomeHeaderTests(unittest.TestCase):
         self.assertNotIn(".item .top{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub);flex-wrap:wrap}", css)
         favorite_js = (ROOT / "pipeline" / "assets" / "favorites.js").read_text(encoding="utf-8")
         self.assertIn('button.setAttribute("aria-pressed", on ? "true" : "false")', favorite_js)
+
+    def test_editorial_card_shows_collection_and_original_dates(self):
+        item = {
+            "event_id": "123456789abc", "zh_title": "标题", "zh_summary": "摘要",
+            "reason": "理由", "category": "agent", "topics": [], "vendors": [],
+            "heat": 59, "star": False, "editorial_pick": True,
+            "curated_at": "2026-09-04T09:55:00+08:00", "shelf": "evergreen",
+            "published": "2026-03-10T22:00:21+08:00",
+            "first_seen": "2026-09-04T09:55:00+08:00",
+            "items": [
+                {"source": "a16z"},
+                {"source": "X 线索·@JasonSCui"},
+            ],
+        }
+        card = build_site.render_card(item)
+        self.assertIn('data-editorial="true"', card)
+        self.assertIn('class="heatnum is-featured"', card)
+        self.assertIn("编辑精选 59", card)
+        self.assertIn("09-04 收录 · 原文 03-10", card)
+        self.assertIn("X 线索·@JasonSCui", card)
 
     def test_home_hot_list_is_compact_top_three_and_ranks_remain_in_timeline(self):
         items = []
@@ -235,7 +263,7 @@ class HomeHeaderTests(unittest.TestCase):
         self.assertNotIn('class="hot"', hot)
         self.assertIn('class="top-rank"', card)
         self.assertIn('TOP 1', card)
-        self.assertIn('精选 66', card)
+        self.assertNotIn('精选 66', card)
         self.assertNotIn("本期热点</h2>", source)
         self.assertNotIn("今日重点", source)
         self.assertNotIn("栏目说明", source)

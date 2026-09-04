@@ -11,10 +11,11 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
+from editorial_picks import apply_editorial_picks
 from taxonomy import CATEGORY_LABELS, normalize_category_labels
 
 
@@ -44,6 +45,20 @@ def stable_id(url: str) -> str:
 def iso_timestamp(value: str) -> str:
     """Normalize valid ISO timestamps to the form consumed by site builders."""
     return datetime.fromisoformat(str(value).replace("Z", "+00:00")).isoformat()
+
+
+def newest_timestamp_text(current: str, candidate: str) -> str:
+    """Keep the newest catalog timestamp while preserving its original text."""
+    values = []
+    for value in (current, candidate):
+        text = str(value or "").strip()
+        if not text:
+            continue
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        values.append((parsed.astimezone(timezone.utc), text))
+    return max(values)[1] if values else ""
 
 
 def _require_text(record: dict, key: str) -> str:
@@ -181,29 +196,44 @@ def import_batch(batch_path: Path, latest_path: Path = DEFAULT_LATEST) -> dict:
             added += 1
             continue
 
+        changed = False
+        source_name = str(record.get("source_name") or "").strip()
+        primary_items = event.get("items") or []
+        if source_name and primary_items and primary_items[0].get("source") == "主编收录":
+            primary_items[0]["source"] = source_name
+            changed = True
         discovery_url = str(record.get("discovery_url") or "").strip()
         if not discovery_url:
-            unchanged += 1
+            if changed:
+                enriched += 1
+            else:
+                unchanged += 1
             continue
         event["discovery_url"] = discovery_url
         event["discovery_source"] = f"X·@{record['discovery_account'].lstrip('@')}"
         existing_links = {norm_url(item["link"]) for item in event.get("items") or []}
         discovery = norm_url(discovery_url)
         if discovery in existing_links:
-            unchanged += 1
+            if changed:
+                enriched += 1
+            else:
+                unchanged += 1
             continue
         event.setdefault("items", []).append(_x_item(record, batch["ingested_at"]))
         by_url[discovery] = event
         enriched += 1
 
+    apply_editorial_picks(events)
     events.sort(key=lambda event: str(event.get("first_seen") or event.get("published") or ""), reverse=True)
     payload["events"] = events
     payload["top"] = [
         event["event_id"]
         for event in sorted(events, key=lambda event: int(event.get("heat") or 0), reverse=True)[:3]
     ]
-    payload["generated_at"] = batch["ingested_at"]
-    latest_path.write_text(json.dumps(payload, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    payload["generated_at"] = newest_timestamp_text(
+        payload.get("generated_at"), batch["ingested_at"]
+    )
+    latest_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return {
         "batch_id": batch.get("batch_id"),
         "records": len(records),

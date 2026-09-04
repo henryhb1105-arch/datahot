@@ -15,11 +15,14 @@ function event(id, topic = "Agent", source = "Source") {
   };
 }
 
-test("URL state preserves query, topic, category and page", () => {
+test("URL state preserves query, topic, category, editorial view and page", () => {
   const state = home.stateFromSearch("?q=semantic&topic=组织人才&category=insight&page=3");
-  assert.deepEqual(state, { q: "semantic", topic: "组织人才", category: "insight", page: 3 });
+  assert.deepEqual(state, { q: "semantic", topic: "组织人才", category: "insight", editorial: false, page: 3 });
   assert.equal(home.searchForState(state), "?q=semantic&topic=%E7%BB%84%E7%BB%87%E4%BA%BA%E6%89%8D&category=insight&page=3");
   assert.equal(home.stateFromSearch("?category=unknown").category, "");
+  const editorial = home.stateFromSearch("?q=context&view=editor&topic=Data+Agent&category=agent&page=2");
+  assert.deepEqual(editorial, { q: "context", topic: "all", category: "", editorial: true, page: 2 });
+  assert.equal(home.searchForState(editorial), "?q=context&view=editor&page=2");
 });
 
 test("home position belongs to the current history entry and matching filter state", () => {
@@ -275,11 +278,15 @@ test("filter selection avoids incompatible empty category/topic combinations", (
     { q: "", topic: "语义层", category: "", page: 2 },
     { category: "insight" }
   );
-  assert.deepEqual(fromSemantic, { q: "", topic: "all", category: "insight", page: 1 });
+  assert.deepEqual(fromSemantic, { q: "", topic: "all", category: "insight", editorial: false, page: 1 });
   const withBusinessScene = home.filterStateAfterSelection(fromSemantic, { topic: "组织人才" });
-  assert.deepEqual(withBusinessScene, { q: "", topic: "组织人才", category: "insight", page: 1 });
+  assert.deepEqual(withBusinessScene, { q: "", topic: "组织人才", category: "insight", editorial: false, page: 1 });
   const backToTechnical = home.filterStateAfterSelection(withBusinessScene, { topic: "语义层" });
-  assert.deepEqual(backToTechnical, { q: "", topic: "语义层", category: "", page: 1 });
+  assert.deepEqual(backToTechnical, { q: "", topic: "语义层", category: "", editorial: false, page: 1 });
+  const editorView = home.filterStateAfterSelection(backToTechnical, { editorial: true });
+  assert.deepEqual(editorView, { q: "", topic: "all", category: "", editorial: true, page: 1 });
+  const backToAll = home.filterStateAfterSelection(editorView, { editorial: true });
+  assert.deepEqual(backToAll, { q: "", topic: "all", category: "", editorial: false, page: 1 });
 });
 
 test("payload order is explicit and rendering escapes untrusted text", () => {
@@ -294,7 +301,7 @@ test("payload order is explicit and rendering escapes untrusted text", () => {
   assert.match(html, /data-date-base="8月11日"/);
 });
 
-test("dynamic cards keep one-line source metadata, combined featured heat and bookmark action", () => {
+test("quality stars stay internal and do not masquerade as editorial selection", () => {
   const item = event(20, "Agent", "Google BigQuery Release Notes With A Very Long Name");
   item.star = true;
   item.heat = 59;
@@ -304,11 +311,40 @@ test("dynamic cards keep one-line source metadata, combined featured heat and bo
   assert.match(html, /class="card-source"/);
   assert.match(html, /class="card-source-name">Google BigQuery Release Notes/);
   assert.match(html, /class="srcbadge">RSS<\/span>/);
-  assert.match(html, /class="heatnum is-featured"[^>]*><svg[^>]*>.*精选 59<\/span>/);
+  assert.match(html, /class="heatnum"[^>]*><svg[^>]*>.* 59<\/span>/);
+  assert.doesNotMatch(html, /编辑精选|精选 59/);
   assert.match(html, /class="favbtn"[^>]*data-fav-record="\{&quot;event_id&quot;:&quot;000000000014&quot;/);
   assert.match(html, /class="favbtn"[^>]*type="button" title="收藏" aria-label="收藏" aria-pressed="false"><svg/);
   assert.doesNotMatch(html, />☆<\/button>/);
   assert.doesNotMatch(html, /<span class="star">精选<\/span>/);
+});
+
+test("editorial view filters and orders by collection time while retaining original date", () => {
+  const newestPick = event(41, "Data Agent", "a16z");
+  newestPick.published = "2026-03-10T22:00:21+08:00";
+  newestPick.editorial_pick = true;
+  newestPick.curated_at = "2026-09-04T09:55:00+08:00";
+  newestPick.items.push({ source: "X 线索·@JasonSCui" });
+  const olderPick = event(42, "BI", "Tableau");
+  olderPick.editorial_pick = true;
+  olderPick.curated_at = "2026-08-12T08:20:00+08:00";
+  const automatic = event(43, "Data Agent", "Automatic Feed");
+  automatic.published = "2026-09-04T10:00:00+08:00";
+
+  const result = home.visibleEvents(
+    [olderPick, automatic, newestPick],
+    { q: "", topic: "all", category: "", editorial: true, page: 1 },
+    20
+  );
+  assert.deepEqual(result.filtered.map((item) => item.event_id), [newestPick.event_id, olderPick.event_id]);
+  const html = home.renderTimeline(result.visible, {}, true);
+  assert.match(html, /data-day-key="2026-09-04"/);
+  assert.match(html, /data-day-key="2026-08-12"/);
+  assert.match(html, /data-editorial="true"/);
+  assert.match(html, /编辑精选 50/);
+  assert.match(html, /09-04 收录 · 原文 03-10/);
+  assert.match(html, /X 线索·@JasonSCui/);
+  assert.doesNotMatch(html, /Automatic Feed/);
 });
 
 test("dynamic timeline preserves TOP ranks after filtering or loading more", () => {
@@ -334,6 +370,7 @@ test("timeline grouping uses publication date before ingestion date", () => {
 test("filter failure view never presents stale results as filtered content", () => {
   assert.equal(home.hasActiveFilter({ q: "", topic: "all", category: "" }), false);
   assert.equal(home.hasActiveFilter({ q: "", topic: "Data Agent", category: "" }), true);
+  assert.equal(home.hasActiveFilter({ q: "", topic: "all", category: "", editorial: true }), true);
   const html = home.renderLoadFailure();
   assert.match(html, /筛选结果加载失败/);
   assert.match(html, /当前没有展示未筛选的旧内容/);

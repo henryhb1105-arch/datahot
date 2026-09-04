@@ -801,7 +801,7 @@ def render_home_brand_update(gen):
 def render_timeline_toolbar(total_count):
     """首页时间轴工具栏：标题、搜索与数量在窄屏保持单行。"""
     return f'''<div class="section-title timeline-toolbar">
-  <h2>{ic("calendar",18)} 时间轴</h2>
+  <h2 id="timelineTitle">{ic("calendar",18)} <span data-timeline-title>时间轴</span></h2>
   <div class="timeline-searchbox">
     <input id="q" class="tlsearch" placeholder="搜索" aria-label="搜索时间轴" title="搜索范围：全部在站时间轴的标题、摘要与标签">
     <button id="qClear" class="timeline-clear" type="button" style="display:none" aria-label="清除搜索" title="清除搜索">✕</button>
@@ -1050,9 +1050,14 @@ def md(iso):
     return f"{d.month:02d}-{d.day:02d}"
 
 def card_time(e):
-    """单时间显示：只展示发布时间（<24h→x小时前 / <7天→周几 HH:mm / 更早→MM-DD）；
-    无发布时间时用收录时间兜底并明确标注（参考 AI HOT：界面只有发布时间一个概念）"""
+    """Show publication recency, or both selection and source dates for picks."""
     pub, fs = e.get("published"), e.get("first_seen")
+    curated = e.get("curated_at") if e.get("editorial_pick") else None
+    if curated:
+        return (
+            f"{md(curated)} 收录 · 原文 {md(pub)}"
+            if pub else f"{md(curated)} 收录"
+        )
     if pub:
         dt = datetime.fromisoformat(pub).astimezone(TZ)
         hrs = (datetime.now(TZ) - dt).total_seconds() / 3600
@@ -1148,7 +1153,7 @@ def favorite_button(e, *, class_name="favbtn", icon_size=15, label=""):
 
 def render_card(e, prefix="", top_rank=None):
     event_id = safe_event_id(e["event_id"])
-    status_label = "精选" if e.get("star") else ""
+    status_label = "编辑精选" if e.get("editorial_pick") else ""
     if not status_label and is_classic_review(e):
         status_label = "经典回顾"
     status_class = " is-featured" if status_label else ""
@@ -1170,7 +1175,7 @@ def render_card(e, prefix="", top_rank=None):
         f'<span class="top-rank" aria-label="热点第 {int(top_rank)} 名">TOP {int(top_rank)}</span>'
         if top_rank else ""
     )
-    return f'''<div class="item" data-cat="{esc(e["category"])}" data-topics="{esc("|".join(e.get("topics", [])))}" data-link="{url}" data-analytics-list="1" data-event-id="{event_id}" data-category="{esc(e["category"])}" data-source="{esc(e["items"][0]["source"])}">
+    return f'''<div class="item" data-cat="{esc(e["category"])}" data-topics="{esc("|".join(e.get("topics", [])))}" data-editorial="{str(bool(e.get("editorial_pick"))).lower()}" data-link="{url}" data-analytics-list="1" data-event-id="{event_id}" data-category="{esc(e["category"])}" data-source="{esc(e["items"][0]["source"])}">
       <div class="top card-meta"><span class="card-source"><span class="srcbadge">{src_badge(e["items"][0]["source"])}</span><span class="card-source-name">{esc(src_display(e["items"][0]["source"]))}</span><span class="card-time">{card_time(e)}</span></span>
       {rank_html}
       <span class="heatnum{status_class}" title="热度分：{HEAT_FORMULA}">{ic("flame",13)} {esc(status_text)}</span>
@@ -1837,9 +1842,9 @@ def render_detail(e, all_events, css, tts_item=None, product_case=None):
     <span class="srcbadge">{src_badge(main_src_name)}</span>
     {main_source_meta}
     <span class="meta-content-mode">{esc(meta_mode_label)}</span>
-    {'<span class="star">精选</span>' if e.get("star") else ''}
+    {'<span class="editorial-pick">编辑精选</span>' if e.get("editorial_pick") else ''}
     <span title="发布时间">{("发布 " + fmt_date(e["published"])) if e.get("published") else "收录 " + fmt_date(e.get("first_seen"))}</span>
-    {f'<span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 {md(e.get("first_seen"))}</span>' if e.get("published") and e.get("first_seen") and e["published"][:10] != e["first_seen"][:10] else ""}
+    {f'<span style="color:var(--sub);font-size:11px" title="加入编辑精选的时间">精选于 {fmt_date(e.get("curated_at"))}</span>' if e.get("editorial_pick") and e.get("curated_at") else (f'<span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 {md(e.get("first_seen"))}</span>' if e.get("published") and e.get("first_seen") and e["published"][:10] != e["first_seen"][:10] else "")}
   </div>
   <h1>{esc(e["zh_title"])}</h1>
 {("  " + tts_player) if tts_player else ""}
@@ -3230,6 +3235,7 @@ def main():
   {render_timeline_toolbar(len(timeline_events))}
   <div class="chiprow" id="chiprow" role="group" aria-label="筛选时间轴">
     <button class="fchip on" type="button" aria-pressed="true" data-topic="all">全部</button>
+    <button class="fchip" type="button" aria-pressed="false" data-editorial="true">编辑精选</button>
     {topic_fchips}
   </div>
   {timeline_html}
@@ -3269,14 +3275,22 @@ function applyFilter(pred){{
 document.querySelectorAll('#chiprow .fchip').forEach(c=>c.addEventListener('click',()=>{{
   const wasOn=c.classList.contains('on');
   document.querySelectorAll('#chiprow .fchip').forEach(x=>{{x.classList.remove('on');x.setAttribute('aria-pressed','false');}});
-  if(!wasOn&&c.dataset.topic!=='all'){{
+  const title=document.querySelector('[data-timeline-title]');
+  if(!wasOn&&c.dataset.editorial==='true'){{
     c.classList.add('on');
     c.setAttribute('aria-pressed','true');
-    const t=c.dataset.topic;
-    applyFilter(el=>(el.dataset.topics||'').split('|').includes(t));
+    if(title)title.textContent='编辑精选';
+    applyFilter(el=>el.dataset.editorial==='true');
+  }}else if(!wasOn&&c.dataset.topic!=='all'){{
+    c.classList.add('on');
+    c.setAttribute('aria-pressed','true');
+    if(title)title.textContent='时间轴';
+    if(c.dataset.category)applyFilter(el=>el.dataset.cat===c.dataset.category);
+    else{{const t=c.dataset.topic;applyFilter(el=>(el.dataset.topics||'').split('|').includes(t));}}
   }}else{{
     document.querySelector('[data-topic="all"]').classList.add('on');
     document.querySelector('[data-topic="all"]').setAttribute('aria-pressed','true');
+    if(title)title.textContent='时间轴';
     applyFilter(()=>true);
   }}
 }}));

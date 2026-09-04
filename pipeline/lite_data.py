@@ -357,6 +357,9 @@ def lite_event(event, *, source_badge=None):
         ),
         "trend_score": int(event.get("trend_score", event.get("heat", 0)) or 0),
         "star": bool(event.get("star")),
+        "editorial_pick": bool(event.get("editorial_pick")),
+        "curated_at": event.get("curated_at"),
+        "discovery_source": event.get("discovery_source", ""),
         "importance": (
             None if event.get("importance") in (None, "")
             else int(event.get("importance"))

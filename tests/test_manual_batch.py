@@ -223,6 +223,52 @@ class ManualBatchTests(unittest.TestCase):
         self.assertTrue(all(row["shelf"] == "evergreen" for row in records))
         self.assertEqual(len({norm_url(row["source_url"]) for row in records}), 8)
 
+    def test_jason_cui_context_batch_keeps_canonical_and_x_provenance(self):
+        batch = json.loads((
+            ROOT / "pipeline" / "manual_batches" /
+            "2026-09-04-jason-cui-data-agent-context.json"
+        ).read_text(encoding="utf-8"))
+        records = validate_batch(batch)
+
+        self.assertEqual(batch["issue"], 205)
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]["category"], "agent")
+        self.assertEqual(records[0]["topics"], ["Data Agent", "语义层"])
+        self.assertEqual(records[0]["shelf"], "evergreen")
+        self.assertEqual(
+            norm_url(records[0]["source_url"]),
+            "https://a16z.com/your-data-agents-need-context",
+        )
+        self.assertEqual(
+            norm_url(records[0]["discovery_url"]),
+            "https://x.com/JasonSCui/status/2031371431129526446",
+        )
+
+    def test_production_latest_preserves_context_article_and_figures(self):
+        latest = json.loads((
+            ROOT / "site" / "data" / "latest.json"
+        ).read_text(encoding="utf-8"))
+        event = next(
+            row for row in latest["events"]
+            if row.get("event_id") == "8f1d134628cf"
+        )
+        links = {norm_url(item["link"]) for item in event.get("items", [])}
+        figures = [
+            block for block in event.get("content_blocks", [])
+            if block.get("type") == "figure"
+        ]
+
+        self.assertIn("https://a16z.com/your-data-agents-need-context", links)
+        self.assertIn(
+            "https://x.com/JasonSCui/status/2031371431129526446", links,
+        )
+        self.assertEqual(len(figures), 2)
+        self.assertTrue(all(block.get("media_status") == "cached" for block in figures))
+        self.assertTrue(all(block.get("cached_src") for block in figures))
+        self.assertEqual(event["work_tags"]["product_objects"], [
+            "知识与上下文", "指标与语义",
+        ])
+
     def test_retained_news_batch_keeps_source_and_discovery_links_together(self):
         batch = json.loads((
             ROOT / "pipeline" / "manual_batches" / "2026-08-12-x-first.json"

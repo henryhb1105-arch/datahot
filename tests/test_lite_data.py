@@ -58,6 +58,21 @@ class LitePayloadTests(unittest.TestCase):
         )
         self.assertEqual(fallback["events"][0]["source_badge"], "RSS")
 
+    def test_payload_carries_editorial_selection_metadata_without_discovery_url(self):
+        item = event(1)
+        item.update({
+            "editorial_pick": True,
+            "curated_at": "2026-09-04T09:55:00+08:00",
+            "discovery_source": "X·@JasonSCui",
+            "discovery_url": "https://x.com/JasonSCui/status/2031371431129526446",
+        })
+        payload = build_lite_payload([item], "2026-09-04T10:00:00+08:00")
+        projected = payload["events"][0]
+        self.assertTrue(projected["editorial_pick"])
+        self.assertEqual(projected["curated_at"], "2026-09-04T09:55:00+08:00")
+        self.assertEqual(projected["discovery_source"], "X·@JasonSCui")
+        self.assertNotIn("discovery_url", projected)
+
     def test_payload_separates_quality_and_trend_with_legacy_fallbacks(self):
         scored = event(9, importance=72, heat=61)
         scored["quality_score"] = 84

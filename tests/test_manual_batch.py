@@ -99,6 +99,7 @@ class ManualBatchTests(unittest.TestCase):
             self.assertEqual(second["enriched"], 0)
             self.assertEqual(second["unchanged"], 2)
             self.assertEqual(len(result["events"]), 2)
+            self.assertEqual(result["generated_at"], "2026-08-12T08:00:00+08:00")
             all_links = [
                 norm_url(item["link"])
                 for event in result["events"] for item in event["items"]
@@ -195,6 +196,7 @@ class ManualBatchTests(unittest.TestCase):
         records = validate_batch(batch)
         self.assertEqual(len(records), 10)
         self.assertEqual(len({norm_url(row["discovery_url"]) for row in records}), 10)
+        self.assertTrue(all(row.get("source_name") for row in records))
         self.assertEqual(batch["issue"], 42)
 
     def test_hr_ai_batch_contains_six_reviewed_people_insights(self):
@@ -286,9 +288,30 @@ class ManualBatchTests(unittest.TestCase):
             with self.subTest(title=record["zh_title"]):
                 source_events = link_events.get(norm_url(record["source_url"]), [])
                 discovery_events = link_events.get(norm_url(record["discovery_url"]), [])
-                self.assertLessEqual(len(source_events), 1)
-                self.assertLessEqual(len(discovery_events), 1)
+                self.assertEqual(len(source_events), 1)
+                self.assertEqual(len(discovery_events), 1)
                 self.assertEqual(source_events, discovery_events)
+
+    def test_replaying_an_old_batch_does_not_regress_catalog_generation_time(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            latest_path = tmp / "latest.json"
+            self._write_json(latest_path, {
+                "generated_at": "2026-09-04T19:19:40+08:00",
+                "top": [],
+                "events": [],
+            })
+            import_batch(
+                ROOT / "pipeline" / "manual_batches" / "2026-08-12-x-first.json",
+                latest_path,
+            )
+            result = json.loads(latest_path.read_text(encoding="utf-8"))
+            self.assertEqual(result["generated_at"], "2026-09-04T19:19:40+08:00")
+            self.assertEqual(sum(bool(event.get("editorial_pick")) for event in result["events"]), 10)
+            self.assertNotIn(
+                "主编收录",
+                {event["items"][0]["source"] for event in result["events"]},
+            )
 
     def test_production_latest_contains_each_hr_ai_source_once(self):
         batch = json.loads((

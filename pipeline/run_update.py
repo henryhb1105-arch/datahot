@@ -37,6 +37,7 @@ from lite_data import (
     DEFAULT_PAGE_SIZE, FIRST_PAGE_SOURCE_CAPS, rank_hot_events,
     rank_timeline_events,
 )
+from editorial_picks import apply_editorial_picks
 from release_policy import should_retain_event
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -2836,6 +2837,9 @@ def main():
                 e["shelf"], e["pinned"] = "evergreen", True
             if e["event_id"] in cur.get("drop", []):
                 e["shelf"], e["pinned"] = "news", False
+
+    # 人工明确选中的文章是独立、永久的内容类型，不借用质量星标语义。
+    apply_editorial_picks(events)
 
     # 清理过期：news 7 天淘汰；evergreen 作为长期内容永久保留
     events = [e for e in events if should_retain_event(e, cutoff=cutoff)]

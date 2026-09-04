@@ -2,12 +2,14 @@
 
 from datetime import datetime, timezone
 
+from editorial_picks import editorial_pick_event_ids
 from product_cases import product_case_event_ids
 
 
 PROTECTED_EVENT_IDS = (
     frozenset({"65c35101abc1", "dfb9071b69e0"})
     | product_case_event_ids()
+    | editorial_pick_event_ids()
 )
 
 

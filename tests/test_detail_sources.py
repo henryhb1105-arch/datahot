@@ -44,6 +44,30 @@ def detail_event(items, *, primary_item_id=None):
 
 
 class DetailSourceRenderingTests(unittest.TestCase):
+    def test_editorial_pick_distinguishes_selection_from_quality_and_keeps_x_provenance(self):
+        primary = source_item(
+            "primary", "a16z", "https://a16z.com/article",
+            "Canonical article", "2026-03-10T22:00:21+08:00",
+        )
+        discovery = source_item(
+            "x-post", "X 线索·@JasonSCui", "https://x.com/JasonSCui/status/1",
+            "X 原帖", "2026-03-10T20:00:00+08:00",
+        )
+        event = detail_event([primary, discovery])
+        event.update({
+            "star": True,
+            "editorial_pick": True,
+            "curated_at": "2026-09-04T09:55:00+08:00",
+            "published": "2026-03-10T22:00:21+08:00",
+        })
+        page = build_site.render_detail(event, [event], "")
+        self.assertIn('<span class="editorial-pick">编辑精选</span>', page)
+        self.assertIn("发布 2026-03-10 22:00", page)
+        self.assertIn("精选于 2026-09-04 09:55", page)
+        self.assertIn('href="https://x.com/JasonSCui/status/1"', page)
+        self.assertIn("X 线索·@JasonSCui", page)
+        self.assertNotIn('<span class="star">精选</span>', page)
+
     def test_single_report_has_only_top_primary_source(self):
         item = source_item(
             "primary", "AWS Big Data Blog", "https://example.com/primary",

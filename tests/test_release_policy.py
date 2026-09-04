@@ -23,7 +23,7 @@ CUTOFF = NOW - timedelta(days=8)
 class ReleasePolicyTests(unittest.TestCase):
     def test_editorial_picks_are_permanently_protected(self):
         pick_ids = editorial_pick_event_ids()
-        self.assertEqual(len(pick_ids), 12)
+        self.assertEqual(len(pick_ids), 19)
         self.assertTrue(pick_ids.issubset(PROTECTED_EVENT_IDS))
         for event_id in pick_ids:
             self.assertTrue(should_retain_event({

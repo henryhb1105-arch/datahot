@@ -20,25 +20,28 @@ EXPECTED_IDS = {
     "477745cf963d", "44517f2e6a68", "87c9acba5c38", "e7420873acde",
     "2a6cb6153284", "74499ad15c94", "7dc53089a3b8", "7e23299ee03d",
     "9653f52649c8", "9e059ac6ed28", "875c99b3755b", "8f1d134628cf",
+    "6a15bb49ecb1", "3c7ef4914e12", "b37fd3d1c6d4", "214ed5550146",
+    "d2194130512d", "e7ef7e2d8090", "d17829a807e2",
 }
 
 
 class EditorialPickTests(unittest.TestCase):
     def test_registry_contains_every_historical_x_selection_with_stable_identity(self):
         items = load_editorial_picks()
-        self.assertEqual(len(items), 12)
+        self.assertEqual(len(items), 19)
         self.assertEqual(editorial_pick_event_ids(), EXPECTED_IDS)
         self.assertEqual(
             {stable_id(item["source_url"]) for item in items}, EXPECTED_IDS,
         )
-        self.assertEqual(len({norm_url(item["source_url"]) for item in items}), 12)
-        self.assertEqual(len({norm_url(item["discovery_url"]) for item in items}), 12)
+        self.assertEqual(len({norm_url(item["source_url"]) for item in items}), 19)
+        self.assertEqual(len({norm_url(item["discovery_url"]) for item in items}), 19)
 
     def test_registry_matches_x_discovered_records_in_the_reviewed_batches(self):
         batch_names = {
             "2026-08-12-x-first.json",
             "2026-08-12-hr-ai-insights.json",
             "2026-09-04-jason-cui-data-agent-context.json",
+            "2026-09-05-data-agent-editorial-picks.json",
         }
         expected = {}
         for batch_name in batch_names:

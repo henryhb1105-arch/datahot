@@ -1,6 +1,330 @@
 {
-  "generated_at": "2026-09-05T00:23:40.294355+08:00",
+  "generated_at": "2026-09-05T00:32:30+08:00",
   "events": [
+    {
+      "event_id": "6a15bb49ecb1",
+      "zh_title": "OpenAI 内部 Data Agent 的六层上下文",
+      "zh_summary": "OpenAI 公开了内部 Data Agent 的构建方法。系统连接数仓和模型，也把表使用记录、人工注释、代码补全、组织知识、记忆与运行时上下文分层组合，并在 Slack、网页、IDE 与 Codex CLI 中复用。权限透传和持续评测被放在与生成能力同等重要的位置。",
+      "reason": "这是一份少见的生产级 Data Agent 拆解，能直接帮助判断上下文、权限、入口和评测应如何组成完整产品，而不是只做一个会写 SQL 的聊天框。",
+      "full_zh": "## 为什么值得看\n\nOpenAI 的内部 Data Agent 用于真实的员工工作，已经超出演示环境。文章把问题定义得很清楚。模型能力是基础，回答质量还取决于系统能否拿到正确的数据、业务语义、组织知识和当前任务信息。\n\n## 六层上下文\n\n系统把上下文分为六层，包括表和查询的实际使用信号、由数据团队维护的人工注释、Codex 对代码与数据资产的补充理解、散落在组织中的制度和业务知识、对历史交互的记忆，以及每次请求携带的运行时上下文。这样的分层让 Agent 不必把所有信息塞进一段提示词，也让每类知识有明确的维护责任。\n\n## 产品形态\n\n同一套能力可以从 Slack、网页、IDE 和 Codex CLI 使用，并通过 MCP 接入不同工作环境。文章还强调权限透传。Agent 不能因为拥有统一入口就绕过原有数据权限。持续评测用来检查回答正确性、工具调用和上下文质量，评价标准也超出了用户点赞数。\n\n## 对 Data Agent 产品的启示\n\n借鉴重点是这套产品骨架。多个入口复用同一 Agent，上下文由不同责任人分层维护，系统沿用原有数据权限，再用评测发现质量退化。生产级 Data Agent 因而更接近一套可信的数据工作系统，单次问答效果只占其中一部分。",
+      "content_blocks": [],
+      "content_format": "",
+      "category": "agent",
+      "category_label": "Data Agent",
+      "vendors": [
+        "OpenAI"
+      ],
+      "heat": 68,
+      "star": false,
+      "importance": 96,
+      "signal": 0,
+      "topics": [
+        "Data Agent",
+        "语义层"
+      ],
+      "shelf": "evergreen",
+      "pinned": false,
+      "published": "2026-01-29T00:00:00+00:00",
+      "first_seen": "2026-09-05T00:32:30+08:00",
+      "items": [
+        {
+          "id": "6a15bb49ecb1",
+          "source": "OpenAI",
+          "link": "https://openai.com/index/inside-our-in-house-data-agent/",
+          "published": "2026-01-29T00:00:00+00:00",
+          "ingested_at": "2026-09-05T00:32:30+08:00",
+          "title": "Inside OpenAI’s in-house data agent"
+        },
+        {
+          "id": "c0beac1f931b",
+          "source": "X 线索·@alexxubyte",
+          "link": "https://x.com/alexxubyte/status/2062186586431987780",
+          "published": "2026-06-03T22:56:10+08:00",
+          "ingested_at": "2026-09-05T00:32:30+08:00",
+          "title": "Alex Xu 分享 OpenAI 内部 Data Agent 的架构"
+        }
+      ],
+      "discovery_url": "https://x.com/alexxubyte/status/2062186586431987780",
+      "discovery_source": "X·@alexxubyte",
+      "editorial_pick": true,
+      "curated_at": "2026-09-05T00:32:30+08:00"
+    },
+    {
+      "event_id": "3c7ef4914e12",
+      "zh_title": "Pinterest 用意图向量解决十万张表的 Text-to-SQL 检索",
+      "zh_summary": "Pinterest 面对十万级分析表和数千名用户，没有把 Text-to-SQL 的希望只压在大模型上，而是从历史查询中抽取连接、过滤、聚合等结构化意图，构建意图向量，再结合文档、热度、新鲜度和治理等级进行资产排序。核心变化是先找到可信的数据资产，再生成 SQL。",
+      "reason": "它抓住了企业 Text-to-SQL 最容易被低估的一环，也就是表检索。对数据目录、语义检索和 Data Agent 的工程落地都有很强的参考价值。",
+      "full_zh": "## 先解决表检索\n\n当分析环境里有十万级表时，用户问题可能对应大量名称相近、字段相似但口径不同的数据资产。即使模型能写出语法正确的 SQL，只要选错表，答案仍然不可信。Pinterest 因此把资产发现放到 Text-to-SQL 流程前面。\n\n## 意图向量怎么工作\n\n团队从历史 SQL 中提取连接关系、过滤条件、聚合方式等结构信号，把真实分析行为编码成意图向量。相较只对表名和文档做文本嵌入，这种方法能更好地捕捉一张表在实际业务问题中是怎样被使用的。\n\n## 检索还要理解治理\n\n候选资产不会只按语义相似度排序。系统还综合表的治理等级、使用热度、数据新鲜度和文档完整度，避免把实验表、过期表或缺乏说明的资产推到前面。Pinterest 使用 DataHub 的内部实现 PinCat 管理元数据，并以 OpenSearch 承载向量检索。\n\n## 可借鉴处\n\n这套方法把 Data Agent 的起点从直接生成查询，改成先完成受治理的数据资产选择。对企业产品而言，表选择依据、候选排序信号和最终引用的数据资产都应可见、可调试、可评测。",
+      "content_blocks": [],
+      "content_format": "",
+      "category": "agent",
+      "category_label": "Data Agent",
+      "vendors": [
+        "Pinterest",
+        "DataHub",
+        "OpenSearch"
+      ],
+      "heat": 67,
+      "star": false,
+      "importance": 94,
+      "signal": 0,
+      "topics": [
+        "Data Agent",
+        "语义层"
+      ],
+      "shelf": "evergreen",
+      "pinned": false,
+      "published": "2026-03-06T00:00:00+00:00",
+      "first_seen": "2026-09-05T00:32:30+08:00",
+      "items": [
+        {
+          "id": "3c7ef4914e12",
+          "source": "Pinterest Engineering",
+          "link": "https://medium.com/pinterest-engineering/unified-context-intent-embeddings-for-scalable-text-to-sql-793635e60aac",
+          "published": "2026-03-06T00:00:00+00:00",
+          "ingested_at": "2026-09-05T00:32:30+08:00",
+          "title": "Unified Context-Intent Embeddings for Scalable Text-to-SQL"
+        },
+        {
+          "id": "eb353e8daf1e",
+          "source": "X 线索·@PinterestEng",
+          "link": "https://x.com/PinterestEng/status/2032129965550891359",
+          "published": "2026-03-13T00:21:53+08:00",
+          "ingested_at": "2026-09-05T00:32:30+08:00",
+          "title": "Pinterest Engineering 分享可扩展 Text-to-SQL 的意图向量方案"
+        }
+      ],
+      "discovery_url": "https://x.com/PinterestEng/status/2032129965550891359",
+      "discovery_source": "X·@PinterestEng",
+      "editorial_pick": true,
+      "curated_at": "2026-09-05T00:32:30+08:00"
+    },
+    {
+      "event_id": "b37fd3d1c6d4",
+      "zh_title": "Google Cloud 把数据技能带进 IDE 和 CLI",
+      "zh_summary": "Google Cloud 的 Data Agent Kit 把查询优化、数据验证、漂移检测、治理和故障排查等能力封装为可复用技能，并通过 MCP 连接 BigQuery、AlloyDB 和 Cloud Storage，让开发者在 VS Code、Claude Code、Codex、Gemini CLI 等工作环境里完成数据任务。",
+      "reason": "它展现了 Data Agent 的另一条产品路线。团队没有另造一个封闭聊天应用，而是把数据能力拆成可组合的技能与工具，嵌入开发者已有工作流。",
+      "full_zh": "## 产品定位\n\nData Agent Kit 是一组开源的数据技能和工具，可以替代单独的分析聊天框。它希望让开发者在熟悉的 IDE 或命令行里，通过自然语言调用数据工程和分析能力。\n\n## 能力组成\n\nKit 覆盖查询优化、机器学习、数据验证、漂移检测、治理和故障排查等常见任务，并通过 MCP 连接 BigQuery、AlloyDB 与 Cloud Storage。官方展示的环境包括 VS Code、Claude Code、Codex、Gemini CLI 和 Antigravity CLI。\n\n## 从意图到数据管道\n\n文章用数据管道场景说明这种方式。用户描述目标，Agent 调用技能理解数据源、生成或修改代码、执行验证，再把结果留在现有开发环境中供人检查。工程过程继续留在代码和执行记录里，开发者也能少在文档、控制台和代码之间来回切换。\n\n## 产品启示\n\nData Agent 可以被设计成“技能层 + 工具协议 + 工作环境”的组合。技能负责保存可复用的方法，MCP 负责连接系统，IDE 或 CLI 负责承载人的审阅和修改。对复杂数据任务，这种形态比单一聊天入口更容易保留代码、版本和执行证据。",
+      "content_blocks": [],
+      "content_format": "",
+      "category": "agent",
+      "category_label": "Data Agent",
+      "vendors": [
+        "Google Cloud",
+        "BigQuery",
+        "AlloyDB"
+      ],
+      "heat": 65,
+      "star": false,
+      "importance": 90,
+      "signal": 0,
+      "topics": [
+        "Data Agent",
+        "平台AI化"
+      ],
+      "shelf": "evergreen",
+      "pinned": false,
+      "published": "2026-05-19T00:00:00+00:00",
+      "first_seen": "2026-09-05T00:32:30+08:00",
+      "items": [
+        {
+          "id": "b37fd3d1c6d4",
+          "source": "Google Cloud",
+          "link": "https://cloud.google.com/blog/products/data-analytics/data-agent-kit-brings-data-skills-and-tools-to-your-ide-or-cli",
+          "published": "2026-05-19T00:00:00+00:00",
+          "ingested_at": "2026-09-05T00:32:30+08:00",
+          "title": "The future of agentic development: Redefining the data practitioner lifecycle with Data Agent Kit"
+        },
+        {
+          "id": "c1828ee03fb8",
+          "source": "X 线索·@googlecloud",
+          "link": "https://x.com/googlecloud/status/2084689079304585296",
+          "published": "2026-08-05T01:13:02+08:00",
+          "ingested_at": "2026-09-05T00:32:30+08:00",
+          "title": "Google Cloud 分享 Data Agent Kit"
+        }
+      ],
+      "discovery_url": "https://x.com/googlecloud/status/2084689079304585296",
+      "discovery_source": "X·@googlecloud",
+      "editorial_pick": true,
+      "curated_at": "2026-09-05T00:32:30+08:00"
+    },
+    {
+      "event_id": "214ed5550146",
+      "zh_title": "LinkedIn SQL Bot 如何支撑企业取数",
+      "zh_summary": "LinkedIn 在内部分析平台 DARWIN 中建设 SQL Bot，用表检索、知识图谱、LLM 重排和查询自纠错组成多 Agent 流程，并加入数据集访问控制和验证机制。文章还公开了真实使用数据。集成 SQL Bot 后采用率提升 5 至 10 倍，约八成会话使用过 Fix with AI。",
+      "reason": "这篇文章同时提供了架构、权限、评测和采用率证据，是观察企业 Text-to-SQL 如何从功能走向工作流的优质案例。",
+      "full_zh": "## 从内部分析工作流出发\n\nLinkedIn 把 SQL Bot 嵌入内部数据分析平台 DARWIN，让它成为现有工具的一部分。用户可以在已有的数据发现、查询和分析流程中使用自然语言生成或修正 SQL，降低切换成本。\n\n## 多 Agent 流程\n\n系统把任务拆成表检索、知识图谱补充、LLM 重排、SQL 生成和自纠错验证等环节。表检索先缩小数据资产范围，知识图谱提供实体关系，重排模型选择更相关的上下文，验证器再检查生成结果。这种分工让错误更容易定位，也方便分别评测。\n\n## 权限与评测\n\nSQL Bot 会检查用户对数据集的访问权限，避免自然语言入口绕过原有 ACL。团队还建立了包含 130 个问题的基准集，用来观察生成效果和迭代变化。对企业数据 Agent，这两项能力比单纯展示几个成功示例更重要。\n\n## 使用效果\n\n文章披露，SQL Bot 接入 DARWIN 后带来了 5 至 10 倍的采用增长。“Fix with AI”出现在约八成会话中。这个结果说明用户未必只需要一次生成正确，更常见的价值是让 Agent 参与查询修改、解释和纠错。",
+      "content_blocks": [],
+      "content_format": "",
+      "category": "agent",
+      "category_label": "Data Agent",
+      "vendors": [
+        "LinkedIn",
+        "LangChain",
+        "LangGraph"
+      ],
+      "heat": 66,
+      "star": false,
+      "importance": 92,
+      "signal": 0,
+      "topics": [
+        "Data Agent",
+        "ChatBI"
+      ],
+      "shelf": "evergreen",
+      "pinned": false,
+      "published": "2024-12-09T00:00:00+00:00",
+      "first_seen": "2026-09-05T00:32:30+08:00",
+      "items": [
+        {
+          "id": "214ed5550146",
+          "source": "LinkedIn Engineering",
+          "link": "https://www.linkedin.com/blog/engineering/ai/practical-text-to-sql-for-data-analytics",
+          "published": "2024-12-09T00:00:00+00:00",
+          "ingested_at": "2026-09-05T00:32:30+08:00",
+          "title": "Practical text-to-SQL for data analytics"
+        },
+        {
+          "id": "0a2b7df3a6be",
+          "source": "X 线索·@LangChainAI",
+          "link": "https://x.com/LangChainAI/status/1873041238087352629",
+          "published": "2024-12-29T00:20:05+08:00",
+          "ingested_at": "2026-09-05T00:32:30+08:00",
+          "title": "LangChain 分享 LinkedIn SQL Bot 的生产实践"
+        }
+      ],
+      "discovery_url": "https://x.com/LangChainAI/status/1873041238087352629",
+      "discovery_source": "X·@LangChainAI",
+      "editorial_pick": true,
+      "curated_at": "2026-09-05T00:32:30+08:00"
+    },
+    {
+      "event_id": "d2194130512d",
+      "zh_title": "Harrison Chase 谈领域子 Agent 的编排方式",
+      "zh_summary": "Harrison Chase 分享了一种面向数据工作的 Deep Agents 形态。上层编排 Agent 理解任务，再把不同环节交给拥有专属上下文和工具的领域子 Agent。设计重点是把数据发现、查询、分析等职责和上下文明确分开，并控制 Agent 数量。",
+      "reason": "这条帖子提供了一个简洁但有用的产品视角。复杂 Data Agent 无需把所有知识和工具塞进单一提示词，可以按领域拆分责任与上下文。",
+      "full_zh": "## 帖子要点\n\nHarrison Chase 展示的方向是让一个上层编排者负责理解用户目标、规划任务，再把具体工作委派给专门的子 Agent。每个子 Agent 只携带与自身职责相关的上下文和工具，从而减少单一 Agent 面对过多信息时的混乱。\n\n## 为什么适合数据场景\n\n企业数据任务通常同时涉及数据资产发现、业务口径、SQL、质量检查和结果表达。把这些职责拆开，可以让每个环节使用不同的数据权限、知识来源和验证标准，也更容易知道失败发生在哪里。\n\n## 设计时要避免什么\n\n多 Agent 并不自动等于更可靠。编排者需要明确交接格式、来源引用、失败回退和最终责任；子 Agent 也不能因为“专业化”而绕过统一权限。否则系统只是把一次不可控调用变成多次不可控调用。\n\n## 可借鉴处\n\n更值得借鉴的是职责边界，而不是 Agent 数量。可以先从一个编排者和两三个稳定角色开始，例如资产检索、查询执行、独立验证，并用统一的任务记录串起全过程。",
+      "content_blocks": [],
+      "content_format": "",
+      "category": "agent",
+      "category_label": "Data Agent",
+      "vendors": [
+        "LangChain",
+        "Deep Agents"
+      ],
+      "heat": 62,
+      "star": false,
+      "importance": 84,
+      "signal": 0,
+      "topics": [
+        "Data Agent"
+      ],
+      "shelf": "evergreen",
+      "pinned": false,
+      "published": "2026-04-08T05:09:38+08:00",
+      "first_seen": "2026-09-05T00:32:30+08:00",
+      "items": [
+        {
+          "id": "d2194130512d",
+          "source": "Harrison Chase",
+          "link": "https://x.com/hwchase17/status/2041624465625510145",
+          "published": "2026-04-08T05:09:38+08:00",
+          "ingested_at": "2026-09-05T00:32:30+08:00",
+          "title": "Deep Agents for data work"
+        }
+      ],
+      "discovery_url": "https://x.com/hwchase17/status/2041624465625510145",
+      "discovery_source": "X·@hwchase17",
+      "editorial_pick": true,
+      "curated_at": "2026-09-05T00:32:30+08:00"
+    },
+    {
+      "event_id": "e7ef7e2d8090",
+      "zh_title": "Codatum AI Agent 保留了代码审阅和回滚",
+      "zh_summary": "Codatum 的 AI Agent 可以从自然语言出发检索表、生成 SQL、制作图表并编辑 Notebook；产品同时区分只回答问题的 Ask 模式和可执行操作的 Agent 模式。每次 AI 编辑都会先创建版本，用户可以审阅和恢复，模型能访问的资产也受现有权限与 AI Profile 控制。",
+      "reason": "它把 Agent 的执行能力与人类审阅、版本回滚和权限范围放在同一个产品流程里，关注点超出了功能数量。",
+      "full_zh": "## 两种交互模式\n\nCodatum 区分 Ask 和 Agent。Ask 更适合咨询、解释和获得建议，Agent 则可以实际创建或修改 Notebook、SQL 与图表。这个区分让用户在提问与授权执行之间有清晰边界。\n\n## 上下文与执行\n\n用户可以通过 @ 引用表、Notebook、已保存查询、代码块和图表，为 Agent 指定上下文。Agent 再根据任务搜索资产、编写 SQL、运行分析并组织可视化结果，过程仍落在代码优先的 Notebook 工作区中。\n\n## 审阅和回滚\n\n在 AI 修改内容前，系统会创建一个可恢复的版本。用户可以比较修改、继续编辑或回退，不必只能接受一段最终答案。这使 Agent 的动作更接近一次可审查的代码变更。\n\n## 权限边界\n\nAI Profile 用来配置模型、允许的能力和默认上下文，Agent 访问数据时也遵循现有权限。官方文档同时提醒，SQL 或数据可能会被发送给外部模型服务，因此企业部署仍需明确模型供应商、数据范围和合规策略。",
+      "content_blocks": [],
+      "content_format": "",
+      "category": "agent",
+      "category_label": "Data Agent",
+      "vendors": [
+        "Codatum"
+      ],
+      "heat": 63,
+      "star": false,
+      "importance": 86,
+      "signal": 0,
+      "topics": [
+        "Data Agent",
+        "ChatBI"
+      ],
+      "shelf": "evergreen",
+      "pinned": false,
+      "published": "2026-03-24T08:04:15+08:00",
+      "first_seen": "2026-09-05T00:32:30+08:00",
+      "items": [
+        {
+          "id": "e7ef7e2d8090",
+          "source": "Codatum",
+          "link": "https://docs.codatum.com/features/ai-agent/overview",
+          "published": "2026-03-24T08:04:15+08:00",
+          "ingested_at": "2026-09-05T00:32:30+08:00",
+          "title": "AI agent overview"
+        },
+        {
+          "id": "8dda34ed2a75",
+          "source": "X 线索·@codatum_jp",
+          "link": "https://x.com/codatum_jp/status/2036232590987067867",
+          "published": "2026-03-24T08:04:15+08:00",
+          "ingested_at": "2026-09-05T00:32:30+08:00",
+          "title": "Codatum 发布 AI Agent Beta 预告"
+        }
+      ],
+      "discovery_url": "https://x.com/codatum_jp/status/2036232590987067867",
+      "discovery_source": "X·@codatum_jp",
+      "editorial_pick": true,
+      "curated_at": "2026-09-05T00:32:30+08:00"
+    },
+    {
+      "event_id": "d17829a807e2",
+      "zh_title": "Jay Zoo 谈可靠 Data Agent 的四类证据",
+      "zh_summary": "Jay Zoo 的系列帖子把 Data Agent 的可靠性拆成四部分。数据定义、SQL 与公式、验证过程、最终呈现都要能追溯。语义层负责限制模型猜测，独立验证器在结果发出前检查数字、口径和异常，最终答案则应把依据展示给用户。",
+      "reason": "这组帖子没有停在“提高准确率”的口号，而是把可靠性落实为可观察、可审计的产品机制，适合用来检查 Data Agent 是否真的能进入业务决策。",
+      "full_zh": "## 可靠性怎样拆开看\n\n系列帖子的核心观点是，Data Agent 的可信度不能只用一次端到端准确率概括。用户需要知道系统用了什么数据定义、生成了什么 SQL 或公式、做过哪些检查，以及结论如何被组织和展示。\n\n## 四类证据\n\n口径证据说明指标、实体和时间范围来自哪里。计算证据保留 SQL、公式和中间结果。验证证据记录系统对空值、重复、数量级和跨口径冲突做过的检查。表达证据则帮助用户判断图表与文字有没有超出数据能支持的范围。\n\n## 语义层与独立验证器\n\n语义层负责缩小 Agent 可以猜测的空间，让指标定义和关系有明确来源。独立验证器在结果发送前再次检查关键数字和约束。它最好与生成步骤分离，避免同一个推理过程既出题又给自己判分。\n\n## 产品启示\n\n面向决策的数据 Agent 应默认保留来源、查询、校验和版本记录，并把关键证据呈现在答案旁边。这样用户修正一次错误时，系统也能知道应该改口径、检索、计算还是表达环节。",
+      "content_blocks": [],
+      "content_format": "",
+      "category": "agent",
+      "category_label": "Data Agent",
+      "vendors": [],
+      "heat": 64,
+      "star": false,
+      "importance": 88,
+      "signal": 0,
+      "topics": [
+        "Data Agent",
+        "语义层"
+      ],
+      "shelf": "evergreen",
+      "pinned": false,
+      "published": "2026-08-27T11:10:28+08:00",
+      "first_seen": "2026-09-05T00:32:30+08:00",
+      "items": [
+        {
+          "id": "d17829a807e2",
+          "source": "Jay Zoo",
+          "link": "https://x.com/jayzoojayzoo/status/2092811959230152768",
+          "published": "2026-08-27T11:10:28+08:00",
+          "ingested_at": "2026-09-05T00:32:30+08:00",
+          "title": "A reliable data agent needs an audit trail"
+        }
+      ],
+      "discovery_url": "https://x.com/jayzoojayzoo/status/2092811959230152768",
+      "discovery_source": "X·@jayzoojayzoo",
+      "editorial_pick": true,
+      "curated_at": "2026-09-05T00:32:30+08:00"
+    },
     {
       "event_id": "ea4f1d97db33",
       "zh_title": "一张图看懂 Data Agent 如何像分析师一样工作",
@@ -459674,8 +459998,8 @@
   ],
   "top": [
     "08421439e662",
-    "2eee875ea4c4",
-    "dfb9071b69e0"
+    "6a15bb49ecb1",
+    "3c7ef4914e12"
   ],
   "sources": [
     {

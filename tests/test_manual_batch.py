@@ -8,7 +8,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "pipeline"))
 
-from import_manual_batch import import_batch, iso_timestamp, norm_url, validate_batch  # noqa: E402
+from import_manual_batch import (  # noqa: E402
+    import_batch,
+    iso_timestamp,
+    norm_url,
+    stable_id,
+    validate_batch,
+)
 
 
 class ManualBatchTests(unittest.TestCase):
@@ -245,6 +251,46 @@ class ManualBatchTests(unittest.TestCase):
             norm_url(records[0]["discovery_url"]),
             "https://x.com/JasonSCui/status/2031371431129526446",
         )
+
+    def test_data_agent_editorial_batch_contains_seven_reviewed_sources(self):
+        batch = json.loads((
+            ROOT / "pipeline" / "manual_batches" /
+            "2026-09-05-data-agent-editorial-picks.json"
+        ).read_text(encoding="utf-8"))
+        records = validate_batch(batch)
+
+        self.assertEqual(batch["issue"], 209)
+        self.assertEqual(len(records), 7)
+        self.assertTrue(all(row["category"] == "agent" for row in records))
+        self.assertTrue(all(row["shelf"] == "evergreen" for row in records))
+        self.assertTrue(all("Data Agent" in row["topics"] for row in records))
+        self.assertEqual(len({norm_url(row["source_url"]) for row in records}), 7)
+        self.assertEqual(len({norm_url(row["discovery_url"]) for row in records}), 7)
+        self.assertTrue(all(row.get("source_name") for row in records))
+
+    def test_production_latest_contains_each_data_agent_pick_once(self):
+        batch = json.loads((
+            ROOT / "pipeline" / "manual_batches" /
+            "2026-09-05-data-agent-editorial-picks.json"
+        ).read_text(encoding="utf-8"))
+        latest = json.loads((
+            ROOT / "site" / "data" / "latest.json"
+        ).read_text(encoding="utf-8"))
+        links = [
+            norm_url(item["link"])
+            for event in latest["events"]
+            for item in event.get("items", [])
+        ]
+        event_by_id = {event["event_id"]: event for event in latest["events"]}
+
+        for record in validate_batch(batch):
+            with self.subTest(title=record["zh_title"]):
+                event_id = stable_id(record["source_url"])
+                self.assertEqual(links.count(norm_url(record["source_url"])), 1)
+                self.assertTrue(event_by_id[event_id]["editorial_pick"])
+                self.assertEqual(
+                    event_by_id[event_id]["curated_at"], batch["ingested_at"],
+                )
 
     def test_production_latest_preserves_context_article_and_figures(self):
         latest = json.loads((

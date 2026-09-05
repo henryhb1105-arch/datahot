@@ -147,7 +147,7 @@
         bold.textContent = "已选 " + selectedIds.length + " / 3";
         compareStatus.appendChild(bold);
         compareStatus.appendChild(doc.createTextNode(
-          limitMessage || (selectedIds.length < 2 ? "至少选择 2 个案例" : "可以开始横向比较")
+          limitMessage || (selectedIds.length < 2 ? "至少选择 2 个案例" : "可以开始比较")
         ));
       }
     }
@@ -198,7 +198,16 @@
         var row = doc.createElement("tr");
         appendCell(row, "th", definition[0]);
         records.forEach(function (record) {
-          appendCell(row, "td", record[definition[1]]);
+          var cell = appendCell(row, "td", "");
+          clearNode(cell);
+          var productLink = doc.createElement("a");
+          productLink.className = "case-compare-product";
+          productLink.href = record.url;
+          productLink.textContent = record.product;
+          cell.appendChild(productLink);
+          var content = doc.createElement("p");
+          content.textContent = record[definition[1]] || "—";
+          cell.appendChild(content);
         });
         body.appendChild(row);
       });

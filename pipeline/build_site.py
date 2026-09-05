@@ -32,6 +32,8 @@ from design_studies import (
     load_studies, library_records, resolved_steps, study_path, viewer_markup,
     render_study_body, render_comparison_body, COMPARISON_TITLE,
 )
+from case_readings import reading_path, render_reading_body
+from case_visuals import card_image
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
@@ -2597,12 +2599,12 @@ def render_cases_page(product_cases, events, css, studies=()):
         ]).casefold()
         alt = str(hero.get("alt") or hero.get("caption") or f"{product} 设计案例代表图")
         source_name = str(((event.get("items") or [{}])[0]).get("source") or "")
-        detail_href = study_path(study) if study else detail_url(event)
+        detail_href = study_path(study) if study else reading_path(product_case)
         study_title = f'<small>{esc(study["title"])}</small>' if study else ''
         media_url = esc(_case_root_media_url(hero.get('cached_src')))
         cards.append(f'''<article class="case-card" data-case-card data-case-id="{esc(event['event_id'])}" data-analytics-list="1" data-event-id="{esc(event['event_id'])}" data-category="{esc(event.get('category') or '')}" data-source="{esc(source_name)}" data-product-type="{esc(product_type)}" data-task-type="{esc(task_type)}" data-design-questions="{esc('|'.join(design_questions))}" data-search="{esc(search_text)}" data-compare-product="{esc(product)}" data-compare-problem="{esc(problem)}" data-compare-pattern="{esc(solution)}" data-compare-modules="{esc(' · '.join(all_modules))}" data-compare-takeaway="{esc(takeaway)}" data-compare-tradeoff="{esc(tradeoff)}" data-compare-url="{esc(detail_href)}">
   <a class="case-card-media" href="{media_url}" data-case-image data-image-group="library" data-image-caption="{esc(product)}：{esc(alt)}" data-case-target="{esc(detail_href)}" aria-label="放大 {esc(product)} 的界面">
-    <img src="{media_url}" alt="{esc(alt)}" loading="lazy" decoding="async">
+    {card_image(_case_root_media_url(hero.get("cached_src")), alt)}
     <span class="case-card-type">{esc(product_type)}</span>
     <span class="case-card-figures">{esc(material)}</span>
   </a>
@@ -2646,7 +2648,7 @@ def render_cases_page(product_cases, events, css, studies=()):
   <button class="case-compare-open" type="button" data-case-compare-open disabled>开始对比</button>
 </aside>
 <dialog class="case-compare-dialog" data-case-compare-dialog aria-labelledby="caseCompareTitle">
-  <header class="case-compare-head"><div><h2 id="caseCompareTitle">案例横向对比</h2><p>比较问题、设计模式、模块、可借鉴点与边界；手机可左右滑动。</p></div><button class="case-compare-close" type="button" data-case-compare-close>关闭</button></header>
+  <header class="case-compare-head"><div><h2 id="caseCompareTitle">案例对比</h2><p>按问题、设计模式、模块、可借鉴点与边界比较。</p></div><button class="case-compare-close" type="button" data-case-compare-close>关闭</button></header>
   <div class="case-compare-scroll" data-case-compare-content></div>
 </dialog>
 {viewer_markup()}
@@ -3501,6 +3503,16 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
             canonical_path=study_path(study),
         )
         (SITE / study_path(study)).write_text(study_html, encoding="utf-8")
+    upgraded_case_ids = {study.get("event_id") for study in design_studies}
+    reference_cases = [case for case in product_cases if case["event_id"] not in upgraded_case_ids]
+    reference_events = {event["event_id"]: event for event in all_events}
+    for case in reference_cases:
+        reference_html = page_shell(
+            case["product"] + " · 设计案例 · DataHot", case["user_problem"], study_css,
+            render_reading_body(case, reference_events[case["event_id"]], ic("bookmark", 18)),
+            tabbar("cases", "../"), prefix="../", active="cases", canonical_path=reading_path(case),
+        )
+        (SITE / reading_path(case)).write_text(reference_html, encoding="utf-8")
     (SITE / "cases/compare.html").write_text(page_shell(
         COMPARISON_TITLE + " · DataHot", "比较 Metabase、Wren Classic 与 SageMaker 的修改、核验与恢复操作。",
         study_css, render_comparison_body(design_studies, all_events),
@@ -3559,11 +3571,14 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
         valid_ids, valid_topic_slugs, valid_weekly_pages,
         weekly_enabled=weekly_enabled,
     )
-    sitemap_paths = (*sitemap_paths, *(study_path(study) for study in design_studies), "cases/compare.html")
+    sitemap_paths = (*sitemap_paths, *(study_path(study) for study in design_studies),
+                     *(reading_path(case) for case in reference_cases), "cases/compare.html")
     sitemap_day = gen.astimezone(TZ).date().isoformat()
     sitemap_lastmod = {path: sitemap_day for path in sitemap_paths}
     for study in design_studies:
         sitemap_lastmod[study_path(study)] = study["observed_at"]
+    for case in reference_cases:
+        sitemap_lastmod[reading_path(case)] = case["observed_at"]
     sitemap_lastmod["cases/compare.html"] = max(study["observed_at"] for study in design_studies)
     for event in all_events:
         detail_path = f'e/{safe_event_id(event["event_id"])}.html'

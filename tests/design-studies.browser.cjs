@@ -5,6 +5,7 @@
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 const manifest = require('../pipeline/design_studies.json');
+const cases = require('../pipeline/product_cases.json').cases;
 
 (async () => {
   const cdp = process.argv[2];
@@ -36,6 +37,8 @@ const manifest = require('../pipeline/design_studies.json');
   await open('cases.html');
   assert.equal(await page.locator('.case-card').count(), 21);
   await noOverflow();
+  assert((await page.locator('.case-card-media').first().boundingBox()).y < 280, 'first preview should be in the first screen');
+  await page.screenshot({path:'/tmp/datahot-cases-mobile.png'});
   const cardImage = page.locator('.case-card [data-case-image]').first();
   await imageReady(cardImage.locator('img'));
   await cardImage.click();
@@ -51,6 +54,54 @@ const manifest = require('../pipeline/design_studies.json');
   await open('cases.html?question=' + encodeURIComponent('结果表达'));
   assert(await page.locator('.case-card:visible').count() < 21);
   assert(await page.locator('.case-card:visible').count() >= 3);
+  await page.locator('.cases-search').fill('no-such-case-204');
+  assert.equal(await page.locator('.case-card:visible').count(), 0);
+  await page.locator('.cases-reset').click();
+  assert.equal(await page.locator('.case-card:visible').count(), 21);
+
+  const upgraded = new Set(manifest.studies.map(s => s.event_id));
+  const references = cases.filter(c => !upgraded.has(c.event_id));
+  assert.equal(references.length, 15);
+  for (const reference of references) {
+    await open('cases/case-' + reference.event_id + '.html');
+    await noOverflow();
+    assert((await page.locator('.study-image').first().boundingBox()).y < 600, reference.product + ' first-screen image');
+    await imageReady(page.locator('[data-study-step]:visible img'));
+    assert.equal(await page.locator('[data-study-step]:visible').count(), 1);
+    assert(await page.locator('a[href="../e/' + reference.event_id + '.html"]').count());
+    assert.match(await page.locator('[data-step-status]').innerText(), /^配图 1 \/ /);
+    const count = await page.locator('[data-study-step]').count();
+    if (count > 1) {
+      await page.locator('[data-step-next]').click();
+      assert.equal(await page.locator('[data-study-step]:visible').getAttribute('id'), 'step-2');
+      assert((await page.locator('#step-2').boundingBox()).y < 100, 'next figure brought into view');
+    }
+  }
+  await open('cases/case-29e0b8236c7e.html');
+  await page.screenshot({path:'/tmp/datahot-reference-mobile.png'});
+  assert(await page.locator('.study-focus-region').first().isVisible());
+  await page.locator('[data-study-step]:visible [data-case-image]').click();
+  assert.equal(await dialog.locator('.study-focus-region').count(), 0, 'viewer preserves untouched image');
+  await imageReady(dialog.locator('img'));
+  await page.keyboard.press('Escape');
+  await page.locator('.study-save').click();
+  await open('favorites.html');
+  await page.locator('a[href="cases/case-29e0b8236c7e.html"]').first().click();
+  await page.locator('.study-save').click();
+
+  await open('cases.html');
+  for (let i = 0; i < 3; i++) await page.locator('[data-case-compare-toggle]').nth(i).click();
+  await page.locator('[data-case-compare-open]').click();
+  const compare = page.locator('[data-case-compare-dialog]');
+  assert(await compare.evaluate(d => d.open));
+  const dialogBox = await compare.boundingBox();
+  assert(Math.abs(dialogBox.x * 2 + dialogBox.width - 390) < 2, 'dialog centered on phone');
+  assert.equal(await compare.locator('tbody tr').count(), 5);
+  assert.equal(await compare.locator('.case-compare-product:visible').count(), 15);
+  assert(await compare.locator('.case-compare-scroll').evaluate(el => el.scrollWidth <= el.clientWidth + 1));
+  await page.screenshot({path:'/tmp/datahot-custom-compare-mobile.png'});
+  await compare.locator('[data-case-compare-close]').click();
+  await page.locator('[data-case-compare-clear]').click();
 
   for (const study of manifest.studies) {
     await open('cases/' + study.slug + '.html');
@@ -92,15 +143,26 @@ const manifest = require('../pipeline/design_studies.json');
   await noOverflow();
   assert.equal(await page.locator('.study-comparison table tbody tr').count(), 4);
   const table = page.locator('.study-comparison-scroll');
-  assert(await table.evaluate(el => el.scrollWidth > el.clientWidth));
-  await table.evaluate(el => { el.scrollLeft = el.scrollWidth; });
+  assert(await table.evaluate(el => el.scrollWidth <= el.clientWidth + 1));
+  assert.equal(await table.locator('.study-comparison-product:visible').count(), 12);
   await noOverflow();
   await page.screenshot({path:'/tmp/datahot-compare-mobile.png'});
+  for (const width of [320, 430, 700]) {
+    await page.setViewportSize({width,height:844});
+    for (const path of ['cases.html', 'cases/case-29e0b8236c7e.html', 'cases/compare.html']) {
+      await open(path);
+      await noOverflow();
+    }
+  }
 
   await page.setViewportSize({width:1440,height:1000});
   await open('cases.html');
   await noOverflow();
   await page.screenshot({path:'/tmp/datahot-cases-desktop.png'});
+  await open('cases/compare.html');
+  assert.equal(await page.locator('.study-comparison table').evaluate(el => getComputedStyle(el).display), 'table');
+  assert.equal(await page.locator('.study-comparison-product:visible').count(), 0);
+  await page.screenshot({path:'/tmp/datahot-compare-desktop.png'});
   await open('cases/metabase-metabot.html#step-3');
   await imageReady(page.locator('#step-3 img'));
   await noOverflow();
@@ -118,10 +180,13 @@ const manifest = require('../pipeline/design_studies.json');
   assert.equal(await page.locator('[data-study-step]:visible').count(), 4);
   assert(!await page.locator('[data-step-nav]').isVisible());
   assert.match(await page.locator('[data-case-image]').first().getAttribute('href'), /^\.\.\/case-media\//);
+  await open('cases/case-29e0b8236c7e.html');
+  assert.equal(await page.locator('[data-study-step]:visible').count(), await page.locator('[data-study-step]').count());
+  assert(!await page.locator('[data-step-nav]').isVisible());
   assert.deepEqual(errors, []);
   assert.deepEqual(broken, []);
   assert.deepEqual(external, []);
-  console.log('PASS: 21 cards, six studies / 23 images, filters, step links, zoom, keyboard/focus, favorite round-trip, feedback, mobile comparison, desktop/dark and no-JS. Zero external requests.');
+  console.log('PASS: 21 cards, 15 reference readings, six studies / 23 images, first-screen previews, focal regions, filters, steps, zoom, focus, favorites, feedback, both mobile comparisons, 320/390/430/700/1440px, dark and no-JS. Zero external requests.');
   await page.unrouteAll({behavior:'wait'});
   await page.emulateMedia({colorScheme:'light'});
   await browser.close();

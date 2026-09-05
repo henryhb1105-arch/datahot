@@ -8,6 +8,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "pipeline"))
 import build_site
 import design_studies as studies
+import case_readings as readings
+import case_visuals as visuals
 from product_cases import load_product_cases
 
 
@@ -106,6 +108,44 @@ class DesignStudyTests(unittest.TestCase):
         body = studies.render_study_body(study, self.studies, self.events, "")
         self.assertNotIn('<script>alert("x")</script>', body)
         self.assertIn("&lt;script&gt;", body)
+
+    def test_fifteen_reference_readings_preserve_evidence_articles_and_ids(self):
+        upgraded = {s.get("event_id") for s in self.studies}
+        references = [c for c in self.cases if c["event_id"] not in upgraded]
+        self.assertEqual(len(references), 15)
+        events = {e["event_id"]: e for e in self.events}
+        before = copy.deepcopy(events)
+        for case in references:
+            event = events[case["event_id"]]
+            figures = readings.reading_figures(case, event)
+            original = {b["cached_src"] for b in event["content_blocks"] if b.get("type") == "figure" and b.get("cached_src")}
+            self.assertEqual({f["cached_src"] for f in figures}, original)
+            body = readings.render_reading_body(case, event, "")
+            self.assertEqual(body.count("data-study-step="), len(figures))
+            self.assertIn(f'../e/{case["event_id"]}.html', body)
+            self.assertIn(f'data-fav="{case["event_id"]}"', body)
+            self.assertIn(readings.reading_path(case), body)
+            self.assertIn("配图不代表一次连续操作", body)
+            self.assertIn('data-step-label="配图"', body)
+            self.assertIn("资料出处", body)
+            for figure in figures:
+                self.assertTrue((ROOT / "site" / figure["cached_src"].removeprefix("../")).is_file())
+        self.assertEqual(events, before)
+
+    def test_focal_regions_match_original_dimensions_and_viewer_keeps_original(self):
+        from PIL import Image
+        for src, region in visuals.load_visuals().items():
+            path = ROOT / ("pipeline/assets/" + src if src.startswith("case-media/") else "site/" + src)
+            with Image.open(path) as image:
+                self.assertEqual(image.size, (region["image_width"], region["image_height"]))
+            self.assertIn(f'src="{src}"', visuals.card_image(src, "preview"))
+            self.assertIn("局部预览", visuals.card_image(src, "preview"))
+            detail = visuals.detail_image("../" + src, "image")
+            self.assertIn(f'src="../{src}"', detail)
+            self.assertIn('aria-hidden="true"', detail)
+            self.assertIn(region["label"], visuals.focus_caption(src))
+        body = readings.render_reading_body(next(c for c in self.cases if c["event_id"] == "29e0b8236c7e"), next(e for e in self.events if e["event_id"] == "29e0b8236c7e"), "")
+        self.assertIn('href="../media/29e0b8236c7e/d45f74e73e29148873a6a60f.png" data-case-image', body)
 
 
 if __name__ == "__main__":

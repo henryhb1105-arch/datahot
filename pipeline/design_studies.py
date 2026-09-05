@@ -14,6 +14,7 @@ from pathlib import Path
 from urllib.parse import quote, urlsplit
 
 from product_cases import DESIGN_QUESTIONS, PRODUCT_TYPES, TASK_TYPES
+from case_visuals import detail_image, focus_caption
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "pipeline/design_studies.json"
@@ -230,8 +231,8 @@ def render_study_body(study, studies, events, bookmark_icon):
     panels = []
     for i, step in enumerate(steps, 1):
         panels.append(f'''<section class="study-step" id="step-{i}" data-study-step="{i}" aria-labelledby="stepTitle{i}">
-  <figure><a class="study-image" href="../{esc(step['src'])}" data-case-image data-image-group="{esc(study['slug'])}" data-image-caption="{esc(step['title'])}" aria-label="放大：{esc(step['title'])}"><img src="../{esc(step['src'])}" alt="{esc(step['title'])} — {esc(step['focus'])}" {'loading="lazy"' if i > 1 else 'fetchpriority="high"'} decoding="async"><span>点击放大 ↗</span></a>
-  <figcaption>{esc(study['material_type'])} · <a href="{esc(step['source_url'])}" target="_blank" rel="noopener noreferrer">{esc(step['source_title'])} ↗</a></figcaption></figure>
+  <figure><a class="study-image" href="../{esc(step['src'])}" data-case-image data-image-group="{esc(study['slug'])}" data-image-caption="{esc(step['title'])}" aria-label="放大：{esc(step['title'])}">{detail_image("../" + step['src'], step['title'] + " — " + step['focus'], 'loading="lazy"' if i > 1 else 'fetchpriority="high"')}<span>点击放大 ↗</span></a>
+  <figcaption>{focus_caption(step['src'])}{esc(study['material_type'])} · <a href="{esc(step['source_url'])}" target="_blank" rel="noopener noreferrer">{esc(step['source_title'])} ↗</a></figcaption></figure>
   <div class="study-step-copy"><p class="study-step-number">操作 {i:02d} / {len(steps):02d}</p><h2 id="stepTitle{i}">{esc(step['title'])}</h2>
     <dl><dt>用户操作</dt><dd>{esc(step['action'])}</dd><dt>系统反馈 · 公开材料</dt><dd>{esc(step['feedback'])}</dd><dt>看图重点</dt><dd>{esc(step['focus'])}</dd></dl>
     <div class="study-insight"><b>DataHot 解读</b><p>{esc(step['insight'])}</p></div>
@@ -278,6 +279,6 @@ def render_comparison_body(studies, events):
         cells = []
         for study in selected:
             cell = study["comparison"][key]
-            cells.append(f'<td><p>{esc(cell["text"])}</p><a href="{esc(study["slug"])}.html#step-{cell["step"]}">查看操作 {cell["step"]:02d} 的证据 →</a></td>')
+            cells.append(f'<td><a class="study-comparison-product" href="{esc(study["slug"])}.html">{esc(study["product"])}</a><p>{esc(cell["text"])}</p><a href="{esc(study["slug"])}.html#step-{cell["step"]}">查看操作 {cell["step"]:02d} 的证据 →</a></td>')
         rows.append(f'<tr><th scope="row">{esc(label)}</th>{"".join(cells)}</tr>')
-    return f'''<main class="wrap study-page study-comparison"><a class="study-back" href="../cases.html">← 数据产品设计库</a><header class="study-header"><p class="study-product">同一个设计问题 · 三种做法</p><h1>{COMPARISON_TITLE}</h1><p class="study-problem">比较控制权放在哪里，以及用户如何检查、修改和恢复。下表只记录材料支持的行为，不评价模型准确率。</p></header><p class="study-version">手机可左右滑动表格。Wren 为 GenBI Classic 历史界面；空缺能力写“未展示”，不等于产品没有。</p><div class="study-comparison-scroll" tabindex="0" role="region" aria-label="三种结果纠偏方式对比"><table><thead><tr><th scope="col">设计问题</th>{''.join(heads)}</tr></thead><tbody>{''.join(rows)}</tbody></table></div><section class="study-decision"><h2>如何选用 · DataHot 判断</h2><p>已有 SQL 工作台：优先研究 Metabase 的差异审阅；用户更懂业务模型：参考 Wren 的步骤与 SQL 双通道；已有多引擎 Notebook：研究 SageMaker 的单元格上下文和就地修复。三者都仍需你设计结果核验与权限边界。</p></section></main>{viewer_markup()}<script defer src="../design-studies.js"></script>'''
+    return f'''<main class="wrap study-page study-comparison"><a class="study-back" href="../cases.html">← 数据产品设计库</a><header class="study-header"><p class="study-product">同一个设计问题 · 三种做法</p><h1>{COMPARISON_TITLE}</h1><p class="study-problem">比较控制权放在哪里，以及用户如何检查、修改和恢复。下表只记录材料支持的行为，不评价模型准确率。</p></header><p class="study-version">Wren 为 GenBI Classic 历史界面；空缺能力写“未展示”，不等于产品没有。</p><div class="study-comparison-scroll" tabindex="0" role="region" aria-label="三种结果纠偏方式对比"><table><thead><tr><th scope="col">设计问题</th>{''.join(heads)}</tr></thead><tbody>{''.join(rows)}</tbody></table></div><section class="study-decision"><h2>如何选用 · DataHot 判断</h2><p>已有 SQL 工作台：优先研究 Metabase 的差异审阅；用户更懂业务模型：参考 Wren 的步骤与 SQL 双通道；已有多引擎 Notebook：研究 SageMaker 的单元格上下文和就地修复。三者都仍需你设计结果核验与权限边界。</p></section></main>{viewer_markup()}<script defer src="../design-studies.js"></script>'''

@@ -100,7 +100,12 @@
         button.classList.toggle("on", Boolean(item && item.reason === button.getAttribute("data-feedback-reason")));
       });
       var status = box.querySelector("[data-feedback-status]");
-      if (status) status.textContent = item ? "已记录，当前设备的关注排序会立即调整" : "反馈只用于改善内容筛选，不等同于收藏";
+      if (status) {
+        var design = box.getAttribute("data-feedback-kind") === "design";
+        status.textContent = design
+          ? (item ? "已记录在当前设备；不会自动收藏或改变案例内容。" : "反馈与收藏分开保存在当前设备。")
+          : (item ? "已记录，当前设备的关注排序会立即调整" : "反馈只用于改善内容筛选，不等同于收藏");
+      }
     }
     function emit(box, item) {
       if (!win.DataHotAnalytics || typeof win.DataHotAnalytics.track !== "function") return;

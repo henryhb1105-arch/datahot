@@ -1,0 +1,47 @@
+name: DataHot X 设计案例分发
+
+on:
+  schedule:
+    - cron: "7 10 * * *"
+    - cron: "17 10 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "audit 只读身份；initialize 首次建账；publish 单日幂等发布"
+        required: true
+        type: choice
+        default: audit
+        options: [audit, initialize, publish]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: datahot-x-growth
+  cancel-in-progress: false
+
+jobs:
+  share:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || vars.GROWTH_X_ENABLED == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 发布安全回归（不访问生产接口）
+        run: python3 -m unittest discover -s tests -p 'test_x_growth_share.py' -v
+      - name: 执行已授权的 X 运营动作
+        env:
+          X_MODE: ${{ inputs.mode || 'publish' }}
+          GROWTH_X_ENABLED: ${{ vars.GROWTH_X_ENABLED || 'false' }}
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 pipeline/x_growth_share.py --mode "$X_MODE"

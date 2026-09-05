@@ -16,7 +16,11 @@ const cases = require('../pipeline/product_cases.json').cases;
   const page = context.pages().find(p => p.url().startsWith(base));
   assert(page, 'Open the local preview in agent-browser first');
   assert.equal(new URL(page.url()).origin, new URL(base).origin);
-  const errors = [], external = [], broken = [];
+  const errors = [], external = [], broken = [], unversioned = [];
+  page.on('request', request => {
+    const url = new URL(request.url());
+    if (/\/(?:cases|design-studies)\.js$/.test(url.pathname) && !/^\?v=[a-f0-9]{12}$/.test(url.search)) unversioned.push(url.href);
+  });
   page.on('pageerror', e => errors.push(e.message));
   page.on('response', r => { if (r.status() >= 400) broken.push(r.url() + ' ' + r.status()); });
   await page.route('**/*', route => {
@@ -175,7 +179,7 @@ const cases = require('../pipeline/product_cases.json').cases;
   await page.keyboard.press('Escape');
 
   // No-JS reading: all evidence remains in HTML and image links still work.
-  await page.route('**/*.js', route => route.abort());
+  await page.route(/\.js(?:\?|$)/, route => route.abort());
   await open('cases/hex-threads.html');
   assert.equal(await page.locator('[data-study-step]:visible').count(), 4);
   assert(!await page.locator('[data-step-nav]').isVisible());
@@ -186,6 +190,7 @@ const cases = require('../pipeline/product_cases.json').cases;
   assert.deepEqual(errors, []);
   assert.deepEqual(broken, []);
   assert.deepEqual(external, []);
+  assert.deepEqual(unversioned, [], 'case pages must request the matching script version');
   console.log('PASS: 21 cards, 15 reference readings, six studies / 23 images, first-screen previews, focal regions, filters, steps, zoom, focus, favorites, feedback, both mobile comparisons, 320/390/430/700/1440px, dark and no-JS. Zero external requests.');
   await page.unrouteAll({behavior:'wait'});
   await page.emulateMedia({colorScheme:'light'});

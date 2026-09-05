@@ -9,7 +9,7 @@ import json
 import re
 from urllib.parse import quote
 
-from design_studies import esc, https_url, viewer_markup
+from design_studies import esc, https_url, viewer_markup, versioned_script
 from product_cases import find_case_hero
 from case_visuals import detail_image, focus_caption
 
@@ -115,4 +115,4 @@ def render_reading_body(case, event, bookmark_icon):
   <p class="study-limits"><b>适用边界</b>{esc(limits)}</p><nav class="study-question-links" aria-label="相关设计问题">{questions}</nav>
   <section class="study-sources"><h2>资料出处</h2><ul>{source_links}</ul><a href="../e/{identifier}.html">阅读站内原文 →</a></section>
   <section class="study-feedback content-feedback" data-content-feedback data-feedback-kind="design" data-event-id="{identifier}" data-feedback-context="{context}" aria-label="案例反馈"><h2>对你的产品设计有帮助吗？</h2><div><button type="button" data-feedback-value="useful" aria-pressed="false">有帮助</button><button type="button" data-feedback-value="not_useful" aria-pressed="false">帮助不大</button></div><p data-feedback-status aria-live="polite">反馈与收藏分开保存在当前设备。</p></section>
-</main>{viewer_markup()}<script defer src="../design-studies.js"></script><script defer src="../content-feedback.js"></script>'''
+</main>{viewer_markup()}<script defer src="{versioned_script('design-studies.js', '../')}"></script><script defer src="../content-feedback.js"></script>'''

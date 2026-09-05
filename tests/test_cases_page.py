@@ -102,7 +102,7 @@ class ProductCasesPageTests(unittest.TestCase):
         self.assertIn("data-case-compare-toggle", page)
         self.assertIn("data-case-compare-dialog", page)
         self.assertIn("@media(max-width:600px)", page)
-        self.assertIn('src="cases.js"', page)
+        self.assertRegex(page, r'src="cases\.js\?v=[a-f0-9]{12}"')
 
     def test_selected_detail_adds_design_breakdown_without_removing_reader_actions(self):
         event = case_event()

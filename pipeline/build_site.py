@@ -903,11 +903,12 @@ def analytics_head(prefix=""):
     endpoint_valid = bool(parsed.scheme == "https" and parsed.netloc)
     enabled = enabled_value in {"1", "true", "yes", "on"} and environment == "production" and endpoint_valid
     safe_endpoint = safe_https_endpoint if endpoint_valid else ""
+    asset_version = hashlib.sha256(ANALYTICS_ASSET.read_bytes()).hexdigest()[:12]
     return (
         f'<meta name="datahot-analytics" data-enabled="{str(enabled).lower()}" '
         f'data-endpoint="{esc(safe_endpoint)}" data-site-id="{esc(site_id)}" '
         f'data-environment="{esc(environment)}" data-production-host="{esc(production_host)}">\n'
-        f'<script defer src="{prefix}analytics.js"></script>'
+        f'<script defer src="{prefix}analytics.js?v={asset_version}"></script>'
     )
 
 

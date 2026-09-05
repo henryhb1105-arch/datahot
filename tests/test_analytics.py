@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import sys
@@ -170,6 +171,18 @@ class AnalyticsMetricTests(unittest.TestCase):
 
 
 class AnalyticsBuildIntegrationTests(unittest.TestCase):
+    def test_analytics_asset_version_changes_only_when_script_content_changes(self):
+        with patch.object(build_site, "ANALYTICS_ASSET") as asset:
+            asset.read_bytes.return_value = b"first version"
+            version = hashlib.sha256(b"first version").hexdigest()[:12]
+            first = build_site.analytics_head("../")
+            self.assertIn(f'src="../analytics.js?v={version}"', first)
+            self.assertEqual(build_site.analytics_head("../"), first)
+            asset.read_bytes.return_value = b"second version"
+            changed = hashlib.sha256(b"second version").hexdigest()[:12]
+            self.assertIn(f'src="analytics.js?v={changed}"', build_site.analytics_head())
+            self.assertNotIn(f"?v={version}", build_site.analytics_head())
+
     def base_event(self):
         return {
             "event_id": "aaaaaaaaaaaa", "zh_title": "Analytics", "zh_summary": "Summary",
@@ -205,7 +218,8 @@ class AnalyticsBuildIntegrationTests(unittest.TestCase):
         detail = build_site.render_detail(item, [item], "")
         self.assertIn('data-page="detail" data-event-id="aaaaaaaaaaaa"', detail)
         self.assertIn('data-analytics="outbound"', detail)
-        self.assertIn('src="../analytics.js"', detail)
+        version = hashlib.sha256(build_site.ANALYTICS_ASSET.read_bytes()).hexdigest()[:12]
+        self.assertIn(f'src="../analytics.js?v={version}"', detail)
         self.assertIn('<meta name="twitter:card" content="summary_large_image">', detail)
         self.assertIn(
             '<meta property="og:image" content="https://datahot.xiahongbin.com/media/aaaaaaaaaaaa/123456789abc.webp">',

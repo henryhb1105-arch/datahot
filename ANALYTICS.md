@@ -2,6 +2,8 @@
 
 ## 默认状态与启用
 
+统计脚本以 `analytics.js?v=<源码 SHA256 前 12 位>` 引用。内容变化时自动使用新缓存键；不变化则继续复用缓存。根页面与嵌套案例/详情页共用同一版本，避免 CDN 继续返回修复前的路径校验规则。版本号不包含访客信息，验收只读取 HTTP 资源并在本地模拟事件，禁止向生产发送测试流量。
+
 分析客户端随站点发布，但默认 `ANALYTICS_ENABLED=false`，没有接收端时不会创建匿名 ID，也不会发送请求。启用需要同时设置 GitHub Actions Variables：
 
 - `ANALYTICS_ENABLED=true`

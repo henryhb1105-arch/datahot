@@ -28,6 +28,10 @@ from social_cards import social_image_for_event
 from seo import absolute_public_url, public_sitemap_paths, write_search_discovery
 from indexnow import write_key_file as write_indexnow_key_file
 from product_cases import DESIGN_QUESTIONS, find_case_hero, load_product_cases
+from design_studies import (
+    load_studies, library_records, resolved_steps, study_path, viewer_markup,
+    render_study_body, render_comparison_body, COMPARISON_TITLE,
+)
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
@@ -2476,9 +2480,10 @@ def _case_root_media_url(cached_src):
     return value
 
 
-def render_cases_page(product_cases, events, css):
+def render_cases_page(product_cases, events, css, studies=()):
     """A question-led product-design reference and comparison workspace."""
-    event_map = {str(event.get("event_id") or ""): event for event in events}
+    product_cases, event_map = library_records(product_cases, events, studies)
+    study_order = {study["slug"]: index for index, study in enumerate(studies)}
     product_type_order = ("Data Agent", "数据平台", "BI/数据应用")
     task_type_order = ("找数据", "问数据", "做分析", "看结果", "管任务", "做治理")
     question_prompts = {
@@ -2492,12 +2497,19 @@ def render_cases_page(product_cases, events, css):
     prepared = []
     for product_case in product_cases:
         event = event_map.get(str(product_case.get("event_id") or ""))
-        hero = find_case_hero(event, product_case) if event else None
+        study = product_case.get("study")
+        if study:
+            step = resolved_steps(study, events)[study["hero_step"] - 1]
+            hero = {"cached_src": "../" + step["src"], "alt": step["title"]}
+        else:
+            hero = find_case_hero(event, product_case) if event else None
         if not event or not hero:
             continue
         prepared.append((product_case, event, hero))
     prepared.sort(
         key=lambda item: (
+            bool(item[0].get("study")),
+            -study_order.get((item[0].get("study") or {}).get("slug"), 99),
             str(item[0].get("observed_at") or ""),
             str(item[1].get("published") or item[1].get("first_seen") or ""),
         ),
@@ -2546,6 +2558,7 @@ def render_cases_page(product_cases, events, css):
 
     cards = []
     for product_case, event, hero in prepared:
+        study = product_case.get("study")
         product = str(product_case.get("product") or event.get("zh_title") or "产品案例")
         product_type = str(product_case.get("product_type") or "")
         task_type = str(product_case.get("task_type") or "")
@@ -2553,11 +2566,13 @@ def render_cases_page(product_cases, events, css):
             str(value) for value in (product_case.get("design_questions") or [])
             if str(value).strip()
         ]
-        problem = str(product_case.get("user_problem") or "")
+        problem = str((study or {}).get("problem") or product_case.get("user_problem") or "")
         solution_values = product_case.get("datahot_interpretation") or []
         solution = str(solution_values[0]) if solution_values else ""
         takeaway_values = product_case.get("takeaways") or []
         takeaway = str(takeaway_values[0]) if takeaway_values else ""
+        if study:
+            takeaway = study["takeaway"]
         tradeoff_values = product_case.get("tradeoffs") or []
         tradeoff = str(tradeoff_values[0]) if tradeoff_values else ""
         all_modules = [
@@ -2566,10 +2581,15 @@ def render_cases_page(product_cases, events, css):
         ]
         modules = all_modules[:2]
         tags = "".join(f"<span>{esc(value)}</span>" for value in modules)
-        figure_count = sum(
-            1 for block in (event.get("content_blocks") or [])
-            if isinstance(block, dict) and block.get("type") == "figure" and block.get("cached_src")
-        )
+        material = "产品截图"
+        if event['event_id'] in {"c93bfa7909b8", "6c6fc36a363b"}:
+            material = "架构/方法参考"
+        elif event['event_id'] in {"bd501c61d0f5", "c90518881d01"}:
+            material = "官方示意"
+        elif event['event_id'] == "83357b7d65a2":
+            material = "社区实操截图"
+        if study:
+            material = f"{len(study['steps'])} 个操作 · " + study['material_type']
         search_text = " ".join([
             product, product_type, task_type, problem, solution, takeaway, tradeoff,
             *design_questions, *all_modules,
@@ -2577,20 +2597,22 @@ def render_cases_page(product_cases, events, css):
         ]).casefold()
         alt = str(hero.get("alt") or hero.get("caption") or f"{product} 设计案例代表图")
         source_name = str(((event.get("items") or [{}])[0]).get("source") or "")
-        detail_href = detail_url(event)
+        detail_href = study_path(study) if study else detail_url(event)
+        study_title = f'<small>{esc(study["title"])}</small>' if study else ''
+        media_url = esc(_case_root_media_url(hero.get('cached_src')))
         cards.append(f'''<article class="case-card" data-case-card data-case-id="{esc(event['event_id'])}" data-analytics-list="1" data-event-id="{esc(event['event_id'])}" data-category="{esc(event.get('category') or '')}" data-source="{esc(source_name)}" data-product-type="{esc(product_type)}" data-task-type="{esc(task_type)}" data-design-questions="{esc('|'.join(design_questions))}" data-search="{esc(search_text)}" data-compare-product="{esc(product)}" data-compare-problem="{esc(problem)}" data-compare-pattern="{esc(solution)}" data-compare-modules="{esc(' · '.join(all_modules))}" data-compare-takeaway="{esc(takeaway)}" data-compare-tradeoff="{esc(tradeoff)}" data-compare-url="{esc(detail_href)}">
-  <a class="case-card-media" href="{detail_href}" data-event-id="{esc(event['event_id'])}">
-    <img src="{esc(_case_root_media_url(hero.get('cached_src')))}" alt="{esc(alt)}" loading="lazy" decoding="async">
+  <a class="case-card-media" href="{media_url}" data-case-image data-image-group="library" data-image-caption="{esc(product)}：{esc(alt)}" data-case-target="{esc(detail_href)}" aria-label="放大 {esc(product)} 的界面">
+    <img src="{media_url}" alt="{esc(alt)}" loading="lazy" decoding="async">
     <span class="case-card-type">{esc(product_type)}</span>
-    <span class="case-card-figures">{figure_count} 张原文图</span>
+    <span class="case-card-figures">{esc(material)}</span>
   </a>
   <div class="case-card-body">
     <div class="case-card-kicker"><span>{esc(task_type)}</span>{f'<span>{esc(design_questions[0])}</span>' if design_questions else ''}</div>
-    <h2><a class="case-card-title" href="{detail_href}">{esc(product)}</a></h2>
+    <h2><a class="case-card-title" href="{detail_href}">{esc(product)}{study_title}</a></h2>
     <p class="case-card-problem"><b>要解决：</b>{esc(problem)}</p>
     {f'<p class="case-card-takeaway"><b>可借鉴</b>{esc(takeaway)}</p>' if takeaway else ''}
     {f'<div class="case-card-tags" aria-label="主要功能模块">{tags}</div>' if tags else ''}
-    <div class="case-card-foot"><button class="case-card-compare" type="button" data-case-compare-toggle aria-pressed="false">加入对比</button><a class="case-card-open" href="{detail_href}">完整拆解 →</a></div>
+    <div class="case-card-foot"><button class="case-card-compare" type="button" data-case-compare-toggle aria-pressed="false">加入对比</button><a class="case-card-open" href="{detail_href}">{'分步看设计' if study else '完整拆解'} →</a></div>
   </div>
 </article>''')
 
@@ -2613,6 +2635,7 @@ def render_cases_page(product_cases, events, css):
     </div></details>
     <div class="cases-result-tools"><span><span data-case-count>{len(prepared)}</span> 个匹配</span><button class="cases-reset" type="button" data-case-reset hidden>清除筛选</button></div>
   </section>
+  {f'<a class="cases-study-link" href="cases/compare.html"><span>同题对比：{COMPARISON_TITLE}</span><span>三种做法 →</span></a>' if studies else ''}
   <div class="cases-grid" data-case-grid aria-live="polite">{cards_html}</div>
   <div class="cases-empty{' show' if not prepared else ''}" data-case-empty><div><b>没有匹配的案例</b><br>换个设计问题、产品形态、用户任务或关键词试试。</div></div>
   <noscript><p class="cases-empty show">启用 JavaScript 后可以搜索和筛选；案例内容仍可直接浏览。</p></noscript>
@@ -2626,11 +2649,12 @@ def render_cases_page(product_cases, events, css):
   <header class="case-compare-head"><div><h2 id="caseCompareTitle">案例横向对比</h2><p>比较问题、设计模式、模块、可借鉴点与边界；手机可左右滑动。</p></div><button class="case-compare-close" type="button" data-case-compare-close>关闭</button></header>
   <div class="case-compare-scroll" data-case-compare-content></div>
 </dialog>
-<script defer src="cases.js"></script>'''
+{viewer_markup()}
+<script defer src="cases.js"></script><script defer src="design-studies.js"></script>'''
     return page_shell(
         "数据产品设计库 · DataHot",
         "按真实设计问题比较 Data Agent、数据平台、BI 与数据应用的界面、交互和取舍。",
-        css + CASES_CSS, body, tabbar("cases"), prefix="", active="cases",
+        css + CASES_CSS + (ROOT / "pipeline/assets/design-studies.css").read_text(encoding="utf-8"), body, tabbar("cases"), prefix="", active="cases",
         canonical_path="cases.html",
     )
 
@@ -3145,6 +3169,8 @@ def main():
     shutil.copyfile(FAVORITES_ASSET, SITE / "favorites.js")
     shutil.copyfile(DETAIL_ASSET, SITE / "detail.js")
     shutil.copyfile(CASES_ASSET, SITE / "cases.js")
+    shutil.copyfile(ROOT / "pipeline/assets/design-studies.js", SITE / "design-studies.js")
+    shutil.copytree(ROOT / "pipeline/assets/case-media", SITE / "case-media", dirs_exist_ok=True)
     shutil.copyfile(TTS_ASSET, SITE / "tts-player.js")
     payload = json.load(open(SITE / "data" / "latest.json"))
     all_events = payload["events"]
@@ -3152,6 +3178,7 @@ def main():
     for event in all_events:
         safe_event_id(event.get("event_id"))
     product_cases = load_product_cases(events=all_events)
+    design_studies = load_studies(all_events)
     qualified_events = [event for event in all_events if is_list_eligible(event)]
     weekly_enabled = weekly_brief_enabled()
     weekly_brief = load_weekly_brief() if weekly_enabled else None
@@ -3462,7 +3489,23 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
 
     page = finalize_html_security(page)
     (SITE / "sources.html").write_text(render_sources_page(timeline_events, payload, css), encoding="utf-8")
-    (SITE / "cases.html").write_text(render_cases_page(product_cases, all_events, css), encoding="utf-8")
+    (SITE / "cases.html").write_text(render_cases_page(product_cases, all_events, css, design_studies), encoding="utf-8")
+    study_css = css + (ROOT / "pipeline/assets/design-studies.css").read_text(encoding="utf-8")
+    (SITE / "cases").mkdir(exist_ok=True)
+    for study in design_studies:
+        study_html = page_shell(
+            study["product"] + " · " + study["title"] + " · DataHot",
+            study["problem"], study_css,
+            render_study_body(study, design_studies, all_events, ic("bookmark", 18)),
+            tabbar("cases", "../"), prefix="../", active="cases",
+            canonical_path=study_path(study),
+        )
+        (SITE / study_path(study)).write_text(study_html, encoding="utf-8")
+    (SITE / "cases/compare.html").write_text(page_shell(
+        COMPARISON_TITLE + " · DataHot", "比较 Metabase、Wren Classic 与 SageMaker 的修改、核验与恢复操作。",
+        study_css, render_comparison_body(design_studies, all_events),
+        tabbar("cases", "../"), prefix="../", active="cases", canonical_path="cases/compare.html",
+    ), encoding="utf-8")
     (SITE / "hot.html").write_text(
         render_hot_page(hot_window_events, css, reference_time=gen), encoding="utf-8",
     )
@@ -3516,8 +3559,12 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
         valid_ids, valid_topic_slugs, valid_weekly_pages,
         weekly_enabled=weekly_enabled,
     )
+    sitemap_paths = (*sitemap_paths, *(study_path(study) for study in design_studies), "cases/compare.html")
     sitemap_day = gen.astimezone(TZ).date().isoformat()
     sitemap_lastmod = {path: sitemap_day for path in sitemap_paths}
+    for study in design_studies:
+        sitemap_lastmod[study_path(study)] = study["observed_at"]
+    sitemap_lastmod["cases/compare.html"] = max(study["observed_at"] for study in design_studies)
     for event in all_events:
         detail_path = f'e/{safe_event_id(event["event_id"])}.html'
         if detail_path in sitemap_lastmod:

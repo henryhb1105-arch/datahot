@@ -46,7 +46,7 @@ UUID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{
 EVENT_ID_RE = re.compile(r"^[a-f0-9]{12}$")
 PAGE_PATH_RE = re.compile(
     r"^/(?:$|(?:index|for-me|cases|weekly|daily|topics|classics|hot|favorites|sources|privacy)\.html$|"
-    r"topics/[a-z0-9-]{1,60}\.html$|weekly/\d{4}-W\d{2}\.html$|e/[a-f0-9]{12}\.html$)"
+    r"(?:topics|cases)/[a-z0-9-]{1,60}\.html$|weekly/\d{4}-W\d{2}\.html$|e/[a-f0-9]{12}\.html$)"
 )
 SITE_ID_RE = re.compile(r"^[a-z0-9_-]{1,40}$")
 SAFE_TEXT_RE = re.compile(r"^[^\x00-\x1f\x7f]{0,80}$")

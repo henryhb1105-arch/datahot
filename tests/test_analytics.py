@@ -68,6 +68,24 @@ class AnalyticsSchemaTests(unittest.TestCase):
     def test_insight_category_is_valid(self):
         self.assertEqual(validate_event(event(6, "session_start", category="insight")), [])
 
+    def test_design_routes_accept_attribution_but_never_private_path_data(self):
+        studies = json.loads((ROOT / "pipeline/design_studies.json").read_text())["studies"]
+        paths = ["/cases/compare.html"] + [f"/cases/{study['slug']}.html" for study in studies]
+        for path in paths:
+            with self.subTest(path=path):
+                self.assertEqual(validate_event(event(
+                    17, "page_view", page="cases", page_path=path,
+                    acquisition_source="x", acquisition_format="text",
+                )), [])
+        for path in [
+            "/cases/hex-threads.html?private=1", "/cases/compare.html#private",
+            "/cases/../account.html", "/cases/%2e%2e.html", "/cases/person@example.com.html",
+            "/cases/customer/record.html", "/cases/Hex.html", "/cases/.html",
+            "/cases/" + "a" * 61 + ".html",
+        ]:
+            with self.subTest(path=path):
+                self.assertIn("page_path_required", validate_event(event(18, "page_view", page_path=path)))
+
     def test_acquisition_requires_a_complete_allowlisted_pair(self):
         attributed = event(
             11, "page_view", page_path="/e/aaaaaaaaaaaa.html", page="detail",

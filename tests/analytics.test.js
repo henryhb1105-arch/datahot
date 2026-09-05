@@ -128,6 +128,46 @@ test("minimum event model is explicitly enumerated", () => {
   assert.equal(typeof analytics.observeList, "function");
 });
 
+test("every design study and comparison route survives the client-to-worker contract", async () => {
+  const { validateEvent, toStoredEvent } = await import("../ops/traffic-worker/src/schema.js");
+  const { studies } = require("../pipeline/design_studies.json");
+  const paths = ["/cases/compare.html", ...studies.map((study) => `/cases/${study.slug}.html`)];
+  for (const path of paths) {
+    for (const prefix of ["", "/datahot"]) {
+      assert.equal(analytics.pageFromPath(prefix + path), "cases");
+      const input = analytics.sanitizeEvent({
+        name: "page_view", site_id: "datahot", environment: "production",
+        page: analytics.pageFromPath(prefix + path),
+        page_path: prefix + path + "?utm_source=x&utm_content=text&private=must-drop#step-2",
+        acquisition_source: "x", acquisition_format: "text",
+        event_uuid: "00000000-0000-4000-8000-000000000001",
+        session_id: "00000000-0000-4000-8000-000000000002",
+        device_id: "00000000-0000-4000-8000-000000000003",
+        ts: "2026-09-05T01:00:00Z", sequence: 1, viewport: "large", referrer: "social",
+      });
+      assert.equal(input.page_path, path);
+      assert.deepEqual(validateEvent(input, { now: Date.parse("2026-09-05T01:01:00Z") }), []);
+      const stored = toStoredEvent(input, "2026-09-05T01:01:00Z");
+      assert.equal(stored.page_path, path);
+      assert.equal(stored.page, "cases");
+      assert.equal(stored.acquisition_source, "x");
+      assert.equal(stored.acquisition_format, "text");
+      assert.equal(JSON.stringify(stored).includes("must-drop"), false);
+    }
+  }
+});
+
+test("case routes cannot admit private paths or unbounded slugs", () => {
+  for (const path of [
+    "/cases/../account.html", "/cases/%2e%2e.html", "/cases/person@example.com.html",
+    "/cases/customer/record.html", "/cases/Hex.html", "/cases/.html",
+    "/cases/" + "a".repeat(61) + ".html", "https://datahot.xiahongbin.com/cases/hex-threads.html",
+  ]) {
+    assert.equal(analytics.safePagePath(path), "", path);
+    assert.equal(analytics.pageFromPath(path), "other", path);
+  }
+});
+
 test("automated browsers never create identifiers or send events", () => {
   let storageTouches = 0;
   let sends = 0;

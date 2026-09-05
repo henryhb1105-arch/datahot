@@ -249,7 +249,7 @@
 .study-step[hidden],.study-step-nav[hidden],.study-step-controls[hidden]{display:none}
 .study-step figure{min-width:0;margin:0}.study-image{position:relative;display:flex;align-items:center;justify-content:center;min-height:350px;height:100%;max-height:530px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#f5f6f8;cursor:zoom-in}
 .study-image img{display:block;width:100%;max-height:520px;object-fit:contain}
-.study-image>span{position:absolute;right:10px;bottom:10px;padding:4px 8px;border-radius:6px;background:rgba(255,255,255,.96);color:#252832;font-size:12px}
+.study-image>span:not(.study-image-frame){position:absolute;right:10px;bottom:10px;padding:4px 8px;border-radius:6px;background:rgba(255,255,255,.96);color:#252832;font-size:12px}
 .study-step figcaption{padding:8px 0;color:var(--sub);font-size:12px;line-height:1.6;overflow-wrap:anywhere}
 .study-step-copy{padding:2px 0;min-width:0}.study-step-number{margin:0;color:var(--sub);font-size:12px;font-weight:700;letter-spacing:.06em}
 .study-step h2{margin:4px 0 14px;font-size:22px;line-height:1.4}.study-step dl,.study-lessons dl{margin:0}
@@ -301,6 +301,56 @@
   .study-comparison th,.study-comparison td{padding:12px;min-width:225px}.study-comparison th:first-child{min-width:80px}.study-comparison table{min-width:820px}
   .case-image-dialog{width:100vw;height:100dvh;border-radius:0;border:0}.case-image-dialog header{padding:12px}.case-image-dialog h2{font-size:14px}.case-image-dialog footer{gap:6px;flex-wrap:wrap;padding-bottom:calc(10px + env(safe-area-inset-bottom))}.case-image-dialog button{padding:6px 10px;font-size:13px}
 }
+
+/* Same evidence and links; mobile comparisons group products by question. */
+.study-comparison-product,.case-compare-product{display:none}
+.case-compare-table td p{margin:0}
+.case-compare-bar{top:auto;transform:translateX(-50%)}
+.case-compare-dialog{margin:auto}
+.study-reference-details ul{margin:0;padding-left:20px;color:var(--txt2);font-size:15px;line-height:1.85}
+.study-reference-details li+li{margin-top:8px}
+@media(max-width:700px){
+  .study-comparison-scroll{overflow:visible;border:0;border-radius:0}
+  .study-comparison table,.case-compare-table{display:block;width:100%;min-width:0;border:0}
+  .study-comparison thead,.case-compare-table thead{display:none}
+  .study-comparison tbody,.case-compare-table tbody{display:block}
+  .study-comparison tbody tr,.case-compare-table tbody tr{display:block;overflow:hidden;margin:0 0 16px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+  .study-comparison tbody th:first-child,.case-compare-table tbody th:first-child{display:block;position:static;width:auto;min-width:0;border:0;border-bottom:1px solid var(--line);padding:12px 15px;background:var(--soft);color:var(--ink);font-size:16px;font-weight:700}
+  .study-comparison tbody td,.case-compare-table tbody td{display:block;box-sizing:border-box;width:100%;min-width:0;border-right:0;border-bottom:1px solid var(--line);padding:15px;font-size:15px;overflow-wrap:anywhere}
+  .study-comparison tbody td:last-child,.case-compare-table tbody td:last-child{border-bottom:0}
+  .study-comparison td .study-comparison-product,.case-compare-product{display:block;margin:0 0 6px;color:var(--ink);font-size:14px;font-weight:700;text-decoration:none}
+  .study-comparison td>a:last-child{display:inline-flex;align-items:center;min-height:44px}
+  .case-compare-scroll{overflow-x:hidden;padding:12px}
+  .case-compare-head{position:sticky;top:0;z-index:5;background:var(--card);backdrop-filter:none}
+  .study-comparison .study-header{margin-bottom:12px}.study-comparison .study-version{margin:10px 0 18px;padding:10px 0}
+}
+@media(max-width:600px){
+  .cases-page{padding-top:14px}
+  .cases-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .cases-head h1{font-size:23px}.cases-head p{display:none}.cases-count{display:block;margin:0;font-size:12px}
+  .cases-question-nav{margin-bottom:10px}.cases-question-label{display:none}
+  .cases-question-row{gap:6px}.cases-question{flex:0 0 auto;min-height:44px;border-radius:99px;padding:8px 12px}
+  .cases-question b{font-size:13px;white-space:nowrap}.cases-question span{display:none}
+  .cases-controls{gap:6px 8px;margin:0 0 8px;padding:0;border:0;background:transparent}
+  .cases-more-filters{min-width:94px}.cases-more-filters summary{font-size:12px}
+  .cases-result-tools{min-height:0;justify-content:flex-end}.cases-result-tools>span{display:none}
+  .cases-result-tools:has(.cases-reset[hidden]){display:none}.cases-reset{min-height:44px}
+  .cases-study-link{align-items:center;gap:8px;margin:0 0 12px;padding:6px 0;min-height:44px;font-size:12px;line-height:1.55}
+  .cases-study-link span:last-child{font-size:12px}
+  .case-compare-clear{display:inline-flex;align-items:center;padding:7px 8px}
+  .study-reference .study-header h1{font-size:25px}.study-reference .study-problem{font-size:15px}
+}
+
+/* Focal previews are reversible views of unchanged, source-backed images. */
+.case-card-media:has(.case-preview-window){aspect-ratio:16/9}
+.case-preview-window{position:absolute;inset:0;display:block;overflow:hidden}
+.case-card-media .case-preview-window img{position:absolute;max-width:none;height:auto;object-fit:initial}
+.case-preview-label{position:absolute;right:8px;bottom:8px;padding:3px 6px;border-radius:5px;background:rgba(255,255,255,.94);color:#35383f;font-size:11px;line-height:1.5;pointer-events:none}
+.study-image-frame{position:relative;display:block;width:100%;line-height:0}
+.study-image .study-image-frame img{width:100%;max-height:none;height:auto}
+.study-focus-region{position:absolute;box-sizing:border-box;border:2px solid var(--accent);border-radius:3px;pointer-events:none}
+.study-focus-region b{position:absolute;top:0;left:0;display:flex;align-items:center;justify-content:center;width:20px;height:20px;background:var(--accent);color:white;font-size:12px;line-height:1}
+.study-focus-caption{display:block;margin-bottom:3px;color:var(--txt2);font-size:13px;font-weight:600}
 
 
 body{overflow-x:clip}
@@ -711,7 +761,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 <header class="section-brand-header"><div class="wrap nav">
   <div class="logo"><a href="../index.html" style="text-decoration:none">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
-<main class="wrap study-page study-comparison"><a class="study-back" href="../cases.html">← 数据产品设计库</a><header class="study-header"><p class="study-product">同一个设计问题 · 三种做法</p><h1>AI 给出结果后，用户如何修改和验证？</h1><p class="study-problem">比较控制权放在哪里，以及用户如何检查、修改和恢复。下表只记录材料支持的行为，不评价模型准确率。</p></header><p class="study-version">手机可左右滑动表格。Wren 为 GenBI Classic 历史界面；空缺能力写“未展示”，不等于产品没有。</p><div class="study-comparison-scroll" tabindex="0" role="region" aria-label="三种结果纠偏方式对比"><table><thead><tr><th scope="col">设计问题</th><th scope="col"><a href="metabase-metabot.html">Metabase Metabot</a><a href="../case-media/metabase-metabot/inline.png" data-case-image data-image-group="comparison" data-image-caption="Metabase Metabot：接受或拒绝局部修改"><img src="../case-media/metabase-metabot/inline.png" alt="接受或拒绝局部修改，点击放大" decoding="async"></a></th><th scope="col"><a href="wren-classic.html">Wren AI GenBI Classic</a><a href="../case-media/wren-classic/steps.png" data-case-image data-image-group="comparison" data-image-caption="Wren AI GenBI Classic：修改模型与分析步骤"><img src="../case-media/wren-classic/steps.png" alt="修改模型与分析步骤，点击放大" decoding="async"></a></th><th scope="col"><a href="sagemaker-notebook.html">Amazon SageMaker Unified Studio</a><a href="../media/52613ad8696c/01c882166878a1139bec09aa.png" data-case-image data-image-group="comparison" data-image-caption="Amazon SageMaker Unified Studio：从单元格发起代码生成"><img src="../media/52613ad8696c/01c882166878a1139bec09aa.png" alt="从单元格发起代码生成，点击放大" decoding="async"></a></th></tr></thead><tbody><tr><th scope="row">如何修改</th><td><p>编辑器内审阅差异，接受或拒绝 AI 修改。</p><a href="metabase-metabot.html#step-3">查看操作 03 的证据 →</a></td><td><p>分别提供步骤／模型编辑与 SQL 编辑。</p><a href="wren-classic.html#step-2">查看操作 02 的证据 →</a></td><td><p>单元格内提供代码生成入口，旁边保留 Agent；未展示差异接受／拒绝。</p><a href="sagemaker-notebook.html#step-2">查看操作 02 的证据 →</a></td></tr><tr><th scope="row">如何核验</th><td><p>查看 SQL；生成与执行分开，保留人工检查。</p><a href="metabase-metabot.html#step-2">查看操作 02 的证据 →</a></td><td><p>显示人工 SQL 已应用的标记与结果；未展示差异审阅或正确性验证。</p><a href="wren-classic.html#step-4">查看操作 04 的证据 →</a></td><td><p>在单元格检查代码与计算连接，再执行核对。</p><a href="sagemaker-notebook.html#step-3">查看操作 03 的证据 →</a></td></tr><tr><th scope="row">如何恢复</th><td><p>错误现场提供 AI 修复入口。</p><a href="metabase-metabot.html#step-4">查看操作 04 的证据 →</a></td><td><p>可主动调整答案；未展示执行报错后的专用恢复路径。</p><a href="wren-classic.html#step-3">查看操作 03 的证据 →</a></td><td><p>出错单元格提供 Fix with AI。</p><a href="sagemaker-notebook.html#step-4">查看操作 04 的证据 →</a></td></tr><tr><th scope="row">适用条件 · DataHot 判断</th><td><p>适合已有 BI / SQL 工作台、希望保留专业控制权的团队。</p><a href="metabase-metabot.html#step-3">查看操作 03 的证据 →</a></td><td><p>适合研究业务步骤与代码双通道；该截图属于已 Sunset 的历史版本。</p><a href="wren-classic.html#step-1">查看操作 01 的证据 →</a></td><td><p>适合已有 Notebook、需要管理多计算连接的数据工程场景。</p><a href="sagemaker-notebook.html#step-1">查看操作 01 的证据 →</a></td></tr></tbody></table></div><section class="study-decision"><h2>如何选用 · DataHot 判断</h2><p>已有 SQL 工作台：优先研究 Metabase 的差异审阅；用户更懂业务模型：参考 Wren 的步骤与 SQL 双通道；已有多引擎 Notebook：研究 SageMaker 的单元格上下文和就地修复。三者都仍需你设计结果核验与权限边界。</p></section></main><dialog class="case-image-dialog" data-image-dialog aria-labelledby="caseImageTitle">
+<main class="wrap study-page study-comparison"><a class="study-back" href="../cases.html">← 数据产品设计库</a><header class="study-header"><p class="study-product">同一个设计问题 · 三种做法</p><h1>AI 给出结果后，用户如何修改和验证？</h1><p class="study-problem">比较控制权放在哪里，以及用户如何检查、修改和恢复。下表只记录材料支持的行为，不评价模型准确率。</p></header><p class="study-version">Wren 为 GenBI Classic 历史界面；空缺能力写“未展示”，不等于产品没有。</p><div class="study-comparison-scroll" tabindex="0" role="region" aria-label="三种结果纠偏方式对比"><table><thead><tr><th scope="col">设计问题</th><th scope="col"><a href="metabase-metabot.html">Metabase Metabot</a><a href="../case-media/metabase-metabot/inline.png" data-case-image data-image-group="comparison" data-image-caption="Metabase Metabot：接受或拒绝局部修改"><img src="../case-media/metabase-metabot/inline.png" alt="接受或拒绝局部修改，点击放大" decoding="async"></a></th><th scope="col"><a href="wren-classic.html">Wren AI GenBI Classic</a><a href="../case-media/wren-classic/steps.png" data-case-image data-image-group="comparison" data-image-caption="Wren AI GenBI Classic：修改模型与分析步骤"><img src="../case-media/wren-classic/steps.png" alt="修改模型与分析步骤，点击放大" decoding="async"></a></th><th scope="col"><a href="sagemaker-notebook.html">Amazon SageMaker Unified Studio</a><a href="../media/52613ad8696c/01c882166878a1139bec09aa.png" data-case-image data-image-group="comparison" data-image-caption="Amazon SageMaker Unified Studio：从单元格发起代码生成"><img src="../media/52613ad8696c/01c882166878a1139bec09aa.png" alt="从单元格发起代码生成，点击放大" decoding="async"></a></th></tr></thead><tbody><tr><th scope="row">如何修改</th><td><a class="study-comparison-product" href="metabase-metabot.html">Metabase Metabot</a><p>编辑器内审阅差异，接受或拒绝 AI 修改。</p><a href="metabase-metabot.html#step-3">查看操作 03 的证据 →</a></td><td><a class="study-comparison-product" href="wren-classic.html">Wren AI GenBI Classic</a><p>分别提供步骤／模型编辑与 SQL 编辑。</p><a href="wren-classic.html#step-2">查看操作 02 的证据 →</a></td><td><a class="study-comparison-product" href="sagemaker-notebook.html">Amazon SageMaker Unified Studio</a><p>单元格内提供代码生成入口，旁边保留 Agent；未展示差异接受／拒绝。</p><a href="sagemaker-notebook.html#step-2">查看操作 02 的证据 →</a></td></tr><tr><th scope="row">如何核验</th><td><a class="study-comparison-product" href="metabase-metabot.html">Metabase Metabot</a><p>查看 SQL；生成与执行分开，保留人工检查。</p><a href="metabase-metabot.html#step-2">查看操作 02 的证据 →</a></td><td><a class="study-comparison-product" href="wren-classic.html">Wren AI GenBI Classic</a><p>显示人工 SQL 已应用的标记与结果；未展示差异审阅或正确性验证。</p><a href="wren-classic.html#step-4">查看操作 04 的证据 →</a></td><td><a class="study-comparison-product" href="sagemaker-notebook.html">Amazon SageMaker Unified Studio</a><p>在单元格检查代码与计算连接，再执行核对。</p><a href="sagemaker-notebook.html#step-3">查看操作 03 的证据 →</a></td></tr><tr><th scope="row">如何恢复</th><td><a class="study-comparison-product" href="metabase-metabot.html">Metabase Metabot</a><p>错误现场提供 AI 修复入口。</p><a href="metabase-metabot.html#step-4">查看操作 04 的证据 →</a></td><td><a class="study-comparison-product" href="wren-classic.html">Wren AI GenBI Classic</a><p>可主动调整答案；未展示执行报错后的专用恢复路径。</p><a href="wren-classic.html#step-3">查看操作 03 的证据 →</a></td><td><a class="study-comparison-product" href="sagemaker-notebook.html">Amazon SageMaker Unified Studio</a><p>出错单元格提供 Fix with AI。</p><a href="sagemaker-notebook.html#step-4">查看操作 04 的证据 →</a></td></tr><tr><th scope="row">适用条件 · DataHot 判断</th><td><a class="study-comparison-product" href="metabase-metabot.html">Metabase Metabot</a><p>适合已有 BI / SQL 工作台、希望保留专业控制权的团队。</p><a href="metabase-metabot.html#step-3">查看操作 03 的证据 →</a></td><td><a class="study-comparison-product" href="wren-classic.html">Wren AI GenBI Classic</a><p>适合研究业务步骤与代码双通道；该截图属于已 Sunset 的历史版本。</p><a href="wren-classic.html#step-1">查看操作 01 的证据 →</a></td><td><a class="study-comparison-product" href="sagemaker-notebook.html">Amazon SageMaker Unified Studio</a><p>适合已有 Notebook、需要管理多计算连接的数据工程场景。</p><a href="sagemaker-notebook.html#step-1">查看操作 01 的证据 →</a></td></tr></tbody></table></div><section class="study-decision"><h2>如何选用 · DataHot 判断</h2><p>已有 SQL 工作台：优先研究 Metabase 的差异审阅；用户更懂业务模型：参考 Wren 的步骤与 SQL 双通道；已有多引擎 Notebook：研究 SageMaker 的单元格上下文和就地修复。三者都仍需你设计结果核验与权限边界。</p></section></main><dialog class="case-image-dialog" data-image-dialog aria-labelledby="caseImageTitle">
   <header><h2 id="caseImageTitle" data-image-title>查看界面</h2><button type="button" data-image-close autofocus>关闭</button></header>
   <div class="case-image-canvas" data-image-canvas><img data-image-full alt=""></div>
   <footer><button type="button" data-image-prev aria-label="上一张界面">← 上一张</button><span data-image-count aria-live="polite"></span><button type="button" data-image-next aria-label="下一张界面">下一张 →</button><button type="button" data-image-zoom aria-pressed="false">原尺寸</button><a data-image-case hidden>查看案例 →</a></footer>

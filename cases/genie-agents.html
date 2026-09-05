@@ -249,7 +249,7 @@
 .study-step[hidden],.study-step-nav[hidden],.study-step-controls[hidden]{display:none}
 .study-step figure{min-width:0;margin:0}.study-image{position:relative;display:flex;align-items:center;justify-content:center;min-height:350px;height:100%;max-height:530px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#f5f6f8;cursor:zoom-in}
 .study-image img{display:block;width:100%;max-height:520px;object-fit:contain}
-.study-image>span{position:absolute;right:10px;bottom:10px;padding:4px 8px;border-radius:6px;background:rgba(255,255,255,.96);color:#252832;font-size:12px}
+.study-image>span:not(.study-image-frame){position:absolute;right:10px;bottom:10px;padding:4px 8px;border-radius:6px;background:rgba(255,255,255,.96);color:#252832;font-size:12px}
 .study-step figcaption{padding:8px 0;color:var(--sub);font-size:12px;line-height:1.6;overflow-wrap:anywhere}
 .study-step-copy{padding:2px 0;min-width:0}.study-step-number{margin:0;color:var(--sub);font-size:12px;font-weight:700;letter-spacing:.06em}
 .study-step h2{margin:4px 0 14px;font-size:22px;line-height:1.4}.study-step dl,.study-lessons dl{margin:0}
@@ -301,6 +301,56 @@
   .study-comparison th,.study-comparison td{padding:12px;min-width:225px}.study-comparison th:first-child{min-width:80px}.study-comparison table{min-width:820px}
   .case-image-dialog{width:100vw;height:100dvh;border-radius:0;border:0}.case-image-dialog header{padding:12px}.case-image-dialog h2{font-size:14px}.case-image-dialog footer{gap:6px;flex-wrap:wrap;padding-bottom:calc(10px + env(safe-area-inset-bottom))}.case-image-dialog button{padding:6px 10px;font-size:13px}
 }
+
+/* Same evidence and links; mobile comparisons group products by question. */
+.study-comparison-product,.case-compare-product{display:none}
+.case-compare-table td p{margin:0}
+.case-compare-bar{top:auto;transform:translateX(-50%)}
+.case-compare-dialog{margin:auto}
+.study-reference-details ul{margin:0;padding-left:20px;color:var(--txt2);font-size:15px;line-height:1.85}
+.study-reference-details li+li{margin-top:8px}
+@media(max-width:700px){
+  .study-comparison-scroll{overflow:visible;border:0;border-radius:0}
+  .study-comparison table,.case-compare-table{display:block;width:100%;min-width:0;border:0}
+  .study-comparison thead,.case-compare-table thead{display:none}
+  .study-comparison tbody,.case-compare-table tbody{display:block}
+  .study-comparison tbody tr,.case-compare-table tbody tr{display:block;overflow:hidden;margin:0 0 16px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+  .study-comparison tbody th:first-child,.case-compare-table tbody th:first-child{display:block;position:static;width:auto;min-width:0;border:0;border-bottom:1px solid var(--line);padding:12px 15px;background:var(--soft);color:var(--ink);font-size:16px;font-weight:700}
+  .study-comparison tbody td,.case-compare-table tbody td{display:block;box-sizing:border-box;width:100%;min-width:0;border-right:0;border-bottom:1px solid var(--line);padding:15px;font-size:15px;overflow-wrap:anywhere}
+  .study-comparison tbody td:last-child,.case-compare-table tbody td:last-child{border-bottom:0}
+  .study-comparison td .study-comparison-product,.case-compare-product{display:block;margin:0 0 6px;color:var(--ink);font-size:14px;font-weight:700;text-decoration:none}
+  .study-comparison td>a:last-child{display:inline-flex;align-items:center;min-height:44px}
+  .case-compare-scroll{overflow-x:hidden;padding:12px}
+  .case-compare-head{position:sticky;top:0;z-index:5;background:var(--card);backdrop-filter:none}
+  .study-comparison .study-header{margin-bottom:12px}.study-comparison .study-version{margin:10px 0 18px;padding:10px 0}
+}
+@media(max-width:600px){
+  .cases-page{padding-top:14px}
+  .cases-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .cases-head h1{font-size:23px}.cases-head p{display:none}.cases-count{display:block;margin:0;font-size:12px}
+  .cases-question-nav{margin-bottom:10px}.cases-question-label{display:none}
+  .cases-question-row{gap:6px}.cases-question{flex:0 0 auto;min-height:44px;border-radius:99px;padding:8px 12px}
+  .cases-question b{font-size:13px;white-space:nowrap}.cases-question span{display:none}
+  .cases-controls{gap:6px 8px;margin:0 0 8px;padding:0;border:0;background:transparent}
+  .cases-more-filters{min-width:94px}.cases-more-filters summary{font-size:12px}
+  .cases-result-tools{min-height:0;justify-content:flex-end}.cases-result-tools>span{display:none}
+  .cases-result-tools:has(.cases-reset[hidden]){display:none}.cases-reset{min-height:44px}
+  .cases-study-link{align-items:center;gap:8px;margin:0 0 12px;padding:6px 0;min-height:44px;font-size:12px;line-height:1.55}
+  .cases-study-link span:last-child{font-size:12px}
+  .case-compare-clear{display:inline-flex;align-items:center;padding:7px 8px}
+  .study-reference .study-header h1{font-size:25px}.study-reference .study-problem{font-size:15px}
+}
+
+/* Focal previews are reversible views of unchanged, source-backed images. */
+.case-card-media:has(.case-preview-window){aspect-ratio:16/9}
+.case-preview-window{position:absolute;inset:0;display:block;overflow:hidden}
+.case-card-media .case-preview-window img{position:absolute;max-width:none;height:auto;object-fit:initial}
+.case-preview-label{position:absolute;right:8px;bottom:8px;padding:3px 6px;border-radius:5px;background:rgba(255,255,255,.94);color:#35383f;font-size:11px;line-height:1.5;pointer-events:none}
+.study-image-frame{position:relative;display:block;width:100%;line-height:0}
+.study-image .study-image-frame img{width:100%;max-height:none;height:auto}
+.study-focus-region{position:absolute;box-sizing:border-box;border:2px solid var(--accent);border-radius:3px;pointer-events:none}
+.study-focus-region b{position:absolute;top:0;left:0;display:flex;align-items:center;justify-content:center;width:20px;height:20px;background:var(--accent);color:white;font-size:12px;line-height:1}
+.study-focus-caption{display:block;margin-bottom:3px;color:var(--txt2);font-size:13px;font-weight:600}
 
 
 body{overflow-x:clip}
@@ -718,8 +768,8 @@ main,.layout>*,.hotlist>*{min-width:0}
   </header>
   <nav class="study-step-nav" aria-label="关键操作" data-step-nav hidden><button type="button" data-step-select="1" aria-controls="step-1" aria-pressed="false"><span>01</span>让多步分析的进展可见</button><button type="button" data-step-select="2" aria-controls="step-2" aria-pressed="false"><span>02</span>由维护者检查使用与失败趋势</button><button type="button" data-step-select="3" aria-controls="step-3" aria-pressed="false"><span>03</span>把具体会话交给协作者</button></nav>
   <div class="study-steps"><section class="study-step" id="step-1" data-study-step="1" aria-labelledby="stepTitle1">
-  <figure><a class="study-image" href="../media/775f063ddfa3/b1a3fc3a14524b5606072b95.png" data-case-image data-image-group="genie-agents" data-image-caption="让多步分析的进展可见" aria-label="放大：让多步分析的进展可见"><img src="../media/775f063ddfa3/b1a3fc3a14524b5606072b95.png" alt="让多步分析的进展可见 — 看父级计划与子级查询的层次，过程不只是一条等待提示。" fetchpriority="high" decoding="async"><span>点击放大 ↗</span></a>
-  <figcaption>产品截图 · <a href="https://www.databricks.com/blog/expanding-genie-agents-deep-analysis-file-reasoning-and-more" target="_blank" rel="noopener noreferrer">Databricks · Expanding Genie Agents ↗</a></figcaption></figure>
+  <figure><a class="study-image" href="../media/775f063ddfa3/b1a3fc3a14524b5606072b95.png" data-case-image data-image-group="genie-agents" data-image-caption="让多步分析的进展可见" aria-label="放大：让多步分析的进展可见"><span class="study-image-frame" style="max-width:834.25px"><img src="../media/775f063ddfa3/b1a3fc3a14524b5606072b95.png" alt="让多步分析的进展可见 — 看父级计划与子级查询的层次，过程不只是一条等待提示。" fetchpriority="high" decoding="async"><span class="study-focus-region" style="left:1.0005%;top:24.0770%;width:77.5388%;height:69.9739%" aria-hidden="true"><b>1</b></span></span><span>点击放大 ↗</span></a>
+  <figcaption><span class="study-focus-caption">① 分析计划与查询重试</span>产品截图 · <a href="https://www.databricks.com/blog/expanding-genie-agents-deep-analysis-file-reasoning-and-more" target="_blank" rel="noopener noreferrer">Databricks · Expanding Genie Agents ↗</a></figcaption></figure>
   <div class="study-step-copy"><p class="study-step-number">操作 01 / 03</p><h2 id="stepTitle1">让多步分析的进展可见</h2>
     <dl><dt>用户操作</dt><dd>提出需要多角度分析的业务问题。</dd><dt>系统反馈 · 公开材料</dt><dd>截图展示任务列表、查询与重试等过程；官方说明最终可返回带图表和引用的报告。</dd><dt>看图重点</dt><dd>看父级计划与子级查询的层次，过程不只是一条等待提示。</dd></dl>
     <div class="study-insight"><b>DataHot 解读</b><p>长任务可以展示可理解的工作进展；不要把过程展示当成结果正确性的证明。</p></div>

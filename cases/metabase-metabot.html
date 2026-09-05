@@ -249,7 +249,7 @@
 .study-step[hidden],.study-step-nav[hidden],.study-step-controls[hidden]{display:none}
 .study-step figure{min-width:0;margin:0}.study-image{position:relative;display:flex;align-items:center;justify-content:center;min-height:350px;height:100%;max-height:530px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#f5f6f8;cursor:zoom-in}
 .study-image img{display:block;width:100%;max-height:520px;object-fit:contain}
-.study-image>span{position:absolute;right:10px;bottom:10px;padding:4px 8px;border-radius:6px;background:rgba(255,255,255,.96);color:#252832;font-size:12px}
+.study-image>span:not(.study-image-frame){position:absolute;right:10px;bottom:10px;padding:4px 8px;border-radius:6px;background:rgba(255,255,255,.96);color:#252832;font-size:12px}
 .study-step figcaption{padding:8px 0;color:var(--sub);font-size:12px;line-height:1.6;overflow-wrap:anywhere}
 .study-step-copy{padding:2px 0;min-width:0}.study-step-number{margin:0;color:var(--sub);font-size:12px;font-weight:700;letter-spacing:.06em}
 .study-step h2{margin:4px 0 14px;font-size:22px;line-height:1.4}.study-step dl,.study-lessons dl{margin:0}
@@ -301,6 +301,56 @@
   .study-comparison th,.study-comparison td{padding:12px;min-width:225px}.study-comparison th:first-child{min-width:80px}.study-comparison table{min-width:820px}
   .case-image-dialog{width:100vw;height:100dvh;border-radius:0;border:0}.case-image-dialog header{padding:12px}.case-image-dialog h2{font-size:14px}.case-image-dialog footer{gap:6px;flex-wrap:wrap;padding-bottom:calc(10px + env(safe-area-inset-bottom))}.case-image-dialog button{padding:6px 10px;font-size:13px}
 }
+
+/* Same evidence and links; mobile comparisons group products by question. */
+.study-comparison-product,.case-compare-product{display:none}
+.case-compare-table td p{margin:0}
+.case-compare-bar{top:auto;transform:translateX(-50%)}
+.case-compare-dialog{margin:auto}
+.study-reference-details ul{margin:0;padding-left:20px;color:var(--txt2);font-size:15px;line-height:1.85}
+.study-reference-details li+li{margin-top:8px}
+@media(max-width:700px){
+  .study-comparison-scroll{overflow:visible;border:0;border-radius:0}
+  .study-comparison table,.case-compare-table{display:block;width:100%;min-width:0;border:0}
+  .study-comparison thead,.case-compare-table thead{display:none}
+  .study-comparison tbody,.case-compare-table tbody{display:block}
+  .study-comparison tbody tr,.case-compare-table tbody tr{display:block;overflow:hidden;margin:0 0 16px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+  .study-comparison tbody th:first-child,.case-compare-table tbody th:first-child{display:block;position:static;width:auto;min-width:0;border:0;border-bottom:1px solid var(--line);padding:12px 15px;background:var(--soft);color:var(--ink);font-size:16px;font-weight:700}
+  .study-comparison tbody td,.case-compare-table tbody td{display:block;box-sizing:border-box;width:100%;min-width:0;border-right:0;border-bottom:1px solid var(--line);padding:15px;font-size:15px;overflow-wrap:anywhere}
+  .study-comparison tbody td:last-child,.case-compare-table tbody td:last-child{border-bottom:0}
+  .study-comparison td .study-comparison-product,.case-compare-product{display:block;margin:0 0 6px;color:var(--ink);font-size:14px;font-weight:700;text-decoration:none}
+  .study-comparison td>a:last-child{display:inline-flex;align-items:center;min-height:44px}
+  .case-compare-scroll{overflow-x:hidden;padding:12px}
+  .case-compare-head{position:sticky;top:0;z-index:5;background:var(--card);backdrop-filter:none}
+  .study-comparison .study-header{margin-bottom:12px}.study-comparison .study-version{margin:10px 0 18px;padding:10px 0}
+}
+@media(max-width:600px){
+  .cases-page{padding-top:14px}
+  .cases-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .cases-head h1{font-size:23px}.cases-head p{display:none}.cases-count{display:block;margin:0;font-size:12px}
+  .cases-question-nav{margin-bottom:10px}.cases-question-label{display:none}
+  .cases-question-row{gap:6px}.cases-question{flex:0 0 auto;min-height:44px;border-radius:99px;padding:8px 12px}
+  .cases-question b{font-size:13px;white-space:nowrap}.cases-question span{display:none}
+  .cases-controls{gap:6px 8px;margin:0 0 8px;padding:0;border:0;background:transparent}
+  .cases-more-filters{min-width:94px}.cases-more-filters summary{font-size:12px}
+  .cases-result-tools{min-height:0;justify-content:flex-end}.cases-result-tools>span{display:none}
+  .cases-result-tools:has(.cases-reset[hidden]){display:none}.cases-reset{min-height:44px}
+  .cases-study-link{align-items:center;gap:8px;margin:0 0 12px;padding:6px 0;min-height:44px;font-size:12px;line-height:1.55}
+  .cases-study-link span:last-child{font-size:12px}
+  .case-compare-clear{display:inline-flex;align-items:center;padding:7px 8px}
+  .study-reference .study-header h1{font-size:25px}.study-reference .study-problem{font-size:15px}
+}
+
+/* Focal previews are reversible views of unchanged, source-backed images. */
+.case-card-media:has(.case-preview-window){aspect-ratio:16/9}
+.case-preview-window{position:absolute;inset:0;display:block;overflow:hidden}
+.case-card-media .case-preview-window img{position:absolute;max-width:none;height:auto;object-fit:initial}
+.case-preview-label{position:absolute;right:8px;bottom:8px;padding:3px 6px;border-radius:5px;background:rgba(255,255,255,.94);color:#35383f;font-size:11px;line-height:1.5;pointer-events:none}
+.study-image-frame{position:relative;display:block;width:100%;line-height:0}
+.study-image .study-image-frame img{width:100%;max-height:none;height:auto}
+.study-focus-region{position:absolute;box-sizing:border-box;border:2px solid var(--accent);border-radius:3px;pointer-events:none}
+.study-focus-region b{position:absolute;top:0;left:0;display:flex;align-items:center;justify-content:center;width:20px;height:20px;background:var(--accent);color:white;font-size:12px;line-height:1}
+.study-focus-caption{display:block;margin-bottom:3px;color:var(--txt2);font-size:13px;font-weight:600}
 
 
 body{overflow-x:clip}
@@ -725,8 +775,8 @@ main,.layout>*,.hotlist>*{min-width:0}
     <div class="study-insight"><b>DataHot 解读</b><p>已有分析工具可以先增加辅助侧栏，保留用户熟悉的编辑路径。</p></div>
   </div>
 </section><section class="study-step" id="step-2" data-study-step="2" aria-labelledby="stepTitle2">
-  <figure><a class="study-image" href="../case-media/metabase-metabot/sql.png" data-case-image data-image-group="metabase-metabot" data-image-caption="检查生成的 SQL" aria-label="放大：检查生成的 SQL"><img src="../case-media/metabase-metabot/sql.png" alt="检查生成的 SQL — 看生成代码与执行入口的分离：用户仍有运行前的检查机会。" loading="lazy" decoding="async"><span>点击放大 ↗</span></a>
-  <figcaption>产品截图 · <a href="https://www.metabase.com/docs/latest/ai/metabot#metabot-in-the-native-editor" target="_blank" rel="noopener noreferrer">Metabot 官方文档 · v0.63 ↗</a></figcaption></figure>
+  <figure><a class="study-image" href="../case-media/metabase-metabot/sql.png" data-case-image data-image-group="metabase-metabot" data-image-caption="检查生成的 SQL" aria-label="放大：检查生成的 SQL"><span class="study-image-frame" style="max-width:826.72px"><img src="../case-media/metabase-metabot/sql.png" alt="检查生成的 SQL — 看生成代码与执行入口的分离：用户仍有运行前的检查机会。" loading="lazy" decoding="async"><span class="study-focus-region" style="left:21.8634%;top:4.8128%;width:48.4359%;height:43.3155%" aria-hidden="true"><b>1</b></span></span><span>点击放大 ↗</span></a>
+  <figcaption><span class="study-focus-caption">① SQL 编辑与运行入口</span>产品截图 · <a href="https://www.metabase.com/docs/latest/ai/metabot#metabot-in-the-native-editor" target="_blank" rel="noopener noreferrer">Metabot 官方文档 · v0.63 ↗</a></figcaption></figure>
   <div class="study-step-copy"><p class="study-step-number">操作 02 / 04</p><h2 id="stepTitle2">检查生成的 SQL</h2>
     <dl><dt>用户操作</dt><dd>选择数据库，要求 Metabot 编写 SQL。</dd><dt>系统反馈 · 公开材料</dt><dd>查询代码出现在编辑器中；官方说明此路径生成后不会自动执行。</dd><dt>看图重点</dt><dd>看生成代码与执行入口的分离：用户仍有运行前的检查机会。</dd></dl>
     <div class="study-insight"><b>DataHot 解读</b><p>对成本较高或影响较大的查询，生成完成可以停在可检查状态。</p></div>

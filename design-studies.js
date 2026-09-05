@@ -20,28 +20,37 @@
   function boot(win) {
     var doc = win.document;
     var study = doc.querySelector("[data-study-page]");
-    if (study) {
+    if (study && study.querySelector("[data-study-step]")) {
       var panels = Array.from(study.querySelectorAll("[data-study-step]"));
       var selectors = Array.from(study.querySelectorAll("[data-step-select]"));
       var current = stepFromHash(win.location.hash, panels.length);
       var previous = study.querySelector("[data-step-prev]");
       var next = study.querySelector("[data-step-next]");
-      function selectStep(number, updateUrl) {
+      var stepLabel = study.getAttribute("data-step-label") || "操作";
+      function selectStep(number, updateUrl, reveal) {
         current = Math.min(panels.length, Math.max(1, number));
         panels.forEach(function (panel, i) { panel.hidden = i + 1 !== current; });
         selectors.forEach(function (button, i) { button.setAttribute("aria-pressed", i + 1 === current ? "true" : "false"); });
         previous.disabled = current === 1;
         next.disabled = current === panels.length;
-        study.querySelector("[data-step-status]").textContent = "操作 " + current + " / " + panels.length;
+        study.querySelector("[data-step-status]").textContent = stepLabel + " " + current + " / " + panels.length;
+        var selectedButton = selectors[current - 1];
+        var nav = study.querySelector("[data-step-nav]");
+        if (selectedButton) {
+          var left = selectedButton.offsetLeft - nav.offsetLeft;
+          if (left < nav.scrollLeft) nav.scrollLeft = left;
+          else if (left + selectedButton.offsetWidth > nav.scrollLeft + nav.clientWidth) nav.scrollLeft = left + selectedButton.offsetWidth - nav.clientWidth;
+        }
         if (updateUrl && win.history && win.history.replaceState) {
           win.history.replaceState(null, "", win.location.pathname + win.location.search + "#step-" + current);
         }
+        if (reveal && win.innerWidth <= 900) panels[current - 1].scrollIntoView({ block: "start", behavior: "auto" });
       }
       selectors.forEach(function (button) {
         button.addEventListener("click", function () { selectStep(Number(button.getAttribute("data-step-select")), true); });
       });
-      previous.addEventListener("click", function () { selectStep(current - 1, true); });
-      next.addEventListener("click", function () { selectStep(current + 1, true); });
+      previous.addEventListener("click", function () { selectStep(current - 1, true, true); });
+      next.addEventListener("click", function () { selectStep(current + 1, true, true); });
       win.addEventListener("hashchange", function () {
         selectStep(stepFromHash(win.location.hash, panels.length), false);
         if (/^#step-/.test(win.location.hash)) panels[current - 1].scrollIntoView({ block: "start" });

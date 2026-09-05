@@ -3,6 +3,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const cases = require("../pipeline/assets/cases.js");
+const studies = require("../pipeline/assets/design-studies.js");
 
 const records = [
   {
@@ -54,4 +55,19 @@ test("comparison selection toggles and never exceeds three cases", () => {
   assert.deepEqual(cases.selectedAfterToggle([], "a", 3), ["a"]);
   assert.deepEqual(cases.selectedAfterToggle(["a"], "a", 3), []);
   assert.deepEqual(cases.selectedAfterToggle(["a", "b", "c"], "d", 3), ["a", "b", "c"]);
+});
+
+test("study URLs only select a valid evidence step", () => {
+  assert.equal(studies.stepFromHash("#step-3", 4), 3);
+  for (const hash of ["#step-0", "#step--1", "#step-100", "#step-2x", "#anything", ""]) {
+    assert.equal(studies.stepFromHash(hash, 4), 1);
+  }
+});
+
+test("image viewer only accepts same-origin cached media", () => {
+  const base = "https://datahot.xiahongbin.com/cases/hex-threads.html";
+  assert.equal(studies.safeImage("../case-media/hex-threads/home.png", base), "https://datahot.xiahongbin.com/case-media/hex-threads/home.png");
+  for (const value of ["https://evil.test/a.png", "javascript:alert(1)", "data:image/png,", "../cases.html", "../private/a.png"]) {
+    assert.equal(studies.safeImage(value, base), "");
+  }
 });

@@ -75,6 +75,7 @@
       topics: normalizeTopics(source.topics),
       published: cleanString(source.published || source.first_seen, 80),
       original_url: safeOriginalUrl(source.original_url),
+      detail_path: /^cases\/[a-z0-9]+(?:-[a-z0-9]+)*\.html$/.test(String(source.detail_path || "")) ? source.detail_path : "",
       saved_at: savedAt
     };
   }
@@ -176,6 +177,7 @@
         topics: record.topics.length ? record.topics : snapshot.topics,
         published: record.published || snapshot.published,
         original_url: record.original_url || snapshot.original_url,
+        detail_path: record.detail_path,
         saved_at: record.saved_at
       });
     });
@@ -258,7 +260,7 @@
     var source = record.source || "DataHot";
     var meta = escapeHtml(source) + (published ? " · " + escapeHtml(published) : "");
     return '<article class="favorite-card" role="listitem" data-event-id="' + escapeHtml(record.event_id) + '">' +
-      '<a class="favorite-card-main" href="e/' + encodeURIComponent(record.event_id) + '.html">' +
+      '<a class="favorite-card-main" href="' + escapeHtml(record.detail_path || ('e/' + encodeURIComponent(record.event_id) + '.html')) + '">' +
       '<div class="favorite-card-top"><span class="favorite-card-topic">' + escapeHtml(topic) + '</span>' +
       '<span class="favorite-card-saved">' + escapeHtml(formatSavedAt(record.saved_at, now)) + '</span></div>' +
       '<h3>' + escapeHtml(title) + '</h3><p class="favorite-card-summary">' + escapeHtml(summary) + '</p>' +

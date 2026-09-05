@@ -1,0 +1,193 @@
+{
+  "schema_version": "design-studies-v1",
+  "studies": [
+    {
+      "slug": "metabase-metabot",
+      "product": "Metabase Metabot",
+      "title": "AI 写完查询，如何把控制权交还给用户？",
+      "product_type": "BI/数据应用",
+      "task_type": "做分析",
+      "design_questions": ["结果表达", "可信与溯源"],
+      "audience": "需要自己核对与修改查询的分析师",
+      "problem": "生成的图表看起来合理，分析师仍需要检查 SQL、修改局部逻辑，并在出错时继续工作。",
+      "takeaway": "把 AI 修改做成可审阅的差异，接受修改与执行查询分开。",
+      "modules": ["对话侧栏", "SQL 编辑器", "差异审阅", "错误修复"],
+      "observed_at": "2026-09-05",
+      "version_note": "依据 Metabase v0.63 官方文档；以下为不同示例的关键操作，不是同一次会话录屏。",
+      "material_type": "产品截图",
+      "hero_step": 2,
+      "sources": [{"id": "docs", "title": "Metabot 官方文档 · v0.63", "url": "https://www.metabase.com/docs/latest/ai/metabot", "kind": "官方文档"}],
+      "steps": [
+        {"title": "在现有工作区提问", "asset": "metabase-metabot/chat.png", "image_url": "https://www.metabase.com/docs/latest/ai/images/metabot-conversation-sidebar.png", "source_id": "docs", "source_anchor": "the-metabot-chat-sidebar", "action": "在图表或查询旁打开 Metabot 侧栏，说明分析需求。", "feedback": "图表与对话并列，用户可以继续追问，也可以进入查询编辑器。", "focus": "注意侧栏与结果区的并置，当前分析对象没有被聊天页面替换。", "insight": "已有分析工具可以先增加辅助侧栏，保留用户熟悉的编辑路径。"},
+        {"title": "检查生成的 SQL", "asset": "metabase-metabot/sql.png", "image_url": "https://www.metabase.com/docs/latest/ai/images/generate-sql-from-natural-language-prompt.png", "source_id": "docs", "source_anchor": "metabot-in-the-native-editor", "action": "选择数据库，要求 Metabot 编写 SQL。", "feedback": "查询代码出现在编辑器中；官方说明此路径生成后不会自动执行。", "focus": "看生成代码与执行入口的分离：用户仍有运行前的检查机会。", "insight": "对成本较高或影响较大的查询，生成完成可以停在可检查状态。"},
+        {"title": "接受或拒绝局部修改", "asset": "metabase-metabot/inline.png", "image_url": "https://www.metabase.com/docs/latest/ai/images/inline-sql.png", "source_id": "docs", "source_anchor": "inline-sql-editing", "action": "在 SQL 编辑器中描述要修改的部分。", "feedback": "新增与删除内容以差异呈现，并提供接受、拒绝入口。", "focus": "绿色勾选和红色叉号紧贴修改区域，便于逐次确认。", "insight": "将 AI 建议保持为待确认变更，避免用户失去原始逻辑的参照。"},
+        {"title": "从错误现场请求修复", "asset": "metabase-metabot/error.png", "image_url": "https://www.metabase.com/docs/latest/ai/images/have-metabot-fix-it.png", "source_id": "docs", "source_anchor": "have-metabot-fix-sql-queries", "action": "查询报错后，点击 Have Metabot fix it。", "feedback": "修复入口与错误信息在同一工作区；是否修复成功仍需运行核对。", "focus": "看错误提示旁的下一步操作，用户不必重新描述整个问题。", "insight": "异常状态应同时给出恢复入口，并保留错误上下文。"}
+      ],
+      "lessons": [
+        {"title": "建议与执行分开", "why": "让用户在执行前看懂 AI 改了什么。", "when": "面向能审阅查询的专业用户。", "cost": "多一次确认；普通业务用户需要更易读的变更说明。", "steps": [2, 3]},
+        {"title": "把修复放在出错的位置", "why": "减少复制错误、跳转聊天、重新描述背景的负担。", "when": "产品已经拥有编辑器和明确错误信息。", "cost": "需要准确传递出错对象；有修复按钮不代表修复一定成功。", "steps": [4]}
+      ],
+      "limits": "本文未验证实际查询正确率、修复成功率或权限配置；截图证明交互入口，不证明模型质量。",
+      "comparison": {
+        "edit": {"text": "编辑器内审阅差异，接受或拒绝 AI 修改。", "step": 3},
+        "verify": {"text": "查看 SQL；生成与执行分开，保留人工检查。", "step": 2},
+        "recover": {"text": "错误现场提供 AI 修复入口。", "step": 4},
+        "fit": {"text": "适合已有 BI / SQL 工作台、希望保留专业控制权的团队。", "step": 3}
+      }
+    },
+    {
+      "slug": "hex-threads",
+      "product": "Hex Threads",
+      "title": "一次对话，如何衔接可编辑的分析项目？",
+      "product_type": "Data Agent",
+      "task_type": "问数据",
+      "design_questions": ["入口与提问", "结果表达", "语义与上下文", "可信与溯源"],
+      "audience": "业务提问者与接手深入分析的数据团队",
+      "problem": "业务用户想直接提问，数据团队却需要查看底层逻辑；两者如何在同一份分析上协作？",
+      "takeaway": "对话背后保留可编辑项目，并把临时探索与正式资产区分开。",
+      "modules": ["提问入口", "数据连接选择", "Notebook", "共享权限"],
+      "observed_at": "2026-09-05",
+      "version_note": "依据核对日官方文档；截图展示入口、数据范围、项目和共享等独立操作。",
+      "material_type": "产品截图",
+      "hero_step": 3,
+      "sources": [{"id": "docs", "title": "Hex Threads 官方使用文档", "url": "https://learn.hex.tech/docs/explore-data/threads", "kind": "官方文档"}],
+      "steps": [
+        {"title": "从首页直接开始", "asset": "hex-threads/home.png", "image_url": "https://learn.hex.tech/assets/img/threads-homepage.fbb13899.png", "source_id": "docs", "source_anchor": "within-hex", "action": "在首页输入分析问题。", "feedback": "有创建权限的用户可由提问框开始新的 Thread。", "focus": "首页既有提问入口，也保留近期工作，兼顾开始与继续。", "insight": "高频分析入口可以与已有工作并置，避免每次先做项目配置。"},
+        {"title": "指定优先使用的数据", "asset": "hex-threads/connection.png", "image_url": "https://learn.hex.tech/assets/img/threads-select-data-connection@2x.a5319bf5.png", "source_id": "docs", "source_anchor": "data-sources", "action": "从提问框的加号菜单选择数据连接。", "feedback": "所选连接获得优先使用；官方说明必要时仍可能使用其他连接。", "focus": "看数据选择紧贴输入框；这是优先范围提示，并非权限隔离开关。", "insight": "区分用户意图和强制权限，避免把偏好控件设计成安全保证。"},
+        {"title": "进入底层项目继续编辑", "asset": "hex-threads/project.png", "image_url": "https://learn.hex.tech/assets/img/threads-unlisted-project@2x.8c7f15d1.png", "source_id": "docs", "source_anchor": "viewing-the-project-behind-a-thread", "action": "有相应权限的编辑者切换到 Notebook，查看底层分析。", "feedback": "截图可见 Notebook、SQL 单元格与 Unlisted 状态，以及 Save as project 入口。", "focus": "未正式保存的探索与项目列表分离；对话背后仍有可检查的工作产物。", "insight": "先让用户探索，确认有复用价值后再转成正式资产。"},
+        {"title": "按协作需要分享", "asset": "hex-threads/share.png", "image_url": "https://learn.hex.tech/assets/img/threads-share-modal@2x.96622409.png", "source_id": "docs", "source_anchor": "sharing", "action": "打开 Share，为协作者选择访问级别。", "feedback": "官方文档区分查看、编辑等权限；接收者还需相应数据访问权限。", "focus": "共享的是带访问边界的分析对象，不只是复制一段答案。", "insight": "将成果共享与数据授权分别表达，避免链接可见被误当成数据可读。"}
+      ],
+      "lessons": [
+        {"title": "一个分析对象，两种工作方式", "why": "业务用户通过对话开始，专业人员可进入底层项目接手。", "when": "团队同时有自助分析和专业编辑需求。", "cost": "需要维护对话、单元格和结果之间的一致引用。", "steps": [1, 3]},
+        {"title": "正式保存是一道轻量门槛", "why": "让临时尝试不淹没可复用项目。", "when": "用户会进行大量一次性探索。", "cost": "需要让用户清楚保存前后的可发现性和权限差异。", "steps": [3, 4]}
+      ],
+      "limits": "未实测多用户同步或企业权限。截图来自不同示例，不能据此推断所有视图切换后的状态保持行为。"
+    },
+    {
+      "slug": "wren-classic",
+      "product": "Wren AI GenBI Classic",
+      "title": "答案不对时，如何修改分析步骤或 SQL？",
+      "product_type": "Data Agent",
+      "task_type": "问数据",
+      "design_questions": ["可信与溯源", "语义与上下文", "结果表达"],
+      "audience": "能识别数据模型或阅读 SQL 的分析人员",
+      "problem": "重新提问未必能修正错误；用户需要直接调整模型选择、分析步骤或 SQL。",
+      "takeaway": "为同一个答案提供“改步骤”和“改 SQL”两种纠偏入口。",
+      "modules": ["答案菜单", "模型选择", "步骤编辑", "SQL 编辑"],
+      "observed_at": "2026-09-05",
+      "version_note": "历史交互参考：官方导航已将该界面归入 Wren GenBI Classic · Sunset，不代表当前新版本。",
+      "material_type": "产品截图",
+      "hero_step": 2,
+      "sources": [{"id": "docs", "title": "Wren GenBI Classic · Adjust Answers（历史版本）", "url": "https://docs.getwren.ai/oss/guide/home/adjust_answer", "kind": "官方旧版文档"}],
+      "steps": [
+        {"title": "在答案处选择纠偏方式", "asset": "wren-classic/answer.png", "image_url": "https://docs.getwren.ai/assets/images/adjust_answer-6ca5319908a5f4172beec9bbab928ea8.png", "source_id": "docs", "source_anchor": "", "action": "打开 Adjust the answer 菜单。", "feedback": "可以选择调整步骤或直接调整 SQL。", "focus": "两个入口都挂在当前答案上，不必另起一个无上下文的任务。", "insight": "把纠偏动作绑定到具体结果，降低用户重新描述问题的成本。"},
+        {"title": "修改模型与分析步骤", "asset": "wren-classic/steps.png", "image_url": "https://docs.getwren.ai/assets/images/adjust_steps-7d3b5ec194eba62e75b0fc8723ec7cdf.png", "source_id": "docs", "source_anchor": "modify-reasoning-steps", "action": "在弹窗中调整选中的模型和步骤文字。", "feedback": "同一表单展示模型范围、步骤内容和 Regenerate answer 按钮。", "focus": "模型选择与分析步骤一起可编辑；截图未展示系统如何验证修改后的步骤。", "insight": "业务纠偏可以落到数据范围和操作计划，不要求用户先改代码。"},
+        {"title": "专业用户直接改 SQL", "asset": "wren-classic/sql.png", "image_url": "https://docs.getwren.ai/assets/images/adjust_sql-31ef0aed4b9febdb2246cd0b4bf8483a.png", "source_id": "docs", "source_anchor": "edit-sql-directly", "action": "选择 Adjust SQL，在编辑器中修改查询。", "feedback": "SQL 在独立弹窗内编辑，提交后重新生成答案。", "focus": "代码通道与步骤通道分开；界面没有展示差异审阅。", "insight": "为不同能力的用户提供并行纠偏路径，入口仍指向同一答案。"},
+        {"title": "返回调整后的答案", "asset": "wren-classic/result.png", "image_url": "https://docs.getwren.ai/assets/images/adjusted_sql_answer-de01416c86b932062ef8d57a96e13406.png", "source_id": "docs", "source_anchor": "edit-sql-directly", "action": "提交修改并检查新答案。", "feedback": "答案顶部出现 User-provided SQL applied 标记，下方展示文字和结果表；官方文档另说明可保存修正答案。", "focus": "本图未展开 SQL。各示例图不能当作同一次执行的正确性证明，也未展示版本回滚。", "insight": "纠偏之后应有明确的新结果，并让用户知道自己修改了哪个版本。"}
+      ],
+      "lessons": [
+        {"title": "按纠偏对象区分入口", "why": "有时错在选表和步骤，有时错在具体查询。", "when": "用户理解业务模型，但 SQL 熟练程度不同。", "cost": "步骤可编辑不等于解释必然正确；模型范围也需要校验。", "steps": [1, 2, 3]},
+        {"title": "纠偏后的复用要单独确认", "why": "一次修正不一定适用于所有后续问题。", "when": "准备把修正沉淀成团队知识。", "cost": "还需设计适用范围、审核与失效机制；当前截图未覆盖这些环节。", "steps": [4]}
+      ],
+      "limits": "旧版历史案例。未实测 SQL 执行、回滚或知识库审核；不可把编辑分析步骤等同于访问模型内部推理。",
+      "comparison": {
+        "edit": {"text": "分别提供步骤／模型编辑与 SQL 编辑。", "step": 2},
+        "verify": {"text": "显示人工 SQL 已应用的标记与结果；未展示差异审阅或正确性验证。", "step": 4},
+        "recover": {"text": "可主动调整答案；未展示执行报错后的专用恢复路径。", "step": 3},
+        "fit": {"text": "适合研究业务步骤与代码双通道；该截图属于已 Sunset 的历史版本。", "step": 1}
+      }
+    },
+    {
+      "slug": "sagemaker-notebook",
+      "event_id": "52613ad8696c",
+      "product": "Amazon SageMaker Unified Studio",
+      "title": "数据平台如何把 AI 生成、运行和报错修复放在一起？",
+      "product_type": "数据平台",
+      "task_type": "做分析",
+      "design_questions": ["结果表达", "任务编排", "可信与溯源"],
+      "audience": "在 Notebook 中开发数据转换的数据工程师",
+      "problem": "自然语言生成的 SQL 仍要放入正确的运行环境执行，出错后还要回到对应单元格修复。",
+      "takeaway": "以单元格作为生成、执行和修复的共同对象，保留运行环境上下文。",
+      "modules": ["计算连接", "Data Agent", "SQL 单元格", "Fix with AI"],
+      "observed_at": "2026-09-05",
+      "version_note": "取自 AWS 官方 Iceberg 物化视图教程中的 Notebook 操作段，不代表端到端生产验证。",
+      "material_type": "产品截图",
+      "hero_step": 4,
+      "sources": [{"id": "blog", "title": "AWS · SageMaker Iceberg 物化视图教程", "url": "https://aws.amazon.com/blogs/big-data/building-medallion-architecture-with-iceberg-materialized-views-in-amazon-sagemaker/", "kind": "官方教程"}],
+      "steps": [
+        {"title": "先确认计算连接", "figure_id": "b-0fbdddec7605", "source_id": "blog", "action": "为 Notebook 选择 Athena Spark 或 Glue Spark 连接。", "feedback": "运行引擎成为当前分析的明确配置。", "focus": "看连接选择与 Notebook 的关系，生成代码之前就需要知道运行环境。", "insight": "数据平台应把执行环境作为可见上下文，减少代码正确但环境不匹配的问题。"},
+        {"title": "从单元格发起代码生成", "figure_id": "b-e2539e05d49e", "source_id": "blog", "action": "点击单元格内的 generate with AI，或在旁边的 Data Agent 面板描述需求。", "feedback": "截图并列展示 Python 单元格生成入口、SQL 等单元格类型和 Agent 面板。", "focus": "看生成入口与工作对象的关系；本图是发起状态，没有展示已生成的 SQL 或执行成功。", "insight": "生成的结果应进入既有工作对象，方便后续人工修改。"},
+        {"title": "在单元格指定执行环境", "figure_id": "b-fffbdba99b01", "source_id": "blog", "action": "将代码放入 SQL 单元格，并从单元格菜单选择计算连接。", "feedback": "单元格对应可见的执行资源。", "focus": "Notebook 级别与单元格级别的环境配置都需要清楚表达。", "insight": "运行按钮附近保留环境信息，帮助定位方言或连接问题。"},
+        {"title": "对出错单元格请求 AI 修复", "figure_id": "b-819f692978db", "source_id": "blog", "action": "单元格执行失败后，点击 Fix with AI 或使用 Data Agent。", "feedback": "错误区域给出就地修复入口；截图未证明修复后的运行结果。", "focus": "错误与恢复动作位于同一操作对象内。", "insight": "恢复流程应保留单元格、错误和运行连接，而不只是发送报错文字。"}
+      ],
+      "lessons": [
+        {"title": "单元格连接生成与运行", "why": "用户可以沿用代码检查和执行习惯。", "when": "数据平台已经有 Notebook 工作台。", "cost": "必须避免对话里的代码与单元格实际代码产生不可见分叉。", "steps": [2, 3]},
+        {"title": "把环境纳入错误上下文", "why": "同一段代码在不同连接或引擎上可能有不同结果。", "when": "支持多个计算引擎的数据开发平台。", "cost": "需要准确标明配置作用于整个 Notebook 还是当前单元格。", "steps": [1, 3, 4]}
+      ],
+      "limits": "这是教程中的局部操作，不是自动化生产流水线。未展示差异确认、失败回滚或 AI 修复成功率。",
+      "comparison": {
+        "edit": {"text": "单元格内提供代码生成入口，旁边保留 Agent；未展示差异接受／拒绝。", "step": 2},
+        "verify": {"text": "在单元格检查代码与计算连接，再执行核对。", "step": 3},
+        "recover": {"text": "出错单元格提供 Fix with AI。", "step": 4},
+        "fit": {"text": "适合已有 Notebook、需要管理多计算连接的数据工程场景。", "step": 1}
+      }
+    },
+    {
+      "slug": "genie-agents",
+      "event_id": "775f063ddfa3",
+      "product": "Databricks Genie Agents",
+      "title": "复杂分析如何呈现过程，并把问题交给维护者？",
+      "product_type": "Data Agent",
+      "task_type": "问数据",
+      "design_questions": ["任务编排", "可信与溯源", "治理与评估"],
+      "audience": "使用分析 Agent 的业务用户与维护 Agent 的数据专家",
+      "problem": "复杂分析需要多次查询；业务用户要看懂进展，维护者则需要定位失败并改进上下文。",
+      "takeaway": "用可展开的任务过程解释进展，并让问题会话可以交给维护者检查。",
+      "modules": ["Agent mode", "任务过程", "Genie Code", "会话共享"],
+      "observed_at": "2026-09-05",
+      "version_note": "依据 Databricks 2026-09-02 官方发布；三图分别展示分析、维护与共享能力，不是同一会话的连续步骤。",
+      "material_type": "产品截图",
+      "hero_step": 1,
+      "sources": [{"id": "blog", "title": "Databricks · Expanding Genie Agents", "url": "https://www.databricks.com/blog/expanding-genie-agents-deep-analysis-file-reasoning-and-more", "kind": "官方博客"}],
+      "steps": [
+        {"title": "让多步分析的进展可见", "figure_id": "b-892f831fc658", "source_id": "blog", "action": "提出需要多角度分析的业务问题。", "feedback": "截图展示任务列表、查询与重试等过程；官方说明最终可返回带图表和引用的报告。", "focus": "看父级计划与子级查询的层次，过程不只是一条等待提示。", "insight": "长任务可以展示可理解的工作进展；不要把过程展示当成结果正确性的证明。"},
+        {"title": "由维护者检查使用与失败趋势", "figure_id": "b-c3b6d39144b9", "source_id": "blog", "action": "维护者在 Monitor 中查看使用摘要，并通过 Analyze Agent Usage 请求分析。", "feedback": "截图展示时间范围、提问数、独立用户和反馈，以及分析高频主题、失败问题的提示。", "focus": "这是维护者工作区，和业务用户日常提问的角色不同；图片未展示实际建议审阅界面。", "insight": "将使用入口和维护入口分层，让专业能力出现在需要它的角色面前。"},
+        {"title": "把具体会话交给协作者", "figure_id": "b-b17c114ba352", "source_id": "blog", "action": "将会话分享给同事或 Agent 作者。", "feedback": "共享界面为协作提供入口；官方说明有访问权的人可以看到后续更新。", "focus": "共享对象是包含上下文的会话，便于维护者定位问题。", "insight": "反馈可关联具体任务，减少维护者只收到一句“不准”的情况。"}
+      ],
+      "lessons": [
+        {"title": "让进度说明对应工作项", "why": "用户能知道当前在分析什么以及是否发生重试。", "when": "任务通常需要多次查询、等待时间较长。", "cost": "步骤状态需要真实反映执行进度，不能用动画伪装确定性。", "steps": [1]},
+        {"title": "把反馈连回可检查的会话", "why": "维护者获得问题背景和分析上下文。", "when": "有负责 Agent 质量的数据团队。", "cost": "需要明确共享与数据权限，并限制不必要的信息暴露。", "steps": [2, 3]}
+      ],
+      "limits": "未实测权限、建议质量或跨角色协作。这里的任务过程是产品公开呈现，不等同于模型完整内部推理。"
+    },
+    {
+      "slug": "opensearch-relevance",
+      "event_id": "729c4b318a8b",
+      "product": "OpenSearch Search Relevance Workbench",
+      "title": "效果变好了，如何让用户看见证据而不只看到分数？",
+      "product_type": "数据平台",
+      "task_type": "做治理",
+      "design_questions": ["治理与评估", "可信与溯源"],
+      "audience": "需要评估搜索配置的数据与搜索产品团队",
+      "problem": "换一个配置后，整体指标可能变化，但团队仍需要知道评估样本从哪里来、哪些查询变好或变差。",
+      "takeaway": "把评估样本、判断依据、配置对比和逐条结果连接起来。",
+      "modules": ["查询集", "点击判断", "配置比较", "逐条评估"],
+      "observed_at": "2026-09-05",
+      "version_note": "依据 AWS 官方搜索质量教程；可借鉴评估工作台结构，不能把搜索相关性指标直接当作 Data Agent 准确率。",
+      "material_type": "产品截图",
+      "hero_step": 4,
+      "sources": [{"id": "blog", "title": "AWS · Measuring and improving search quality", "url": "https://aws.amazon.com/blogs/big-data/measuring-and-improving-search-quality-with-amazon-opensearch-service/", "kind": "官方教程"}],
+      "steps": [
+        {"title": "从实际查询建立评估样本", "figure_id": "b-64f239a745ee", "source_id": "blog", "action": "创建查询集，从 UBI 查询记录中选择样本。", "feedback": "评估拥有可识别的查询集，而不是一个来源不明的总分。", "focus": "看数据来源和样本配置，它们决定评估覆盖哪些问题。", "insight": "Agent 评估也应保留样本来源与范围，便于判断代表性。"},
+        {"title": "说明判断依据", "figure_id": "b-6b4e12402326", "source_id": "blog", "action": "创建判断列表，选择隐式点击与 COEC 模型。", "feedback": "界面明确展示用于判断相关性的信号类型。", "focus": "点击是隐式信号，并不等同于人工标注的正确答案。", "insight": "评估页面应区分人工判断和行为代理指标，避免误读。"},
+        {"title": "比较两个配置的结果差异", "figure_id": "b-4bbf3d9b72ec", "source_id": "blog", "action": "对同一查询集比较两个搜索配置。", "feedback": "页面展示 Jaccard、排名偏差等重叠指标。", "focus": "重叠衡量结果差异，不直接说明哪组结果更好。", "insight": "先确认变化发生在哪里，再结合质量判断决定是否采用。"},
+        {"title": "从整体指标进入逐条检查", "figure_id": "b-4a262724ce46", "source_id": "blog", "action": "查看搜索评估结果和单条查询表现。", "feedback": "整体指标与逐查询明细同页展示。", "focus": "看汇总与明细的衔接，平均分不能掩盖个别失败。", "insight": "你的 Agent 评估工作台可以保留逐题证据和失败样例入口。"}
+      ],
+      "lessons": [
+        {"title": "指标必须带着样本和依据", "why": "用户才能判断一次评估是否适用于自己的场景。", "when": "需要比较多个模型、提示词或配置。", "cost": "维护样本和判断集比只展示总分更费功夫。", "steps": [1, 2]},
+        {"title": "汇总分数旁保留失败明细", "why": "方便找到改进对象，避免只追求平均分。", "when": "质量问题可以追溯到具体查询或任务。", "cost": "需要保持不同版本的样本可比；搜索指标不能直接套到所有 Agent。", "steps": [3, 4]}
+      ],
+      "limits": "搜索评估与生成式答案评估的目标不同。借鉴的是交互结构，不是直接移植指标或声称评估结果可靠。"
+    }
+  ]
+}

@@ -56,6 +56,19 @@ test("saved snapshots remain renderable when the metadata index no longer contai
   assert.match(favorites.renderCard(retained[0], new Date("2026-08-23T12:00:00+08:00")), /标题 aaaaaaaaaaaa/);
 });
 
+test("design-study favorites retain their safe route without a news event", () => {
+  const item = record("aaaaaaaaaaaa", "2026-09-05T01:00:00Z", { detail_path: "cases/metabase-metabot.html" });
+  const local = storage();
+  favorites.writeRecords(local, [item]);
+  const restored = favorites.enrichRecords(favorites.readRecords(local), []);
+  assert.match(favorites.renderCard(restored[0]), /href="cases\/metabase-metabot.html"/);
+  for (const path of ["https://evil.test", "//evil.test", "../admin.html", "cases/../../private", "cases/x.html?x=1", "cases/a.html\" onclick=\"x"]) {
+    const unsafe = favorites.normalizeRecord({ ...item, detail_path: path });
+    assert.equal(unsafe.detail_path, "");
+    assert.match(favorites.renderCard(unsafe), /href="e\/aaaaaaaaaaaa.html"/);
+  }
+});
+
 test("toggle, newest-first sorting, grouping and topic search form one retrieval loop", () => {
   const older = record("aaaaaaaaaaaa", "2026-07-01T10:00:00+08:00", { topics: ["湖仓"] });
   const newer = record("bbbbbbbbbbbb", "2026-08-23T10:00:00+08:00", { topics: ["Data Agent"] });

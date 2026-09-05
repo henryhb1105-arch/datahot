@@ -147,6 +147,16 @@ class DesignStudyTests(unittest.TestCase):
         body = readings.render_reading_body(next(c for c in self.cases if c["event_id"] == "29e0b8236c7e"), next(e for e in self.events if e["event_id"] == "29e0b8236c7e"), "")
         self.assertIn('href="../media/29e0b8236c7e/d45f74e73e29148873a6a60f.png" data-case-image', body)
 
+    def test_case_pages_reference_versioned_scripts(self):
+        page = build_site.render_cases_page(self.cases, self.events, "", self.studies)
+        self.assertRegex(page, r'src="cases\.js\?v=[a-f0-9]{12}"')
+        self.assertRegex(page, r'src="design-studies\.js\?v=[a-f0-9]{12}"')
+        for study in self.studies:
+            body = studies.render_study_body(study, self.studies, self.events, "")
+            self.assertRegex(body, r'src="\.\./design-studies\.js\?v=[a-f0-9]{12}"')
+        comparison = studies.render_comparison_body(self.studies, self.events)
+        self.assertRegex(comparison, r'src="\.\./design-studies\.js\?v=[a-f0-9]{12}"')
+
 
 if __name__ == "__main__":
     unittest.main()

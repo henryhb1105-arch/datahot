@@ -23,6 +23,13 @@ SLUG = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 MEDIA = re.compile(r"^[a-z0-9-]+/[a-z0-9-]+\.(?:png|jpg|webp)$")
 COMPARISON_SLUGS = ("metabase-metabot", "wren-classic", "sagemaker-notebook")
 COMPARISON_TITLE = "AI 给出结果后，用户如何修改和验证？"
+
+
+def versioned_script(name, prefix=""):
+    if name not in ("cases.js", "design-studies.js"):
+        raise ValueError("unknown case script")
+    digest = hashlib.sha256((ROOT / "pipeline/assets" / name).read_bytes()).hexdigest()[:12]
+    return f"{prefix}{name}?v={digest}"
 COMPARISON_ROWS = (("edit", "如何修改"), ("verify", "如何核验"), ("recover", "如何恢复"), ("fit", "适用条件 · DataHot 判断"))
 
 
@@ -263,7 +270,7 @@ def render_study_body(study, studies, events, bookmark_icon):
   <section class="study-related"><h2>看看其他做法</h2><div>{related_html}</div><nav class="study-question-links" aria-label="相关设计问题">{question_links}</nav></section>
   <section class="study-sources"><h2>资料出处</h2><ul>{sources_html}</ul>{original}</section>
   <section class="study-feedback content-feedback" data-content-feedback data-feedback-kind="design" data-event-id="{identifier}" data-feedback-context="{context}" aria-label="案例反馈"><h2>对你的产品设计有帮助吗？</h2><div><button type="button" data-feedback-value="useful" aria-pressed="false">有帮助</button><button type="button" data-feedback-value="not_useful" aria-pressed="false">帮助不大</button></div><p data-feedback-status aria-live="polite">反馈与收藏分开保存在当前设备。</p></section>
-</main>{viewer_markup()}<script defer src="../design-studies.js"></script><script defer src="../content-feedback.js"></script>'''
+</main>{viewer_markup()}<script defer src="{versioned_script('design-studies.js', '../')}"></script><script defer src="../content-feedback.js"></script>'''
 
 
 def render_comparison_body(studies, events):
@@ -281,4 +288,4 @@ def render_comparison_body(studies, events):
             cell = study["comparison"][key]
             cells.append(f'<td><a class="study-comparison-product" href="{esc(study["slug"])}.html">{esc(study["product"])}</a><p>{esc(cell["text"])}</p><a href="{esc(study["slug"])}.html#step-{cell["step"]}">查看操作 {cell["step"]:02d} 的证据 →</a></td>')
         rows.append(f'<tr><th scope="row">{esc(label)}</th>{"".join(cells)}</tr>')
-    return f'''<main class="wrap study-page study-comparison"><a class="study-back" href="../cases.html">← 数据产品设计库</a><header class="study-header"><p class="study-product">同一个设计问题 · 三种做法</p><h1>{COMPARISON_TITLE}</h1><p class="study-problem">比较控制权放在哪里，以及用户如何检查、修改和恢复。下表只记录材料支持的行为，不评价模型准确率。</p></header><p class="study-version">Wren 为 GenBI Classic 历史界面；空缺能力写“未展示”，不等于产品没有。</p><div class="study-comparison-scroll" tabindex="0" role="region" aria-label="三种结果纠偏方式对比"><table><thead><tr><th scope="col">设计问题</th>{''.join(heads)}</tr></thead><tbody>{''.join(rows)}</tbody></table></div><section class="study-decision"><h2>如何选用 · DataHot 判断</h2><p>已有 SQL 工作台：优先研究 Metabase 的差异审阅；用户更懂业务模型：参考 Wren 的步骤与 SQL 双通道；已有多引擎 Notebook：研究 SageMaker 的单元格上下文和就地修复。三者都仍需你设计结果核验与权限边界。</p></section></main>{viewer_markup()}<script defer src="../design-studies.js"></script>'''
+    return f'''<main class="wrap study-page study-comparison"><a class="study-back" href="../cases.html">← 数据产品设计库</a><header class="study-header"><p class="study-product">同一个设计问题 · 三种做法</p><h1>{COMPARISON_TITLE}</h1><p class="study-problem">比较控制权放在哪里，以及用户如何检查、修改和恢复。下表只记录材料支持的行为，不评价模型准确率。</p></header><p class="study-version">Wren 为 GenBI Classic 历史界面；空缺能力写“未展示”，不等于产品没有。</p><div class="study-comparison-scroll" tabindex="0" role="region" aria-label="三种结果纠偏方式对比"><table><thead><tr><th scope="col">设计问题</th>{''.join(heads)}</tr></thead><tbody>{''.join(rows)}</tbody></table></div><section class="study-decision"><h2>如何选用 · DataHot 判断</h2><p>已有 SQL 工作台：优先研究 Metabase 的差异审阅；用户更懂业务模型：参考 Wren 的步骤与 SQL 双通道；已有多引擎 Notebook：研究 SageMaker 的单元格上下文和就地修复。三者都仍需你设计结果核验与权限边界。</p></section></main>{viewer_markup()}<script defer src="{versioned_script('design-studies.js', '../')}"></script>'''

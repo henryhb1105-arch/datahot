@@ -30,7 +30,7 @@ from indexnow import write_key_file as write_indexnow_key_file
 from product_cases import DESIGN_QUESTIONS, find_case_hero, load_product_cases
 from design_studies import (
     load_studies, library_records, resolved_steps, study_path, viewer_markup,
-    render_study_body, render_comparison_body, COMPARISON_TITLE,
+    render_study_body, render_comparison_body, COMPARISON_TITLE, versioned_script,
 )
 from case_readings import reading_path, render_reading_body
 from case_visuals import card_image
@@ -2653,7 +2653,7 @@ def render_cases_page(product_cases, events, css, studies=()):
   <div class="case-compare-scroll" data-case-compare-content></div>
 </dialog>
 {viewer_markup()}
-<script defer src="cases.js"></script><script defer src="design-studies.js"></script>'''
+<script defer src="{versioned_script('cases.js')}"></script><script defer src="{versioned_script('design-studies.js')}"></script>'''
     return page_shell(
         "数据产品设计库 · DataHot",
         "按真实设计问题比较 Data Agent、数据平台、BI 与数据应用的界面、交互和取舍。",

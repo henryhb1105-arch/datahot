@@ -24,7 +24,7 @@ const ACQUISITION_FORMATS = new Set(["card", "text", ""]);
 const EVENT_ID_REQUIRED = new Set(["list_exposure", "detail_click", "outbound_click", "favorite_toggle", "content_feedback", "share_action"]);
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const EVENT_ID_RE = /^[a-f0-9]{12}$/;
-const PAGE_PATH_RE = /^\/(?:|(?:index|for-me|cases|weekly|daily|topics|classics|hot|favorites|sources|privacy)\.html|topics\/[a-z0-9-]{1,60}\.html|weekly\/\d{4}-W\d{2}\.html|e\/[a-f0-9]{12}\.html)$/;
+const PAGE_PATH_RE = /^\/(?:|(?:index|for-me|cases|weekly|daily|topics|classics|hot|favorites|sources|privacy)\.html|(?:topics|cases)\/[a-z0-9-]{1,60}\.html|weekly\/\d{4}-W\d{2}\.html|e\/[a-f0-9]{12}\.html)$/;
 const SAFE_TEXT_RE = /^[^\u0000-\u001f\u007f]*$/;
 
 export function shanghaiDay(value) {

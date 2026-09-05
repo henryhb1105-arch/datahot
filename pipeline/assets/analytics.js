@@ -46,6 +46,7 @@
     var allowed = [
       /^\/(?:index|for-me|cases|weekly|daily|topics|classics|hot|favorites|sources|privacy)\.html$/,
       /^\/topics\/[a-z0-9-]{1,60}\.html$/,
+      /^\/cases\/[a-z0-9-]{1,60}\.html$/,
       /^\/weekly\/\d{4}-W\d{2}\.html$/,
       /^\/e\/[a-f0-9]{12}\.html$/
     ];
@@ -102,6 +103,7 @@
     var path = String(pathname || "").replace(/\/+$/, "");
     if (!path || /\/datahot$/.test(path)) return "home";
     if (/\/e\/[a-f0-9]{12}\.html$/.test(path)) return "detail";
+    if (/\/(?:datahot\/)?cases\/[a-z0-9-]{1,60}\.html$/.test(path) && safePagePath(path)) return "cases";
     if (/\/topics\/[^/]+\.html$/.test(path)) return "topic";
     if (/\/weekly\/\d{4}-W\d{2}\.html$/.test(path)) return "weekly";
     var filename = path.split("/").pop() || "index.html";

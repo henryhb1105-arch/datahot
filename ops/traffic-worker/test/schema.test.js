@@ -64,3 +64,17 @@ test("page paths and Shanghai calendar days are bounded", () => {
   assert.equal(safePagePath("/index.html/private"), "");
   assert.equal(shanghaiDay("2026-08-28T17:30:00Z"), "2026-08-29");
 });
+
+test("case page views keep X attribution without widening the privacy boundary", () => {
+  for (const path of ["/cases/hex-threads.html", "/cases/compare.html"]) {
+    const input = event({ page: "cases", page_path: path, acquisition_source: "x", acquisition_format: "text" });
+    assert.deepEqual(validateEvent(input, { now: Date.parse("2026-08-28T08:01:00Z") }), []);
+    assert.equal(toStoredEvent(input, "2026-08-28T08:01:00Z").page_path, path);
+  }
+  for (const path of [
+    "/cases/hex-threads.html?private=1", "/cases/compare.html#private",
+    "/cases/../account.html", "/cases/%2e%2e.html", "/cases/person@example.com.html",
+    "/cases/customer/record.html", "/cases/Hex.html", "/cases/.html",
+    "/cases/" + "a".repeat(61) + ".html",
+  ]) assert.equal(safePagePath(path), "", path);
+});

@@ -790,7 +790,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="meta">
     <span class="srcbadge">RSS</span>
     <a class="meta-source-link" href="https://motherduck.com/docs/key-tasks/guides/" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="MotherDuck Docs" aria-label="查看 MotherDuck Docs 原文"><span>MotherDuck Docs</span><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
-    <span class="meta-content-mode">历史编译稿</span>
+    <span class="meta-content-mode">AI 逐段翻译</span>
     <span class="editorial-pick">编辑精选</span>
     <span title="发布时间">发布 2026-08-11 22:03</span>
     <span style="color:var(--sub);font-size:11px" title="加入编辑精选的时间">精选于 2026-08-12 08:20</span>
@@ -814,9 +814,115 @@ main,.layout>*,.hotlist>*{min-width:0}
 </details>
   
   <section class="content-section" aria-labelledby="articleBodyTitle">
-  <div class="content-heading"><h2 id="articleBodyTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 历史编译稿</h2> <span class="content-origin-badge">旧版 AI 基于原文编译</span></div>
-  <div class="fulltext"><h5 class="fh">关键事实</h5><p>MotherDuck推出Guides，允许团队把指标口径、表之间的关系、迁移历史、数据陷阱和输出风格写成Markdown式说明，并作为数仓对象管理。Guides可被搜索、查询和版本控制，Agent只在任务需要时加载相关上下文。</p><h5 class="fh">行业影响</h5><p>数据库schema只能描述字段和类型，无法告诉Agent某张表是否已停更、某个指标为何要去重，或团队默认采用哪套业务定义。把非结构化知识放回数据平台，有助于让Agent的答案可复用、可治理。</p><h5 class="fh">实践要点</h5><p>落地时应先整理高频指标、关键join关系和已知数据陷阱，明确所有者与更新流程；Guides不是一次性文档，而是需要与数据模型一起持续维护的生产资产。</p></div>
-  <div class="content-footer"><div class="disclaimer">这是改版前生成的历史 AI 编译内容，后续将由原文或忠实译文替换</div><a class="original-footer-link" href="https://motherduck.com/docs/key-tasks/guides/" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="MotherDuck Docs"><span>查看原文</span><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div>
+  <div class="content-heading"><h2 id="articleBodyTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 译文</h2> <span class="content-origin-badge">AI 逐段翻译</span></div>
+  <div class="fulltext"><p>通过指南，您可以捕获模式中不可见的领域知识：您的组织如何定义MRR、应该连接哪些表、应避免哪些列、数据中的常见陷阱，或者“客户”在您的工作领域中意味着什么。指南也适用于个人偏好：您的Dive样式、您的Flight约定、您喜欢的结果格式。</p><p>指南是您存储在MotherDuck中的Markdown文档，AI代理在操作您的数据之前会阅读这些文档。您只需编写一次指南；此后，每个代理会话都会通过<a href="https://motherduck.com/docs/key-tasks/ai-and-motherduck/mcp-setup/" target="_blank" rel="noopener noreferrer nofollow">MCP服务器</a>自动获取它。无需在每个聊天中反复复制粘贴上下文。组织共享的指南使组织中的每个代理在相同的定义上保持一致；私人指南则使代理个性化以适应您的工作方式。</p><h2 class="cb-heading">前提条件<a href="https://motherduck.com/docs/key-tasks/guides/#prerequisites" target="_blank" rel="noopener noreferrer nofollow">​</a></h2><ul><li>一个已经将<a href="https://motherduck.com/docs/key-tasks/ai-and-motherduck/mcp-setup/" target="_blank" rel="noopener noreferrer nofollow">MCP服务器</a>连接到Claude、Cursor或Claude Code等AI客户端的MotherDuck账户</li><li>共享组织级指南的权限（用于向整个组织发布指南）</li></ul><h2 class="cb-heading">使用主题组织指南<a href="https://motherduck.com/docs/key-tasks/guides/#organize-guides-with-topics" target="_blank" rel="noopener noreferrer nofollow">​</a></h2><p>主题是代理发现指南的有效方式，而不会浪费令牌。它不会预先加载所有指南，而是调用<code>list_guides(topic)</code>，代理会看到带指南计数的主题树，并深入查看与任务相关的主题。这称为渐进式披露，在以下情况下效果最佳：</p><ul><li><strong>选择描述性主题名称。</strong>代理仅根据名称决定是否打开<code>revenue-billing</code>，因此<code>revenue-billing</code>优于<code>misc</code>或<code>team-docs</code>。</li><li><strong>保持结构易于遍历。</strong>少量命名良好的顶级主题，下面有1-2个级别，比深层或碎片化的树更容易导航。主题不要求唯一性——任意数量的指南可以共享一个主题。</li><li><strong>将根目录保留给真正通用的指南。</strong>没有主题的指南在每个<code>get_query_guide</code>概述中都会单独列出：对于代理来说最容易找到，但它们会占用每个会话的空间。仅对于通用到不属于任何特定领域的指南，才将主题留空，例如公司描述、公司运营领域的独特属性、数据平台概述或组织范围的SQL约定。</li></ul><pre><code class="language-text">- data-quality/ (1 guide)
+- revenue-billing/ (2 guides)
+- revenue-billing/forecasting/ (1 guide)
+- &quot;Data platform overview&quot; — what lives where in our warehouse (organization, uuid: a1b2c3d4-...)
+</code></pre><pre><code class="language-text">(no topic)              One orientation Guide: the definitions an agent needs first,
+                        per-schema notes, the join graph, and pointers to everything below
+definitions/            A glossary of terms that maps common language to your data
+&lt;domain&gt;/               How bundles of metrics are computed, one topic per area:
+                        revenue-billing/, sales-funnel/, product-usage/
+&lt;database&gt;/&lt;schema&gt;/    Information related to a specific database, schema, and so on
+</code></pre><pre><code class="language-text">Create a Dive Guide that says that I prefer dark-themed Dives with compact number formatting
+</code></pre><pre><code class="language-text">Create an org-wide Guide with topic &quot;revenue-billing&quot; that explains:
+- MRR is calculated from the subscriptions table using status = &#x27;active&#x27; and trial_end IS NULL
+- ARR is MRR × 12
+- The billing schema is in the billing database, main schema
+- Never join subscriptions to invoices for revenue — use subscriptions directly
+</code></pre><pre><code class="language-">
+SELECT
+  id,
+  topic,
+  current_version
+FROM
+  MD_CREATE_GUIDE (
+    topic = &#x27;revenue-billing&#x27;,
+    title = &#x27;MRR and ARR Definitions&#x27;,
+    description = &#x27;How monthly and annual recurring revenue are calculated&#x27;,
+    content = &#x27;
+# MRR and ARR definitions
+
+MRR is the sum of all active subscription amounts normalized to a monthly value.
+
+Key rules:
+- Use the subscriptions table, not invoices
+- Filter to status = active
+- Exclude trial subscriptions (trial_end IS NULL)
+&#x27;,
+    access = &#x27;user&#x27;
+  );</code></pre><pre><code class="language-text">What Guides does my organization have?
+</code></pre><pre><code class="language-sql">SELECT id, topic, title, description, access FROM MD_LIST_GUIDES();
+</code></pre><pre><code class="language-sql">SELECT id, title FROM MD_LIST_GUIDES(topic = &#x27;revenue-billing&#x27;);
+</code></pre><pre><code class="language-sql">SELECT title, content
+FROM MD_GET_GUIDE(id = &#x27;a1b2c3d4-e5f6-7890-abcd-ef1234567890&#x27;);
+</code></pre><pre><code class="language-text">Update the MRR Guide to add a section on expansion MRR
+</code></pre><pre><code class="language-sql">SELECT current_version
+FROM MD_UPDATE_GUIDE(
+  id = &#x27;a1b2c3d4-e5f6-7890-abcd-ef1234567890&#x27;,
+  content = &#x27;...(full updated markdown)...&#x27;,
+  change_comment = &#x27;Add expansion MRR section&#x27;
+);
+</code></pre><pre><code class="language-text">Rename billing.main.orders to billing.main.customer_orders in the MRR Guide
+</code></pre><pre><code class="language-sql">SELECT topic, title
+FROM MD_UPDATE_GUIDE_METADATA(
+  id = &#x27;a1b2c3d4-e5f6-7890-abcd-ef1234567890&#x27;,
+  topic = &#x27;customer-orders&#x27;,
+  title = &#x27;Customer Order Filters&#x27;
+);
+</code></pre><pre><code class="language-sql">SELECT current_version
+FROM MD_UPDATE_GUIDE(
+  id = &#x27;a1b2c3d4-e5f6-7890-abcd-ef1234567890&#x27;,
+  &quot;references&quot; = [
+    {
+      &#x27;type&#x27;: &#x27;catalog&#x27;,
+      &#x27;url&#x27;: &#x27;md:billing&#x27;,
+      &#x27;schema&#x27;: &#x27;main&#x27;,
+      &#x27;table&#x27;: &#x27;subscriptions&#x27;,
+      &#x27;description&#x27;: &#x27;Primary source for subscription revenue data&#x27;
+    },
+    {
+      &#x27;type&#x27;: &#x27;catalog&#x27;,
+      &#x27;url&#x27;: &#x27;md:billing&#x27;,
+      &#x27;schema&#x27;: &#x27;main&#x27;,
+      &#x27;table&#x27;: &#x27;subscriptions&#x27;,
+      &#x27;column&#x27;: &#x27;amount&#x27;,
+      &#x27;description&#x27;: &#x27;Monthly subscription amount in cents&#x27;
+    }
+  ]
+);
+</code></pre><pre><code class="language-sql">SELECT current_version
+FROM MD_UPDATE_GUIDE(
+  id = &#x27;b2c3d4e5-f6a7-8901-bcde-f12345678901&#x27;,
+  &quot;references&quot; = [
+    {
+      &#x27;type&#x27;: &#x27;catalog&#x27;,
+      &#x27;url&#x27;: &#x27;md:_share/sample_data/23b0d623-1361-421d-ae77-62d701d471e6&#x27;,
+      &#x27;schema&#x27;: &#x27;hn&#x27;,
+      &#x27;table&#x27;: &#x27;hacker_news&#x27;,
+      &#x27;description&#x27;: &#x27;Hacker News sample data shared by MotherDuck&#x27;
+    }
+  ]
+);
+</code></pre><pre><code class="language-sql">SELECT id, title
+FROM MD_LIST_GUIDES(
+  reference = {
+    &#x27;type&#x27;: &#x27;catalog&#x27;,
+    &#x27;url&#x27;: &#x27;md:billing&#x27;,
+    &#x27;schema&#x27;: &#x27;main&#x27;,
+    &#x27;table&#x27;: &#x27;subscriptions&#x27;
+  }
+);
+</code></pre><pre><code class="language-sql">SELECT access
+FROM MD_SET_GUIDE_ACCESS(
+  id = &#x27;a1b2c3d4-e5f6-7890-abcd-ef1234567890&#x27;,
+  access = &#x27;organization&#x27;
+);
+</code></pre><pre><code class="language-sql">SELECT success
+FROM MD_DELETE_GUIDE(id = &#x27;a1b2c3d4-e5f6-7890-abcd-ef1234567890&#x27;);
+</code></pre></div>
+  <div class="content-footer"><a class="original-footer-link" href="https://motherduck.com/docs/key-tasks/guides/" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="MotherDuck Docs"><span>查看原文</span><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div>
 </section>
   <div class="vendors article-tags" aria-label="文章主题"><a class="chip" href="../topics/data-agent.html">Data Agent</a><a class="chip" href="../topics/semantic-layer.html">语义层</a><span class="vtag">MotherDuck</span><span class="vtag">DuckDB</span></div>
 <section class="source-section" aria-labelledby="supplementSourcesTitle"><div class="source-heading"><h4 id="supplementSourcesTitle">补充来源</h4><span class="source-summary">1 个信源 · 1 篇报道</span></div><div class="source-group"><div class="source-group-head"><b>X 线索·@motherduck</b></div><a class="source-report" href="https://x.com/motherduck/status/2087177975166902737" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="X 线索·@motherduck"><span class="source-report-title">X 原帖：MotherDuck用Guides补齐Data Agent看不到的业务上下文 <span aria-hidden="true">↗</span></span><span class="source-report-date">2026-08-11 22:03</span></a></div></section>

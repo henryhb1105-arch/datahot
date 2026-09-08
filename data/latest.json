@@ -1,6 +1,606 @@
 {
-  "generated_at": "2026-09-08T12:38:01.698645+08:00",
+  "generated_at": "2026-09-08T19:20:32.277274+08:00",
   "events": [
+    {
+      "event_id": "c890348fb23d",
+      "zh_title": "CostBench首测：ClickHouse实时性能每美元高出412-1996倍",
+      "zh_summary": "CostBench首个端到端测试在持续负载下比较云数据仓库的实时分析性能与成本。结果显示，从新数据接入到查询就绪再到聚合/钻取查询的完整链路上，ClickHouse Cloud的性能每美元优于Snowflake、BigQuery和Redshift Serverless达412–1996倍。该基准同时测量摄入、查询就绪维护和查询服务，强调查询引擎之外的数据接入与状态维护同样显著影响整体性价比。",
+      "reason": "该基准把持续负载、端到端链路和每美元成本放进同一评估框架，为实时分析选型提供了可量化的参考，并揭示数据接入阶段对性能的隐藏影响。",
+      "full_zh": "从新数据到快速查询的路径塑造了每美元性能\n\n一个实时分析系统永远不会在已完成的数据集上工作。当用户、应用程序和代理查询可能已经跨越数十亿或万亿行的数据时，新行不断到达。每个新行都必须准备好供查询使用，同时这些查询继续运行。\n\nCostBench的首批结果显示，查询引擎只是区分云数据仓库的一部分：\n\n系统在将传入数据从到达带到查询就绪状态的成本和效率方面差异巨大。\n\n在持续负载下，这项工作对每美元性能的影响可能与查询执行本身一样大：它带有自己的直接成本，并且它产生的状态决定了查询引擎还剩下多少工作。\n\n这第一轮端到端测试使用基于推送的摄取测试了ClickHouse Cloud、Snowflake、BigQuery和Redshift Serverless。\n\nCostBench测量了完整的工作负载——摄取、持续的查询就绪工作以及聚合和钻取查询服务——所有这些同时运行。这篇文章首先解释了查询就绪的含义，然后展示了基准如何衡量这两种效应，并呈现了总体结果。后续的1:1文章将追踪这些结果，逐一分析每个提供商的架构和计费模式。\n\n是什么让数据做好查询准备\n\n考虑一个常见的分析模式：过滤一个连续的行范围，例如web分析表中特定日期的所有事件，然后分组并聚合结果：\n\nSELECT    URL,COUNT(*) AS pageviews,COUNT(DISTINCTUser) AS usersFROM hitsWHEREDay='D2'GROUPBY URL;\n\n这正是分析系统被构建为快速运行的查询类型。为此，它们通过查询就绪来保持数据最小化查询引擎必须读取的数据量以及必须做的重复工作量。\n\n对于像这样的典型分析查询，这转化为三个要求：按列存储数据，组织数据以便块修剪，并预聚合重复计算。\n\n按列存储数据\n\n大多数分析查询不需要表中的每一列。它们可能按一列过滤，按另一列分组，并从第三列计算聚合。示例查询仅使用Day、User和URL。\n\n列式存储让引擎直接读取这三列并跳过所有其他列，即使表包含数百列。\n\n01_columnar_storage_skips_unrelated_columns.png\n\n组织数据以便块修剪\n\n分析引擎按块处理列值，这实现了高效的向量化执行。\n\n块也是修剪的单位。在读取块之前，引擎检查其元数据，并在其值落在查询过滤器之外时跳过它。当物理布局将相似的值放在一起时，修剪效果最好，例如通过排序过滤的列。在下面的示例中，按Day排序让引擎只读取D2块并跳过D1和D3块。\n\n预聚合重复计算\n\n在数十亿或万亿行中，为每个查询扫描和聚合原始数据对于交互式分析来说太慢了。\n\n预聚合将重复工作移出每个查询。它们维护一个小得多的汇总行集，减少了查询时读取的数据以及执行的分组和聚合。汇总保留了查询所需的分组维度和聚合结果，允许查询引擎组合准备好的结果，而不是对单个事件重复这些计算。\n\n对于欺诈检测等时间敏感用例，预聚合行还必须与事件级数据保持同步，理想情况下在新事件变得可查询的同时更新。\n\n由于分析查询通常仍然过滤这些汇总行，预聚合数据也受益于便于修剪的物理布局。\n\n下面的示例将九个事件转换为按Day排序的三行日汇总行。对于WHERE Day = 'D1'，引擎只读取D1行并跳过D2和D3行。\n\n总之，列式存储、便于修剪的布局和最新的预聚合使分析数据做好查询准备。",
+      "content_blocks": [
+        {
+          "type": "heading",
+          "id": "b-c39750831fab",
+          "children": [
+            {
+              "type": "text",
+              "text": "从新数据到快速查询的路径塑造了每美元性能",
+              "marks": [],
+              "id": "t-51376de87f5d"
+            }
+          ],
+          "level": 2
+        },
+        {
+          "type": "paragraph",
+          "id": "b-dbff17a832f6",
+          "children": [
+            {
+              "type": "text",
+              "text": "一个",
+              "marks": [],
+              "id": "t-d76f53a5cacf"
+            },
+            {
+              "type": "text",
+              "text": "实时分析系统",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://clickhouse.com/blog/selecting-a-real-time-analytical-database"
+                }
+              ],
+              "id": "t-66c6d39f31f3"
+            },
+            {
+              "type": "text",
+              "text": "永远不会在已完成的数据集上工作。当用户、应用程序和代理查询可能已经跨越数十亿或",
+              "marks": [],
+              "id": "t-5adabb2523f4"
+            },
+            {
+              "type": "text",
+              "text": "万亿",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://clickhouse.com/blog/how-tesla-built-quadrillion-scale-observability-platform-on-clickhouse"
+                }
+              ],
+              "id": "t-7f46ed226195"
+            },
+            {
+              "type": "text",
+              "text": "行的数据时，新行不断到达。每个新行都必须准备好供查询使用，同时这些查询继续运行。",
+              "marks": [],
+              "id": "t-46baa216d418"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-dc962b881832",
+          "children": [
+            {
+              "type": "text",
+              "text": "CostBench",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://clickhouse.com/blog/costbench-data-warehouse-cost-performance"
+                }
+              ],
+              "id": "t-0bbb9211f5b6"
+            },
+            {
+              "type": "text",
+              "text": "的首批结果显示，查询引擎只是区分云数据仓库的一部分：",
+              "marks": [],
+              "id": "t-bdfb2c74707b"
+            }
+          ]
+        },
+        {
+          "type": "blockquote",
+          "id": "b-ef1f16878f06",
+          "children": [
+            {
+              "type": "text",
+              "text": "系统在将传入数据从到达带到查询就绪状态的成本和效率方面差异巨大。",
+              "marks": [],
+              "id": "t-740af5f98fd1"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-aca98862da8d",
+          "children": [
+            {
+              "type": "text",
+              "text": "在持续负载下，这项工作对每美元性能的影响可能与查询执行本身一样大：它带有自己的直接成本，并且它产生的状态决定了查询引擎还剩下多少工作。",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-81dbe285d3b1"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-df5e1be498a5",
+          "children": [
+            {
+              "type": "text",
+              "text": "这第一轮端到端测试使用基于推送的摄取测试了ClickHouse Cloud、Snowflake、BigQuery和Redshift Serverless。",
+              "marks": [],
+              "id": "t-9dac8d214bd7"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-0ce3b12fdb48",
+          "children": [
+            {
+              "type": "text",
+              "text": "CostBench测量了完整的工作负载——摄取、持续的查询就绪工作以及聚合和钻取查询服务——所有这些同时运行。这篇文章首先解释了",
+              "marks": [],
+              "id": "t-b7519c963e96"
+            },
+            {
+              "type": "text",
+              "text": "查询就绪",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-cedbfceb018b"
+            },
+            {
+              "type": "text",
+              "text": "的含义，然后展示了基准如何衡量这两种效应，并呈现了总体结果。后续的1:1文章将追踪这些结果，逐一分析每个提供商的架构和计费模式。",
+              "marks": [],
+              "id": "t-03374d0e50cf"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-cbdf99190a0d",
+          "children": [
+            {
+              "type": "text",
+              "text": "是什么让数据做好查询准备",
+              "marks": [],
+              "id": "t-e71070cc1a96"
+            }
+          ],
+          "level": 2
+        },
+        {
+          "type": "paragraph",
+          "id": "b-5d9bafa8793a",
+          "children": [
+            {
+              "type": "text",
+              "text": "考虑一个常见的分析模式：过滤一个连续的行范围，例如web分析表中特定日期的所有事件，然后分组并聚合结果：",
+              "marks": [],
+              "id": "t-4ff9995fd597"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "id": "b-ff606ab97ae6",
+          "text": "SELECT    URL,COUNT(*) AS pageviews,COUNT(DISTINCTUser) AS usersFROM hitsWHEREDay='D2'GROUPBY URL;"
+        },
+        {
+          "type": "paragraph",
+          "id": "b-c12151e0c3c2",
+          "children": [
+            {
+              "type": "text",
+              "text": "这正是分析系统被构建为快速运行的查询类型。为此，它们通过",
+              "marks": [],
+              "id": "t-a79cd148bc62"
+            },
+            {
+              "type": "text",
+              "text": "查询就绪",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-e775c18cf6ab"
+            },
+            {
+              "type": "text",
+              "text": "来保持数据",
+              "marks": [],
+              "id": "t-e1999fb3d7fb"
+            },
+            {
+              "type": "text",
+              "text": "最小化查询引擎必须读取的数据量以及必须做的重复工作量",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-1763dd3ffa9f"
+            },
+            {
+              "type": "text",
+              "text": "。",
+              "marks": [],
+              "id": "t-3f155c099874"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-caaac236e5c4",
+          "children": [
+            {
+              "type": "text",
+              "text": "对于像这样的典型分析查询，这转化为三个要求：按列存储数据，组织数据以便块修剪，并预聚合重复计算。",
+              "marks": [],
+              "id": "t-b7a818c559f5"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-fcf80a19b068",
+          "children": [
+            {
+              "type": "text",
+              "text": "按列存储数据",
+              "marks": [],
+              "id": "t-2c6132c3deef"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-df18fe80eb36",
+          "children": [
+            {
+              "type": "text",
+              "text": "大多数分析查询不需要表中的每一列。它们可能按一列过滤，按另一列分组，并从第三列计算聚合。示例查询仅使用Day、User和URL。",
+              "marks": [],
+              "id": "t-a29fa12e3efb"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-b52bb5425f95",
+          "children": [
+            {
+              "type": "text",
+              "text": "列式存储",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://en.wikipedia.org/wiki/Data_orientation"
+                }
+              ],
+              "id": "t-83686e5bc0f7"
+            },
+            {
+              "type": "text",
+              "text": "让引擎直接读取这三列并跳过所有其他列，即使表包含数百列。",
+              "marks": [],
+              "id": "t-44ad9f4f3541"
+            }
+          ]
+        },
+        {
+          "type": "figure",
+          "id": "b-dc9b316e72fe",
+          "src": "https://clickhouse.com/_next/image?url=%2Fuploads%2F01_columnar_storage_skips_unrelated_columns_31152a563a.png&w=2048&q=75",
+          "alt": "01_columnar_storage_skips_unrelated_columns.png",
+          "caption": "",
+          "source_url": "https://clickhouse.com/blog/costbench-real-time-performance-per-dollar",
+          "cached_src": "../media/c890348fb23d/8889be756240f21e38a04771.png",
+          "width": 1360,
+          "height": 590,
+          "mime": "image/png",
+          "size_bytes": 36308,
+          "media_status": "cached"
+        },
+        {
+          "type": "heading",
+          "id": "b-1acdd579611a",
+          "children": [
+            {
+              "type": "text",
+              "text": "组织数据以便块修剪",
+              "marks": [],
+              "id": "t-c42e08ca7a88"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-56e3fe896676",
+          "children": [
+            {
+              "type": "text",
+              "text": "分析引擎按块处理列值，这实现了高效的",
+              "marks": [],
+              "id": "t-20332ce13103"
+            },
+            {
+              "type": "text",
+              "text": "向量化执行",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://en.wikipedia.org/wiki/Single_instruction,_multiple_data"
+                }
+              ],
+              "id": "t-b0c197982800"
+            },
+            {
+              "type": "text",
+              "text": "。",
+              "marks": [],
+              "id": "t-19208e123ef6"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-1c6bfd2c923b",
+          "children": [
+            {
+              "type": "text",
+              "text": "块也是修剪的单位。在读取块之前，引擎检查其元数据，并在其值落在查询过滤器之外时跳过它。当物理布局将相似的值放在一起时，修剪效果最好，例如通过",
+              "marks": [],
+              "id": "t-042b9c45b3cd"
+            },
+            {
+              "type": "text",
+              "text": "排序",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://en.wikipedia.org/wiki/Database_index#Clustered"
+                }
+              ],
+              "id": "t-907f8d6b619c"
+            },
+            {
+              "type": "text",
+              "text": "过滤的列。在下面的示例中，按Day排序让引擎只读取D2块并跳过D1和D3块。",
+              "marks": [],
+              "id": "t-bff0fc8daaf8"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-5e99a2b0bffd",
+          "children": [
+            {
+              "type": "text",
+              "text": "预聚合重复计算",
+              "marks": [],
+              "id": "t-cc3c421dd03f"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-b2070fe72b3e",
+          "children": [
+            {
+              "type": "text",
+              "text": "在数十亿或万亿行中，为每个查询扫描和聚合原始数据对于交互式分析来说太慢了。",
+              "marks": [],
+              "id": "t-678f629e6d25"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-1d8e50858e27",
+          "children": [
+            {
+              "type": "text",
+              "text": "预聚合",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://en.wikipedia.org/wiki/Aggregate_(data_warehouse)"
+                }
+              ],
+              "id": "t-83f9cd13a75e"
+            },
+            {
+              "type": "text",
+              "text": "将重复工作移出每个查询。它们维护一个小得多的汇总行集，减少了查询时读取的数据以及执行的分组和聚合。汇总保留了查询所需的分组维度和聚合结果，允许查询引擎组合准备好的结果，而不是对单个事件重复这些计算。",
+              "marks": [],
+              "id": "t-7445248d3ae3"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-80d0ad61cb6b",
+          "children": [
+            {
+              "type": "text",
+              "text": "对于欺诈检测等时间敏感用例，预聚合行还必须与事件级数据保持同步，理想情况下在新事件变得可查询的同时更新。",
+              "marks": [],
+              "id": "t-a419590ee676"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-28d92c5cb995",
+          "children": [
+            {
+              "type": "text",
+              "text": "由于分析查询通常仍然过滤这些汇总行，预聚合数据也受益于便于修剪的物理布局。",
+              "marks": [],
+              "id": "t-89fc48c060f8"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-05e81a658ef8",
+          "children": [
+            {
+              "type": "text",
+              "text": "下面的示例将九个事件转换为按Day排序的三行日汇总行。对于",
+              "marks": [],
+              "id": "t-d6073c4aad64"
+            },
+            {
+              "type": "text",
+              "text": "WHERE Day = 'D1'",
+              "marks": [
+                "code"
+              ],
+              "id": "t-3537ebb1c615"
+            },
+            {
+              "type": "text",
+              "text": "，引擎只读取D1行并跳过D2和D3行。",
+              "marks": [],
+              "id": "t-cc86552892eb"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-790f79fef4e2",
+          "children": [
+            {
+              "type": "text",
+              "text": "总之，列式存储、便于修剪的布局和最新的预聚合使分析数据做好查询准备。",
+              "marks": [],
+              "id": "t-3ba6d829dfb9"
+            }
+          ]
+        }
+      ],
+      "content_format": "blocks-v1",
+      "category": "platform",
+      "category_label": "AI 数据平台",
+      "vendors": [
+        "ClickHouse",
+        "Snowflake",
+        "BigQuery",
+        "Amazon Redshift"
+      ],
+      "heat": 72,
+      "star": true,
+      "importance": 86,
+      "quality_score": 86,
+      "trend_score": 60,
+      "signal": 0,
+      "topics": [
+        "实时分析"
+      ],
+      "shelf": "news",
+      "pinned": false,
+      "published": "2026-09-08T15:38:02+08:00",
+      "first_seen": "2026-09-08T19:20:32.277274+08:00",
+      "items": [
+        {
+          "id": "c890348fb23d",
+          "source": "ClickHouse Blog",
+          "link": "https://clickhouse.com/blog/costbench-real-time-performance-per-dollar",
+          "published": "2026-09-08T15:38:02+08:00",
+          "ingested_at": "2026-09-08T19:20:32.277274+08:00",
+          "title": "Measuring real-time performance per dollar under continuous load: CostBench’s first end-to-end results"
+        }
+      ],
+      "work_tags": {
+        "taxonomy_version": "work-tags-v1",
+        "product_objects": [],
+        "use_cases": [
+          "数据接入",
+          "生产评估与运营"
+        ],
+        "decision_concerns": [
+          "成本与性能",
+          "可靠性与评估"
+        ]
+      },
+      "quality_breakdown": {
+        "originality": 20,
+        "evidence_density": 24,
+        "information_gain": 22,
+        "actionability_depth": 20
+      },
+      "content_parse": {
+        "run_id": "github-34219945288-1",
+        "processor_version": "original-first-v7",
+        "attempted_at": "2026-09-08T19:21:15.182972+08:00",
+        "status": "ready",
+        "source": "ClickHouse Blog",
+        "strategy": "semantic_container",
+        "blocks": 26,
+        "text_chars": 4078,
+        "figures": 1,
+        "tables": 0,
+        "figures_discovered": 3,
+        "figures_selected": 1,
+        "figures_rejected": 2,
+        "candidate_count": 14,
+        "figures_rejected_author": 0,
+        "figures_rejected_decorative": 0,
+        "figures_rejected_duplicate": 2,
+        "figures_rejected_small": 0,
+        "figures_rejected_limit": 0,
+        "trimmed_tail_blocks": 0,
+        "trimmed_head_blocks": 0,
+        "trimmed_promotional_blocks": 0,
+        "trimmed_embedded_ui_blocks": 0,
+        "embedded_ui_components": 0,
+        "selected_depth": 8,
+        "selected_raw_blocks": 28,
+        "selected_raw_text_chars": 4169,
+        "broad_raw_blocks": 159,
+        "broad_raw_text_chars": 24553,
+        "parent_extra_blocks": 131,
+        "candidate_count_raw": 20,
+        "candidate_duplicates": 6,
+        "candidate_quality_rejected": 2,
+        "duplicate_blocks": 0,
+        "selected_score": 1145.56,
+        "quality_status": "pass",
+        "selected_tag": "div",
+        "focus_ratio": 0.1698,
+        "link_ratio": 0.0247,
+        "duplicate_ratio": 0.0,
+        "selection_evidence": [
+          "prose_density",
+          "integrity_gate",
+          "semantic_container"
+        ],
+        "media": {
+          "figures": 1,
+          "cached": 1,
+          "link_only": 0,
+          "policy_version": "source-cdn-v1"
+        },
+        "content_mode": "translated",
+        "source_language": "other",
+        "translation_status": "complete",
+        "source_content_hash": "f7c2a5e2cf32440bee3e011a",
+        "translation": {
+          "run_id": "github-34219945288-1",
+          "policy_version": "faithful-translation-retry-v1",
+          "attempted_at": "2026-09-08T19:21:15.183015+08:00",
+          "purpose": "body_translation",
+          "status": "complete"
+        }
+      },
+      "content_mode": "translated",
+      "content_level": "translated",
+      "source_language": "other",
+      "translation_status": "complete",
+      "source_content_hash": "f7c2a5e2cf32440bee3e011a",
+      "body_chars": 1401
+    },
     {
       "event_id": "7365328d7b8e",
       "zh_title": "Amplitude发布Agent Analytics：AI Agent团队为何需要它",
@@ -1988,7 +2588,7 @@
       "star": true,
       "importance": 79,
       "quality_score": 79,
-      "trend_score": 18,
+      "trend_score": 17,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -6237,11 +6837,11 @@
         "ClickHouse",
         "Google"
       ],
-      "heat": 71,
+      "heat": 68,
       "star": true,
       "importance": 99,
       "quality_score": 99,
-      "trend_score": 48,
+      "trend_score": 44,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -7634,11 +8234,11 @@
       "vendors": [
         "TiDB"
       ],
-      "heat": 67,
+      "heat": 65,
       "star": true,
       "importance": 85,
       "quality_score": 85,
-      "trend_score": 53,
+      "trend_score": 48,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -9645,11 +10245,11 @@
         "Palantir",
         "RelationalAI"
       ],
-      "heat": 58,
+      "heat": 55,
       "star": false,
       "importance": 70,
       "quality_score": 70,
-      "trend_score": 48,
+      "trend_score": 43,
       "signal": 0,
       "topics": [
         "语义层"
@@ -12296,11 +12896,11 @@
         "ClickHouse",
         "Massive"
       ],
-      "heat": 44,
+      "heat": 43,
       "star": true,
       "importance": 80,
       "quality_score": 80,
-      "trend_score": 15,
+      "trend_score": 14,
       "signal": 0,
       "topics": [
         "实时分析"
@@ -13570,11 +14170,11 @@
       "vendors": [
         "JupyterGIS"
       ],
-      "heat": 47,
+      "heat": 46,
       "star": true,
       "importance": 77,
       "quality_score": 77,
-      "trend_score": 23,
+      "trend_score": 21,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -15032,11 +15632,11 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 46,
+      "heat": 45,
       "star": false,
       "importance": 72,
       "quality_score": 72,
-      "trend_score": 25,
+      "trend_score": 22,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -17120,11 +17720,11 @@
       "vendors": [
         "AWS"
       ],
-      "heat": 43,
+      "heat": 42,
       "star": false,
       "importance": 71,
       "quality_score": 71,
-      "trend_score": 20,
+      "trend_score": 18,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -17989,11 +18589,11 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 49,
+      "heat": 48,
       "star": true,
       "importance": 84,
       "quality_score": 84,
-      "trend_score": 20,
+      "trend_score": 18,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -18450,7 +19050,7 @@
       "category": "product",
       "category_label": "数据产品",
       "vendors": [],
-      "heat": 27,
+      "heat": 26,
       "star": false,
       "importance": 53,
       "quality_score": 53,
@@ -19469,7 +20069,7 @@
       "star": false,
       "importance": 74,
       "quality_score": 74,
-      "trend_score": 15,
+      "trend_score": 14,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -21556,11 +22156,11 @@
         "TiDB",
         "Oracle"
       ],
-      "heat": 46,
+      "heat": 45,
       "star": true,
       "importance": 85,
       "quality_score": 85,
-      "trend_score": 14,
+      "trend_score": 13,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -23564,7 +24164,7 @@
       "star": false,
       "importance": 60,
       "quality_score": 60,
-      "trend_score": 7,
+      "trend_score": 6,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -24384,11 +24984,11 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 40,
+      "heat": 39,
       "star": false,
       "importance": 65,
       "quality_score": 65,
-      "trend_score": 20,
+      "trend_score": 18,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -26945,11 +27545,11 @@
       "vendors": [
         "ClickHouse"
       ],
-      "heat": 51,
+      "heat": 50,
       "star": true,
       "importance": 89,
       "quality_score": 89,
-      "trend_score": 19,
+      "trend_score": 17,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -27972,11 +28572,11 @@
       "vendors": [
         "ClickHouse"
       ],
-      "heat": 45,
+      "heat": 44,
       "star": true,
       "importance": 78,
       "quality_score": 78,
-      "trend_score": 18,
+      "trend_score": 16,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -28779,11 +29379,11 @@
       "vendors": [
         "Indeed"
       ],
-      "heat": 46,
+      "heat": 45,
       "star": true,
       "importance": 87,
       "quality_score": 87,
-      "trend_score": 12,
+      "trend_score": 11,
       "signal": 0,
       "topics": [
         "销售增长",
@@ -29431,11 +30031,11 @@
       "vendors": [
         "Visier"
       ],
-      "heat": 38,
+      "heat": 37,
       "star": false,
       "importance": 71,
       "quality_score": 71,
-      "trend_score": 11,
+      "trend_score": 10,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -31691,11 +32291,11 @@
       "vendors": [
         "火山引擎"
       ],
-      "heat": 40,
+      "heat": 39,
       "star": false,
       "importance": 68,
       "quality_score": 68,
-      "trend_score": 17,
+      "trend_score": 15,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -32111,7 +32711,7 @@
       "star": false,
       "importance": 60,
       "quality_score": 60,
-      "trend_score": 17,
+      "trend_score": 15,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -32926,11 +33526,11 @@
       "vendors": [
         "Ugreen"
       ],
-      "heat": 30,
+      "heat": 29,
       "star": false,
       "importance": 45,
       "quality_score": 45,
-      "trend_score": 17,
+      "trend_score": 16,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -40678,11 +41278,11 @@
       "vendors": [
         "Aloudata"
       ],
-      "heat": 36,
+      "heat": 35,
       "star": false,
       "importance": 60,
       "quality_score": 60,
-      "trend_score": 17,
+      "trend_score": 15,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -42530,11 +43130,11 @@
       "vendors": [
         "SpiralDB"
       ],
-      "heat": 48,
+      "heat": 47,
       "star": true,
       "importance": 85,
       "quality_score": 85,
-      "trend_score": 17,
+      "trend_score": 16,
       "signal": 0,
       "topics": [
         "湖仓"
@@ -44872,7 +45472,7 @@
       "star": false,
       "importance": 70,
       "quality_score": 70,
-      "trend_score": 11,
+      "trend_score": 10,
       "signal": 0,
       "topics": [
         "湖仓",
@@ -47094,11 +47694,11 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 35,
+      "heat": 34,
       "star": false,
       "importance": 60,
       "quality_score": 60,
-      "trend_score": 14,
+      "trend_score": 13,
       "signal": 0,
       "topics": [
         "语义层",
@@ -48634,11 +49234,11 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 35,
+      "heat": 34,
       "star": false,
       "importance": 60,
       "quality_score": 60,
-      "trend_score": 14,
+      "trend_score": 13,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -49674,7 +50274,7 @@
       "star": false,
       "importance": 55,
       "quality_score": 55,
-      "trend_score": 14,
+      "trend_score": 13,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -50658,11 +51258,11 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 44,
+      "heat": 43,
       "star": true,
       "importance": 80,
       "quality_score": 80,
-      "trend_score": 14,
+      "trend_score": 13,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -51459,7 +52059,7 @@
       "star": false,
       "importance": 73,
       "quality_score": 73,
-      "trend_score": 14,
+      "trend_score": 13,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -52178,11 +52778,11 @@
         "Snowflake",
         "Jedify"
       ],
-      "heat": 40,
+      "heat": 39,
       "star": false,
       "importance": 72,
       "quality_score": 72,
-      "trend_score": 14,
+      "trend_score": 12,
       "signal": 0,
       "topics": [
         "语义层"
@@ -53934,11 +54534,11 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 39,
+      "heat": 38,
       "star": false,
       "importance": 70,
       "quality_score": 70,
-      "trend_score": 14,
+      "trend_score": 12,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -54441,11 +55041,11 @@
       "vendors": [
         "ClickHouse"
       ],
-      "heat": 37,
+      "heat": 36,
       "star": false,
       "importance": 66,
       "quality_score": 66,
-      "trend_score": 13,
+      "trend_score": 12,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -55665,7 +56265,7 @@
         "ClickHouse",
         "Neon"
       ],
-      "heat": 34,
+      "heat": 33,
       "star": false,
       "importance": 66,
       "quality_score": 66,
@@ -58274,11 +58874,11 @@
       "vendors": [
         "AWS"
       ],
-      "heat": 39,
+      "heat": 38,
       "star": false,
       "importance": 70,
       "quality_score": 70,
-      "trend_score": 13,
+      "trend_score": 12,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -60408,11 +61008,11 @@
       "vendors": [
         "AWS"
       ],
-      "heat": 49,
+      "heat": 48,
       "star": true,
       "importance": 92,
       "quality_score": 92,
-      "trend_score": 13,
+      "trend_score": 12,
       "signal": 0,
       "topics": [
         "湖仓"
@@ -60994,11 +61594,11 @@
       "vendors": [
         "Cohere"
       ],
-      "heat": 33,
+      "heat": 32,
       "star": false,
       "importance": 59,
       "quality_score": 59,
-      "trend_score": 11,
+      "trend_score": 10,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -62816,7 +63416,7 @@
       "star": false,
       "importance": 45,
       "quality_score": 45,
-      "trend_score": 13,
+      "trend_score": 12,
       "signal": 0,
       "topics": [
         "风险管理"
@@ -64152,11 +64752,11 @@
       "category": "product",
       "category_label": "数据产品",
       "vendors": [],
-      "heat": 27,
+      "heat": 26,
       "star": false,
       "importance": 44,
       "quality_score": 44,
-      "trend_score": 12,
+      "trend_score": 11,
       "signal": 0,
       "topics": [
         "客户运营"
@@ -65225,7 +65825,7 @@
       "star": false,
       "importance": 59,
       "quality_score": 59,
-      "trend_score": 12,
+      "trend_score": 11,
       "signal": 0,
       "topics": [
         "客户运营"
@@ -68633,7 +69233,7 @@
       "star": false,
       "importance": 50,
       "quality_score": 50,
-      "trend_score": 12,
+      "trend_score": 11,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -70149,7 +70749,7 @@
       "star": false,
       "importance": 74,
       "quality_score": 74,
-      "trend_score": 9,
+      "trend_score": 8,
       "signal": 0,
       "topics": [
         "组织人才"
@@ -71559,11 +72159,11 @@
       "vendors": [
         "华为云"
       ],
-      "heat": 43,
+      "heat": 42,
       "star": true,
       "importance": 79,
       "quality_score": 79,
-      "trend_score": 14,
+      "trend_score": 12,
       "signal": 0,
       "topics": [
         "湖仓",
@@ -72062,11 +72662,11 @@
       "vendors": [
         "OceanBase"
       ],
-      "heat": 41,
+      "heat": 40,
       "star": false,
       "importance": 74,
       "quality_score": 74,
-      "trend_score": 13,
+      "trend_score": 12,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -72587,11 +73187,11 @@
       "vendors": [
         "AWS"
       ],
-      "heat": 40,
+      "heat": 39,
       "star": false,
       "importance": 72,
       "quality_score": 72,
-      "trend_score": 13,
+      "trend_score": 12,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -75355,7 +75955,7 @@
       "star": false,
       "importance": 68,
       "quality_score": 68,
-      "trend_score": 10,
+      "trend_score": 9,
       "signal": 0,
       "topics": [
         "风险管理"
@@ -75784,7 +76384,7 @@
       "star": true,
       "importance": 85,
       "quality_score": 85,
-      "trend_score": 9,
+      "trend_score": 8,
       "signal": 0,
       "topics": [
         "销售增长"
@@ -77507,7 +78107,7 @@
       "star": true,
       "importance": 90,
       "quality_score": 90,
-      "trend_score": 11,
+      "trend_score": 10,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -79191,7 +79791,7 @@
       "star": true,
       "importance": 75,
       "quality_score": 75,
-      "trend_score": 10,
+      "trend_score": 9,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -82339,7 +82939,7 @@
         "Google",
         "Google Cloud"
       ],
-      "heat": 38,
+      "heat": 37,
       "star": true,
       "importance": 75,
       "quality_score": 75,
@@ -83102,11 +83702,11 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 43,
+      "heat": 42,
       "star": true,
       "importance": 83,
       "quality_score": 83,
-      "trend_score": 10,
+      "trend_score": 9,
       "signal": 0,
       "topics": [
         "ChatBI",
@@ -84026,7 +84626,7 @@
       "star": true,
       "importance": 82,
       "quality_score": 82,
-      "trend_score": 10,
+      "trend_score": 9,
       "signal": 0,
       "topics": [
         "客户运营"
@@ -85250,7 +85850,7 @@
       "star": true,
       "importance": 78,
       "quality_score": 78,
-      "trend_score": 9,
+      "trend_score": 8,
       "signal": 0,
       "topics": [
         "实时分析"
@@ -87694,7 +88294,7 @@
       "star": false,
       "importance": 73,
       "quality_score": 73,
-      "trend_score": 10,
+      "trend_score": 9,
       "signal": 0,
       "topics": [
         "湖仓"
@@ -90250,7 +90850,7 @@
       "star": true,
       "importance": 82,
       "quality_score": 82,
-      "trend_score": 10,
+      "trend_score": 9,
       "signal": 0,
       "topics": [
         "湖仓"
@@ -92137,7 +92737,7 @@
       "star": true,
       "importance": 78,
       "quality_score": 78,
-      "trend_score": 10,
+      "trend_score": 9,
       "signal": 0,
       "topics": [
         "湖仓",
@@ -93468,7 +94068,7 @@
       "star": false,
       "importance": 67,
       "quality_score": 67,
-      "trend_score": 9,
+      "trend_score": 8,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -93579,11 +94179,11 @@
       "category": "platform",
       "category_label": "AI 数据平台",
       "vendors": [],
-      "heat": 36,
+      "heat": 35,
       "star": false,
       "importance": 69,
       "quality_score": 69,
-      "trend_score": 9,
+      "trend_score": 8,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -94542,7 +95142,7 @@
       "star": false,
       "importance": 70,
       "quality_score": 70,
-      "trend_score": 8,
+      "trend_score": 7,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -96900,7 +97500,7 @@
       "category": "bi",
       "category_label": "BI 与可视化",
       "vendors": [],
-      "heat": 23,
+      "heat": 22,
       "star": false,
       "importance": 44,
       "quality_score": 44,
@@ -98415,7 +99015,7 @@
       "vendors": [
         "Amplitude"
       ],
-      "heat": 29,
+      "heat": 28,
       "star": false,
       "importance": 57,
       "quality_score": 57,
@@ -100861,7 +101461,7 @@
       "star": false,
       "importance": 62,
       "quality_score": 62,
-      "trend_score": 8,
+      "trend_score": 7,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -103131,11 +103731,11 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 49,
+      "heat": 48,
       "star": true,
       "importance": 100,
       "quality_score": 100,
-      "trend_score": 7,
+      "trend_score": 6,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -104075,7 +104675,7 @@
       "star": false,
       "importance": 67,
       "quality_score": 67,
-      "trend_score": 7,
+      "trend_score": 6,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -105527,7 +106127,7 @@
       "star": true,
       "importance": 85,
       "quality_score": 85,
-      "trend_score": 7,
+      "trend_score": 6,
       "signal": 0,
       "topics": [
         "语义层",
@@ -106511,7 +107111,7 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 33,
+      "heat": 32,
       "star": false,
       "importance": 65,
       "quality_score": 65,
@@ -107499,7 +108099,7 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 29,
+      "heat": 28,
       "star": false,
       "importance": 56,
       "quality_score": 56,
@@ -107862,7 +108462,7 @@
       "star": false,
       "importance": 50,
       "quality_score": 50,
-      "trend_score": 7,
+      "trend_score": 6,
       "signal": 0,
       "topics": [
         "实时分析"
@@ -109931,11 +110531,11 @@
         "ClickHouse",
         "Hex"
       ],
-      "heat": 45,
+      "heat": 44,
       "star": true,
       "importance": 91,
       "quality_score": 91,
-      "trend_score": 7,
+      "trend_score": 6,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -113900,7 +114500,7 @@
       "star": false,
       "importance": 74,
       "quality_score": 74,
-      "trend_score": 7,
+      "trend_score": 6,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -114448,11 +115048,11 @@
         "ClickHouse",
         "Datadog"
       ],
-      "heat": 40,
+      "heat": 39,
       "star": true,
       "importance": 80,
       "quality_score": 80,
-      "trend_score": 7,
+      "trend_score": 6,
       "signal": 0,
       "topics": [
         "实时分析"
@@ -116329,7 +116929,7 @@
       "star": true,
       "importance": 85,
       "quality_score": 85,
-      "trend_score": 7,
+      "trend_score": 6,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -120002,7 +120602,7 @@
       "star": true,
       "importance": 90,
       "quality_score": 90,
-      "trend_score": 7,
+      "trend_score": 6,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -120580,7 +121180,7 @@
       "star": false,
       "importance": 70,
       "quality_score": 70,
-      "trend_score": 7,
+      "trend_score": 6,
       "signal": 0,
       "topics": [
         "湖仓",
@@ -121086,7 +121686,7 @@
       "star": false,
       "importance": 64,
       "quality_score": 64,
-      "trend_score": 7,
+      "trend_score": 6,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -124689,7 +125289,7 @@
         "Elasticsearch",
         "OpenSearch"
       ],
-      "heat": 37,
+      "heat": 36,
       "star": true,
       "importance": 80,
       "quality_score": 80,
@@ -135270,7 +135870,7 @@
       "star": true,
       "importance": 78,
       "quality_score": 78,
-      "trend_score": 4,
+      "trend_score": 3,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -139052,7 +139652,7 @@
         "AWS",
         "Amazon OpenSearch Service"
       ],
-      "heat": 40,
+      "heat": 39,
       "star": true,
       "importance": 82,
       "quality_score": 82,
@@ -143396,11 +143996,11 @@
         "AWS",
         "Amazon Redshift"
       ],
-      "heat": 38,
+      "heat": 37,
       "star": true,
       "importance": 78,
       "quality_score": 78,
-      "trend_score": 5,
+      "trend_score": 4,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -145512,11 +146112,11 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 42,
+      "heat": 41,
       "star": true,
       "importance": 87,
       "quality_score": 87,
-      "trend_score": 5,
+      "trend_score": 4,
       "signal": 0,
       "topics": [
         "湖仓",
@@ -146288,992 +146888,6 @@
       "body_chars": 2023
     },
     {
-      "event_id": "c23dcf4cbf7b",
-      "zh_title": "Snowflake用户级配额正式GA，支持AI功能用量限制",
-      "zh_summary": "Snowflake 8月15日至19日的版本说明显示，用户级配额功能正式可用，允许配额管理员为单个用户设置月度/每日信用额度，并可覆盖AI Functions、Cortex Agents等AI功能。管理员可配置阈值通知，并在用户达到配额后自动阻止其AI访问，配置变更约5-10分钟生效。同时新增账户级视图QUOTA_ACCESS_BLOCK_HISTORY，用于查看所有被阻止用户。",
-      "reason": "数据平台管理者可借此控制AI功能成本和用户资源消耗，是平台AI化后治理与成本管理的关键实践。",
-      "full_zh": "10.29 版本说明：2026年8月15日 - 2026年8月19日¶\n\n注意\n\n此版本已完成。有关这些版本说明的预发布版本与最终版本之间的差异，请参阅版本说明变更日志。\n\n成本管理更新¶\n\n每用户配额（正式发布）¶\n\n每用户配额现已正式发布。每用户配额允许配额管理员为单个用户设置每月和每日信用额度，并在各种可配置阈值处通知用户。配额可针对账户中的所有用户或标签过滤的子集，并涵盖仓库计算和AI功能域，包括AI函数、Snowflake CoCo、Cortex Agents和Snowflake CoWork。对于AI功能，管理员可以配置配额，在用户达到AI配额限制时自动阻止其AI访问，并在周期重置时解除阻止。\n\n随着正式发布，包括以下更新：\n\n可配置的最终用户阻止通知：当启用阻止执行时，管理员现在可以控制被阻止的用户是否收到电子邮件通知。向SET_BLOCK_ENFORCEMENT_ENABLED传递第二个布尔参数。例如，SET_BLOCK_ENFORCEMENT_ENABLED(TRUE, TRUE)启用执行并向被阻止的用户发送电子邮件通知。今后，最终用户通知将默认禁用，管理员必须显式启用最终用户通知。月度或每日通知阈值目标设定：通知阈值现在可以限定为月度或每日信用额度。将'MONTHLY'或'DAILY'作为第四个参数传递给ADD_NOTIFICATION_THRESHOLD。ACCOUNT_USAGE.QUOTA_ACCESS_BLOCK_HISTORY视图：新的账户级视图，显示账户中所有配额中被阻止的所有用户。更快的执行传播：配置更改现在大约在5-10分钟内传播（以前最多15分钟）。\n\n以下公共预览方法在正式发布时已被替换或删除：\n\nGET_ACTIVE_BLOCKS()被替换为GET_ACTIVE_BLOCKS_V2()。GET_PER_USER_USAGE_PREVIEW()和SET_REFRESH_TIER()不再可用。配额评估现在在几分钟内对所有账户进行；不需要单独的刷新层级设置。\n\n有关更多信息，请参阅每用户配额。\n\n成本异常异常监控器（预览）¶\n\n在此版本中，Snowflake荣幸地宣布公开预览异常监控器。到目前为止，Snowflake检测整个账户或整个组织的成本异常，这可能过于粗糙，无法捕捉单个团队或项目内的激增。异常监控器允许您使用对象标签和服务类型定义自己的范围，因此您可以单独监控业务单元、成本中心或项目。\n\nSnowflake每天将消耗归属于每个监控器，对其运行相同的检测算法，并可向特定于该监控器的通知列表发送电子邮件。每个账户最多可有20个监控器，每个监控器跟踪信用或AI信用。\n\n您可以使用Snowsight或SQL处理异常监控器。\n\nSnowsight： 异常选项卡在成本管理现在包括用于选择监控器、选择信用族以及从标签和服务类型构建范围的过滤器。您可以在保存之前查看范围产生的异常，并在重新标记资源后重新计算监控器。有关更多信息，请参阅在Snowsight中处理异常监控器。  ANOMALY_INSIGHTS类：新方法创建、更新、读取和删除监控器，管理每个监控器的通知列表，并测试配置而不保存。有关更多信息，请参阅处理异常监控器。\n\n版本说明变更日志¶\n\n公告更新日期版本说明初始发布（预览）2026年8月13日每用户配额（正式发布）已添加至成本管理更新2026年8月14日版本说明最终发布2026年8月20日",
-      "content_blocks": [
-        {
-          "type": "heading",
-          "id": "b-2250301d7425",
-          "children": [
-            {
-              "type": "text",
-              "text": "10.29 版本说明：2026年8月15日 - 2026年8月19日",
-              "marks": [],
-              "id": "t-871e9aa2da52"
-            },
-            {
-              "type": "text",
-              "text": "¶",
-              "marks": [
-                {
-                  "type": "link",
-                  "href": "https://docs.snowflake.com/en/release-notes/2026/10_29#1029-release-notes-aug-15-2026-aug-19-2026"
-                }
-              ],
-              "id": "t-d1e0dab65e0c"
-            }
-          ],
-          "level": 2
-        },
-        {
-          "type": "paragraph",
-          "id": "b-0da15eb6ccfa",
-          "children": [
-            {
-              "type": "text",
-              "text": "注意",
-              "marks": [],
-              "id": "t-1d79d606811b"
-            }
-          ]
-        },
-        {
-          "type": "paragraph",
-          "id": "b-7c3b2400d3a2",
-          "children": [
-            {
-              "type": "text",
-              "text": "此版本已完成。有关这些版本说明的预发布版本与最终版本之间的差异，请参阅",
-              "marks": [],
-              "id": "t-3d96176301dc"
-            },
-            {
-              "type": "text",
-              "text": "版本说明变更日志",
-              "marks": [
-                {
-                  "type": "link",
-                  "href": "https://docs.snowflake.com/en/release-notes/2026/10_29#label-rel-notes-change-log-10-29"
-                }
-              ],
-              "id": "t-93e74bc92d15"
-            },
-            {
-              "type": "text",
-              "text": "。",
-              "marks": [],
-              "id": "t-f27b8ff18282"
-            }
-          ]
-        },
-        {
-          "type": "heading",
-          "id": "b-f833840354db",
-          "children": [
-            {
-              "type": "text",
-              "text": "成本管理更新",
-              "marks": [],
-              "id": "t-003eb80c5533"
-            },
-            {
-              "type": "text",
-              "text": "¶",
-              "marks": [
-                {
-                  "type": "link",
-                  "href": "https://docs.snowflake.com/en/release-notes/2026/10_29#cost-management-updates"
-                }
-              ],
-              "id": "t-34ef9a2d6fdc"
-            }
-          ],
-          "level": 2
-        },
-        {
-          "type": "heading",
-          "id": "b-5a95f855c884",
-          "children": [
-            {
-              "type": "text",
-              "text": "每用户配额（",
-              "marks": [],
-              "id": "t-9258922d29f6"
-            },
-            {
-              "type": "text",
-              "text": "正式发布",
-              "marks": [
-                "em"
-              ],
-              "id": "t-04ea6a330230"
-            },
-            {
-              "type": "text",
-              "text": "）",
-              "marks": [],
-              "id": "t-325ed027e2ef"
-            },
-            {
-              "type": "text",
-              "text": "¶",
-              "marks": [
-                {
-                  "type": "link",
-                  "href": "https://docs.snowflake.com/en/release-notes/2026/10_29#per-user-quotas-general-availability"
-                }
-              ],
-              "id": "t-cdf744de4382"
-            }
-          ],
-          "level": 3
-        },
-        {
-          "type": "paragraph",
-          "id": "b-c52fbe3a3968",
-          "children": [
-            {
-              "type": "text",
-              "text": "每用户配额现已正式发布。每用户配额允许配额管理员为单个用户设置每月和每日信用额度，并在各种可配置阈值处通知用户。配额可针对账户中的所有用户或标签过滤的子集，并涵盖仓库计算和AI功能域，包括AI函数、Snowflake CoCo、Cortex Agents和Snowflake CoWork。对于AI功能，管理员可以配置配额，在用户达到AI配额限制时自动阻止其AI访问，并在周期重置时解除阻止。",
-              "marks": [],
-              "id": "t-1a8b1148eaf8"
-            }
-          ]
-        },
-        {
-          "type": "paragraph",
-          "id": "b-1e0b18f66fb1",
-          "children": [
-            {
-              "type": "text",
-              "text": "随着正式发布，包括以下更新：",
-              "marks": [],
-              "id": "t-cabf2511b751"
-            }
-          ]
-        },
-        {
-          "type": "list",
-          "id": "b-c2fd038c2318",
-          "ordered": false,
-          "items": [
-            {
-              "children": [
-                {
-                  "type": "text",
-                  "text": "可配置的最终用户阻止通知",
-                  "marks": [
-                    "strong"
-                  ],
-                  "id": "t-c9163a704e44"
-                },
-                {
-                  "type": "text",
-                  "text": "：当启用阻止执行时，管理员现在可以控制被阻止的用户是否收到电子邮件通知。向",
-                  "marks": [],
-                  "id": "t-25d3c3d4a427"
-                },
-                {
-                  "type": "text",
-                  "text": "SET_BLOCK_ENFORCEMENT_ENABLED",
-                  "marks": [
-                    "code"
-                  ],
-                  "id": "t-5dd8eec1c1ad"
-                },
-                {
-                  "type": "text",
-                  "text": "传递第二个布尔参数。例如，",
-                  "marks": [],
-                  "id": "t-c259e2062ca6"
-                },
-                {
-                  "type": "text",
-                  "text": "SET_BLOCK_ENFORCEMENT_ENABLED(TRUE, TRUE)",
-                  "marks": [
-                    "code"
-                  ],
-                  "id": "t-4ef90080ced0"
-                },
-                {
-                  "type": "text",
-                  "text": "启用执行并向被阻止的用户发送电子邮件通知。今后，最终用户通知将默认禁用，管理员必须显式启用最终用户通知。",
-                  "marks": [],
-                  "id": "t-a61404ef74f8"
-                }
-              ]
-            },
-            {
-              "children": [
-                {
-                  "type": "text",
-                  "text": "月度或每日通知阈值目标设定",
-                  "marks": [
-                    "strong"
-                  ],
-                  "id": "t-4f174f21d9c8"
-                },
-                {
-                  "type": "text",
-                  "text": "：通知阈值现在可以限定为月度或每日信用额度。将",
-                  "marks": [],
-                  "id": "t-46cf8e09afd5"
-                },
-                {
-                  "type": "text",
-                  "text": "'MONTHLY'",
-                  "marks": [
-                    "code"
-                  ],
-                  "id": "t-40ec5f263180"
-                },
-                {
-                  "type": "text",
-                  "text": "或",
-                  "marks": [],
-                  "id": "t-9ece0308e11d"
-                },
-                {
-                  "type": "text",
-                  "text": "'DAILY'",
-                  "marks": [
-                    "code"
-                  ],
-                  "id": "t-5b09d36ee0bd"
-                },
-                {
-                  "type": "text",
-                  "text": "作为第四个参数传递给",
-                  "marks": [],
-                  "id": "t-8f015ebf28e8"
-                },
-                {
-                  "type": "text",
-                  "text": "ADD_NOTIFICATION_THRESHOLD",
-                  "marks": [
-                    "code"
-                  ],
-                  "id": "t-dd97f1da1c36"
-                },
-                {
-                  "type": "text",
-                  "text": "。",
-                  "marks": [],
-                  "id": "t-71977ebb6a27"
-                }
-              ]
-            },
-            {
-              "children": [
-                {
-                  "type": "text",
-                  "text": "ACCOUNT_USAGE.QUOTA_ACCESS_BLOCK_HISTORY",
-                  "marks": [
-                    "strong",
-                    "code"
-                  ],
-                  "id": "t-40c956e633bc"
-                },
-                {
-                  "type": "text",
-                  "text": "视图",
-                  "marks": [
-                    "strong"
-                  ],
-                  "id": "t-32c466732e9c"
-                },
-                {
-                  "type": "text",
-                  "text": "：新的账户级视图，显示账户中所有配额中被阻止的所有用户。",
-                  "marks": [],
-                  "id": "t-36ce0370dd02"
-                }
-              ]
-            },
-            {
-              "children": [
-                {
-                  "type": "text",
-                  "text": "更快的执行传播",
-                  "marks": [
-                    "strong"
-                  ],
-                  "id": "t-b011e7906168"
-                },
-                {
-                  "type": "text",
-                  "text": "：配置更改现在大约在5-10分钟内传播（以前最多15分钟）。",
-                  "marks": [],
-                  "id": "t-c9afda8dd1a2"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "paragraph",
-          "id": "b-9369dcdf3864",
-          "children": [
-            {
-              "type": "text",
-              "text": "以下公共预览方法在正式发布时已被替换或删除：",
-              "marks": [],
-              "id": "t-7c730b9de14f"
-            }
-          ]
-        },
-        {
-          "type": "list",
-          "id": "b-59d0dbd31051",
-          "ordered": false,
-          "items": [
-            {
-              "children": [
-                {
-                  "type": "text",
-                  "text": "GET_ACTIVE_BLOCKS()",
-                  "marks": [
-                    "code"
-                  ],
-                  "id": "t-222dab9a10d8"
-                },
-                {
-                  "type": "text",
-                  "text": "被替换为",
-                  "marks": [],
-                  "id": "t-113d4d52e1e9"
-                },
-                {
-                  "type": "text",
-                  "text": "GET_ACTIVE_BLOCKS_V2()",
-                  "marks": [
-                    "code"
-                  ],
-                  "id": "t-0021e6ac47bc"
-                },
-                {
-                  "type": "text",
-                  "text": "。",
-                  "marks": [],
-                  "id": "t-607d5e041730"
-                }
-              ]
-            },
-            {
-              "children": [
-                {
-                  "type": "text",
-                  "text": "GET_PER_USER_USAGE_PREVIEW()",
-                  "marks": [
-                    "code"
-                  ],
-                  "id": "t-08ea77904724"
-                },
-                {
-                  "type": "text",
-                  "text": "和",
-                  "marks": [],
-                  "id": "t-19ab7da81e63"
-                },
-                {
-                  "type": "text",
-                  "text": "SET_REFRESH_TIER()",
-                  "marks": [
-                    "code"
-                  ],
-                  "id": "t-db9573ddd3f1"
-                },
-                {
-                  "type": "text",
-                  "text": "不再可用。配额评估现在在几分钟内对所有账户进行；不需要单独的刷新层级设置。",
-                  "marks": [],
-                  "id": "t-13e7b34c3415"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "paragraph",
-          "id": "b-fcd4158f1c42",
-          "children": [
-            {
-              "type": "text",
-              "text": "有关更多信息，请参阅",
-              "marks": [],
-              "id": "t-8266dfd99fb0"
-            },
-            {
-              "type": "text",
-              "text": "每用户配额",
-              "marks": [
-                {
-                  "type": "link",
-                  "href": "https://docs.snowflake.com/user-guide/budgets/per-user-quotas"
-                }
-              ],
-              "id": "t-0196aa74ac83"
-            },
-            {
-              "type": "text",
-              "text": "。",
-              "marks": [],
-              "id": "t-7a9af0af94b4"
-            }
-          ]
-        },
-        {
-          "type": "heading",
-          "id": "b-ac90483da9a7",
-          "children": [
-            {
-              "type": "text",
-              "text": "成本异常异常监控器（",
-              "marks": [],
-              "id": "t-694d47edee30"
-            },
-            {
-              "type": "text",
-              "text": "预览",
-              "marks": [
-                "em"
-              ],
-              "id": "t-2aaab0a0606f"
-            },
-            {
-              "type": "text",
-              "text": "）",
-              "marks": [],
-              "id": "t-ce2c03add63e"
-            },
-            {
-              "type": "text",
-              "text": "¶",
-              "marks": [
-                {
-                  "type": "link",
-                  "href": "https://docs.snowflake.com/en/release-notes/2026/10_29#anomaly-monitors-for-cost-anomalies-preview"
-                }
-              ],
-              "id": "t-4441ab5f9492"
-            }
-          ],
-          "level": 3
-        },
-        {
-          "type": "paragraph",
-          "id": "b-191af8f18f66",
-          "children": [
-            {
-              "type": "text",
-              "text": "在此版本中，Snowflake荣幸地宣布公开预览",
-              "marks": [],
-              "id": "t-62036712fb44"
-            },
-            {
-              "type": "text",
-              "text": "异常监控器",
-              "marks": [
-                {
-                  "type": "link",
-                  "href": "https://docs.snowflake.com/user-guide/cost-anomalies#label-cost-anomaly-monitors"
-                }
-              ],
-              "id": "t-6129cc21c25d"
-            },
-            {
-              "type": "text",
-              "text": "。到目前为止，Snowflake检测整个账户或整个组织的成本异常，这可能过于粗糙，无法捕捉单个团队或项目内的激增。异常监控器允许您使用",
-              "marks": [],
-              "id": "t-d384dfc088aa"
-            },
-            {
-              "type": "text",
-              "text": "对象标签",
-              "marks": [
-                {
-                  "type": "link",
-                  "href": "https://docs.snowflake.com/user-guide/object-tagging/introduction"
-                }
-              ],
-              "id": "t-41860d054970"
-            },
-            {
-              "type": "text",
-              "text": "和",
-              "marks": [],
-              "id": "t-535b7810ca7a"
-            },
-            {
-              "type": "text",
-              "text": "服务类型",
-              "marks": [
-                {
-                  "type": "link",
-                  "href": "https://docs.snowflake.com/sql-reference/service-types"
-                }
-              ],
-              "id": "t-dfc3c7cd4ad6"
-            },
-            {
-              "type": "text",
-              "text": "定义自己的范围，因此您可以单独监控业务单元、成本中心或项目。",
-              "marks": [],
-              "id": "t-e0790ac969b3"
-            }
-          ]
-        },
-        {
-          "type": "paragraph",
-          "id": "b-dea1eb307e6c",
-          "children": [
-            {
-              "type": "text",
-              "text": "Snowflake每天将消耗归属于每个监控器，对其运行相同的检测算法，并可向特定于该监控器的通知列表发送电子邮件。每个账户最多可有20个监控器，每个监控器跟踪信用或AI信用。",
-              "marks": [],
-              "id": "t-ec88efe7ad45"
-            }
-          ]
-        },
-        {
-          "type": "paragraph",
-          "id": "b-3f97cf8276fe",
-          "children": [
-            {
-              "type": "text",
-              "text": "您可以使用Snowsight或SQL处理异常监控器。",
-              "marks": [],
-              "id": "t-86470582b0b6"
-            }
-          ]
-        },
-        {
-          "type": "list",
-          "id": "b-82aa8a3e6cc5",
-          "ordered": false,
-          "items": [
-            {
-              "children": [
-                {
-                  "type": "text",
-                  "text": " ",
-                  "marks": [],
-                  "id": "t-e2948571d03e"
-                },
-                {
-                  "type": "text",
-                  "text": "Snowsight：",
-                  "marks": [
-                    "strong"
-                  ],
-                  "id": "t-4bc8481b6840"
-                },
-                {
-                  "type": "text",
-                  "text": " ",
-                  "marks": [],
-                  "id": "t-5a08ff534d5f"
-                },
-                {
-                  "type": "text",
-                  "text": "异常",
-                  "marks": [
-                    "strong"
-                  ],
-                  "id": "t-67a2617419a4"
-                },
-                {
-                  "type": "text",
-                  "text": "选项卡在",
-                  "marks": [],
-                  "id": "t-8fbb97c59122"
-                },
-                {
-                  "type": "text",
-                  "text": "成本管理",
-                  "marks": [
-                    "strong"
-                  ],
-                  "id": "t-f915c5c78dc8"
-                },
-                {
-                  "type": "text",
-                  "text": "现在包括用于选择监控器、选择信用族以及从标签和服务类型构建范围的过滤器。您可以在保存之前查看范围产生的异常，并在重新标记资源后重新计算监控器。有关更多信息，请参阅",
-                  "marks": [],
-                  "id": "t-8cabdd125b44"
-                },
-                {
-                  "type": "text",
-                  "text": "在Snowsight中处理异常监控器",
-                  "marks": [
-                    {
-                      "type": "link",
-                      "href": "https://docs.snowflake.com/user-guide/cost-anomalies-ui#label-cost-anomaly-monitors-ui"
-                    }
-                  ],
-                  "id": "t-af07f46bd384"
-                },
-                {
-                  "type": "text",
-                  "text": "。 ",
-                  "marks": [],
-                  "id": "t-e7483aa29b2a"
-                }
-              ]
-            },
-            {
-              "children": [
-                {
-                  "type": "text",
-                  "text": " ",
-                  "marks": [],
-                  "id": "t-a166925fa221"
-                },
-                {
-                  "type": "text",
-                  "text": "ANOMALY_INSIGHTS类：",
-                  "marks": [
-                    "strong"
-                  ],
-                  "id": "t-ae2eec616d83"
-                },
-                {
-                  "type": "text",
-                  "text": "新方法创建、更新、读取和删除监控器，管理每个监控器的通知列表，并测试配置而不保存。有关更多信息，请参阅",
-                  "marks": [],
-                  "id": "t-7ce25342f98a"
-                },
-                {
-                  "type": "text",
-                  "text": "处理异常监控器",
-                  "marks": [
-                    {
-                      "type": "link",
-                      "href": "https://docs.snowflake.com/user-guide/cost-anomalies-class#label-cost-anomaly-monitors-class"
-                    }
-                  ],
-                  "id": "t-be33dfe3341c"
-                },
-                {
-                  "type": "text",
-                  "text": "。 ",
-                  "marks": [],
-                  "id": "t-2765927badc6"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "heading",
-          "id": "b-33f798931171",
-          "children": [
-            {
-              "type": "text",
-              "text": "版本说明变更日志",
-              "marks": [],
-              "id": "t-b1bf7981a43d"
-            },
-            {
-              "type": "text",
-              "text": "¶",
-              "marks": [
-                {
-                  "type": "link",
-                  "href": "https://docs.snowflake.com/en/release-notes/2026/10_29#release-notes-change-log"
-                }
-              ],
-              "id": "t-2651a6db22d2"
-            }
-          ],
-          "level": 2
-        },
-        {
-          "type": "table",
-          "id": "b-36312c1b2c91",
-          "rows": [
-            {
-              "cells": [
-                {
-                  "header": true,
-                  "children": [
-                    {
-                      "type": "text",
-                      "text": "公告",
-                      "marks": [],
-                      "id": "t-e9578e910f9f"
-                    }
-                  ]
-                },
-                {
-                  "header": true,
-                  "children": [
-                    {
-                      "type": "text",
-                      "text": "更新",
-                      "marks": [],
-                      "id": "t-3133b58d72fc"
-                    }
-                  ]
-                },
-                {
-                  "header": true,
-                  "children": [
-                    {
-                      "type": "text",
-                      "text": "日期",
-                      "marks": [],
-                      "id": "t-50217340da0e"
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "cells": [
-                {
-                  "header": false,
-                  "children": [
-                    {
-                      "type": "text",
-                      "text": "版本说明",
-                      "marks": [],
-                      "id": "t-00475ad0e0c7"
-                    }
-                  ]
-                },
-                {
-                  "header": false,
-                  "children": [
-                    {
-                      "type": "text",
-                      "text": "初始发布（预览）",
-                      "marks": [],
-                      "id": "t-d5fee71de42b"
-                    }
-                  ]
-                },
-                {
-                  "header": false,
-                  "children": [
-                    {
-                      "type": "text",
-                      "text": "2026年8月13日",
-                      "marks": [],
-                      "id": "t-73179126336f"
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "cells": [
-                {
-                  "header": false,
-                  "children": [
-                    {
-                      "type": "text",
-                      "text": "每用户配额（正式发布）",
-                      "marks": [
-                        "em"
-                      ],
-                      "id": "t-674ec88e40bf"
-                    }
-                  ]
-                },
-                {
-                  "header": false,
-                  "children": [
-                    {
-                      "type": "text",
-                      "text": "已添加",
-                      "marks": [
-                        "strong"
-                      ],
-                      "id": "t-0e20109b9455"
-                    },
-                    {
-                      "type": "text",
-                      "text": "至",
-                      "marks": [],
-                      "id": "t-a66d284afb33"
-                    },
-                    {
-                      "type": "text",
-                      "text": "成本管理更新",
-                      "marks": [
-                        "em"
-                      ],
-                      "id": "t-5bf8863006bb"
-                    }
-                  ]
-                },
-                {
-                  "header": false,
-                  "children": [
-                    {
-                      "type": "text",
-                      "text": "2026年8月14日",
-                      "marks": [],
-                      "id": "t-c6bd043c401f"
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "cells": [
-                {
-                  "header": false,
-                  "children": [
-                    {
-                      "type": "text",
-                      "text": "版本说明",
-                      "marks": [],
-                      "id": "t-1f94f122fd73"
-                    }
-                  ]
-                },
-                {
-                  "header": false,
-                  "children": [
-                    {
-                      "type": "text",
-                      "text": "最终发布",
-                      "marks": [],
-                      "id": "t-74727a615ae9"
-                    }
-                  ]
-                },
-                {
-                  "header": false,
-                  "children": [
-                    {
-                      "type": "text",
-                      "text": "2026年8月20日",
-                      "marks": [],
-                      "id": "t-243641d588b6"
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      ],
-      "content_format": "blocks-v1",
-      "category": "platform",
-      "category_label": "AI 数据平台",
-      "vendors": [
-        "Snowflake"
-      ],
-      "heat": 38,
-      "star": true,
-      "importance": 80,
-      "quality_score": 80,
-      "trend_score": 4,
-      "signal": 0,
-      "topics": [
-        "平台AI化"
-      ],
-      "shelf": "news",
-      "pinned": false,
-      "published": null,
-      "first_seen": "2026-08-31T13:36:16.965801+08:00",
-      "items": [
-        {
-          "id": "c23dcf4cbf7b",
-          "source": "Snowflake Release Notes",
-          "link": "https://docs.snowflake.com/en/release-notes/2026/10_29",
-          "published": null,
-          "ingested_at": "2026-08-31T13:36:16.965801+08:00",
-          "title": "10.29 Release Notes: Aug 15, 2026 - Aug 19, 2026 | Snowflake Documentation"
-        }
-      ],
-      "work_tags": {
-        "taxonomy_version": "work-tags-v1",
-        "product_objects": [
-          "权限与治理"
-        ],
-        "use_cases": [
-          "生产评估与运营"
-        ],
-        "decision_concerns": [
-          "成本与性能",
-          "权限与安全"
-        ]
-      },
-      "quality_breakdown": {
-        "originality": 22,
-        "evidence_density": 20,
-        "information_gain": 20,
-        "actionability_depth": 18
-      },
-      "content_parse": {
-        "run_id": "github-33360959033-1",
-        "processor_version": "original-first-v7",
-        "attempted_at": "2026-08-31T13:37:01.377803+08:00",
-        "status": "ready",
-        "source": "Snowflake Release Notes",
-        "strategy": "article",
-        "blocks": 18,
-        "text_chars": 3820,
-        "figures": 0,
-        "tables": 1,
-        "figures_discovered": 0,
-        "figures_selected": 0,
-        "figures_rejected": 0,
-        "candidate_count": 3,
-        "figures_rejected_author": 0,
-        "figures_rejected_decorative": 0,
-        "figures_rejected_duplicate": 0,
-        "figures_rejected_small": 0,
-        "figures_rejected_limit": 0,
-        "trimmed_tail_blocks": 0,
-        "trimmed_head_blocks": 0,
-        "trimmed_promotional_blocks": 0,
-        "trimmed_embedded_ui_blocks": 0,
-        "embedded_ui_components": 0,
-        "selected_depth": 9,
-        "selected_raw_blocks": 18,
-        "selected_raw_text_chars": 3820,
-        "broad_raw_blocks": 66,
-        "broad_raw_text_chars": 3885,
-        "parent_extra_blocks": 48,
-        "candidate_count_raw": 10,
-        "candidate_duplicates": 7,
-        "candidate_quality_rejected": 1,
-        "duplicate_blocks": 0,
-        "selected_score": 1039.61,
-        "quality_status": "pass",
-        "selected_tag": "article",
-        "focus_ratio": 0.9833,
-        "link_ratio": 0.039,
-        "duplicate_ratio": 0.0,
-        "selection_evidence": [
-          "prose_density",
-          "integrity_gate",
-          "article_element"
-        ],
-        "media": {
-          "figures": 0,
-          "cached": 0,
-          "link_only": 0,
-          "policy_version": "source-cdn-v1"
-        },
-        "content_mode": "translated",
-        "source_language": "other",
-        "translation_status": "complete",
-        "source_content_hash": "2a7abaafe48f91bea04ae470",
-        "translation": {
-          "run_id": "github-33360959033-1",
-          "policy_version": "faithful-translation-retry-v1",
-          "attempted_at": "2026-08-31T13:37:01.377848+08:00",
-          "purpose": "body_translation",
-          "status": "complete"
-        }
-      },
-      "content_mode": "translated",
-      "content_level": "translated",
-      "source_language": "other",
-      "translation_status": "complete",
-      "source_content_hash": "2a7abaafe48f91bea04ae470",
-      "body_chars": 1441
-    },
-    {
       "event_id": "cc5c540a68f6",
       "zh_title": "从数据格式到完整引擎：2026数据库系统演进趋势与TDSQL实践",
       "zh_summary": "该内容来自腾讯云数据库 DBTalk，围绕2026年数据库系统演进趋势展开，提出从数据格式到完整引擎的发展方向。文中结合腾讯云 TDSQL 的实践，展示了数据库系统如何为下一代数据应用提供基础能力。对关注数据基础设施选型与数据库技术演进的从业者具有参考价值。",
@@ -147290,7 +146904,7 @@
       "star": false,
       "importance": 74,
       "quality_score": 74,
-      "trend_score": 2,
+      "trend_score": 1,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -149875,7 +149489,7 @@
       "vendors": [
         "ThoughtSpot"
       ],
-      "heat": 33,
+      "heat": 32,
       "star": false,
       "importance": 70,
       "quality_score": 70,
@@ -157405,7 +157019,7 @@
       "star": false,
       "importance": 40,
       "quality_score": 40,
-      "trend_score": 2,
+      "trend_score": 1,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -158898,7 +158512,7 @@
       "vendors": [
         "Amplitude"
       ],
-      "heat": 32,
+      "heat": 31,
       "star": false,
       "importance": 68,
       "quality_score": 68,
@@ -162011,11 +161625,11 @@
         "Looker",
         "dbt"
       ],
-      "heat": 55,
+      "heat": 54,
       "star": true,
       "importance": 80,
       "quality_score": 80,
-      "trend_score": 35,
+      "trend_score": 33,
       "signal": 0,
       "topics": [
         "BI变局"
@@ -166644,7 +166258,7 @@
         "Databricks",
         "Trackunit"
       ],
-      "heat": 32,
+      "heat": 31,
       "star": false,
       "importance": 68,
       "quality_score": 68,
@@ -179909,7 +179523,7 @@
       "star": true,
       "importance": 76,
       "quality_score": 76,
-      "trend_score": 2,
+      "trend_score": 1,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -187332,7 +186946,7 @@
         "Google",
         "Google Cloud"
       ],
-      "heat": 40,
+      "heat": 39,
       "star": true,
       "importance": 87,
       "quality_score": 87,
@@ -191127,7 +190741,7 @@
         "Databricks",
         "Lovelytics"
       ],
-      "heat": 29,
+      "heat": 28,
       "star": false,
       "importance": 62,
       "signal": 0,
@@ -192325,7 +191939,7 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 38,
+      "heat": 37,
       "star": true,
       "importance": 82,
       "signal": 0,
@@ -222386,7 +222000,7 @@
       "category": "platform",
       "category_label": "AI 数据平台",
       "vendors": [],
-      "heat": 36,
+      "heat": 35,
       "star": true,
       "importance": 78,
       "signal": 0,
@@ -233627,7 +233241,7 @@
       "source_content_hash": "90cb40606fb04a2452850ae6",
       "body_chars": 3663,
       "quality_score": 70,
-      "trend_score": 1
+      "trend_score": 0
     },
     {
       "event_id": "d5cc6c757eb2",
@@ -241805,7 +241419,7 @@
       "source_content_hash": "80d4ff2979c0eaf4b36471eb",
       "body_chars": 3095,
       "quality_score": 62,
-      "trend_score": 1
+      "trend_score": 0
     },
     {
       "event_id": "6202212eeef3",
@@ -242306,7 +241920,7 @@
       "source_content_hash": "86b0cbcde26a450b9dfb883e",
       "body_chars": 2168,
       "quality_score": 62,
-      "trend_score": 1
+      "trend_score": 0
     },
     {
       "event_id": "a0dfec66106c",
@@ -244243,7 +243857,7 @@
       "vendors": [
         "ClickHouse"
       ],
-      "heat": 30,
+      "heat": 29,
       "star": false,
       "importance": 65,
       "signal": 0,
@@ -247372,7 +246986,7 @@
       "source_content_hash": "07d2ced86da60c24bb4ac37d",
       "body_chars": 4956,
       "quality_score": 72,
-      "trend_score": 1
+      "trend_score": 0
     },
     {
       "event_id": "01c578964b47",
@@ -249120,7 +248734,7 @@
       "vendors": [
         "DuckDB"
       ],
-      "heat": 30,
+      "heat": 29,
       "star": false,
       "importance": 65,
       "signal": 0,
@@ -346665,9 +346279,9 @@
         }
       ],
       "content_parse": {
-        "run_id": "github-33472349751-1",
+        "run_id": "github-34219945288-1",
         "processor_version": "original-first-v7",
-        "attempted_at": "2026-09-01T13:12:05.082737+08:00",
+        "attempted_at": "2026-09-08T19:21:23.262625+08:00",
         "status": "skipped",
         "source": "World Economic Forum",
         "strategy": "fetch_failed",
@@ -349770,9 +349384,9 @@
         }
       ],
       "content_parse": {
-        "run_id": "github-33472349751-1",
+        "run_id": "github-34219945288-1",
         "processor_version": "original-first-v7",
-        "attempted_at": "2026-09-01T13:12:05.408106+08:00",
+        "attempted_at": "2026-09-08T19:21:23.632135+08:00",
         "status": "skipped",
         "source": "Gartner",
         "strategy": "fetch_failed",
@@ -375082,7 +374696,7 @@
       "zh_title": "DuckDB引入异步I/O，适应云端远程数据读取",
       "zh_summary": "DuckDB计划从v2.0开始支持Parquet和CSV异步读取，解决EC2/S3等计算存储分离环境中工作线程等待网络I/O的问题。随着DuckDB从本地SSD查询扩展到远程数据湖和服务化场景，异步请求有望更充分利用带宽。",
       "reason": "异步I/O是DuckDB从嵌入式本地分析走向远程数据湖负载的重要架构变化，值得湖仓与查询引擎团队关注。",
-      "full_zh": "Asynchronous I/O in DuckDB: Work, Thread, Work\n\nPedro Holanda  2026-07-31 | 21 min\n\nTL;DR: Starting with v2.0, scheduled for fall 2026, DuckDB will support asynchronous reads of Parquet and CSV files. This can significantly speed up queries when synchronous I/O does not saturate the available bandwidth, as is typical in EC2/S3 compute-storage setups.\n\nIt doesn't matter how fast query operators are in a database system if we can't pull in the data quickly. For most of DuckDB's history, however, this problem was largely avoided by pruning data early. By pushing down filters and projections, we could ensure that we only read what we actually needed.\n\nThis worked particularly well because DuckDB primarily ran locally, with its main use case being as a quick-draw database engine for querying data directly from your machine's SSD. We could split the data into several partitions, such as row groups for Parquet files or fixed-size buffers for CSV files, and load them with low latency and high bandwidth. As a result, the main bottlenecks were elsewhere: subqueries, joins, aggregations, and so on. The actual data access path received less attention because synchronous access was perfectly suitable for this use case.\n\nAs usual, things changed. We realized that DuckDB's architecture was a great fit for querying remotely stored large-scale datasets, such as data lakes (e.g., DuckLake). Since May this year, we can even run DuckDB as a server using the Quack protocol. The original expectation of data files sitting on a local SSD therefore no longer always holds.\n\nThe practical implication of these changes is that many current DuckDB setups need to transfer files from remote storage to the machine that will actually process them. For data lakes, for example, a typical setup is to store the data in blob storage, such as S3, and process it on an EC2 machine in the same region. In this setup, latency and bandwidth play a much more significant role. If we cannot issue enough concurrent requests to use the available network bandwidth, performance can suffer drastically, with threads spending a large amount of their time waiting for remote reads instead of processing data.\n\nAs an example, let's consider a simple query over a remote Parquet file. For simplicity, let's assume we only have a single thread executing.\n\nFROMread_parquet('s3://bucket/file.parquet');\n\nA Parquet scan is partitioned into row-group-based jobs, with each job containing one or more fetch tasks that issue byte-range requests. With synchronous I/O, the worker thread will be blocked, waiting for the data to arrive at the machine before performing actual work, such as decoding, aggregating, and so on. You can see a visual depiction in the figure below, where the thread is blocked from doing any work while it waits for the read to finish.\n\nSynchronous read\n\nSynchronous read\n\nSynchronous read\n\nTo address this, we have been implementing asynchronous I/O pipelines in DuckDB. They are currently implemented for Parquet and for uncompressed, seekable UTF-8 CSV files, with support for other formats, such as DuckDB's native format and JSON, still to come. In the remainder of this blog post, we will give a simple explanation of how asynchronous I/O is implemented in DuckDB and provide benchmarks for both Parquet and CSV files.\n\nIf you would like to try asynchronous I/O now, you can do so by using DuckDB's v2.0.0-dev preview builds. Asynchronous I/O will be used by default from the next major DuckDB version, v2.0, released in the fall.\n\nAsynchronous I/O\n\nThe conceptual idea of asynchronous I/O is rather simple: we should be able to start an I/O operation without blocking the worker thread that requested it. Applied to our Parquet example, the same picture would look like the following:\n\nAsynchronous read\n\nAsynchronous read\n\nAsynchronous read\n\nIn this example, we have two ASYNC threads and one regular worker thread. The ASYNC threads keep fetch tasks in flight while the worker thread decodes data. During the initial warm-up, the scan task parks, leaving the worker thread free to run other pipeline tasks. Once the first job is ready, fetching and decoding can overlap.\n\nIn DuckDB, we implemented something similar. We have two separate thread pools:\n\nREGULAR – This pool contains our worker threads (by default: one for each available CPU thread). These are the ones that do real work, like decoding, joins, and aggregations. They prioritize regular work but can also perform I/O tasks when idle.ASYNC – A pool of threads intended for asynchronous tasks, primarily blocking I/O.\n\nThe main reason we have these two different pools is that, for remote I/O, these threads can spend almost all their time blocked, waiting for an HTTP response, for example, and hence have very little CPU utilization. Because of that, we have many more ASYNC workers than system threads, with the default setting being 4 * system threads and the total being capped at 256.\n\nIt's of utmost importance to keep as many of our ASYNC threads busy as possible. To ensure that, we implement a read-ahead strategy instead of issuing reads on demand. This means scheduling fetch tasks ahead of what our regular worker threads currently need.\n\nOne thing we need to be attentive to is that read-ahead buys throughput by holding memory. If decoding is slow and the network is fast, prefetched data can accumulate and lead to out-of-memory issues. To mitigate this, we also implemented asynchronous memory governance. Both read-ahead and memory governance will be explained in more detail in the following sections.\n\nRead-Ahead Queue\n\nThe idea of read-ahead is also straightforward. Instead of starting a read at the exact moment a regular worker needs the data, we schedule fetch tasks for work that lies further ahead. While a regular worker decodes the current job, the ASYNC threads are already pulling in data for the next jobs. The goal is to keep enough fetch tasks in flight to hide the latency of remote storage.\n\nThe jobs are units of work that can be scheduled and processed independently, and they can be different depending on the underlying file format. For a Parquet file, a job is one row group of one file. For a CSV file, a job is a scan boundary that generally covers a fixed byte range within the file.\n\nA Parquet job might be broken down into multiple fetch tasks depending on the query projections, filter pushdowns, physical column locations, and which nearby byte ranges can be combined. The two fetch tasks in the figure below are illustrative, as their exact grouping and sizes depend on the file and query.\n\nFor CSV files, we don't have the same granularity of information as we do for Parquet files. A job's fetch tasks load its starting buffer if it is not already in memory and, when the scan boundary reaches the end of that buffer, the following buffer as well (e.g., to handle lines that are split across two buffers).\n\nJobs\n\nJobs\n\nJobs\n\nFilling the queue requires no dedicated producer thread. Any regular worker that comes looking for scan work first tops up the queue as far as it is allowed to. The limit is either given by a user-specified number of slots or by a memory budget. If there is space, a job and its fetch tasks are created. The fetch tasks are scheduled immediately on the ASYNC pool, while the job is admitted to the read-ahead queue in batch order.\n\nASYNC threads execute individual fetch tasks independently of the job queue's claim order. Fetch tasks from the same job can run concurrently, although no particular assignment to ASYNC threads is guaranteed. All fetch tasks of a job share a countdown, and the fetch task that brings it to zero completes the job's I/O.\n\nA worker thread claims the oldest job in the queue and checks that countdown. If I/O is done, the worker starts decoding the job. If not, it parks the scan task and is free to run other pipeline tasks. The last fetch task then unblocks the scan task, which may resume on any regular worker.\n\nClaiming the job also immediately frees a queue slot, allowing any regular worker looking for scan work to produce a replacement job at the back of the queue. The figure below depicts this cycle:\n\nRead-ahead cycle\n\nRead-ahead cycle\n\nRead-ahead cycle\n\nMemory Management\n\nKeeping more fetch tasks in flight consumes more memory. To determine a budget and avoid out-of-memory issues, we introduced the read_ahead_depth configuration option. It can have three types of values:\n\n-1 (default): unlimited depth, bounded by memory.N > 0: at most N jobs ahead, with no memory budget.0: read-ahead is off, each scan task schedules I/O only for its own job.\n\nTo configure it, use the SET clause, e.g.:\n\nSETread_ahead_depth=5;\n\nIn the default mode, the budget is negotiated with the temporary memory manager, which is the same manager that splits memory between concurrent joins, sorts, and window operators. When there is a lot of memory pressure, for example, because an operator is using a large amount of memory, queue reservations might instantly be over budget. In practice, this means that the queue will only allow one job at a time, and the scan will behave close to a synchronous scan.\n\nWhen the memory-heavy operator finishes, the memory manager has more budget to give, and the queue fills back up.\n\nBenchmarks\n\nAsynchronous I/O should have the largest effect when the latency of synchronous requests prevents us from using the available remote bandwidth. To measure this effect, we ran TPC-H Query 6 at SF100, with the data sitting on S3, and compared the results against DuckDB v1.5.5, our latest stable release. The SF100 dataset was written as a single file per table for both the Parquet and CSV benchmarks, with the lineitem table containing 600,037,902 rows.\n\nFor compute, we used an EC2 r7i.16xlarge machine (64 vCPUs and 512 GB of RAM), with both the machine and the S3 bucket with the data located in the same region. We executed the query five times and report the mean execution time. The files were never cached (i.e., SET enable_external_file_cache = false;), meaning that every execution read the data straight from S3.\n\nParquet\n\nThe Parquet file is approximately 22 GB and has around 4,880 row groups, with each row group containing approximately 122,880 rows. With asynchronous I/O, the mean runtime drops from 8.230 seconds to 2.844 seconds, making the query almost 3× faster.\n\nVersionQ6 runtimev1.5.5 (synchronous)8.230 sv2.0.0-dev (asynchronous I/O)2.844 s\n\nBelow we also show the network throughput over the course of the query:\n\nNetwork throughput\n\nNetwork throughput\n\nNetwork throughput\n\nIn it, we run DuckDB v1.5.5 and two variations of DuckDB v2.0.0-dev. One with the read-ahead depth determined by the memory governor, and one tuned for this machine, where we cap the read-ahead at 64 in-flight jobs and adjust the I/O settings (SET async_threads = 48; SET http_retries = 8; SET http_retry_wait_ms = 50; SET http_retry_backoff = 2). We can see that v2.0.0-dev uses the available bandwidth much more effectively, approaching the network limit and reaching it at several points. The tuned version goes further. With fewer, hotter connections and cheap retries, the throughput variance drops to a minimum and the 25 Gbit/s network stays almost fully saturated. Its query time was 2.227 seconds, reducing the runtime of the untuned v2.0.0-dev run by 21.7% and making it about 3.7× faster than DuckDB v1.5.5. In comparison, v1.5.5 stays around 5 Gbit/s because its synchronous reads do not keep enough requests in flight to saturate the network.\n\nOne other detail worth noting is that, in all experiments, a few hundred milliseconds pass before the first bump in network traffic, followed by another few hundred milliseconds before the main data transfer begins. The first gap is the time needed to open a DuckDB connection, perform the first TLS handshake, and open the file. The bump corresponds to downloading the file footer, while the second gap comes from processing the information in the footer before executing the query. We believe this is an area we can investigate and optimize further before the v2.0 release.\n\nWe sampled the NIC's received-byte counter every 50 ms and calculated the throughput from the change in bytes between samples. We independently confirmed that the machine can access the network at 25 Gbit/s with both a DuckDB full-file read and the s5cmd tool.\n\nLocal Disk\n\nRemote storage is the main target for asynchronous I/O, but cold local reads give us a useful contrast. To measure them, we ran TPC-H Query 6 over the SF100 Parquet file, this time with the file sitting on the local disk of a MacBook Pro (Apple M4 Max, 14 cores, and 36 GB of RAM). Since the benefit of asynchronous I/O on local disks comes from cold reads, we cleared the OS caches (with the macOS purge command) between runs, making sure every execution actually read the file from disk.\n\nVersionQ6 runtimev1.5.5 (synchronous)1.321 sv2.0.0-dev (asynchronous I/O)0.883 s\n\nWe can see that, for cold runs, asynchronous I/O is approximately 1.5× faster, reducing runtime by about 33%. The performance difference is much smaller than in the cases presented above, due to the SSD having much lower latency and much higher bandwidth than the EC2/S3 network. For hot runs, the difference is negligible, as there is no disk access happening if data is properly cached.\n\nSmall Files\n\nPartitioned datasets are a particularly relevant use case here, as partitioning can easily spread the data across many small files. To see how asynchronous I/O behaves in this setup, we also performed a Parquet run using the same TPC-H SF100 dataset. Instead of using one file, we generated 976 files with five row groups each. Each file contains approximately 615,000 rows and is around 22 MB in size.\n\nVersionQ6 runtimev1.5.5 (synchronous)9.344 sv2.0.0-dev (asynchronous I/O)2.945 s\n\nWe can see that v2.0.0-dev delivers a similar performance improvement here as it does for the single-file benchmark, running around 3× faster. This shows that read-ahead can also parallelize across multiple files without becoming bottlenecked by opening files or fetching their footers.\n\nLarge Row Groups\n\nWe also wanted to see what happens at the other extreme, when a Parquet file has only a few very large row groups. For this experiment, we generated six versions of the same TPC-H SF100 lineitem table as a single file, changing only the requested row group (RG) size, and ran Q6 using DuckDB v2.0.0-dev. The table below reports the runtime for each version.\n\nRows / RGRGsApprox. RG size (MB)Total file size (MB)Time122,8804,886~4 MB~21,600 MB2.74 s1,966,080306~70 MB~21,400 MB2.11 s9,375,59364~320 MB~20,500 MB2.27 s62,914,56010~1,500 MB~14,700 MB3.69 s150,009,4764~3,200 MB~12,800 MB8.01 s600,037,9021~12,300 MB~12,300 MB25.26 s\n\nAt first, larger row groups decrease query times. As we increase the row-group size, request latency is amortized over much larger transfers. However, beyond a certain point, the available parallelism starts to fall. A row group is DuckDB's unit of Parquet scan parallelism, so ideally a scan should expose at least one row group per system thread. On this 64-vCPU machine, the version with 64 row groups provides exactly that and finishes in 2.27 seconds, while the fastest run comes from the version with 306 row groups, at 2.11 seconds.\n\nHowever, with fewer row groups than threads, we lose parallelism and can no longer saturate the network. For Q6, the projections and the physical location of the columns result in two fetch requests per row group. Four row groups therefore expose only about eight concurrent S3 streams, raising the runtime to 8.01 seconds. For the largest configuration, the file contains a single row group, and its I/O is effectively reduced to two giant streams, pushing the runtime to 25.26 seconds. This happens even though better compression makes the file a little over half the size of the version with 4,886 row groups. In this case, the extra bandwidth required by smaller row groups is cheaper than the parallelism lost with extremely large ones.\n\nConcurrent Queries\n\nThe effect becomes even clearer when several queries run at the same time. For this experiment, we ran TPC-H queries 1, 6, 9, and 18 concurrently against the same SF100 Parquet dataset on S3, using a single DuckDB instance. We picked these queries because they cover a mix of scans, aggregations, and joins, with different CPU and memory requirements. We repeated the experiment with the default memory configuration and with memory limits of 16 GB and 8 GB. The total runtime is the wall-clock time until all four queries finish. We report the average and peak CPU utilization (number of cores utilized), the peak bandwidth (bw.) and the peak resident set size (RSS).\n\nVersionMem. limitRuntimeAvg. CPUPeak CPUPeak bw.Peak RSSv1.5.5default35.8 s5.935.710.7 Gbit/s14.5 GBv2.0.0-devdefault15.6 s48.164.024.9 Gbit/s20.1 GBv1.5.516 GB35.6 s6.125.717.4 Gbit/s14.1 GBv2.0.0-dev16 GB22.7 s35.263.424.8 Gbit/s15.7 GBv1.5.58 GB35.9 s6.938.816.8 Gbit/s10.4 GBv2.0.0-dev8 GB24.2 s30.363.725.0 Gbit/s11.5 GB\n\nWith the default memory configuration, DuckDB v1.5.5 keeps an average of only about 6 of the 64 cores busy. In other words, around 90% of the machine sits idle waiting for synchronous S3 reads. DuckDB v2.0.0-dev, on the other hand, averages 48 busy cores, reaches all 64 at its peak, and saturates the 25 Gbit/s network. As a result, all four queries finish in less than half the time.\n\nThe memory results are also interesting. As we lower the limit, the memory governor reduces the read-ahead backlog, while memory-heavy operators such as those in Q18 can spill to disk. This lowers the peak physical memory used by the DuckDB process (i.e., RSS) of DuckDB v2.0.0-dev from 20.1 GB with the default configuration to 15.7 GB with a 16 GB limit and 11.5 GB with an 8 GB limit. The additional spilling and reduced read-ahead also lower average CPU utilization and increase the runtime, but v2.0.0-dev continues to saturate the network and remains substantially faster than v1.5.5 in both cases.\n\nOne might notice that the 8 GB result still peaks at 11.5 GB of RSS. This is because jemalloc keeps recently freed pages resident for about one second so they can be reused. This memory is no longer counted by DuckDB's memory manager, and v1.5.5 shows the same allocator behavior.\n\nCSV\n\nThe effect is larger on CSV files. The CSV file is 80.89 GB, and asynchronous I/O reduces the mean runtime from 878 seconds to just 45 seconds, making the query almost 20× faster. CSV is row-oriented, so the scan transfers substantially more data and performs fixed-size buffer reads, making concurrent remote reads especially valuable.\n\nVersionQ6 runtimev1.5.5 (synchronous)877.563 sv2.0.0-dev (asynchronous I/O)45.264 s\n\nAs in the other experiments, we used the default memory-governed read-ahead depth, so this run was not tuned to keep the 25 Gbit/s network saturated on average.\n\nConclusion\n\nIn this blog post, we presented the recent work on asynchronous I/O for Parquet and CSV files. Most of its benefit comes from accessing remote data, but cold local reads can also benefit, albeit less. Next, we plan to add async reads for JSON and DuckDB-native files, as these are the two other formats most relevant to DuckDB core. Formats that live in out-of-tree extensions are not on the roadmap yet. We will also investigate io_uring, Linux's asynchronous I/O interface, which could reduce system-call overhead and the number of threads blocked on I/O. If it proves beneficial in practice, we will integrate it into DuckDB. One important thing to notice is that any of the data lake solutions supported in DuckDB can already benefit from asynchronous I/O automatically as long as the underlying data format is Parquet (or CSV, if you are brave enough).",
+      "full_zh": "DuckDB 中的异步 I/O：工作、线程、工作\n\nPedro Holanda  2026-07-31 | 21 分钟\n\nTL;DR：从计划于 2026 年秋季发布的 v2.0 开始，DuckDB 将支持异步读取 Parquet 和 CSV 文件。当同步 I/O 无法充分利用可用带宽时（例如在 EC2/S3 计算-存储架构中），这可以显著加速查询。\n\n如果无法快速拉取数据，数据库系统中查询操作符的速度再快也无济于事。然而，在 DuckDB 的大部分历史中，这个问题主要通过尽早裁剪数据来避免。通过下推过滤和投影，我们可以确保只读取实际需要的数据。\n\n这种方法特别有效，因为 DuckDB 主要在本地运行，其主要用例是作为快速提取数据库引擎，直接从机器的 SSD 查询数据。我们可以将数据分成多个分区，例如 Parquet 文件的行组或 CSV 文件的固定大小缓冲区，并以低延迟和高带宽加载它们。因此，主要瓶颈在其他地方：子查询、连接、聚合等。实际的数据访问路径受到较少的关注，因为同步访问非常适合这种用例。\n\n通常情况下，情况发生了变化。我们意识到 DuckDB 的架构非常适合查询远程存储的大规模数据集，例如数据湖（例如，DuckLake）。自今年五月起，我们甚至可以使用Quack 协议将 DuckDB 作为服务器运行。因此，数据文件位于本地 SSD 的原始预期不再总是成立。\n\n这些变化的实际影响是，许多当前的 DuckDB 设置需要将文件从远程存储传输到真正处理它们的机器上。例如，对于数据湖，典型的设置是将数据存储在 blob 存储（如 S3）中，并在同一区域的 EC2 机器上处理。在这种设置中，延迟和带宽起着更重要的作用。如果我们不能发出足够的并发请求来利用可用的网络带宽，性能可能会急剧下降，线程将花费大量时间等待远程读取而不是处理数据。\n\n举个例子，让我们考虑一个对远程 Parquet 文件的简单查询。为简单起见，我们假设只有一个线程执行。\n\nFROMread_parquet('s3://bucket/file.parquet');\n\nParquet 扫描被划分为基于行组的作业，每个作业包含一个或多个发出字节范围请求的获取任务。使用同步 I/O，工作线程将被阻塞，在数据到达机器之前等待，之后才执行实际工作，如解码、聚合等。你可以在下图中看到可视化描述，其中线程在等待读取完成时无法执行任何工作。\n\n同步读取\n\n同步读取\n\n同步读取\n\n为了解决这个问题，我们一直在 DuckDB 中实现异步 I/O 管道。目前，它们已针对 Parquet 和未压缩、可搜索的 UTF-8 CSV 文件实现，对其他格式（如 DuckDB 的原生格式和 JSON）的支持仍在规划中。在本文的其余部分，我们将简单解释异步 I/O 在 DuckDB 中是如何实现的，并提供 Parquet 和 CSV 文件的基准测试。\n\n如果你想现在尝试异步 I/O，可以使用DuckDB v2.0.0-dev 预览版。从下一个主要 DuckDB 版本 v2.0（秋季发布）开始，异步 I/O 将成为默认行为。\n\n异步 I/O\n\n异步 I/O 的概念想法相当简单：我们应该能够在不阻塞请求它的工作线程的情况下启动 I/O 操作。应用于我们的 Parquet 示例，相同的图看起来如下：\n\n异步读取\n\n异步读取\n\n异步读取\n\n在此示例中，我们有两个ASYNC线程和一个常规工作线程。ASYNC线程保持获取任务在飞行中，而工作线程解码数据。在初始预热期间，扫描任务暂停，让工作线程空闲以运行其他管道任务。一旦第一个作业准备就绪，获取和解码就可以重叠。\n\n在 DuckDB 中，我们实现了类似的东西。我们有两个独立的线程池：\n\nREGULAR – 该池包含我们的工作线程（默认：每个可用 CPU 线程一个）。这些是执行实际工作的线程，如解码、连接和聚合。它们优先处理常规工作，但在空闲时也可以执行 I/O 任务。ASYNC – 一个用于异步任务的线程池，主要是阻塞 I/O。\n\n我们拥有这两个不同池的主要原因是，对于远程 I/O，这些线程几乎可以将所有时间花在阻塞等待 HTTP 响应等上，因此 CPU 利用率非常低。正因为如此，我们拥有比系统线程多得多的ASYNC工作者，默认设置为4 * 系统线程，总数上限为 256。\n\n尽可能保持我们的ASYNC线程忙碌至关重要。为了确保这一点，我们实现了一种预读策略，而不是按需发出读取。这意味着提前调度比我们常规工作线程当前需要更远的获取任务。\n\n我们需要注意的一点是，预读通过持有内存来换取吞吐量。如果解码速度慢而网络速度快，预取的数据可能会累积并导致内存不足问题。为了缓解这种情况，我们还实现了异步内存治理。预读和内存治理都将在以下部分中更详细地解释。\n\n预读队列\n\n预读的想法也很直接。我们不是在工作线程需要数据的时刻立即开始读取，而是为更靠前的工作调度获取任务。当常规工作线程解码当前作业时，ASYNC 线程已经在为下一个作业拉取数据。目标是保持足够的获取任务在飞行中，以隐藏远程存储的延迟。\n\n作业是可以独立调度和处理的工作单元，它们可以根据底层文件格式而有所不同。对于 Parquet 文件，一个作业就是一个文件的一个行组。对于 CSV 文件，一个作业是一个扫描边界，通常覆盖文件内的固定字节范围。\n\n一个 Parquet 作业可能会被分解为多个获取任务，具体取决于查询投影、过滤条件下推、物理列位置以及可以合并的相邻字节范围。下图中的两个获取任务是示例性的，因为它们的精确分组和大小取决于文件和查询。\n\n对于 CSV 文件，我们没有像 Parquet 文件那样细粒度的信息。一个作业的获取任务会加载其起始缓冲区（如果它不在内存中），并且当扫描边界到达该缓冲区的末尾时，也会加载下一个缓冲区（例如，处理跨两个缓冲区拆分的行）。\n\n作业\n\n作业\n\n作业\n\n填充队列不需要专用的生产者线程。任何寻找扫描工作的常规工作线程首先会将队列补充到允许的范围。限制要么由用户指定的槽位数给出，要么由内存预算给出。如果有空间，就创建一个作业及其获取任务。获取任务立即调度到 ASYNC 线程池上，而作业则按批次顺序进入预读队列。\n\nASYNC 线程独立于作业队列的认领顺序执行各个获取任务。来自同一作业的获取任务可以并发运行，但不保证特定分配给 ASYNC 线程。一个作业的所有获取任务共享一个倒计数器，将其减至零的获取任务完成该作业的 I/O。\n\n工作线程认领队列中最旧的作业并检查该倒计数器。如果 I/O 已完成，工作线程开始解码该作业。如果没有，它会挂起扫描任务，并可以自由运行其他管道任务。最后一个获取任务然后解除扫描任务的阻塞，该任务可以在任何常规工作线程上恢复。\n\n认领作业也会立即释放一个队列槽位，从而允许任何寻找扫描工作的常规工作线程在队列尾部生成替换作业。下图描述了这个循环：\n\n预读循环\n\n预读循环\n\n预读循环\n\n内存管理\n\n保持更多获取任务在途会消耗更多内存。为了确定预算并避免内存不足问题，我们引入了 read_ahead_depth 配置选项。它可以有三种类型的值：\n\n-1 (默认)：无限制深度，受内存限制。N > 0: 最多 N 个作业在队列中，无内存预算。0: 关闭预读，每个扫描任务仅为其自身的作业调度 I/O。\n\n要配置它，请使用 SET 子句，例如：\n\nSETread_ahead_depth=5;\n\n在默认模式下，预算与临时内存管理器协商，该管理器与并发连接、排序和窗口操作符共享内存。当内存压力很大时（例如，因为某个操作符使用大量内存），队列预留可能会立即超出预算。实际上，这意味着队列将只允许一次一个作业，扫描行为将接近同步扫描。\n\n当内存密集型操作符完成时，内存管理器有更多预算可用，队列会重新填满。\n\n基准测试\n\n异步 I/O 在同步请求延迟阻止我们使用可用远程带宽时影响最大。为了测量这种效应，我们运行了 TPC-H Query 6 at SF100，数据位于 S3 上，并将结果与 DuckDB v1.5.5 进行了比较，这是我们的最新稳定版本。SF100 数据集对于 Parquet 和 CSV 基准测试都写为每个表一个文件，其中 lineitem 表包含 600,037,902 行。\n\n对于计算，我们使用了 EC2 r7i.16xlarge 机器（64 个 vCPU 和 512 GB 内存），机器和存储数据的 S3 存储桶位于同一区域。我们执行了五次查询并报告平均执行时间。文件从未被缓存（即 SET enable_external_file_cache = false;），这意味着每次执行都直接从 S3 读取数据。\n\nParquet\n\nParquet 文件大约为 22 GB，大约有 4,880 个行组，每个行组包含大约 122,880 行。使用异步 I/O，平均运行时间从 8.230 秒下降到 2.844 秒，使查询几乎快了 3 倍。\n\n版本Q6 运行时间v1.5.5 (同步)8.230 秒v2.0.0-dev (异步 I/O)2.844 秒\n\n下面我们还展示了查询过程中的网络吞吐量：\n\n网络吞吐量\n\n网络吞吐量\n\n网络吞吐量\n\n其中，我们运行了 DuckDB v1.5.5 和两个 DuckDB v2.0.0-dev 变体。一个变体的预读深度由内存调控器决定，另一个针对此机器调优，将预读上限设置为 64 个在途作业并调整 I/O 设置（SET async_threads = 48; SET http_retries = 8; SET http_retry_wait_ms = 50; SET http_retry_backoff = 2）。我们可以看到 v2.0.0-dev 更有效地利用了可用带宽，接近网络限制并在几个点达到它。调优后的版本更进一步。凭借更少、更热的连接和廉价的重试，吞吐量波动降至最低，25 Gbit/s 的网络几乎保持饱和。其查询时间为 2.227 秒，比未调优的 v2.0.0-dev 运行时间减少了 21.7%，比 DuckDB v1.5.5 快约 3.7 倍。相比之下，v1.5.5 保持在约 5 Gbit/s，因为其同步读取没有保持足够的在途请求来饱和网络。\n\n另一个值得注意的细节是，在所有实验中，网络流量首次出现小高峰之前会经过几百毫秒，随后再有几百毫秒才开始主要数据传输。第一个间隙是打开 DuckDB 连接、执行首次 TLS 握手和打开文件所需的时间。小高峰对应下载文件页脚，而第二个间隙则来自执行查询前处理页脚信息的时间。我们认为这是在 v2.0 发布前可以进一步调查和优化的领域。\n\n我们每 50 毫秒对网卡接收字节计数器进行采样，并根据采样之间的字节变化计算吞吐量。我们独立确认，该机器可以通过 DuckDB 全文件读取和 s5cmd 工具以 25 Gbit/s 的速度访问网络。\n\n本地磁盘\n\n远程存储是异步 I/O 的主要目标，但冷本地读取为我们提供了有用的对比。为了进行测量，我们在 SF100 Parquet 文件上运行了 TPC-H Q6，这次文件位于 MacBook Pro（Apple M4 Max，14 核，36 GB RAM）的本地磁盘上。由于本地磁盘上异步 I/O 的优势来自冷读取，我们在每次运行之间清除了操作系统缓存（使用 macOS 的 purge命令），确保每次执行确实从磁盘读取文件。\n\n版本Q6 运行时间v1.5.5（同步）1.321 秒v2.0.0-dev（异步 I/O）0.883 秒\n\n我们可以看到，对于冷运行，异步 I/O 大约快 1.5 倍，将运行时间减少了约 33%。性能差异远小于上述情况，这是因为 SSD 的延迟比 EC2/S3 网络低得多，带宽也高得多。对于热运行，差异可以忽略不计，因为如果数据被正确缓存，则不会发生磁盘访问。\n\n小文件\n\n分区数据集是这里特别相关的用例，因为分区很容易将数据分散到许多小文件中。为了了解异步 I/O 在此设置中的表现，我们还使用相同的 TPC-H SF100 数据集进行了 Parquet 运行。我们没有使用单个文件，而是生成了 976 个文件，每个文件包含五个行组。每个文件包含约 615,000 行，大小约为 22 MB。\n\n版本Q6 运行时间v1.5.5（同步）9.344 秒v2.0.0-dev（异步 I/O）2.945 秒\n\n我们可以看到，v2.0.0-dev 在这里提供了与单文件基准类似的性能提升，运行速度约快 3 倍。这表明预读也可以跨多个文件并行化，而不会因打开文件或获取其页脚而成为瓶颈。\n\n大行组\n\n我们还希望了解另一个极端情况，即当 Parquet 文件只有少数非常大的行组时会发生什么。对于此实验，我们将相同的 TPC-H SF100 lineitem表生成为单个文件的六个版本，仅更改请求的行组（RG）大小，并使用 DuckDB v2.0.0-dev 运行 Q6。下表显示了每个版本的运行时间。\n\n每行组行数行组数近似行组大小（MB）总文件大小（MB）时间122,8804,886约 4 MB约 21,600 MB2.74 秒1,966,080306约 70 MB约 21,400 MB2.11 秒9,375,59364约 320 MB约 20,500 MB2.27 秒62,914,56010约 1,500 MB约 14,700 MB3.69 秒150,009,4764约 3,200 MB约 12,800 MB8.01 秒600,037,9021约 12,300 MB约 12,300 MB25.26 秒\n\n起初，较大的行组会减少查询时间。随着行组大小的增加，请求延迟会在更大的传输中得到摊销。然而，超过某一点后，可用并行性开始下降。行组是 DuckDB 的 Parquet 扫描并行单元，因此理想情况下，扫描应至少为每个系统线程提供一个行组。在这台 64 核机器上，具有 64 个行组的版本恰好提供了这一点，并在 2.27 秒内完成，而最快的运行来自具有 306 个行组的版本，为 2.11 秒。\n\n然而，当行组数少于线程数时，我们会失去并行性，无法再饱和网络。对于 Q6，投影和列的物理位置导致每个行组产生两个获取请求。因此，四个行组仅暴露约八个并发 S3 流，使运行时间增加到 8.01 秒。对于最大的配置，文件包含单个行组，其 I/O 实际上减少为两个巨型流，将运行时间推至 25.26 秒。即使更好的压缩使文件大小略大于具有 4,886 个行组的版本的一半，也会发生这种情况。在这种情况下，较小行组所需的额外带宽比极大行组导致的并行性丧失更便宜。\n\n并发查询\n\n当多个查询同时运行时，效果变得更加明显。对于此实验，我们针对 S3 上相同的 SF100 Parquet 数据集并发运行了 TPC-H 查询 1、6、9 和 18，使用单个 DuckDB 实例。我们选择这些查询是因为它们涵盖扫描、聚合和连接的混合，具有不同的 CPU 和内存要求。我们使用默认内存配置以及 16 GB 和 8 GB 的内存限制重复了实验。总运行时间是所有四个查询完成前的墙钟时间。我们报告了平均和峰值 CPU 利用率（使用的核心数）、峰值带宽和峰值常驻集大小。\n\n版本内存限制运行时间平均 CPU峰值 CPU峰值带宽峰值 RSSv1.5.5默认35.8 秒5.935.710.7 Gbit/s14.5 GBv2.0.0-dev默认15.6 秒48.164.024.9 Gbit/s20.1 GBv1.5.516 GB35.6 秒6.125.717.4 Gbit/s14.1 GBv2.0.0-dev16 GB22.7 秒35.263.424.8 Gbit/s15.7 GBv1.5.58 GB35.9 秒6.938.816.8 Gbit/s10.4 GBv2.0.0-dev8 GB24.2 秒30.363.725.0 Gbit/s11.5 GB\n\n使用默认内存配置，DuckDB v1.5.5 平均仅保持 64 个核心中约 6 个核心忙碌。换句话说，机器约 90% 的时间处于空闲状态，等待同步 S3 读取。另一方面，DuckDB v2.0.0-dev 平均有 48 个核心忙碌，峰值时达到全部 64 个，并饱和 25 Gbit/s 网络。因此，所有四个查询在不到一半的时间内完成。\n\n内存结果也很有趣。随着我们降低限制，内存管理器减少了预读积压，而像Q18中的内存密集型操作符可以溢出到磁盘。这使DuckDB v2.0.0-dev进程的峰值物理内存使用量（即RSS）从默认配置下的20.1 GB降至16 GB限制下的15.7 GB和8 GB限制下的11.5 GB。额外的溢出和减少的预读也降低了平均CPU利用率并增加了运行时间，但v2.0.0-dev仍然使网络饱和，并且在两种情况下都比v1.5.5快得多。\n\n有人可能注意到8 GB的结果仍然达到11.5 GB的RSS峰值。这是因为jemalloc会将最近释放的页面保留在内存中约一秒钟，以便重用。这些内存不再被DuckDB的内存管理器计算在内，而v1.5.5也表现出相同的分配器行为。\n\nCSV\n\n这种效果在CSV文件上更为显著。CSV文件大小为80.89 GB，异步I/O将平均运行时间从878秒减少到仅45秒，使查询速度提高了近20倍。CSV是行导向的，因此扫描传输的数据量显著增加，并执行固定大小的缓冲区读取，这使得并发远程读取特别有价值。\n\n版本Q6运行时间v1.5.5（同步）877.563秒v2.0.0-dev（异步I/O）45.264秒\n\n与其他实验一样，我们使用了默认的内存管理预读深度，因此这次运行没有进行调整以保持25 Gbit/s网络的平均饱和。\n\n结论\n\n在这篇博客文章中，我们介绍了针对Parquet和CSV文件的异步I/O近期工作。其大部分好处来自访问远程数据，但本地冷读取也能受益，尽管程度较小。接下来，我们计划为JSON和DuckDB原生文件添加异步读取，因为这两个是DuckDB核心最相关的其他格式。存在于外部树扩展中的格式还没有提上日程。我们还将研究io_uring，即Linux的异步I/O接口，它可以减少系统调用开销和阻塞在I/O上的线程数量。如果在实践中证明有益，我们将把它集成到DuckDB中。需要注意的重要一点是，只要底层数据格式是Parquet（或者如果你够勇敢，CSV），DuckDB支持的任何数据湖解决方案都可以自动受益于异步I/O。",
       "content_blocks": [
         {
           "type": "heading",
@@ -375090,7 +374704,7 @@
           "children": [
             {
               "type": "text",
-              "text": "Asynchronous I/O in DuckDB: Work, Thread, Work",
+              "text": "DuckDB 中的异步 I/O：工作、线程、工作",
               "marks": [],
               "id": "t-a0cacf84985c"
             }
@@ -375103,7 +374717,7 @@
           "children": [
             {
               "type": "text",
-              "text": "Pedro Holanda  2026-07-31 | 21 min ",
+              "text": "Pedro Holanda  2026-07-31 | 21 分钟",
               "marks": [],
               "id": "t-fa6dad73b1a8"
             }
@@ -375115,7 +374729,7 @@
           "children": [
             {
               "type": "text",
-              "text": "TL;DR: Starting with v2.0, scheduled for fall 2026, DuckDB will support asynchronous reads of Parquet and CSV files. This can significantly speed up queries when synchronous I/O does not saturate the available bandwidth, as is typical in EC2/S3 compute-storage setups.",
+              "text": "TL;DR：从计划于 2026 年秋季发布的 v2.0 开始，DuckDB 将支持异步读取 Parquet 和 CSV 文件。当同步 I/O 无法充分利用可用带宽时（例如在 EC2/S3 计算-存储架构中），这可以显著加速查询。",
               "marks": [
                 "em"
               ],
@@ -375129,7 +374743,7 @@
           "children": [
             {
               "type": "text",
-              "text": "It doesn't matter how fast query operators are in a database system if we can't pull in the data quickly. For most of DuckDB's history, however, this problem was largely avoided by pruning data early. By pushing down filters and projections, we could ensure that we only read what we actually needed.",
+              "text": "如果无法快速拉取数据，数据库系统中查询操作符的速度再快也无济于事。然而，在 DuckDB 的大部分历史中，这个问题主要通过尽早裁剪数据来避免。通过下推过滤和投影，我们可以确保只读取实际需要的数据。",
               "marks": [],
               "id": "t-b94aef2cc289"
             }
@@ -375141,7 +374755,7 @@
           "children": [
             {
               "type": "text",
-              "text": "This worked particularly well because DuckDB primarily ran locally, with its main use case being as a quick-draw database engine for querying data directly from your machine's SSD. We could split the data into several partitions, such as row groups for Parquet files or fixed-size buffers for CSV files, and load them with low latency and high bandwidth. As a result, the main bottlenecks were elsewhere: subqueries, joins, aggregations, and so on. The actual data access path received less attention because synchronous access was perfectly suitable for this use case.",
+              "text": "这种方法特别有效，因为 DuckDB 主要在本地运行，其主要用例是作为快速提取数据库引擎，直接从机器的 SSD 查询数据。我们可以将数据分成多个分区，例如 Parquet 文件的行组或 CSV 文件的固定大小缓冲区，并以低延迟和高带宽加载它们。因此，主要瓶颈在其他地方：子查询、连接、聚合等。实际的数据访问路径受到较少的关注，因为同步访问非常适合这种用例。",
               "marks": [],
               "id": "t-f8a136d3d651"
             }
@@ -375153,7 +374767,7 @@
           "children": [
             {
               "type": "text",
-              "text": "As usual, things changed. We realized that DuckDB's architecture was a great fit for querying remotely stored large-scale datasets, such as data lakes (e.g., ",
+              "text": "通常情况下，情况发生了变化。我们意识到 DuckDB 的架构非常适合查询远程存储的大规模数据集，例如数据湖（例如，",
               "marks": [],
               "id": "t-75cd2df3d20e"
             },
@@ -375170,13 +374784,13 @@
             },
             {
               "type": "text",
-              "text": "). Since ",
+              "text": "）。自",
               "marks": [],
               "id": "t-7285d697dd4d"
             },
             {
               "type": "text",
-              "text": "May this year",
+              "text": "今年五月",
               "marks": [
                 {
                   "type": "link",
@@ -375187,13 +374801,13 @@
             },
             {
               "type": "text",
-              "text": ", we can even run DuckDB as a server using the ",
+              "text": "起，我们甚至可以使用",
               "marks": [],
               "id": "t-5bb9e0008130"
             },
             {
               "type": "text",
-              "text": "Quack protocol",
+              "text": "Quack 协议",
               "marks": [
                 {
                   "type": "link",
@@ -375204,7 +374818,7 @@
             },
             {
               "type": "text",
-              "text": ". The original expectation of data files sitting on a local SSD therefore no longer always holds.",
+              "text": "将 DuckDB 作为服务器运行。因此，数据文件位于本地 SSD 的原始预期不再总是成立。",
               "marks": [],
               "id": "t-f17bba9ea712"
             }
@@ -375216,7 +374830,7 @@
           "children": [
             {
               "type": "text",
-              "text": "The practical implication of these changes is that many current DuckDB setups need to transfer files from remote storage to the machine that will actually process them. For data lakes, for example, a typical setup is to store the data in blob storage, such as S3, and process it on an EC2 machine in the same region. In this setup, latency and bandwidth play a much more significant role. If we cannot issue enough concurrent requests to use the available network bandwidth, performance can suffer drastically, with threads spending a large amount of their time waiting for remote reads instead of processing data.",
+              "text": "这些变化的实际影响是，许多当前的 DuckDB 设置需要将文件从远程存储传输到真正处理它们的机器上。例如，对于数据湖，典型的设置是将数据存储在 blob 存储（如 S3）中，并在同一区域的 EC2 机器上处理。在这种设置中，延迟和带宽起着更重要的作用。如果我们不能发出足够的并发请求来利用可用的网络带宽，性能可能会急剧下降，线程将花费大量时间等待远程读取而不是处理数据。",
               "marks": [],
               "id": "t-f4273b34b50b"
             }
@@ -375228,7 +374842,7 @@
           "children": [
             {
               "type": "text",
-              "text": "As an example, let's consider a simple query over a remote Parquet file. For simplicity, let's assume we only have a single thread executing.",
+              "text": "举个例子，让我们考虑一个对远程 Parquet 文件的简单查询。为简单起见，我们假设只有一个线程执行。",
               "marks": [],
               "id": "t-b9d77ce361d1"
             }
@@ -375245,7 +374859,7 @@
           "children": [
             {
               "type": "text",
-              "text": "A Parquet scan is partitioned into row-group-based jobs, with each job containing one or more fetch tasks that issue byte-range requests. With synchronous I/O, the worker thread will be blocked, waiting for the data to arrive at the machine before performing actual work, such as decoding, aggregating, and so on. You can see a visual depiction in the figure below, where the thread is blocked from doing any work while it waits for the read to finish.",
+              "text": "Parquet 扫描被划分为基于行组的作业，每个作业包含一个或多个发出字节范围请求的获取任务。使用同步 I/O，工作线程将被阻塞，在数据到达机器之前等待，之后才执行实际工作，如解码、聚合等。你可以在下图中看到可视化描述，其中线程在等待读取完成时无法执行任何工作。",
               "marks": [],
               "id": "t-087d5addd44a"
             }
@@ -375255,7 +374869,7 @@
           "type": "figure",
           "id": "b-842e8593fabc",
           "src": "https://duckdb.org/images/blog/async/sync-light.svg",
-          "alt": "Synchronous read",
+          "alt": "同步读取",
           "caption": "",
           "source_url": "https://duckdb.org/2026/07/31/asynchronous-io.html",
           "cached_src": "../media/7e23299ee03d/85b7607787ca51456a1be37f.svg",
@@ -375269,7 +374883,7 @@
           "type": "figure",
           "id": "b-d0d04c0741bd",
           "src": "https://duckdb.org/images/blog/async/sync-dark.svg",
-          "alt": "Synchronous read",
+          "alt": "同步读取",
           "caption": "",
           "source_url": "https://duckdb.org/2026/07/31/asynchronous-io.html",
           "cached_src": "../media/7e23299ee03d/54a67e970009360d61930955.svg",
@@ -375285,7 +374899,7 @@
           "children": [
             {
               "type": "text",
-              "text": "Synchronous read",
+              "text": "同步读取",
               "marks": [
                 "em"
               ],
@@ -375299,7 +374913,7 @@
           "children": [
             {
               "type": "text",
-              "text": "To address this, we have been implementing asynchronous I/O pipelines in DuckDB. They are currently implemented for Parquet and for uncompressed, seekable UTF-8 CSV files, with support for other formats, such as DuckDB's native format and JSON, still to come. In the remainder of this blog post, we will give a simple explanation of how asynchronous I/O is implemented in DuckDB and provide benchmarks for both Parquet and CSV files.",
+              "text": "为了解决这个问题，我们一直在 DuckDB 中实现异步 I/O 管道。目前，它们已针对 Parquet 和未压缩、可搜索的 UTF-8 CSV 文件实现，对其他格式（如 DuckDB 的原生格式和 JSON）的支持仍在规划中。在本文的其余部分，我们将简单解释异步 I/O 在 DuckDB 中是如何实现的，并提供 Parquet 和 CSV 文件的基准测试。",
               "marks": [],
               "id": "t-6c2e82254f08"
             }
@@ -375311,13 +374925,13 @@
           "children": [
             {
               "type": "text",
-              "text": "  If you would like to try asynchronous I/O now, you can do so by using ",
+              "text": "如果你想现在尝试异步 I/O，可以使用",
               "marks": [],
               "id": "t-e04aed17519b"
             },
             {
               "type": "text",
-              "text": "DuckDB's v2.0.0-dev preview builds",
+              "text": "DuckDB v2.0.0-dev 预览版",
               "marks": [
                 {
                   "type": "link",
@@ -375328,13 +374942,13 @@
             },
             {
               "type": "text",
-              "text": ". Asynchronous I/O will be used by default from the next major DuckDB version, v2.0, released ",
+              "text": "。从下一个主要 DuckDB 版本 v2.0（",
               "marks": [],
               "id": "t-8c50cbc3067a"
             },
             {
               "type": "text",
-              "text": "in the fall",
+              "text": "秋季发布",
               "marks": [
                 {
                   "type": "link",
@@ -375345,7 +374959,7 @@
             },
             {
               "type": "text",
-              "text": ". ",
+              "text": "）开始，异步 I/O 将成为默认行为。",
               "marks": [],
               "id": "t-3c943dbbd9b6"
             }
@@ -375363,7 +374977,7 @@
             },
             {
               "type": "text",
-              "text": "Asynchronous I/O",
+              "text": "异步 I/O",
               "marks": [
                 {
                   "type": "link",
@@ -375381,7 +374995,7 @@
           "children": [
             {
               "type": "text",
-              "text": "The conceptual idea of asynchronous I/O is rather simple: we should be able to start an I/O operation without blocking the worker thread that requested it. Applied to our Parquet example, the same picture would look like the following:",
+              "text": "异步 I/O 的概念想法相当简单：我们应该能够在不阻塞请求它的工作线程的情况下启动 I/O 操作。应用于我们的 Parquet 示例，相同的图看起来如下：",
               "marks": [],
               "id": "t-4bd1cdc65031"
             }
@@ -375391,7 +375005,7 @@
           "type": "figure",
           "id": "b-ebcacf52220f",
           "src": "https://duckdb.org/images/blog/async/async-light.svg",
-          "alt": "Asynchronous read",
+          "alt": "异步读取",
           "caption": "",
           "source_url": "https://duckdb.org/2026/07/31/asynchronous-io.html",
           "cached_src": "../media/7e23299ee03d/b4294f1f5d601410c6bfe7fb.svg",
@@ -375405,7 +375019,7 @@
           "type": "figure",
           "id": "b-c59e74d71a71",
           "src": "https://duckdb.org/images/blog/async/async-dark.svg",
-          "alt": "Asynchronous read",
+          "alt": "异步读取",
           "caption": "",
           "source_url": "https://duckdb.org/2026/07/31/asynchronous-io.html",
           "cached_src": "../media/7e23299ee03d/7221a81b40d299e867398b4e.svg",
@@ -375421,7 +375035,7 @@
           "children": [
             {
               "type": "text",
-              "text": "Asynchronous read",
+              "text": "异步读取",
               "marks": [
                 "em"
               ],
@@ -375435,7 +375049,7 @@
           "children": [
             {
               "type": "text",
-              "text": "In this example, we have two ",
+              "text": "在此示例中，我们有两个",
               "marks": [],
               "id": "t-00a06c89161c"
             },
@@ -375449,7 +375063,7 @@
             },
             {
               "type": "text",
-              "text": " threads and one regular worker thread. The ",
+              "text": "线程和一个常规工作线程。",
               "marks": [],
               "id": "t-edaea5c8909f"
             },
@@ -375463,13 +375077,13 @@
             },
             {
               "type": "text",
-              "text": " threads keep ",
+              "text": "线程保持",
               "marks": [],
               "id": "t-ecde2f260e62"
             },
             {
               "type": "text",
-              "text": "fetch tasks",
+              "text": "获取任务",
               "marks": [
                 "em"
               ],
@@ -375477,7 +375091,7 @@
             },
             {
               "type": "text",
-              "text": " in flight while the worker thread decodes data. During the initial warm-up, the scan task parks, leaving the worker thread free to run other pipeline tasks. Once the first job is ready, fetching and decoding can overlap.",
+              "text": "在飞行中，而工作线程解码数据。在初始预热期间，扫描任务暂停，让工作线程空闲以运行其他管道任务。一旦第一个作业准备就绪，获取和解码就可以重叠。",
               "marks": [],
               "id": "t-2236c679848f"
             }
@@ -375489,13 +375103,13 @@
           "children": [
             {
               "type": "text",
-              "text": "In DuckDB, we implemented something similar. We have ",
+              "text": "在 DuckDB 中，我们实现了类似的东西。我们有",
               "marks": [],
               "id": "t-2602f430c39d"
             },
             {
               "type": "text",
-              "text": "two separate thread pools",
+              "text": "两个独立的线程池",
               "marks": [
                 {
                   "type": "link",
@@ -375506,7 +375120,7 @@
             },
             {
               "type": "text",
-              "text": ":",
+              "text": "：",
               "marks": [],
               "id": "t-db37668bdf9e"
             }
@@ -375529,7 +375143,7 @@
                 },
                 {
                   "type": "text",
-                  "text": " – This pool contains our worker threads (by default: one for each available CPU thread). These are the ones that do real work, like decoding, joins, and aggregations. They prioritize regular work but can also perform I/O tasks when idle.",
+                  "text": " – 该池包含我们的工作线程（默认：每个可用 CPU 线程一个）。这些是执行实际工作的线程，如解码、连接和聚合。它们优先处理常规工作，但在空闲时也可以执行 I/O 任务。",
                   "marks": [],
                   "id": "t-3878d2db1e89"
                 }
@@ -375547,7 +375161,7 @@
                 },
                 {
                   "type": "text",
-                  "text": " – A pool of threads intended for asynchronous tasks, primarily blocking I/O.",
+                  "text": " – 一个用于异步任务的线程池，主要是阻塞 I/O。",
                   "marks": [],
                   "id": "t-8e0748e58cc8"
                 }
@@ -375561,7 +375175,7 @@
           "children": [
             {
               "type": "text",
-              "text": "The main reason we have these two different pools is that, for remote I/O, these threads can spend almost all their time blocked, waiting for an HTTP response, for example, and hence have very little CPU utilization. Because of that, we have many more ",
+              "text": "我们拥有这两个不同池的主要原因是，对于远程 I/O，这些线程几乎可以将所有时间花在阻塞等待 HTTP 响应等上，因此 CPU 利用率非常低。正因为如此，我们拥有比系统线程多得多的",
               "marks": [],
               "id": "t-447b31d3f7bf"
             },
@@ -375575,13 +375189,13 @@
             },
             {
               "type": "text",
-              "text": " workers than system threads, with the default setting being ",
+              "text": "工作者，默认设置为",
               "marks": [],
               "id": "t-2beaeef168e5"
             },
             {
               "type": "text",
-              "text": "4 * system threads",
+              "text": "4 * 系统线程",
               "marks": [
                 "code"
               ],
@@ -375589,7 +375203,7 @@
             },
             {
               "type": "text",
-              "text": " and the total being capped at 256.",
+              "text": "，总数上限为 256。",
               "marks": [],
               "id": "t-4f5d368b45cd"
             }
@@ -375601,7 +375215,7 @@
           "children": [
             {
               "type": "text",
-              "text": "It's of utmost importance to keep as many of our ",
+              "text": "尽可能保持我们的",
               "marks": [],
               "id": "t-825b245d2600"
             },
@@ -375615,7 +375229,7 @@
             },
             {
               "type": "text",
-              "text": " threads busy as possible. To ensure that, we implement a read-ahead strategy instead of issuing reads on demand. This means scheduling fetch tasks ahead of what our regular worker threads currently need.",
+              "text": "线程忙碌至关重要。为了确保这一点，我们实现了一种预读策略，而不是按需发出读取。这意味着提前调度比我们常规工作线程当前需要更远的获取任务。",
               "marks": [],
               "id": "t-3c88fce606e9"
             }
@@ -375627,7 +375241,7 @@
           "children": [
             {
               "type": "text",
-              "text": "One thing we need to be attentive to is that read-ahead buys throughput by holding memory. If decoding is slow and the network is fast, prefetched data can accumulate and lead to out-of-memory issues. To mitigate this, we also implemented asynchronous memory governance. Both read-ahead and memory governance will be explained in more detail in the following sections.",
+              "text": "我们需要注意的一点是，预读通过持有内存来换取吞吐量。如果解码速度慢而网络速度快，预取的数据可能会累积并导致内存不足问题。为了缓解这种情况，我们还实现了异步内存治理。预读和内存治理都将在以下部分中更详细地解释。",
               "marks": [],
               "id": "t-43696af7f7f2"
             }
@@ -375645,7 +375259,7 @@
             },
             {
               "type": "text",
-              "text": "Read-Ahead Queue",
+              "text": "预读队列",
               "marks": [
                 {
                   "type": "link",
@@ -375663,7 +375277,7 @@
           "children": [
             {
               "type": "text",
-              "text": "The idea of read-ahead is also straightforward. Instead of starting a read at the exact moment a regular worker needs the data, we schedule fetch tasks for work that lies further ahead. While a regular worker decodes the current job, the ASYNC threads are already pulling in data for the next jobs. The goal is to keep enough fetch tasks in flight to hide the latency of remote storage.",
+              "text": "预读的想法也很直接。我们不是在工作线程需要数据的时刻立即开始读取，而是为更靠前的工作调度获取任务。当常规工作线程解码当前作业时，ASYNC 线程已经在为下一个作业拉取数据。目标是保持足够的获取任务在飞行中，以隐藏远程存储的延迟。",
               "marks": [],
               "id": "t-ce2e903dfc61"
             }
@@ -375675,7 +375289,7 @@
           "children": [
             {
               "type": "text",
-              "text": "The jobs are units of work that can be scheduled and processed independently, and they can be different depending on the underlying file format. For a Parquet file, a job is one row group of one file. For a CSV file, a job is a scan boundary that generally covers a fixed byte range within the file.",
+              "text": "作业是可以独立调度和处理的工作单元，它们可以根据底层文件格式而有所不同。对于 Parquet 文件，一个作业就是一个文件的一个行组。对于 CSV 文件，一个作业是一个扫描边界，通常覆盖文件内的固定字节范围。",
               "marks": [],
               "id": "t-93eca7d45a8f"
             }
@@ -375687,7 +375301,7 @@
           "children": [
             {
               "type": "text",
-              "text": "A Parquet job might be broken down into multiple fetch tasks depending on the query projections, filter pushdowns, physical column locations, and which nearby byte ranges can be combined. The two fetch tasks in the figure below are illustrative, as their exact grouping and sizes depend on the file and query.",
+              "text": "一个 Parquet 作业可能会被分解为多个获取任务，具体取决于查询投影、过滤条件下推、物理列位置以及可以合并的相邻字节范围。下图中的两个获取任务是示例性的，因为它们的精确分组和大小取决于文件和查询。",
               "marks": [],
               "id": "t-aa92943af779"
             }
@@ -375699,7 +375313,7 @@
           "children": [
             {
               "type": "text",
-              "text": "For CSV files, we don't have the same granularity of information as we do for Parquet files. A job's fetch tasks load its starting buffer if it is not already in memory and, when the scan boundary reaches the end of that buffer, the following buffer as well (e.g., to handle lines that are split across two buffers).",
+              "text": "对于 CSV 文件，我们没有像 Parquet 文件那样细粒度的信息。一个作业的获取任务会加载其起始缓冲区（如果它不在内存中），并且当扫描边界到达该缓冲区的末尾时，也会加载下一个缓冲区（例如，处理跨两个缓冲区拆分的行）。",
               "marks": [],
               "id": "t-b19c6172f7f7"
             }
@@ -375709,7 +375323,7 @@
           "type": "figure",
           "id": "b-f3f7be0f4ec0",
           "src": "https://duckdb.org/images/blog/async/jobs-light.svg",
-          "alt": "Jobs",
+          "alt": "作业",
           "caption": "",
           "source_url": "https://duckdb.org/2026/07/31/asynchronous-io.html",
           "cached_src": "../media/7e23299ee03d/5fa2a68870bdef477fe14138.svg",
@@ -375723,7 +375337,7 @@
           "type": "figure",
           "id": "b-f80f31777ff8",
           "src": "https://duckdb.org/images/blog/async/jobs-dark.svg",
-          "alt": "Jobs",
+          "alt": "作业",
           "caption": "",
           "source_url": "https://duckdb.org/2026/07/31/asynchronous-io.html",
           "cached_src": "../media/7e23299ee03d/d15b8a9329c2285900994e7c.svg",
@@ -375739,7 +375353,7 @@
           "children": [
             {
               "type": "text",
-              "text": "Jobs",
+              "text": "作业",
               "marks": [
                 "em"
               ],
@@ -375753,7 +375367,7 @@
           "children": [
             {
               "type": "text",
-              "text": "Filling the queue requires no dedicated producer thread. Any regular worker that comes looking for scan work first tops up the queue as far as it is allowed to. The limit is either given by a user-specified number of slots or by a memory budget. If there is space, a job and its fetch tasks are created. The fetch tasks are scheduled immediately on the ",
+              "text": "填充队列不需要专用的生产者线程。任何寻找扫描工作的常规工作线程首先会将队列补充到允许的范围。限制要么由用户指定的槽位数给出，要么由内存预算给出。如果有空间，就创建一个作业及其获取任务。获取任务立即调度到 ",
               "marks": [],
               "id": "t-7bdb9acaa930"
             },
@@ -375767,7 +375381,7 @@
             },
             {
               "type": "text",
-              "text": " pool, while the job is admitted to the read-ahead queue in batch order.",
+              "text": " 线程池上，而作业则按批次顺序进入预读队列。",
               "marks": [],
               "id": "t-924313d8af1b"
             }
@@ -375787,7 +375401,7 @@
             },
             {
               "type": "text",
-              "text": " threads execute individual fetch tasks independently of the job queue's claim order. Fetch tasks from the same job can run concurrently, although no particular assignment to ",
+              "text": " 线程独立于作业队列的认领顺序执行各个获取任务。来自同一作业的获取任务可以并发运行，但不保证特定分配给 ",
               "marks": [],
               "id": "t-81aeabc89f8c"
             },
@@ -375801,7 +375415,7 @@
             },
             {
               "type": "text",
-              "text": " threads is guaranteed. All fetch tasks of a job share a countdown, and the fetch task that brings it to zero completes the job's I/O.",
+              "text": " 线程。一个作业的所有获取任务共享一个倒计数器，将其减至零的获取任务完成该作业的 I/O。",
               "marks": [],
               "id": "t-971d5bac5c85"
             }
@@ -375813,7 +375427,7 @@
           "children": [
             {
               "type": "text",
-              "text": "A worker thread claims the oldest job in the queue and checks that countdown. If I/O is done, the worker starts decoding the job. If not, it parks the scan task and is free to run other pipeline tasks. The last fetch task then unblocks the scan task, which may resume on any regular worker.",
+              "text": "工作线程认领队列中最旧的作业并检查该倒计数器。如果 I/O 已完成，工作线程开始解码该作业。如果没有，它会挂起扫描任务，并可以自由运行其他管道任务。最后一个获取任务然后解除扫描任务的阻塞，该任务可以在任何常规工作线程上恢复。",
               "marks": [],
               "id": "t-3b531dfdbf44"
             }
@@ -375825,7 +375439,7 @@
           "children": [
             {
               "type": "text",
-              "text": "Claiming the job also immediately frees a queue slot, allowing any regular worker looking for scan work to produce a replacement job at the back of the queue. The figure below depicts this cycle:",
+              "text": "认领作业也会立即释放一个队列槽位，从而允许任何寻找扫描工作的常规工作线程在队列尾部生成替换作业。下图描述了这个循环：",
               "marks": [],
               "id": "t-1b7f0e16fe6b"
             }
@@ -375835,7 +375449,7 @@
           "type": "figure",
           "id": "b-af9dc15e75b1",
           "src": "https://duckdb.org/images/blog/async/cycle-light.svg",
-          "alt": "Read-ahead cycle",
+          "alt": "预读循环",
           "caption": "",
           "source_url": "https://duckdb.org/2026/07/31/asynchronous-io.html",
           "cached_src": "../media/7e23299ee03d/170c8e767b3d334de183e8c2.svg",
@@ -375849,7 +375463,7 @@
           "type": "figure",
           "id": "b-bdcc7470320c",
           "src": "https://duckdb.org/images/blog/async/cycle-dark.svg",
-          "alt": "Read-ahead cycle",
+          "alt": "预读循环",
           "caption": "",
           "source_url": "https://duckdb.org/2026/07/31/asynchronous-io.html",
           "cached_src": "../media/7e23299ee03d/5953935753f79c111d12d0dd.svg",
@@ -375865,7 +375479,7 @@
           "children": [
             {
               "type": "text",
-              "text": "Read-ahead cycle",
+              "text": "预读循环",
               "marks": [
                 "em"
               ],
@@ -375885,7 +375499,7 @@
             },
             {
               "type": "text",
-              "text": "Memory Management",
+              "text": "内存管理",
               "marks": [
                 {
                   "type": "link",
@@ -375903,7 +375517,7 @@
           "children": [
             {
               "type": "text",
-              "text": "Keeping more fetch tasks in flight consumes more memory. To determine a budget and avoid out-of-memory issues, we introduced the ",
+              "text": "保持更多获取任务在途会消耗更多内存。为了确定预算并避免内存不足问题，我们引入了 ",
               "marks": [],
               "id": "t-8349c15960a3"
             },
@@ -375917,7 +375531,7 @@
             },
             {
               "type": "text",
-              "text": " configuration option. It can have three types of values:",
+              "text": " 配置选项。它可以有三种类型的值：",
               "marks": [],
               "id": "t-9dae3312c557"
             }
@@ -375940,7 +375554,7 @@
                 },
                 {
                   "type": "text",
-                  "text": " (default): unlimited depth, bounded by memory.",
+                  "text": " (默认)：无限制深度，受内存限制。",
                   "marks": [],
                   "id": "t-4b0b11c83641"
                 }
@@ -375958,7 +375572,7 @@
                 },
                 {
                   "type": "text",
-                  "text": ": at most ",
+                  "text": ": 最多 ",
                   "marks": [],
                   "id": "t-d5150799abe2"
                 },
@@ -375972,7 +375586,7 @@
                 },
                 {
                   "type": "text",
-                  "text": " jobs ahead, with no memory budget.",
+                  "text": " 个作业在队列中，无内存预算。",
                   "marks": [],
                   "id": "t-30861f4bbb50"
                 }
@@ -375990,7 +375604,7 @@
                 },
                 {
                   "type": "text",
-                  "text": ": read-ahead is off, each scan task schedules I/O only for its own job.",
+                  "text": ": 关闭预读，每个扫描任务仅为其自身的作业调度 I/O。",
                   "marks": [],
                   "id": "t-d0a5ff1391c9"
                 }
@@ -376004,7 +375618,7 @@
           "children": [
             {
               "type": "text",
-              "text": "To configure it, use the ",
+              "text": "要配置它，请使用 ",
               "marks": [],
               "id": "t-89d200153f43"
             },
@@ -376018,7 +375632,7 @@
             },
             {
               "type": "text",
-              "text": " clause, e.g.:",
+              "text": " 子句，例如：",
               "marks": [],
               "id": "t-517a84d1053e"
             }
@@ -376035,7 +375649,7 @@
           "children": [
             {
               "type": "text",
-              "text": "In the default mode, the budget is negotiated with the temporary memory manager, which is the same manager that splits memory between concurrent joins, sorts, and window operators. When there is a lot of memory pressure, for example, because an operator is using a large amount of memory, queue reservations might instantly be over budget. In practice, this means that the queue will only allow one job at a time, and the scan will behave close to a synchronous scan.",
+              "text": "在默认模式下，预算与临时内存管理器协商，该管理器与并发连接、排序和窗口操作符共享内存。当内存压力很大时（例如，因为某个操作符使用大量内存），队列预留可能会立即超出预算。实际上，这意味着队列将只允许一次一个作业，扫描行为将接近同步扫描。",
               "marks": [],
               "id": "t-501922436be3"
             }
@@ -376047,7 +375661,7 @@
           "children": [
             {
               "type": "text",
-              "text": "When the memory-heavy operator finishes, the memory manager has more budget to give, and the queue fills back up.",
+              "text": "当内存密集型操作符完成时，内存管理器有更多预算可用，队列会重新填满。",
               "marks": [],
               "id": "t-7974f26855d3"
             }
@@ -376065,7 +375679,7 @@
             },
             {
               "type": "text",
-              "text": "Benchmarks",
+              "text": "基准测试",
               "marks": [
                 {
                   "type": "link",
@@ -376083,7 +375697,7 @@
           "children": [
             {
               "type": "text",
-              "text": "Asynchronous I/O should have the largest effect when the latency of synchronous requests prevents us from using the available remote bandwidth. To measure this effect, we ran ",
+              "text": "异步 I/O 在同步请求延迟阻止我们使用可用远程带宽时影响最大。为了测量这种效应，我们运行了 ",
               "marks": [],
               "id": "t-f02223eb8c76"
             },
@@ -376100,7 +375714,7 @@
             },
             {
               "type": "text",
-              "text": ", with the data sitting on S3, and compared the results against ",
+              "text": "，数据位于 S3 上，并将结果与 ",
               "marks": [],
               "id": "t-65355dd5a1bc"
             },
@@ -376117,7 +375731,7 @@
             },
             {
               "type": "text",
-              "text": ", our latest stable release. The SF100 dataset was written as a single file per table for both the Parquet and CSV benchmarks, with the ",
+              "text": " 进行了比较，这是我们的最新稳定版本。SF100 数据集对于 Parquet 和 CSV 基准测试都写为每个表一个文件，其中 ",
               "marks": [],
               "id": "t-1a8c1a9d441c"
             },
@@ -376131,7 +375745,7 @@
             },
             {
               "type": "text",
-              "text": " table containing 600,037,902 rows.",
+              "text": " 表包含 600,037,902 行。",
               "marks": [],
               "id": "t-b681d815b258"
             }
@@ -376143,7 +375757,7 @@
           "children": [
             {
               "type": "text",
-              "text": "For compute, we used an EC2 ",
+              "text": "对于计算，我们使用了 EC2 ",
               "marks": [],
               "id": "t-4f5128b73224"
             },
@@ -376160,7 +375774,7 @@
             },
             {
               "type": "text",
-              "text": " machine (64 vCPUs and 512 GB of RAM), with both the machine and the S3 bucket with the data located in the same region. We executed the query five times and report the mean execution time. The files were never cached (i.e., ",
+              "text": " 机器（64 个 vCPU 和 512 GB 内存），机器和存储数据的 S3 存储桶位于同一区域。我们执行了五次查询并报告平均执行时间。文件从未被缓存（即 ",
               "marks": [],
               "id": "t-f98a3e927fec"
             },
@@ -376174,7 +375788,7 @@
             },
             {
               "type": "text",
-              "text": "), meaning that every execution read the data straight from S3.",
+              "text": "），这意味着每次执行都直接从 S3 读取数据。",
               "marks": [],
               "id": "t-675e10fcb6cc"
             }
@@ -376210,7 +375824,7 @@
           "children": [
             {
               "type": "text",
-              "text": "The Parquet file is approximately 22 GB and has around 4,880 row groups, with each row group containing approximately 122,880 rows. With asynchronous I/O, the mean runtime drops from 8.230 seconds to 2.844 seconds, making the query almost 3× faster.",
+              "text": "Parquet 文件大约为 22 GB，大约有 4,880 个行组，每个行组包含大约 122,880 行。使用异步 I/O，平均运行时间从 8.230 秒下降到 2.844 秒，使查询几乎快了 3 倍。",
               "marks": [],
               "id": "t-819839a0f7bf"
             }
@@ -376227,7 +375841,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "Version",
+                      "text": "版本",
                       "marks": [],
                       "id": "t-96f30da9d53c"
                     }
@@ -376238,7 +375852,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "Q6 runtime",
+                      "text": "Q6 运行时间",
                       "marks": [],
                       "id": "t-b1d9af52a114"
                     }
@@ -376253,7 +375867,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "v1.5.5 (synchronous)",
+                      "text": "v1.5.5 (同步)",
                       "marks": [],
                       "id": "t-cb451620570c"
                     }
@@ -376264,7 +375878,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "8.230 s",
+                      "text": "8.230 秒",
                       "marks": [],
                       "id": "t-e1e078b16749"
                     }
@@ -376279,7 +375893,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "v2.0.0-dev (asynchronous I/O)",
+                      "text": "v2.0.0-dev (异步 I/O)",
                       "marks": [],
                       "id": "t-f276d2d26948"
                     }
@@ -376290,7 +375904,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "2.844 s",
+                      "text": "2.844 秒",
                       "marks": [],
                       "id": "t-2f4a92d8d969"
                     }
@@ -376306,7 +375920,7 @@
           "children": [
             {
               "type": "text",
-              "text": "Below we also show the network throughput over the course of the query:",
+              "text": "下面我们还展示了查询过程中的网络吞吐量：",
               "marks": [],
               "id": "t-7a8ace05093a"
             }
@@ -376316,7 +375930,7 @@
           "type": "figure",
           "id": "b-e9095e08eb92",
           "src": "https://duckdb.org/images/blog/async/q6_network_throughput_3way-light.svg",
-          "alt": "Network throughput",
+          "alt": "网络吞吐量",
           "caption": "",
           "source_url": "https://duckdb.org/2026/07/31/asynchronous-io.html",
           "cached_src": "../media/7e23299ee03d/c73fc70d26319f6da261f459.svg",
@@ -376330,7 +375944,7 @@
           "type": "figure",
           "id": "b-d4660fe80b12",
           "src": "https://duckdb.org/images/blog/async/q6_network_throughput_3way-dark.svg",
-          "alt": "Network throughput",
+          "alt": "网络吞吐量",
           "caption": "",
           "source_url": "https://duckdb.org/2026/07/31/asynchronous-io.html",
           "cached_src": "../media/7e23299ee03d/d6287ee40fc621ab9887fc16.svg",
@@ -376346,7 +375960,7 @@
           "children": [
             {
               "type": "text",
-              "text": "Network throughput",
+              "text": "网络吞吐量",
               "marks": [
                 "em"
               ],
@@ -376360,7 +375974,7 @@
           "children": [
             {
               "type": "text",
-              "text": "In it, we run DuckDB v1.5.5 and two variations of DuckDB v2.0.0-dev. One with the read-ahead depth determined by the memory governor, and one tuned for this machine, where we cap the read-ahead at 64 in-flight jobs and adjust the I/O settings (",
+              "text": "其中，我们运行了 DuckDB v1.5.5 和两个 DuckDB v2.0.0-dev 变体。一个变体的预读深度由内存调控器决定，另一个针对此机器调优，将预读上限设置为 64 个在途作业并调整 I/O 设置（",
               "marks": [],
               "id": "t-8b096b572334"
             },
@@ -376374,7 +375988,7 @@
             },
             {
               "type": "text",
-              "text": "). We can see that v2.0.0-dev uses the available bandwidth much more effectively, approaching the network limit and reaching it at several points. The tuned version goes further. With fewer, hotter connections and cheap retries, the throughput variance drops to a minimum and the 25 Gbit/s network stays almost fully saturated. Its query time was 2.227 seconds, reducing the runtime of the untuned v2.0.0-dev run by 21.7% and making it about 3.7× faster than DuckDB v1.5.5. In comparison, v1.5.5 stays around 5 Gbit/s because its synchronous reads do not keep enough requests in flight to saturate the network.",
+              "text": "）。我们可以看到 v2.0.0-dev 更有效地利用了可用带宽，接近网络限制并在几个点达到它。调优后的版本更进一步。凭借更少、更热的连接和廉价的重试，吞吐量波动降至最低，25 Gbit/s 的网络几乎保持饱和。其查询时间为 2.227 秒，比未调优的 v2.0.0-dev 运行时间减少了 21.7%，比 DuckDB v1.5.5 快约 3.7 倍。相比之下，v1.5.5 保持在约 5 Gbit/s，因为其同步读取没有保持足够的在途请求来饱和网络。",
               "marks": [],
               "id": "t-60ea95fcf8b8"
             }
@@ -376386,7 +376000,7 @@
           "children": [
             {
               "type": "text",
-              "text": "One other detail worth noting is that, in all experiments, a few hundred milliseconds pass before the first bump in network traffic, followed by another few hundred milliseconds before the main data transfer begins. The first gap is the time needed to open a DuckDB connection, perform the first TLS handshake, and open the file. The bump corresponds to downloading the file footer, while the second gap comes from processing the information in the footer before executing the query. We believe this is an area we can investigate and optimize further before the v2.0 release.",
+              "text": "另一个值得注意的细节是，在所有实验中，网络流量首次出现小高峰之前会经过几百毫秒，随后再有几百毫秒才开始主要数据传输。第一个间隙是打开 DuckDB 连接、执行首次 TLS 握手和打开文件所需的时间。小高峰对应下载文件页脚，而第二个间隙则来自执行查询前处理页脚信息的时间。我们认为这是在 v2.0 发布前可以进一步调查和优化的领域。",
               "marks": [],
               "id": "t-5d52d1aa0c1c"
             }
@@ -376398,7 +376012,7 @@
           "children": [
             {
               "type": "text",
-              "text": "  We sampled the NIC's received-byte counter every 50 ms and calculated the throughput from the change in bytes between samples. We independently confirmed that the machine can access the network at 25 Gbit/s with both a DuckDB full-file read and the ",
+              "text": "  我们每 50 毫秒对网卡接收字节计数器进行采样，并根据采样之间的字节变化计算吞吐量。我们独立确认，该机器可以通过 DuckDB 全文件读取和 ",
               "marks": [],
               "id": "t-3cf6b84aae00"
             },
@@ -376416,7 +376030,7 @@
             },
             {
               "type": "text",
-              "text": " tool",
+              "text": " 工具",
               "marks": [
                 {
                   "type": "link",
@@ -376427,7 +376041,7 @@
             },
             {
               "type": "text",
-              "text": ". ",
+              "text": "以 25 Gbit/s 的速度访问网络。 ",
               "marks": [],
               "id": "t-a531f739b31b"
             }
@@ -376445,7 +376059,7 @@
             },
             {
               "type": "text",
-              "text": "Local Disk",
+              "text": "本地磁盘",
               "marks": [
                 {
                   "type": "link",
@@ -376463,7 +376077,7 @@
           "children": [
             {
               "type": "text",
-              "text": "Remote storage is the main target for asynchronous I/O, but cold local reads give us a useful contrast. To measure them, we ran TPC-H Query 6 over the SF100 Parquet file, this time with the file sitting on the local disk of a MacBook Pro (Apple M4 Max, 14 cores, and 36 GB of RAM). Since the benefit of asynchronous I/O on local disks comes from cold reads, we cleared the OS caches (with the macOS ",
+              "text": "远程存储是异步 I/O 的主要目标，但冷本地读取为我们提供了有用的对比。为了进行测量，我们在 SF100 Parquet 文件上运行了 TPC-H Q6，这次文件位于 MacBook Pro（Apple M4 Max，14 核，36 GB RAM）的本地磁盘上。由于本地磁盘上异步 I/O 的优势来自冷读取，我们在每次运行之间清除了操作系统缓存（使用 macOS 的 ",
               "marks": [],
               "id": "t-3cf8e6e6b84f"
             },
@@ -376477,7 +376091,7 @@
             },
             {
               "type": "text",
-              "text": " command) between runs, making sure every execution actually read the file from disk.",
+              "text": "命令），确保每次执行确实从磁盘读取文件。",
               "marks": [],
               "id": "t-744f3e92ec91"
             }
@@ -376494,7 +376108,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "Version",
+                      "text": "版本",
                       "marks": [],
                       "id": "t-8feca6d19421"
                     }
@@ -376505,7 +376119,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "Q6 runtime",
+                      "text": "Q6 运行时间",
                       "marks": [],
                       "id": "t-cfed3bcfcc77"
                     }
@@ -376520,7 +376134,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "v1.5.5 (synchronous)",
+                      "text": "v1.5.5（同步）",
                       "marks": [],
                       "id": "t-c09be54a50a3"
                     }
@@ -376531,7 +376145,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "1.321 s",
+                      "text": "1.321 秒",
                       "marks": [],
                       "id": "t-ae3c81dcfe35"
                     }
@@ -376546,7 +376160,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "v2.0.0-dev (asynchronous I/O)",
+                      "text": "v2.0.0-dev（异步 I/O）",
                       "marks": [],
                       "id": "t-ff1b6c4986f2"
                     }
@@ -376557,7 +376171,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "0.883 s",
+                      "text": "0.883 秒",
                       "marks": [],
                       "id": "t-83b1688c23f4"
                     }
@@ -376573,7 +376187,7 @@
           "children": [
             {
               "type": "text",
-              "text": "We can see that, for cold runs, asynchronous I/O is approximately 1.5× faster, reducing runtime by about 33%. The performance difference is much smaller than in the cases presented above, due to the SSD having much lower latency and much higher bandwidth than the EC2/S3 network. For hot runs, the difference is negligible, as there is no disk access happening if data is properly cached.",
+              "text": "我们可以看到，对于冷运行，异步 I/O 大约快 1.5 倍，将运行时间减少了约 33%。性能差异远小于上述情况，这是因为 SSD 的延迟比 EC2/S3 网络低得多，带宽也高得多。对于热运行，差异可以忽略不计，因为如果数据被正确缓存，则不会发生磁盘访问。",
               "marks": [],
               "id": "t-f88f82bcd843"
             }
@@ -376591,7 +376205,7 @@
             },
             {
               "type": "text",
-              "text": "Small Files",
+              "text": "小文件",
               "marks": [
                 {
                   "type": "link",
@@ -376609,7 +376223,7 @@
           "children": [
             {
               "type": "text",
-              "text": "Partitioned datasets are a particularly relevant use case here, as partitioning can easily spread the data across many small files. To see how asynchronous I/O behaves in this setup, we also performed a Parquet run using the same TPC-H SF100 dataset. Instead of using one file, we generated 976 files with five row groups each. Each file contains approximately 615,000 rows and is around 22 MB in size.",
+              "text": "分区数据集是这里特别相关的用例，因为分区很容易将数据分散到许多小文件中。为了了解异步 I/O 在此设置中的表现，我们还使用相同的 TPC-H SF100 数据集进行了 Parquet 运行。我们没有使用单个文件，而是生成了 976 个文件，每个文件包含五个行组。每个文件包含约 615,000 行，大小约为 22 MB。",
               "marks": [],
               "id": "t-9ebc8beb8de5"
             }
@@ -376626,7 +376240,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "Version",
+                      "text": "版本",
                       "marks": [],
                       "id": "t-392883e641cc"
                     }
@@ -376637,7 +376251,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "Q6 runtime",
+                      "text": "Q6 运行时间",
                       "marks": [],
                       "id": "t-47f49494c4df"
                     }
@@ -376652,7 +376266,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "v1.5.5 (synchronous)",
+                      "text": "v1.5.5（同步）",
                       "marks": [],
                       "id": "t-9d0d0299d9ba"
                     }
@@ -376663,7 +376277,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "9.344 s",
+                      "text": "9.344 秒",
                       "marks": [],
                       "id": "t-6122d6753afc"
                     }
@@ -376678,7 +376292,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "v2.0.0-dev (asynchronous I/O)",
+                      "text": "v2.0.0-dev（异步 I/O）",
                       "marks": [],
                       "id": "t-835ac2cb423e"
                     }
@@ -376689,7 +376303,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "2.945 s",
+                      "text": "2.945 秒",
                       "marks": [],
                       "id": "t-b5fa7075ebc9"
                     }
@@ -376705,7 +376319,7 @@
           "children": [
             {
               "type": "text",
-              "text": "We can see that v2.0.0-dev delivers a similar performance improvement here as it does for the single-file benchmark, running around 3× faster. This shows that read-ahead can also parallelize across multiple files without becoming bottlenecked by opening files or fetching their footers.",
+              "text": "我们可以看到，v2.0.0-dev 在这里提供了与单文件基准类似的性能提升，运行速度约快 3 倍。这表明预读也可以跨多个文件并行化，而不会因打开文件或获取其页脚而成为瓶颈。",
               "marks": [],
               "id": "t-647b934ea563"
             }
@@ -376723,7 +376337,7 @@
             },
             {
               "type": "text",
-              "text": "Large Row Groups",
+              "text": "大行组",
               "marks": [
                 {
                   "type": "link",
@@ -376741,7 +376355,7 @@
           "children": [
             {
               "type": "text",
-              "text": "We also wanted to see what happens at the other extreme, when a Parquet file has only a few very large row groups. For this experiment, we generated six versions of the same TPC-H SF100 ",
+              "text": "我们还希望了解另一个极端情况，即当 Parquet 文件只有少数非常大的行组时会发生什么。对于此实验，我们将相同的 TPC-H SF100 ",
               "marks": [],
               "id": "t-583c12e93d02"
             },
@@ -376755,7 +376369,7 @@
             },
             {
               "type": "text",
-              "text": " table as a single file, changing only the requested row group (RG) size, and ran Q6 using DuckDB v2.0.0-dev. The table below reports the runtime for each version.",
+              "text": "表生成为单个文件的六个版本，仅更改请求的行组（RG）大小，并使用 DuckDB v2.0.0-dev 运行 Q6。下表显示了每个版本的运行时间。",
               "marks": [],
               "id": "t-da1eda55ebdb"
             }
@@ -376772,7 +376386,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "Rows / RG",
+                      "text": "每行组行数",
                       "marks": [],
                       "id": "t-b80e4d4efcfe"
                     }
@@ -376783,7 +376397,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "RGs",
+                      "text": "行组数",
                       "marks": [],
                       "id": "t-50b5b936a385"
                     }
@@ -376794,7 +376408,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "Approx. RG size (MB)",
+                      "text": "近似行组大小（MB）",
                       "marks": [],
                       "id": "t-fdbada79b2eb"
                     }
@@ -376805,7 +376419,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "Total file size (MB)",
+                      "text": "总文件大小（MB）",
                       "marks": [],
                       "id": "t-21a1f08d0c9e"
                     }
@@ -376816,7 +376430,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "Time",
+                      "text": "时间",
                       "marks": [],
                       "id": "t-33ecdcd41386"
                     }
@@ -376853,7 +376467,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "~4 MB",
+                      "text": "约 4 MB",
                       "marks": [],
                       "id": "t-0a485213a2bf"
                     }
@@ -376864,7 +376478,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "~21,600 MB",
+                      "text": "约 21,600 MB",
                       "marks": [],
                       "id": "t-a35574f3d0c5"
                     }
@@ -376875,7 +376489,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "2.74 s",
+                      "text": "2.74 秒",
                       "marks": [],
                       "id": "t-ec1182148220"
                     }
@@ -376912,7 +376526,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "~70 MB",
+                      "text": "约 70 MB",
                       "marks": [],
                       "id": "t-2a500b02d96b"
                     }
@@ -376923,7 +376537,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "~21,400 MB",
+                      "text": "约 21,400 MB",
                       "marks": [],
                       "id": "t-106ae43e5eab"
                     }
@@ -376934,7 +376548,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "2.11 s",
+                      "text": "2.11 秒",
                       "marks": [],
                       "id": "t-23c93428165d"
                     }
@@ -376971,7 +376585,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "~320 MB",
+                      "text": "约 320 MB",
                       "marks": [],
                       "id": "t-90baa9750abe"
                     }
@@ -376982,7 +376596,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "~20,500 MB",
+                      "text": "约 20,500 MB",
                       "marks": [],
                       "id": "t-419ba06eaefb"
                     }
@@ -376993,7 +376607,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "2.27 s",
+                      "text": "2.27 秒",
                       "marks": [],
                       "id": "t-5dcd689fd90f"
                     }
@@ -377030,7 +376644,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "~1,500 MB",
+                      "text": "约 1,500 MB",
                       "marks": [],
                       "id": "t-fd62406e2ed8"
                     }
@@ -377041,7 +376655,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "~14,700 MB",
+                      "text": "约 14,700 MB",
                       "marks": [],
                       "id": "t-6f3a69ab4253"
                     }
@@ -377052,7 +376666,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "3.69 s",
+                      "text": "3.69 秒",
                       "marks": [],
                       "id": "t-e2ac9ebc6b36"
                     }
@@ -377089,7 +376703,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "~3,200 MB",
+                      "text": "约 3,200 MB",
                       "marks": [],
                       "id": "t-26f2e6f0f0c7"
                     }
@@ -377100,7 +376714,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "~12,800 MB",
+                      "text": "约 12,800 MB",
                       "marks": [],
                       "id": "t-029c0b6eb010"
                     }
@@ -377111,7 +376725,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "8.01 s",
+                      "text": "8.01 秒",
                       "marks": [],
                       "id": "t-38f28cde7020"
                     }
@@ -377148,7 +376762,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "~12,300 MB",
+                      "text": "约 12,300 MB",
                       "marks": [],
                       "id": "t-a07893a1a5a5"
                     }
@@ -377159,7 +376773,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "~12,300 MB",
+                      "text": "约 12,300 MB",
                       "marks": [],
                       "id": "t-674773387ad0"
                     }
@@ -377170,7 +376784,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "25.26 s",
+                      "text": "25.26 秒",
                       "marks": [],
                       "id": "t-0488d9f7ebaa"
                     }
@@ -377186,7 +376800,7 @@
           "children": [
             {
               "type": "text",
-              "text": "At first, larger row groups decrease query times. As we increase the row-group size, request latency is amortized over much larger transfers. However, beyond a certain point, the available parallelism starts to fall. A row group is DuckDB's unit of Parquet scan parallelism, so ideally a scan should expose at least one row group per system thread. On this 64-vCPU machine, the version with 64 row groups provides exactly that and finishes in 2.27 seconds, while the fastest run comes from the version with 306 row groups, at 2.11 seconds.",
+              "text": "起初，较大的行组会减少查询时间。随着行组大小的增加，请求延迟会在更大的传输中得到摊销。然而，超过某一点后，可用并行性开始下降。行组是 DuckDB 的 Parquet 扫描并行单元，因此理想情况下，扫描应至少为每个系统线程提供一个行组。在这台 64 核机器上，具有 64 个行组的版本恰好提供了这一点，并在 2.27 秒内完成，而最快的运行来自具有 306 个行组的版本，为 2.11 秒。",
               "marks": [],
               "id": "t-cf4d12bf494c"
             }
@@ -377198,7 +376812,7 @@
           "children": [
             {
               "type": "text",
-              "text": "However, with fewer row groups than threads, we lose parallelism and can no longer saturate the network. For Q6, the projections and the physical location of the columns result in two fetch requests per row group. Four row groups therefore expose only about eight concurrent S3 streams, raising the runtime to 8.01 seconds. For the largest configuration, the file contains a single row group, and its I/O is effectively reduced to two giant streams, pushing the runtime to 25.26 seconds. This happens even though better compression makes the file a little over half the size of the version with 4,886 row groups. In this case, the extra bandwidth required by smaller row groups is cheaper than the parallelism lost with extremely large ones.",
+              "text": "然而，当行组数少于线程数时，我们会失去并行性，无法再饱和网络。对于 Q6，投影和列的物理位置导致每个行组产生两个获取请求。因此，四个行组仅暴露约八个并发 S3 流，使运行时间增加到 8.01 秒。对于最大的配置，文件包含单个行组，其 I/O 实际上减少为两个巨型流，将运行时间推至 25.26 秒。即使更好的压缩使文件大小略大于具有 4,886 个行组的版本的一半，也会发生这种情况。在这种情况下，较小行组所需的额外带宽比极大行组导致的并行性丧失更便宜。",
               "marks": [],
               "id": "t-428336b72a56"
             }
@@ -377216,7 +376830,7 @@
             },
             {
               "type": "text",
-              "text": "Concurrent Queries",
+              "text": "并发查询",
               "marks": [
                 {
                   "type": "link",
@@ -377234,7 +376848,7 @@
           "children": [
             {
               "type": "text",
-              "text": "The effect becomes even clearer when several queries run at the same time. For this experiment, we ran TPC-H queries 1, 6, 9, and 18 concurrently against the same SF100 Parquet dataset on S3, using a single DuckDB instance. We picked these queries because they cover a mix of scans, aggregations, and joins, with different CPU and memory requirements. We repeated the experiment with the default memory configuration and with memory limits of 16 GB and 8 GB. The total runtime is the wall-clock time until all four queries finish. We report the average and peak CPU utilization (number of cores utilized), the peak bandwidth (bw.) and the peak resident set size (RSS).",
+              "text": "当多个查询同时运行时，效果变得更加明显。对于此实验，我们针对 S3 上相同的 SF100 Parquet 数据集并发运行了 TPC-H 查询 1、6、9 和 18，使用单个 DuckDB 实例。我们选择这些查询是因为它们涵盖扫描、聚合和连接的混合，具有不同的 CPU 和内存要求。我们使用默认内存配置以及 16 GB 和 8 GB 的内存限制重复了实验。总运行时间是所有四个查询完成前的墙钟时间。我们报告了平均和峰值 CPU 利用率（使用的核心数）、峰值带宽和峰值常驻集大小。",
               "marks": [],
               "id": "t-61707854c4f5"
             }
@@ -377251,7 +376865,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "Version",
+                      "text": "版本",
                       "marks": [],
                       "id": "t-fc5be69e922d"
                     }
@@ -377262,7 +376876,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "Mem. limit",
+                      "text": "内存限制",
                       "marks": [],
                       "id": "t-94ddee739e90"
                     }
@@ -377273,7 +376887,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "Runtime",
+                      "text": "运行时间",
                       "marks": [],
                       "id": "t-6263d226da34"
                     }
@@ -377284,7 +376898,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "Avg. CPU",
+                      "text": "平均 CPU",
                       "marks": [],
                       "id": "t-d4e81a02d003"
                     }
@@ -377295,7 +376909,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "Peak CPU",
+                      "text": "峰值 CPU",
                       "marks": [],
                       "id": "t-7a01500c2c7c"
                     }
@@ -377306,7 +376920,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "Peak bw.",
+                      "text": "峰值带宽",
                       "marks": [],
                       "id": "t-605947087621"
                     }
@@ -377317,7 +376931,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "Peak RSS",
+                      "text": "峰值 RSS",
                       "marks": [],
                       "id": "t-78f83aebf18e"
                     }
@@ -377343,7 +376957,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "default",
+                      "text": "默认",
                       "marks": [],
                       "id": "t-46c2e61a0ea4"
                     }
@@ -377354,7 +376968,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "35.8 s",
+                      "text": "35.8 秒",
                       "marks": [],
                       "id": "t-2d3683bf2080"
                     }
@@ -377424,7 +377038,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "default",
+                      "text": "默认",
                       "marks": [],
                       "id": "t-c94676e8d454"
                     }
@@ -377435,7 +377049,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "15.6 s",
+                      "text": "15.6 秒",
                       "marks": [],
                       "id": "t-b8632cd10ebe"
                     }
@@ -377516,7 +377130,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "35.6 s",
+                      "text": "35.6 秒",
                       "marks": [],
                       "id": "t-be9ce7474e36"
                     }
@@ -377597,7 +377211,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "22.7 s",
+                      "text": "22.7 秒",
                       "marks": [],
                       "id": "t-c2c988e7ee44"
                     }
@@ -377678,7 +377292,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "35.9 s",
+                      "text": "35.9 秒",
                       "marks": [],
                       "id": "t-702efb9d97df"
                     }
@@ -377759,7 +377373,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "24.2 s",
+                      "text": "24.2 秒",
                       "marks": [],
                       "id": "t-281993c35829"
                     }
@@ -377819,7 +377433,7 @@
           "children": [
             {
               "type": "text",
-              "text": "With the default memory configuration, DuckDB v1.5.5 keeps an average of only about 6 of the 64 cores busy. In other words, around 90% of the machine sits idle waiting for synchronous S3 reads. DuckDB v2.0.0-dev, on the other hand, averages 48 busy cores, reaches all 64 at its peak, and saturates the 25 Gbit/s network. As a result, all four queries finish in less than half the time.",
+              "text": "使用默认内存配置，DuckDB v1.5.5 平均仅保持 64 个核心中约 6 个核心忙碌。换句话说，机器约 90% 的时间处于空闲状态，等待同步 S3 读取。另一方面，DuckDB v2.0.0-dev 平均有 48 个核心忙碌，峰值时达到全部 64 个，并饱和 25 Gbit/s 网络。因此，所有四个查询在不到一半的时间内完成。",
               "marks": [],
               "id": "t-8ff932fcb826"
             }
@@ -377831,7 +377445,7 @@
           "children": [
             {
               "type": "text",
-              "text": "The memory results are also interesting. As we lower the limit, the memory governor reduces the read-ahead backlog, while memory-heavy operators such as those in Q18 can spill to disk. This lowers the peak physical memory used by the DuckDB process (i.e., RSS) of DuckDB v2.0.0-dev from 20.1 GB with the default configuration to 15.7 GB with a 16 GB limit and 11.5 GB with an 8 GB limit. The additional spilling and reduced read-ahead also lower average CPU utilization and increase the runtime, but v2.0.0-dev continues to saturate the network and remains substantially faster than v1.5.5 in both cases.",
+              "text": "内存结果也很有趣。随着我们降低限制，内存管理器减少了预读积压，而像Q18中的内存密集型操作符可以溢出到磁盘。这使DuckDB v2.0.0-dev进程的峰值物理内存使用量（即RSS）从默认配置下的20.1 GB降至16 GB限制下的15.7 GB和8 GB限制下的11.5 GB。额外的溢出和减少的预读也降低了平均CPU利用率并增加了运行时间，但v2.0.0-dev仍然使网络饱和，并且在两种情况下都比v1.5.5快得多。",
               "marks": [],
               "id": "t-3eda15544ef2"
             }
@@ -377843,7 +377457,7 @@
           "children": [
             {
               "type": "text",
-              "text": "  One might notice that the 8 GB result still peaks at 11.5 GB of RSS. This is because ",
+              "text": "有人可能注意到8 GB的结果仍然达到11.5 GB的RSS峰值。这是因为",
               "marks": [],
               "id": "t-23524cf1fbdc"
             },
@@ -377860,7 +377474,7 @@
             },
             {
               "type": "text",
-              "text": " keeps recently freed pages resident for about one second so they can be reused. This memory is no longer counted by DuckDB's memory manager, and v1.5.5 shows the same allocator behavior. ",
+              "text": "会将最近释放的页面保留在内存中约一秒钟，以便重用。这些内存不再被DuckDB的内存管理器计算在内，而v1.5.5也表现出相同的分配器行为。",
               "marks": [],
               "id": "t-bbf3a297dd33"
             }
@@ -377896,7 +377510,7 @@
           "children": [
             {
               "type": "text",
-              "text": "The effect is larger on CSV files. The CSV file is 80.89 GB, and asynchronous I/O reduces the mean runtime from 878 seconds to just 45 seconds, making the query almost 20× faster. CSV is row-oriented, so the scan transfers substantially more data and performs fixed-size buffer reads, making concurrent remote reads especially valuable.",
+              "text": "这种效果在CSV文件上更为显著。CSV文件大小为80.89 GB，异步I/O将平均运行时间从878秒减少到仅45秒，使查询速度提高了近20倍。CSV是行导向的，因此扫描传输的数据量显著增加，并执行固定大小的缓冲区读取，这使得并发远程读取特别有价值。",
               "marks": [],
               "id": "t-f729f78f19b8"
             }
@@ -377913,7 +377527,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "Version",
+                      "text": "版本",
                       "marks": [],
                       "id": "t-8b6fc4d642b6"
                     }
@@ -377924,7 +377538,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "Q6 runtime",
+                      "text": "Q6运行时间",
                       "marks": [],
                       "id": "t-3c2d29c5dd6a"
                     }
@@ -377939,7 +377553,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "v1.5.5 (synchronous)",
+                      "text": "v1.5.5（同步）",
                       "marks": [],
                       "id": "t-0ae4cdb24b77"
                     }
@@ -377950,7 +377564,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "877.563 s",
+                      "text": "877.563秒",
                       "marks": [],
                       "id": "t-16b00a766e02"
                     }
@@ -377965,7 +377579,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "v2.0.0-dev (asynchronous I/O)",
+                      "text": "v2.0.0-dev（异步I/O）",
                       "marks": [],
                       "id": "t-bac0695fdadf"
                     }
@@ -377976,7 +377590,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "45.264 s",
+                      "text": "45.264秒",
                       "marks": [],
                       "id": "t-8d103d3289d2"
                     }
@@ -377992,7 +377606,7 @@
           "children": [
             {
               "type": "text",
-              "text": "As in the other experiments, we used the default memory-governed read-ahead depth, so this run was not tuned to keep the 25 Gbit/s network saturated on average.",
+              "text": "与其他实验一样，我们使用了默认的内存管理预读深度，因此这次运行没有进行调整以保持25 Gbit/s网络的平均饱和。",
               "marks": [],
               "id": "t-a02cf1e35cbe"
             }
@@ -378010,7 +377624,7 @@
             },
             {
               "type": "text",
-              "text": "Conclusion",
+              "text": "结论",
               "marks": [
                 {
                   "type": "link",
@@ -378028,7 +377642,7 @@
           "children": [
             {
               "type": "text",
-              "text": "In this blog post, we presented the recent work on asynchronous I/O for Parquet and CSV files. Most of its benefit comes from accessing remote data, but cold local reads can also benefit, albeit less. Next, we plan to add async reads for JSON and DuckDB-native files, as these are the two other formats most relevant to DuckDB core. Formats that live in out-of-tree extensions are not on the roadmap yet. We will also investigate ",
+              "text": "在这篇博客文章中，我们介绍了针对Parquet和CSV文件的异步I/O近期工作。其大部分好处来自访问远程数据，但本地冷读取也能受益，尽管程度较小。接下来，我们计划为JSON和DuckDB原生文件添加异步读取，因为这两个是DuckDB核心最相关的其他格式。存在于外部树扩展中的格式还没有提上日程。我们还将研究",
               "marks": [],
               "id": "t-4fa4ed827f10"
             },
@@ -378046,7 +377660,7 @@
             },
             {
               "type": "text",
-              "text": ", Linux's asynchronous I/O interface, which could reduce system-call overhead and the number of threads blocked on I/O. If it proves beneficial in practice, we will integrate it into DuckDB. One important thing to notice is that any of the data lake solutions supported in DuckDB can already benefit from asynchronous I/O automatically as long as the underlying data format is Parquet (or CSV, if you are brave enough).",
+              "text": "，即Linux的异步I/O接口，它可以减少系统调用开销和阻塞在I/O上的线程数量。如果在实践中证明有益，我们将把它集成到DuckDB中。需要注意的重要一点是，只要底层数据格式是Parquet（或者如果你够勇敢，CSV），DuckDB支持的任何数据湖解决方案都可以自动受益于异步I/O。",
               "marks": [],
               "id": "t-821cb8145b12"
             }
@@ -378096,9 +377710,9 @@
       "quality_score": 83,
       "trend_score": 7,
       "content_parse": {
-        "run_id": "github-34057845861-1",
+        "run_id": "github-34219945288-1",
         "processor_version": "original-first-v7",
-        "attempted_at": "2026-09-07T04:30:07.168431+08:00",
+        "attempted_at": "2026-09-08T19:23:37.265080+08:00",
         "status": "ready",
         "source": "DuckDB Blog",
         "strategy": "nested_content",
@@ -378147,24 +377761,24 @@
           "link_only": 0,
           "policy_version": "source-cdn-v1"
         },
-        "content_mode": "original",
+        "content_mode": "translated",
         "source_language": "other",
-        "translation_status": "unavailable",
-        "source_content_hash": "4de180da3a0be092833fbbcd",
+        "translation_status": "complete",
+        "source_content_hash": "93f1b6df9cf3755670f880cb",
         "translation": {
-          "run_id": "github-34057845861-1",
+          "run_id": "github-34219945288-1",
           "policy_version": "faithful-translation-retry-v1",
-          "attempted_at": "2026-09-07T04:30:07.168471+08:00",
+          "attempted_at": "2026-09-08T19:23:37.265114+08:00",
           "purpose": "body_translation_backfill",
-          "status": "unavailable"
+          "status": "complete"
         }
       },
-      "content_mode": "original",
-      "content_level": "original",
+      "content_mode": "translated",
+      "content_level": "translated",
       "source_language": "other",
-      "translation_status": "unavailable",
-      "source_content_hash": "4de180da3a0be092833fbbcd",
-      "body_chars": 19844
+      "translation_status": "complete",
+      "source_content_hash": "93f1b6df9cf3755670f880cb",
+      "body_chars": 7646
     },
     {
       "event_id": "9653f52649c8",
@@ -392677,7 +392291,7 @@
         "BigQuery",
         "Google Cloud"
       ],
-      "heat": 48,
+      "heat": 47,
       "star": false,
       "importance": 70,
       "signal": 0,
@@ -392862,7 +392476,7 @@
       "translation_status": "failed",
       "source_content_hash": "3907a79213df9e15b816330c",
       "quality_score": 70,
-      "trend_score": 30
+      "trend_score": 29
     },
     {
       "event_id": "ba8377c644db",
@@ -424735,9 +424349,9 @@
       ],
       "content_format": "blocks-v1",
       "content_parse": {
-        "run_id": "github-34163376517-1",
+        "run_id": "github-34219945288-1",
         "processor_version": "original-first-v7",
-        "attempted_at": "2026-09-08T05:37:01.745751+08:00",
+        "attempted_at": "2026-09-08T19:22:47.294438+08:00",
         "status": "ready",
         "source": "Claude 官方博客",
         "strategy": "semantic_container",
@@ -424799,9 +424413,9 @@
           "status": "complete"
         },
         "translation": {
-          "run_id": "github-34163376517-1",
+          "run_id": "github-34219945288-1",
           "policy_version": "faithful-translation-retry-v1",
-          "attempted_at": "2026-09-08T05:37:01.745785+08:00",
+          "attempted_at": "2026-09-08T19:22:47.294476+08:00",
           "purpose": "body_translation_backfill",
           "status": "failed",
           "error": "incomplete_translation"
@@ -483852,28 +483466,17 @@
     }
   ],
   "top": [
+    "c890348fb23d",
     "2dc4de112d3d",
-    "c3d67ea96518",
-    "72abdeca2f43"
+    "c3d67ea96518"
   ],
   "sources": [
     {
       "name": "爱分析",
       "ok": true,
-      "new": 2,
-      "fetched": 7,
-      "eligible": 2,
-      "prefiltered": 5,
-      "prefilter_dropped": {
-        "time": 0,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 5,
-        "excluded": 0
-      },
-      "skipped_seen": 0,
-      "limit_reached": false,
-      "schedule_reason": "interval_elapsed",
+      "new": 0,
+      "skipped": true,
+      "skip_reason": "frequency_gate:317m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 12.0,
@@ -483891,7 +483494,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1015m_remaining",
+      "skip_reason": "frequency_gate:613m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -483907,7 +483510,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1015m_remaining",
+      "skip_reason": "frequency_gate:613m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -483923,7 +483526,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1015m_remaining",
+      "skip_reason": "frequency_gate:613m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -483943,7 +483546,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1015m_remaining",
+      "skip_reason": "frequency_gate:613m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -483961,7 +483564,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1015m_remaining",
+      "skip_reason": "frequency_gate:613m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -483981,7 +483584,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1015m_remaining",
+      "skip_reason": "frequency_gate:613m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -484001,7 +483604,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1015m_remaining",
+      "skip_reason": "frequency_gate:613m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -484019,7 +483622,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:2455m_remaining",
+      "skip_reason": "frequency_gate:2053m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 48.0,
@@ -484038,7 +483641,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:2455m_remaining",
+      "skip_reason": "frequency_gate:2053m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 48.0,
@@ -484057,7 +483660,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1015m_remaining",
+      "skip_reason": "frequency_gate:613m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -484075,7 +483678,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1015m_remaining",
+      "skip_reason": "frequency_gate:613m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -484095,7 +483698,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:2455m_remaining",
+      "skip_reason": "frequency_gate:2053m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 48.0,
@@ -484115,7 +483718,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:2455m_remaining",
+      "skip_reason": "frequency_gate:2053m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 48.0,
@@ -484328,7 +483931,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1015m_remaining",
+      "skip_reason": "frequency_gate:613m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -484346,12 +483949,12 @@
     {
       "name": "ClickHouse Blog",
       "ok": true,
-      "new": 0,
+      "new": 1,
       "fetched": 20,
-      "eligible": 10,
-      "prefiltered": 10,
+      "eligible": 11,
+      "prefiltered": 9,
       "prefilter_dropped": {
-        "time": 10,
+        "time": 9,
         "missing_date": 0,
         "path": 0,
         "keyword": 0,
@@ -484456,7 +484059,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1015m_remaining",
+      "skip_reason": "frequency_gate:613m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -484503,7 +484106,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1015m_remaining",
+      "skip_reason": "frequency_gate:613m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -484519,7 +484122,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1015m_remaining",
+      "skip_reason": "frequency_gate:613m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -484535,7 +484138,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1015m_remaining",
+      "skip_reason": "frequency_gate:613m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -484551,7 +484154,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1015m_remaining",
+      "skip_reason": "frequency_gate:613m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -484565,20 +484168,9 @@
     {
       "name": "InfoQ（AI/数据工程）",
       "ok": true,
-      "new": 8,
-      "fetched": 15,
-      "eligible": 15,
-      "prefiltered": 0,
-      "prefilter_dropped": {
-        "time": 0,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 0,
-        "excluded": 0
-      },
-      "skipped_seen": 4,
-      "limit_reached": true,
-      "schedule_reason": "interval_elapsed",
+      "new": 0,
+      "skipped": true,
+      "skip_reason": "frequency_gate:317m_remaining",
       "control": {
         "tier": "media_targeted",
         "fetch_interval_hours": 12.0,
@@ -484594,7 +484186,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1015m_remaining",
+      "skip_reason": "frequency_gate:613m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -484610,7 +484202,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:1015m_remaining",
+      "skip_reason": "frequency_gate:613m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -484624,20 +484216,9 @@
     {
       "name": "Hacker News（数据关键词）",
       "ok": true,
-      "new": 5,
-      "fetched": 11,
-      "eligible": 5,
-      "prefiltered": 6,
-      "prefilter_dropped": {
-        "time": 6,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 0,
-        "excluded": 0
-      },
-      "skipped_seen": 0,
-      "limit_reached": false,
-      "schedule_reason": "interval_elapsed",
+      "new": 0,
+      "skipped": true,
+      "skip_reason": "frequency_gate:317m_remaining",
       "control": {
         "tier": "community_targeted",
         "fetch_interval_hours": 12.0,
@@ -484651,20 +484232,9 @@
     {
       "name": "Bluesky 数据社区",
       "ok": true,
-      "new": 10,
-      "fetched": 11,
-      "eligible": 11,
-      "prefiltered": 0,
-      "prefilter_dropped": {
-        "time": 0,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 0,
-        "excluded": 0
-      },
-      "skipped_seen": 0,
-      "limit_reached": true,
-      "schedule_reason": "interval_elapsed",
+      "new": 0,
+      "skipped": true,
+      "skip_reason": "frequency_gate:317m_remaining",
       "control": {
         "tier": "community_targeted",
         "fetch_interval_hours": 12.0,
@@ -484737,19 +484307,8 @@
       "name": "Hex Blog",
       "ok": true,
       "new": 0,
-      "fetched": 393,
-      "eligible": 0,
-      "prefiltered": 393,
-      "prefilter_dropped": {
-        "time": 380,
-        "missing_date": 11,
-        "path": 0,
-        "keyword": 2,
-        "excluded": 0
-      },
-      "skipped_seen": 0,
-      "limit_reached": false,
-      "schedule_reason": "interval_elapsed",
+      "skipped": true,
+      "skip_reason": "frequency_gate:317m_remaining",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -484766,20 +484325,9 @@
     {
       "name": "Amplitude Blog",
       "ok": true,
-      "new": 5,
-      "fetched": 2071,
-      "eligible": 9,
-      "prefiltered": 2062,
-      "prefilter_dropped": {
-        "time": 2044,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 18,
-        "excluded": 0
-      },
-      "skipped_seen": 4,
-      "limit_reached": false,
-      "schedule_reason": "interval_elapsed",
+      "new": 0,
+      "skipped": true,
+      "skip_reason": "frequency_gate:317m_remaining",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -484796,20 +484344,9 @@
     {
       "name": "Netflix Technology Blog",
       "ok": true,
-      "new": 1,
-      "fetched": 10,
-      "eligible": 1,
-      "prefiltered": 9,
-      "prefilter_dropped": {
-        "time": 9,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 0,
-        "excluded": 0
-      },
-      "skipped_seen": 0,
-      "limit_reached": false,
-      "schedule_reason": "interval_elapsed",
+      "new": 0,
+      "skipped": true,
+      "skip_reason": "frequency_gate:317m_remaining",
       "control": {
         "tier": "engineering_targeted",
         "fetch_interval_hours": 12.0,
@@ -484826,19 +484363,8 @@
       "name": "Google Cloud Data Analytics Blog",
       "ok": true,
       "new": 0,
-      "fetched": 9,
-      "eligible": 9,
-      "prefiltered": 0,
-      "prefilter_dropped": {
-        "time": 0,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 0,
-        "excluded": 0
-      },
-      "skipped_seen": 9,
-      "limit_reached": false,
-      "schedule_reason": "interval_elapsed",
+      "skipped": true,
+      "skip_reason": "frequency_gate:317m_remaining",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -484859,16 +484385,16 @@
       "ok": true,
       "new": 0,
       "fetched": 20,
-      "eligible": 3,
-      "prefiltered": 17,
+      "eligible": 2,
+      "prefiltered": 18,
       "prefilter_dropped": {
-        "time": 17,
+        "time": 18,
         "missing_date": 0,
         "path": 0,
         "keyword": 0,
         "excluded": 0
       },
-      "skipped_seen": 3,
+      "skipped_seen": 2,
       "limit_reached": false,
       "schedule_reason": "interval_elapsed",
       "control": {
@@ -484888,19 +484414,8 @@
       "name": "Google Looker Release Notes",
       "ok": true,
       "new": 0,
-      "fetched": 20,
-      "eligible": 4,
-      "prefiltered": 16,
-      "prefilter_dropped": {
-        "time": 16,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 0,
-        "excluded": 0
-      },
-      "skipped_seen": 4,
-      "limit_reached": false,
-      "schedule_reason": "interval_elapsed",
+      "skipped": true,
+      "skip_reason": "frequency_gate:317m_remaining",
       "control": {
         "tier": "structured_high",
         "fetch_interval_hours": 12.0,
@@ -484918,19 +484433,8 @@
       "name": "Microsoft Fabric Blog",
       "ok": true,
       "new": 0,
-      "fetched": 10,
-      "eligible": 1,
-      "prefiltered": 9,
-      "prefilter_dropped": {
-        "time": 9,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 0,
-        "excluded": 0
-      },
-      "skipped_seen": 1,
-      "limit_reached": false,
-      "schedule_reason": "interval_elapsed",
+      "skipped": true,
+      "skip_reason": "frequency_gate:317m_remaining",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -484979,19 +484483,8 @@
       "name": "Apache Iceberg Blog",
       "ok": true,
       "new": 0,
-      "fetched": 13,
-      "eligible": 0,
-      "prefiltered": 13,
-      "prefilter_dropped": {
-        "time": 13,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 0,
-        "excluded": 0
-      },
-      "skipped_seen": 0,
-      "limit_reached": false,
-      "schedule_reason": "interval_elapsed",
+      "skipped": true,
+      "skip_reason": "frequency_gate:317m_remaining",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 12.0,
@@ -485008,19 +484501,8 @@
       "name": "TiDB Blog",
       "ok": true,
       "new": 0,
-      "fetched": 10,
-      "eligible": 3,
-      "prefiltered": 7,
-      "prefilter_dropped": {
-        "time": 7,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 0,
-        "excluded": 0
-      },
-      "skipped_seen": 3,
-      "limit_reached": false,
-      "schedule_reason": "interval_elapsed",
+      "skipped": true,
+      "skip_reason": "frequency_gate:317m_remaining",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -485038,19 +484520,8 @@
       "name": "Apache Doris Blog",
       "ok": true,
       "new": 0,
-      "fetched": 20,
-      "eligible": 1,
-      "prefiltered": 19,
-      "prefilter_dropped": {
-        "time": 18,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 0,
-        "excluded": 1
-      },
-      "skipped_seen": 1,
-      "limit_reached": false,
-      "schedule_reason": "interval_elapsed",
+      "skipped": true,
+      "skip_reason": "frequency_gate:317m_remaining",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -485067,40 +484538,54 @@
     }
   ],
   "structured_content": {
-    "run_id": "github-34187481451-1",
-    "attempted": 7,
+    "run_id": "github-34219945288-1",
+    "attempted": 8,
     "ready": 6,
-    "figures": 11,
-    "tables": 2,
-    "media_cached": 11,
+    "figures": 22,
+    "tables": 7,
+    "media_cached": 22,
     "media_link_only": 0,
-    "candidate_duplicates": 49,
-    "candidate_quality_rejected": 22,
+    "candidate_duplicates": 36,
+    "candidate_quality_rejected": 17,
     "strategies": {
-      "article": 1,
-      "semantic_container": 3,
-      "fetch_failed": 1,
-      "rss_document_fallback": 1,
-      "nested_content": 1
+      "fetch_failed": 2,
+      "nested_content": 1,
+      "semantic_container": 4,
+      "rss_document_fallback": 1
     },
     "quality_statuses": {
-      "pass": 6,
-      "unknown": 1
+      "unknown": 2,
+      "pass": 6
     },
     "content_modes": {
-      "translated": 6,
-      "unknown": 1
+      "unknown": 2,
+      "translated": 5,
+      "original": 1
     },
     "fallbacks": {
-      "no_usable_original": 1
+      "no_usable_original": 2
     },
     "by_source": {
-      "ClickHouse Blog": {
+      "World Economic Forum": {
         "attempted": 1,
-        "ready": 1,
+        "ready": 0,
         "figures": 0,
         "tables": 0,
         "media_cached": 0
+      },
+      "Gartner": {
+        "attempted": 1,
+        "ready": 0,
+        "figures": 0,
+        "tables": 0,
+        "media_cached": 0
+      },
+      "DuckDB Blog": {
+        "attempted": 1,
+        "ready": 1,
+        "figures": 10,
+        "tables": 6,
+        "media_cached": 10
       },
       "Claude 官方博客": {
         "attempted": 3,
@@ -485109,13 +484594,6 @@
         "tables": 1,
         "media_cached": 10
       },
-      "主编收录": {
-        "attempted": 1,
-        "ready": 0,
-        "figures": 0,
-        "tables": 0,
-        "media_cached": 0
-      },
       "Snowflake Engineering（Medium）": {
         "attempted": 1,
         "ready": 1,
@@ -485123,12 +484601,12 @@
         "tables": 0,
         "media_cached": 1
       },
-      "Amplitude Blog": {
+      "ClickHouse Blog": {
         "attempted": 1,
         "ready": 1,
-        "figures": 0,
-        "tables": 1,
-        "media_cached": 0
+        "figures": 1,
+        "tables": 0,
+        "media_cached": 1
       }
     },
     "catalog": {
@@ -485137,7 +484615,7 @@
       "renderable": 362,
       "current_pass": 356,
       "parser_debt": 7,
-      "display_trimmed": 4,
+      "display_trimmed": 3,
       "display_suspect": 0,
       "embedded_ui_trimmed": 0,
       "embedded_ui_blocks": 0,
@@ -485166,13 +484644,13 @@
       "eligible": 17,
       "attempted": 12,
       "ready": 4,
-      "original": 0,
-      "translated": 4,
-      "deferred_foreign": 7,
-      "deferred_budget": 7,
-      "stored_original_retries": 11,
+      "original": 1,
+      "translated": 3,
+      "deferred_foreign": 6,
+      "deferred_budget": 6,
+      "stored_original_retries": 10,
       "parser_debt_eligible": 7,
-      "skipped": 1,
+      "skipped": 2,
       "failed": 0,
       "planned": 4
     },

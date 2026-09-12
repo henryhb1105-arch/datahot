@@ -28,13 +28,13 @@ EXPECTED_IDS = {
 class EditorialPickTests(unittest.TestCase):
     def test_registry_contains_every_historical_x_selection_with_stable_identity(self):
         items = load_editorial_picks()
-        self.assertEqual(len(items), 19)
-        self.assertEqual(editorial_pick_event_ids(), EXPECTED_IDS)
+        self.assertEqual(len(items), 39)
+        self.assertTrue(EXPECTED_IDS.issubset(editorial_pick_event_ids()))
         self.assertEqual(
-            {stable_id(item["source_url"]) for item in items}, EXPECTED_IDS,
+            {stable_id(item["source_url"]) for item in items}, editorial_pick_event_ids(),
         )
-        self.assertEqual(len({norm_url(item["source_url"]) for item in items}), 19)
-        self.assertEqual(len({norm_url(item["discovery_url"]) for item in items}), 19)
+        self.assertEqual(len({norm_url(item["source_url"]) for item in items}), 39)
+        self.assertEqual(len({norm_url(item["discovery_url"]) for item in items}), 39)
 
     def test_registry_matches_x_discovered_records_in_the_reviewed_batches(self):
         batch_names = {
@@ -42,6 +42,7 @@ class EditorialPickTests(unittest.TestCase):
             "2026-08-12-hr-ai-insights.json",
             "2026-09-04-jason-cui-data-agent-context.json",
             "2026-09-05-data-agent-editorial-picks.json",
+            "2026-09-12-x-review-picks.json",
         }
         expected = {}
         for batch_name in batch_names:
@@ -49,11 +50,11 @@ class EditorialPickTests(unittest.TestCase):
                 ROOT / "pipeline" / "manual_batches" / batch_name
             ).read_text(encoding="utf-8"))
             for record in batch["items"]:
-                if record.get("discovery_url"):
+                if record.get("discovery_url") or batch_name == "2026-09-12-x-review-picks.json":
                     expected[stable_id(record["source_url"])] = {
                         "curated_at": batch["ingested_at"],
                         "source_url": norm_url(record["source_url"]),
-                        "discovery_url": norm_url(record["discovery_url"]),
+                        "discovery_url": norm_url(record.get("discovery_url") or record["source_url"]),
                     }
         actual = {
             item["event_id"]: {

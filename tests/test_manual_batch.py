@@ -176,7 +176,7 @@ class ManualBatchTests(unittest.TestCase):
             self.assertNotIn("discovery_url", event)
             self.assertNotIn("discovery_source", event)
 
-    def test_discovery_fields_must_be_provided_together(self):
+    def test_discovery_account_requires_a_post_url(self):
         record = {
             "zh_title": "标题",
             "zh_summary": "摘要",
@@ -184,11 +184,11 @@ class ManualBatchTests(unittest.TestCase):
             "full_zh": "正文",
             "source_title": "Title",
             "source_url": "https://example.com/a",
-            "discovery_url": "https://x.com/example/status/1",
+            "discovery_account": "example",
             "published": "2026-08-12T00:00:00+08:00",
             "category": "insight",
         }
-        with self.assertRaisesRegex(ValueError, "must be provided together"):
+        with self.assertRaisesRegex(ValueError, "requires discovery_url"):
             validate_batch({
                 "schema_version": 1,
                 "ingested_at": "2026-08-12T08:00:00+08:00",

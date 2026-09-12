@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-from editorial_picks import apply_editorial_picks
+from editorial_picks import apply_editorial_picks, load_editorial_picks
 from taxonomy import CATEGORY_LABELS, normalize_category_labels
 
 
@@ -84,7 +84,7 @@ def validate_batch(batch: dict) -> list[dict]:
             raise ValueError("manual batch items must be objects")
         for key in (
             "zh_title", "zh_summary", "reason", "full_zh", "source_title",
-            "source_url", "published",
+            "source_url",
         ):
             _require_text(record, key)
         if record.get("category") not in CATEGORY_LABELS:
@@ -93,13 +93,16 @@ def validate_batch(batch: dict) -> list[dict]:
             raise ValueError(f"invalid shelf: {record.get('shelf')}")
         if "source_name" in record:
             _require_text(record, "source_name")
-        published = record["published"]
-        iso_timestamp(published)
+        published = record.get("published")
+        if published:
+            iso_timestamp(published)
+        elif not (record.get("shelf") == "evergreen" and record.get("source_date_label")):
+            raise ValueError("published is required unless an evergreen source date is explicitly qualified")
         source_url = norm_url(record["source_url"])
         discovery_url = str(record.get("discovery_url") or "").strip()
         discovery_account = str(record.get("discovery_account") or "").strip()
-        if bool(discovery_url) != bool(discovery_account):
-            raise ValueError("discovery_url and discovery_account must be provided together")
+        if discovery_account and not discovery_url:
+            raise ValueError("discovery_account requires discovery_url")
         if record.get("discovery_published"):
             iso_timestamp(record["discovery_published"])
         if source_url in canonical_urls:
@@ -115,12 +118,13 @@ def validate_batch(batch: dict) -> list[dict]:
 
 def _x_item(record: dict, ingested_at: str) -> dict:
     url = record["discovery_url"]
-    account = record["discovery_account"].lstrip("@")
+    account = str(record.get("discovery_account") or "").lstrip("@")
     return {
         "id": stable_id(url),
-        "source": f"X 线索·@{account}",
+        "source": f"X 线索·@{account}" if account else "X 线索",
         "link": url,
-        "published": iso_timestamp(record.get("discovery_published") or record["published"]),
+        "published": iso_timestamp(record.get("discovery_published") or record["published"])
+        if record.get("discovery_published") or record.get("published") else "",
         "ingested_at": ingested_at,
         "title": record.get("discovery_title") or f"X 原帖：{record['zh_title']}",
     }
@@ -133,7 +137,7 @@ def _new_event(record: dict, ingested_at: str) -> dict:
         "id": stable_id(source_url),
         "source": record.get("source_name") or "主编收录",
         "link": source_url,
-        "published": iso_timestamp(record["published"]),
+        "published": iso_timestamp(record["published"]) if record.get("published") else "",
         "ingested_at": ingested_at,
         "title": record["source_title"],
     }]
@@ -158,19 +162,32 @@ def _new_event(record: dict, ingested_at: str) -> dict:
         "topics": list(dict.fromkeys(record.get("topics") or []))[:2],
         "shelf": record.get("shelf") or "news",
         "pinned": False,
-        "published": iso_timestamp(record["published"]),
+        "published": iso_timestamp(record["published"]) if record.get("published") else "",
         "first_seen": ingested_at,
         "items": items,
     }
+    for key in ("content_mode", "source_date_label"):
+        if record.get(key):
+            event[key] = record[key]
+    for source in record.get("supplemental_sources") or []:
+        items.append({
+            "id": stable_id(source["url"]), "link": source["url"],
+            "source": record.get("source_name") or "官方文档",
+            "title": source.get("title") or "补充文档", "published": "",
+            "ingested_at": ingested_at,
+        })
     if discovery_url:
         event["discovery_url"] = record["discovery_url"]
-        event["discovery_source"] = f"X·@{record['discovery_account'].lstrip('@')}"
+        account = str(record.get("discovery_account") or "").lstrip("@")
+        event["discovery_source"] = f"X·@{account}" if account else "X"
     return event
 
 
-def import_batch(batch_path: Path, latest_path: Path = DEFAULT_LATEST) -> dict:
+def import_batch(batch_path: Path, latest_path: Path = DEFAULT_LATEST, *, allowed_event_ids=None) -> dict:
     batch = json.loads(batch_path.read_text(encoding="utf-8"))
     records = validate_batch(batch)
+    if allowed_event_ids is not None:
+        records = [r for r in records if stable_id(r["source_url"]) in allowed_event_ids]
     payload = json.loads(latest_path.read_text(encoding="utf-8"))
     events = payload.get("events")
     if not isinstance(events, list):
@@ -210,7 +227,8 @@ def import_batch(batch_path: Path, latest_path: Path = DEFAULT_LATEST) -> dict:
                 unchanged += 1
             continue
         event["discovery_url"] = discovery_url
-        event["discovery_source"] = f"X·@{record['discovery_account'].lstrip('@')}"
+        account = str(record.get("discovery_account") or "").lstrip("@")
+        event["discovery_source"] = f"X·@{account}" if account else "X"
         existing_links = {norm_url(item["link"]) for item in event.get("items") or []}
         discovery = norm_url(discovery_url)
         if discovery in existing_links:
@@ -243,12 +261,32 @@ def import_batch(batch_path: Path, latest_path: Path = DEFAULT_LATEST) -> dict:
     }
 
 
+def import_registered_batches(latest_path: Path = DEFAULT_LATEST) -> list[dict]:
+    """Replay only registry-approved records against the current catalog."""
+    batches = {}
+    for pick in load_editorial_picks():
+        name = pick.get("source_batch")
+        if not name:
+            continue
+        if Path(name).name != name or not name.endswith(".json"):
+            raise ValueError("source_batch must name a local JSON batch")
+        batches.setdefault(name, set()).add(pick["event_id"])
+    return [
+        import_batch(Path(__file__).with_name("manual_batches") / name, latest_path,
+                     allowed_event_ids=event_ids)
+        for name, event_ids in sorted(batches.items())
+    ]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("batch", type=Path)
+    parser.add_argument("batch", type=Path, nargs="?")
+    parser.add_argument("--registered", action="store_true")
     parser.add_argument("--latest", type=Path, default=DEFAULT_LATEST)
     args = parser.parse_args()
-    report = import_batch(args.batch, args.latest)
+    if bool(args.batch) == args.registered:
+        parser.error("provide one batch path or --registered")
+    report = import_registered_batches(args.latest) if args.registered else import_batch(args.batch, args.latest)
     print(json.dumps(report, ensure_ascii=False))
 
 

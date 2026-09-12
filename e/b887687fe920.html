@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-dZoEi4yhAmuxEJUDxs0EZ+VLpHx8h3J29YZRypHzvP4=' 'sha256-kHy4O2lyqyLYh2nFR0XsbsZ9iTXp0P66kdx/+saipCs='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-dZoEi4yhAmuxEJUDxs0EZ+VLpHx8h3J29YZRypHzvP4=' 'sha256-daEInLDDkJM8G3qljUlSJkfgBzM5484m1BOkKWJek4Q='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>用Apache Iceberg和Flink构建动态流式数据湖 · DataHot</title>
@@ -23,7 +23,7 @@
 <link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://datahot.xiahongbin.com/feed.xml">
 <meta name="datahot-analytics" data-enabled="true" data-endpoint="https://metrics.datahot.xiahongbin.com/v1/events" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
 <script defer src="../analytics.js?v=20077f7d7e8b"></script>
-<script defer src="../favorites.js"></script>
+<script defer src="../favorites.js?v=d80c0b507585"></script>
 <script defer src="../content-feedback.js"></script>
 <script defer src="../detail.js"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"用Apache Iceberg和Flink构建动态流式数据湖","description":"本文针对流式管道写入数据湖时上游schema变更带来的运维难题，给出基于Apache Iceberg Dynamic Sink的解决方案。在Amazon Managed Service for Apache Flink上，Flink作业可对记录进行动态路由并自动演进Iceberg表schema，无需","datePublished":"2026-09-03T02:28:38+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://aws.amazon.com/blogs/big-data/build-a-dynamic-streaming-data-lake-with-apache-iceberg-and-apache-flink/","image":"https://datahot.xiahongbin.com/media/b887687fe920/1580b22b50f1e33535ded67b.png"}</script>
@@ -773,6 +773,55 @@ main,.layout>*,.hotlist>*{min-width:0}
 .original-footer-link:focus-visible,.meta-source-link:focus-visible,.article-toc-mobile summary:focus-visible,.article-toc-mobile a:focus-visible,.article-toc-rail a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:1199px){.article-layout.has-toc{display:block}.article-layout.has-toc .article-content{margin:0 auto}.article-toc-rail{display:none}.article-toc-mobile{display:block}}
 @media(max-width:600px){.article{padding-left:16px;padding-right:16px}.article h1{font-size:24px;line-height:1.45}.fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:none}.fulltext p,.fulltext li{font-size:16px;line-height:1.82}.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}.related-meta{max-width:88px}}
+</style><style>
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;margin-bottom:14px}
+.topbar .back{flex:0 0 auto;white-space:nowrap}
+.sharebtns{display:flex;justify-content:flex-end;gap:8px;min-width:0;max-width:100%;margin-left:auto}
+.sharebtns .sbtn{min-width:76px}
+.sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-height:44px;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
+.sbtn svg{flex:0 0 auto}
+.sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.sbtn:active{transform:scale(.95)}
+.topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topbar.detail-context .back{display:inline-flex;align-items:center;justify-content:center;align-self:center;min-width:88px;min-height:44px;margin-bottom:0;padding:0 14px;border-radius:99px;font-size:14px;font-weight:650;color:var(--ink);text-decoration:none}
+.topbar.detail-context .back{gap:5px}
+.topbar.detail-context .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:600px){
+.article{padding:20px 14px 48px}
+.topbar{align-items:center;flex-direction:row;gap:8px}
+.topbar.detail-context{margin:-20px -14px 14px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
+.topbar.detail-context .back{align-self:center}
+.sharebtns{width:auto;gap:4px;overflow:visible;padding-bottom:0}
+.sharebtns .sbtn{width:56px;min-width:56px;height:44px;padding:0 6px;font-size:12px}
+.sharebtns .sbtn-label{display:inline}
+}
+@media(max-width:359px){
+.topbar.detail-context .back{width:44px;min-width:44px;padding:0}
+.topbar.detail-context .back-label{display:none}
+}
+.sh-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.25s;z-index:80}
+.sh-mask.show{opacity:1;pointer-events:auto}
+.sh-sheet{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(110%);transition:transform .3s cubic-bezier(.32,.72,.35,1);padding:0 10px calc(10px + env(safe-area-inset-bottom))}
+.sh-sheet.show{transform:translateY(0)}
+.sh-panel{max-width:430px;margin:0 auto}
+.sh-group{background:var(--card);border-radius:16px;overflow:hidden;margin-bottom:8px}
+.sh-title{font-size:12px;color:var(--sub);text-align:center;padding:12px;border-bottom:.5px solid var(--line)}
+.sh-opt{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px;font-size:16px;font-weight:500;border:none;border-bottom:.5px solid var(--line);cursor:pointer;background:none;width:100%;color:var(--ink)}
+.sh-opt:last-child{border-bottom:none}
+.sh-opt:active{background:var(--hover)}
+.sh-cancel{background:var(--card);border-radius:16px;padding:15px;text-align:center;font-size:16px;font-weight:600;color:var(--blue);cursor:pointer;width:100%;border:none}
+.sh-poster-modal{position:fixed;inset:0;z-index:95;background:rgba(15,17,20,.92);display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.sh-poster-modal.show{display:flex}
+.sh-poster-wrap{width:min(340px,86vw);border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.sh-poster-wrap img{width:100%;display:block}
+.sh-poster-actions{margin-top:18px;display:flex;gap:10px}
+.sh-save,.sh-close{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:none;border-radius:99px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
+.sbtn:focus-visible,.sh-opt:focus-visible,.sh-cancel:focus-visible,.sh-save:focus-visible,.sh-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sh-save{background:var(--accent);color:#fff}
+.sh-close{background:rgba(255,255,255,.15);color:#fff}
+.sh-poster-tip{margin-top:10px;font-size:11px;color:#8b919b}
+.sh-toast{position:fixed;top:18%;left:50%;transform:translateX(-50%);background:rgba(26,29,35,.92);color:#fff;font-size:13px;padding:10px 20px;border-radius:99px;opacity:0;transition:.25s;z-index:99;pointer-events:none}
+.sh-toast.show{opacity:1}
 </style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="b887687fe920" data-category="platform" data-source="AWS Big Data Blog">
 <aside class="sidebar"><div class="slogo"><a href="../index.html" data-smart-home-return aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><nav class="sidebar-nav" aria-label="主导航"><a class="mi on" href="../index.html" data-smart-home-return><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../for-me.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg>关注</a><a class="mi" href="../cases.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg>案例</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>周报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>收藏</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a></nav><nav class="sidebar-tools" aria-label="工具"><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a></nav><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a> · <a href="https://bsky.app/profile/datahot.xiahongbin.com" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Bluesky" style="color:var(--sub);text-decoration:underline">Bluesky</a><br>数据领域 AI 资讯分享</div></aside>
 <header class="detail-brand-header"><div class="wrap nav">
@@ -801,7 +850,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   </div>
   <h1>用Apache Iceberg和Flink构建动态流式数据湖</h1>
   <section class="tts-player" id="ttsPlayer" data-tts-player data-duration="48" hidden aria-label="文章精华朗读">
-  <audio data-tts-audio preload="metadata" src="../audio/2026/09/b887687fe920-974d39278800671c.mp3"></audio>
+  <audio data-tts-audio preload="none" src="../audio/2026/09/b887687fe920-974d39278800671c.mp3"></audio>
   <div class="tts-copy"><b>DataHot 主播</b><span data-tts-status>约 1 分钟精华朗读</span></div>
   <button class="tts-toggle" type="button" data-tts-toggle aria-label="播放朗读">播放</button>
   <input class="tts-progress" type="range" data-tts-progress min="0" max="48" value="0" step="0.1" aria-label="朗读进度">
@@ -832,7 +881,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     rowData,
     partitionSpec,
     distributionMode,
-    1);</code></pre><p>如果表不存在，接收器会创建它，并在记录携带新列时演进其模式。cacheMaxSize和cacheRefreshMs限制了接收器按表的元数据缓存，因此写入多个表的作业不会在每条记录上重新加载元数据。immediateTableUpdate(true)控制这些目录更改如何应用，以下关于自动模式演进的部分将对此进行说明。单个Flink作业可以摄取和路由order_events、interaction_events、user_events以及未来的事件类型，而无需额外的接收器定义。</p><p>但是，接收器还需要知道表的外观。这就是为什么每个DynamicRecord还携带Iceberg模式，以便DynamicIcebergSink可以在首次看到时创建表，并在新字段出现时演进它。模式信息可以从数据中推断或从模式注册表中读取。</p><h3 class="cb-heading" id="article-section-3" data-article-heading>自动模式演进</h3><p>流式源随时间添加新字段，DynamicIcebergSink无需重启即可处理它们。在写入每条记录之前，它会将记录的模式与目标表进行比较。如果记录有新字段，Iceberg会将其添加为可选列，并在下一次数据文件提交时提交更改。现有文件仍然有效，无需重写表。当您查询较旧文件时，新列返回null。</p><p>immediateTableUpdate设置控制目录更改发生的位置。GitHub示例仓库设置immediateTableUpdate=true，因此看到新模式的写入子任务在发出记录之前就内联应用创建或修改。这提供了最低延迟，但对目录进行更多并发调用。当设置为false时，需要表更改的记录会走弯路。表、模式和分区规范已经与接收器缓存元数据匹配的记录直接发送到写入器。确实需要更改的记录会被按键（表名）路由到更新操作符，因此同一表的更新一次仅应用一个。一旦更新提交并且缓存刷新，后续记录再次匹配并跳过弯路。在稳定状态下，没有模式更改到达时，此路径不会增加额外的混洗。无论哪种方式，模式比较和由此产生的表更改都是相同的。</p><p>默认情况下，模式更改是非破坏性的。接收器可以添加新列、加宽现有类型（例如，int到long或float到double）、将必需列放宽为可选列，以及删除列。重要的是，DynamicIcebergSink在撰写本文时不支持重命名列。</p><p>源模式通过两种方式识别：从源记录推断模式（例如 JSON 推断）和从模式注册表读取序列化记录（例如 AWS Glue 模式注册表 (GSR)）。Iceberg 目标表的模式演变行为取决于模式来源。JSON 推断会添加它看到的任何新字段，没有契约。例如，这允许作业最初将模式推断为整数，然后在检测到更大值时扩展为长整数。模式注册表序列化记录使用注册表的兼容性规则（例如 BACKWARD）定义策略。这意味着不兼容的生产者更改在注册模式时被拒绝，而不是在写入时。</p><p>分区规范在每个 DynamicRecord 上传递，因此接收器在创建或更新表时应用它。我们的示例如何派生该规范在分区部分介绍。</p><h2 class="cb-heading" id="article-section-4" data-article-heading>解决方案概述</h2><p>下图说明了解决方案架构。数据生成器（本地 Java 应用程序）将事件写入 Amazon Kinesis Data Streams。在 Avro 模式下，它还在 AWS Glue Schema Registry 中注册每个事件架构。Apache Flink 的托管服务应用程序消费流，为每条记录解析目标 Iceberg 表，并将数据写入 Amazon S3 中的 Iceberg 表，这些表要么在 AWS Glue Data Catalog 中编目，要么对于完全托管的表，在 Amazon S3 Tables（Amazon S3 的一项功能）中编目。</p><figure class="cb-figure"><a class="cb-media-link" href="https://d2908q01vomqb2.cloudfront.net/b6692ea5df920cad691c20319a6fffd7a4a766b8/2026/08/28/BDB-5973-1.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/b887687fe920/1580b22b50f1e33535ded67b.png" alt="数据生成器向 Amazon Kinesis Data Streams 发送事件，Apache Flink 的托管服务将每条记录路由到 Amazon S3 中的 Iceberg 表" loading="lazy" decoding="async" width="915" height="620"></a></figure><p>图 1：在 Apache Flink 托管服务上将流记录路由到每事件 Iceberg 表的解决方案架构</p><p>在高层次上，一个 Apache Flink 托管服务应用程序从 Kinesis 读取原始记录，并为每条记录解析目标 Iceberg 表。它使用 DynamicIcebergSink 按需创建和发展表。同一个作业处理多种事件类型，因为目标是根据每条记录决定的，而不是根据接收器。</p><p>关于流拓扑的说明：示例假设一个 Kinesis 流承载多种事件类型，这使演示保持专注。这不是该模式的必需条件。如果您的事件到达不同的流（例如，每个生产者或每个域一个流），则每个流创建一个 KinesisStreamsSource，并在接收器之前将它们合并到一个 DataStream 中。路由生成器从记录本身选择目标表，因此多个源可以汇入一个 DynamicIcebergSink，仍然落在正确的表中。</p><p>合并不会增加洗牌成本。接收器总是通过内部每表写入键重新分配记录，因此合并流和 N 个独立管道在每条记录交换上产生相同的成本。每个 DynamicRecord 携带的分发模式只改变行落在哪个写入子任务上，而不是是否发生洗牌。真正的权衡是隔离。所有表共享一个写入器池、一个提交聚合器和一个提交器。因此，热流的背压和检查点对齐与其他每个流耦合，并且写入器并行度是整个作业范围的设置。当您有许多小型到中型事件类型需要集中容量时，首选一个合并管道。当某个流的数据量足够大，需要自己的写入器并行度和故障隔离时，则拆分为单独的应用程序。</p><p>DynamicIcebergSink 需要每条记录的模式。示例提供了两种可互换的获取方式，实现为两种生成器变体：选项 1 在运行时从每条 JSON 记录推断模式。选项 2 从 AWS Glue Schema Registry 读取注册的模式。下游的所有内容（路由、表创建和模式演变）都是相同的，只有生成器不同。</p><h3 class="cb-heading" id="article-section-5" data-article-heading>选项 1：从 JSON 记录推断模式</h3><p>SchemaAgnosticRoutingGenerator 实现 Iceberg 的 DynamicRecordGenerator。其 generate 方法将路由字段映射到表名称，推断模式，派生分区规范，并通过收集器发出 DynamicRecord：</p><pre><code class="language-">@Override
+    1);</code></pre><p>如果表不存在，接收器会创建它，并在记录携带新列时演进其模式。cacheMaxSize和cacheRefreshMs限制了接收器按表的元数据缓存，因此写入多个表的作业不会在每条记录上重新加载元数据。immediateTableUpdate(true)控制这些目录更改如何应用，以下关于自动模式演进的部分将对此进行说明。单个Flink作业可以摄取和路由order_events、interaction_events、user_events以及未来的事件类型，而无需额外的接收器定义。</p><p>但是，接收器还需要知道表的外观。这就是为什么每个DynamicRecord还携带Iceberg模式，以便DynamicIcebergSink可以在首次看到时创建表，并在新字段出现时演进它。模式信息可以从数据中推断或从模式注册表中读取。</p><h3 class="cb-heading" id="article-section-3" data-article-heading>自动模式演进</h3><p>流式源随时间添加新字段，DynamicIcebergSink无需重启即可处理它们。在写入每条记录之前，它会将记录的模式与目标表进行比较。如果记录有新字段，Iceberg会将其添加为可选列，并在下一次数据文件提交时提交更改。现有文件仍然有效，无需重写表。当您查询较旧文件时，新列返回null。</p><p>immediateTableUpdate设置控制目录更改发生的位置。GitHub示例仓库设置immediateTableUpdate=true，因此看到新模式的写入子任务在发出记录之前就内联应用创建或修改。这提供了最低延迟，但对目录进行更多并发调用。当设置为false时，需要表更改的记录会走弯路。表、模式和分区规范已经与接收器缓存元数据匹配的记录直接发送到写入器。确实需要更改的记录会被按键（表名）路由到更新操作符，因此同一表的更新一次仅应用一个。一旦更新提交并且缓存刷新，后续记录再次匹配并跳过弯路。在稳定状态下，没有模式更改到达时，此路径不会增加额外的混洗。无论哪种方式，模式比较和由此产生的表更改都是相同的。</p><p>默认情况下，模式更改是非破坏性的。接收器可以添加新列、加宽现有类型（例如，int到long或float到double）、将必需列放宽为可选列，以及删除列。重要的是，DynamicIcebergSink在撰写本文时不支持重命名列。</p><p>源模式通过两种方式识别：从源记录推断模式（例如 JSON 推断）和从模式注册表读取序列化记录（例如 AWS Glue 模式注册表 (GSR)）。Iceberg 目标表的模式演变行为取决于模式来源。JSON 推断会添加它看到的任何新字段，没有契约。例如，这允许作业最初将模式推断为整数，然后在检测到更大值时扩展为长整数。模式注册表序列化记录使用注册表的兼容性规则（例如 BACKWARD）定义策略。这意味着不兼容的生产者更改在注册模式时被拒绝，而不是在写入时。</p><p>分区规范在每个 DynamicRecord 上传递，因此接收器在创建或更新表时应用它。我们的示例如何派生该规范在分区部分介绍。</p><h2 class="cb-heading" id="article-section-4" data-article-heading>解决方案概述</h2><p>下图说明了解决方案架构。数据生成器（本地 Java 应用程序）将事件写入 Amazon Kinesis Data Streams。在 Avro 模式下，它还在 AWS Glue Schema Registry 中注册每个事件架构。Apache Flink 的托管服务应用程序消费流，为每条记录解析目标 Iceberg 表，并将数据写入 Amazon S3 中的 Iceberg 表，这些表要么在 AWS Glue Data Catalog 中编目，要么对于完全托管的表，在 Amazon S3 Tables（Amazon S3 的一项功能）中编目。</p><figure class="cb-figure"><a class="cb-media-link" href="https://d2908q01vomqb2.cloudfront.net/b6692ea5df920cad691c20319a6fffd7a4a766b8/2026/08/28/BDB-5973-1.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../derived-media/729d8ddcd9efcff67796-480.webp" alt="数据生成器向 Amazon Kinesis Data Streams 发送事件，Apache Flink 的托管服务将每条记录路由到 Amazon S3 中的 Iceberg 表" loading="lazy" decoding="async" width="915" height="620" srcset="../derived-media/729d8ddcd9efcff67796-480.webp 480w, ../derived-media/729d8ddcd9efcff67796-915.webp 915w" sizes="(max-width:600px) calc(100vw - 14px), (max-width:1199px) calc(100vw - 240px), 840px"></a></figure><p>图 1：在 Apache Flink 托管服务上将流记录路由到每事件 Iceberg 表的解决方案架构</p><p>在高层次上，一个 Apache Flink 托管服务应用程序从 Kinesis 读取原始记录，并为每条记录解析目标 Iceberg 表。它使用 DynamicIcebergSink 按需创建和发展表。同一个作业处理多种事件类型，因为目标是根据每条记录决定的，而不是根据接收器。</p><p>关于流拓扑的说明：示例假设一个 Kinesis 流承载多种事件类型，这使演示保持专注。这不是该模式的必需条件。如果您的事件到达不同的流（例如，每个生产者或每个域一个流），则每个流创建一个 KinesisStreamsSource，并在接收器之前将它们合并到一个 DataStream 中。路由生成器从记录本身选择目标表，因此多个源可以汇入一个 DynamicIcebergSink，仍然落在正确的表中。</p><p>合并不会增加洗牌成本。接收器总是通过内部每表写入键重新分配记录，因此合并流和 N 个独立管道在每条记录交换上产生相同的成本。每个 DynamicRecord 携带的分发模式只改变行落在哪个写入子任务上，而不是是否发生洗牌。真正的权衡是隔离。所有表共享一个写入器池、一个提交聚合器和一个提交器。因此，热流的背压和检查点对齐与其他每个流耦合，并且写入器并行度是整个作业范围的设置。当您有许多小型到中型事件类型需要集中容量时，首选一个合并管道。当某个流的数据量足够大，需要自己的写入器并行度和故障隔离时，则拆分为单独的应用程序。</p><p>DynamicIcebergSink 需要每条记录的模式。示例提供了两种可互换的获取方式，实现为两种生成器变体：选项 1 在运行时从每条 JSON 记录推断模式。选项 2 从 AWS Glue Schema Registry 读取注册的模式。下游的所有内容（路由、表创建和模式演变）都是相同的，只有生成器不同。</p><h3 class="cb-heading" id="article-section-5" data-article-heading>选项 1：从 JSON 记录推断模式</h3><p>SchemaAgnosticRoutingGenerator 实现 Iceberg 的 DynamicRecordGenerator。其 generate 方法将路由字段映射到表名称，推断模式，派生分区规范，并通过收集器发出 DynamicRecord：</p><pre><code class="language-">@Override
 public void generate(JsonNode json, Collector&lt;DynamicRecord&gt; out) {
     String tableName = determineTableName(json); // routing field -&gt; table name
     TableIdentifier tableId = TableIdentifier.of(database, tableName);
@@ -952,61 +1001,12 @@ npx cdk deploy -c appType=dynamic-avro -c tableFormatVersion=2 # GSR Avro varian
   <div class="sh-poster-tip">iOS 也可以长按图片保存</div>
 </div>
 <div class="sh-toast" id="shToast"></div>
-<style>
-.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;margin-bottom:14px}
-.topbar .back{flex:0 0 auto;white-space:nowrap}
-.sharebtns{display:flex;justify-content:flex-end;gap:8px;min-width:0;max-width:100%;margin-left:auto}
-.sharebtns .sbtn{min-width:76px}
-.sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-height:44px;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
-.sbtn svg{flex:0 0 auto}
-.sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
-.sbtn:active{transform:scale(.95)}
-.topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-.topbar.detail-context .back{display:inline-flex;align-items:center;justify-content:center;align-self:center;min-width:88px;min-height:44px;margin-bottom:0;padding:0 14px;border-radius:99px;font-size:14px;font-weight:650;color:var(--ink);text-decoration:none}
-.topbar.detail-context .back{gap:5px}
-.topbar.detail-context .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media(max-width:600px){
-.article{padding:20px 14px 48px}
-.topbar{align-items:center;flex-direction:row;gap:8px}
-.topbar.detail-context{margin:-20px -14px 14px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
-.topbar.detail-context .back{align-self:center}
-.sharebtns{width:auto;gap:4px;overflow:visible;padding-bottom:0}
-.sharebtns .sbtn{width:56px;min-width:56px;height:44px;padding:0 6px;font-size:12px}
-.sharebtns .sbtn-label{display:inline}
-}
-@media(max-width:359px){
-.topbar.detail-context .back{width:44px;min-width:44px;padding:0}
-.topbar.detail-context .back-label{display:none}
-}
-.sh-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.25s;z-index:80}
-.sh-mask.show{opacity:1;pointer-events:auto}
-.sh-sheet{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(110%);transition:transform .3s cubic-bezier(.32,.72,.35,1);padding:0 10px calc(10px + env(safe-area-inset-bottom))}
-.sh-sheet.show{transform:translateY(0)}
-.sh-panel{max-width:430px;margin:0 auto}
-.sh-group{background:var(--card);border-radius:16px;overflow:hidden;margin-bottom:8px}
-.sh-title{font-size:12px;color:var(--sub);text-align:center;padding:12px;border-bottom:.5px solid var(--line)}
-.sh-opt{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px;font-size:16px;font-weight:500;border:none;border-bottom:.5px solid var(--line);cursor:pointer;background:none;width:100%;color:var(--ink)}
-.sh-opt:last-child{border-bottom:none}
-.sh-opt:active{background:var(--hover)}
-.sh-cancel{background:var(--card);border-radius:16px;padding:15px;text-align:center;font-size:16px;font-weight:600;color:var(--blue);cursor:pointer;width:100%;border:none}
-.sh-poster-modal{position:fixed;inset:0;z-index:95;background:rgba(15,17,20,.92);display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px}
-.sh-poster-modal.show{display:flex}
-.sh-poster-wrap{width:min(340px,86vw);border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-.sh-poster-wrap img{width:100%;display:block}
-.sh-poster-actions{margin-top:18px;display:flex;gap:10px}
-.sh-save,.sh-close{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:none;border-radius:99px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
-.sbtn:focus-visible,.sh-opt:focus-visible,.sh-cancel:focus-visible,.sh-save:focus-visible,.sh-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.sh-save{background:var(--accent);color:#fff}
-.sh-close{background:rgba(255,255,255,.15);color:#fff}
-.sh-poster-tip{margin-top:10px;font-size:11px;color:#8b919b}
-.sh-toast{position:fixed;top:18%;left:50%;transform:translateX(-50%);background:rgba(26,29,35,.92);color:#fff;font-size:13px;padding:10px 20px;border-radius:99px;opacity:0;transition:.25s;z-index:99;pointer-events:none}
-.sh-toast.show{opacity:1}
-</style>
+
 <script>
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title":"用Apache Iceberg和Flink构建动态流式数据湖","summary":"本文针对流式管道写入数据湖时上游schema变更带来的运维难题，给出基于Apache Iceberg Dynamic Sink的解决方案。在Amazon Managed Service for Apache Flink上，Flink作业可对记录进行动态路由并自动演进Iceberg表schema，无需重启或手动迁移。文章基于Apache Flink 2.3和Apache Iceberg 1.11.0，展示了DataStream API实现，并附完整GitHub代码。","reason":"数据湖实时写入场景中schema演进是高频痛点，该文提供了可落地的架构和代码实践，值得数据平台与实时链路从业者参考。","topic":"湖仓","heat":37,"source":"AWS Big Data Blog","date":"2026-09-03","url":"https://datahot.xiahongbin.com/e/b887687fe920.html","qr":"../qr/b887687fe920.png"};
+var SH_EV = {"title":"用Apache Iceberg和Flink构建动态流式数据湖","summary":"本文针对流式管道写入数据湖时上游schema变更带来的运维难题，给出基于Apache Iceberg Dynamic Sink的解决方案。在Amazon Managed Service for Apache Flink上，Flink作业可对记录进行动态路由并自动演进Iceberg表schema，无需重启或手动迁移。文章基于Apache Flink 2.3和Apache Iceberg 1.11.0，展示了DataStream API实现，并附完整GitHub代码。","reason":"数据湖实时写入场景中schema演进是高频痛点，该文提供了可落地的架构和代码实践，值得数据平台与实时链路从业者参考。","topic":"湖仓","heat":36,"source":"AWS Big Data Blog","date":"2026-09-03","url":"https://datahot.xiahongbin.com/e/b887687fe920.html","qr":"../qr/b887687fe920.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

@@ -23,7 +23,7 @@
 <link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://datahot.xiahongbin.com/feed.xml">
 <meta name="datahot-analytics" data-enabled="true" data-endpoint="https://metrics.datahot.xiahongbin.com/v1/events" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
 <script defer src="../analytics.js?v=20077f7d7e8b"></script>
-<script defer src="../favorites.js"></script>
+<script defer src="../favorites.js?v=d80c0b507585"></script>
 <script defer src="../content-feedback.js"></script>
 <script defer src="../detail.js"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"在Snowflake上实现真正的数据层治理","description":"本文介绍应用通过服务账号查询Snowflake时，容易形成与应用层并行的第二套权限模型。作者提出使用继承的调用者授权（inherited caller grants），在Streamlit和React/Next.js应用（基于SPCS）中启用调用者权限，让用户现有的Snowflake行级访问策略和脱","datePublished":"2026-09-05T03:01:01+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://medium.com/snowflake/implementing-true-data-layer-governance-on-snowflake-3473b84d3f48?source=rss----34b6daafc07---4","image":"https://datahot.xiahongbin.com/media/b61e19f27b42/2b537979677030a63b649ec9.jpg"}</script>
@@ -773,6 +773,55 @@ main,.layout>*,.hotlist>*{min-width:0}
 .original-footer-link:focus-visible,.meta-source-link:focus-visible,.article-toc-mobile summary:focus-visible,.article-toc-mobile a:focus-visible,.article-toc-rail a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:1199px){.article-layout.has-toc{display:block}.article-layout.has-toc .article-content{margin:0 auto}.article-toc-rail{display:none}.article-toc-mobile{display:block}}
 @media(max-width:600px){.article{padding-left:16px;padding-right:16px}.article h1{font-size:24px;line-height:1.45}.fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:none}.fulltext p,.fulltext li{font-size:16px;line-height:1.82}.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}.related-meta{max-width:88px}}
+</style><style>
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;margin-bottom:14px}
+.topbar .back{flex:0 0 auto;white-space:nowrap}
+.sharebtns{display:flex;justify-content:flex-end;gap:8px;min-width:0;max-width:100%;margin-left:auto}
+.sharebtns .sbtn{min-width:76px}
+.sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-height:44px;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
+.sbtn svg{flex:0 0 auto}
+.sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.sbtn:active{transform:scale(.95)}
+.topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topbar.detail-context .back{display:inline-flex;align-items:center;justify-content:center;align-self:center;min-width:88px;min-height:44px;margin-bottom:0;padding:0 14px;border-radius:99px;font-size:14px;font-weight:650;color:var(--ink);text-decoration:none}
+.topbar.detail-context .back{gap:5px}
+.topbar.detail-context .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:600px){
+.article{padding:20px 14px 48px}
+.topbar{align-items:center;flex-direction:row;gap:8px}
+.topbar.detail-context{margin:-20px -14px 14px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
+.topbar.detail-context .back{align-self:center}
+.sharebtns{width:auto;gap:4px;overflow:visible;padding-bottom:0}
+.sharebtns .sbtn{width:56px;min-width:56px;height:44px;padding:0 6px;font-size:12px}
+.sharebtns .sbtn-label{display:inline}
+}
+@media(max-width:359px){
+.topbar.detail-context .back{width:44px;min-width:44px;padding:0}
+.topbar.detail-context .back-label{display:none}
+}
+.sh-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.25s;z-index:80}
+.sh-mask.show{opacity:1;pointer-events:auto}
+.sh-sheet{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(110%);transition:transform .3s cubic-bezier(.32,.72,.35,1);padding:0 10px calc(10px + env(safe-area-inset-bottom))}
+.sh-sheet.show{transform:translateY(0)}
+.sh-panel{max-width:430px;margin:0 auto}
+.sh-group{background:var(--card);border-radius:16px;overflow:hidden;margin-bottom:8px}
+.sh-title{font-size:12px;color:var(--sub);text-align:center;padding:12px;border-bottom:.5px solid var(--line)}
+.sh-opt{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px;font-size:16px;font-weight:500;border:none;border-bottom:.5px solid var(--line);cursor:pointer;background:none;width:100%;color:var(--ink)}
+.sh-opt:last-child{border-bottom:none}
+.sh-opt:active{background:var(--hover)}
+.sh-cancel{background:var(--card);border-radius:16px;padding:15px;text-align:center;font-size:16px;font-weight:600;color:var(--blue);cursor:pointer;width:100%;border:none}
+.sh-poster-modal{position:fixed;inset:0;z-index:95;background:rgba(15,17,20,.92);display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.sh-poster-modal.show{display:flex}
+.sh-poster-wrap{width:min(340px,86vw);border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.sh-poster-wrap img{width:100%;display:block}
+.sh-poster-actions{margin-top:18px;display:flex;gap:10px}
+.sh-save,.sh-close{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:none;border-radius:99px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
+.sbtn:focus-visible,.sh-opt:focus-visible,.sh-cancel:focus-visible,.sh-save:focus-visible,.sh-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sh-save{background:var(--accent);color:#fff}
+.sh-close{background:rgba(255,255,255,.15);color:#fff}
+.sh-poster-tip{margin-top:10px;font-size:11px;color:#8b919b}
+.sh-toast{position:fixed;top:18%;left:50%;transform:translateX(-50%);background:rgba(26,29,35,.92);color:#fff;font-size:13px;padding:10px 20px;border-radius:99px;opacity:0;transition:.25s;z-index:99;pointer-events:none}
+.sh-toast.show{opacity:1}
 </style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="b61e19f27b42" data-category="platform" data-source="Snowflake Engineering（Medium）">
 <aside class="sidebar"><div class="slogo"><a href="../index.html" data-smart-home-return aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><nav class="sidebar-nav" aria-label="主导航"><a class="mi on" href="../index.html" data-smart-home-return><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../for-me.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg>关注</a><a class="mi" href="../cases.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg>案例</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>周报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>收藏</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a></nav><nav class="sidebar-tools" aria-label="工具"><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a></nav><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a> · <a href="https://bsky.app/profile/datahot.xiahongbin.com" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Bluesky" style="color:var(--sub);text-decoration:underline">Bluesky</a><br>数据领域 AI 资讯分享</div></aside>
 <header class="detail-brand-header"><div class="wrap nav">
@@ -801,7 +850,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   </div>
   <h1>在Snowflake上实现真正的数据层治理</h1>
   <section class="tts-player" id="ttsPlayer" data-tts-player data-duration="60" hidden aria-label="文章精华朗读">
-  <audio data-tts-audio preload="metadata" src="../audio/2026/09/b61e19f27b42-fedba855abe936d4.mp3"></audio>
+  <audio data-tts-audio preload="none" src="../audio/2026/09/b61e19f27b42-fedba855abe936d4.mp3"></audio>
   <div class="tts-copy"><b>DataHot 主播</b><span data-tts-status>约 1 分钟精华朗读</span></div>
   <button class="tts-toggle" type="button" data-tts-toggle aria-label="播放朗读">播放</button>
   <input class="tts-progress" type="range" data-tts-progress min="0" max="60" value="0" step="0.1" aria-label="朗读进度">
@@ -819,7 +868,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <details class="article-toc-mobile"><summary>本文目录 <span>8 节</span></summary><ol><li class="toc-level-4"><a href="#article-section-1" data-toc-link data-toc-target="article-section-1">使用继承的调用者授权在Streamlit和React中解锁数据层治理</a></li><li class="toc-level-3"><a href="#article-section-2" data-toc-link data-toc-target="article-section-2">所有者权限与调用者权限</a></li><li class="toc-level-3"><a href="#article-section-3" data-toc-link data-toc-target="article-section-3">什么是继承的调用者授权？</a></li><li class="toc-level-3"><a href="#article-section-4" data-toc-link data-toc-target="article-section-4">账户设置</a></li><li class="toc-level-3"><a href="#article-section-5" data-toc-link data-toc-target="article-section-5">何时坚持使用所有者权限</a></li><li class="toc-level-3"><a href="#article-section-6" data-toc-link data-toc-target="article-section-6">在Streamlit（SPCS）上的调用者权限</a></li><li class="toc-level-3"><a href="#article-section-7" data-toc-link data-toc-target="article-section-7">Snowflake应用运行时上的调用者权限</a></li><li class="toc-level-3"><a href="#article-section-8" data-toc-link data-toc-target="article-section-8">迈向统一的数据治理层</a></li></ol></details>
   <section class="content-section" aria-labelledby="articleBodyTitle">
   <div class="content-heading"><h2 id="articleBodyTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 译文</h2> <span class="content-origin-badge">AI 逐段翻译</span></div>
-  <div class="fulltext"><h4 class="cb-heading" id="article-section-1" data-article-heading>使用继承的调用者授权在Streamlit和React中解锁数据层治理</h4><p>每个通过服务账户查询Snowflake的应用程序都以相同的对话开始：谁能看到什么，我们是否需要新角色，如何为该用户过滤数据。答案随时间累积（新角色、新授权、在代码中重建的过滤逻辑），直到应用层运行着与你在数据层已经维护的权限模型并行的第二个权限模型。继承的调用者授权将治理折叠回数据层：用户现有的Snowflake权限自动管理他们在每个表面上可以看到的内容。</p><p>本文介绍了如何设置账户级调用者角色，并在SPCS上的Streamlit和React/Next.js应用中实现<a href="https://docs.snowflake.com/en/developer-guide/restricted-callers-rights" target="_blank" rel="noopener noreferrer nofollow">调用者权限</a>。在Snowflake内部，我们的数据团队采用了这种模式，使我们能够：</p><ul><li>仅定义一次治理</li><li>将该治理模型应用于每个面向客户的界面</li><li>避免额外的角色创建和授权</li></ul><h3 class="cb-heading" id="article-section-2" data-article-heading>所有者权限与调用者权限</h3><p>Snowflake存储过程和应用程序运行时默认使用所有者权限：查询以应用程序所有者角色的身份运行，无论谁实际使用该应用。这与传统BI工具通过共享服务账户连接的模式相同。这种模式适用于应向所有人显示相同数据的仪表板，但当需要按用户进行行过滤或列掩码时则成为负担。</p><p>调用者权限则相反：查询使用调用应用程序的用户的权限运行。行访问策略看到实际用户。掩码策略生效。对象授权根据用户的角色层次结构进行检查。应用程序本身不需要实现这些——它从数据层自动获得。</p><figure class="cb-figure"><a class="cb-media-link" href="https://cdn-images-1.medium.com/max/1024/1*Er_LADCBV6xdnRJxRMQ7Cw.jpeg" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/b61e19f27b42/2b537979677030a63b649ec9.jpg" alt="" loading="lazy" decoding="async" width="1024" height="820"></a></figure><h3 class="cb-heading" id="article-section-3" data-article-heading>什么是继承的调用者授权？</h3><p>调用者授权不是数据权限。对表授予CALLER SELECT并不赋予角色读取该表的能力：调用用户仍然需要自己拥有SELECT权限。调用者授权授权应用程序在运行时使用调用者现有的SELECT权限。没有它，即使在调用者权限模式下，该权限也被隔离。</p><p>常规的<a href="https://docs.snowflake.com/en/sql-reference/sql/grant-caller" target="_blank" rel="noopener noreferrer nofollow">GRANT CALLER</a>将调用者权限范围限定到单个命名对象：</p><pre><code class="language-">GRANT CALLER SELECT ON TABLE hr.compensation.salary_bands TO ROLE my_app_role;</code></pre><p><a href="https://docs.snowflake.com/en/user-guide/inherited-grants-using" target="_blank" rel="noopener noreferrer nofollow">继承授权</a>（通过GRANT INHERITED CALLER）将此提升到模式、数据库甚至账户中给定类型的所有对象。关键是，它适用于将来的对象，无需执行显式的FUTURE GRANTS。</p><pre><code class="language-">GRANT INHERITED CALLER SELECT ON ALL TABLES IN ACCOUNT TO ROLE snowflake_caller_rl;</code></pre><p>这意味着你只需创建一次调用者角色，随着新模式、表和服务配置，它仍然有效。无需为每个新对象重新授权。</p><h3 class="cb-heading" id="article-section-4" data-article-heading>账户设置</h3><p>运行之前需要注意一点：继承授权<strong>目前处于公共预览阶段</strong>。你需要先在账户级别选择启用——有关启用步骤，请参阅<a href="https://docs.snowflake.com/en/user-guide/inherited-grants-intro" target="_blank" rel="noopener noreferrer nofollow">文档</a>。</p><p>在Snowflake，我们创建了一个单一的调用者角色，并为其加载了涵盖账户中所有对象的继承选择和使用授权。请注意，这涵盖了我们的应用程序的只读操作——写操作可以单独处理，可以通过相同的调用者框架，或通过所有者权限，具体取决于用例。示例语法如下：</p><pre><code class="language-">-- Create the caller role
+  <div class="fulltext"><h4 class="cb-heading" id="article-section-1" data-article-heading>使用继承的调用者授权在Streamlit和React中解锁数据层治理</h4><p>每个通过服务账户查询Snowflake的应用程序都以相同的对话开始：谁能看到什么，我们是否需要新角色，如何为该用户过滤数据。答案随时间累积（新角色、新授权、在代码中重建的过滤逻辑），直到应用层运行着与你在数据层已经维护的权限模型并行的第二个权限模型。继承的调用者授权将治理折叠回数据层：用户现有的Snowflake权限自动管理他们在每个表面上可以看到的内容。</p><p>本文介绍了如何设置账户级调用者角色，并在SPCS上的Streamlit和React/Next.js应用中实现<a href="https://docs.snowflake.com/en/developer-guide/restricted-callers-rights" target="_blank" rel="noopener noreferrer nofollow">调用者权限</a>。在Snowflake内部，我们的数据团队采用了这种模式，使我们能够：</p><ul><li>仅定义一次治理</li><li>将该治理模型应用于每个面向客户的界面</li><li>避免额外的角色创建和授权</li></ul><h3 class="cb-heading" id="article-section-2" data-article-heading>所有者权限与调用者权限</h3><p>Snowflake存储过程和应用程序运行时默认使用所有者权限：查询以应用程序所有者角色的身份运行，无论谁实际使用该应用。这与传统BI工具通过共享服务账户连接的模式相同。这种模式适用于应向所有人显示相同数据的仪表板，但当需要按用户进行行过滤或列掩码时则成为负担。</p><p>调用者权限则相反：查询使用调用应用程序的用户的权限运行。行访问策略看到实际用户。掩码策略生效。对象授权根据用户的角色层次结构进行检查。应用程序本身不需要实现这些——它从数据层自动获得。</p><figure class="cb-figure"><a class="cb-media-link" href="https://cdn-images-1.medium.com/max/1024/1*Er_LADCBV6xdnRJxRMQ7Cw.jpeg" target="_blank" rel="noopener noreferrer nofollow"><img src="../derived-media/9b0451dcf9b0a05ed5df-480.webp" alt="" loading="lazy" decoding="async" width="1024" height="820" srcset="../derived-media/9b0451dcf9b0a05ed5df-480.webp 480w, ../derived-media/9b0451dcf9b0a05ed5df-960.webp 960w, ../derived-media/9b0451dcf9b0a05ed5df-1024.webp 1024w" sizes="(max-width:600px) calc(100vw - 14px), (max-width:1199px) calc(100vw - 240px), 840px"></a></figure><h3 class="cb-heading" id="article-section-3" data-article-heading>什么是继承的调用者授权？</h3><p>调用者授权不是数据权限。对表授予CALLER SELECT并不赋予角色读取该表的能力：调用用户仍然需要自己拥有SELECT权限。调用者授权授权应用程序在运行时使用调用者现有的SELECT权限。没有它，即使在调用者权限模式下，该权限也被隔离。</p><p>常规的<a href="https://docs.snowflake.com/en/sql-reference/sql/grant-caller" target="_blank" rel="noopener noreferrer nofollow">GRANT CALLER</a>将调用者权限范围限定到单个命名对象：</p><pre><code class="language-">GRANT CALLER SELECT ON TABLE hr.compensation.salary_bands TO ROLE my_app_role;</code></pre><p><a href="https://docs.snowflake.com/en/user-guide/inherited-grants-using" target="_blank" rel="noopener noreferrer nofollow">继承授权</a>（通过GRANT INHERITED CALLER）将此提升到模式、数据库甚至账户中给定类型的所有对象。关键是，它适用于将来的对象，无需执行显式的FUTURE GRANTS。</p><pre><code class="language-">GRANT INHERITED CALLER SELECT ON ALL TABLES IN ACCOUNT TO ROLE snowflake_caller_rl;</code></pre><p>这意味着你只需创建一次调用者角色，随着新模式、表和服务配置，它仍然有效。无需为每个新对象重新授权。</p><h3 class="cb-heading" id="article-section-4" data-article-heading>账户设置</h3><p>运行之前需要注意一点：继承授权<strong>目前处于公共预览阶段</strong>。你需要先在账户级别选择启用——有关启用步骤，请参阅<a href="https://docs.snowflake.com/en/user-guide/inherited-grants-intro" target="_blank" rel="noopener noreferrer nofollow">文档</a>。</p><p>在Snowflake，我们创建了一个单一的调用者角色，并为其加载了涵盖账户中所有对象的继承选择和使用授权。请注意，这涵盖了我们的应用程序的只读操作——写操作可以单独处理，可以通过相同的调用者框架，或通过所有者权限，具体取决于用例。示例语法如下：</p><pre><code class="language-">-- Create the caller role
 CREATE ROLE IF NOT EXISTS snowflake_caller_rl;
 
 -- Inherited caller grants for all object types in the account
@@ -1029,56 +1078,7 @@ export async function GET() {
   <div class="sh-poster-tip">iOS 也可以长按图片保存</div>
 </div>
 <div class="sh-toast" id="shToast"></div>
-<style>
-.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;margin-bottom:14px}
-.topbar .back{flex:0 0 auto;white-space:nowrap}
-.sharebtns{display:flex;justify-content:flex-end;gap:8px;min-width:0;max-width:100%;margin-left:auto}
-.sharebtns .sbtn{min-width:76px}
-.sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-height:44px;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
-.sbtn svg{flex:0 0 auto}
-.sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
-.sbtn:active{transform:scale(.95)}
-.topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-.topbar.detail-context .back{display:inline-flex;align-items:center;justify-content:center;align-self:center;min-width:88px;min-height:44px;margin-bottom:0;padding:0 14px;border-radius:99px;font-size:14px;font-weight:650;color:var(--ink);text-decoration:none}
-.topbar.detail-context .back{gap:5px}
-.topbar.detail-context .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media(max-width:600px){
-.article{padding:20px 14px 48px}
-.topbar{align-items:center;flex-direction:row;gap:8px}
-.topbar.detail-context{margin:-20px -14px 14px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
-.topbar.detail-context .back{align-self:center}
-.sharebtns{width:auto;gap:4px;overflow:visible;padding-bottom:0}
-.sharebtns .sbtn{width:56px;min-width:56px;height:44px;padding:0 6px;font-size:12px}
-.sharebtns .sbtn-label{display:inline}
-}
-@media(max-width:359px){
-.topbar.detail-context .back{width:44px;min-width:44px;padding:0}
-.topbar.detail-context .back-label{display:none}
-}
-.sh-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.25s;z-index:80}
-.sh-mask.show{opacity:1;pointer-events:auto}
-.sh-sheet{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(110%);transition:transform .3s cubic-bezier(.32,.72,.35,1);padding:0 10px calc(10px + env(safe-area-inset-bottom))}
-.sh-sheet.show{transform:translateY(0)}
-.sh-panel{max-width:430px;margin:0 auto}
-.sh-group{background:var(--card);border-radius:16px;overflow:hidden;margin-bottom:8px}
-.sh-title{font-size:12px;color:var(--sub);text-align:center;padding:12px;border-bottom:.5px solid var(--line)}
-.sh-opt{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px;font-size:16px;font-weight:500;border:none;border-bottom:.5px solid var(--line);cursor:pointer;background:none;width:100%;color:var(--ink)}
-.sh-opt:last-child{border-bottom:none}
-.sh-opt:active{background:var(--hover)}
-.sh-cancel{background:var(--card);border-radius:16px;padding:15px;text-align:center;font-size:16px;font-weight:600;color:var(--blue);cursor:pointer;width:100%;border:none}
-.sh-poster-modal{position:fixed;inset:0;z-index:95;background:rgba(15,17,20,.92);display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px}
-.sh-poster-modal.show{display:flex}
-.sh-poster-wrap{width:min(340px,86vw);border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-.sh-poster-wrap img{width:100%;display:block}
-.sh-poster-actions{margin-top:18px;display:flex;gap:10px}
-.sh-save,.sh-close{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:none;border-radius:99px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
-.sbtn:focus-visible,.sh-opt:focus-visible,.sh-cancel:focus-visible,.sh-save:focus-visible,.sh-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.sh-save{background:var(--accent);color:#fff}
-.sh-close{background:rgba(255,255,255,.15);color:#fff}
-.sh-poster-tip{margin-top:10px;font-size:11px;color:#8b919b}
-.sh-toast{position:fixed;top:18%;left:50%;transform:translateX(-50%);background:rgba(26,29,35,.92);color:#fff;font-size:13px;padding:10px 20px;border-radius:99px;opacity:0;transition:.25s;z-index:99;pointer-events:none}
-.sh-toast.show{opacity:1}
-</style>
+
 <script>
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};

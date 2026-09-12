@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-RRxFjgmpqJiw6V+1Ysoz//TDz8bTUghdBzE4oKzRJ1E=' 'sha256-aAyEoWD/O58QV5fxROVVfLO4Sw5At7w28adfjyEOWps='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-JH/rfuk4eL7W6QFIZt1qE/znBAywUNOvXLZmwEXppws=' 'sha256-aAyEoWD/O58QV5fxROVVfLO4Sw5At7w28adfjyEOWps='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Jedify携手Snowflake，用持续业务上下文增强Cortex Analyst查询准确性 · DataHot</title>
@@ -23,7 +23,7 @@
 <link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://datahot.xiahongbin.com/feed.xml">
 <meta name="datahot-analytics" data-enabled="true" data-endpoint="https://metrics.datahot.xiahongbin.com/v1/events" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
 <script defer src="../analytics.js?v=20077f7d7e8b"></script>
-<script defer src="../favorites.js"></script>
+<script defer src="../favorites.js?v=d80c0b507585"></script>
 <script defer src="../content-feedback.js"></script>
 <script defer src="../detail.js"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"Jedify携手Snowflake，用持续业务上下文增强Cortex Analyst查询准确性","description":"Jedify与Snowflake宣布合作，借助Jedify的Context Graph持续从CRM、计费系统、业务规则及真实SQL问答对等来源构建业务知识，形成受治理的领域语义视图。Cortex Analyst基于这些视图回答自然语言查询，可随业务变化自动保持准确，且数据始终留在Snowflake中","datePublished":"2026-09-04T02:24:32+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://medium.com/snowflake/jedify-collaborates-with-snowflake-to-enable-enterprises-with-always-on-business-context-146a2d8430bb?source=rss----34b6daafc07---4","image":"https://datahot.xiahongbin.com/media/9289824de212/f60023f57bd85b99fbedc822.png"}</script>
@@ -773,6 +773,55 @@ main,.layout>*,.hotlist>*{min-width:0}
 .original-footer-link:focus-visible,.meta-source-link:focus-visible,.article-toc-mobile summary:focus-visible,.article-toc-mobile a:focus-visible,.article-toc-rail a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:1199px){.article-layout.has-toc{display:block}.article-layout.has-toc .article-content{margin:0 auto}.article-toc-rail{display:none}.article-toc-mobile{display:block}}
 @media(max-width:600px){.article{padding-left:16px;padding-right:16px}.article h1{font-size:24px;line-height:1.45}.fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:none}.fulltext p,.fulltext li{font-size:16px;line-height:1.82}.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}.related-meta{max-width:88px}}
+</style><style>
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;margin-bottom:14px}
+.topbar .back{flex:0 0 auto;white-space:nowrap}
+.sharebtns{display:flex;justify-content:flex-end;gap:8px;min-width:0;max-width:100%;margin-left:auto}
+.sharebtns .sbtn{min-width:76px}
+.sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-height:44px;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
+.sbtn svg{flex:0 0 auto}
+.sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.sbtn:active{transform:scale(.95)}
+.topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topbar.detail-context .back{display:inline-flex;align-items:center;justify-content:center;align-self:center;min-width:88px;min-height:44px;margin-bottom:0;padding:0 14px;border-radius:99px;font-size:14px;font-weight:650;color:var(--ink);text-decoration:none}
+.topbar.detail-context .back{gap:5px}
+.topbar.detail-context .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:600px){
+.article{padding:20px 14px 48px}
+.topbar{align-items:center;flex-direction:row;gap:8px}
+.topbar.detail-context{margin:-20px -14px 14px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
+.topbar.detail-context .back{align-self:center}
+.sharebtns{width:auto;gap:4px;overflow:visible;padding-bottom:0}
+.sharebtns .sbtn{width:56px;min-width:56px;height:44px;padding:0 6px;font-size:12px}
+.sharebtns .sbtn-label{display:inline}
+}
+@media(max-width:359px){
+.topbar.detail-context .back{width:44px;min-width:44px;padding:0}
+.topbar.detail-context .back-label{display:none}
+}
+.sh-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.25s;z-index:80}
+.sh-mask.show{opacity:1;pointer-events:auto}
+.sh-sheet{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(110%);transition:transform .3s cubic-bezier(.32,.72,.35,1);padding:0 10px calc(10px + env(safe-area-inset-bottom))}
+.sh-sheet.show{transform:translateY(0)}
+.sh-panel{max-width:430px;margin:0 auto}
+.sh-group{background:var(--card);border-radius:16px;overflow:hidden;margin-bottom:8px}
+.sh-title{font-size:12px;color:var(--sub);text-align:center;padding:12px;border-bottom:.5px solid var(--line)}
+.sh-opt{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px;font-size:16px;font-weight:500;border:none;border-bottom:.5px solid var(--line);cursor:pointer;background:none;width:100%;color:var(--ink)}
+.sh-opt:last-child{border-bottom:none}
+.sh-opt:active{background:var(--hover)}
+.sh-cancel{background:var(--card);border-radius:16px;padding:15px;text-align:center;font-size:16px;font-weight:600;color:var(--blue);cursor:pointer;width:100%;border:none}
+.sh-poster-modal{position:fixed;inset:0;z-index:95;background:rgba(15,17,20,.92);display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.sh-poster-modal.show{display:flex}
+.sh-poster-wrap{width:min(340px,86vw);border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.sh-poster-wrap img{width:100%;display:block}
+.sh-poster-actions{margin-top:18px;display:flex;gap:10px}
+.sh-save,.sh-close{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:none;border-radius:99px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
+.sbtn:focus-visible,.sh-opt:focus-visible,.sh-cancel:focus-visible,.sh-save:focus-visible,.sh-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sh-save{background:var(--accent);color:#fff}
+.sh-close{background:rgba(255,255,255,.15);color:#fff}
+.sh-poster-tip{margin-top:10px;font-size:11px;color:#8b919b}
+.sh-toast{position:fixed;top:18%;left:50%;transform:translateX(-50%);background:rgba(26,29,35,.92);color:#fff;font-size:13px;padding:10px 20px;border-radius:99px;opacity:0;transition:.25s;z-index:99;pointer-events:none}
+.sh-toast.show{opacity:1}
 </style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="9289824de212" data-category="agent" data-source="Snowflake Engineering（Medium）">
 <aside class="sidebar"><div class="slogo"><a href="../index.html" data-smart-home-return aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><nav class="sidebar-nav" aria-label="主导航"><a class="mi on" href="../index.html" data-smart-home-return><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../for-me.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg>关注</a><a class="mi" href="../cases.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg>案例</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>周报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>收藏</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a></nav><nav class="sidebar-tools" aria-label="工具"><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a></nav><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a> · <a href="https://bsky.app/profile/datahot.xiahongbin.com" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Bluesky" style="color:var(--sub);text-decoration:underline">Bluesky</a><br>数据领域 AI 资讯分享</div></aside>
 <header class="detail-brand-header"><div class="wrap nav">
@@ -801,7 +850,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   </div>
   <h1>Jedify携手Snowflake，用持续业务上下文增强Cortex Analyst查询准确性</h1>
   <section class="tts-player" id="ttsPlayer" data-tts-player data-duration="81" hidden aria-label="文章精华朗读">
-  <audio data-tts-audio preload="metadata" src="../audio/2026/09/9289824de212-db10db88b3c15734.mp3"></audio>
+  <audio data-tts-audio preload="none" src="../audio/2026/09/9289824de212-db10db88b3c15734.mp3"></audio>
   <div class="tts-copy"><b>DataHot 主播</b><span data-tts-status>约 1 分钟精华朗读</span></div>
   <button class="tts-toggle" type="button" data-tts-toggle aria-label="播放朗读">播放</button>
   <input class="tts-progress" type="range" data-tts-progress min="0" max="81" value="0" step="0.1" aria-label="朗读进度">
@@ -819,7 +868,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <details class="article-toc-mobile"><summary>本文目录 <span>8 节</span></summary><ol><li class="toc-level-3"><a href="#article-section-1" data-toc-link data-toc-target="article-section-1">什么是上下文图，为什么我需要一个？</a></li><li class="toc-level-3"><a href="#article-section-2" data-toc-link data-toc-target="article-section-2">与 Jedify 一起，语义视图成为业务数据的可信来源</a></li><li class="toc-level-3"><a href="#article-section-3" data-toc-link data-toc-target="article-section-3">现在，让我们深入了解细节——它是如何工作的？</a></li><li class="toc-level-3"><a href="#article-section-4" data-toc-link data-toc-target="article-section-4">第 1 步：定义范围</a></li><li class="toc-level-3"><a href="#article-section-5" data-toc-link data-toc-target="article-section-5">第 2 步：自动构建语义视图！</a></li><li class="toc-level-3"><a href="#article-section-6" data-toc-link data-toc-target="article-section-6">第 3 步：丰富 Snowflake 的已验证查询存储库</a></li><li class="toc-level-3"><a href="#article-section-7" data-toc-link data-toc-target="article-section-7">第 4 步：随着业务变化保持同步</a></li><li class="toc-level-3"><a href="#article-section-8" data-toc-link data-toc-target="article-section-8">永远在线的上下文图：活跃、动态、学习</a></li></ol></details>
   <section class="content-section" aria-labelledby="articleBodyTitle">
   <div class="content-heading"><h2 id="articleBodyTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 译文</h2> <span class="content-origin-badge">AI 逐段翻译</span></div>
-  <div class="fulltext"><figure class="cb-figure"><a class="cb-media-link" href="https://cdn-images-1.medium.com/max/1024/1*obbeXi0RN11_hq13NXtCtg.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/9289824de212/f60023f57bd85b99fbedc822.png" alt="" loading="lazy" decoding="async" width="1024" height="574"></a></figure><p>通过我们的<a href="https://www.snowflake.com/en/blog/jedify-context-graphs-enterprise-ai-agents/" target="_blank" rel="noopener noreferrer nofollow">新合作</a>，Snowflake 和 Jedify 帮助客户获得更准确的查询答案，这些答案以存储在 Snowflake 和外部源中的组织业务上下文为基础。Jedify 持续从任何数据源提取并构建业务知识，直接进入受治理的、特定领域的语义视图。这意味着，<strong>Cortex Analyst 以完整的业务图景回答自然语言查询，并设计为随着图景变化自动保持准确——同时数据始终保留在 Snowflake 中。</strong></p><h3 class="cb-heading" id="article-section-1" data-article-heading>什么是上下文图，为什么我需要一个？</h3><p>语义层通常一次性构建，捕获当时业务的快照。有人映射表、编写语义模型、发布模型——但业务继续发展。新产品、指标、定义和业务规则意味着语义模型也需要持续发展，以便代理式 AI 始终拥有所需的业务上下文。</p><p>那么，现在怎么办？</p><p>有请<strong>Jedify 的上下文图：一种持续维护的组织概念、指标、关系和业务规则地图，</strong>基于业务实际被查询的方式构建，而非一次性模式转储。随着使用积累、新源连接和上游定义变化，图会自动增长和复合。</p><h3 class="cb-heading" id="article-section-2" data-article-heading>与 Jedify 一起，语义视图成为业务数据的可信来源</h3><p>Jedify 的上下文图汇集了组织选择连接的结构化和非结构化来源的业务上下文，例如：</p><ul><li>CRM、销售和客户成功工具</li><li>计费系统和财年日历</li><li>客户关怀和运营工具</li><li>独特的业务定义和规则</li><li>真实自然语言问题及正确回答它们的 SQL</li><li>组织的层级结构和账户级元数据</li></ul><p>Cortex Analyst 随后可以通过呈现的语义视图作用于该上下文，将图的范围扩展到仓库之外。</p><h3 class="cb-heading" id="article-section-3" data-article-heading>现在，让我们深入了解细节——它是如何工作的？</h3><h3 class="cb-heading" id="article-section-4" data-article-heading>第 1 步：定义范围</h3><p>客户上下文是一个大的连接图，因此当用户提问时，我们这样确保最准确和全面的答案：</p><ol><li><strong>分析图</strong>：Jedify 识别中心业务实体——组织、账户或为客户扮演该角色的任何实体。</li><li><strong>分组为连贯范围</strong>：然后，Jedify 自动将业务含义划分为多个受治理的、特定领域的语义视图，每个视图针对连贯的业务领域及其相关问题进行优化。</li></ol><p>以这种方式定义范围显著提高了推理质量——每个查询针对相关、特定领域的视图而非整个语义模型进行评估，减少竞争性上下文并提高查询准确性。</p><h3 class="cb-heading" id="article-section-5" data-article-heading>第 2 步：自动构建语义视图！</h3><p>一旦定义范围，Jedify 构建语义视图：具有内联 SQL 定义的实体、分为维度、时间维度和指标的列、转换为连接定义的关系、作为自定义指令打包的业务规则。</p><p><strong>最棒的是：这一切都自动完成，无需手写 YAML。</strong></p><h3 class="cb-heading" id="article-section-6" data-article-heading>第 3 步：丰富 Snowflake 的已验证查询存储库</h3><p>在此步骤中，Jedify 用已验证查询丰富 Cortex Analyst，这些查询是来自最终用户的真实问题，带有回归测试的 SQL，比单一无范围视图更有助于提高查询生成的准确性。Jedify 中批准的已验证查询存储库（VQR）被带到 Snowflake 的已验证查询存储库中，减少重建和重新验证的需求。</p><p>随着 Jedify 的持续使用，真实查询积压将直接转移到每个视图的 VQR 中，并标记为完全覆盖它们的范围内节点集。</p><p>结合 Jedify 的上下文图，Cortex Analyst 以完整业务图景回答——为准确性和可靠性而设计，使您的 Snowflake 环境成为整个业务上下文的控制平面，所有数据都在您熟悉和喜爱的 Snowflake 中随时可用。例如，当被问到“<em>我们的月度流失率是多少？</em>”Cortex Analyst 设计为在第一次查询时正确回答，因为回答它的 SQL 已经过真实使用的验证。</p><h3 class="cb-heading" id="article-section-7" data-article-heading>第 4 步：随着业务变化保持同步</h3><p>好的，Jedify 部署在语义视图中——但当业务规则改变、新指标添加、图中关系转变时会发生什么？</p><p>Jedify 将变化检测为“语义漂移”，将其作为修订跟踪，并在无人触碰 YAML 的情况下将其传播到 Snowflake 语义视图。重新导出过程仅重新计划受影响的范围，与之前的范围计划进行比较，并替换更改的内容，同时保持其他地方的名称和结构不变。这些更新自动发生，或可以路由供审批。</p><figure class="cb-figure"><a class="cb-media-link" href="https://cdn-images-1.medium.com/max/1024/1*k1XnjhpLelbb3f3TByCqyQ.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/9289824de212/50d739dcf07a0d4f55593bd7.png" alt="" loading="lazy" decoding="async" width="1024" height="718"></a></figure><h3 class="cb-heading" id="article-section-8" data-article-heading>永远在线的上下文图：活跃、动态、学习</h3><p>Jedify 从每个连接的源和每个被问及的问题中积累上下文。语义视图是其在 Snowflake 中的当前形态，并在业务与昨天不同时自动重新塑形。</p><p><strong>如果您想了解更多关于 Snowflake + Jedify 的</strong>解决方案在您的组织中可能是什么样子。点击<a href="https://jedify.com/snowflakes-partnership/" target="_blank" rel="noopener noreferrer nofollow">此处了解更多</a>。</p><p>Jedify 现已在<a href="https://app.snowflake.com/marketplace/listing/GZTSZMNR9YR5/jedify-jedify-context-layer?search=jedify" target="_blank" rel="noopener noreferrer nofollow">Snowflake Marketplace</a>上线，为企业 AI 提供治理的业务上下文，从 Snowflake 和外部数据中实现有根据的可靠答案。</p><p><a href="https://medium.com/snowflake/jedify-collaborates-with-snowflake-to-enable-enterprises-with-always-on-business-context-146a2d8430bb" target="_blank" rel="noopener noreferrer nofollow">Jedify 与 Snowflake 合作，使企业具备“永远在线”的业务上下文</a>最初发表在<a href="https://medium.com/snowflake" target="_blank" rel="noopener noreferrer nofollow">Snowflake Builders Blog: Data Engineers, App Developers, AI, &amp; Data Science</a>Medium 上，人们在此继续对话，通过强调和回应这个故事。</p></div>
+  <div class="fulltext"><figure class="cb-figure"><a class="cb-media-link" href="https://cdn-images-1.medium.com/max/1024/1*obbeXi0RN11_hq13NXtCtg.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../derived-media/d4e3a1ad4723fa2d0273-480.webp" alt="" loading="lazy" decoding="async" width="1024" height="574" srcset="../derived-media/d4e3a1ad4723fa2d0273-480.webp 480w, ../derived-media/d4e3a1ad4723fa2d0273-960.webp 960w, ../derived-media/d4e3a1ad4723fa2d0273-1024.webp 1024w" sizes="(max-width:600px) calc(100vw - 14px), (max-width:1199px) calc(100vw - 240px), 840px"></a></figure><p>通过我们的<a href="https://www.snowflake.com/en/blog/jedify-context-graphs-enterprise-ai-agents/" target="_blank" rel="noopener noreferrer nofollow">新合作</a>，Snowflake 和 Jedify 帮助客户获得更准确的查询答案，这些答案以存储在 Snowflake 和外部源中的组织业务上下文为基础。Jedify 持续从任何数据源提取并构建业务知识，直接进入受治理的、特定领域的语义视图。这意味着，<strong>Cortex Analyst 以完整的业务图景回答自然语言查询，并设计为随着图景变化自动保持准确——同时数据始终保留在 Snowflake 中。</strong></p><h3 class="cb-heading" id="article-section-1" data-article-heading>什么是上下文图，为什么我需要一个？</h3><p>语义层通常一次性构建，捕获当时业务的快照。有人映射表、编写语义模型、发布模型——但业务继续发展。新产品、指标、定义和业务规则意味着语义模型也需要持续发展，以便代理式 AI 始终拥有所需的业务上下文。</p><p>那么，现在怎么办？</p><p>有请<strong>Jedify 的上下文图：一种持续维护的组织概念、指标、关系和业务规则地图，</strong>基于业务实际被查询的方式构建，而非一次性模式转储。随着使用积累、新源连接和上游定义变化，图会自动增长和复合。</p><h3 class="cb-heading" id="article-section-2" data-article-heading>与 Jedify 一起，语义视图成为业务数据的可信来源</h3><p>Jedify 的上下文图汇集了组织选择连接的结构化和非结构化来源的业务上下文，例如：</p><ul><li>CRM、销售和客户成功工具</li><li>计费系统和财年日历</li><li>客户关怀和运营工具</li><li>独特的业务定义和规则</li><li>真实自然语言问题及正确回答它们的 SQL</li><li>组织的层级结构和账户级元数据</li></ul><p>Cortex Analyst 随后可以通过呈现的语义视图作用于该上下文，将图的范围扩展到仓库之外。</p><h3 class="cb-heading" id="article-section-3" data-article-heading>现在，让我们深入了解细节——它是如何工作的？</h3><h3 class="cb-heading" id="article-section-4" data-article-heading>第 1 步：定义范围</h3><p>客户上下文是一个大的连接图，因此当用户提问时，我们这样确保最准确和全面的答案：</p><ol><li><strong>分析图</strong>：Jedify 识别中心业务实体——组织、账户或为客户扮演该角色的任何实体。</li><li><strong>分组为连贯范围</strong>：然后，Jedify 自动将业务含义划分为多个受治理的、特定领域的语义视图，每个视图针对连贯的业务领域及其相关问题进行优化。</li></ol><p>以这种方式定义范围显著提高了推理质量——每个查询针对相关、特定领域的视图而非整个语义模型进行评估，减少竞争性上下文并提高查询准确性。</p><h3 class="cb-heading" id="article-section-5" data-article-heading>第 2 步：自动构建语义视图！</h3><p>一旦定义范围，Jedify 构建语义视图：具有内联 SQL 定义的实体、分为维度、时间维度和指标的列、转换为连接定义的关系、作为自定义指令打包的业务规则。</p><p><strong>最棒的是：这一切都自动完成，无需手写 YAML。</strong></p><h3 class="cb-heading" id="article-section-6" data-article-heading>第 3 步：丰富 Snowflake 的已验证查询存储库</h3><p>在此步骤中，Jedify 用已验证查询丰富 Cortex Analyst，这些查询是来自最终用户的真实问题，带有回归测试的 SQL，比单一无范围视图更有助于提高查询生成的准确性。Jedify 中批准的已验证查询存储库（VQR）被带到 Snowflake 的已验证查询存储库中，减少重建和重新验证的需求。</p><p>随着 Jedify 的持续使用，真实查询积压将直接转移到每个视图的 VQR 中，并标记为完全覆盖它们的范围内节点集。</p><p>结合 Jedify 的上下文图，Cortex Analyst 以完整业务图景回答——为准确性和可靠性而设计，使您的 Snowflake 环境成为整个业务上下文的控制平面，所有数据都在您熟悉和喜爱的 Snowflake 中随时可用。例如，当被问到“<em>我们的月度流失率是多少？</em>”Cortex Analyst 设计为在第一次查询时正确回答，因为回答它的 SQL 已经过真实使用的验证。</p><h3 class="cb-heading" id="article-section-7" data-article-heading>第 4 步：随着业务变化保持同步</h3><p>好的，Jedify 部署在语义视图中——但当业务规则改变、新指标添加、图中关系转变时会发生什么？</p><p>Jedify 将变化检测为“语义漂移”，将其作为修订跟踪，并在无人触碰 YAML 的情况下将其传播到 Snowflake 语义视图。重新导出过程仅重新计划受影响的范围，与之前的范围计划进行比较，并替换更改的内容，同时保持其他地方的名称和结构不变。这些更新自动发生，或可以路由供审批。</p><figure class="cb-figure"><a class="cb-media-link" href="https://cdn-images-1.medium.com/max/1024/1*k1XnjhpLelbb3f3TByCqyQ.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../derived-media/567a32161b1baaa6b453-480.webp" alt="" loading="lazy" decoding="async" width="1024" height="718" srcset="../derived-media/567a32161b1baaa6b453-480.webp 480w, ../derived-media/567a32161b1baaa6b453-960.webp 960w, ../derived-media/567a32161b1baaa6b453-1024.webp 1024w" sizes="(max-width:600px) calc(100vw - 14px), (max-width:1199px) calc(100vw - 240px), 840px"></a></figure><h3 class="cb-heading" id="article-section-8" data-article-heading>永远在线的上下文图：活跃、动态、学习</h3><p>Jedify 从每个连接的源和每个被问及的问题中积累上下文。语义视图是其在 Snowflake 中的当前形态，并在业务与昨天不同时自动重新塑形。</p><p><strong>如果您想了解更多关于 Snowflake + Jedify 的</strong>解决方案在您的组织中可能是什么样子。点击<a href="https://jedify.com/snowflakes-partnership/" target="_blank" rel="noopener noreferrer nofollow">此处了解更多</a>。</p><p>Jedify 现已在<a href="https://app.snowflake.com/marketplace/listing/GZTSZMNR9YR5/jedify-jedify-context-layer?search=jedify" target="_blank" rel="noopener noreferrer nofollow">Snowflake Marketplace</a>上线，为企业 AI 提供治理的业务上下文，从 Snowflake 和外部数据中实现有根据的可靠答案。</p><p><a href="https://medium.com/snowflake/jedify-collaborates-with-snowflake-to-enable-enterprises-with-always-on-business-context-146a2d8430bb" target="_blank" rel="noopener noreferrer nofollow">Jedify 与 Snowflake 合作，使企业具备“永远在线”的业务上下文</a>最初发表在<a href="https://medium.com/snowflake" target="_blank" rel="noopener noreferrer nofollow">Snowflake Builders Blog: Data Engineers, App Developers, AI, &amp; Data Science</a>Medium 上，人们在此继续对话，通过强调和回应这个故事。</p></div>
   <div class="content-footer"><a class="original-footer-link" href="https://medium.com/snowflake/jedify-collaborates-with-snowflake-to-enable-enterprises-with-always-on-business-context-146a2d8430bb?source=rss----34b6daafc07---4" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Snowflake Engineering（Medium）"><span>查看原文</span><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div>
 </section>
   <div class="vendors article-tags" aria-label="文章主题"><a class="chip" href="../topics/semantic-layer.html">语义层</a><span class="vtag">Snowflake</span><span class="vtag">Jedify</span></div>
@@ -923,61 +972,12 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="sh-poster-tip">iOS 也可以长按图片保存</div>
 </div>
 <div class="sh-toast" id="shToast"></div>
-<style>
-.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;margin-bottom:14px}
-.topbar .back{flex:0 0 auto;white-space:nowrap}
-.sharebtns{display:flex;justify-content:flex-end;gap:8px;min-width:0;max-width:100%;margin-left:auto}
-.sharebtns .sbtn{min-width:76px}
-.sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-height:44px;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
-.sbtn svg{flex:0 0 auto}
-.sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
-.sbtn:active{transform:scale(.95)}
-.topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-.topbar.detail-context .back{display:inline-flex;align-items:center;justify-content:center;align-self:center;min-width:88px;min-height:44px;margin-bottom:0;padding:0 14px;border-radius:99px;font-size:14px;font-weight:650;color:var(--ink);text-decoration:none}
-.topbar.detail-context .back{gap:5px}
-.topbar.detail-context .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media(max-width:600px){
-.article{padding:20px 14px 48px}
-.topbar{align-items:center;flex-direction:row;gap:8px}
-.topbar.detail-context{margin:-20px -14px 14px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
-.topbar.detail-context .back{align-self:center}
-.sharebtns{width:auto;gap:4px;overflow:visible;padding-bottom:0}
-.sharebtns .sbtn{width:56px;min-width:56px;height:44px;padding:0 6px;font-size:12px}
-.sharebtns .sbtn-label{display:inline}
-}
-@media(max-width:359px){
-.topbar.detail-context .back{width:44px;min-width:44px;padding:0}
-.topbar.detail-context .back-label{display:none}
-}
-.sh-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.25s;z-index:80}
-.sh-mask.show{opacity:1;pointer-events:auto}
-.sh-sheet{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(110%);transition:transform .3s cubic-bezier(.32,.72,.35,1);padding:0 10px calc(10px + env(safe-area-inset-bottom))}
-.sh-sheet.show{transform:translateY(0)}
-.sh-panel{max-width:430px;margin:0 auto}
-.sh-group{background:var(--card);border-radius:16px;overflow:hidden;margin-bottom:8px}
-.sh-title{font-size:12px;color:var(--sub);text-align:center;padding:12px;border-bottom:.5px solid var(--line)}
-.sh-opt{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px;font-size:16px;font-weight:500;border:none;border-bottom:.5px solid var(--line);cursor:pointer;background:none;width:100%;color:var(--ink)}
-.sh-opt:last-child{border-bottom:none}
-.sh-opt:active{background:var(--hover)}
-.sh-cancel{background:var(--card);border-radius:16px;padding:15px;text-align:center;font-size:16px;font-weight:600;color:var(--blue);cursor:pointer;width:100%;border:none}
-.sh-poster-modal{position:fixed;inset:0;z-index:95;background:rgba(15,17,20,.92);display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px}
-.sh-poster-modal.show{display:flex}
-.sh-poster-wrap{width:min(340px,86vw);border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-.sh-poster-wrap img{width:100%;display:block}
-.sh-poster-actions{margin-top:18px;display:flex;gap:10px}
-.sh-save,.sh-close{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:none;border-radius:99px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
-.sbtn:focus-visible,.sh-opt:focus-visible,.sh-cancel:focus-visible,.sh-save:focus-visible,.sh-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.sh-save{background:var(--accent);color:#fff}
-.sh-close{background:rgba(255,255,255,.15);color:#fff}
-.sh-poster-tip{margin-top:10px;font-size:11px;color:#8b919b}
-.sh-toast{position:fixed;top:18%;left:50%;transform:translateX(-50%);background:rgba(26,29,35,.92);color:#fff;font-size:13px;padding:10px 20px;border-radius:99px;opacity:0;transition:.25s;z-index:99;pointer-events:none}
-.sh-toast.show{opacity:1}
-</style>
+
 <script>
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title":"Jedify携手Snowflake，用持续业务上下文增强Cortex Analyst查询准确性","summary":"Jedify与Snowflake宣布合作，借助Jedify的Context Graph持续从CRM、计费系统、业务规则及真实SQL问答对等来源构建业务知识，形成受治理的领域语义视图。Cortex Analyst基于这些视图回答自然语言查询，可随业务变化自动保持准确，且数据始终留在Snowflake中。该方案旨在解决传统语义层一次性建模后难以跟上业务演进的痛点。","reason":"数据从业者可关注如何用持续更新的上下文图弥补传统语义层静态建模的不足，从而提升ChatBI/Text-to-SQL的准确性与可维护性。","topic":"语义层","heat":35,"source":"Snowflake Engineering (Medium)","date":"2026-09-04","url":"https://datahot.xiahongbin.com/e/9289824de212.html","qr":"../qr/9289824de212.png"};
+var SH_EV = {"title":"Jedify携手Snowflake，用持续业务上下文增强Cortex Analyst查询准确性","summary":"Jedify与Snowflake宣布合作，借助Jedify的Context Graph持续从CRM、计费系统、业务规则及真实SQL问答对等来源构建业务知识，形成受治理的领域语义视图。Cortex Analyst基于这些视图回答自然语言查询，可随业务变化自动保持准确，且数据始终留在Snowflake中。该方案旨在解决传统语义层一次性建模后难以跟上业务演进的痛点。","reason":"数据从业者可关注如何用持续更新的上下文图弥补传统语义层静态建模的不足，从而提升ChatBI/Text-to-SQL的准确性与可维护性。","topic":"语义层","heat":34,"source":"Snowflake Engineering (Medium)","date":"2026-09-04","url":"https://datahot.xiahongbin.com/e/9289824de212.html","qr":"../qr/9289824de212.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

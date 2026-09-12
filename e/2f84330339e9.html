@@ -23,7 +23,7 @@
 <link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://datahot.xiahongbin.com/feed.xml">
 <meta name="datahot-analytics" data-enabled="true" data-endpoint="https://metrics.datahot.xiahongbin.com/v1/events" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
 <script defer src="../analytics.js?v=20077f7d7e8b"></script>
-<script defer src="../favorites.js"></script>
+<script defer src="../favorites.js?v=d80c0b507585"></script>
 <script defer src="../content-feedback.js"></script>
 <script defer src="../detail.js"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"亚马逊云科技推出规范驱动组合，简化数据工作流治理","description":"亚马逊云科技介绍了一种规范驱动组合模式，将工作流意图与处理逻辑分离，以减少数据流水线重复代码并强化验证治理。该方法采用意图层、组合层、处理层三层架构，基于 AWS Lambda、Step Functions、S3 与 OpenSearch Service 实现，通过声明式规范和转换能力注册表动态组装","datePublished":"2026-09-04T00:16:00+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://www.infoq.cn/article/cg5y0kCfmWKrIjCraZeH?utm_source=rss\u0026utm_medium=article","image":"https://datahot.xiahongbin.com/media/2f84330339e9/b5f103de1ba4867333cfab58.webp"}</script>
@@ -773,6 +773,55 @@ main,.layout>*,.hotlist>*{min-width:0}
 .original-footer-link:focus-visible,.meta-source-link:focus-visible,.article-toc-mobile summary:focus-visible,.article-toc-mobile a:focus-visible,.article-toc-rail a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:1199px){.article-layout.has-toc{display:block}.article-layout.has-toc .article-content{margin:0 auto}.article-toc-rail{display:none}.article-toc-mobile{display:block}}
 @media(max-width:600px){.article{padding-left:16px;padding-right:16px}.article h1{font-size:24px;line-height:1.45}.fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:none}.fulltext p,.fulltext li{font-size:16px;line-height:1.82}.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}.related-meta{max-width:88px}}
+</style><style>
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;margin-bottom:14px}
+.topbar .back{flex:0 0 auto;white-space:nowrap}
+.sharebtns{display:flex;justify-content:flex-end;gap:8px;min-width:0;max-width:100%;margin-left:auto}
+.sharebtns .sbtn{min-width:76px}
+.sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-height:44px;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
+.sbtn svg{flex:0 0 auto}
+.sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.sbtn:active{transform:scale(.95)}
+.topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topbar.detail-context .back{display:inline-flex;align-items:center;justify-content:center;align-self:center;min-width:88px;min-height:44px;margin-bottom:0;padding:0 14px;border-radius:99px;font-size:14px;font-weight:650;color:var(--ink);text-decoration:none}
+.topbar.detail-context .back{gap:5px}
+.topbar.detail-context .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:600px){
+.article{padding:20px 14px 48px}
+.topbar{align-items:center;flex-direction:row;gap:8px}
+.topbar.detail-context{margin:-20px -14px 14px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
+.topbar.detail-context .back{align-self:center}
+.sharebtns{width:auto;gap:4px;overflow:visible;padding-bottom:0}
+.sharebtns .sbtn{width:56px;min-width:56px;height:44px;padding:0 6px;font-size:12px}
+.sharebtns .sbtn-label{display:inline}
+}
+@media(max-width:359px){
+.topbar.detail-context .back{width:44px;min-width:44px;padding:0}
+.topbar.detail-context .back-label{display:none}
+}
+.sh-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.25s;z-index:80}
+.sh-mask.show{opacity:1;pointer-events:auto}
+.sh-sheet{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(110%);transition:transform .3s cubic-bezier(.32,.72,.35,1);padding:0 10px calc(10px + env(safe-area-inset-bottom))}
+.sh-sheet.show{transform:translateY(0)}
+.sh-panel{max-width:430px;margin:0 auto}
+.sh-group{background:var(--card);border-radius:16px;overflow:hidden;margin-bottom:8px}
+.sh-title{font-size:12px;color:var(--sub);text-align:center;padding:12px;border-bottom:.5px solid var(--line)}
+.sh-opt{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px;font-size:16px;font-weight:500;border:none;border-bottom:.5px solid var(--line);cursor:pointer;background:none;width:100%;color:var(--ink)}
+.sh-opt:last-child{border-bottom:none}
+.sh-opt:active{background:var(--hover)}
+.sh-cancel{background:var(--card);border-radius:16px;padding:15px;text-align:center;font-size:16px;font-weight:600;color:var(--blue);cursor:pointer;width:100%;border:none}
+.sh-poster-modal{position:fixed;inset:0;z-index:95;background:rgba(15,17,20,.92);display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.sh-poster-modal.show{display:flex}
+.sh-poster-wrap{width:min(340px,86vw);border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.sh-poster-wrap img{width:100%;display:block}
+.sh-poster-actions{margin-top:18px;display:flex;gap:10px}
+.sh-save,.sh-close{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:none;border-radius:99px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
+.sbtn:focus-visible,.sh-opt:focus-visible,.sh-cancel:focus-visible,.sh-save:focus-visible,.sh-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sh-save{background:var(--accent);color:#fff}
+.sh-close{background:rgba(255,255,255,.15);color:#fff}
+.sh-poster-tip{margin-top:10px;font-size:11px;color:#8b919b}
+.sh-toast{position:fixed;top:18%;left:50%;transform:translateX(-50%);background:rgba(26,29,35,.92);color:#fff;font-size:13px;padding:10px 20px;border-radius:99px;opacity:0;transition:.25s;z-index:99;pointer-events:none}
+.sh-toast.show{opacity:1}
 </style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="2f84330339e9" data-category="platform" data-source="InfoQ 中文">
 <aside class="sidebar"><div class="slogo"><a href="../index.html" data-smart-home-return aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><nav class="sidebar-nav" aria-label="主导航"><a class="mi on" href="../index.html" data-smart-home-return><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../for-me.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg>关注</a><a class="mi" href="../cases.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg>案例</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>周报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>收藏</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a></nav><nav class="sidebar-tools" aria-label="工具"><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a></nav><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a> · <a href="https://bsky.app/profile/datahot.xiahongbin.com" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Bluesky" style="color:var(--sub);text-decoration:underline">Bluesky</a><br>数据领域 AI 资讯分享</div></aside>
 <header class="detail-brand-header"><div class="wrap nav">
@@ -801,7 +850,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   </div>
   <h1>亚马逊云科技推出规范驱动组合，简化数据工作流治理</h1>
   <section class="tts-player" id="ttsPlayer" data-tts-player data-duration="67" hidden aria-label="文章精华朗读">
-  <audio data-tts-audio preload="metadata" src="../audio/2026/09/2f84330339e9-c34893995c40f26a.mp3"></audio>
+  <audio data-tts-audio preload="none" src="../audio/2026/09/2f84330339e9-c34893995c40f26a.mp3"></audio>
   <div class="tts-copy"><b>DataHot 主播</b><span data-tts-status>约 1 分钟精华朗读</span></div>
   <button class="tts-toggle" type="button" data-tts-toggle aria-label="播放朗读">播放</button>
   <input class="tts-progress" type="range" data-tts-progress min="0" max="67" value="0" step="0.1" aria-label="朗读进度">
@@ -819,7 +868,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   
   <section class="content-section" aria-labelledby="articleBodyTitle">
   <div class="content-heading"><h2 id="articleBodyTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 原文</h2></div>
-  <div class="fulltext"><ul><li>田橙</li></ul><ul><li>2026-09-03北京</li><li>本文字数：1096 字 阅读完需：约 4 分钟</li></ul><p>AI摘要</p><p>该文提出一种规范驱动组合模式，通过分离工作流意图与处理逻辑，解决多数据集场景下流水线代码重复、验证困难及治理低效问题。其三层架构（意图层、组合层、处理层）依托 AWS 无服务器服务实现动态流水线组装。</p><p>规范即声明式意图，天然支持可追溯性；能力注册表统一管理可复用转换函数元数据；组合器自动验证规范并生成可运行工作流。</p><p>适合数据平台工程师、ETL 架构师、云原生SRE 阅读</p><figure class="cb-figure"><a class="cb-media-link" href="https://static001.infoq.cn/resource/image/5c/fb/5cf11121a23ae778193afc840a236efb.jpg?x-oss-process=image/resize,w_726" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/2f84330339e9/b5f103de1ba4867333cfab58.webp" alt="" loading="lazy" decoding="async" width="726" height="484"></a></figure><p>亚马逊云科技介绍了一种用于构建灵活数据转换工作流的<a href="https://aws.amazon.com/blogs/architecture/specification-driven-composition-for-flexible-data-workflows/" target="_blank" rel="noopener noreferrer nofollow">规范驱动组合模式</a>。该模式将工作流意图与处理逻辑分离，以减少重复的流水线代码，并简化验证和治理。该方法使用结构化规范动态组合可复用的处理能力，其无服务器实现基于 AWS Lambda、AWS Step Functions、Amazon S3 和 Amazon OpenSearch Service。</p><p>该模式面向随着组织不断增加数据集和工作流变体而变得难以维护的数据流水线。亚马逊云科技指出，基于脚本的实现通常会将编排、转换和验证逻辑结合在一起，导致引入新数据集时必须修改代码并重新部署。由此产生的重复也会增加工作流行为的追踪难度，在受监管环境中尤其如此。</p><p>规范驱动组合将工作流分成三层：包含规范的意图层、负责验证规范并组装流水线的组合层，以及执行转换步骤的处理层。</p><figure class="cb-figure"><a class="cb-media-link" href="https://static001.geekbang.org/infoq/19/19e46a968567b211ccb763be59b597a3.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/2f84330339e9/e8016e9cc3c899dc55499300.webp" alt="" loading="lazy" decoding="async" width="1260" height="1262"></a></figure><p>三层规范驱动组合架构（来源：<a href="https://aws.amazon.com/blogs/architecture/specification-driven-composition-for-flexible-data-workflows/" target="_blank" rel="noopener noreferrer nofollow">亚马逊云科技博客文章</a>）</p><p><a href="https://www.linkedin.com/in/rajat-shrivastav-dxb/" target="_blank" rel="noopener noreferrer nofollow">Rajat Shrivastav</a> 在 <a href="https://www.linkedin.com/feed/update/urn:li:activity:7481113293756215296?commentUrn=urn%3Ali%3Acomment%3A%28activity%3A7481113293756215296%2C7481303549633720320%29&amp;dashCommentUrn=urn%3Ali%3Afsd_comment%3A%287481303549633720320%2Curn%3Ali%3Aactivity%3A7481113293756215296%29" target="_blank" rel="noopener noreferrer nofollow">LinkedIn</a> 上评论亚马逊云科技对该模式的介绍时写道：</p><blockquote>通过将意图编码为声明式规范，你可以确保可追溯性不再是事后补充；它本身就是流水线的核心。</blockquote><p>规范通常以 JSON 或 YAML 表示，用于描述源数据集和目标数据集、字段映射及转换，而不定义这些转换的具体实现方式。组合器会验证规范、检查被引用的能力，并生成可运行的工作流。能力注册表保存可复用转换函数的元数据，包括标识符、输入和输出格式、调用信息、权限及版本。</p><p>在亚马逊云科技的示例中，工作流规范存储在 Amazon S3 中。S3 事件会调用一个基于 Lambda 的组合器，由它验证规范，并在 Amazon OpenSearch Service 中查询能力元数据。随后，组合器创建并启动一个 <a href="https://docs.aws.amazon.com/step-functions/" target="_blank" rel="noopener noreferrer nofollow">AWS Step Functions</a> 状态机，由该状态机调用各个基于 Lambda 的能力处理器。处理器则将追踪信息发送到 Amazon CloudWatch Logs。</p><figure class="cb-figure"><a class="cb-media-link" href="https://static001.geekbang.org/infoq/e7/e736fecd300f026061a9ffc389f180da.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/2f84330339e9/276c2eb364cda364b55c32bb.webp" alt="" loading="lazy" decoding="async" width="1260" height="536"></a></figure><p>亚马逊云科技对规范驱动组合的实现（来源：<a href="https://aws.amazon.com/blogs/architecture/specification-driven-composition-for-flexible-data-workflows/" target="_blank" rel="noopener noreferrer nofollow">亚马逊云科技博客文章</a>）</p><p>该注册表还支持使用描述、模式和标签等元数据发现能力。规范可以根据意图引用可复用转换，而不要求规范编写者了解确切的实现标识符。亚马逊云科技还介绍了带版本的能力引用，以支持可复现的工作流执行，并对新能力进行独立验证和审批。</p><p>该模式可以将数据分类纳入规范。敏感字段可以添加标签，而各项能力则声明其会如何影响敏感性。组合器可以利用这些定义验证最终的数据分类，并为下游使用者生成脱敏产物。</p><p>亚马逊云科技将该模式定位于受监管的报告、多数据源集成和<a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/patterns/orchestrate-an-etl-pipeline-with-validation-transformation-and-partitioning-using-aws-step-functions.html" target="_blank" rel="noopener noreferrer nofollow">可复用 ETL 工作流</a>等场景，在这些场景中，可追溯性和执行前验证非常重要。该公司也指出，对于简单转换或仅包含少量工作流的环境，规范驱动组合可能会引入不必要的复杂性。因此，随着工作流变体和治理要求增加，这种方法才会更具适用性。</p><p>原文链接：<a href="https://www.infoq.com/news/2026/08/aws-spec-driven-data-workflow/" target="_blank" rel="noopener noreferrer nofollow">https://www.infoq.com/news/2026/08/aws-spec-driven-data-workflow/</a></p></div>
+  <div class="fulltext"><ul><li>田橙</li></ul><ul><li>2026-09-03北京</li><li>本文字数：1096 字 阅读完需：约 4 分钟</li></ul><p>AI摘要</p><p>该文提出一种规范驱动组合模式，通过分离工作流意图与处理逻辑，解决多数据集场景下流水线代码重复、验证困难及治理低效问题。其三层架构（意图层、组合层、处理层）依托 AWS 无服务器服务实现动态流水线组装。</p><p>规范即声明式意图，天然支持可追溯性；能力注册表统一管理可复用转换函数元数据；组合器自动验证规范并生成可运行工作流。</p><p>适合数据平台工程师、ETL 架构师、云原生SRE 阅读</p><figure class="cb-figure"><a class="cb-media-link" href="https://static001.infoq.cn/resource/image/5c/fb/5cf11121a23ae778193afc840a236efb.jpg?x-oss-process=image/resize,w_726" target="_blank" rel="noopener noreferrer nofollow"><img src="../derived-media/6e68cbc656db770d68ef-480.webp" alt="" loading="lazy" decoding="async" width="726" height="484" srcset="../derived-media/6e68cbc656db770d68ef-480.webp 480w, ../derived-media/6e68cbc656db770d68ef-726.webp 726w" sizes="(max-width:600px) calc(100vw - 14px), (max-width:1199px) calc(100vw - 240px), 840px"></a></figure><p>亚马逊云科技介绍了一种用于构建灵活数据转换工作流的<a href="https://aws.amazon.com/blogs/architecture/specification-driven-composition-for-flexible-data-workflows/" target="_blank" rel="noopener noreferrer nofollow">规范驱动组合模式</a>。该模式将工作流意图与处理逻辑分离，以减少重复的流水线代码，并简化验证和治理。该方法使用结构化规范动态组合可复用的处理能力，其无服务器实现基于 AWS Lambda、AWS Step Functions、Amazon S3 和 Amazon OpenSearch Service。</p><p>该模式面向随着组织不断增加数据集和工作流变体而变得难以维护的数据流水线。亚马逊云科技指出，基于脚本的实现通常会将编排、转换和验证逻辑结合在一起，导致引入新数据集时必须修改代码并重新部署。由此产生的重复也会增加工作流行为的追踪难度，在受监管环境中尤其如此。</p><p>规范驱动组合将工作流分成三层：包含规范的意图层、负责验证规范并组装流水线的组合层，以及执行转换步骤的处理层。</p><figure class="cb-figure"><a class="cb-media-link" href="https://static001.geekbang.org/infoq/19/19e46a968567b211ccb763be59b597a3.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../derived-media/95196a38e7243b946eb5-480.webp" alt="" loading="lazy" decoding="async" width="1260" height="1262" srcset="../derived-media/95196a38e7243b946eb5-480.webp 480w, ../derived-media/95196a38e7243b946eb5-960.webp 960w, ../derived-media/95196a38e7243b946eb5-1260.webp 1260w" sizes="(max-width:600px) calc(100vw - 14px), (max-width:1199px) calc(100vw - 240px), 840px"></a></figure><p>三层规范驱动组合架构（来源：<a href="https://aws.amazon.com/blogs/architecture/specification-driven-composition-for-flexible-data-workflows/" target="_blank" rel="noopener noreferrer nofollow">亚马逊云科技博客文章</a>）</p><p><a href="https://www.linkedin.com/in/rajat-shrivastav-dxb/" target="_blank" rel="noopener noreferrer nofollow">Rajat Shrivastav</a> 在 <a href="https://www.linkedin.com/feed/update/urn:li:activity:7481113293756215296?commentUrn=urn%3Ali%3Acomment%3A%28activity%3A7481113293756215296%2C7481303549633720320%29&amp;dashCommentUrn=urn%3Ali%3Afsd_comment%3A%287481303549633720320%2Curn%3Ali%3Aactivity%3A7481113293756215296%29" target="_blank" rel="noopener noreferrer nofollow">LinkedIn</a> 上评论亚马逊云科技对该模式的介绍时写道：</p><blockquote>通过将意图编码为声明式规范，你可以确保可追溯性不再是事后补充；它本身就是流水线的核心。</blockquote><p>规范通常以 JSON 或 YAML 表示，用于描述源数据集和目标数据集、字段映射及转换，而不定义这些转换的具体实现方式。组合器会验证规范、检查被引用的能力，并生成可运行的工作流。能力注册表保存可复用转换函数的元数据，包括标识符、输入和输出格式、调用信息、权限及版本。</p><p>在亚马逊云科技的示例中，工作流规范存储在 Amazon S3 中。S3 事件会调用一个基于 Lambda 的组合器，由它验证规范，并在 Amazon OpenSearch Service 中查询能力元数据。随后，组合器创建并启动一个 <a href="https://docs.aws.amazon.com/step-functions/" target="_blank" rel="noopener noreferrer nofollow">AWS Step Functions</a> 状态机，由该状态机调用各个基于 Lambda 的能力处理器。处理器则将追踪信息发送到 Amazon CloudWatch Logs。</p><figure class="cb-figure"><a class="cb-media-link" href="https://static001.geekbang.org/infoq/e7/e736fecd300f026061a9ffc389f180da.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../derived-media/09ec9c054f47382206a1-480.webp" alt="" loading="lazy" decoding="async" width="1260" height="536" srcset="../derived-media/09ec9c054f47382206a1-480.webp 480w, ../derived-media/09ec9c054f47382206a1-960.webp 960w, ../derived-media/09ec9c054f47382206a1-1260.webp 1260w" sizes="(max-width:600px) calc(100vw - 14px), (max-width:1199px) calc(100vw - 240px), 840px"></a></figure><p>亚马逊云科技对规范驱动组合的实现（来源：<a href="https://aws.amazon.com/blogs/architecture/specification-driven-composition-for-flexible-data-workflows/" target="_blank" rel="noopener noreferrer nofollow">亚马逊云科技博客文章</a>）</p><p>该注册表还支持使用描述、模式和标签等元数据发现能力。规范可以根据意图引用可复用转换，而不要求规范编写者了解确切的实现标识符。亚马逊云科技还介绍了带版本的能力引用，以支持可复现的工作流执行，并对新能力进行独立验证和审批。</p><p>该模式可以将数据分类纳入规范。敏感字段可以添加标签，而各项能力则声明其会如何影响敏感性。组合器可以利用这些定义验证最终的数据分类，并为下游使用者生成脱敏产物。</p><p>亚马逊云科技将该模式定位于受监管的报告、多数据源集成和<a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/patterns/orchestrate-an-etl-pipeline-with-validation-transformation-and-partitioning-using-aws-step-functions.html" target="_blank" rel="noopener noreferrer nofollow">可复用 ETL 工作流</a>等场景，在这些场景中，可追溯性和执行前验证非常重要。该公司也指出，对于简单转换或仅包含少量工作流的环境，规范驱动组合可能会引入不必要的复杂性。因此，随着工作流变体和治理要求增加，这种方法才会更具适用性。</p><p>原文链接：<a href="https://www.infoq.com/news/2026/08/aws-spec-driven-data-workflow/" target="_blank" rel="noopener noreferrer nofollow">https://www.infoq.com/news/2026/08/aws-spec-driven-data-workflow/</a></p></div>
   <div class="content-footer"><div class="disclaimer">正文来自 RSS 或原网页；DataHot 仅做安全清洗和版式整理，未使用 AI 改写</div><a class="original-footer-link" href="https://www.infoq.cn/article/cg5y0kCfmWKrIjCraZeH?utm_source=rss&amp;utm_medium=article" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="InfoQ 中文"><span>查看原文</span><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div>
 </section>
   <div class="vendors article-tags" aria-label="文章主题"><span class="vtag">AWS</span></div>
@@ -923,56 +972,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="sh-poster-tip">iOS 也可以长按图片保存</div>
 </div>
 <div class="sh-toast" id="shToast"></div>
-<style>
-.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;margin-bottom:14px}
-.topbar .back{flex:0 0 auto;white-space:nowrap}
-.sharebtns{display:flex;justify-content:flex-end;gap:8px;min-width:0;max-width:100%;margin-left:auto}
-.sharebtns .sbtn{min-width:76px}
-.sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-height:44px;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
-.sbtn svg{flex:0 0 auto}
-.sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
-.sbtn:active{transform:scale(.95)}
-.topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-.topbar.detail-context .back{display:inline-flex;align-items:center;justify-content:center;align-self:center;min-width:88px;min-height:44px;margin-bottom:0;padding:0 14px;border-radius:99px;font-size:14px;font-weight:650;color:var(--ink);text-decoration:none}
-.topbar.detail-context .back{gap:5px}
-.topbar.detail-context .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media(max-width:600px){
-.article{padding:20px 14px 48px}
-.topbar{align-items:center;flex-direction:row;gap:8px}
-.topbar.detail-context{margin:-20px -14px 14px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
-.topbar.detail-context .back{align-self:center}
-.sharebtns{width:auto;gap:4px;overflow:visible;padding-bottom:0}
-.sharebtns .sbtn{width:56px;min-width:56px;height:44px;padding:0 6px;font-size:12px}
-.sharebtns .sbtn-label{display:inline}
-}
-@media(max-width:359px){
-.topbar.detail-context .back{width:44px;min-width:44px;padding:0}
-.topbar.detail-context .back-label{display:none}
-}
-.sh-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.25s;z-index:80}
-.sh-mask.show{opacity:1;pointer-events:auto}
-.sh-sheet{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(110%);transition:transform .3s cubic-bezier(.32,.72,.35,1);padding:0 10px calc(10px + env(safe-area-inset-bottom))}
-.sh-sheet.show{transform:translateY(0)}
-.sh-panel{max-width:430px;margin:0 auto}
-.sh-group{background:var(--card);border-radius:16px;overflow:hidden;margin-bottom:8px}
-.sh-title{font-size:12px;color:var(--sub);text-align:center;padding:12px;border-bottom:.5px solid var(--line)}
-.sh-opt{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px;font-size:16px;font-weight:500;border:none;border-bottom:.5px solid var(--line);cursor:pointer;background:none;width:100%;color:var(--ink)}
-.sh-opt:last-child{border-bottom:none}
-.sh-opt:active{background:var(--hover)}
-.sh-cancel{background:var(--card);border-radius:16px;padding:15px;text-align:center;font-size:16px;font-weight:600;color:var(--blue);cursor:pointer;width:100%;border:none}
-.sh-poster-modal{position:fixed;inset:0;z-index:95;background:rgba(15,17,20,.92);display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px}
-.sh-poster-modal.show{display:flex}
-.sh-poster-wrap{width:min(340px,86vw);border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-.sh-poster-wrap img{width:100%;display:block}
-.sh-poster-actions{margin-top:18px;display:flex;gap:10px}
-.sh-save,.sh-close{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:none;border-radius:99px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
-.sbtn:focus-visible,.sh-opt:focus-visible,.sh-cancel:focus-visible,.sh-save:focus-visible,.sh-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.sh-save{background:var(--accent);color:#fff}
-.sh-close{background:rgba(255,255,255,.15);color:#fff}
-.sh-poster-tip{margin-top:10px;font-size:11px;color:#8b919b}
-.sh-toast{position:fixed;top:18%;left:50%;transform:translateX(-50%);background:rgba(26,29,35,.92);color:#fff;font-size:13px;padding:10px 20px;border-radius:99px;opacity:0;transition:.25s;z-index:99;pointer-events:none}
-.sh-toast.show{opacity:1}
-</style>
+
 <script>
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};

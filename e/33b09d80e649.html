@@ -23,7 +23,7 @@
 <link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://datahot.xiahongbin.com/feed.xml">
 <meta name="datahot-analytics" data-enabled="true" data-endpoint="https://metrics.datahot.xiahongbin.com/v1/events" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
 <script defer src="../analytics.js?v=20077f7d7e8b"></script>
-<script defer src="../favorites.js"></script>
+<script defer src="../favorites.js?v=d80c0b507585"></script>
 <script defer src="../content-feedback.js"></script>
 <script defer src="../detail.js"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"用Snowpark Python实现安全回填模式","description":"本文针对数据管道回填操作中的常见挑战，提出使用Snowpark Python的解决方案。当目标表为派生事实表、源为追加型事件日志时，每次批量处理可能包含插入、更新和删除，回填需处理冲突与数据新鲜度。文章总结了五种最常见的回填问题，并逐一给出简单可复用的模式。适合数据工程团队在维护当前状态表时参考。","datePublished":"2026-08-21T03:01:01+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://medium.com/snowflake/merge-safe-backfill-patterns-with-snowpark-python-e856b2fe24de?source=rss----34b6daafc07---4","image":"https://datahot.xiahongbin.com/media/33b09d80e649/a2ab257ef6d80c6a320c2edd.png"}</script>
@@ -773,6 +773,55 @@ main,.layout>*,.hotlist>*{min-width:0}
 .original-footer-link:focus-visible,.meta-source-link:focus-visible,.article-toc-mobile summary:focus-visible,.article-toc-mobile a:focus-visible,.article-toc-rail a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:1199px){.article-layout.has-toc{display:block}.article-layout.has-toc .article-content{margin:0 auto}.article-toc-rail{display:none}.article-toc-mobile{display:block}}
 @media(max-width:600px){.article{padding-left:16px;padding-right:16px}.article h1{font-size:24px;line-height:1.45}.fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:none}.fulltext p,.fulltext li{font-size:16px;line-height:1.82}.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}.related-meta{max-width:88px}}
+</style><style>
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;margin-bottom:14px}
+.topbar .back{flex:0 0 auto;white-space:nowrap}
+.sharebtns{display:flex;justify-content:flex-end;gap:8px;min-width:0;max-width:100%;margin-left:auto}
+.sharebtns .sbtn{min-width:76px}
+.sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-height:44px;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
+.sbtn svg{flex:0 0 auto}
+.sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.sbtn:active{transform:scale(.95)}
+.topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topbar.detail-context .back{display:inline-flex;align-items:center;justify-content:center;align-self:center;min-width:88px;min-height:44px;margin-bottom:0;padding:0 14px;border-radius:99px;font-size:14px;font-weight:650;color:var(--ink);text-decoration:none}
+.topbar.detail-context .back{gap:5px}
+.topbar.detail-context .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:600px){
+.article{padding:20px 14px 48px}
+.topbar{align-items:center;flex-direction:row;gap:8px}
+.topbar.detail-context{margin:-20px -14px 14px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
+.topbar.detail-context .back{align-self:center}
+.sharebtns{width:auto;gap:4px;overflow:visible;padding-bottom:0}
+.sharebtns .sbtn{width:56px;min-width:56px;height:44px;padding:0 6px;font-size:12px}
+.sharebtns .sbtn-label{display:inline}
+}
+@media(max-width:359px){
+.topbar.detail-context .back{width:44px;min-width:44px;padding:0}
+.topbar.detail-context .back-label{display:none}
+}
+.sh-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.25s;z-index:80}
+.sh-mask.show{opacity:1;pointer-events:auto}
+.sh-sheet{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(110%);transition:transform .3s cubic-bezier(.32,.72,.35,1);padding:0 10px calc(10px + env(safe-area-inset-bottom))}
+.sh-sheet.show{transform:translateY(0)}
+.sh-panel{max-width:430px;margin:0 auto}
+.sh-group{background:var(--card);border-radius:16px;overflow:hidden;margin-bottom:8px}
+.sh-title{font-size:12px;color:var(--sub);text-align:center;padding:12px;border-bottom:.5px solid var(--line)}
+.sh-opt{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px;font-size:16px;font-weight:500;border:none;border-bottom:.5px solid var(--line);cursor:pointer;background:none;width:100%;color:var(--ink)}
+.sh-opt:last-child{border-bottom:none}
+.sh-opt:active{background:var(--hover)}
+.sh-cancel{background:var(--card);border-radius:16px;padding:15px;text-align:center;font-size:16px;font-weight:600;color:var(--blue);cursor:pointer;width:100%;border:none}
+.sh-poster-modal{position:fixed;inset:0;z-index:95;background:rgba(15,17,20,.92);display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.sh-poster-modal.show{display:flex}
+.sh-poster-wrap{width:min(340px,86vw);border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.sh-poster-wrap img{width:100%;display:block}
+.sh-poster-actions{margin-top:18px;display:flex;gap:10px}
+.sh-save,.sh-close{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:none;border-radius:99px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
+.sbtn:focus-visible,.sh-opt:focus-visible,.sh-cancel:focus-visible,.sh-save:focus-visible,.sh-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sh-save{background:var(--accent);color:#fff}
+.sh-close{background:rgba(255,255,255,.15);color:#fff}
+.sh-poster-tip{margin-top:10px;font-size:11px;color:#8b919b}
+.sh-toast{position:fixed;top:18%;left:50%;transform:translateX(-50%);background:rgba(26,29,35,.92);color:#fff;font-size:13px;padding:10px 20px;border-radius:99px;opacity:0;transition:.25s;z-index:99;pointer-events:none}
+.sh-toast.show{opacity:1}
 </style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="33b09d80e649" data-category="platform" data-source="Snowflake Engineering（Medium）">
 <aside class="sidebar"><div class="slogo"><a href="../index.html" data-smart-home-return aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><nav class="sidebar-nav" aria-label="主导航"><a class="mi on" href="../index.html" data-smart-home-return><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../for-me.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg>关注</a><a class="mi" href="../cases.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg>案例</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>周报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>收藏</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a></nav><nav class="sidebar-tools" aria-label="工具"><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a></nav><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a> · <a href="https://bsky.app/profile/datahot.xiahongbin.com" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Bluesky" style="color:var(--sub);text-decoration:underline">Bluesky</a><br>数据领域 AI 资讯分享</div></aside>
 <header class="detail-brand-header"><div class="wrap nav">
@@ -810,7 +859,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <details class="article-toc-mobile"><summary>本文目录 <span>11 节</span></summary><ol><li class="toc-level-4"><a href="#article-section-1" data-toc-link data-toc-target="article-section-1">在不破坏当前数据的前提下重放历史数据</a></li><li class="toc-level-3"><a href="#article-section-2" data-toc-link data-toc-target="article-section-2">基本设置</a></li><li class="toc-level-4"><a href="#article-section-3" data-toc-link data-toc-target="article-section-3">模拟示例数据</a></li><li class="toc-level-4"><a href="#article-section-4" data-toc-link data-toc-target="article-section-4">每日增量管道</a></li><li class="toc-level-3"><a href="#article-section-5" data-toc-link data-toc-target="article-section-5">回填挑战与解决方案</a></li><li class="toc-level-4"><a href="#article-section-6" data-toc-link data-toc-target="article-section-6">问题 1：事件窗口不告诉你需要重新计算什么</a></li><li class="toc-level-4"><a href="#article-section-7" data-toc-link data-toc-target="article-section-7">问题 2：去重必须解决整个历史，而不是切片</a></li><li class="toc-level-4"><a href="#article-section-8" data-toc-link data-toc-target="article-section-8">问题 3：重用每日作业的新鲜度保护会静默丢弃修复</a></li><li class="toc-level-4"><a href="#article-section-9" data-toc-link data-toc-target="article-section-9">问题 4：单次大型重建占用过多资源</a></li><li class="toc-level-4"><a href="#article-section-10" data-toc-link data-toc-target="article-section-10">问题5：长时间运行的回填在执行过程中不可见</a></li><li class="toc-level-3"><a href="#article-section-11" data-toc-link data-toc-target="article-section-11">综合运用</a></li></ol></details>
   <section class="content-section" aria-labelledby="articleBodyTitle">
   <div class="content-heading"><h2 id="articleBodyTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 译文</h2> <span class="content-origin-badge">AI 逐段翻译</span></div>
-  <div class="fulltext"><h4 class="cb-heading" id="article-section-1" data-article-heading>在不破坏当前数据的前提下重放历史数据</h4><p>当数据管道每天仅插入新行时，回填很容易。当每个批次包含必须应用于当前状态表的插入、更新和删除时，任务变得更加复杂。回填操作需要关注冲突条件和数据新鲜度。本文指出了五个最常见的回填问题，并使用 Snowpark Python 为每个问题提供了简单的解决方案。</p><figure class="cb-figure"><a class="cb-media-link" href="https://cdn-images-1.medium.com/max/1024/1*mHb5PSuoP0C3QOkV3K7m6w.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../media/33b09d80e649/a2ab257ef6d80c6a320c2edd.png" alt="" loading="lazy" decoding="async" width="1024" height="572"></a></figure><p><strong>假设：</strong> 本文讨论的模式很常见：目标是派生的事实表——不是源数据的切片，而是转换、丰富后的表示形式，保存每个实体的当前状态。源是不可变的追加事件日志，无限增长（不是 SCD 2 型表）——每个状态变化、金额调整和取消都作为带时间戳的新行捕获。</p><h3 class="cb-heading" id="article-section-2" data-article-heading>基本设置</h3><h4 class="cb-heading" id="article-section-3" data-article-heading>模拟示例数据</h4><p>模拟示例使用 <strong>订单事件</strong> 源和 <strong>订单事实</strong> 目标。</p><pre><code class="language-">-- Source: append-only event log of order state changes
+  <div class="fulltext"><h4 class="cb-heading" id="article-section-1" data-article-heading>在不破坏当前数据的前提下重放历史数据</h4><p>当数据管道每天仅插入新行时，回填很容易。当每个批次包含必须应用于当前状态表的插入、更新和删除时，任务变得更加复杂。回填操作需要关注冲突条件和数据新鲜度。本文指出了五个最常见的回填问题，并使用 Snowpark Python 为每个问题提供了简单的解决方案。</p><figure class="cb-figure"><a class="cb-media-link" href="https://cdn-images-1.medium.com/max/1024/1*mHb5PSuoP0C3QOkV3K7m6w.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../derived-media/0b8c1c218ab164274cb2-480.webp" alt="" loading="lazy" decoding="async" width="1024" height="572" srcset="../derived-media/0b8c1c218ab164274cb2-480.webp 480w, ../derived-media/0b8c1c218ab164274cb2-960.webp 960w, ../derived-media/0b8c1c218ab164274cb2-1024.webp 1024w" sizes="(max-width:600px) calc(100vw - 14px), (max-width:1199px) calc(100vw - 240px), 840px"></a></figure><p><strong>假设：</strong> 本文讨论的模式很常见：目标是派生的事实表——不是源数据的切片，而是转换、丰富后的表示形式，保存每个实体的当前状态。源是不可变的追加事件日志，无限增长（不是 SCD 2 型表）——每个状态变化、金额调整和取消都作为带时间戳的新行捕获。</p><h3 class="cb-heading" id="article-section-2" data-article-heading>基本设置</h3><h4 class="cb-heading" id="article-section-3" data-article-heading>模拟示例数据</h4><p>模拟示例使用 <strong>订单事件</strong> 源和 <strong>订单事实</strong> 目标。</p><pre><code class="language-">-- Source: append-only event log of order state changes
 CREATE OR REPLACE TABLE order_events (
     order_id        VARCHAR,
     customer_id     VARCHAR,
@@ -1179,56 +1228,7 @@ session.sql(&quot;&quot;&quot;
   <div class="sh-poster-tip">iOS 也可以长按图片保存</div>
 </div>
 <div class="sh-toast" id="shToast"></div>
-<style>
-.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;margin-bottom:14px}
-.topbar .back{flex:0 0 auto;white-space:nowrap}
-.sharebtns{display:flex;justify-content:flex-end;gap:8px;min-width:0;max-width:100%;margin-left:auto}
-.sharebtns .sbtn{min-width:76px}
-.sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-height:44px;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
-.sbtn svg{flex:0 0 auto}
-.sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
-.sbtn:active{transform:scale(.95)}
-.topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-.topbar.detail-context .back{display:inline-flex;align-items:center;justify-content:center;align-self:center;min-width:88px;min-height:44px;margin-bottom:0;padding:0 14px;border-radius:99px;font-size:14px;font-weight:650;color:var(--ink);text-decoration:none}
-.topbar.detail-context .back{gap:5px}
-.topbar.detail-context .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media(max-width:600px){
-.article{padding:20px 14px 48px}
-.topbar{align-items:center;flex-direction:row;gap:8px}
-.topbar.detail-context{margin:-20px -14px 14px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
-.topbar.detail-context .back{align-self:center}
-.sharebtns{width:auto;gap:4px;overflow:visible;padding-bottom:0}
-.sharebtns .sbtn{width:56px;min-width:56px;height:44px;padding:0 6px;font-size:12px}
-.sharebtns .sbtn-label{display:inline}
-}
-@media(max-width:359px){
-.topbar.detail-context .back{width:44px;min-width:44px;padding:0}
-.topbar.detail-context .back-label{display:none}
-}
-.sh-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.25s;z-index:80}
-.sh-mask.show{opacity:1;pointer-events:auto}
-.sh-sheet{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(110%);transition:transform .3s cubic-bezier(.32,.72,.35,1);padding:0 10px calc(10px + env(safe-area-inset-bottom))}
-.sh-sheet.show{transform:translateY(0)}
-.sh-panel{max-width:430px;margin:0 auto}
-.sh-group{background:var(--card);border-radius:16px;overflow:hidden;margin-bottom:8px}
-.sh-title{font-size:12px;color:var(--sub);text-align:center;padding:12px;border-bottom:.5px solid var(--line)}
-.sh-opt{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px;font-size:16px;font-weight:500;border:none;border-bottom:.5px solid var(--line);cursor:pointer;background:none;width:100%;color:var(--ink)}
-.sh-opt:last-child{border-bottom:none}
-.sh-opt:active{background:var(--hover)}
-.sh-cancel{background:var(--card);border-radius:16px;padding:15px;text-align:center;font-size:16px;font-weight:600;color:var(--blue);cursor:pointer;width:100%;border:none}
-.sh-poster-modal{position:fixed;inset:0;z-index:95;background:rgba(15,17,20,.92);display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px}
-.sh-poster-modal.show{display:flex}
-.sh-poster-wrap{width:min(340px,86vw);border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-.sh-poster-wrap img{width:100%;display:block}
-.sh-poster-actions{margin-top:18px;display:flex;gap:10px}
-.sh-save,.sh-close{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:none;border-radius:99px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
-.sbtn:focus-visible,.sh-opt:focus-visible,.sh-cancel:focus-visible,.sh-save:focus-visible,.sh-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.sh-save{background:var(--accent);color:#fff}
-.sh-close{background:rgba(255,255,255,.15);color:#fff}
-.sh-poster-tip{margin-top:10px;font-size:11px;color:#8b919b}
-.sh-toast{position:fixed;top:18%;left:50%;transform:translateX(-50%);background:rgba(26,29,35,.92);color:#fff;font-size:13px;padding:10px 20px;border-radius:99px;opacity:0;transition:.25s;z-index:99;pointer-events:none}
-.sh-toast.show{opacity:1}
-</style>
+
 <script>
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};

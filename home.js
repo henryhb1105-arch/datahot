@@ -503,7 +503,7 @@
     }
     function fetchEvents() {
       if (!payloadPromise) {
-        payloadPromise = win.fetch(config.dataset.liteUrl, { cache: "no-store", credentials: "omit" })
+        payloadPromise = win.fetch(config.dataset.liteUrl, { cache: "default", credentials: "omit" })
           .then(function (response) { if (!response.ok) throw new Error("lite payload " + response.status); return response.json(); })
           .then(function (payload) { allEvents = orderedEvents(payload); return allEvents; });
       }

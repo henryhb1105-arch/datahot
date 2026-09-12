@@ -913,7 +913,8 @@ def analytics_head(prefix=""):
 
 
 def favorites_head(prefix=""):
-    return f'<script defer src="{prefix}favorites.js"></script>'
+    version = hashlib.sha256(FAVORITES_ASSET.read_bytes()).hexdigest()[:12]
+    return f'<script defer src="{prefix}favorites.js?v={version}"></script>'
 
 def feed_enabled():
     return os.getenv("FEED_ENABLED", "true").strip().lower() in {"1", "true", "yes", "on"}
@@ -1401,7 +1402,7 @@ def render_tts_ui(item):
         f'{ic("headphones",15)} <span class="sbtn-label" data-tts-open-label>速听</span></button>'
     )
     player = f'''<section class="tts-player" id="ttsPlayer" data-tts-player data-duration="{duration}" hidden aria-label="文章精华朗读">
-  <audio data-tts-audio preload="metadata" src="../{esc(audio_path)}"></audio>
+  <audio data-tts-audio preload="none" src="../{esc(audio_path)}"></audio>
   <div class="tts-copy"><b>DataHot 主播</b><span data-tts-status>约 {max(1, round(duration / 60))} 分钟精华朗读</span></div>
   <button class="tts-toggle" type="button" data-tts-toggle aria-label="播放朗读">播放</button>
   <input class="tts-progress" type="range" data-tts-progress min="0" max="{duration}" value="0" step="0.1" aria-label="朗读进度">
@@ -1533,7 +1534,7 @@ def render_product_case_breakdown(product_case):
 </section>'''
 
 
-def render_detail(e, all_events, css, tts_item=None, product_case=None):
+def render_detail(e, all_events, css, tts_item=None, product_case=None, site_root=None):
     event_id = safe_event_id(e["event_id"])
     tts_button, tts_player, tts_script = render_tts_ui(tts_item)
     related = select_related_events(e, all_events)
@@ -1619,7 +1620,7 @@ def render_detail(e, all_events, css, tts_item=None, product_case=None):
     toc_entries = article_toc_entries(safe_blocks)
     heading_ids = [entry["id"] for entry in toc_entries]
     full_paras = (
-        render_blocks_html(safe_blocks, render_media=render_media, heading_ids=heading_ids)
+        render_blocks_html(safe_blocks, render_media=render_media, heading_ids=heading_ids, site_root=site_root)
         if safe_blocks else ""
     )
     if not full_paras:
@@ -1928,9 +1929,13 @@ def render_detail(e, all_events, css, tts_item=None, product_case=None):
 {tabbar("cases" if product_case else "home", "../")}
 {tts_script}
 </body></html>'''
-    return finalize_html_security(
-        page.replace("</body></html>", share_ui(e, page_url) + "</body></html>")
-    )
+    share = share_ui(e, page_url)
+    # The share component also styles the article topbar. These rules must
+    # precede first paint, including when the document arrives in chunks.
+    share_styles = re.findall(r"<style>.*?</style>", share, flags=re.S)
+    share = re.sub(r"<style>.*?</style>", "", share, flags=re.S)
+    page = page.replace("</head>", "".join(share_styles) + "</head>", 1)
+    return finalize_html_security(page.replace("</body></html>", share + "</body></html>"))
 
 def share_ui(e, page_url):
     """详情页分享组件：Action Sheet（复制链接/海报/系统分享）+ Canvas 海报生成。普通字符串，非 f-string"""
@@ -2483,7 +2488,7 @@ def _case_root_media_url(cached_src):
     return value
 
 
-def render_cases_page(product_cases, events, css, studies=()):
+def render_cases_page(product_cases, events, css, studies=(), site_root=None):
     """A question-led product-design reference and comparison workspace."""
     product_cases, event_map = library_records(product_cases, events, studies)
     study_order = {study["slug"]: index for index, study in enumerate(studies)}
@@ -2560,7 +2565,7 @@ def render_cases_page(product_cases, events, css, studies=()):
     )
 
     cards = []
-    for product_case, event, hero in prepared:
+    for card_index, (product_case, event, hero) in enumerate(prepared):
         study = product_case.get("study")
         product = str(product_case.get("product") or event.get("zh_title") or "产品案例")
         product_type = str(product_case.get("product_type") or "")
@@ -2605,7 +2610,7 @@ def render_cases_page(product_cases, events, css, studies=()):
         media_url = esc(_case_root_media_url(hero.get('cached_src')))
         cards.append(f'''<article class="case-card" data-case-card data-case-id="{esc(event['event_id'])}" data-analytics-list="1" data-event-id="{esc(event['event_id'])}" data-category="{esc(event.get('category') or '')}" data-source="{esc(source_name)}" data-product-type="{esc(product_type)}" data-task-type="{esc(task_type)}" data-design-questions="{esc('|'.join(design_questions))}" data-search="{esc(search_text)}" data-compare-product="{esc(product)}" data-compare-problem="{esc(problem)}" data-compare-pattern="{esc(solution)}" data-compare-modules="{esc(' · '.join(all_modules))}" data-compare-takeaway="{esc(takeaway)}" data-compare-tradeoff="{esc(tradeoff)}" data-compare-url="{esc(detail_href)}">
   <a class="case-card-media" href="{media_url}" data-case-image data-image-group="library" data-image-caption="{esc(product)}：{esc(alt)}" data-case-target="{esc(detail_href)}" aria-label="放大 {esc(product)} 的界面">
-    {card_image(_case_root_media_url(hero.get("cached_src")), alt)}
+    {card_image(_case_root_media_url(hero.get("cached_src")), alt, site_root=site_root, priority=card_index == 0)}
     <span class="case-card-type">{esc(product_type)}</span>
     <span class="case-card-figures">{esc(material)}</span>
   </a>
@@ -3101,6 +3106,7 @@ def write_detail_pages(
                 event, all_events, css,
                 tts_item=tts_item_for_event(tts_manifest, event_id, site_root=site_root),
                 product_case=case_by_event_id.get(event_id),
+                site_root=site_root,
             ), encoding="utf-8",
         )
     for path in detail_dir.glob("*.html"):
@@ -3228,6 +3234,7 @@ def main():
     if len(lite_bytes) >= full_bytes:
         raise RuntimeError(f"latest-lite.json must be smaller than latest.json ({len(lite_bytes)} >= {full_bytes})")
     lite_path.write_bytes(lite_bytes)
+    lite_data_url = "data/latest-lite.json?v=" + hashlib.sha256(lite_bytes).hexdigest()[:12]
     reduction = round((1 - len(lite_bytes) / full_bytes) * 100, 1)
     print(f"[lite] latest.json {full_bytes:,} B → latest-lite.json {len(lite_bytes):,} B（减少 {reduction}%）")
 
@@ -3323,7 +3330,7 @@ def main():
     weekly_teaser = render_weekly_brief_teaser(weekly_brief) if weekly_enabled else ""
     weekly_header_link = f'<a class="tab d-only" href="weekly.html" style="text-decoration:none">{ic("calendar",14)} 周报</a>' if weekly_enabled else ""
     home_config = (
-        f'<meta id="homeDataConfig" data-lite-url="data/latest-lite.json" '
+        f'<meta id="homeDataConfig" data-lite-url="{lite_data_url}" '
         f'data-page-size="{DEFAULT_PAGE_SIZE}" data-total="{len(timeline_events)}" '
         f'data-top-ids="{esc(",".join(top_ids))}">'
         if lite_enabled else ""
@@ -3335,7 +3342,8 @@ def main():
         f'加载更多（{len(home_first_page)}/{len(timeline_events)}）</button>'
         if lite_enabled else ""
     )
-    home_asset = '<script defer src="home.js"></script>'
+    home_version = hashlib.sha256(HOME_ASSET.read_bytes()).hexdigest()[:12]
+    home_asset = f'<script defer src="home.js?v={home_version}"></script>'
 
     page = f'''<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
@@ -3492,7 +3500,7 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
 
     page = finalize_html_security(page)
     (SITE / "sources.html").write_text(render_sources_page(timeline_events, payload, css), encoding="utf-8")
-    (SITE / "cases.html").write_text(render_cases_page(product_cases, all_events, css, design_studies), encoding="utf-8")
+    (SITE / "cases.html").write_text(render_cases_page(product_cases, all_events, css, design_studies, site_root=SITE), encoding="utf-8")
     study_css = css + (ROOT / "pipeline/assets/design-studies.css").read_text(encoding="utf-8")
     (SITE / "cases").mkdir(exist_ok=True)
     for study in design_studies:
@@ -3522,7 +3530,7 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
     (SITE / "hot.html").write_text(
         render_hot_page(hot_window_events, css, reference_time=gen), encoding="utf-8",
     )
-    favorite_data_url = "data/latest-lite.json" if lite_enabled else "data/latest.json"
+    favorite_data_url = lite_data_url if lite_enabled else "data/latest.json"
     (SITE / "favorites.html").write_text(render_favorites_page(css, favorite_data_url), encoding="utf-8")
     (SITE / "for-me.html").write_text(render_for_me_page(css, favorite_data_url), encoding="utf-8")
     (SITE / "weekly.html").write_text(

@@ -5,6 +5,7 @@ import math
 import re
 from functools import lru_cache
 from pathlib import Path
+from image_derivatives import responsive_image
 
 MANIFEST = Path(__file__).with_name("case_visuals.json")
 
@@ -37,14 +38,25 @@ def visual_for(src):
     return load_visuals().get(str(src).removeprefix("../"))
 
 
-def card_image(src, alt):
+def card_image(src, alt, *, site_root=None, priority=False):
     source, text = html.escape(src, quote=True), html.escape(alt, quote=True)
     region = visual_for(src)
+    preview = responsive_image(src, site_root, widths=(400, 800, 1200), crop=region["rect"] if region else None)
+    loading = 'loading="eager" fetchpriority="high"' if priority else 'loading="lazy"'
+    if preview:
+        suffix = "（局部预览）" if region else ""
+        sizes = "(max-width:600px) calc(100vw - 30px), (max-width:820px) 116px, (max-width:1200px) calc((100vw - 258px)/2), 352px"
+        image = (f'<img src="{preview["src"]}" srcset="{preview["srcset"]}" sizes="{sizes}" '
+                 f'width="{preview["width"]}" height="{preview["height"]}" alt="{text}{suffix}" '
+                 f'{loading} decoding="async">')
+        if region:
+            return f'<span class="case-preview-window">{image}</span><span class="case-preview-label">局部预览 · 点击看全图</span>'
+        return image
     if not region:
-        return f'<img src="{source}" alt="{text}" loading="lazy" decoding="async">'
+        return f'<img src="{source}" alt="{text}" {loading} decoding="async">'
     x, y, width, height = region["rect"]
     style = f'width:{region["image_width"] / width * 100:.4f}%;left:{-x / width * 100:.4f}%;top:{-y / height * 100:.4f}%'
-    return f'<span class="case-preview-window"><img src="{source}" alt="{text}（局部预览）" style="{style}" loading="lazy" decoding="async"></span><span class="case-preview-label">局部预览 · 点击看全图</span>'
+    return f'<span class="case-preview-window"><img src="{source}" alt="{text}（局部预览）" style="{style}" {loading} decoding="async"></span><span class="case-preview-label">局部预览 · 点击看全图</span>'
 
 
 def detail_image(src, alt, attributes=""):

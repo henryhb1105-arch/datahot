@@ -10,6 +10,7 @@ import json
 import re
 from html.parser import HTMLParser
 from urllib.parse import urljoin, urlparse
+from image_derivatives import responsive_image
 
 
 BLOCK_TYPES = {"heading", "paragraph", "list", "blockquote", "code", "table", "figure"}
@@ -1656,7 +1657,7 @@ def _render_inlines(nodes):
     return "".join(rendered)
 
 
-def render_blocks_html(blocks, render_media=True, heading_ids=None):
+def render_blocks_html(blocks, render_media=True, heading_ids=None, site_root=None):
     rendered = []
     heading_ids = list(heading_ids or [])
     heading_index = 0
@@ -1714,10 +1715,16 @@ def render_blocks_html(blocks, render_media=True, heading_ids=None):
             dimensions = ""
             if block.get("width") and block.get("height"):
                 dimensions = f' width="{block["width"]}" height="{block["height"]}"'
+            responsive = ""
+            preview = responsive_image(cached_src, site_root)
+            if preview:
+                cached_src = preview["src"]
+                dimensions = f' width="{preview["width"]}" height="{preview["height"]}"'
+                responsive = f' srcset="{preview["srcset"]}" sizes="(max-width:600px) calc(100vw - 14px), (max-width:1199px) calc(100vw - 240px), 840px"'
             visual = (
                 f'<a class="cb-media-link" href="{original_src}" target="_blank" '
                 f'rel="noopener noreferrer nofollow"><img src="{cached_src}" alt="{alt}" '
-                f'loading="lazy" decoding="async"{dimensions}></a>'
+                f'loading="lazy" decoding="async"{dimensions}{responsive}></a>'
             )
             rendered.append(f'<figure class="cb-figure">{visual}</figure>')
     return "".join(rendered)

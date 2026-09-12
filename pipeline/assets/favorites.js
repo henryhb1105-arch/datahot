@@ -389,7 +389,7 @@
     var needsEnrichment = records.some(function (record) { return !record.title; });
     var dataUrl = page.getAttribute("data-favorites-data-url");
     if (needsEnrichment && dataUrl && typeof win.fetch === "function") {
-      win.fetch(dataUrl, { cache: "no-store", credentials: "same-origin" }).then(function (response) {
+      win.fetch(dataUrl, { cache: "default", credentials: "same-origin" }).then(function (response) {
         if (!response.ok) throw new Error("favorites metadata " + response.status);
         return response.json();
       }).then(function (payload) {

@@ -1694,6 +1694,8 @@ def backfill_structured_content(
         if not event.get("items"):
             continue
         mode = event.get("content_mode")
+        if mode == "editorial_excerpt" and event.get("event_id") not in requested_event_ids:
+            continue
         language = event.get("source_language")
         translation_status = event.get("translation_status")
         previous = event.get("content_parse") if isinstance(event.get("content_parse"), dict) else {}

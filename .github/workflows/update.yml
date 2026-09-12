@@ -66,6 +66,7 @@ jobs:
 
       - name: 采集 → AI 加工 → 生成静态站
         env:
+          PUBLISH_REVIEWED_ONLY: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[publish-reviewed]') }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           LLM_BASE_URL: "https://api.deepseek.com"
           LLM_MODEL: "deepseek-v4-flash"
@@ -111,8 +112,13 @@ jobs:
           BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
           BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
         run: |
-          python3 pipeline/run_discovery.py
-          python3 pipeline/run_update.py
+          if [ "$PUBLISH_REVIEWED_ONLY" = "true" ]; then
+            echo "发布已审核内容：复用已入库数据，跳过采集和付费 AI 加工"
+            python3 pipeline/import_manual_batch.py --registered
+          else
+            python3 pipeline/run_discovery.py
+            python3 pipeline/run_update.py
+          fi
           python3 pipeline/quarantine_content.py \
             --baseline "$RUNNER_TEMP/datahot-main-baseline/latest.json" \
             --candidate site/data/latest.json \

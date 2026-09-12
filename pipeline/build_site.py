@@ -1113,6 +1113,9 @@ def card_time(e):
     """Show publication recency, or both selection and source dates for picks."""
     pub, fs = e.get("published"), e.get("first_seen")
     curated = e.get("curated_at") if e.get("editorial_pick") else None
+    if e.get("source_date_label"):
+        prefix = f"{md(curated)} 收录 · " if curated else ""
+        return prefix + str(e["source_date_label"])
     if curated:
         return (
             f"{md(curated)} 收录 · 原文 {md(pub)}"
@@ -1650,7 +1653,12 @@ def render_detail(e, all_events, css, tts_item=None, product_case=None, site_roo
             else:
                 full_paras += "".join(f"<p>{esc(x)}</p>" for x in para.split("\n") if x.strip())
     content_mode = e.get("content_mode") or "legacy_ai"
-    if content_mode == "translated":
+    if content_mode == "editorial_excerpt":
+        content_title = "阅读提示"
+        content_badge = "编辑导读"
+        content_note = "编辑整理的阅读提示；完整论述、代码与图表请查看原文。"
+        meta_mode_label = "编辑导读"
+    elif content_mode == "translated":
         content_title = "译文"
         content_badge = "AI 逐段翻译"
         content_note = ""
@@ -1718,9 +1726,11 @@ def render_detail(e, all_events, css, tts_item=None, product_case=None, site_roo
     jsonld_payload = {
         "@context": "https://schema.org", "@type": "NewsArticle",
         "headline": e["zh_title"], "description": e["zh_summary"][:150],
-        "datePublished": e["published"], "inLanguage": "zh-CN",
+        "datePublished": e.get("published"), "inLanguage": "zh-CN",
         "publisher": {"@type": "Organization", "name": "DataHot"},
     }
+    if not e.get("published"):
+        jsonld_payload.pop("datePublished")
     if main_url:
         jsonld_payload["isBasedOn"] = main_url
     if social_image:
@@ -1908,7 +1918,7 @@ def render_detail(e, all_events, css, tts_item=None, product_case=None, site_roo
     {main_source_meta}
     <span class="meta-content-mode">{esc(meta_mode_label)}</span>
     {'<span class="editorial-pick">编辑精选</span>' if e.get("editorial_pick") else ''}
-    <span title="发布时间">{("发布 " + fmt_date(e["published"])) if e.get("published") else "收录 " + fmt_date(e.get("first_seen"))}</span>
+    <span title="{'来源日期' if e.get('source_date_label') else '发布时间'}">{esc(e["source_date_label"]) if e.get("source_date_label") else (("发布 " + fmt_date(e["published"])) if e.get("published") else "收录 " + fmt_date(e.get("first_seen")))}</span>
     {f'<span style="color:var(--sub);font-size:11px" title="加入编辑精选的时间">精选于 {fmt_date(e.get("curated_at"))}</span>' if e.get("editorial_pick") and e.get("curated_at") else (f'<span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 {md(e.get("first_seen"))}</span>' if e.get("published") and e.get("first_seen") and e["published"][:10] != e["first_seen"][:10] else "")}
   </div>
   <h1>{esc(e["zh_title"])}</h1>

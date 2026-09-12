@@ -29,6 +29,11 @@ class LocalReferenceParser(HTMLParser):
         for name, value in attrs:
             if name.casefold() in {"href", "src", "data-poster-qr-src"} and value is not None:
                 self.references.append((line, value.strip()))
+            elif name.casefold() == "srcset" and value:
+                for candidate in value.split(","):
+                    fields = candidate.strip().split()
+                    if fields:
+                        self.references.append((line, fields[0]))
 
     def handle_starttag(self, tag, attrs):
         self._collect(attrs)

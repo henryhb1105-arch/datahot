@@ -50,14 +50,14 @@ class FavoritesTests(unittest.TestCase):
         self.assertIn('data-favorites-data-url="data/latest-lite.json"', page)
         self.assertIn('id="favoritesSearch"', page)
         self.assertIn("仅保存在当前浏览器", page)
-        self.assertIn('<script defer src="favorites.js"></script>', page)
+        self.assertRegex(page, r'<script defer src="favorites\.js\?v=[a-f0-9]{12}"></script>')
         self.assertNotIn("收藏的内容已过期", page)
         self.assertNotIn("localStorage.getItem('dh_favs')", page)
 
     def test_detail_and_topic_cards_use_the_shared_favorite_client(self):
         item = event()
         detail = build_site.render_detail(item, [item], "")
-        self.assertIn('<script defer src="../favorites.js"></script>', detail)
+        self.assertRegex(detail, r'<script defer src="\.\./favorites\.js\?v=[a-f0-9]{12}"></script>')
         self.assertIn('class="sbtn ghost favbtn"', detail)
         self.assertNotIn("function dhFavs()", detail)
 
@@ -67,7 +67,7 @@ class FavoritesTests(unittest.TestCase):
         )
         self.assertIn('class="topic-recent-wrap"', topic_page)
         self.assertIn('class="favbtn topic-recent-fav"', topic_page)
-        self.assertIn('<script defer src="../favorites.js"></script>', topic_page)
+        self.assertRegex(topic_page, r'<script defer src="\.\./favorites\.js\?v=[a-f0-9]{12}"></script>')
 
     def test_timeline_snapshot_keeps_favorite_action_after_hot_cards_are_removed(self):
         item = event()

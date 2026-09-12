@@ -1,16 +1,16 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-09-11T11:23:50.515814+00:00
-- 本轮原始发现：2
-- 未收录文章候选：11
-- 新信源候选：10
+- 生成时间：2026-09-12T10:49:01.532340+00:00
+- 本轮原始发现：4
+- 未收录文章候选：13
+- 新信源候选：12
 - 已收录链接去重：0
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
 
 ## 发现通道
 
 - openai_web_search: skipped · OPENAI_API_KEY 未配置
-- hn_official: ok · 0 条
+- hn_official: ok · 2 条
 - accepted_link_graph: ok · 2 条
 
 ## 优先检查的新信源
@@ -25,12 +25,16 @@
 - **www.kxan.com** · DISCOVERED · 1 篇 · hn
 - **lapcatsoftware.com** · DISCOVERED · 1 篇 · hn
 - **lareviewofbooks.org** · DISCOVERED · 1 篇 · hn
+- **capitalbnews.org** · DISCOVERED · 1 篇 · hn
+- **www.researchagenda.news** · DISCOVERED · 1 篇 · hn
 
 ## 优先检查的文章
 
 - [Chrome again exempts Google from user site data settings](https://lapcatsoftware.com/articles/2026/9/1.html) · hn
 - [Can I opt out of my input or output data being used for training?](https://help.mistral.ai/en/articles/455207-can-i-opt-out-of-my-input-or-output-data-being-used-for-training) · hn
+- [The EPA is planning to scrap public review rules for data center pollution](https://capitalbnews.org/data-centers-permit-rules-epa) · hn
 - [Evidence of Fraud in an Influential Study About Procrastination](https://datacolada.org/138) · hn
+- [The Waymo effect: how AI is quietly making research less collaborative](https://www.researchagenda.news/articles/the-waymo-effect.html) · hn
 - [EPA says power for data centers can sidestep pollution laws](https://www.epa.gov/newsreleases/epa-issues-permitting-guidance-further-president-trumps-agenda-promoting-data-centers) · hn
 - [SQLite as a Document Database (2020)](https://dgl.cx/2020/06/sqlite-json-support) · hn
 - [Intrusive linked lists (2019)](https://www.data-structures-in-practice.com/intrusive-linked-lists) · hn

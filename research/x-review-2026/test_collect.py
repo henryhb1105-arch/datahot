@@ -14,6 +14,11 @@ class MemoryLedger(c.Ledger):
         self.state = state
 
 class BoundsTest(unittest.TestCase):
+    def setUp(self):
+        sleeper = patch.object(c.time, 'sleep')
+        sleeper.start()
+        self.addCleanup(sleeper.stop)
+
     def test_request_reservation_survives_unknown_outcome(self):
         ledger = MemoryLedger({'closed': False, 'requests': {}})
         ledger.reserve('one')

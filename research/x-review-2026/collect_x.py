@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import sys
+import time
 from urllib.parse import urlencode, quote
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 from urllib.error import HTTPError
@@ -48,7 +49,8 @@ class Ledger:
         self.url = 'https://api.github.com/repos/' + REPO + '/contents/' + LEDGER
 
     def load(self):
-        r = request('GET', self.url + '?ref=' + quote(BRANCH, safe=''), self.headers)
+        r = request('GET', self.url + '?ref=' + quote(BRANCH, safe='') + '&request_id=' + str(time.time_ns()),
+                    {**self.headers, 'Cache-Control': 'no-cache'})
         return json.loads(base64.b64decode(r['content'])), r['sha']
 
     def save(self, state, sha):
@@ -67,11 +69,13 @@ class Ledger:
         state['requests'][query_id] = {'reserved_posts': 10, 'status': 'reserved',
                                       'run_id': os.environ.get('GITHUB_RUN_ID')}
         self.save(state, sha)
+        time.sleep(2)  # Allow the branch ref read to observe its preceding commit.
 
     def finish(self, query_id, result):
         state, sha = self.load()
         state['requests'][query_id].update(result)
         self.save(state, sha)
+        time.sleep(2)
 
 def search_params(q):
     if not q['start_time'].startswith('2026-') or q['end_time'] > '2026-09-12T04:50:00Z':
@@ -111,8 +115,9 @@ def main():
             search_params(q)
         ledger = Ledger()
         state, _ = ledger.load()
-        if state['closed'] or state['requests']:
-            raise Stop('one_off_already_started')
+        if state['closed'] or any(v['status'] != 'complete' for v in state['requests'].values()):
+            raise Stop('closed_or_uncertain_previous_request')
+        queries = [q for q in queries if q['id'] not in state['requests']]
         token = app_token()
         for q in queries:
             ledger.reserve(q['id'])

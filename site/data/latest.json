@@ -1,6 +1,1244 @@
 {
- "generated_at": "2026-09-14T12:58:12.012623+08:00",
+ "generated_at": "2026-09-14T20:49:06.725377+08:00",
  "events": [
+  {
+   "event_id": "a112e98a96f3",
+   "zh_title": "无需外部编排器：在 Postgres 上实现持久工作流",
+   "zh_summary": "文章介绍如何用 Postgres 充当持久状态存储与协调层，从而避免引入 Temporal 或 AWS Step Functions 等外部编排器。它用 SELECT ... FOR UPDATE SKIP LOCKED 构建并发工作队列，用主键检查点强制幂等，并通过租约与清理器实现崩溃恢复。工作流休眠和人工审批也可持久化为数据库状态，在重启后继续执行。作者来自 Kestrel Workflows，示例场景包括事故响应、云资源供给、CI/CD 和开发者请求。",
+   "reason": "为需要在数据平台或自动化系统中实现可靠工作流的从业者提供数据库原生方案，减少外部依赖，并覆盖幂等、并发与崩溃恢复等关键机制。",
+   "full_zh": "Key Takeaways\n\nDurable execution does not require a dedicated orchestrator like Temporal or AWS Step Functions; a relational database you already operate can play that role and remove a stateful, external system from your critical path.SELECT ... FOR UPDATE SKIP LOCKED turns an ordinary Postgres table into a concurrent work queue where each row is claimed by exactly one worker, with no message broker, leader election, or external lock service.Making step checkpoints a primary-key constraint lets the database enforce idempotency, so a step that reruns after a crash reads its prior result instead of repeating a side effect.Crash recovery can be implemented with a simple lease-and-sweeper pattern, where workers heartbeat the rows they own and a periodic query re-enqueues any execution whose lease expired.Storing workflow state in your primary database makes observability a plain SQL query and collapses reliability and security to one dependency.\n\nWhen we started building Kestrel Workflows (deterministic workflows for automating incident response, cloud provisioning, CI/CD, and developer requests), we hit the problem every automation system eventually hits. Our workflows had to be durable and survive all types of failures.\n\nA workflow can be defined to trigger on failing Kubernetes workloads, run an AI root cause analysis, generate a fix, wait for a human to approve the fix via Slack, and then open a GitOps pull request. If any of our systems are rescheduled in the middle of such a workflow (in Kubernetes, it most likely will) we couldn't just lose the workflow execution. We needed durable execution.\n\nThe idea behind durable execution is quite simple and powerful. As a program runs, it checkpoints its progress to an external system like a database. If the process dies, another one reloads the last checkpoint from the external system and continues from the last completed step. It is like autosave from a video game, but for backend code.\n\nThe Default: Using an External Orchestrator\n\nThe usual advice for implementing durable execution is to use an external orchestrator like Temporal or AWS Step Functions, which act as central orchestrators that coordinate steps in a workflow. In this model, a client submits a workflow, the orchestrator persists it in its own data store, and dispatches it to a worker.\n\nFor every completed step, the workflow sends its results back to the orchestrator, which checkpoints the progress and then dispatches the next step. If a worker dies, the orchestrator reassigns its steps to a healthy worker.\n\nFigure 1. External orchestration, where a dedicated orchestrator coordinates dispatch, queues, checkpoints, and workers. (Source: created by author.)\n\nWe almost went this way, but reconsidered when we looked at what it would cost us.\n\nUsing an external orchestrator means having another stateful system to deploy, secure, monitor, and upgrade. It sits in the critical path of every workflow, so it becomes a single point of failure. It needs its own access controls and audit handling because workflow step payloads, which for us include things like infrastructure topology, source code, and logs, now transmit to an external system. It brings its own data model, which is usually a key-value store optimized for workflow state rather than arbitrary relational queries, making ad-hoc analysis less straightforward than querying Postgres directly.\n\nBut here's the thing: Durable execution is fundamentally about a database since it's all about checkpointing state to a durable external system. We already run Postgres as our system of record and have invested heavily in making sure it performs at scale, so we asked ourselves: Why use an external orchestrator at all? Why not make Postgres the orchestrator?\n\nFigure 2. Postgres-backed durable execution, where stateless application servers coordinate workflow state directly through Postgres. (Source: created by author.)\n\nPostgres as the Orchestrator\n\nIn Kestrel, there is no orchestrator process. Each application server runs an embedded durable workflow library and talks straight to Postgres. Every trigger, from PagerDuty alerts to GitHub webhooks, inserts a row into a workflow_executions table:\n\nCREATE TABLE workflow_executions (\r\n\tid BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,\r\n \tworkflow_name TEXT NOT NULL,\r\n \tstatus TEXT NOT NULL DEFAULT 'enqueued',\r\n \tinput JSONB NOT NULL,\r\n\towner_id TEXT, -- which worker holds the lease\r\n\tlease_expires TIMESTAMPTZ, -- when the lease lapses\r\n\tcreated_at TIMESTAMPTZ NOT NULL DEFAULT now(), \r\n\tupdated_at TIMESTAMPTZ NOT NULL DEFAULT now()\r\n);\r\n\n\nServers poll this table to claim work. For each completed step, the server checkpoints the output to Postgres itself.\n\nOne Clause That Makes Everything Safe\n\nAll coordination happens through the Postgres database. The trick that makes it safe is one clause:\n\nSELECT id, input\r\nFROM workflow_executions\r\nWHERE status = 'enqueued'\r\nORDER BY created_at\r\nLIMIT 1\r\nFOR UPDATE SKIP LOCKED;\r\n\n\nFOR UPDATE SKIP LOCKED is the quiet hero of most Postgres-backed queues. It locks the rows a worker grabs and tells every other worker to skip past them rather than block, giving the system exactly-once processing guarantees. Two servers can poll the same table at the same time and never hand the same workflow to two executors.\n\nAlthough this article focuses on Postgres, this queue pattern is not specific to Postgres: MySQL 8.0+, MariaDB 10.6+, and Oracle also support SKIP LOCKED, while Db2 and SQL Server provide equivalent mechanisms for skipping locked rows.\n\nThis claim happens inside a short transaction that also flips the status and writes the lease, so the worker owns the row before it does any work:\n\nBEGIN;\r\n \r\nWITH claimed AS (\r\n\tSELECT id\r\n\tFROM workflow_executions\r\n\tWHERE status = 'enqueued'\r\n\tORDER BY created_at\r\n\tLIMIT 1\r\n\tFOR UPDATE SKIP LOCKED\r\n)\r\nUPDATE workflow_executions e\r\nSET status = 'running',\r\n     \towner_id = $1, -- the worker's id\r\n     \tlease_expires = now() + INTERVAL '30 seconds',\r\n     \tupdated_at = now()\r\nFROM claimed\r\nWHERE e.id = claimed.id\r\nRETURNING e.id, e.input;\r\nCOMMIT;\r\n\n\nThis transaction is the entire dispatcher. You don't need a broker, leader election, or Redis locks with TTLs. A few things that should be called out for production implementations:\n\nThe claim transaction should be tiny. It should just lock the row, flip the status, and commit. If you hold the FOR UPDATE transaction open while the step runs, you will pin a row lock for the duration of potentially long running, external work.LIMIT can be more than 1 to claim a batch of executions and amortize round trips, but the larger the batch is, the larger the blast radius if the worker dies before it finishes them.SKIP LOCKED does not preserve FIFO under contention; for our workflows that is fine and actually desirable, but if you need strict ordering, this pattern won't work.\n\nLet the Database Enforce Idempotency\n\nStep checkpoints make use of a second Postgres primitive: integrity constraints. Each step writes its output to an operation_outputs table keyed by (execution_id, step_id) as the primary key:\n\nCREATE TABLE operation_outputs (\r\n\texecution_id BIGINT NOT NULL REFERENCES workflow_executions(id),\r\n\tstep_id TEXT NOT NULL,\r\n\toutput JSONB NOT NULL,\r\n\tcreated_at TIMESTAMPTZ NOT NULL DEFAULT now(),\r\n\tPRIMARY KEY (execution_id, step_id)\r\n);\r\n\n\nWhen a step finishes, the worker records the result with an upsert that never overwrites:\n\nINSERT INTO operation_outputs (execution_id, step_id, output)\r\nVALUES ($1, $2, $3)\r\nON CONFLICT (execution_id, step_id) DO NOTHING\r\nRETURNING output;\r\n\n\nIf a recovering worker reruns a step that has already committed, the unique constraint prevents a duplicate checkpoint from being inserted. The worker reads the existing checkpoint and returns the prior result instead. The database, rather than the application code, enforces idempotency.\n\nBefore executing a step, the Orchestrator SDK running on the worker just checks operation_outputs for the (execution_id, step_id). If a row exists, it skips execution and returns the stored output downstream. Here again, we express an invariant of durable execution as a constraint and let Postgres primitives uphold it, instead of writing distributed systems bookkeeping from scratch.\n\nCrash Recovery: Leases and a Sweeper\n\nThe interesting failures are the ones where a worker claims an execution, sets status to running, and then dies, because OOM kills, node drains, pod evictions, or a dozen other Kubernetes failure reasons. These rows get stuck in running state without a live owner; this is where the lease columns come into play.\n\nA worker that owns a running execution heartbeats it on an interval, pushing the lease forward:\n\nUPDATE workflow_executions\r\nSET lease_expires = now() + INTERVAL '30 seconds',\r\n\tupdated_at = now()\r\nWHERE id = $1 and owner_id = $2;\r\n\n\nImplementing recovery with Postgres is just as simple as enforcing concurrency and idempotency. A sweeper resets executions whose worker has not renewed its lease and a healthy worker reloads the checkpoints and resumes from the most recently completed steps:\n\nUPDATE workflow_executions\r\nSET status = 'enqueued', owner_id = NULL\r\nWHERE status = 'running'\r\nAND lease_expires < now();\r\n\n\nThere are two important details that matter when implementing this for production use. The lease duration is a tradeoff. If it's too short, a slow-but-alive worker can have its work stolen, resulting in two workers running the same execution (this is safe thanks to the idempotent checkpoints, but still wasteful). If it's too long, then recovery after a crash is delayed.\n\nWithout idempotent checkpoints, which are free with Postgres, we would not be able to use aggressive leases because a false-positive sweep would cause double-execution with side effects, not just duplicated work.\n\nDurable Sleeps and Human Approvals\n\nEven waiting for a human to approve workflows from Slack, which can take an arbitrary amount of time, is durable. It is simply a row inserted into a workflow_waits table with a wake_at timestamp, instead of goroutines praying the pod it's running on lives long enough to not miss the approval decision:\n\nCREATE TABLE workflow_waits (\r\n\texecution_id BIGINT NOT NULL REFERENCES workflow_executions(id),\r\n\tstep_id TEXT NOT NULL,\r\n\twake_at TIMESTAMPTZ NOT NULL,\r\n\tPRIMARY KEY (execution_id, step_id)\r\n);\r\n\n\nWhen a workflow execution hits a sleep or approval gate, it sets its own status to waiting and inserts a workflow_waits row with a wake_at timestamp, while a periodic sweeper re-enqueues anything due:\n\nUPDATE workflow_executions e\r\nSET status = 'enqueued'\r\nFROM workflow_waits w\r\nWHERE w.execution_id = e.id\r\n\tAND e.status = 'waiting'\r\n\tAND w.wake_at <= now();\r\n\n\nThis way, wait and approval workflow steps survive any number of restarts or reschedules, because their state is stored durably in Postgres, not a thread in memory. No matter how long a wait or approval window is, whether it is two hours or two weeks, the cost is the same: just one row.\n\nWhy This Scales\n\nScalability and availability are the hard problems when you push orchestration into Postgres, which is a good thing, because they are well-understood with proven solutions. In Kestrel's case, these were problems we had previously tackled. We scale throughput by adding stateless workers; the bottleneck becomes how fast Postgres can clear the queue. We have seen that a single instance can handle tens of thousands of workflows per second without adding read replicas or using tools like Citus.\n\nAvailability becomes whatever your Postgres High Availability setup already gives, such as streaming replication and managed multi-AZ failover, because workers are fungible and can recover each other's state.\n\nOperational Considerations\n\nConnection pressure is something to look out for, because hundreds of polling workers, each with a handful of connections, can exhaust Postgres' connection limit quickly. A solution to this is to use PgBouncer transaction pooling in front of Postgres and have idle workers back off with a poll interval and jitter. But if you need fan-out across thousands of workers and sub-millisecond dispatch latency, an external durable execution engine like Temporal may be the better architectural choice. Because our workloads are I/O-bound automation pipelines, which can run from seconds to hours, need only modest concurrency, and are heavy on external calls, using Postgres is not a compromise, it is actually a better fit.\n\nAnother thing to watch for is dead tuples becoming a bottleneck at high churn. A busy queue table can become a hotspot of UPDATEs and DELETEs, which generates bloat. Thankfully, tuning autovacuum on these tables, keeping the hot row set small with partial indexes, and partitioning completed executions away from the live queue will keep the working set small and avoid this problem entirely.\n\nObservability for Free\n\nObservability is now free, which is what I like most about using Postgres here. Every workflow and every step is a row in a table, so monitoring is just SQL. For example, if you want every run that errored this month, you just execute:\n\nSELECT * FROM workflow_executions\r\nWHERE created_at > NOW() - INTERVAL '1 month'\r\nAND status = 'error';\r\n\n\nThis looks extremely trivial, but it's only possible because Postgres is relational. You can do a lot more powerful things, like joining executions against steps and approvals to answer questions like \"Which fixes got rejected and at which step?\"\n\nWe also maintain a few targeted secondary indexes on columns like status and creation time to keep these queries fast without adding much write overhead. These indexes let us build a real-time workflow observability dashboard with no extra infrastructure. With external orchestrators, these kinds of relational queries require exporting workflow state from key-value stores to separate analytics systems.\n\nReliability and Security Collapse to One Dependency\n\nAnother benefit of using Postgres for durable workflows is that reliability and security collapse into a single dependency. The only thing that can take down Kestrel workflows is Postgres failing, but as our primary system of record, if Postgres fails, so does everything else. At higher workflow volumes, it can make sense to isolate workflow state from application state in a separate Postgres deployment for resource isolation, while keeping the same operational model. Because no workflow data ever leaves the database, we implemented durable execution without adding new attack surface and systems to audit.\n\nDatabases like Postgres are already part of so many companies' infrastructure and teams already know how to operate them at scale. So, we decided it made more sense to reuse ours instead of bolting on an external orchestrator on top of it. If you already run Postgres, you have everything you need for durable workflows too.",
+   "content_blocks": [
+    {
+     "type": "heading",
+     "id": "b-3e5d8e2d9cfc",
+     "children": [
+      {
+       "type": "text",
+       "text": "Key Takeaways",
+       "marks": [],
+       "id": "t-b43363519841"
+      }
+     ],
+     "level": 3
+    },
+    {
+     "type": "list",
+     "id": "b-95c8796f7957",
+     "ordered": false,
+     "items": [
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "Durable execution does not require a dedicated orchestrator like Temporal or AWS Step Functions; a relational database you already operate can play that role and remove a stateful, external system from your critical path.",
+         "marks": [],
+         "id": "t-54ba9a3138fd"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "SELECT ... FOR UPDATE SKIP LOCKED turns an ordinary Postgres table into a concurrent work queue where each row is claimed by exactly one worker, with no message broker, leader election, or external lock service.",
+         "marks": [],
+         "id": "t-b57229b823b4"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "Making step checkpoints a primary-key constraint lets the database enforce idempotency, so a step that reruns after a crash reads its prior result instead of repeating a side effect.",
+         "marks": [],
+         "id": "t-4772b46e4737"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "Crash recovery can be implemented with a simple lease-and-sweeper pattern, where workers heartbeat the rows they own and a periodic query re-enqueues any execution whose lease expired.",
+         "marks": [],
+         "id": "t-1df21432ea97"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "Storing workflow state in your primary database makes observability a plain SQL query and collapses reliability and security to one dependency.",
+         "marks": [],
+         "id": "t-6ab7d846f4e3"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-b19af809d592",
+     "children": [
+      {
+       "type": "text",
+       "text": "When we started building Kestrel Workflows (deterministic workflows for automating incident response, cloud provisioning, CI/CD, and developer requests), we hit the problem every automation system eventually hits. Our workflows had to be durable and survive all types of failures.",
+       "marks": [],
+       "id": "t-ef97cf52da97"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-6ebcdb596fd2",
+     "children": [
+      {
+       "type": "text",
+       "text": "A workflow can be defined to trigger on failing Kubernetes workloads, run an AI root cause analysis, generate a fix, wait for a human to approve the fix via Slack, and then open a GitOps pull request. If any of our systems are rescheduled in the middle of such a workflow (in Kubernetes, it most likely will) we couldn't just lose the workflow execution. We needed durable execution.",
+       "marks": [],
+       "id": "t-452933f4836d"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-41c68d7a2064",
+     "children": [
+      {
+       "type": "text",
+       "text": "The idea behind durable execution is quite simple and powerful. As a program runs, it checkpoints its progress to an external system like a database. If the process dies, another one reloads the last checkpoint from the external system and continues from the last completed step. It is like autosave from a video game, but for backend code.",
+       "marks": [],
+       "id": "t-e039a57a2415"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-fbea6f64c8f9",
+     "children": [
+      {
+       "type": "text",
+       "text": "The Default: Using an External Orchestrator",
+       "marks": [],
+       "id": "t-3cd8da538d5c"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-9f3216f8ce5a",
+     "children": [
+      {
+       "type": "text",
+       "text": "The usual advice for implementing durable execution is to use an external orchestrator like ",
+       "marks": [],
+       "id": "t-e5effe214496"
+      },
+      {
+       "type": "text",
+       "text": "Temporal",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://temporal.io/"
+        }
+       ],
+       "id": "t-1a2fe43f3999"
+      },
+      {
+       "type": "text",
+       "text": " or ",
+       "marks": [],
+       "id": "t-37150b7c507c"
+      },
+      {
+       "type": "text",
+       "text": "AWS Step Functions",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://aws.amazon.com/step-functions/"
+        }
+       ],
+       "id": "t-191f52ac2e1a"
+      },
+      {
+       "type": "text",
+       "text": ", which act as central orchestrators that coordinate steps in a workflow. In this model, a client submits a workflow, the orchestrator persists it in its own data store, and dispatches it to a worker.",
+       "marks": [],
+       "id": "t-c46957283fb9"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-8e8b2ad90833",
+     "children": [
+      {
+       "type": "text",
+       "text": "For every completed step, the workflow sends its results back to the orchestrator, which checkpoints the progress and then dispatches the next step. If a worker dies, the orchestrator reassigns its steps to a healthy worker.",
+       "marks": [],
+       "id": "t-930b5a9e1cc1"
+      }
+     ]
+    },
+    {
+     "type": "figure",
+     "id": "b-57dd2713d9ad",
+     "src": "https://www.infoq.com/articles/durable-workflows-postgres/articles/durable-workflows-postgres/en/resources/1figure-1-external-orchestration-1789129988356.jpg",
+     "alt": "",
+     "caption": "",
+     "source_url": "https://www.infoq.com/articles/durable-workflows-postgres/?utm_campaign=infoq_content&utm_source=infoq&utm_medium=feed&utm_term=AI%2C+ML+%26+Data+Engineering",
+     "media_status": "link_only",
+     "media_reason": "download_failed"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-036b41fc401d",
+     "children": [
+      {
+       "type": "text",
+       "text": "Figure 1. External orchestration, where a dedicated orchestrator coordinates dispatch, queues, checkpoints, and workers. (Source: created by author.)",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-4f2a969f83f4"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-e15befa7144c",
+     "children": [
+      {
+       "type": "text",
+       "text": "We almost went this way, but reconsidered when we looked at what it would cost us.",
+       "marks": [],
+       "id": "t-2f36ee4a3a29"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-b29f92dc05df",
+     "children": [
+      {
+       "type": "text",
+       "text": "Using an external orchestrator means having another stateful system to deploy, secure, monitor, and upgrade. It sits in the critical path of every workflow, so it becomes a single point of failure. It needs its own access controls and audit handling because workflow step payloads, which for us include things like infrastructure topology, source code, and logs, now transmit to an external system. It brings its own data model, which is usually a key-value store optimized for workflow state rather than arbitrary relational queries, making ad-hoc analysis less straightforward than querying Postgres directly.",
+       "marks": [],
+       "id": "t-e97b7cd04478"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-d4d3288e159b",
+     "children": [
+      {
+       "type": "text",
+       "text": "But here's the thing: Durable execution is fundamentally about a database since it's all about checkpointing state to a durable external system. We already run Postgres as our system of record and have invested heavily in making sure it performs at scale, so we asked ourselves: Why use an external orchestrator at all? Why not make Postgres the orchestrator?",
+       "marks": [],
+       "id": "t-daafae20106a"
+      }
+     ]
+    },
+    {
+     "type": "figure",
+     "id": "b-33dca9a3a260",
+     "src": "https://www.infoq.com/articles/durable-workflows-postgres/articles/durable-workflows-postgres/en/resources/1Figure-2-Postgres-backed-durable-execution-1789129988357.jpg",
+     "alt": "",
+     "caption": "",
+     "source_url": "https://www.infoq.com/articles/durable-workflows-postgres/?utm_campaign=infoq_content&utm_source=infoq&utm_medium=feed&utm_term=AI%2C+ML+%26+Data+Engineering",
+     "media_status": "link_only",
+     "media_reason": "download_failed"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-e4b11752d901",
+     "children": [
+      {
+       "type": "text",
+       "text": "Figure 2. Postgres-backed durable execution, where stateless application servers coordinate workflow state directly through Postgres. (Source: created by author.)",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-4dad4bbc2083"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-7732c54780e7",
+     "children": [
+      {
+       "type": "text",
+       "text": "Postgres as the Orchestrator",
+       "marks": [],
+       "id": "t-3aa578429f4d"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-d35978362ab4",
+     "children": [
+      {
+       "type": "text",
+       "text": "In Kestrel, there is no orchestrator process. Each application server runs an embedded durable workflow library and talks straight to Postgres. Every trigger, from PagerDuty alerts to GitHub webhooks, inserts a row into a ",
+       "marks": [],
+       "id": "t-d19ccf96d3a4"
+      },
+      {
+       "type": "text",
+       "text": "workflow_executions",
+       "marks": [
+        "code"
+       ],
+       "id": "t-52237bd7deed"
+      },
+      {
+       "type": "text",
+       "text": " table:",
+       "marks": [],
+       "id": "t-dcfa556b18a5"
+      }
+     ]
+    },
+    {
+     "type": "code",
+     "id": "b-6fca2d998787",
+     "text": "CREATE TABLE workflow_executions (\r\n\tid BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,\r\n \tworkflow_name TEXT NOT NULL,\r\n \tstatus TEXT NOT NULL DEFAULT 'enqueued',\r\n \tinput JSONB NOT NULL,\r\n\towner_id TEXT, -- which worker holds the lease\r\n\tlease_expires TIMESTAMPTZ, -- when the lease lapses\r\n\tcreated_at TIMESTAMPTZ NOT NULL DEFAULT now(), \r\n\tupdated_at TIMESTAMPTZ NOT NULL DEFAULT now()\r\n);\r\n"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-5000d3eb10fa",
+     "children": [
+      {
+       "type": "text",
+       "text": "Servers poll this table to claim work. For each completed step, the server checkpoints the output to Postgres itself.",
+       "marks": [],
+       "id": "t-67650d36cc61"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-ff9bea48f0c3",
+     "children": [
+      {
+       "type": "text",
+       "text": "One Clause That Makes Everything Safe",
+       "marks": [],
+       "id": "t-d3e2ddf5a03b"
+      }
+     ],
+     "level": 3
+    },
+    {
+     "type": "paragraph",
+     "id": "b-e6dc6f5e1a8a",
+     "children": [
+      {
+       "type": "text",
+       "text": "All coordination happens through the Postgres database. The trick that makes it safe is one clause:",
+       "marks": [],
+       "id": "t-ad61e52a1c94"
+      }
+     ]
+    },
+    {
+     "type": "code",
+     "id": "b-ae13522988df",
+     "text": "SELECT id, input\r\nFROM workflow_executions\r\nWHERE status = 'enqueued'\r\nORDER BY created_at\r\nLIMIT 1\r\nFOR UPDATE SKIP LOCKED;\r\n"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-7400c466e9f5",
+     "children": [
+      {
+       "type": "text",
+       "text": "FOR UPDATE SKIP LOCKED",
+       "marks": [
+        "code"
+       ],
+       "id": "t-c0f7a36d5725"
+      },
+      {
+       "type": "text",
+       "text": " is the quiet hero of most Postgres-backed queues. It locks the rows a worker grabs and tells every other worker to skip past them rather than block, giving the system exactly-once processing guarantees. Two servers can poll the same table at the same time and never hand the same workflow to two executors.",
+       "marks": [],
+       "id": "t-2a4899d502f3"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-5978ac5940ce",
+     "children": [
+      {
+       "type": "text",
+       "text": "Although this article focuses on Postgres, this queue pattern is not specific to Postgres: ",
+       "marks": [],
+       "id": "t-4faf3950a050"
+      },
+      {
+       "type": "text",
+       "text": "MySQL 8.0+",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://dev.mysql.com/doc/refman/8.0/en/innodb-locking-reads.html"
+        }
+       ],
+       "id": "t-64ae3071f1cc"
+      },
+      {
+       "type": "text",
+       "text": ", ",
+       "marks": [],
+       "id": "t-dbb7d12282db"
+      },
+      {
+       "type": "text",
+       "text": "MariaDB 10.6+",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://mariadb.com/docs/release-notes/community-server/mariadb-10-6-series/mariadb-1060-release-notes"
+        }
+       ],
+       "id": "t-becbc8a4e7fb"
+      },
+      {
+       "type": "text",
+       "text": ", and ",
+       "marks": [],
+       "id": "t-971c2d01594a"
+      },
+      {
+       "type": "text",
+       "text": "Oracle",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://docs.oracle.com/en/database/oracle/oracle-database/21/sqlrf/SELECT.html"
+        }
+       ],
+       "id": "t-7ac9bab0d6eb"
+      },
+      {
+       "type": "text",
+       "text": " also support ",
+       "marks": [],
+       "id": "t-5df98ce2138f"
+      },
+      {
+       "type": "text",
+       "text": "SKIP LOCKED",
+       "marks": [
+        "code"
+       ],
+       "id": "t-8e1f2b8bf07c"
+      },
+      {
+       "type": "text",
+       "text": ", while ",
+       "marks": [],
+       "id": "t-10ed37e3aba1"
+      },
+      {
+       "type": "text",
+       "text": "Db2",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.ibm.com/docs/en/db2-for-zos/12.0.0?topic=statement-skip-locked-data"
+        }
+       ],
+       "id": "t-40b0acabb36b"
+      },
+      {
+       "type": "text",
+       "text": " and ",
+       "marks": [],
+       "id": "t-3731b242256d"
+      },
+      {
+       "type": "text",
+       "text": "SQL Server",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://learn.microsoft.com/en-us/sql/t-sql/queries/hints-transact-sql-table?view=sql-server-ver17"
+        }
+       ],
+       "id": "t-2d974dda699c"
+      },
+      {
+       "type": "text",
+       "text": " provide equivalent mechanisms for skipping locked rows.",
+       "marks": [],
+       "id": "t-68a276026b19"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-561b3b05d670",
+     "children": [
+      {
+       "type": "text",
+       "text": "This claim happens inside a short transaction that also flips the status and writes the lease, so the worker owns the row before it does any work:",
+       "marks": [],
+       "id": "t-bdf24e24db75"
+      }
+     ]
+    },
+    {
+     "type": "code",
+     "id": "b-933c838398e9",
+     "text": "BEGIN;\r\n \r\nWITH claimed AS (\r\n\tSELECT id\r\n\tFROM workflow_executions\r\n\tWHERE status = 'enqueued'\r\n\tORDER BY created_at\r\n\tLIMIT 1\r\n\tFOR UPDATE SKIP LOCKED\r\n)\r\nUPDATE workflow_executions e\r\nSET status = 'running',\r\n     \towner_id = $1, -- the worker's id\r\n     \tlease_expires = now() + INTERVAL '30 seconds',\r\n     \tupdated_at = now()\r\nFROM claimed\r\nWHERE e.id = claimed.id\r\nRETURNING e.id, e.input;\r\nCOMMIT;\r\n"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-d0174b856df6",
+     "children": [
+      {
+       "type": "text",
+       "text": "This transaction is the entire dispatcher. You don't need a broker, leader election, or Redis locks with TTLs. A few things that should be called out for production implementations:",
+       "marks": [],
+       "id": "t-6cef5b38efb8"
+      }
+     ]
+    },
+    {
+     "type": "list",
+     "id": "b-9d6110a11cdf",
+     "ordered": false,
+     "items": [
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "The claim transaction should be tiny. It should just lock the row, flip the status, and commit. If you hold the ",
+         "marks": [],
+         "id": "t-77cce9817d35"
+        },
+        {
+         "type": "text",
+         "text": "FOR UPDATE",
+         "marks": [
+          "code"
+         ],
+         "id": "t-1c25043ad941"
+        },
+        {
+         "type": "text",
+         "text": " transaction open while the step runs, you will pin a row lock for the duration of potentially long running, external work.",
+         "marks": [],
+         "id": "t-09a6f80b5d82"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "LIMIT",
+         "marks": [
+          "code"
+         ],
+         "id": "t-b19bc2f6a500"
+        },
+        {
+         "type": "text",
+         "text": " can be more than 1 to claim a batch of executions and amortize round trips, but the larger the batch is, the larger the blast radius if the worker dies before it finishes them.",
+         "marks": [],
+         "id": "t-f20820a9741a"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "SKIP LOCKED",
+         "marks": [
+          "code"
+         ],
+         "id": "t-dc4fac12011f"
+        },
+        {
+         "type": "text",
+         "text": " does not preserve ",
+         "marks": [],
+         "id": "t-8f1702640d93"
+        },
+        {
+         "type": "text",
+         "text": "FIFO",
+         "marks": [
+          "code"
+         ],
+         "id": "t-d01af7e0dc4d"
+        },
+        {
+         "type": "text",
+         "text": " under contention; for our workflows that is fine and actually desirable, but if you need strict ordering, this pattern won't work.",
+         "marks": [],
+         "id": "t-b345d42bd3c0"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-2c6c5eccef6f",
+     "children": [
+      {
+       "type": "text",
+       "text": "Let the Database Enforce Idempotency",
+       "marks": [],
+       "id": "t-123627064a40"
+      }
+     ],
+     "level": 3
+    },
+    {
+     "type": "paragraph",
+     "id": "b-42c6b917cdde",
+     "children": [
+      {
+       "type": "text",
+       "text": "Step checkpoints make use of a second Postgres primitive: integrity constraints. Each step writes its output to an ",
+       "marks": [],
+       "id": "t-0869ee2e1351"
+      },
+      {
+       "type": "text",
+       "text": "operation_outputs",
+       "marks": [
+        "code"
+       ],
+       "id": "t-348c81723967"
+      },
+      {
+       "type": "text",
+       "text": " table keyed by ",
+       "marks": [],
+       "id": "t-8572926a17dd"
+      },
+      {
+       "type": "text",
+       "text": "(execution_id, step_id)",
+       "marks": [
+        "code"
+       ],
+       "id": "t-09db770db81b"
+      },
+      {
+       "type": "text",
+       "text": " as the primary key:",
+       "marks": [],
+       "id": "t-f7c0be8852dc"
+      }
+     ]
+    },
+    {
+     "type": "code",
+     "id": "b-5db0df022432",
+     "text": "CREATE TABLE operation_outputs (\r\n\texecution_id BIGINT NOT NULL REFERENCES workflow_executions(id),\r\n\tstep_id TEXT NOT NULL,\r\n\toutput JSONB NOT NULL,\r\n\tcreated_at TIMESTAMPTZ NOT NULL DEFAULT now(),\r\n\tPRIMARY KEY (execution_id, step_id)\r\n);\r\n"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-21e52990dfc5",
+     "children": [
+      {
+       "type": "text",
+       "text": "When a step finishes, the worker records the result with an upsert that never overwrites:",
+       "marks": [],
+       "id": "t-2d399156617b"
+      }
+     ]
+    },
+    {
+     "type": "code",
+     "id": "b-d0a29fb246d6",
+     "text": "INSERT INTO operation_outputs (execution_id, step_id, output)\r\nVALUES ($1, $2, $3)\r\nON CONFLICT (execution_id, step_id) DO NOTHING\r\nRETURNING output;\r\n"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-dab22828be3d",
+     "children": [
+      {
+       "type": "text",
+       "text": "If a recovering worker reruns a step that has already committed, the unique constraint prevents a duplicate checkpoint from being inserted. The worker reads the existing checkpoint and returns the prior result instead. The database, rather than the application code, enforces idempotency.",
+       "marks": [],
+       "id": "t-66b9858d18c9"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-d3ae367ae9ec",
+     "children": [
+      {
+       "type": "text",
+       "text": "Before executing a step, the Orchestrator SDK running on the worker just checks ",
+       "marks": [],
+       "id": "t-31f0a256ee3a"
+      },
+      {
+       "type": "text",
+       "text": "operation_outputs",
+       "marks": [
+        "code"
+       ],
+       "id": "t-0c4f62efad57"
+      },
+      {
+       "type": "text",
+       "text": " for the ",
+       "marks": [],
+       "id": "t-942b3aaa3b77"
+      },
+      {
+       "type": "text",
+       "text": "(execution_id, step_id)",
+       "marks": [
+        "code"
+       ],
+       "id": "t-395fc3b2e60c"
+      },
+      {
+       "type": "text",
+       "text": ". If a row exists, it skips execution and returns the stored output downstream. Here again, we express an invariant of durable execution as a constraint and let Postgres primitives uphold it, instead of writing distributed systems bookkeeping from scratch.",
+       "marks": [],
+       "id": "t-f8b0fae62287"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-16acf29faa6a",
+     "children": [
+      {
+       "type": "text",
+       "text": "Crash Recovery: Leases and a Sweeper",
+       "marks": [],
+       "id": "t-269fa1005785"
+      }
+     ],
+     "level": 3
+    },
+    {
+     "type": "paragraph",
+     "id": "b-482a465a3609",
+     "children": [
+      {
+       "type": "text",
+       "text": "The interesting failures are the ones where a worker claims an execution, sets status to running, and then dies, because OOM kills, node drains, pod evictions, or a dozen other Kubernetes failure reasons. These rows get stuck in running state without a live owner; this is where the lease columns come into play.",
+       "marks": [],
+       "id": "t-2d3f2856c917"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-e2980bb6b0e9",
+     "children": [
+      {
+       "type": "text",
+       "text": "A worker that owns a running execution heartbeats it on an interval, pushing the lease forward:",
+       "marks": [],
+       "id": "t-15cdf9053058"
+      }
+     ]
+    },
+    {
+     "type": "code",
+     "id": "b-574f77f8701a",
+     "text": "UPDATE workflow_executions\r\nSET lease_expires = now() + INTERVAL '30 seconds',\r\n\tupdated_at = now()\r\nWHERE id = $1 and owner_id = $2;\r\n"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-982080f7f6e0",
+     "children": [
+      {
+       "type": "text",
+       "text": "Implementing recovery with Postgres is just as simple as enforcing concurrency and idempotency. A sweeper resets executions whose worker has not renewed its lease and a healthy worker reloads the checkpoints and resumes from the most recently completed steps:",
+       "marks": [],
+       "id": "t-95e53ef213a7"
+      }
+     ]
+    },
+    {
+     "type": "code",
+     "id": "b-c8e2e8477c41",
+     "text": "UPDATE workflow_executions\r\nSET status = 'enqueued', owner_id = NULL\r\nWHERE status = 'running'\r\nAND lease_expires < now();\r\n"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-98ae630f1a6f",
+     "children": [
+      {
+       "type": "text",
+       "text": "There are two important details that matter when implementing this for production use. The lease duration is a tradeoff. If it's too short, a slow-but-alive worker can have its work stolen, resulting in two workers running the same execution (this is safe thanks to the idempotent checkpoints, but still wasteful). If it's too long, then recovery after a crash is delayed.",
+       "marks": [],
+       "id": "t-d667c0f1a650"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-eb1449c65649",
+     "children": [
+      {
+       "type": "text",
+       "text": "Without idempotent checkpoints, which are free with Postgres, we would not be able to use aggressive leases because a false-positive sweep would cause double-execution with side effects, not just duplicated work.",
+       "marks": [],
+       "id": "t-90aa6ff1f117"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-55cce1ca40d3",
+     "children": [
+      {
+       "type": "text",
+       "text": "Durable Sleeps and Human Approvals",
+       "marks": [],
+       "id": "t-e051acce953a"
+      }
+     ],
+     "level": 3
+    },
+    {
+     "type": "paragraph",
+     "id": "b-40845dfddcb4",
+     "children": [
+      {
+       "type": "text",
+       "text": "Even waiting for a human to approve workflows from Slack, which can take an arbitrary amount of time, is durable. It is simply a row inserted into a ",
+       "marks": [],
+       "id": "t-ff13fe806979"
+      },
+      {
+       "type": "text",
+       "text": "workflow_waits",
+       "marks": [
+        "code"
+       ],
+       "id": "t-57cf3bea5d32"
+      },
+      {
+       "type": "text",
+       "text": " table with a ",
+       "marks": [],
+       "id": "t-8fc165918caa"
+      },
+      {
+       "type": "text",
+       "text": "wake_at",
+       "marks": [
+        "code"
+       ],
+       "id": "t-d3d56711c5a1"
+      },
+      {
+       "type": "text",
+       "text": " timestamp, instead of goroutines praying the pod it's running on lives long enough to not miss the approval decision:",
+       "marks": [],
+       "id": "t-c32a32adf847"
+      }
+     ]
+    },
+    {
+     "type": "code",
+     "id": "b-fab2e435f35a",
+     "text": "CREATE TABLE workflow_waits (\r\n\texecution_id BIGINT NOT NULL REFERENCES workflow_executions(id),\r\n\tstep_id TEXT NOT NULL,\r\n\twake_at TIMESTAMPTZ NOT NULL,\r\n\tPRIMARY KEY (execution_id, step_id)\r\n);\r\n"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-b12cd34769a3",
+     "children": [
+      {
+       "type": "text",
+       "text": "When a workflow execution hits a sleep or approval gate, it sets its own status to waiting and inserts a ",
+       "marks": [],
+       "id": "t-d651a83b9fdc"
+      },
+      {
+       "type": "text",
+       "text": "workflow_waits",
+       "marks": [
+        "code"
+       ],
+       "id": "t-c64ebaba331c"
+      },
+      {
+       "type": "text",
+       "text": " row with a ",
+       "marks": [],
+       "id": "t-9d842ddf6b49"
+      },
+      {
+       "type": "text",
+       "text": "wake_at",
+       "marks": [
+        "code"
+       ],
+       "id": "t-4b14118dfbfb"
+      },
+      {
+       "type": "text",
+       "text": " timestamp, while a periodic sweeper re-enqueues anything due:",
+       "marks": [],
+       "id": "t-6ff0025146ca"
+      }
+     ]
+    },
+    {
+     "type": "code",
+     "id": "b-794c38dc40be",
+     "text": "UPDATE workflow_executions e\r\nSET status = 'enqueued'\r\nFROM workflow_waits w\r\nWHERE w.execution_id = e.id\r\n\tAND e.status = 'waiting'\r\n\tAND w.wake_at <= now();\r\n"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-85eda724fadc",
+     "children": [
+      {
+       "type": "text",
+       "text": "This way, wait and approval workflow steps survive any number of restarts or reschedules, because their state is stored durably in Postgres, not a thread in memory. No matter how long a wait or approval window is, whether it is two hours or two weeks, the cost is the same: just one row.",
+       "marks": [],
+       "id": "t-29ae37b28353"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-489ec97c6155",
+     "children": [
+      {
+       "type": "text",
+       "text": "Why This Scales",
+       "marks": [],
+       "id": "t-604c7481d3df"
+      }
+     ],
+     "level": 3
+    },
+    {
+     "type": "paragraph",
+     "id": "b-10d54aac8b53",
+     "children": [
+      {
+       "type": "text",
+       "text": "Scalability and availability are the hard problems when you push orchestration into Postgres, which is a good thing, because they are well-understood with proven solutions. In Kestrel's case, these were problems we had previously tackled. We scale throughput by adding stateless workers; the bottleneck becomes how fast Postgres can clear the queue. We have seen that a single instance can handle tens of thousands of workflows per second without adding read replicas or using tools like Citus.",
+       "marks": [],
+       "id": "t-a4a9257a4f3e"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-bd6015f7c2f2",
+     "children": [
+      {
+       "type": "text",
+       "text": "Availability becomes whatever your Postgres High Availability setup already gives, such as streaming replication and managed multi-AZ failover, because workers are fungible and can recover each other's state.",
+       "marks": [],
+       "id": "t-2a6b8f621efa"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-64fb1d946fbd",
+     "children": [
+      {
+       "type": "text",
+       "text": "Operational Considerations",
+       "marks": [],
+       "id": "t-e35fa4e6a9da"
+      }
+     ],
+     "level": 3
+    },
+    {
+     "type": "paragraph",
+     "id": "b-8c8fc04d5e6d",
+     "children": [
+      {
+       "type": "text",
+       "text": "Connection pressure is something to look out for, because hundreds of polling workers, each with a handful of connections, can exhaust Postgres' connection limit quickly. A solution to this is to use PgBouncer transaction pooling in front of Postgres and have idle workers back off with a poll interval and jitter. But if you need fan-out across thousands of workers and sub-millisecond dispatch latency, an external durable execution engine like Temporal may be the better architectural choice. Because our workloads are I/O-bound automation pipelines, which can run from seconds to hours, need only modest concurrency, and are heavy on external calls, using Postgres is not a compromise, it is actually a better fit.",
+       "marks": [],
+       "id": "t-1580b5ae7a4f"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-bc10b081e80b",
+     "children": [
+      {
+       "type": "text",
+       "text": "Another thing to watch for is dead tuples becoming a bottleneck at high churn. A busy queue table can become a hotspot of ",
+       "marks": [],
+       "id": "t-b23965d538a2"
+      },
+      {
+       "type": "text",
+       "text": "UPDATE",
+       "marks": [
+        "code"
+       ],
+       "id": "t-dc548966ea41"
+      },
+      {
+       "type": "text",
+       "text": "s and ",
+       "marks": [],
+       "id": "t-b3d83f7546e2"
+      },
+      {
+       "type": "text",
+       "text": "DELETE",
+       "marks": [
+        "code"
+       ],
+       "id": "t-537921d1c33d"
+      },
+      {
+       "type": "text",
+       "text": "s, which generates bloat. Thankfully, tuning autovacuum on these tables, keeping the hot row set small with partial indexes, and partitioning completed executions away from the live queue will keep the working set small and avoid this problem entirely.",
+       "marks": [],
+       "id": "t-b60fbdb08452"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-b1850a877a53",
+     "children": [
+      {
+       "type": "text",
+       "text": "Observability for Free",
+       "marks": [],
+       "id": "t-9848cca9e8a1"
+      }
+     ],
+     "level": 3
+    },
+    {
+     "type": "paragraph",
+     "id": "b-c6a78d1d629e",
+     "children": [
+      {
+       "type": "text",
+       "text": "Observability is now free, which is what I like most about using Postgres here. Every workflow and every step is a row in a table, so monitoring is just SQL. For example, if you want every run that errored this month, you just execute:",
+       "marks": [],
+       "id": "t-3f348b28d80e"
+      }
+     ]
+    },
+    {
+     "type": "code",
+     "id": "b-9569d8ad1d4b",
+     "text": "SELECT * FROM workflow_executions\r\nWHERE created_at > NOW() - INTERVAL '1 month'\r\nAND status = 'error';\r\n"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-fdccc84f2440",
+     "children": [
+      {
+       "type": "text",
+       "text": "This looks extremely trivial, but it's only possible because Postgres is relational. You can do a lot more powerful things, like joining executions against steps and approvals to answer questions like \"Which fixes got rejected and at which step?\" ",
+       "marks": [],
+       "id": "t-9b88b5a62c60"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-f0993ba439d0",
+     "children": [
+      {
+       "type": "text",
+       "text": "We also maintain a few targeted secondary indexes on columns like status and creation time to keep these queries fast without adding much write overhead. These indexes let us build a real-time workflow observability dashboard with no extra infrastructure. With external orchestrators, these kinds of relational queries require exporting workflow state from key-value stores to separate analytics systems.",
+       "marks": [],
+       "id": "t-722546bb2f6c"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-2930a8460212",
+     "children": [
+      {
+       "type": "text",
+       "text": "Reliability and Security Collapse to One Dependency",
+       "marks": [],
+       "id": "t-e6f352ef6a3a"
+      }
+     ],
+     "level": 3
+    },
+    {
+     "type": "paragraph",
+     "id": "b-d5ec84ce08d4",
+     "children": [
+      {
+       "type": "text",
+       "text": "Another benefit of using Postgres for durable workflows is that reliability and security collapse into a single dependency. The only thing that can take down Kestrel workflows is Postgres failing, but as our primary system of record, if Postgres fails, so does everything else. At higher workflow volumes, it can make sense to isolate workflow state from application state in a separate Postgres deployment for resource isolation, while keeping the same operational model. Because no workflow data ever leaves the database, we implemented durable execution without adding new attack surface and systems to audit.",
+       "marks": [],
+       "id": "t-2d3d1a8bcdd5"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-2a170c02610f",
+     "children": [
+      {
+       "type": "text",
+       "text": "Databases like Postgres are already part of so many companies' infrastructure and teams already know how to operate them at scale. So, we decided it made more sense to reuse ours instead of bolting on an external orchestrator on top of it. If you already run Postgres, you have everything you need for durable workflows too.",
+       "marks": [],
+       "id": "t-5642ef051517"
+      }
+     ]
+    }
+   ],
+   "content_format": "blocks-v1",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [
+    "Postgres",
+    "Temporal",
+    "AWS Step Functions"
+   ],
+   "heat": 69,
+   "star": true,
+   "importance": 77,
+   "quality_score": 77,
+   "trend_score": 62,
+   "signal": 0,
+   "topics": [],
+   "shelf": "evergreen",
+   "pinned": false,
+   "published": "2026-09-14T19:00:00+08:00",
+   "first_seen": "2026-09-14T20:49:06.725377+08:00",
+   "items": [
+    {
+     "id": "4c3afbf85fca",
+     "source": "InfoQ（AI/数据工程）",
+     "link": "https://www.infoq.com/articles/durable-workflows-postgres/?utm_campaign=infoq_content&utm_source=infoq&utm_medium=feed&utm_term=AI%2C+ML+%26+Data+Engineering",
+     "published": "2026-09-14T19:00:00+08:00",
+     "ingested_at": "2026-09-14T20:49:06.725377+08:00",
+     "title": "Article: Implementing Durable Workflows on Postgres Without an External Orchestrator"
+    }
+   ],
+   "work_tags": {
+    "taxonomy_version": "work-tags-v1",
+    "product_objects": [],
+    "use_cases": [
+     "生产评估与运营"
+    ],
+    "decision_concerns": [
+     "可靠性与评估",
+     "可维护性与复用"
+    ]
+   },
+   "quality_breakdown": {
+    "originality": 20,
+    "evidence_density": 18,
+    "information_gain": 19,
+    "actionability_depth": 20
+   },
+   "content_parse": {
+    "run_id": "github-34845173609-1",
+    "processor_version": "original-first-v7",
+    "attempted_at": "2026-09-14T20:50:29.966334+08:00",
+    "status": "ready",
+    "source": "InfoQ（AI/数据工程）",
+    "strategy": "semantic_container",
+    "blocks": 63,
+    "text_chars": 14929,
+    "figures": 2,
+    "tables": 0,
+    "figures_discovered": 2,
+    "figures_selected": 2,
+    "figures_rejected": 0,
+    "candidate_count": 17,
+    "figures_rejected_author": 0,
+    "figures_rejected_decorative": 0,
+    "figures_rejected_duplicate": 0,
+    "figures_rejected_small": 0,
+    "figures_rejected_limit": 0,
+    "trimmed_tail_blocks": 2,
+    "trimmed_head_blocks": 0,
+    "trimmed_promotional_blocks": 0,
+    "trimmed_embedded_ui_blocks": 0,
+    "embedded_ui_components": 0,
+    "selected_depth": 10,
+    "selected_raw_blocks": 65,
+    "selected_raw_text_chars": 14960,
+    "broad_raw_blocks": 82,
+    "broad_raw_text_chars": 16508,
+    "parent_extra_blocks": 17,
+    "candidate_count_raw": 30,
+    "candidate_duplicates": 13,
+    "candidate_quality_rejected": 6,
+    "duplicate_blocks": 0,
+    "selected_score": 1183.04,
+    "quality_status": "pass",
+    "boundary_marker": "About the Author",
+    "selected_tag": "div",
+    "focus_ratio": 0.9062,
+    "link_ratio": 0.0046,
+    "duplicate_ratio": 0.0,
+    "selection_evidence": [
+     "tail_boundary",
+     "prose_density",
+     "integrity_gate",
+     "semantic_container"
+    ],
+    "reason": "LLMBudgetExceeded",
+    "media": {
+     "figures": 2,
+     "cached": 0,
+     "link_only": 2,
+     "policy_version": "source-cdn-v1",
+     "reasons": {
+      "download_failed": 2
+     }
+    },
+    "content_mode": "original",
+    "source_language": "other",
+    "translation_status": "failed",
+    "source_content_hash": "595a18558984ffe3b44c562a",
+    "translation": {
+     "run_id": "github-34845173609-1",
+     "policy_version": "faithful-translation-retry-v1",
+     "attempted_at": "2026-09-14T20:50:29.966385+08:00",
+     "purpose": "body_translation",
+     "status": "budget_deferred",
+     "error": "LLMBudgetExceeded"
+    }
+   },
+   "content_mode": "original",
+   "content_level": "original",
+   "source_language": "other",
+   "translation_status": "failed",
+   "source_content_hash": "595a18558984ffe3b44c562a",
+   "body_chars": 14929
+  },
   {
    "event_id": "80c7dbc69c9c",
    "zh_title": "在Databricks上实现端到端Solvency II报告的实际方法",
@@ -924,11 +2162,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 57,
    "quality_score": 57,
-   "trend_score": 13,
+   "trend_score": 12,
    "signal": 0,
    "topics": [
     "风险管理"
@@ -2078,11 +3316,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 64,
+   "heat": 60,
    "star": false,
    "importance": 72,
    "quality_score": 72,
-   "trend_score": 57,
+   "trend_score": 51,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -2885,7 +4123,7 @@
    "star": true,
    "importance": 87,
    "quality_score": 87,
-   "trend_score": 2,
+   "trend_score": 1,
    "signal": 0,
    "topics": [
     "销售增长",
@@ -9019,7 +10257,7 @@
    "star": false,
    "importance": 74,
    "quality_score": 74,
-   "trend_score": 15,
+   "trend_score": 13,
    "signal": 0,
    "topics": [
     "湖仓"
@@ -11054,11 +12292,11 @@
    "vendors": [
     "RelationalAI"
    ],
-   "heat": 42,
+   "heat": 40,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 35,
+   "trend_score": 31,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -13029,11 +14267,11 @@
     "Pub/Sub",
     "Dataflow"
    ],
-   "heat": 38,
+   "heat": 37,
    "star": false,
    "importance": 66,
    "quality_score": 66,
-   "trend_score": 15,
+   "trend_score": 13,
    "signal": 0,
    "topics": [
     "平台AI化",
@@ -15244,11 +16482,11 @@
     "Anthropic",
     "Claude"
    ],
-   "heat": 46,
+   "heat": 45,
    "star": false,
    "importance": 72,
    "quality_score": 72,
-   "trend_score": 25,
+   "trend_score": 22,
    "signal": 0,
    "topics": [
     "组织人才"
@@ -16394,11 +17632,11 @@
     "Anthropic",
     "Claude"
    ],
-   "heat": 53,
+   "heat": 52,
    "star": true,
    "importance": 88,
    "quality_score": 88,
-   "trend_score": 25,
+   "trend_score": 22,
    "signal": 0,
    "topics": [
     "组织人才"
@@ -17813,11 +19051,11 @@
    "category": "insight",
    "category_label": "AI分析",
    "vendors": [],
-   "heat": 45,
+   "heat": 43,
    "star": false,
    "importance": 61,
    "quality_score": 61,
-   "trend_score": 33,
+   "trend_score": 29,
    "signal": 0,
    "topics": [
     "财务经营"
@@ -19422,11 +20660,11 @@
    "vendors": [
     "蚂蚁集团"
    ],
-   "heat": 49,
+   "heat": 47,
    "star": false,
    "importance": 68,
    "quality_score": 68,
-   "trend_score": 34,
+   "trend_score": 31,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -19769,7 +21007,7 @@
    "vendors": [
     "Microsoft Fabric"
    ],
-   "heat": 58,
+   "heat": 56,
    "star": true,
    "importance": 80,
    "signal": 0,
@@ -19803,7 +21041,7 @@
    "editorial_pick": true,
    "curated_at": "2026-09-12T13:30:00+08:00",
    "quality_score": 80,
-   "trend_score": 39
+   "trend_score": 36
   },
   {
    "event_id": "ab71223dcc04",
@@ -20196,7 +21434,7 @@
    "vendors": [
     "ThoughtSpot"
    ],
-   "heat": 58,
+   "heat": 56,
    "star": true,
    "importance": 80,
    "signal": 0,
@@ -20232,7 +21470,7 @@
    "editorial_pick": true,
    "curated_at": "2026-09-12T13:30:00+08:00",
    "quality_score": 80,
-   "trend_score": 39
+   "trend_score": 36
   },
   {
    "event_id": "c218bd27e661",
@@ -21890,11 +23128,11 @@
     "Databricks",
     "Abacus"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 41,
    "quality_score": 41,
-   "trend_score": 27,
+   "trend_score": 24,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -22968,11 +24206,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 40,
+   "heat": 38,
    "star": false,
    "importance": 55,
    "quality_score": 55,
-   "trend_score": 27,
+   "trend_score": 24,
    "signal": 0,
    "topics": [
     "湖仓"
@@ -25501,11 +26739,11 @@
    "vendors": [
     "ClickHouse"
    ],
-   "heat": 44,
+   "heat": 43,
    "star": false,
    "importance": 67,
    "quality_score": 67,
-   "trend_score": 25,
+   "trend_score": 23,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -26371,11 +27609,11 @@
     "MySQL",
     "AWS RDS"
    ],
-   "heat": 45,
+   "heat": 44,
    "star": true,
    "importance": 82,
    "quality_score": 82,
-   "trend_score": 15,
+   "trend_score": 13,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -27164,7 +28402,7 @@
    "vendors": [
     "DuckDB"
    ],
-   "heat": 37,
+   "heat": 36,
    "star": true,
    "importance": 80,
    "quality_score": 80,
@@ -27284,11 +28522,11 @@
    "vendors": [
     "OpenAI"
    ],
-   "heat": 28,
+   "heat": 27,
    "star": false,
    "importance": 39,
    "quality_score": 39,
-   "trend_score": 18,
+   "trend_score": 16,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -27385,11 +28623,11 @@
    "vendors": [
     "OpenAI"
    ],
-   "heat": 26,
+   "heat": 25,
    "star": false,
    "importance": 37,
    "quality_score": 37,
-   "trend_score": 16,
+   "trend_score": 15,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -27475,11 +28713,11 @@
    "vendors": [
     "OpenAI"
    ],
-   "heat": 30,
+   "heat": 29,
    "star": false,
    "importance": 48,
    "quality_score": 48,
-   "trend_score": 15,
+   "trend_score": 13,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -28447,11 +29685,11 @@
    "vendors": [
     "Indeed"
    ],
-   "heat": 45,
+   "heat": 44,
    "star": true,
    "importance": 78,
    "quality_score": 78,
-   "trend_score": 17,
+   "trend_score": 15,
    "signal": 0,
    "topics": [
     "组织人才"
@@ -29542,11 +30780,11 @@
     "Snowflake",
     "白鲸开源"
    ],
-   "heat": 42,
+   "heat": 41,
    "star": false,
    "importance": 64,
    "quality_score": 64,
-   "trend_score": 25,
+   "trend_score": 22,
    "signal": 0,
    "topics": [
     "语义层",
@@ -30970,11 +32208,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 41,
+   "heat": 40,
    "star": false,
    "importance": 61,
    "quality_score": 61,
-   "trend_score": 25,
+   "trend_score": 22,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -31092,11 +32330,11 @@
    "vendors": [
     "腾讯云"
    ],
-   "heat": 15,
+   "heat": 14,
    "star": false,
    "importance": 10,
    "quality_score": 10,
-   "trend_score": 20,
+   "trend_score": 18,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -32377,11 +33615,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 39,
+   "heat": 38,
    "star": false,
    "importance": 62,
    "quality_score": 62,
-   "trend_score": 20,
+   "trend_score": 18,
    "signal": 0,
    "topics": [
     "平台AI化",
@@ -32939,11 +34177,11 @@
    "vendors": [
     "Hex"
    ],
-   "heat": 27,
+   "heat": 26,
    "star": false,
    "importance": 41,
    "quality_score": 41,
-   "trend_score": 15,
+   "trend_score": 13,
    "signal": 0,
    "topics": [
     "BI变局",
@@ -34792,11 +36030,11 @@
     "Databricks",
     "DuckDB"
    ],
-   "heat": 46,
+   "heat": 45,
    "star": true,
    "importance": 80,
    "quality_score": 80,
-   "trend_score": 18,
+   "trend_score": 16,
    "signal": 0,
    "topics": [
     "湖仓"
@@ -35935,11 +37173,11 @@
     "ThoughtSpot",
     "OpenAI"
    ],
-   "heat": 43,
+   "heat": 42,
    "star": false,
    "importance": 71,
    "quality_score": 71,
-   "trend_score": 20,
+   "trend_score": 18,
    "signal": 0,
    "topics": [
     "ChatBI",
@@ -37656,11 +38894,11 @@
    "vendors": [
     "ThoughtSpot"
    ],
-   "heat": 28,
+   "heat": 27,
    "star": false,
    "importance": 42,
    "quality_score": 42,
-   "trend_score": 17,
+   "trend_score": 15,
    "signal": 0,
    "topics": [
     "数据人"
@@ -38485,11 +39723,11 @@
    "vendors": [
     "ClickHouse"
    ],
-   "heat": 46,
+   "heat": 45,
    "star": true,
    "importance": 80,
    "quality_score": 80,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [
     "实时分析"
@@ -39316,11 +40554,11 @@
    "vendors": [
     "ClickHouse"
    ],
-   "heat": 50,
+   "heat": 49,
    "star": true,
    "importance": 88,
    "quality_score": 88,
-   "trend_score": 18,
+   "trend_score": 16,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -40477,11 +41715,11 @@
    "vendors": [
     "ClickHouse"
    ],
-   "heat": 43,
+   "heat": 42,
    "star": false,
    "importance": 74,
    "quality_score": 74,
-   "trend_score": 18,
+   "trend_score": 16,
    "signal": 0,
    "topics": [
     "湖仓"
@@ -43165,11 +44403,11 @@
     "Amazon S3",
     "Amazon DynamoDB"
    ],
-   "heat": 46,
+   "heat": 45,
    "star": true,
    "importance": 80,
    "quality_score": 80,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -45844,11 +47082,11 @@
     "Apache Iceberg",
     "Apache Spark"
    ],
-   "heat": 48,
+   "heat": 47,
    "star": true,
    "importance": 84,
    "quality_score": 84,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [
     "湖仓"
@@ -46510,11 +47748,11 @@
     "Amazon Redshift",
     "OpenAI"
    ],
-   "heat": 34,
+   "heat": 32,
    "star": false,
    "importance": 52,
    "quality_score": 52,
-   "trend_score": 18,
+   "trend_score": 16,
    "signal": 0,
    "topics": [
     "ChatBI",
@@ -47438,11 +48676,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 40,
+   "heat": 39,
    "star": false,
    "importance": 66,
    "quality_score": 66,
-   "trend_score": 18,
+   "trend_score": 16,
    "signal": 0,
    "topics": [
     "财务经营",
@@ -50311,11 +51549,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 37,
+   "heat": 36,
    "star": false,
    "importance": 61,
    "quality_score": 61,
-   "trend_score": 17,
+   "trend_score": 16,
    "signal": 0,
    "topics": [
     "平台AI化",
@@ -50741,11 +51979,11 @@
    "vendors": [
     "ThoughtSpot"
    ],
-   "heat": 31,
+   "heat": 30,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 15,
+   "trend_score": 13,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -52142,11 +53380,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 27,
+   "heat": 26,
    "star": false,
    "importance": 41,
    "quality_score": 41,
-   "trend_score": 15,
+   "trend_score": 14,
    "signal": 0,
    "topics": [
     "语义层",
@@ -53460,11 +54698,11 @@
    "vendors": [
     "爱奇艺"
    ],
-   "heat": 32,
+   "heat": 31,
    "star": false,
    "importance": 52,
    "quality_score": 52,
-   "trend_score": 16,
+   "trend_score": 14,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -53946,7 +55184,7 @@
    "star": false,
    "importance": 71,
    "quality_score": 71,
-   "trend_score": 14,
+   "trend_score": 12,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -54063,11 +55301,11 @@
    "vendors": [
     "腾讯云数据库"
    ],
-   "heat": 14,
+   "heat": 13,
    "star": false,
    "importance": 15,
    "quality_score": 15,
-   "trend_score": 14,
+   "trend_score": 12,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -54167,11 +55405,11 @@
     "IBM",
     "Confluent"
    ],
-   "heat": 11,
+   "heat": 10,
    "star": false,
    "importance": 8,
    "quality_score": 8,
-   "trend_score": 13,
+   "trend_score": 12,
    "signal": 0,
    "topics": [
     "实时分析"
@@ -55250,11 +56488,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 44,
+   "heat": 43,
    "star": true,
    "importance": 80,
    "quality_score": 80,
-   "trend_score": 15,
+   "trend_score": 13,
    "signal": 0,
    "topics": [
     "平台AI化",
@@ -56974,7 +58212,7 @@
    "star": false,
    "importance": 62,
    "quality_score": 62,
-   "trend_score": 14,
+   "trend_score": 12,
    "signal": 0,
    "topics": [
     "财务经营",
@@ -59316,7 +60554,7 @@
    "star": true,
    "importance": 85,
    "quality_score": 85,
-   "trend_score": 13,
+   "trend_score": 11,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -60012,11 +61250,11 @@
     "Databricks",
     "Lakebase"
    ],
-   "heat": 39,
+   "heat": 38,
    "star": false,
    "importance": 70,
    "quality_score": 70,
-   "trend_score": 13,
+   "trend_score": 11,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -61095,11 +62333,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 46,
+   "heat": 45,
    "star": true,
    "importance": 87,
    "quality_score": 87,
-   "trend_score": 13,
+   "trend_score": 11,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -62109,7 +63347,7 @@
    "star": false,
    "importance": 62,
    "quality_score": 62,
-   "trend_score": 13,
+   "trend_score": 12,
    "signal": 0,
    "topics": [
     "实时分析"
@@ -62788,7 +64026,7 @@
    "star": true,
    "importance": 78,
    "quality_score": 78,
-   "trend_score": 13,
+   "trend_score": 12,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -64089,11 +65327,11 @@
     "Snowflake",
     "Hex"
    ],
-   "heat": 44,
+   "heat": 43,
    "star": true,
    "importance": 82,
    "quality_score": 82,
-   "trend_score": 13,
+   "trend_score": 11,
    "signal": 0,
    "topics": [
     "风险管理"
@@ -64550,11 +65788,11 @@
    "vendors": [
     "Hex"
    ],
-   "heat": 30,
+   "heat": 29,
    "star": false,
    "importance": 53,
    "quality_score": 53,
-   "trend_score": 10,
+   "trend_score": 9,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -65279,7 +66517,7 @@
     "Fivetran",
     "dbt Labs"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 62,
    "quality_score": 62,
@@ -67638,11 +68876,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 41,
+   "heat": 40,
    "star": true,
    "importance": 78,
    "quality_score": 78,
-   "trend_score": 11,
+   "trend_score": 10,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -68625,11 +69863,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 42,
+   "heat": 41,
    "star": true,
    "importance": 80,
    "quality_score": 80,
-   "trend_score": 10,
+   "trend_score": 9,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -69368,7 +70606,7 @@
    "star": false,
    "importance": 36,
    "quality_score": 36,
-   "trend_score": 10,
+   "trend_score": 8,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -71055,7 +72293,7 @@
    "star": true,
    "importance": 76,
    "quality_score": 76,
-   "trend_score": 9,
+   "trend_score": 8,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -74822,7 +76060,7 @@
    "star": true,
    "importance": 87,
    "quality_score": 87,
-   "trend_score": 9,
+   "trend_score": 8,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -75946,11 +77184,11 @@
    "vendors": [
     "AWS"
    ],
-   "heat": 28,
+   "heat": 27,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 9,
+   "trend_score": 8,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -76742,11 +77980,11 @@
    "vendors": [
     "AWS"
    ],
-   "heat": 37,
+   "heat": 36,
    "star": false,
    "importance": 70,
    "quality_score": 70,
-   "trend_score": 9,
+   "trend_score": 8,
    "signal": 0,
    "topics": [
     "实时分析",
@@ -77242,7 +78480,7 @@
    "star": false,
    "importance": 51,
    "quality_score": 51,
-   "trend_score": 10,
+   "trend_score": 9,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -78363,7 +79601,7 @@
    "star": false,
    "importance": 24,
    "quality_score": 24,
-   "trend_score": 10,
+   "trend_score": 9,
    "signal": 0,
    "topics": [
     "客户运营",
@@ -79007,11 +80245,11 @@
     "Snowflake",
     "OpenAI"
    ],
-   "heat": 39,
+   "heat": 38,
    "star": false,
    "importance": 74,
    "quality_score": 74,
-   "trend_score": 10,
+   "trend_score": 9,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -80560,7 +81798,7 @@
    "star": false,
    "importance": 62,
    "quality_score": 62,
-   "trend_score": 9,
+   "trend_score": 8,
    "signal": 0,
    "topics": [
     "数据人"
@@ -82368,11 +83606,11 @@
     "BigQuery",
     "Amazon Redshift"
    ],
-   "heat": 48,
+   "heat": 47,
    "star": true,
    "importance": 87,
    "quality_score": 87,
-   "trend_score": 16,
+   "trend_score": 15,
    "signal": 0,
    "topics": [
     "实时分析"
@@ -84478,7 +85716,7 @@
    "star": true,
    "importance": 79,
    "quality_score": 79,
-   "trend_score": 9,
+   "trend_score": 8,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -88727,11 +89965,11 @@
     "ClickHouse",
     "Google"
    ],
-   "heat": 48,
+   "heat": 47,
    "star": true,
    "importance": 99,
    "quality_score": 99,
-   "trend_score": 6,
+   "trend_score": 5,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -90124,11 +91362,11 @@
    "vendors": [
     "TiDB"
    ],
-   "heat": 42,
+   "heat": 41,
    "star": true,
    "importance": 85,
    "quality_score": 85,
-   "trend_score": 7,
+   "trend_score": 6,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -92135,11 +93373,11 @@
     "Palantir",
     "RelationalAI"
    ],
-   "heat": 35,
+   "heat": 34,
    "star": false,
    "importance": 70,
    "quality_score": 70,
-   "trend_score": 6,
+   "trend_score": 5,
    "signal": 0,
    "topics": [
     "语义层"
@@ -98361,7 +99599,7 @@
    "star": false,
    "importance": 71,
    "quality_score": 71,
-   "trend_score": 3,
+   "trend_score": 2,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -129842,7 +131080,7 @@
    "star": false,
    "importance": 70,
    "quality_score": 70,
-   "trend_score": 2,
+   "trend_score": 1,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -131976,7 +133214,7 @@
    "star": true,
    "importance": 92,
    "quality_score": 92,
-   "trend_score": 2,
+   "trend_score": 1,
    "signal": 0,
    "topics": [
     "湖仓"
@@ -133794,7 +135032,7 @@
    "star": false,
    "importance": 45,
    "quality_score": 45,
-   "trend_score": 2,
+   "trend_score": 1,
    "signal": 0,
    "topics": [
     "风险管理"
@@ -135134,7 +136372,7 @@
    "star": false,
    "importance": 44,
    "quality_score": 44,
-   "trend_score": 2,
+   "trend_score": 1,
    "signal": 0,
    "topics": [
     "客户运营"
@@ -138541,7 +139779,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 2,
+   "trend_score": 1,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -141138,7 +142376,7 @@
    "star": false,
    "importance": 74,
    "quality_score": 74,
-   "trend_score": 2,
+   "trend_score": 1,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -141663,7 +142901,7 @@
    "star": false,
    "importance": 72,
    "quality_score": 72,
-   "trend_score": 2,
+   "trend_score": 1,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -146423,7 +147661,7 @@
    "vendors": [
     "Amplitude"
    ],
-   "heat": 31,
+   "heat": 30,
    "star": false,
    "importance": 67,
    "quality_score": 67,
@@ -151631,7 +152869,7 @@
    "vendors": [
     "AWS"
    ],
-   "heat": 34,
+   "heat": 33,
    "star": false,
    "importance": 73,
    "quality_score": 73,
@@ -154187,7 +155425,7 @@
     "AWS",
     "Apache Iceberg"
    ],
-   "heat": 38,
+   "heat": 37,
    "star": true,
    "importance": 82,
    "quality_score": 82,
@@ -201277,9 +202515,9 @@
    "translation_status": "not_applicable",
    "body_chars": 101,
    "content_parse": {
-    "run_id": "github-34122315385-1",
+    "run_id": "github-34845173609-1",
     "processor_version": "original-first-v7",
-    "attempted_at": "2026-09-07T20:38:45.523754+08:00",
+    "attempted_at": "2026-09-14T20:50:32.593575+08:00",
     "status": "skipped",
     "source": "InfoQ 中文",
     "strategy": "document_fallback",
@@ -205846,11 +207084,11 @@
     "Looker",
     "dbt"
    ],
-   "heat": 55,
+   "heat": 54,
    "star": true,
    "importance": 80,
    "quality_score": 80,
-   "trend_score": 35,
+   "trend_score": 33,
    "signal": 0,
    "topics": [
     "BI变局"
@@ -437405,7 +438643,7 @@
     "BigQuery",
     "Google Cloud"
    ],
-   "heat": 51,
+   "heat": 50,
    "star": false,
    "importance": 70,
    "signal": 0,
@@ -437611,7 +438849,7 @@
    "translation_status": "failed",
    "source_content_hash": "3907a79213df9e15b816330c",
    "quality_score": 70,
-   "trend_score": 35
+   "trend_score": 33
   },
   {
    "event_id": "ba8377c644db",
@@ -528601,17 +529839,28 @@
   }
  ],
  "top": [
+  "a112e98a96f3",
   "009c95673c3b",
-  "e12a2952d00e",
-  "1040324d5b86"
+  "e12a2952d00e"
  ],
  "sources": [
   {
    "name": "爱分析",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:235m_remaining",
+   "new": 4,
+   "fetched": 7,
+   "eligible": 6,
+   "prefiltered": 1,
+   "prefilter_dropped": {
+    "time": 0,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 1,
+    "excluded": 0
+   },
+   "skipped_seen": 1,
+   "limit_reached": true,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 12.0,
@@ -528629,7 +529878,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:681m_remaining",
+   "skip_reason": "frequency_gate:210m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -528645,7 +529894,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:681m_remaining",
+   "skip_reason": "frequency_gate:210m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -528661,7 +529910,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:681m_remaining",
+   "skip_reason": "frequency_gate:210m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -528681,7 +529930,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:681m_remaining",
+   "skip_reason": "frequency_gate:210m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -528699,7 +529948,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:681m_remaining",
+   "skip_reason": "frequency_gate:210m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -528719,7 +529968,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:681m_remaining",
+   "skip_reason": "frequency_gate:210m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -528739,7 +529988,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:681m_remaining",
+   "skip_reason": "frequency_gate:210m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -528755,9 +530004,20 @@
   {
    "name": "SHRM Research",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:350m_remaining",
+   "new": 2,
+   "fetched": 20179,
+   "eligible": 27,
+   "prefiltered": 20152,
+   "prefilter_dropped": {
+    "time": 18499,
+    "missing_date": 0,
+    "path": 1587,
+    "keyword": 66,
+    "excluded": 0
+   },
+   "skipped_seen": 0,
+   "limit_reached": true,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 48.0,
@@ -528774,9 +530034,20 @@
   {
    "name": "Mercer Insights",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:350m_remaining",
+   "new": 2,
+   "fetched": 2311,
+   "eligible": 48,
+   "prefiltered": 2263,
+   "prefilter_dropped": {
+    "time": 1853,
+    "missing_date": 0,
+    "path": 314,
+    "keyword": 93,
+    "excluded": 3
+   },
+   "skipped_seen": 0,
+   "limit_reached": true,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 48.0,
@@ -528795,7 +530066,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:681m_remaining",
+   "skip_reason": "frequency_gate:210m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -528813,7 +530084,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:681m_remaining",
+   "skip_reason": "frequency_gate:210m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -528831,9 +530102,20 @@
   {
    "name": "Microsoft WorkLab",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:350m_remaining",
+   "new": 2,
+   "fetched": 285,
+   "eligible": 33,
+   "prefiltered": 252,
+   "prefilter_dropped": {
+    "time": 147,
+    "missing_date": 4,
+    "path": 17,
+    "keyword": 84,
+    "excluded": 0
+   },
+   "skipped_seen": 2,
+   "limit_reached": true,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 48.0,
@@ -528851,9 +530133,20 @@
   {
    "name": "Lightcast Research",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:350m_remaining",
+   "new": 2,
+   "fetched": 1535,
+   "eligible": 48,
+   "prefiltered": 1487,
+   "prefilter_dropped": {
+    "time": 0,
+    "missing_date": 0,
+    "path": 1430,
+    "keyword": 57,
+    "excluded": 0
+   },
+   "skipped_seen": 3,
+   "limit_reached": true,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 48.0,
@@ -528899,16 +530192,16 @@
    "ok": true,
    "new": 0,
    "fetched": 92,
-   "eligible": 2,
-   "prefiltered": 90,
+   "eligible": 0,
+   "prefiltered": 92,
    "prefilter_dropped": {
-    "time": 90,
+    "time": 92,
     "missing_date": 0,
     "path": 0,
     "keyword": 0,
     "excluded": 0
    },
-   "skipped_seen": 2,
+   "skipped_seen": 0,
    "limit_reached": false,
    "schedule_reason": "interval_elapsed",
    "control": {
@@ -528951,7 +530244,7 @@
   {
    "name": "Databricks Blog",
    "ok": true,
-   "new": 1,
+   "new": 0,
    "fetched": 10,
    "eligible": 10,
    "prefiltered": 0,
@@ -528962,7 +530255,7 @@
     "keyword": 0,
     "excluded": 0
    },
-   "skipped_seen": 9,
+   "skipped_seen": 10,
    "limit_reached": false,
    "schedule_reason": "interval_elapsed",
    "control": {
@@ -529066,7 +530359,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:681m_remaining",
+   "skip_reason": "frequency_gate:210m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -529086,16 +530379,16 @@
    "ok": true,
    "new": 0,
    "fetched": 20,
-   "eligible": 11,
-   "prefiltered": 9,
+   "eligible": 10,
+   "prefiltered": 10,
    "prefilter_dropped": {
-    "time": 9,
+    "time": 10,
     "missing_date": 0,
     "path": 0,
     "keyword": 0,
     "excluded": 0
    },
-   "skipped_seen": 11,
+   "skipped_seen": 10,
    "limit_reached": false,
    "schedule_reason": "interval_elapsed",
    "control": {
@@ -529194,7 +530487,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:681m_remaining",
+   "skip_reason": "frequency_gate:210m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -529241,7 +530534,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:681m_remaining",
+   "skip_reason": "frequency_gate:210m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -529257,7 +530550,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:681m_remaining",
+   "skip_reason": "frequency_gate:210m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -529273,7 +530566,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:681m_remaining",
+   "skip_reason": "frequency_gate:210m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -529289,7 +530582,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:681m_remaining",
+   "skip_reason": "frequency_gate:210m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -529303,9 +530596,20 @@
   {
    "name": "InfoQ（AI/数据工程）",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:235m_remaining",
+   "new": 8,
+   "fetched": 15,
+   "eligible": 15,
+   "prefiltered": 0,
+   "prefilter_dropped": {
+    "time": 0,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 1,
+   "limit_reached": true,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "media_targeted",
     "fetch_interval_hours": 12.0,
@@ -529321,7 +530625,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:681m_remaining",
+   "skip_reason": "frequency_gate:210m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -529337,7 +530641,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:681m_remaining",
+   "skip_reason": "frequency_gate:210m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -529352,8 +530656,19 @@
    "name": "Hacker News（数据关键词）",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:235m_remaining",
+   "fetched": 10,
+   "eligible": 0,
+   "prefiltered": 10,
+   "prefilter_dropped": {
+    "time": 10,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 0,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "community_targeted",
     "fetch_interval_hours": 12.0,
@@ -529367,9 +530682,20 @@
   {
    "name": "Bluesky 数据社区",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:235m_remaining",
+   "new": 8,
+   "fetched": 8,
+   "eligible": 8,
+   "prefiltered": 0,
+   "prefilter_dropped": {
+    "time": 0,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 0,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "community_targeted",
     "fetch_interval_hours": 12.0,
@@ -529412,12 +530738,12 @@
   {
    "name": "Microsoft Power BI（Power Platform Blog）",
    "ok": true,
-   "new": 1,
+   "new": 0,
    "fetched": 10,
-   "eligible": 1,
-   "prefiltered": 9,
+   "eligible": 0,
+   "prefiltered": 10,
    "prefilter_dropped": {
-    "time": 9,
+    "time": 10,
     "missing_date": 0,
     "path": 0,
     "keyword": 0,
@@ -529442,8 +530768,19 @@
    "name": "Hex Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:235m_remaining",
+   "fetched": 396,
+   "eligible": 2,
+   "prefiltered": 394,
+   "prefilter_dropped": {
+    "time": 383,
+    "missing_date": 11,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 2,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -529461,8 +530798,19 @@
    "name": "Amplitude Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:235m_remaining",
+   "fetched": 2073,
+   "eligible": 0,
+   "prefiltered": 2073,
+   "prefilter_dropped": {
+    "time": 2071,
+    "missing_date": 0,
+    "path": 1,
+    "keyword": 1,
+    "excluded": 0
+   },
+   "skipped_seen": 0,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -529480,8 +530828,19 @@
    "name": "Netflix Technology Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:235m_remaining",
+   "fetched": 10,
+   "eligible": 0,
+   "prefiltered": 10,
+   "prefilter_dropped": {
+    "time": 10,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 0,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "engineering_targeted",
     "fetch_interval_hours": 12.0,
@@ -529498,8 +530857,19 @@
    "name": "Google Cloud Data Analytics Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:235m_remaining",
+   "fetched": 10,
+   "eligible": 10,
+   "prefiltered": 0,
+   "prefilter_dropped": {
+    "time": 0,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 10,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -529549,8 +530919,19 @@
    "name": "Google Looker Release Notes",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:235m_remaining",
+   "fetched": 20,
+   "eligible": 4,
+   "prefiltered": 16,
+   "prefilter_dropped": {
+    "time": 16,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 4,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "structured_high",
     "fetch_interval_hours": 12.0,
@@ -529568,8 +530949,19 @@
    "name": "Microsoft Fabric Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:235m_remaining",
+   "fetched": 10,
+   "eligible": 1,
+   "prefiltered": 9,
+   "prefilter_dropped": {
+    "time": 9,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 1,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -529618,8 +531010,19 @@
    "name": "Apache Iceberg Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:235m_remaining",
+   "fetched": 13,
+   "eligible": 0,
+   "prefiltered": 13,
+   "prefilter_dropped": {
+    "time": 13,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 0,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 12.0,
@@ -529636,8 +531039,19 @@
    "name": "TiDB Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:235m_remaining",
+   "fetched": 10,
+   "eligible": 2,
+   "prefiltered": 8,
+   "prefilter_dropped": {
+    "time": 8,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 2,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -529655,8 +531069,19 @@
    "name": "Apache Doris Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:235m_remaining",
+   "fetched": 20,
+   "eligible": 0,
+   "prefiltered": 20,
+   "prefilter_dropped": {
+    "time": 19,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 1
+   },
+   "skipped_seen": 0,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -529673,31 +531098,29 @@
   }
  ],
  "structured_content": {
-  "run_id": "github-34807745167-1",
-  "attempted": 6,
+  "run_id": "github-34845173609-1",
+  "attempted": 2,
   "ready": 1,
   "figures": 2,
   "tables": 0,
-  "media_cached": 2,
-  "media_link_only": 0,
-  "candidate_duplicates": 8,
-  "candidate_quality_rejected": 7,
+  "media_cached": 0,
+  "media_link_only": 2,
+  "candidate_duplicates": 13,
+  "candidate_quality_rejected": 6,
   "strategies": {
-   "document_fallback": 2,
-   "fetch_failed": 3,
+   "document_fallback": 1,
    "semantic_container": 1
   },
   "quality_statuses": {
-   "suspect": 2,
-   "unknown": 3,
+   "suspect": 1,
    "pass": 1
   },
   "content_modes": {
-   "unknown": 5,
+   "unknown": 1,
    "original": 1
   },
   "fallbacks": {
-   "no_usable_original": 5
+   "no_usable_original": 1
   },
   "by_source": {
    "InfoQ 中文": {
@@ -529707,47 +531130,33 @@
     "tables": 0,
     "media_cached": 0
    },
-   "Bluesky 数据社区": {
-    "attempted": 1,
-    "ready": 0,
-    "figures": 0,
-    "tables": 0,
-    "media_cached": 0
-   },
-   "Snowflake Engineering（Medium）": {
-    "attempted": 3,
-    "ready": 0,
-    "figures": 0,
-    "tables": 0,
-    "media_cached": 0
-   },
-   "Databricks Blog": {
+   "InfoQ（AI/数据工程）": {
     "attempted": 1,
     "ready": 1,
     "figures": 2,
     "tables": 0,
-    "media_cached": 2
+    "media_cached": 0
    }
   },
   "catalog": {
-   "events": 436,
-   "structured": 387,
-   "renderable": 386,
-   "current_pass": 380,
+   "events": 437,
+   "structured": 388,
+   "renderable": 387,
+   "current_pass": 381,
    "parser_debt": 7,
    "display_trimmed": 0,
    "display_suspect": 0,
    "embedded_ui_trimmed": 0,
    "embedded_ui_blocks": 0,
    "modes": {
+    "original": 62,
     "translated": 326,
-    "original": 61,
     "editorial_excerpt": 20,
     "ai_fallback": 15,
     "missing": 14
    },
    "processor_versions": {
-    "original-first-v7": 415,
+    "original-first-v7": 416,
     "missing": 21
    }
   },
@@ -529762,16 +531171,16 @@
   },
   "backfill": {
    "foreign_limit": 6,
-   "eligible": 13,
-   "attempted": 12,
+   "eligible": 10,
+   "attempted": 10,
    "ready": 0,
    "original": 0,
    "translated": 0,
-   "deferred_foreign": 7,
-   "deferred_budget": 7,
-   "stored_original_retries": 7,
+   "deferred_foreign": 9,
+   "deferred_budget": 9,
+   "stored_original_retries": 9,
    "parser_debt_eligible": 7,
-   "skipped": 5,
+   "skipped": 1,
    "failed": 0,
    "planned": 0
   },
@@ -529786,7 +531195,7 @@
   },
   "article_ui_cleanup": {
    "policy_version": "article-chrome-v3",
-   "scanned": 435,
+   "scanned": 436,
    "cleaned_events": 0,
    "removed_blocks": 0
   }

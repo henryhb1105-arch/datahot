@@ -1,8 +1,8 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-09-13T11:54:34.309106+00:00
-- 本轮原始发现：8
-- 未收录文章候选：17
+- 生成时间：2026-09-14T12:49:04.372376+00:00
+- 本轮原始发现：6
+- 未收录文章候选：18
 - 新信源候选：15
 - 已收录链接去重：0
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
@@ -10,7 +10,7 @@
 ## 发现通道
 
 - openai_web_search: skipped · OPENAI_API_KEY 未配置
-- hn_official: ok · 3 条
+- hn_official: ok · 1 条
 - accepted_link_graph: ok · 5 条
 
 ## 优先检查的新信源
@@ -36,6 +36,7 @@
 - [Chrome again exempts Google from user site data settings](https://lapcatsoftware.com/articles/2026/9/1.html) · hn
 - [The EPA is planning to scrap public review rules for data center pollution](https://capitalbnews.org/data-centers-permit-rules-epa) · hn
 - [Can I opt out of my input or output data being used for training?](https://help.mistral.ai/en/articles/455207-can-i-opt-out-of-my-input-or-output-data-being-used-for-training) · hn
+- [Data collected by cars and sold to third parties](https://www.theverge.com/column/994172/your-car-is-selling-your-data) · hn
 - [Evidence of Fraud in an Influential Study About Procrastination](https://datacolada.org/138) · hn
 - [The Waymo effect: how AI is quietly making research less collaborative](https://www.researchagenda.news/articles/the-waymo-effect.html) · hn
 - [EPA says power for data centers can sidestep pollution laws](https://www.epa.gov/newsreleases/epa-issues-permitting-guidance-further-president-trumps-agenda-promoting-data-centers) · hn

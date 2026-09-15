@@ -1,6 +1,1934 @@
 {
- "generated_at": "2026-09-15T05:53:14.713318+08:00",
+ "generated_at": "2026-09-15T12:57:40.324903+08:00",
  "events": [
+  {
+   "event_id": "88cb64f37624",
+   "zh_title": "BigQuery新增六个增强分析TVF函数",
+   "zh_summary": "Google Cloud BigQuery新增一套增强分析表值函数（TVF），用AI、机器学习和统计方法自动化洞察发现与模式解释。首批六个函数包括AI.KEY_DRIVERS、AI.CAUSAL_EFFECT、ML.CORRELATION、ML.DETECT_CHANGE_POINTS、ML.TREND、ML.SEASONALITY，分别用于归因、因果影响、相关性、变点、趋势和季节性。这些函数在数据所在位置运行，减少导出到外部工具，并输出结构化SQL，可作为AI Agent技能集成，支持自动化和对话式数据调查。",
+   "reason": "BigQuery把归因、因果、趋势、季节性等增强分析能力直接做进SQL层，数据团队可在仓内完成诊断并接入Agent工作流；关注平台AI化和分析自动化的人值得看。",
+   "full_zh": "BigQuery now features a suite of augmented analytics Table-Valued Functions (TVFs) designed to automate complex data analysis at scale. Augmented analytics combines AI, ML and statistical methods to automate insight discovery and pattern explanation. These functions allow you to diagnose why metrics changed, uncover underlying trends and relationships across the data, and even isolate the true impact of business decisions.\n\nThese TVFs run directly where your data lives, which helps speed up analysis and reduces the need to export data into external tools. In addition, since these functions are compact and yield structured SQL outputs, they can easily be integrated as skills for AI agents, which easily enables automated, conversational data investigation workflows.\n\nWe are introducing six new augmented analytics functions in BigQuery, each created to address a specific analytical challenge:\n\nTVF Function  What It Helps You Find  Real World Question It Answers  AI.KEY_DRIVERS  Identifies the top drivers behind an increase or drop in a metric between two time periods or groups.   Why did revenue spike this quarter compared to last quarter?  AI.CAUSAL_EFFECT  Quantifies the impact of an action or event by comparing the observed results to an expected baseline.  How much of the revenue lift came from our pricing update rather than organic growth?  ML.CORRELATION  Evaluates the direction and strength of the relationship between pairs of numeric metrics.   Does increased user session duration correlate with higher lifetime customer value?  ML.DETECT_CHANGE_POINTS  Identifies specific dates or intervals where a metric experiences a shift compared to surrounding patterns.  During which time periods did our platform latency experience persistent, structural shifts?  ML.TREND  Separates the underlying growth or decline from short-term fluctuations or noise.   What are the underlying trends of my revenue over the past year, abstracting away the outlying spikes and drops?  ML.SEASONALITY  Discovers predicable repeated cycles across hours, days, weeks, months or quarters.   Which days of the week consistently experience the highest server load?\n\nAs we show in the next section, these functions can be easily chained together. The output of one function, such as a detected time window, can directly parameterize the next analytical step.\n\nA step-by-step example of chaining insights\n\nConsider a case where there is a shift in a metric, and you need to diagnose the underlying cause and measure the business lift.\n\nTo diagnose, we can chain ML.DETECT_CHANGE_POINTS, AI.KEY_DRIVERS and AI.CAUSAL_EFFECT using the Austin Bikeshare sample dataset (bigquery-public-data.austin_bikeshare.bikeshare_trips). This dataset contains historical trip volume and demographic data for the city’s bikesharing program.\n\nStep 1: Detect change points\n\nML.DETECT_CHANGE_POINTS automatically identifies statistically significant structural shifts or level changes in your time-series data. While this example demonstrates the analysis in a single aggregate metric, this function is highly scalable and is capable of running across millions of individual time series.\n\nTo find these shifts, we run the following query across the daily baseline:\n\nLoading...\n\nThe output identifies the exact time intervals where the baselines have shifted over the company’s history:\n\nhttps://storage.googleapis.com/gweb-cloudblog-publish/images/image5_syrvVHj.max-900x900.png\n\nIf we look at the raw daily session counts, this aligns with shifts over time. We highlight the two change points with the longest durations below:\n\nhttps://storage.googleapis.com/gweb-cloudblog-publish/images/2_lQiu1DF.max-1500x1500.png\n\nThe shift in February 2018 aligns with the day the Austin City Council passed the “Dockless Mobility Pilot Program”, to transform the transit ecosystem, integrating shared electric scooters and bikes into the public.\n\nStep 2: Key drivers attribution\n\nWe can input the February 2018 slice found directly to AI.KEY_DRIVERS to determine the particular factors (i.e. bike_type, subscriber_type, etc) driving the surge. AI.KEY_DRIVERS can scan through millions of rows of multi-dimensional data in seconds.\n\nWe define the interest group as the slice of time after the shift occurs and compare it against the time period before the shift as the reference group.\n\nLoading...\n\nAI.KEY_DRIVERS isolates the top contributing dimension values. Each row contains a segment, which represents a slice of data identified by a specific combination of dimension values (e.g., subscriber_type = 'UT Student' and bike_type = 'classic').\n\nhttps://storage.googleapis.com/gweb-cloudblog-publish/images/3_BD47nN6.max-1400x1400.png\n\nThe analysis reveals that the overall trip count increased +374.7% (+40,159 trips) between the reference and interest time windows. The massive growth was overwhelmingly concentrated in U.T. Student Memberships (+7,167.1%) and trips ending at the 21st & Speedway @PCL station (+20,739.1%).\n\nThis aligns with Austin Bikeshare’s response to the Dockless Mobility Pilot Program. In early February, the bikeshare program launched a large promotional partnership with the University of Texas that offered free annual memberships to all UT students.\n\nStep 3: Causal effect\n\nWhile we know what drove the surge and when it started, we need to isolate the true return on investment over organic expectations. AI.CAUSAL_EFFECT can construct an ARIMA_PLUS counterfactual to measure what the volume would have been had the program never launched.\n\nLoading...\n\nIf we graph the predicted and actual trips per day, we can see the surge compared to the counterfactual.\n\nhttps://storage.googleapis.com/gweb-cloudblog-publish/images/4_X3SlXmT.max-1400x1400.png\n\nIf we set the output_time_series => FALSE, we can see a summary of the lift\n\nhttps://storage.googleapis.com/gweb-cloudblog-publish/images/5_4o5pYGA.max-900x900.jpg\n\nAI.CAUSAL_EFFECT reveals that the program caused a +358% volume surge above organic baseline projections, resulting in an estimated 89,775 incremental trips (with 99.9% probability of causal effect).\n\nConnecting augmented analytics to Conversational Analytics\n\nConversational Analytics lets you chat with agents about your data using natural language. All new BigQuery augmented analytical functions are now available in Conversational Analytics. Since these TVFs can execute complex analytics at BigQuery-scale in seconds, Conversational Analytics can orchestrate multi-step investigative workflows based on a given prompt. Below we show two examples:\n\nExample 1: Chicago taxi trips\n\nHere is an example using the Chicago Taxi Trips (`bigquery-public-data.chicago_taxi_trips.taxi_trips`).\n\nPrompt: What metric has the strongest correlation with drivers getting tipped? Then run an attribution analysis to tell me which categorical dimensions (like location and payment type) most disproportionately drive that specific metric.\n\nhttps://storage.googleapis.com/gweb-cloudblog-publish/images/Example_1.max-1700x1700.png\n\nThe results here used ML.CORRELATION in combination with AI.KEY_DRIVERS.\n\nCredit card payments serve as the primary positive driver of trip distance, adding +1.65M due to longer travel routes and automated digital tip tracking. Trips originating from O'Hare International Airport (Community Area 76) represent another major positive factor, contributing an additional +1.10M miles among tipped credit card rides. In contrast, cash transactions act as a significant negative driver (-652.96K miles), reflecting that cash is predominantly used for shorter journeys rather than extended airport travel.\n\nExample 2: Iowa liquor dataset\n\nHere is an example using the Iowa liquor dataset (`bigquery-public-data.iowa_liquor_sales.sales`) that uses both ML.TREND in combination with ML.SEASONALITY.\n\nPrompt: Find the historical trend for bottles sold. Then, describe the yearly seasonality patterns.\n\nhttps://storage.googleapis.com/gweb-cloudblog-publish/images/Example_2.max-1600x1600.png\n\nThe results show that liquor sales in Iowa show persistent long-term growth, rising from 1.3–1.5 million bottles in 2012 before stabilizing around 2.6 million in recent years. There are strong seasonal cycles, particularly during October and December as well as May and June. There is a drop in sales around January and February.\n\nThe skills for these TVFs are now available at the Google Skills Github repository. The BQ AI/ML skills can be found here.\n\nTake the next step\n\nDocumentation:  AI.KEY_DRIVERS   AI.CAUSAL_EFFECT  ML.CORRELATION  ML.SEASONALITY  ML.TREND  ML.DETECT_CHANGE_POINTS\n\nBigQuery AI/ML support in Conversational Analytics\n\nWe would like to extend our sincere thanks to Katelin Amann, Shirley Fu, Chaoyi Shen, Haiyang Qi, Zheng Zhang, Xi Cheng and the wider engineering team for their feedback and contributions of this work.\n\nPosted in\n\nData AnalyticsBigQuery",
+   "content_blocks": [
+    {
+     "type": "paragraph",
+     "id": "b-96a62fc4c74a",
+     "children": [
+      {
+       "type": "text",
+       "text": "BigQuery now features a suite of augmented analytics Table-Valued Functions (TVFs) designed to automate complex data analysis at scale. Augmented analytics combines AI, ML and statistical methods to automate insight discovery and pattern explanation. These functions allow you to diagnose why metrics changed, uncover underlying trends and relationships across the data, and even isolate the true impact of business decisions. ",
+       "marks": [],
+       "id": "t-f947a4623512"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-687075612df0",
+     "children": [
+      {
+       "type": "text",
+       "text": "These TVFs run directly where your data lives, which helps speed up analysis and reduces the need to export data into external tools. In addition, since these functions are compact and yield structured SQL outputs, they can easily be integrated as skills for AI agents, which easily enables automated, conversational data investigation workflows. ",
+       "marks": [],
+       "id": "t-fa97be1db390"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-6c454fbd4dad",
+     "children": [
+      {
+       "type": "text",
+       "text": "We are introducing six new augmented analytics functions in BigQuery, each created to address a specific analytical challenge:  ",
+       "marks": [],
+       "id": "t-09a7b90b6917"
+      }
+     ]
+    },
+    {
+     "type": "table",
+     "id": "b-dd1579476968",
+     "rows": [
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": " ",
+           "marks": [],
+           "id": "t-319dc30c13ec"
+          },
+          {
+           "type": "text",
+           "text": "TVF Function",
+           "marks": [
+            "strong"
+           ],
+           "id": "t-48407c19950c"
+          },
+          {
+           "type": "text",
+           "text": " ",
+           "marks": [],
+           "id": "t-0748cf2787a3"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": " ",
+           "marks": [],
+           "id": "t-8c0d6d713b65"
+          },
+          {
+           "type": "text",
+           "text": "What It Helps You Find",
+           "marks": [
+            "strong"
+           ],
+           "id": "t-0071ee8efa8b"
+          },
+          {
+           "type": "text",
+           "text": " ",
+           "marks": [],
+           "id": "t-754203afe47a"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": " ",
+           "marks": [],
+           "id": "t-d7b42e9b64e4"
+          },
+          {
+           "type": "text",
+           "text": "Real World Question It Answers",
+           "marks": [
+            "strong"
+           ],
+           "id": "t-7c62bf0dc35d"
+          },
+          {
+           "type": "text",
+           "text": " ",
+           "marks": [],
+           "id": "t-087ed42f66ea"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": " AI.KEY_DRIVERS ",
+           "marks": [],
+           "id": "t-35c44ad2d4e0"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": " Identifies the top drivers behind an increase or drop in a metric between two time periods or groups.  ",
+           "marks": [],
+           "id": "t-f988b8852582"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": " Why did revenue spike this quarter compared to last quarter? ",
+           "marks": [],
+           "id": "t-84c8cd634d7d"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": " AI.CAUSAL_EFFECT ",
+           "marks": [],
+           "id": "t-72b08d74c9cc"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": " Quantifies the impact of an action or event by comparing the observed results to an expected baseline. ",
+           "marks": [],
+           "id": "t-3a24c0066c34"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": " How much of the revenue lift came from our pricing update rather than organic growth? ",
+           "marks": [],
+           "id": "t-553fd7034926"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": " ML.CORRELATION ",
+           "marks": [],
+           "id": "t-a96b078e1425"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": " Evaluates the direction and strength of the relationship between pairs of numeric metrics.  ",
+           "marks": [],
+           "id": "t-050f61f881bc"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": " Does increased user session duration correlate with higher lifetime customer value? ",
+           "marks": [],
+           "id": "t-f5ca9805282b"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": " ML.DETECT_CHANGE_POINTS ",
+           "marks": [],
+           "id": "t-c5c38ccabb4b"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": " Identifies specific dates or intervals where a metric experiences a shift compared to surrounding patterns. ",
+           "marks": [],
+           "id": "t-66ca227083ac"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": " During which time periods did our platform latency experience persistent, structural shifts? ",
+           "marks": [],
+           "id": "t-ce0db9fed5ff"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": " ML.TREND ",
+           "marks": [],
+           "id": "t-1b47fc866ae6"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": " Separates the underlying growth or decline from short-term fluctuations or noise.  ",
+           "marks": [],
+           "id": "t-3eb58e4805bb"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": " What are the underlying trends of my revenue over the past year, abstracting away the outlying spikes and drops? ",
+           "marks": [],
+           "id": "t-2530656db776"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": " ML.SEASONALITY ",
+           "marks": [],
+           "id": "t-e2da65178500"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": " Discovers predicable repeated cycles across hours, days, weeks, months or quarters.  ",
+           "marks": [],
+           "id": "t-558c5962600c"
+          }
+         ]
+        },
+        {
+         "header": false,
+         "children": [
+          {
+           "type": "text",
+           "text": " Which days of the week consistently experience the highest server load? ",
+           "marks": [],
+           "id": "t-0d340210b2fa"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-736e28ef3b78",
+     "children": [
+      {
+       "type": "text",
+       "text": "As we show in the next section, these functions can be easily chained together. The output of one function, such as a detected time window, can directly parameterize the next analytical step.",
+       "marks": [],
+       "id": "t-90cffcff949a"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-d731a5fd67f6",
+     "children": [
+      {
+       "type": "text",
+       "text": "A step-by-step example of chaining insights",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-a18b8fa60f53"
+      }
+     ],
+     "level": 3
+    },
+    {
+     "type": "paragraph",
+     "id": "b-fa76c8380b86",
+     "children": [
+      {
+       "type": "text",
+       "text": "Consider a case where there is a shift in a metric, and you need to diagnose the underlying cause and measure the business lift. ",
+       "marks": [],
+       "id": "t-75a9a0e521c8"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-6f5713827c4a",
+     "children": [
+      {
+       "type": "text",
+       "text": "To diagnose, we can chain ML.DETECT_CHANGE_POINTS, AI.KEY_DRIVERS and AI.CAUSAL_EFFECT using the Austin Bikeshare sample dataset (bigquery-public-data.austin_bikeshare.bikeshare_trips). This dataset contains historical trip volume and demographic data for the city’s bikesharing program. ",
+       "marks": [],
+       "id": "t-b70915289ae5"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-7a7423873f68",
+     "children": [
+      {
+       "type": "text",
+       "text": "Step 1: Detect change points",
+       "marks": [],
+       "id": "t-d9e50d82c5fa"
+      }
+     ],
+     "level": 4
+    },
+    {
+     "type": "paragraph",
+     "id": "b-b8512118074f",
+     "children": [
+      {
+       "type": "text",
+       "text": "ML.DETECT_CHANGE_POINTS automatically identifies statistically significant structural shifts or level changes in your time-series data. While this example demonstrates the analysis in a single aggregate metric, this function is highly scalable and is capable of running across millions of individual time series. ",
+       "marks": [],
+       "id": "t-4af875ea37cd"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-86b92e67669b",
+     "children": [
+      {
+       "type": "text",
+       "text": "To find these shifts, we run the following query across the daily baseline:",
+       "marks": [],
+       "id": "t-1429d4da3548"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-56c52c85d29c",
+     "children": [
+      {
+       "type": "text",
+       "text": "Loading...",
+       "marks": [],
+       "id": "t-ebf346cf5f84"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-fdee3c2a2319",
+     "children": [
+      {
+       "type": "text",
+       "text": "The output identifies the exact time intervals where the baselines have shifted over the company’s history:",
+       "marks": [],
+       "id": "t-429f9b2a43a4"
+      }
+     ]
+    },
+    {
+     "type": "figure",
+     "id": "b-6d437692da18",
+     "src": "https://storage.googleapis.com/gweb-cloudblog-publish/images/image5_syrvVHj.max-900x900.png",
+     "alt": "https://storage.googleapis.com/gweb-cloudblog-publish/images/image5_syrvVHj.max-900x900.png",
+     "caption": "",
+     "source_url": "https://cloud.google.com/blog/products/data-analytics/bigquery-augmented-analytics-tvfs",
+     "media_status": "link_only",
+     "media_reason": "cross_site_host"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-10355c733cfd",
+     "children": [
+      {
+       "type": "text",
+       "text": "If we look at the raw daily session counts, this aligns with shifts over time. We highlight the two change points with the longest durations below:",
+       "marks": [],
+       "id": "t-a74094dbb590"
+      }
+     ]
+    },
+    {
+     "type": "figure",
+     "id": "b-ed6738076389",
+     "src": "https://storage.googleapis.com/gweb-cloudblog-publish/images/2_lQiu1DF.max-1500x1500.png",
+     "alt": "https://storage.googleapis.com/gweb-cloudblog-publish/images/2_lQiu1DF.max-1500x1500.png",
+     "caption": "",
+     "source_url": "https://cloud.google.com/blog/products/data-analytics/bigquery-augmented-analytics-tvfs",
+     "media_status": "link_only",
+     "media_reason": "cross_site_host"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-4307133a43af",
+     "children": [
+      {
+       "type": "text",
+       "text": "The shift in February 2018 aligns with the day the Austin City Council passed the “Dockless Mobility Pilot Program”, to transform the transit ecosystem, integrating shared electric scooters and bikes into the public. ",
+       "marks": [],
+       "id": "t-8015d8170710"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-e4cff033dbba",
+     "children": [
+      {
+       "type": "text",
+       "text": "Step 2: Key drivers attribution",
+       "marks": [],
+       "id": "t-a5582d4a207f"
+      }
+     ],
+     "level": 4
+    },
+    {
+     "type": "paragraph",
+     "id": "b-0ebfe3af1bb6",
+     "children": [
+      {
+       "type": "text",
+       "text": "We can input the February 2018 slice found directly to AI.KEY_DRIVERS to determine the particular factors (i.e. bike_type, subscriber_type, etc) driving the surge. AI.KEY_DRIVERS can scan through millions of rows of multi-dimensional data in seconds. ",
+       "marks": [],
+       "id": "t-34fcfe6d76a4"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-a2a3befb7b3b",
+     "children": [
+      {
+       "type": "text",
+       "text": "We define the ",
+       "marks": [],
+       "id": "t-d2d85a33115e"
+      },
+      {
+       "type": "text",
+       "text": "interest group ",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-f12c1c28c904"
+      },
+      {
+       "type": "text",
+       "text": "as the slice of time after the shift occurs and compare it against the time period before the shift as the ",
+       "marks": [],
+       "id": "t-c9d929810f74"
+      },
+      {
+       "type": "text",
+       "text": "reference group",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-d385053d93f0"
+      },
+      {
+       "type": "text",
+       "text": ".",
+       "marks": [],
+       "id": "t-d4d9e424b151"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-56c52c85d29c-2",
+     "children": [
+      {
+       "type": "text",
+       "text": "Loading...",
+       "marks": [],
+       "id": "t-6dc366afab20"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-dd8218e2d657",
+     "children": [
+      {
+       "type": "text",
+       "text": "AI.KEY_DRIVERS isolates the top contributing dimension values. Each row contains a ",
+       "marks": [],
+       "id": "t-d8cff401ba9f"
+      },
+      {
+       "type": "text",
+       "text": "segment",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-5255928a7f49"
+      },
+      {
+       "type": "text",
+       "text": ", which represents a slice of data identified by a specific combination of dimension values (e.g., subscriber_type = 'UT Student' and bike_type = 'classic'). ",
+       "marks": [],
+       "id": "t-be7dde65f11f"
+      }
+     ]
+    },
+    {
+     "type": "figure",
+     "id": "b-858d37825630",
+     "src": "https://storage.googleapis.com/gweb-cloudblog-publish/images/3_BD47nN6.max-1400x1400.png",
+     "alt": "https://storage.googleapis.com/gweb-cloudblog-publish/images/3_BD47nN6.max-1400x1400.png",
+     "caption": "",
+     "source_url": "https://cloud.google.com/blog/products/data-analytics/bigquery-augmented-analytics-tvfs",
+     "media_status": "link_only",
+     "media_reason": "cross_site_host"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-a26ebdd7c250",
+     "children": [
+      {
+       "type": "text",
+       "text": "The analysis reveals that the overall trip count increased +374.7% (+40,159 trips) between the reference and interest time windows. The massive growth was overwhelmingly concentrated in U.T. Student Memberships (+7,167.1%) and trips ending at the 21st & Speedway @PCL station (+20,739.1%).",
+       "marks": [],
+       "id": "t-f5705ddbcdd8"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-944cd3fd5e6d",
+     "children": [
+      {
+       "type": "text",
+       "text": "This aligns with Austin Bikeshare’s response to the Dockless Mobility Pilot Program. In early February, the bikeshare program launched a large promotional partnership with the University of Texas that offered free annual memberships to all UT students.",
+       "marks": [],
+       "id": "t-cd13ec77ba8b"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-b29906c4d140",
+     "children": [
+      {
+       "type": "text",
+       "text": "Step 3: Causal effect",
+       "marks": [],
+       "id": "t-d196f28d188c"
+      }
+     ],
+     "level": 4
+    },
+    {
+     "type": "paragraph",
+     "id": "b-34b8c34bb3b5",
+     "children": [
+      {
+       "type": "text",
+       "text": "While we know what drove the surge and when it started, we need to isolate the true return on investment over organic expectations. AI.CAUSAL_EFFECT can construct an ",
+       "marks": [],
+       "id": "t-307687cced7a"
+      },
+      {
+       "type": "text",
+       "text": "ARIMA_PLUS",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://arxiv.org/pdf/2510.24452"
+        }
+       ],
+       "id": "t-a6679503b108"
+      },
+      {
+       "type": "text",
+       "text": " counterfactual to measure what the volume would have been had the program never launched. ",
+       "marks": [],
+       "id": "t-40559540bc52"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-56c52c85d29c-3",
+     "children": [
+      {
+       "type": "text",
+       "text": "Loading...",
+       "marks": [],
+       "id": "t-9932762a58cf"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-eed9d7592061",
+     "children": [
+      {
+       "type": "text",
+       "text": "If we graph the predicted and actual trips per day, we can see the surge compared to the counterfactual.",
+       "marks": [],
+       "id": "t-97eca104fa97"
+      }
+     ]
+    },
+    {
+     "type": "figure",
+     "id": "b-f88f04a7970b",
+     "src": "https://storage.googleapis.com/gweb-cloudblog-publish/images/4_X3SlXmT.max-1400x1400.png",
+     "alt": "https://storage.googleapis.com/gweb-cloudblog-publish/images/4_X3SlXmT.max-1400x1400.png",
+     "caption": "",
+     "source_url": "https://cloud.google.com/blog/products/data-analytics/bigquery-augmented-analytics-tvfs",
+     "media_status": "link_only",
+     "media_reason": "cross_site_host"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-f09a2c4c70b1",
+     "children": [
+      {
+       "type": "text",
+       "text": "If we set the ",
+       "marks": [],
+       "id": "t-ce1bec9b0f4f"
+      },
+      {
+       "type": "text",
+       "text": "output_time_series => FALSE",
+       "marks": [
+        "code"
+       ],
+       "id": "t-82af845de320"
+      },
+      {
+       "type": "text",
+       "text": ", we can see a summary of the lift",
+       "marks": [],
+       "id": "t-1da61473392a"
+      }
+     ]
+    },
+    {
+     "type": "figure",
+     "id": "b-a2d7012a52bc",
+     "src": "https://storage.googleapis.com/gweb-cloudblog-publish/images/5_4o5pYGA.max-900x900.jpg",
+     "alt": "https://storage.googleapis.com/gweb-cloudblog-publish/images/5_4o5pYGA.max-900x900.jpg",
+     "caption": "",
+     "source_url": "https://cloud.google.com/blog/products/data-analytics/bigquery-augmented-analytics-tvfs",
+     "media_status": "link_only",
+     "media_reason": "cross_site_host"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-27e07a3490f3",
+     "children": [
+      {
+       "type": "text",
+       "text": "AI.CAUSAL_EFFECT reveals that the program caused a +358% volume surge above organic baseline projections, resulting in an estimated 89,775 incremental trips (with 99.9% probability of causal effect).",
+       "marks": [],
+       "id": "t-06216604b1a4"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-1d8fe16988b4",
+     "children": [
+      {
+       "type": "text",
+       "text": "Connecting augmented analytics to Conversational Analytics",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-9e8e2e60ef68"
+      }
+     ],
+     "level": 3
+    },
+    {
+     "type": "paragraph",
+     "id": "b-d5af00bab94d",
+     "children": [
+      {
+       "type": "text",
+       "text": "Conversational Analytics lets you chat with agents about your data using natural language. All new BigQuery augmented analytical functions are now available in ",
+       "marks": [],
+       "id": "t-6c07179466e9"
+      },
+      {
+       "type": "text",
+       "text": "Conversational Analytics",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://docs.cloud.google.com/bigquery/docs/conversational-analytics"
+        }
+       ],
+       "id": "t-840db84e4997"
+      },
+      {
+       "type": "text",
+       "text": ". Since these TVFs can execute complex analytics at BigQuery-scale in seconds, Conversational Analytics can orchestrate multi-step investigative workflows based on a given prompt. Below we show two examples:",
+       "marks": [],
+       "id": "t-c5de38eb3659"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-3ad786916830",
+     "children": [
+      {
+       "type": "text",
+       "text": "Example 1: Chicago taxi trips",
+       "marks": [],
+       "id": "t-0624ea089ce9"
+      }
+     ],
+     "level": 4
+    },
+    {
+     "type": "paragraph",
+     "id": "b-95565aaf3606",
+     "children": [
+      {
+       "type": "text",
+       "text": "Here is an example using the Chicago Taxi Trips (`bigquery-public-data.chicago_taxi_trips.taxi_trips`).",
+       "marks": [],
+       "id": "t-12545fb82049"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-33f257e9b554",
+     "children": [
+      {
+       "type": "text",
+       "text": "Prompt:",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-2a49c87c7337"
+      },
+      {
+       "type": "text",
+       "text": " What metric has the strongest correlation with drivers getting tipped? Then run an attribution analysis to tell me which categorical dimensions (like location and payment type) most disproportionately drive that specific metric.",
+       "marks": [],
+       "id": "t-cb0210a275c5"
+      }
+     ]
+    },
+    {
+     "type": "figure",
+     "id": "b-ef582a45861d",
+     "src": "https://storage.googleapis.com/gweb-cloudblog-publish/images/Example_1.max-1700x1700.png",
+     "alt": "https://storage.googleapis.com/gweb-cloudblog-publish/images/Example_1.max-1700x1700.png",
+     "caption": "",
+     "source_url": "https://cloud.google.com/blog/products/data-analytics/bigquery-augmented-analytics-tvfs",
+     "media_status": "link_only",
+     "media_reason": "cross_site_host"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-b3f8658189d4",
+     "children": [
+      {
+       "type": "text",
+       "text": "The results here used ML.CORRELATION in combination with AI.KEY_DRIVERS.",
+       "marks": [],
+       "id": "t-5825ca830fe7"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-55e56c50734a",
+     "children": [
+      {
+       "type": "text",
+       "text": "Credit card payments serve as the primary positive driver of trip distance, adding +1.65M due to longer travel routes and automated digital tip tracking. Trips originating from O'Hare International Airport (Community Area 76) represent another major positive factor, contributing an additional +1.10M miles among tipped credit card rides. In contrast, cash transactions act as a significant negative driver (-652.96K miles), reflecting that cash is predominantly used for shorter journeys rather than extended airport travel.",
+       "marks": [],
+       "id": "t-992afadc5108"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-b60bfea75589",
+     "children": [
+      {
+       "type": "text",
+       "text": "Example 2: Iowa liquor dataset",
+       "marks": [],
+       "id": "t-9cb0c56c4ced"
+      }
+     ],
+     "level": 4
+    },
+    {
+     "type": "paragraph",
+     "id": "b-a4522fdfa5cc",
+     "children": [
+      {
+       "type": "text",
+       "text": "Here is an example using the Iowa liquor dataset (`bigquery-public-data.iowa_liquor_sales.sales`) that uses both ML.TREND in combination with ML.SEASONALITY.",
+       "marks": [],
+       "id": "t-d1cb895504f2"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-6f9dcc8cb1a1",
+     "children": [
+      {
+       "type": "text",
+       "text": "Prompt:",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-a0b587d2f573"
+      },
+      {
+       "type": "text",
+       "text": " Find the historical trend for bottles sold. Then, describe the yearly seasonality patterns.",
+       "marks": [],
+       "id": "t-6ab28273eb71"
+      }
+     ]
+    },
+    {
+     "type": "figure",
+     "id": "b-a9ce47ad7e48",
+     "src": "https://storage.googleapis.com/gweb-cloudblog-publish/images/Example_2.max-1600x1600.png",
+     "alt": "https://storage.googleapis.com/gweb-cloudblog-publish/images/Example_2.max-1600x1600.png",
+     "caption": "",
+     "source_url": "https://cloud.google.com/blog/products/data-analytics/bigquery-augmented-analytics-tvfs",
+     "media_status": "link_only",
+     "media_reason": "cross_site_host"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-34cacfdec3bc",
+     "children": [
+      {
+       "type": "text",
+       "text": "The results show that liquor sales in Iowa show persistent long-term growth, rising from 1.3–1.5 million bottles in 2012 before stabilizing around 2.6 million in recent years. There are strong seasonal cycles, particularly during October and December as well as May and June. There is a drop in sales around January and February. ",
+       "marks": [],
+       "id": "t-1135839881c5"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-9bace38a7e10",
+     "children": [
+      {
+       "type": "text",
+       "text": "The skills for these TVFs are now available at the ",
+       "marks": [],
+       "id": "t-3b545a5ebb17"
+      },
+      {
+       "type": "text",
+       "text": "Google Skills Github",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://github.com/google/skills"
+        }
+       ],
+       "id": "t-1c6df2360483"
+      },
+      {
+       "type": "text",
+       "text": " repository. The BQ AI/ML skills can be found ",
+       "marks": [],
+       "id": "t-80e2e3414b5f"
+      },
+      {
+       "type": "text",
+       "text": "here",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://github.com/google/skills/tree/main/skills/cloud/bigquery-ai-ml"
+        }
+       ],
+       "id": "t-27862756e6e9"
+      },
+      {
+       "type": "text",
+       "text": ". ",
+       "marks": [],
+       "id": "t-e84ebb7209c1"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-abc1b559563a",
+     "children": [
+      {
+       "type": "text",
+       "text": "Take the next step",
+       "marks": [],
+       "id": "t-9394d665441f"
+      }
+     ],
+     "level": 3
+    },
+    {
+     "type": "list",
+     "id": "b-0439a4aad86b",
+     "ordered": false,
+     "items": [
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": " Documentation: ",
+         "marks": [],
+         "id": "t-122bce430e85"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": " ",
+         "marks": [],
+         "id": "t-59909de2984e"
+        },
+        {
+         "type": "text",
+         "text": "AI.KEY_DRIVERS ",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/bigqueryml-syntax-ai-key-drivers"
+          }
+         ],
+         "id": "t-1ae240c46562"
+        },
+        {
+         "type": "text",
+         "text": " ",
+         "marks": [],
+         "id": "t-1ddbf4645270"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": " ",
+         "marks": [],
+         "id": "t-21e483fde762"
+        },
+        {
+         "type": "text",
+         "text": "AI.CAUSAL_EFFECT",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/bigqueryml-syntax-causal-effect"
+          }
+         ],
+         "id": "t-32a80b8788e8"
+        },
+        {
+         "type": "text",
+         "text": " ",
+         "marks": [],
+         "id": "t-9a46322e17eb"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": " ",
+         "marks": [],
+         "id": "t-5a0e9e8c6637"
+        },
+        {
+         "type": "text",
+         "text": "ML.CORRELATION",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/bigqueryml-syntax-correlation"
+          }
+         ],
+         "id": "t-823a14f0e50b"
+        },
+        {
+         "type": "text",
+         "text": " ",
+         "marks": [],
+         "id": "t-5c74181f59b7"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": " ",
+         "marks": [],
+         "id": "t-f2ff331c8aff"
+        },
+        {
+         "type": "text",
+         "text": "ML.SEASONALITY",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/bigqueryml-syntax-seasonality"
+          }
+         ],
+         "id": "t-a6a4719aac31"
+        },
+        {
+         "type": "text",
+         "text": " ",
+         "marks": [],
+         "id": "t-d8ed00457007"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": " ",
+         "marks": [],
+         "id": "t-6900eab20813"
+        },
+        {
+         "type": "text",
+         "text": "ML.TREND",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/bigqueryml-syntax-trend"
+          }
+         ],
+         "id": "t-d0a23379882e"
+        },
+        {
+         "type": "text",
+         "text": " ",
+         "marks": [],
+         "id": "t-72ea35b6a592"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": " ",
+         "marks": [],
+         "id": "t-9bd2eb56196d"
+        },
+        {
+         "type": "text",
+         "text": "ML.DETECT_CHANGE_POINTS",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/bigqueryml-syntax-detect-change-points"
+          }
+         ],
+         "id": "t-3ab03a07f9fa"
+        },
+        {
+         "type": "text",
+         "text": " ",
+         "marks": [],
+         "id": "t-28549e2a5972"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-15100ae8a58b",
+     "children": [
+      {
+       "type": "text",
+       "text": "BigQuery AI/ML support in Conversational Analytics",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://docs.cloud.google.com/bigquery/docs/conversational-analytics#bigquery-ml-support"
+        }
+       ],
+       "id": "t-2ed9bcba22a9"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-197f614d2a64",
+     "children": [
+      {
+       "type": "text",
+       "text": "We would like to extend our sincere thanks to Katelin Amann, Shirley Fu, Chaoyi Shen, Haiyang Qi, Zheng Zhang, Xi Cheng and the wider engineering team for their feedback and contributions of this work.",
+       "marks": [
+        "em"
+       ],
+       "id": "t-8fd514e2821d"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-a82801e670ba",
+     "children": [
+      {
+       "type": "text",
+       "text": "Posted in",
+       "marks": [],
+       "id": "t-4aa468a9029a"
+      }
+     ]
+    },
+    {
+     "type": "list",
+     "id": "b-cf2d02a27c1d",
+     "ordered": false,
+     "items": [
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "Data Analytics",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://cloud.google.com/blog/products/data-analytics"
+          }
+         ],
+         "id": "t-aaabddb8b6fe"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "BigQuery",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://cloud.google.com/blog/products/bigquery"
+          }
+         ],
+         "id": "t-69c317a10e3e"
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "content_format": "blocks-v1",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [
+    "Google",
+    "Google Cloud",
+    "BigQuery"
+   ],
+   "heat": 54,
+   "star": false,
+   "importance": 68,
+   "quality_score": 68,
+   "trend_score": 42,
+   "signal": 0,
+   "topics": [
+    "平台AI化"
+   ],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-09-14T08:00:00+08:00",
+   "first_seen": "2026-09-15T12:57:40.324903+08:00",
+   "items": [
+    {
+     "id": "88cb64f37624",
+     "source": "Google Cloud Data Analytics Blog",
+     "link": "https://cloud.google.com/blog/products/data-analytics/bigquery-augmented-analytics-tvfs",
+     "published": "2026-09-14T08:00:00+08:00",
+     "ingested_at": "2026-09-15T12:57:40.324903+08:00",
+     "title": "BigQuery Augmented analytics TVFs | Google Cloud Blog"
+    }
+   ],
+   "work_tags": {
+    "taxonomy_version": "work-tags-v1",
+    "product_objects": [
+     "指标与语义",
+     "Agent接口与工具"
+    ],
+    "use_cases": [
+     "自助分析",
+     "Agent构建"
+    ],
+    "decision_concerns": [
+     "成本与性能"
+    ]
+   },
+   "quality_breakdown": {
+    "originality": 20,
+    "evidence_density": 16,
+    "information_gain": 18,
+    "actionability_depth": 14
+   },
+   "content_parse": {
+    "run_id": "github-34930568448-1",
+    "processor_version": "original-first-v7",
+    "attempted_at": "2026-09-15T12:59:00.871100+08:00",
+    "status": "ready",
+    "source": "Google Cloud Data Analytics Blog",
+    "strategy": "nested_content",
+    "blocks": 53,
+    "text_chars": 8900,
+    "figures": 7,
+    "tables": 1,
+    "figures_discovered": 7,
+    "figures_selected": 7,
+    "figures_rejected": 0,
+    "candidate_count": 6,
+    "figures_rejected_author": 0,
+    "figures_rejected_decorative": 0,
+    "figures_rejected_duplicate": 0,
+    "figures_rejected_small": 0,
+    "figures_rejected_limit": 0,
+    "trimmed_tail_blocks": 0,
+    "trimmed_head_blocks": 0,
+    "trimmed_promotional_blocks": 0,
+    "trimmed_embedded_ui_blocks": 0,
+    "embedded_ui_components": 0,
+    "selected_depth": 10,
+    "selected_raw_blocks": 53,
+    "selected_raw_text_chars": 8900,
+    "broad_raw_blocks": 80,
+    "broad_raw_text_chars": 10907,
+    "parent_extra_blocks": 27,
+    "candidate_count_raw": 25,
+    "candidate_duplicates": 19,
+    "candidate_quality_rejected": 0,
+    "duplicate_blocks": 2,
+    "selected_score": 1068.13,
+    "quality_status": "pass",
+    "selected_tag": "div",
+    "focus_ratio": 0.816,
+    "link_ratio": 0.0247,
+    "duplicate_ratio": 0.0377,
+    "selection_evidence": [
+     "prose_density",
+     "integrity_gate",
+     "nested_focus"
+    ],
+    "reason": "LLMBudgetExceeded",
+    "media": {
+     "figures": 7,
+     "cached": 0,
+     "link_only": 7,
+     "policy_version": "source-cdn-v1",
+     "reasons": {
+      "cross_site_host": 7
+     }
+    },
+    "content_mode": "original",
+    "source_language": "other",
+    "translation_status": "failed",
+    "source_content_hash": "4c5ff6eb4040f7ef15818daf",
+    "translation": {
+     "run_id": "github-34930568448-1",
+     "policy_version": "faithful-translation-retry-v1",
+     "attempted_at": "2026-09-15T12:59:00.871150+08:00",
+     "purpose": "body_translation",
+     "status": "budget_deferred",
+     "error": "LLMBudgetExceeded"
+    }
+   },
+   "content_mode": "original",
+   "content_level": "original",
+   "source_language": "other",
+   "translation_status": "failed",
+   "source_content_hash": "4c5ff6eb4040f7ef15818daf",
+   "body_chars": 8900
+  },
+  {
+   "event_id": "32238a149cc1",
+   "zh_title": "Google Cloud Dataflow 新增大规模AI工作负载功能",
+   "zh_summary": "Google Cloud 宣布 Dataflow 面向大规模 AI 工作负载的新功能：Dataflow 批处理作业的 Pause/Resume 正式可用，并支持由 NVIDIA RTX PRO 6000 Blackwell Server Edition GPU 驱动的 G4 VM。Pause/Resume 可让失败的长时批处理作业从中断处恢复，而不是从头重跑，也可按优先级暂停/恢复作业以动态重分配 GPU/TPU 等加速资源。G4 VM 支持为训练、评估和推理等场景提供额外推理算力。Google Cloud 称这些能力可提升计算效率、开发效率和成本优化。",
+   "reason": "Dataflow 是 Google Cloud 数据与 AI 管线的重要组件；此次更新涉及长时批处理容错恢复、资源动态调度和 GPU 算力接入，直接影响 AI 数据准备/推理管线的成本与可靠性，值得数据平台与数据工程团队关注。",
+   "full_zh": "Efesa Origbo\n\n产品经理，Google Cloud\n\nDanny McCormick\n\n软件工程师，Google Cloud\n\n立即试用 Gemini Enterprise\n\n工作场所中 AI 的前门\n\n立即试用\n\n概述 随着企业扩展其 AI 和代理工作流，他们需要无服务器平台，使模型训练、评估和推理的数据准备变得轻松高效。 Dataflow 是 Google Cloud AI 技术栈的关键组件。它使我们的客户能够创建批处理和流式管道，支持各种分析和 AI 用例。\n\n今天，我们为 Dataflow 带来了重大增强，直接解决您的首要挑战：为长时间运行的批处理作业最大化计算效率，并为您最苛刻的 AI 工作负载提供额外的推理能力。我们非常高兴地宣布 Dataflow 批处理作业的暂停/恢复功能正式可用，并支持由 NVIDIA RTX PRO 6000 Blackwell 服务器版 GPU 驱动的 G4 虚拟机。借助这些功能，您可以加速 AI 开发生命周期并优化成本。\n\n通过 Dataflow 批处理作业的暂停/恢复功能，回收浪费的计算资源并提高开发人员生产力 Dataflow 客户经常运行大型批处理工作负载，这些工作负载有时会运行几天。当这些作业失败时，Dataflow 用户目前无法访问作业失败前已处理的数据。相反，他们必须重试整个作业，导致计算资源浪费和工程生产力下降。\n\n除了应对大型作业的失败之外，拥有 AI 工作负载的 Dataflow 客户有时希望通过将加速计算资源（如 GPU 和 TPU）从已运行的、优先级较低的 Dataflow 批处理作业动态重新分配到更高优先级的工作负载（如特征工程和 AI 推理），来提高这些资源的利用率。\n\n为了更好地支持这些用例，我们宣布 Dataflow 批处理作业的暂停/恢复功能正式发布。该功能由 Google 内部创新驱动，使 Dataflow 客户能够恢复其失败的长时运行作业，而不是从头开始。它还允许客户根据各自的业务需求暂停和恢复其 Dataflow 批处理作业。\n\n有关更多详细信息，请参阅 手动暂停 Dataflow 作业。\n\nhttps://storage.googleapis.com/gweb-cloudblog-publish/images/image1_k7tia8a.max-1900x1900.png\n\n使用 NVIDIA RTX PRO 6000 GPU 加速 AI 推理工作负载 虽然 Dataflow 已支持多种 GPU 和 TPU 来加速 AI 推理工作负载，但我们更进一步，宣布支持由 NVIDIA RTX PRO 6000 Blackwell GPU 驱动的 G4 虚拟机。\n\n与 NVIDIA L4 GPU 相比，NVIDIA RTX PRO 6000 Blackwell GPU 带来了显著的性能提升，提供 96GB vGPU 显存和 1.6 TB/s 的带宽。这意味着您可以在 Dataflow 作业中直接使用高达 700 亿以上参数的模型执行 AI 推理。您可以在继续利用 Dataflow 原生 ML 功能（如 RunInference、 right fitting 和 GPU 启用的自动扩缩容）的同时做到这一点，这些功能让您可以轻松上手并扩展 AI 推理作业，而无需管理底层基础设施或手动处理调优和自动扩缩容等难题。\n\n采取下一步 暂停/恢复和 RTX PRO 6000 Blackwell GPU 共同帮助您在运行苛刻的 AI 工作负载时优化批处理作业成本。我们对 Dataflow 的能力以及它们为客户带来的可能性感到无比兴奋。 立即开始使用 Dataflow，并使用这些功能解决您最艰难的 AI 挑战。我们迫不及待地想看到您构建的成果。\n\n发布于\n\n数据分析",
+   "content_blocks": [
+    {
+     "type": "heading",
+     "id": "b-4b6b282d90d1",
+     "children": [
+      {
+       "type": "text",
+       "text": "Efesa Origbo",
+       "marks": [],
+       "id": "t-c9c991f1873a"
+      }
+     ],
+     "level": 4
+    },
+    {
+     "type": "paragraph",
+     "id": "b-a0a7d52b2bbe",
+     "children": [
+      {
+       "type": "text",
+       "text": "产品经理，Google Cloud",
+       "marks": [],
+       "id": "t-ee061c973395"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-7f26c81dc9b1",
+     "children": [
+      {
+       "type": "text",
+       "text": "Danny McCormick",
+       "marks": [],
+       "id": "t-5c2bef4dd54a"
+      }
+     ],
+     "level": 4
+    },
+    {
+     "type": "paragraph",
+     "id": "b-74651bca5c61",
+     "children": [
+      {
+       "type": "text",
+       "text": "软件工程师，Google Cloud",
+       "marks": [],
+       "id": "t-88f0ce881e9f"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-4a500ba54880",
+     "children": [
+      {
+       "type": "text",
+       "text": "立即试用 Gemini Enterprise",
+       "marks": [],
+       "id": "t-7d49a5001bed"
+      }
+     ],
+     "level": 4
+    },
+    {
+     "type": "paragraph",
+     "id": "b-a44fc9c9bac7",
+     "children": [
+      {
+       "type": "text",
+       "text": "工作场所中 AI 的前门",
+       "marks": [],
+       "id": "t-2d99c160e86e"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-a836b1782c3a",
+     "children": [
+      {
+       "type": "text",
+       "text": "立即试用 ",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://business.gemini.google/?utm_source=cloud.google.com/blog&utm_medium=et&utm_campaign=FY26-Q2-GLOBAL-GLO27877-physicalevent-er-next26-mc-105752"
+        }
+       ],
+       "id": "t-1b0c75c98998"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-5688d9f70728",
+     "children": [
+      {
+       "type": "text",
+       "text": "概述 ",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-50381ca17773"
+      },
+      {
+       "type": "text",
+       "text": "随着企业扩展其 AI 和代理工作流，他们需要无服务器平台，使模型训练、评估和推理的数据准备变得轻松高效。 ",
+       "marks": [],
+       "id": "t-9e0e008ddd0b"
+      },
+      {
+       "type": "text",
+       "text": "Dataflow",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://cloud.google.com/products/dataflow"
+        }
+       ],
+       "id": "t-d8cce5dfe21e"
+      },
+      {
+       "type": "text",
+       "text": " 是 Google Cloud AI 技术栈的关键组件。它使我们的客户能够创建批处理和流式管道，支持各种分析和 AI 用例。 ",
+       "marks": [],
+       "id": "t-41e7fb5a794a"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-742ea18d291b",
+     "children": [
+      {
+       "type": "text",
+       "text": "今天，我们为 Dataflow 带来了重大增强，直接解决您的首要挑战：为长时间运行的批处理作业最大化计算效率，并为您最苛刻的 AI 工作负载提供额外的推理能力。我们非常高兴地宣布 Dataflow 批处理作业的暂停/恢复功能正式可用，并支持由 NVIDIA RTX PRO 6000 Blackwell 服务器版 GPU 驱动的 G4 虚拟机。借助这些功能，您可以加速 AI 开发生命周期并优化成本。",
+       "marks": [],
+       "id": "t-690f0ee23795"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-48e5a394fac2",
+     "children": [
+      {
+       "type": "text",
+       "text": "通过 Dataflow 批处理作业的暂停/恢复功能，回收浪费的计算资源并提高开发人员生产力 ",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-4bbc2eac4068"
+      },
+      {
+       "type": "text",
+       "text": "Dataflow 客户经常运行大型批处理工作负载，这些工作负载有时会运行几天。当这些作业失败时，Dataflow 用户目前无法访问作业失败前已处理的数据。相反，他们必须重试整个作业，导致计算资源浪费和工程生产力下降。",
+       "marks": [],
+       "id": "t-ff6ebbe2b20a"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-f35c4536d40e",
+     "children": [
+      {
+       "type": "text",
+       "text": "除了应对大型作业的失败之外，拥有 AI 工作负载的 Dataflow 客户有时希望通过将加速计算资源（如 GPU 和 TPU）从已运行的、优先级较低的 Dataflow 批处理作业动态重新分配到更高优先级的工作负载（如特征工程和 AI 推理），来提高这些资源的利用率。 ",
+       "marks": [],
+       "id": "t-815882b9c76e"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-5dd04ba5cccd",
+     "children": [
+      {
+       "type": "text",
+       "text": "为了更好地支持这些用例，我们宣布 Dataflow 批处理作业的暂停/恢复功能正式发布。该功能由 Google 内部创新驱动，使 Dataflow 客户能够恢复其失败的长时运行作业，而不是从头开始。它还允许客户根据各自的业务需求暂停和恢复其 Dataflow 批处理作业。",
+       "marks": [],
+       "id": "t-993396849718"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-e9a2be24d833",
+     "children": [
+      {
+       "type": "text",
+       "text": "有关更多详细信息，请参阅 ",
+       "marks": [],
+       "id": "t-4fad4cff9469"
+      },
+      {
+       "type": "text",
+       "text": "手动暂停 Dataflow 作业",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://docs.cloud.google.com/dataflow/docs/guides/pause-job#console"
+        }
+       ],
+       "id": "t-47cfebdd8df4"
+      },
+      {
+       "type": "text",
+       "text": "。",
+       "marks": [],
+       "id": "t-7ce84574ef39"
+      }
+     ]
+    },
+    {
+     "type": "figure",
+     "id": "b-236ae4f7233f",
+     "src": "https://storage.googleapis.com/gweb-cloudblog-publish/images/image1_k7tia8a.max-1900x1900.png",
+     "alt": "https://storage.googleapis.com/gweb-cloudblog-publish/images/image1_k7tia8a.max-1900x1900.png",
+     "caption": "",
+     "source_url": "https://cloud.google.com/blog/products/data-analytics/new-dataflow-features-to-enable-large-scale-ai-workloads",
+     "media_status": "link_only",
+     "media_reason": "cross_site_host"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-2ec9b38fa2ba",
+     "children": [
+      {
+       "type": "text",
+       "text": "使用 NVIDIA RTX PRO 6000 GPU 加速 AI 推理工作负载 ",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-7f22cdba672e"
+      },
+      {
+       "type": "text",
+       "text": "虽然 Dataflow 已支持多种 GPU 和 TPU 来加速 AI 推理工作负载，但我们更进一步，宣布支持由 ",
+       "marks": [],
+       "id": "t-589d440d0a27"
+      },
+      {
+       "type": "text",
+       "text": "NVIDIA RTX PRO 6000 Blackwell GPU",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://cloud.google.com/dataflow/docs/gpu/gpu-support#availability"
+        }
+       ],
+       "id": "t-6674e6a662d0"
+      },
+      {
+       "type": "text",
+       "text": " 驱动的 G4 虚拟机。 ",
+       "marks": [],
+       "id": "t-ab54d176bb3a"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-db953b7d95b1",
+     "children": [
+      {
+       "type": "text",
+       "text": "与 NVIDIA L4 GPU 相比，NVIDIA RTX PRO 6000 Blackwell GPU 带来了显著的性能提升，提供 96GB vGPU 显存和 1.6 TB/s 的带宽。这意味着您可以在 Dataflow 作业中直接使用高达 700 亿以上参数的模型执行 AI 推理。您可以在继续利用 Dataflow 原生 ML 功能（如 ",
+       "marks": [],
+       "id": "t-d60c735479ac"
+      },
+      {
+       "type": "text",
+       "text": "RunInference",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://docs.cloud.google.com/dataflow/docs/machine-learning/runinference-best-practices"
+        }
+       ],
+       "id": "t-4ba7e110869e"
+      },
+      {
+       "type": "text",
+       "text": "、 ",
+       "marks": [],
+       "id": "t-991bc377a6f0"
+      },
+      {
+       "type": "text",
+       "text": "right fitting",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://docs.cloud.google.com/dataflow/docs/guides/right-fitting"
+        }
+       ],
+       "id": "t-8e87f2f8c82b"
+      },
+      {
+       "type": "text",
+       "text": " 和 ",
+       "marks": [],
+       "id": "t-836aff726b82"
+      },
+      {
+       "type": "text",
+       "text": "GPU 启用的自动扩缩容",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://cloud.google.com/dataflow/docs/guides/tune-horizontal-autoscaling#parallelism-hint"
+        }
+       ],
+       "id": "t-7ff96a682ee6"
+      },
+      {
+       "type": "text",
+       "text": "）的同时做到这一点，这些功能让您可以轻松上手并扩展 AI 推理作业，而无需管理底层基础设施或手动处理调优和自动扩缩容等难题。 ",
+       "marks": [],
+       "id": "t-797bcd016625"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-996e21384904",
+     "children": [
+      {
+       "type": "text",
+       "text": "采取下一步 ",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-4d864cfaf20c"
+      },
+      {
+       "type": "text",
+       "text": "暂停/恢复和 RTX PRO 6000 Blackwell GPU 共同帮助您在运行苛刻的 AI 工作负载时优化批处理作业成本。我们对 Dataflow 的能力以及它们为客户带来的可能性感到无比兴奋。 ",
+       "marks": [],
+       "id": "t-400dd476c9a6"
+      },
+      {
+       "type": "text",
+       "text": "立即开始使用 Dataflow",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://cloud.google.com/dataflow/docs/machine-learning"
+        }
+       ],
+       "id": "t-65d8641e5e8c"
+      },
+      {
+       "type": "text",
+       "text": "，并使用这些功能解决您最艰难的 AI 挑战。我们迫不及待地想看到您构建的成果。",
+       "marks": [],
+       "id": "t-56fe2f39af13"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-a82801e670ba",
+     "children": [
+      {
+       "type": "text",
+       "text": "发布于",
+       "marks": [],
+       "id": "t-4aa468a9029a"
+      }
+     ]
+    },
+    {
+     "type": "list",
+     "id": "b-442863b03c85",
+     "ordered": false,
+     "items": [
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "数据分析",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://cloud.google.com/blog/products/data-analytics"
+          }
+         ],
+         "id": "t-bf94696bda01"
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "content_format": "blocks-v1",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [
+    "Google",
+    "Google Cloud"
+   ],
+   "heat": 53,
+   "star": false,
+   "importance": 66,
+   "quality_score": 66,
+   "trend_score": 42,
+   "signal": 0,
+   "topics": [
+    "平台AI化"
+   ],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-09-14T08:00:00+08:00",
+   "first_seen": "2026-09-15T12:57:40.324903+08:00",
+   "items": [
+    {
+     "id": "32238a149cc1",
+     "source": "Google Cloud Data Analytics Blog",
+     "link": "https://cloud.google.com/blog/products/data-analytics/new-dataflow-features-to-enable-large-scale-ai-workloads",
+     "published": "2026-09-14T08:00:00+08:00",
+     "ingested_at": "2026-09-15T12:57:40.324903+08:00",
+     "title": "New Dataflow features to enable large scale AI workloads | Google Cloud Blog"
+    }
+   ],
+   "work_tags": {
+    "taxonomy_version": "work-tags-v1",
+    "product_objects": [],
+    "use_cases": [
+     "数据接入",
+     "生产评估与运营"
+    ],
+    "decision_concerns": [
+     "成本与性能",
+     "可靠性与评估"
+    ]
+   },
+   "quality_breakdown": {
+    "originality": 22,
+    "evidence_density": 14,
+    "information_gain": 16,
+    "actionability_depth": 14
+   },
+   "content_parse": {
+    "run_id": "github-34930568448-1",
+    "processor_version": "original-first-v7",
+    "attempted_at": "2026-09-15T12:59:05.937636+08:00",
+    "status": "ready",
+    "source": "Google Cloud Data Analytics Blog",
+    "strategy": "nested_content",
+    "blocks": 19,
+    "text_chars": 3686,
+    "figures": 1,
+    "tables": 0,
+    "figures_discovered": 1,
+    "figures_selected": 1,
+    "figures_rejected": 0,
+    "candidate_count": 8,
+    "figures_rejected_author": 0,
+    "figures_rejected_decorative": 0,
+    "figures_rejected_duplicate": 0,
+    "figures_rejected_small": 0,
+    "figures_rejected_limit": 0,
+    "trimmed_tail_blocks": 0,
+    "trimmed_head_blocks": 0,
+    "trimmed_promotional_blocks": 0,
+    "trimmed_embedded_ui_blocks": 0,
+    "embedded_ui_components": 0,
+    "selected_depth": 7,
+    "selected_raw_blocks": 19,
+    "selected_raw_text_chars": 3686,
+    "broad_raw_blocks": 39,
+    "broad_raw_text_chars": 4175,
+    "parent_extra_blocks": 20,
+    "candidate_count_raw": 15,
+    "candidate_duplicates": 7,
+    "candidate_quality_rejected": 2,
+    "duplicate_blocks": 0,
+    "selected_score": 907.55,
+    "quality_status": "pass",
+    "selected_tag": "div",
+    "focus_ratio": 0.8829,
+    "link_ratio": 0.045,
+    "duplicate_ratio": 0.0,
+    "selection_evidence": [
+     "prose_density",
+     "integrity_gate",
+     "nested_focus"
+    ],
+    "media": {
+     "figures": 1,
+     "cached": 0,
+     "link_only": 1,
+     "policy_version": "source-cdn-v1",
+     "reasons": {
+      "cross_site_host": 1
+     }
+    },
+    "content_mode": "translated",
+    "source_language": "other",
+    "translation_status": "complete",
+    "source_content_hash": "c3a2347eaffcd57956d41ec6",
+    "translation": {
+     "run_id": "github-34930568448-1",
+     "policy_version": "faithful-translation-retry-v1",
+     "attempted_at": "2026-09-15T12:59:05.937682+08:00",
+     "purpose": "body_translation",
+     "status": "complete"
+    }
+   },
+   "content_mode": "translated",
+   "content_level": "translated",
+   "source_language": "other",
+   "translation_status": "complete",
+   "source_content_hash": "c3a2347eaffcd57956d41ec6",
+   "body_chars": 1594
+  },
   {
    "event_id": "fcef8381c737",
    "zh_title": "Databricks 发布 Spark 结构化流状态按需重分区",
@@ -933,11 +2861,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 68,
+   "heat": 65,
    "star": false,
    "importance": 74,
    "quality_score": 74,
-   "trend_score": 63,
+   "trend_score": 57,
    "signal": 0,
    "topics": [
     "实时分析"
@@ -1619,11 +3547,11 @@
    "vendors": [
     "Visier"
    ],
-   "heat": 60,
+   "heat": 57,
    "star": false,
    "importance": 56,
    "quality_score": 56,
-   "trend_score": 64,
+   "trend_score": 57,
    "signal": 0,
    "topics": [
     "语义层",
@@ -2947,11 +4875,11 @@
    "vendors": [
     "AWS"
    ],
-   "heat": 66,
+   "heat": 63,
    "star": true,
    "importance": 75,
    "quality_score": 75,
-   "trend_score": 58,
+   "trend_score": 52,
    "signal": 0,
    "topics": [
     "实时分析"
@@ -3065,9 +4993,9 @@
   },
   {
    "event_id": "4fddad85a065",
-   "zh_title": "Sharing and Governing Skills in Snowflake CoCo",
-   "zh_summary": "A walkthrough of Snowflake’s new Skills & Plugins Catalog Introduction If you’ve spent any time in CoCo (Snowflake’s agentic AI assistant previously known as Cortex Code), you’ve probably built a SKILL.md or two — a little reusable playbook that teaches your agent how to do something specific and re",
-   "reason": "",
+   "zh_title": "Snowflake CoCo 推出技能与插件目录，实现技能共享与治理",
+   "zh_summary": "Snowflake 为旗下智能体 AI 助手 CoCo（原 Cortex Code）推出技能与插件共享预览功能，将本地 SKILL.md 技能转化为账户级、可治理、带版本的对象，底层由 Cortex Extension SQL 构造支撑。用户可通过链接共享技能、浏览他人共享的技能目录，管理员还能对优质技能进行认证并打上信任徽章。文章以实际 SQL 代码分步讲解了技能的编写、共享、发现与认证全生命周期。技能是无需写代码的 Markdown 操作手册，可让智能体执行成本报告对账、高管指标周报等可重复任务。",
+   "reason": "对数据从业者而言，这展示了 Data Agent 能力的工程化治理路径：将一次性提示词沉淀为可版本化、可认证、可分发的一等数据对象，是企业级 Agent 落地与复用的关键机制。",
    "full_zh": "A walkthrough of Snowflake’s new Skills & Plugins Catalog\n\nIntroduction\n\nIf you’ve spent any time in CoCo (Snowflake’s agentic AI assistant previously known as Cortex Code), you’ve probably built a SKILL.md or two — a little reusable playbook that teaches your agent how to do something specific and repeatable, like reconciling a Snowflake cost report or building a weekly executive metrics summary. But maintaining these skills and sharing them with the broader team has been cumbersome — until now.\n\nSnowflake just closed this gap with skill and plugin sharing — a preview feature that turns a local skill into an account-wide, governable, versioned object, backed by a first-class SQL construct called a Cortex Extension. You can share it with a link, browse a catalog of everyone else’s shared skills, and — if you have admin privileges — certify the good ones so they show up with a trust badge.\n\nThis post explains the whole lifecycle: how to write a skill, share it, discover it, certify it — with the SQL code run on your behalf at each step, so you understand what’s actually happening (and can script it yourself if you want to).\n\nFirst, what’s a skill (and what’s a plugin)?\n\nA skill is a markdown playbook — a SKILL.md file that opens with a short header (name, description, the triggers that make CoCo load it) and then a body that walks the agent through a workflow step by step. No code required, though a skill can point at scripts it wants CoCo to run.\n\nCoCo ships with a large set of bundled skills, covering things like data governance audits, dynamic table troubleshooting, cost intelligence, or setting up a Cortex Agent. Those are written and maintained by Snowflake, versioned with the product, and every user gets them automatically. User-created skills are the ones this post is actually about: skills that don’t exist anywhere until someone writes them. Unlike bundled skills, they need a way to get distributed.\n\nSo what makes a good candidate for a user-created skill? Here are some rules of thumb:\n\nYou have done it more than twice. Diagnosing a credit spike, triaging a stuck Dynamic Table pipeline, reconciling a monthly consumption report — anything repeatable enough that you’ve mentally scripted it already.The steps require judgment, not just a query. If it’s purely a fixed SQL query, a saved worksheet or a view does the job. A skill earns its keep when there’s branching — “if X, check Y next; if that’s clean, look at Z” — the kind of thing you’d otherwise explain to a new hire.It encodes tribal knowledge. The naming convention your team uses, which dashboard is the source of truth, business rules kept on post-it notes — the stuff that currently lives in one person’s head or a Slack thread no one can find again.\n\nPlugins are the other artifact type supported by the new Skills & Plugins Catalog. A plugin is a directory with a hidden .cortex-plugin/plugin.json manifest that can bundle multiple skills with other CoCo extension points—hooks, MCP servers, and custom agents—into a single versioned, installable unit. Consider creating a plugin instead of an individual skill when you are not simply teaching the agent one workflow, but packaging a broader capability: several related skills, along with lifecycle automation, such as hooks, or external tool and data connections provided through MCP servers.\n\nThe mental model: three layers\n\nBefore we begin the walkthrough, it helps to separate three things that are easy to conflate:\n\nA local skill — just a folder with a SKILL.md. Lives wherever you put it: a project directory, your home directory, a Snowflake workspace.A Cortex Extension — the Snowflake object created when you share. One extension per shared skill or plugin. It has versions, RBAC grants, and a discoverability flag.Certification — an admin-only stamp on a specific version of an extension, saying “this one’s the trusted one.” Not the same as “shared.” Sharing is self-serve; certifying is governance.\n\nEverything below maps onto one of these three layers.\n\nStep 1 — Write the skill\n\nYou’ve done the work of figuring out something complex. Let’s say you used CoCo in Snowsight for this and your back-and-forth is in the CoCo chat. You want CoCo to run through the same steps with minimal direction next time, so you ask it to create a skill — verbally or by clicking Create Skill.\n\nCoCo invokes its skill-creation workflow and builds out a SKILL.md file:\n\nLocation of the skill determines its scope:\n\nIn Snowsight, CoCo writes it directly into a Snowflake workspace (.snowflake/cortex/skills/<name>/SKILL.md).In CoCo Desktop or CoCo CLI, .cortex/skills/<name>/ at your project root (like .git) scopes a skill to that one project; $HOME/.snowflake/cortex/skills/<name>/ makes it available from every project on your machine.\n\nRegardless of the location, at this point the skill is 100% local. It doesn’t exist to Snowflake as an object of any kind — it’s just a file CoCo reads off disk or out of a workspace stage.\n\nStep 2 — Share it (create the Cortex Extension)\n\nPreviously, making a skill available to others required various workarounds. Now, you can prompt CoCo to “share this skill”, and here’s what happens:\n\n1. CoCo finds (or creates) a home for shared skills in your personal database. Every user has an implicit USER$<username> database. The first time you share a skill, CoCo provisions a SKILL_SHARING schema inside it and grants PUBLIC usage so the object is reachable:\n\nCREATE SCHEMA IF NOT EXISTS \"USER$DARIA\".\"SKILL_SHARING\"\n  COMMENT = $$Skill catalog schema auto-created by system$$;\nGRANT USAGE ON DATABASE \"USER$DARIA\" TO ROLE PUBLIC;\nGRANT USAGE ON SCHEMA \"USER$DARIA\".\"SKILL_SHARING\" TO ROLE PUBLIC;\n\n2. CoCo stages the skill files and creates a Cortex Extension. It creates a temporary stage, uploads your SKILL.md, then creates the extension directly from that stage — naming it after your frontmatter name field (warehouse-cost-triage → WAREHOUSE_COST_TRIAGE). The temporary stage is cleaned up immediately after.\n\nCREATE OR REPLACE TEMPORARY STAGE\n  \"USER$DARIA\".\"SKILL_SHARING\".\"COCO_SYNC_1788898908467\";\n\nPUT file:///workspace/.snowflake/cortex/skills/warehouse-cost-triage/SKILL.md\n  @\"USER$DARIA\".\"SKILL_SHARING\".\"COCO_SYNC_1788898908467\"/skills/warehouse-cost-triage/\n  AUTO_COMPRESS = FALSE OVERWRITE = TRUE;\n\nCREATE CORTEX EXTENSION \"USER$DARIA\".\"SKILL_SHARING\".\"WAREHOUSE_COST_TRIAGE\"\n  FROM @\"USER$DARIA\".\"SKILL_SHARING\".\"COCO_SYNC_1788898908467\"\n  VERSION V1\n  COMMENT = 'Diagnose a spike in warehouse credit spend...';\n\nDROP STAGE IF EXISTS\n  \"USER$DARIA\".\"SKILL_SHARING\".\"COCO_SYNC_1788898908467\";\n\nWhen you later re-share (pushing an updated SKILL.md), CoCo re-runs the share workflow, uploading the new files and incrementing the version automatically — producing VERSION$2, VERSION$3, and so on.\n\n3. CoCo grants read access so others can install it:\n\nGRANT READ ON CORTEX EXTENSION\n  \"USER$DARIA\".\"SKILL_SHARING\".\"WAREHOUSE_COST_TRIAGE\"\n  TO ROLE \"PUBLIC\";\n\nGranting READ to PUBLIC makes the skill installable by everyone in the account. The extension defaults to DISCOVERABLE = TRUE, meaning it also appears when users browse the catalog. If you wanted a \"share link only\" experience (installable but not browsable), you'd explicitly set DISCOVERABLE = FALSE.\n\nStep 3 — Discover it\n\nFrom here, there are two paths to discovery:\n\nRetrieve and share a link with the user. DESCRIBE CORTEX EXTENSION gives you back a snow://skill_catalog/... URI that you can share with your teammates.\n\nsnow://skill_catalog/USER$DARIA.SKILL_SHARING.WAREHOUSE_COST_TRIAGE\n\nBrowse the catalog. In Snowsight, that’s Catalog → Skills & Plugins under Horizon Catalog.\n\nClicking on the USE button next to the skill adds it to the chat so you can run it:\n\nIn CoCo Desktop, you can install a shared skill from a link by going to Settings → + menu → Add from Skills Catalog .\n\nStep 4 — Certification\n\nCertification turns a skill from “someone on the team uploaded this” into “this is the officially sanctioned version.” Certified skills get a green badge everywhere the catalog is browsed. You need accountadmin privileges to certify a skill.\n\nIn Snowsight, in Horizon catalog → Skills and Plugins, select a skill and click Add certification. The same page exposes other governance actions — RBAC, ownership transfer, deletion — all backed by the ALTER CORTEX EXTENSION primitives.\n\nWhen an admin certifies a shared skill, two things happen:\n\nGovernance promotion. Snowflake copies the Cortex Extension out of the author’s personal database into a dedicated, centrally governed database. The first time any governance action is performed, the admin is prompted to choose that database. The author’s original copy in their SKILL_SHARING schema stays untouched — this is a copy, not a move.\n\nCREATE CORTEX EXTENSION governed_db.governed_schema.WAREHOUSE_COST_TRIAGE\n  FROM 'snow://skill_catalog/USER$DARIA.SKILL_SHARING.WAREHOUSE_COST_TRIAGE';\n\nGRANT READ ON CORTEX EXTENSION governed_db.governed_schema.WAREHOUSE_COST_TRIAGE\n  TO ROLE PUBLIC;\n\n2. Version-scoped certification. The admin tags a specific version as certified:\n\nALTER CORTEX EXTENSION governed_db.governed_schema.WAREHOUSE_COST_TRIAGE\n VERSION VERSION$1\n SET TAG SNOWFLAKE.CORE.CERTIFICATION_STATUS = 'CERTIFIED';\n\nCertification is scoped to a version, not the whole extension. A version-less snow://skill_catalog/... link resolves to the latest certified version if one exists, and falls back to the latest version only when nothing has been certified. So when an author pushes VERSION$2 and VERSION$3, nothing changes for consumers — the certified link still serves VERSION$1 until an admin reviews and certifies a newer version.\n\nThat’s the real shift here. Certification isn’t a one-time label — it’s an ongoing decision about which version is production, made independently of whatever the author is actively iterating on.\n\nA couple of practical notes if you’re planning to roll this out to a team:\n\nSet up the governed database ahead of time where certified skills will live, rather than letting the first certification action prompt you into picking one on the fly.Security scanning isn’t available yet. This is a preview feature, and content scanning on shared skills and plugins is not yet available. Certification is a statement of trust in the author, not an automated check on the content — review what you certify accordingly.\n\nZooming out a bit, it’s worth noting how quickly this space is maturing. A year ago, few of us knew what a skill was. Now it’s a governed, versioned, RBAC’d Snowflake object with its own certification workflow. As more of our day-to-day work runs through agents, the tooling around those agents — skills, plugins, the catalog they live in — is turning into real infrastructure, not just a convenience layer. Governance of that layer should be first-order business, not an afterthought, the same way access control is for any other production system.\n\nSharing and Governing Skills in Snowflake CoCo was originally published in Snowflake Builders Blog: Data Engineers, App Developers, AI, & Data Science on Medium, where people are continuing the conversation by highlighting and responding to this story.",
    "content_blocks": [
     {
@@ -4226,18 +6154,20 @@
     }
    ],
    "content_format": "blocks-v1",
-   "category": "platform",
-   "category_label": "AI 数据平台",
+   "category": "agent",
+   "category_label": "Data Agent",
    "vendors": [
     "Snowflake"
    ],
-   "heat": 55,
-   "star": false,
-   "importance": 50,
-   "quality_score": 50,
-   "trend_score": 59,
+   "heat": 65,
+   "star": true,
+   "importance": 78,
+   "quality_score": 78,
+   "trend_score": 54,
    "signal": 0,
-   "topics": [],
+   "topics": [
+    "Data Agent"
+   ],
    "shelf": "news",
    "pinned": false,
    "published": "2026-09-15T01:04:44+08:00",
@@ -4315,6 +6245,13 @@
      "purpose": "body_translation",
      "status": "budget_deferred",
      "error": "LLMBudgetExceeded"
+    },
+    "metadata_translation": {
+     "run_id": "github-34930568448-1",
+     "policy_version": "metadata-translation-backfill-v1",
+     "attempted_at": "2026-09-15T12:59:08.514039+08:00",
+     "purpose": "metadata_translation_backfill",
+     "status": "complete"
     }
    },
    "content_mode": "original",
@@ -4322,13 +6259,34 @@
    "source_language": "other",
    "translation_status": "failed",
    "source_content_hash": "7c7c84af50b59ad42fc75a33",
-   "body_chars": 11189
+   "body_chars": 11189,
+   "work_tags": {
+    "taxonomy_version": "work-tags-v1",
+    "product_objects": [
+     "知识与上下文",
+     "权限与治理"
+    ],
+    "use_cases": [
+     "Agent构建",
+     "方案封装与分发"
+    ],
+    "decision_concerns": [
+     "可维护性与复用",
+     "用户采用与业务价值"
+    ]
+   },
+   "quality_breakdown": {
+    "originality": 20,
+    "evidence_density": 18,
+    "information_gain": 20,
+    "actionability_depth": 20
+   }
   },
   {
    "event_id": "d7b6cc4a3303",
-   "zh_title": "Conformed Star Schema in Semantic Views — How Multi-Fact Models Share Dimensions Without Ambiguity",
-   "zh_summary": "Part I: Declaring Structural Truth — Post 1 of 13 Two teams pull “revenue by region” for the same quarterly review. The numbers don’t match — not by a rounding error, but by enough that someone has to explain it to the CFO. Nobody wrote a wrong query. The problem is simpler and worse: each team quer",
-   "reason": "",
+   "zh_title": "一致性星型模型：多事实表如何在语义视图中共享维度而不产生歧义",
+   "zh_summary": "这是一组13篇系列文章的第1篇，主题是语义视图中的一致性星型模型。文中举例说明：两个团队为同一季度复盘拉取“按地区统计的收入”，数字对不上却都没写错查询，原因是各自查询了记录交易发生的系统与记录回款的系统，两者都叫 REVENUE、连接同样的客户与日历表，但衡量的是根本不同的业务流程。作者认为问题在于模式本身对指标含义保持沉默，语义视图通过为每个事实表注册各自的命名指标（如 total_principal、total_repaid、total_balance）并限定其关系范围来解决，避免直接写 SQL 或 AI 生成 SQL 时护栏失效。",
+   "reason": "多事实表共享一致性维度导致的指标歧义，是语义层与 Text-to-SQL 落地中最常见的准确性问题，本文给出了结构化的建模思路，对做指标语义和数据 Agent 的从业者有直接参考价值。",
    "full_zh": "Part I: Declaring Structural Truth — Post 1 of 13\n\nTwo teams pull “revenue by region” for the same quarterly review. The numbers don’t match — not by a rounding error, but by enough that someone has to explain it to the CFO. Nobody wrote a wrong query. The problem is simpler and worse: each team queried a different system. One pulled from the system that records transactions when they happen. The other pulled from the system that records when payments come back. Both systems track revenue. Both join to the same customer and calendar tables. Both answer the question “revenue by region” — but they’re measuring fundamentally different business processes, and nothing in the warehouse makes that distinction visible. The column is called REVENUE in both tables. The join works the same way. The metric name is the same. The numbers are different because the data is different, and nobody realised they were looking at two different things until the totals were on the same slide.\n\nTribal Knowledge vs Structural Truth\n\nThe engineering problem\n\nMultiple fact tables share conformed dimensions — customer, calendar, product. Each fact table represents a different business process, but from a schema perspective they look similar: same dimension foreign keys, same column names, same aggregation patterns. When analysts write SQL directly against the warehouse, nothing distinguishes “revenue from originations” from “revenue from collections.” Both are SUM(REVENUE) grouped by the same customer region. A BI tool’s semantic layer can enforce this distinction, but the moment someone queries the warehouse directly — or an AI agent generates SQL — the guardrails disappear.\n\nThe problem isn’t that the joins are wrong. It’s that the schema is silent about what each metric means. A semantic view fixes this by registering each fact table with its own named metrics — total_principal vs total_repaid vs total_balance — each scoped to its own set of relationships. Querying one fact table doesn’t drag in the others. The model itself tells consumers what they’re measuring, which business process it comes from, and which dimensions are valid for slicing it. The distinction that was previously tribal knowledge becomes structural and queryable.\n\nImplementation\n\nCREATE OR REPLACE SEMANTIC VIEW SV_LENDING_ANALYTICS\nTABLES (\napplications AS FACT_LOAN_APPLICATIONS PRIMARY KEY (LOAN_ID),\nrepayments AS FACT_REPAYMENTS PRIMARY KEY (PAYMENT_ID),\nsnapshots AS FACT_BALANCE_SNAPSHOTS,\ncustomers AS DIM_CUSTOMER PRIMARY KEY (CUSTOMER_ID),\ncalendar AS DIM_CALENDAR PRIMARY KEY (DATE_KEY)\n)\nRELATIONSHIPS (\napp_to_customer AS applications(CUSTOMER_ID) REFERENCES customers(CUSTOMER_ID),\nrepay_to_customer AS repayments(CUSTOMER_ID) REFERENCES customers(CUSTOMER_ID),\nsnapshot_to_customer AS snapshots(CUSTOMER_ID) REFERENCES customers(CUSTOMER_ID),\napp_to_calendar AS applications(APPLICATION_DATE) REFERENCES calendar(DATE_KEY),\nrepay_to_calendar AS repayments(PAYMENT_DATE) REFERENCES calendar(DATE_KEY),\nsnapshot_to_calendar AS snapshots(SNAPSHOT_DATE) REFERENCES calendar(DATE_KEY)\n)\nDIMENSIONS (\ncustomers.HOME_REGION AS HOME_REGION,\ncustomers.CUSTOMER_NAME AS CUSTOMER_NAME,\ncustomers.SEGMENT AS SEGMENT,\ncalendar.FISCAL_QUARTER AS FISCAL_QUARTER,\ncalendar.FISCAL_YEAR AS FISCAL_YEAR,\napplications.STATUS AS LOAN_STATUS\n)\nMETRICS (\napplications.total_principal AS SUM(PRINCIPAL),\napplications.app_count AS COUNT(LOAN_ID),\nrepayments.total_repaid AS SUM(TOTAL_PAID),\nrepayments.payment_count AS COUNT(PAYMENT_ID),\nsnapshots.total_balance AS SUM(OUTSTANDING_BALANCE)\n)\n\nHow is it resolved\n\nThree things happen structurally:\n\nMetric scoping. total_principal belongs to applications, total_repaid belongs to repayments, total_balance belongs to snapshots. A consumer asking for “total_principal by HOME_REGION” gets origination data only — the engine doesn’t touch the repayments or snapshots tables. The two teams that disagreed on “revenue by region” can now see that they were asking different questions: one was asking for total_principal, the other for total_repaid.Selective joining. Requesting total_principal by FISCAL_QUARTER joins applications → calendar through APPLICATION_DATE. Requesting total_repaid by FISCAL_QUARTER joins repayments → calendar through PAYMENT_DATE. Each metric resolves through its own declared path. The engine only joins what the query needs.Discoverability. SHOW SEMANTIC METRICS lists every metric with its owning fact table. SHOW SEMANTIC DIMENSIONS FOR METRIC total_repaid shows only the dimensions reachable from repayments. An analyst — or an AI agent — doesn’t need to understand the schema to know what’s available and what it means.\n\nIndustry applications\n\nFinancial Services:\n\nA bank’s origination, collections, and risk teams all query “revenue by region” from their own systems. Origination reports principal disbursed, collections reports payments received, risk reports outstanding balances. All three tables join to the same customer and calendar dimensions. All three have a column that could reasonably be called “revenue.” Without a semantic view, a report that says “revenue by region” could come from any of these sources, and the reader has no way to tell which one. For a credit risk officer who needs origination volumes alongside repayment performance in a single quarterly view, the semantic view means they can request total_principal and total_repaid by HOME_REGION in one query — each metric clearly scoped to its source, each resolved through its own relationship path.\n\nSaaS:\n\nSubscription events, usage logs, and support tickets all connect to the same account and calendar dimensions. A product manager asking “what’s our engagement by account tier?” could be looking at subscription ARR, usage frequency, or ticket volume — and all three are valid answers to that question. Without named, scoped metrics, “engagement” means whatever the last analyst decided it meant. For a customer success manager building an at-risk account report, the semantic view makes explicit that subscription_arr, usage_sessions, and ticket_count are three distinct metrics from three different business processes, all sliceable by the same account dimension — and querying one doesn’t require joining the other two.\n\nRetail:\n\nPoint-of-sale transactions, product returns, and loyalty programme events all reference the same customer and product dimensions. “Revenue by product category” could come from sales (gross), returns (negative), or loyalty (redemption value). A CRM manager computing customer lifetime value needs all three, but needs them separated: purchases, returns, and redemptions are different business processes with different grain. The semantic view registers each as its own fact with its own metrics, so the LTV calculation is explicit about what it includes rather than being a black-box SUM(AMOUNT) that depends on which table someone happened to query.\n\nManufacturing:\n\nProduction orders, quality inspections, and warranty claims share product, plant, and calendar dimensions. A VP of Operations asking “cost by product line” could mean production cost, inspection cost, or warranty cost — and the answer varies dramatically. The semantic view makes each metric named and scoped: production_cost from orders, inspection_cost from quality, warranty_cost from claims. Cross-domain analysis is still possible (the dimensions are shared), but each number is traceable to its source.\n\nHealthcare:\n\nAdmissions, procedures, and lab results share patient, provider, and facility dimensions. “Patient volume by facility” means something different coming from admissions (census), procedures (throughput), or lab results (test volume). For a clinical researcher studying outcomes, the semantic view means they can request admission-based metrics and procedure-based metrics side by side, each resolved through their own relationship paths — without accidentally counting lab orders as admissions or conflating throughput with census.\n\nBusiness outcomes — Elevating Data to a Structural Guarantee\n\nMetric disambiguation: each fact table’s metrics are named, scoped, and traceable to their source — “revenue” becomes total_principal, total_repaid, and total_balance, eliminating the ambiguity that caused the number mismatchSelective execution: querying one fact table doesn’t join the others — the engine only touches what the query needsSelf-describing model: SHOW SEMANTIC METRICS and SHOW SEMANTIC DIMENSIONS make the full model discoverable without schema knowledge, for humans and AI agents alike\n\nThe Fine Print\n\nEach relationship must have a unique nameMetrics from one fact table can only be sliced by dimensions reachable through that fact’s declared relationships — not all dimensions in the SV\n\nConformed Star Schema in Semantic Views — How Multi-Fact Models Share Dimensions Without Ambiguity was originally published in Snowflake Builders Blog: Data Engineers, App Developers, AI, & Data Science on Medium, where people are continuing the conversation by highlighting and responding to this story.",
    "content_blocks": [
     {
@@ -4786,14 +6744,17 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 54,
+   "heat": 60,
    "star": false,
-   "importance": 50,
-   "quality_score": 50,
-   "trend_score": 57,
+   "importance": 71,
+   "quality_score": 71,
+   "trend_score": 51,
    "signal": 0,
-   "topics": [],
-   "shelf": "news",
+   "topics": [
+    "语义层",
+    "ChatBI"
+   ],
+   "shelf": "evergreen",
    "pinned": false,
    "published": "2026-09-14T22:01:07+08:00",
    "first_seen": "2026-09-15T05:53:14.713318+08:00",
@@ -4870,6 +6831,13 @@
      "purpose": "body_translation",
      "status": "budget_deferred",
      "error": "LLMBudgetExceeded"
+    },
+    "metadata_translation": {
+     "run_id": "github-34930568448-1",
+     "policy_version": "metadata-translation-backfill-v1",
+     "attempted_at": "2026-09-15T12:59:11.156476+08:00",
+     "purpose": "metadata_translation_backfill",
+     "status": "complete"
     }
    },
    "content_mode": "original",
@@ -4877,7 +6845,25 @@
    "source_language": "other",
    "translation_status": "failed",
    "source_content_hash": "728674d9a04435c07bd92c35",
-   "body_chars": 9063
+   "body_chars": 9063,
+   "work_tags": {
+    "taxonomy_version": "work-tags-v1",
+    "product_objects": [
+     "指标与语义"
+    ],
+    "use_cases": [
+     "指标问答"
+    ],
+    "decision_concerns": [
+     "准确性与语义一致性"
+    ]
+   },
+   "quality_breakdown": {
+    "originality": 20,
+    "evidence_density": 15,
+    "information_gain": 19,
+    "actionability_depth": 17
+   }
   },
   {
    "event_id": "a112e98a96f3",
@@ -6001,11 +7987,11 @@
     "Temporal",
     "AWS Step Functions"
    ],
-   "heat": 65,
+   "heat": 62,
    "star": true,
    "importance": 77,
    "quality_score": 77,
-   "trend_score": 54,
+   "trend_score": 49,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -7044,7 +9030,7 @@
    "star": false,
    "importance": 57,
    "quality_score": 57,
-   "trend_score": 10,
+   "trend_score": 9,
    "signal": 0,
    "topics": [
     "风险管理"
@@ -8194,11 +10180,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 57,
+   "heat": 54,
    "star": false,
    "importance": 72,
    "quality_score": 72,
-   "trend_score": 44,
+   "trend_score": 40,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -9649,7 +11635,7 @@
    "vendors": [
     "Visier"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 71,
    "quality_score": 71,
@@ -15131,11 +17117,11 @@
    "vendors": [
     "ClickHouse"
    ],
-   "heat": 40,
+   "heat": 39,
    "star": false,
    "importance": 74,
    "quality_score": 74,
-   "trend_score": 12,
+   "trend_score": 10,
    "signal": 0,
    "topics": [
     "湖仓"
@@ -16081,7 +18067,7 @@
     "Fabric",
     "Power BI"
    ],
-   "heat": 28,
+   "heat": 27,
    "star": false,
    "importance": 60,
    "quality_score": 60,
@@ -17170,11 +19156,11 @@
    "vendors": [
     "RelationalAI"
    ],
-   "heat": 37,
+   "heat": 36,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 27,
+   "trend_score": 25,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -19145,11 +21131,11 @@
     "Pub/Sub",
     "Dataflow"
    ],
-   "heat": 36,
+   "heat": 35,
    "star": false,
    "importance": 66,
    "quality_score": 66,
-   "trend_score": 12,
+   "trend_score": 10,
    "signal": 0,
    "topics": [
     "平台AI化",
@@ -21360,11 +23346,11 @@
     "Anthropic",
     "Claude"
    ],
-   "heat": 43,
+   "heat": 42,
    "star": false,
    "importance": 72,
    "quality_score": 72,
-   "trend_score": 19,
+   "trend_score": 18,
    "signal": 0,
    "topics": [
     "组织人才"
@@ -22510,11 +24496,11 @@
     "Anthropic",
     "Claude"
    ],
-   "heat": 50,
+   "heat": 49,
    "star": true,
    "importance": 88,
    "quality_score": 88,
-   "trend_score": 19,
+   "trend_score": 18,
    "signal": 0,
    "topics": [
     "组织人才"
@@ -23929,11 +25915,11 @@
    "category": "insight",
    "category_label": "AI分析",
    "vendors": [],
-   "heat": 41,
+   "heat": 40,
    "star": false,
    "importance": 61,
    "quality_score": 61,
-   "trend_score": 25,
+   "trend_score": 23,
    "signal": 0,
    "topics": [
     "财务经营"
@@ -25538,11 +27524,11 @@
    "vendors": [
     "蚂蚁集团"
    ],
-   "heat": 45,
+   "heat": 44,
    "star": false,
    "importance": 68,
    "quality_score": 68,
-   "trend_score": 27,
+   "trend_score": 24,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -25885,7 +27871,7 @@
    "vendors": [
     "Microsoft Fabric"
    ],
-   "heat": 54,
+   "heat": 52,
    "star": true,
    "importance": 80,
    "signal": 0,
@@ -25919,7 +27905,7 @@
    "editorial_pick": true,
    "curated_at": "2026-09-12T13:30:00+08:00",
    "quality_score": 80,
-   "trend_score": 32
+   "trend_score": 30
   },
   {
    "event_id": "ab71223dcc04",
@@ -26301,9 +28287,9 @@
   },
   {
    "event_id": "1040324d5b86",
-   "zh_title": "把 Snowflake 指标导入 ThoughtSpot，避免 AI 与看板各算一套",
-   "zh_summary": "The Number Problem Every organization has a version of this meeting. Someone pulls up a dashboard and says revenue was $42M last quarter. Someone else says their report shows $44M. Both are right. Both used approved data. The difference is invisible: one counted revenue on order date, the other on s",
-   "reason": "",
+   "zh_title": "Snowflake语义视图与Spotter语义：指标口径分裂难题",
+   "zh_summary": "文章从企业常见场景切入：同一季度营收，一份报表显示4200万美元，另一份显示4400万美元，两者都基于已批准数据，差异源于口径——一个按下单日期统计、另一个按发货日期，一个含退款、另一个不含，客户关联字段也不同。作者指出这不是数据质量问题，而是「意义」问题，并认为组织规模扩张、自助式分析普及以及AI代理写SQL三件事让该问题恶化，尤其AI代理会自信地选错关联路径且不自我怀疑，因此语义治理是规模化智能的前提。",
+   "reason": "文章用具体数字场景讲清指标口径不一致的成因，并直指AI代理自动生成SQL时语义层缺失带来的规模化风险，对做ChatBI、语义层与AI数据平台的从业者是核心议题。",
    "full_zh": "The Number Problem\n\nEvery organization has a version of this meeting. Someone pulls up a dashboard and says revenue was $42M last quarter. Someone else says their report shows $44M. Both are right. Both used approved data. The difference is invisible: one counted revenue on order date, the other on ship date. One included refunds, the other didn’t. One joined customers through an account ID, the other through a billing ID.\n\nNobody made a mistake. The data is correct. The formulas run. The problem is that two reasonable people made two reasonable choices, and the business got two numbers for the same question.\n\nThis isn’t a data quality problem. It’s a meaning problem.\n\nWhat does “revenue” mean here? Which date counts? Which customers are included? Which formula applies? These questions have answers in every organization — but the answers live in documentation that nobody reads, in Slack threads that scroll away, in the head of the analyst who built the first dashboard three years ago.\n\nWhy This Is Getting Worse\n\nFor decades, this was manageable. A small analytics team could maintain shared understanding through proximity and convention. Everybody knew that “revenue” meant the order-date version, because everybody sat in the same room.\n\nThree things broke that:\n\nScale. Organisations now have dozens of teams writing SQL against shared tables. Each team makes reasonable, locally consistent choices. But locally consistent isn’t globally consistent.\n\nSelf-service. When only three people could write SQL, tribal knowledge worked. When three hundred people can, it doesn’t.\n\nAI agents. This is the inflection point. When a human writes the wrong join, one dashboard is wrong. When an AI agent writes the wrong join, every downstream workflow that trusts it is wrong. The agent doesn’t second-guess. It doesn’t notice that ship date “feels off” for a revenue report. It picks a path, executes confidently, and moves on. If the schema allows ten paths to the same dimension, the agent will pick one — silently, and potentially differently every time.\n\nSemantic governance isn’t a nice-to-have in a world of AI agents. It’s the difference between scaling intelligence and scaling hallucination.\n\nWhat a Semantic View Actually Does\n\nThe core idea is simple: declare what the data means once, and every query inherits that meaning automatically.\n\nA semantic view sits in front of your physical tables and declares:\n\nThese are the entities — customer, order, product, calendarThis is how they relate — orders connect to customers through this key, not that oneThese are the metrics — revenue is this formula, applied this way, with these exclusionsThese are the dimensions — region means this column on this table\n\nOnce declared, every query — from a dashboard, from a notebook, from an AI agent — resolves through those declarations. There’s no decision left to make differently. The join path isn’t a choice. The formula isn’t a preference. The meaning is baked into the object.\n\nThis isn’t a BI semantic layer that sits outside the warehouse. It’s a Snowflake catalog object, governed by the same access control, auditing, and lineage as every other Snowflake object. GET_DDL shows you exactly what's defined. Row access policies enforce who sees what. And when an AI agent queries through a semantic view, it gets the right answer not because the model is smart, but because the wrong answer isn't reachable.\n\nWhat This Series Covers\n\nThe series works through thirteen patterns across five groups, each grounded in real semantic view definitions and worked across industries — banking, insurance, SaaS, retail, manufacturing, healthcare, recruitment, energy, and more. They’re sequenced so each post builds only on what’s already been covered:\n\nPart I — Declaring Structural Truth: making sure “customer,” “calendar,” and “product” mean the same thing no matter which fact table is asking. Covers conformed dimensions, role-playing dimensions for multiple date roles, shared dimensions built from columns that live on several fact tables with no lookup table of their own, and the USING clause that steps in when more than one join path is valid.\n\nPart II — Time as a Join Key. Two patterns for joining not just on identity but on validity at a point in time: range joins for slowly changing dimensions (a rate, a price, a policy term that was true as of a given date), and ASOF joins for reference data that arrives as a stream of events with no defined end date, like credit scores or FX rates.\n\nPart III — Computed & Derived Entities. What happens when the join key doesn’t exist as a physical column — a fiscal quarter derived from a date, a territory derived from a postcode, a customer tier derived from lifetime spend. This is where the FACTS clause does its work, including the special case of registering the same fact table twice, time-shifted, to get year-over-year comparison without a self-join.\n\nPart IV — Metric Aggregation Semantics. Once the joins are right, the math still has to be. Semi-additive metrics that prevent snapshot balances from being triple-counted, derived metrics that combine numbers from different fact tables at different grains into one governed ratio, and window functions — rolling averages, YTD totals — that adapt correctly to whatever dimension a consumer asks for.\n\nPart V — Accumulating Snapshot Fact Tables. The last pattern pulls together role-playing calendar aliases and the USING clause to model a single entity moving through a multi-stage pipeline — a loan application, a hiring funnel, a manufacturing order — where every stage has its own milestone date and its own correct temporal anchor.\n\nThe goal isn’t “here’s the syntax.” It’s a working answer to the question every data leader eventually has to answer: how do you make the number the same, no matter who asks the question, and no matter how many stages, dates, or teams the answer has to pass through to get there?\n\nThe first part of the series is available now, https://medium.com/snowflake/cd2f99e81bfb\n\nSemantic Governance in Snowflake: Governing Meaning Not Just Access was originally published in Snowflake Builders Blog: Data Engineers, App Developers, AI, & Data Science on Medium, where people are continuing the conversation by highlighting and responding to this story.",
    "content_blocks": [
     {
@@ -26814,12 +28800,13 @@
     "ThoughtSpot",
     "Snowflake"
    ],
-   "heat": 75,
-   "star": true,
-   "importance": 80,
+   "heat": 64,
+   "star": false,
+   "importance": 61,
    "signal": 0,
    "topics": [
-    "语义层"
+    "语义层",
+    "Data Agent"
    ],
    "shelf": "evergreen",
    "pinned": false,
@@ -26857,8 +28844,8 @@
    "discovery_source": "X",
    "editorial_pick": true,
    "curated_at": "2026-09-12T13:30:00+08:00",
-   "quality_score": 80,
-   "trend_score": 71,
+   "quality_score": 61,
+   "trend_score": 66,
    "content_parse": {
     "run_id": "github-34900837437-1",
     "processor_version": "original-first-v7",
@@ -26922,13 +28909,40 @@
      "purpose": "body_translation",
      "status": "budget_deferred",
      "error": "LLMBudgetExceeded"
+    },
+    "metadata_translation": {
+     "run_id": "github-34930568448-1",
+     "policy_version": "metadata-translation-backfill-v1",
+     "attempted_at": "2026-09-15T12:59:13.767540+08:00",
+     "purpose": "metadata_translation_backfill",
+     "status": "complete"
     }
    },
    "content_level": "original",
    "source_language": "other",
    "translation_status": "failed",
    "source_content_hash": "073a64af403a4307a93ac176",
-   "body_chars": 6306
+   "body_chars": 6306,
+   "work_tags": {
+    "taxonomy_version": "work-tags-v1",
+    "product_objects": [
+     "指标与语义"
+    ],
+    "use_cases": [
+     "指标问答",
+     "自助分析"
+    ],
+    "decision_concerns": [
+     "准确性与语义一致性",
+     "可靠性与评估"
+    ]
+   },
+   "quality_breakdown": {
+    "originality": 18,
+    "evidence_density": 12,
+    "information_gain": 17,
+    "actionability_depth": 14
+   }
   },
   {
    "event_id": "c218bd27e661",
@@ -28586,11 +30600,11 @@
     "Databricks",
     "Abacus"
    ],
-   "heat": 30,
+   "heat": 29,
    "star": false,
    "importance": 41,
    "quality_score": 41,
-   "trend_score": 21,
+   "trend_score": 19,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -29664,11 +31678,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 36,
+   "heat": 35,
    "star": false,
    "importance": 55,
    "quality_score": 55,
-   "trend_score": 21,
+   "trend_score": 19,
    "signal": 0,
    "topics": [
     "湖仓"
@@ -32197,11 +34211,11 @@
    "vendors": [
     "ClickHouse"
    ],
-   "heat": 41,
+   "heat": 40,
    "star": false,
    "importance": 67,
    "quality_score": 67,
-   "trend_score": 20,
+   "trend_score": 18,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -33071,7 +35085,7 @@
    "star": true,
    "importance": 82,
    "quality_score": 82,
-   "trend_score": 12,
+   "trend_score": 10,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -33984,7 +35998,7 @@
    "star": false,
    "importance": 39,
    "quality_score": 39,
-   "trend_score": 14,
+   "trend_score": 13,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -34081,11 +36095,11 @@
    "vendors": [
     "OpenAI"
    ],
-   "heat": 24,
+   "heat": 23,
    "star": false,
    "importance": 37,
    "quality_score": 37,
-   "trend_score": 13,
+   "trend_score": 12,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -34171,11 +36185,11 @@
    "vendors": [
     "OpenAI"
    ],
-   "heat": 28,
+   "heat": 27,
    "star": false,
    "importance": 48,
    "quality_score": 48,
-   "trend_score": 12,
+   "trend_score": 10,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -35147,7 +37161,7 @@
    "star": true,
    "importance": 78,
    "quality_score": 78,
-   "trend_score": 13,
+   "trend_score": 12,
    "signal": 0,
    "topics": [
     "组织人才"
@@ -36238,11 +38252,11 @@
     "Snowflake",
     "白鲸开源"
    ],
-   "heat": 39,
+   "heat": 38,
    "star": false,
    "importance": 64,
    "quality_score": 64,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [
     "语义层",
@@ -37666,11 +39680,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 38,
+   "heat": 37,
    "star": false,
    "importance": 61,
    "quality_score": 61,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -37788,11 +39802,11 @@
    "vendors": [
     "腾讯云"
    ],
-   "heat": 13,
+   "heat": 12,
    "star": false,
    "importance": 10,
    "quality_score": 10,
-   "trend_score": 16,
+   "trend_score": 14,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -39077,7 +41091,7 @@
    "star": false,
    "importance": 62,
    "quality_score": 62,
-   "trend_score": 15,
+   "trend_score": 14,
    "signal": 0,
    "topics": [
     "平台AI化",
@@ -39635,11 +41649,11 @@
    "vendors": [
     "Hex"
    ],
-   "heat": 25,
+   "heat": 24,
    "star": false,
    "importance": 41,
    "quality_score": 41,
-   "trend_score": 12,
+   "trend_score": 10,
    "signal": 0,
    "topics": [
     "BI变局",
@@ -41488,11 +43502,11 @@
     "Databricks",
     "DuckDB"
    ],
-   "heat": 44,
+   "heat": 43,
    "star": true,
    "importance": 80,
    "quality_score": 80,
-   "trend_score": 14,
+   "trend_score": 13,
    "signal": 0,
    "topics": [
     "湖仓"
@@ -42631,11 +44645,11 @@
     "ThoughtSpot",
     "OpenAI"
    ],
-   "heat": 41,
+   "heat": 40,
    "star": false,
    "importance": 71,
    "quality_score": 71,
-   "trend_score": 16,
+   "trend_score": 14,
    "signal": 0,
    "topics": [
     "ChatBI",
@@ -44356,7 +46370,7 @@
    "star": false,
    "importance": 42,
    "quality_score": 42,
-   "trend_score": 14,
+   "trend_score": 12,
    "signal": 0,
    "topics": [
     "数据人"
@@ -45181,11 +47195,11 @@
    "vendors": [
     "ClickHouse"
    ],
-   "heat": 44,
+   "heat": 43,
    "star": true,
    "importance": 80,
    "quality_score": 80,
-   "trend_score": 15,
+   "trend_score": 13,
    "signal": 0,
    "topics": [
     "实时分析"
@@ -46012,11 +48026,11 @@
    "vendors": [
     "ClickHouse"
    ],
-   "heat": 48,
+   "heat": 47,
    "star": true,
    "importance": 88,
    "quality_score": 88,
-   "trend_score": 14,
+   "trend_score": 13,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -47173,11 +49187,11 @@
    "vendors": [
     "ClickHouse"
    ],
-   "heat": 41,
+   "heat": 40,
    "star": false,
    "importance": 74,
    "quality_score": 74,
-   "trend_score": 14,
+   "trend_score": 13,
    "signal": 0,
    "topics": [
     "湖仓"
@@ -49861,11 +51875,11 @@
     "Amazon S3",
     "Amazon DynamoDB"
    ],
-   "heat": 44,
+   "heat": 43,
    "star": true,
    "importance": 80,
    "quality_score": 80,
-   "trend_score": 15,
+   "trend_score": 13,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -52540,11 +54554,11 @@
     "Apache Iceberg",
     "Apache Spark"
    ],
-   "heat": 46,
+   "heat": 45,
    "star": true,
    "importance": 84,
    "quality_score": 84,
-   "trend_score": 15,
+   "trend_score": 13,
    "signal": 0,
    "topics": [
     "湖仓"
@@ -53210,7 +55224,7 @@
    "star": false,
    "importance": 52,
    "quality_score": 52,
-   "trend_score": 14,
+   "trend_score": 13,
    "signal": 0,
    "topics": [
     "ChatBI",
@@ -54134,11 +56148,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 38,
+   "heat": 37,
    "star": false,
    "importance": 66,
    "quality_score": 66,
-   "trend_score": 14,
+   "trend_score": 13,
    "signal": 0,
    "topics": [
     "财务经营",
@@ -54910,7 +56924,7 @@
    "star": true,
    "importance": 81,
    "quality_score": 81,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -57007,11 +59021,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 35,
+   "heat": 34,
    "star": false,
    "importance": 61,
    "quality_score": 61,
-   "trend_score": 14,
+   "trend_score": 12,
    "signal": 0,
    "topics": [
     "平台AI化",
@@ -57437,11 +59451,11 @@
    "vendors": [
     "ThoughtSpot"
    ],
-   "heat": 29,
+   "heat": 28,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 12,
+   "trend_score": 10,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -58838,11 +60852,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 25,
+   "heat": 24,
    "star": false,
    "importance": 41,
    "quality_score": 41,
-   "trend_score": 12,
+   "trend_score": 11,
    "signal": 0,
    "topics": [
     "语义层",
@@ -60160,7 +62174,7 @@
    "star": false,
    "importance": 52,
    "quality_score": 52,
-   "trend_score": 12,
+   "trend_score": 11,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -60638,11 +62652,11 @@
     "Supabase",
     "Neon"
    ],
-   "heat": 38,
+   "heat": 37,
    "star": false,
    "importance": 71,
    "quality_score": 71,
-   "trend_score": 11,
+   "trend_score": 10,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -60759,11 +62773,11 @@
    "vendors": [
     "腾讯云数据库"
    ],
-   "heat": 13,
+   "heat": 12,
    "star": false,
    "importance": 15,
    "quality_score": 15,
-   "trend_score": 11,
+   "trend_score": 10,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -60867,7 +62881,7 @@
    "star": false,
    "importance": 8,
    "quality_score": 8,
-   "trend_score": 10,
+   "trend_score": 9,
    "signal": 0,
    "topics": [
     "实时分析"
@@ -61950,7 +63964,7 @@
    "star": true,
    "importance": 80,
    "quality_score": 80,
-   "trend_score": 12,
+   "trend_score": 11,
    "signal": 0,
    "topics": [
     "平台AI化",
@@ -63079,7 +65093,7 @@
    "star": true,
    "importance": 76,
    "quality_score": 76,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "平台AI化",
@@ -63666,11 +65680,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 34,
+   "heat": 33,
    "star": false,
    "importance": 62,
    "quality_score": 62,
-   "trend_score": 11,
+   "trend_score": 10,
    "signal": 0,
    "topics": [
     "财务经营",
@@ -66008,11 +68022,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 44,
+   "heat": 43,
    "star": true,
    "importance": 85,
    "quality_score": 85,
-   "trend_score": 10,
+   "trend_score": 9,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -66708,11 +68722,11 @@
     "Databricks",
     "Lakebase"
    ],
-   "heat": 37,
+   "heat": 36,
    "star": false,
    "importance": 70,
    "quality_score": 70,
-   "trend_score": 10,
+   "trend_score": 9,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -67791,11 +69805,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 45,
+   "heat": 44,
    "star": true,
    "importance": 87,
    "quality_score": 87,
-   "trend_score": 10,
+   "trend_score": 9,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -68801,11 +70815,11 @@
    "vendors": [
     "ClickHouse"
    ],
-   "heat": 34,
+   "heat": 33,
    "star": false,
    "importance": 62,
    "quality_score": 62,
-   "trend_score": 11,
+   "trend_score": 10,
    "signal": 0,
    "topics": [
     "实时分析"
@@ -69480,11 +71494,11 @@
    "vendors": [
     "Fivetran"
    ],
-   "heat": 41,
+   "heat": 40,
    "star": true,
    "importance": 78,
    "quality_score": 78,
-   "trend_score": 10,
+   "trend_score": 9,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -70789,7 +72803,7 @@
    "star": true,
    "importance": 82,
    "quality_score": 82,
-   "trend_score": 10,
+   "trend_score": 9,
    "signal": 0,
    "topics": [
     "风险管理"
@@ -71250,7 +73264,7 @@
    "star": false,
    "importance": 53,
    "quality_score": 53,
-   "trend_score": 8,
+   "trend_score": 7,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -74334,11 +76348,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 40,
+   "heat": 39,
    "star": true,
    "importance": 78,
    "quality_score": 78,
-   "trend_score": 9,
+   "trend_score": 8,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -75325,7 +77339,7 @@
    "star": true,
    "importance": 80,
    "quality_score": 80,
-   "trend_score": 8,
+   "trend_score": 7,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -78123,7 +80137,7 @@
    "star": false,
    "importance": 68,
    "quality_score": 68,
-   "trend_score": 5,
+   "trend_score": 4,
    "signal": 0,
    "topics": [
     "湖仓",
@@ -82642,7 +84656,7 @@
    "vendors": [
     "AWS"
    ],
-   "heat": 27,
+   "heat": 26,
    "star": false,
    "importance": 50,
    "quality_score": 50,
@@ -83438,7 +85452,7 @@
    "vendors": [
     "AWS"
    ],
-   "heat": 36,
+   "heat": 35,
    "star": false,
    "importance": 70,
    "quality_score": 70,
@@ -83938,7 +85952,7 @@
    "star": false,
    "importance": 51,
    "quality_score": 51,
-   "trend_score": 8,
+   "trend_score": 7,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -85059,7 +87073,7 @@
    "star": false,
    "importance": 24,
    "quality_score": 24,
-   "trend_score": 8,
+   "trend_score": 7,
    "signal": 0,
    "topics": [
     "客户运营",
@@ -85707,7 +87721,7 @@
    "star": false,
    "importance": 74,
    "quality_score": 74,
-   "trend_score": 8,
+   "trend_score": 7,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -89064,11 +91078,11 @@
     "BigQuery",
     "Amazon Redshift"
    ],
-   "heat": 47,
+   "heat": 46,
    "star": true,
    "importance": 87,
    "quality_score": 87,
-   "trend_score": 14,
+   "trend_score": 13,
    "signal": 0,
    "topics": [
     "实时分析"
@@ -95427,7 +97441,7 @@
    "star": true,
    "importance": 99,
    "quality_score": 99,
-   "trend_score": 5,
+   "trend_score": 4,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -97390,7 +99404,7 @@
    "star": false,
    "importance": 65,
    "quality_score": 65,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "实时分析"
@@ -98835,7 +100849,7 @@
    "star": false,
    "importance": 70,
    "quality_score": 70,
-   "trend_score": 5,
+   "trend_score": 4,
    "signal": 0,
    "topics": [
     "语义层"
@@ -101801,7 +103815,7 @@
    "star": false,
    "importance": 58,
    "quality_score": 58,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -102308,7 +104322,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "BI变局"
@@ -102960,7 +104974,7 @@
    "star": true,
    "importance": 79,
    "quality_score": 79,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -106387,7 +108401,7 @@
    "star": false,
    "importance": 53,
    "quality_score": 53,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "数据人"
@@ -116299,11 +118313,11 @@
    "vendors": [
     "火山引擎"
    ],
-   "heat": 32,
+   "heat": 31,
    "star": false,
    "importance": 68,
    "quality_score": 68,
-   "trend_score": 2,
+   "trend_score": 1,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -123599,7 +125613,7 @@
    "star": false,
    "importance": 60,
    "quality_score": 60,
-   "trend_score": 2,
+   "trend_score": 1,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -126043,7 +128057,7 @@
    "star": false,
    "importance": 63,
    "quality_score": 63,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "ChatBI",
@@ -129900,7 +131914,7 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 26,
+   "heat": 25,
    "star": false,
    "importance": 55,
    "quality_score": 55,
@@ -153123,7 +155137,7 @@
    "star": false,
    "importance": 67,
    "quality_score": 67,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "数据人"
@@ -153607,7 +155621,7 @@
    "star": false,
    "importance": 54,
    "quality_score": 54,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -154209,7 +156223,7 @@
    "star": false,
    "importance": 52,
    "quality_score": 52,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "数据人"
@@ -163499,7 +165513,7 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 32,
+   "heat": 31,
    "star": false,
    "importance": 69,
    "quality_score": 69,
@@ -165904,7 +167918,7 @@
    "star": false,
    "importance": 48,
    "quality_score": 48,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "客户运营"
@@ -166824,7 +168838,7 @@
    "star": false,
    "importance": 44,
    "quality_score": 44,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "BI变局"
@@ -168339,7 +170353,7 @@
    "star": false,
    "importance": 57,
    "quality_score": 57,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "财务经营"
@@ -169537,7 +171551,7 @@
    "star": false,
    "importance": 45,
    "quality_score": 45,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "平台AI化",
@@ -185424,7 +187438,7 @@
    "star": false,
    "importance": 40,
    "quality_score": 40,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -186039,7 +188053,7 @@
    "star": false,
    "importance": 69,
    "quality_score": 69,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "数据人"
@@ -188790,7 +190804,7 @@
    "star": true,
    "importance": 78,
    "quality_score": 78,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -191618,7 +193632,7 @@
    "star": true,
    "importance": 83,
    "quality_score": 83,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -192534,7 +194548,7 @@
    "star": false,
    "importance": 68,
    "quality_score": 68,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "销售增长"
@@ -212542,11 +214556,11 @@
     "Looker",
     "dbt"
    ],
-   "heat": 53,
+   "heat": 52,
    "star": true,
    "importance": 80,
    "quality_score": 80,
-   "trend_score": 31,
+   "trend_score": 30,
    "signal": 0,
    "topics": [
     "BI变局"
@@ -444101,7 +446115,7 @@
     "BigQuery",
     "Google Cloud"
    ],
-   "heat": 70,
+   "heat": 67,
    "star": false,
    "importance": 70,
    "signal": 0,
@@ -444314,7 +446328,7 @@
    "translation_status": "failed",
    "source_content_hash": "3907a79213df9e15b816330c",
    "quality_score": 70,
-   "trend_score": 70
+   "trend_score": 65
   },
   {
    "event_id": "ba8377c644db",
@@ -535304,17 +537318,28 @@
   }
  ],
  "top": [
-  "1040324d5b86",
   "dfb9071b69e0",
+  "4fddad85a065",
   "fcef8381c737"
  ],
  "sources": [
   {
    "name": "爱分析",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:175m_remaining",
+   "new": 4,
+   "fetched": 7,
+   "eligible": 6,
+   "prefiltered": 1,
+   "prefilter_dropped": {
+    "time": 0,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 1,
+    "excluded": 0
+   },
+   "skipped_seen": 1,
+   "limit_reached": true,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 12.0,
@@ -535331,19 +537356,8 @@
    "name": "OpenAI News",
    "ok": true,
    "new": 0,
-   "fetched": 20,
-   "eligible": 0,
-   "prefiltered": 20,
-   "prefilter_dropped": {
-    "time": 18,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 2,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "skipped": true,
+   "skip_reason": "frequency_gate:1015m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -535357,20 +537371,9 @@
   {
    "name": "Claude 官方博客",
    "ok": true,
-   "new": 1,
-   "fetched": 239,
-   "eligible": 1,
-   "prefiltered": 238,
-   "prefilter_dropped": {
-    "time": 236,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 2,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1015m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -535384,20 +537387,9 @@
   {
    "name": "Anthropic Economic Index",
    "ok": true,
-   "new": 3,
-   "fetched": 12,
-   "eligible": 12,
-   "prefiltered": 0,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 4,
-   "limit_reached": true,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1015m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -535415,20 +537407,9 @@
   {
    "name": "Indeed Hiring Lab",
    "ok": true,
-   "new": 1,
-   "fetched": 10,
-   "eligible": 3,
-   "prefiltered": 7,
-   "prefilter_dropped": {
-    "time": 6,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 1
-   },
-   "skipped_seen": 2,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1015m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -535444,20 +537425,9 @@
   {
    "name": "Josh Bersin",
    "ok": true,
-   "new": 1,
-   "fetched": 20,
-   "eligible": 2,
-   "prefiltered": 18,
-   "prefilter_dropped": {
-    "time": 18,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 1,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1015m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -535475,20 +537445,9 @@
   {
    "name": "AIHR",
    "ok": true,
-   "new": 1,
-   "fetched": 10,
-   "eligible": 1,
-   "prefiltered": 9,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 3,
-    "excluded": 6
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1015m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -535506,20 +537465,9 @@
   {
    "name": "Handshake Network Trends",
    "ok": true,
-   "new": 1,
-   "fetched": 11,
-   "eligible": 4,
-   "prefiltered": 7,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 7,
-    "excluded": 0
-   },
-   "skipped_seen": 3,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1015m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -535537,7 +537485,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:2335m_remaining",
+   "skip_reason": "frequency_gate:1911m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 48.0,
@@ -535556,7 +537504,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:2335m_remaining",
+   "skip_reason": "frequency_gate:1911m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 48.0,
@@ -535573,20 +537521,9 @@
   {
    "name": "ADP Research",
    "ok": true,
-   "new": 2,
-   "fetched": 10,
-   "eligible": 6,
-   "prefiltered": 4,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 4,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": true,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1015m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -535603,19 +537540,8 @@
    "name": "Workday Newsroom",
    "ok": true,
    "new": 0,
-   "fetched": 5,
-   "eligible": 0,
-   "prefiltered": 5,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 5,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "skipped": true,
+   "skip_reason": "frequency_gate:1015m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -535635,7 +537561,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:2335m_remaining",
+   "skip_reason": "frequency_gate:1911m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 48.0,
@@ -535655,7 +537581,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:2335m_remaining",
+   "skip_reason": "frequency_gate:1911m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 48.0,
@@ -535672,7 +537598,7 @@
   {
    "name": "Snowflake Release Notes",
    "ok": true,
-   "new": 3,
+   "new": 4,
    "fetched": 6,
    "eligible": 6,
    "prefiltered": 0,
@@ -535683,7 +537609,7 @@
     "keyword": 0,
     "excluded": 0
    },
-   "skipped_seen": 3,
+   "skipped_seen": 2,
    "limit_reached": false,
    "schedule_reason": "interval_elapsed",
    "control": {
@@ -535753,7 +537679,7 @@
   {
    "name": "Databricks Blog",
    "ok": true,
-   "new": 1,
+   "new": 0,
    "fetched": 10,
    "eligible": 10,
    "prefiltered": 0,
@@ -535764,7 +537690,7 @@
     "keyword": 0,
     "excluded": 0
    },
-   "skipped_seen": 9,
+   "skipped_seen": 10,
    "limit_reached": false,
    "schedule_reason": "interval_elapsed",
    "control": {
@@ -535866,20 +537792,9 @@
   {
    "name": "Visier Blog",
    "ok": true,
-   "new": 1,
-   "fetched": 20,
-   "eligible": 3,
-   "prefiltered": 17,
-   "prefilter_dropped": {
-    "time": 16,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 1,
-    "excluded": 0
-   },
-   "skipped_seen": 2,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1015m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -535899,16 +537814,16 @@
    "ok": true,
    "new": 0,
    "fetched": 20,
-   "eligible": 10,
-   "prefiltered": 10,
+   "eligible": 9,
+   "prefiltered": 11,
    "prefilter_dropped": {
-    "time": 10,
+    "time": 11,
     "missing_date": 0,
     "path": 0,
     "keyword": 0,
     "excluded": 0
    },
-   "skipped_seen": 10,
+   "skipped_seen": 9,
    "limit_reached": false,
    "schedule_reason": "interval_elapsed",
    "control": {
@@ -535924,7 +537839,7 @@
   {
    "name": "AWS Big Data Blog",
    "ok": true,
-   "new": 1,
+   "new": 0,
    "fetched": 20,
    "eligible": 7,
    "prefiltered": 13,
@@ -535935,7 +537850,7 @@
     "keyword": 0,
     "excluded": 0
    },
-   "skipped_seen": 6,
+   "skipped_seen": 7,
    "limit_reached": false,
    "schedule_reason": "interval_elapsed",
    "control": {
@@ -536005,20 +537920,9 @@
   {
    "name": "人人都是产品经理",
    "ok": true,
-   "new": 5,
-   "fetched": 15,
-   "eligible": 13,
-   "prefiltered": 2,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 2,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": true,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1015m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -536063,20 +537967,9 @@
   {
    "name": "InfoQ 中文",
    "ok": true,
-   "new": 1,
-   "fetched": 20,
-   "eligible": 2,
-   "prefiltered": 18,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 18,
-    "excluded": 0
-   },
-   "skipped_seen": 1,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1015m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -536090,20 +537983,9 @@
   {
    "name": "雷锋网",
    "ok": true,
-   "new": 4,
-   "fetched": 20,
-   "eligible": 19,
-   "prefiltered": 1,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 1,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": true,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1015m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -536117,20 +537999,9 @@
   {
    "name": "极客公园",
    "ok": true,
-   "new": 4,
-   "fetched": 20,
-   "eligible": 15,
-   "prefiltered": 5,
-   "prefilter_dropped": {
-    "time": 5,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": true,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1015m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -536145,19 +538016,8 @@
    "name": "量子位",
    "ok": true,
    "new": 0,
-   "fetched": 10,
-   "eligible": 0,
-   "prefiltered": 10,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 10,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "skipped": true,
+   "skip_reason": "frequency_gate:1015m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -536171,9 +538031,20 @@
   {
    "name": "InfoQ（AI/数据工程）",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:175m_remaining",
+   "new": 8,
+   "fetched": 15,
+   "eligible": 15,
+   "prefiltered": 0,
+   "prefilter_dropped": {
+    "time": 0,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 2,
+   "limit_reached": true,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "media_targeted",
     "fetch_interval_hours": 12.0,
@@ -536187,20 +538058,9 @@
   {
    "name": "TechCrunch AI",
    "ok": true,
-   "new": 3,
-   "fetched": 20,
-   "eligible": 3,
-   "prefiltered": 17,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 17,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1015m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -536214,20 +538074,9 @@
   {
    "name": "The Verge AI",
    "ok": true,
-   "new": 3,
-   "fetched": 10,
-   "eligible": 3,
-   "prefiltered": 7,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 7,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1015m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -536241,9 +538090,20 @@
   {
    "name": "Hacker News（数据关键词）",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:175m_remaining",
+   "new": 1,
+   "fetched": 12,
+   "eligible": 1,
+   "prefiltered": 11,
+   "prefilter_dropped": {
+    "time": 11,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 0,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "community_targeted",
     "fetch_interval_hours": 12.0,
@@ -536256,10 +538116,9 @@
   },
   {
    "name": "Bluesky 数据社区",
-   "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:175m_remaining",
+   "ok": false,
+   "error": "HTTP Error 502: Bad Gateway",
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "community_targeted",
     "fetch_interval_hours": 12.0,
@@ -536273,7 +538132,7 @@
   {
    "name": "Snowflake Engineering（Medium）",
    "ok": true,
-   "new": 4,
+   "new": 1,
    "fetched": 10,
    "eligible": 8,
    "prefiltered": 2,
@@ -536284,7 +538143,7 @@
     "keyword": 0,
     "excluded": 0
    },
-   "skipped_seen": 4,
+   "skipped_seen": 7,
    "limit_reached": false,
    "schedule_reason": "interval_elapsed",
    "control": {
@@ -536332,8 +538191,19 @@
    "name": "Hex Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:175m_remaining",
+   "fetched": 396,
+   "eligible": 2,
+   "prefiltered": 394,
+   "prefilter_dropped": {
+    "time": 383,
+    "missing_date": 11,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 2,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -536351,8 +538221,19 @@
    "name": "Amplitude Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:175m_remaining",
+   "fetched": 2073,
+   "eligible": 0,
+   "prefiltered": 2073,
+   "prefilter_dropped": {
+    "time": 2071,
+    "missing_date": 0,
+    "path": 1,
+    "keyword": 1,
+    "excluded": 0
+   },
+   "skipped_seen": 0,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -536370,8 +538251,19 @@
    "name": "Netflix Technology Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:175m_remaining",
+   "fetched": 10,
+   "eligible": 0,
+   "prefiltered": 10,
+   "prefilter_dropped": {
+    "time": 10,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 0,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "engineering_targeted",
     "fetch_interval_hours": 12.0,
@@ -536387,9 +538279,20 @@
   {
    "name": "Google Cloud Data Analytics Blog",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:175m_remaining",
+   "new": 2,
+   "fetched": 10,
+   "eligible": 10,
+   "prefiltered": 0,
+   "prefilter_dropped": {
+    "time": 0,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 8,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -536439,8 +538342,19 @@
    "name": "Google Looker Release Notes",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:175m_remaining",
+   "fetched": 20,
+   "eligible": 4,
+   "prefiltered": 16,
+   "prefilter_dropped": {
+    "time": 16,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 4,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "structured_high",
     "fetch_interval_hours": 12.0,
@@ -536458,8 +538372,19 @@
    "name": "Microsoft Fabric Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:175m_remaining",
+   "fetched": 10,
+   "eligible": 1,
+   "prefiltered": 9,
+   "prefilter_dropped": {
+    "time": 9,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 1,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -536508,8 +538433,19 @@
    "name": "Apache Iceberg Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:175m_remaining",
+   "fetched": 13,
+   "eligible": 0,
+   "prefiltered": 13,
+   "prefilter_dropped": {
+    "time": 13,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 0,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 12.0,
@@ -536526,8 +538462,19 @@
    "name": "TiDB Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:175m_remaining",
+   "fetched": 10,
+   "eligible": 2,
+   "prefiltered": 8,
+   "prefilter_dropped": {
+    "time": 8,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 2,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -536545,8 +538492,19 @@
    "name": "Apache Doris Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:175m_remaining",
+   "fetched": 20,
+   "eligible": 0,
+   "prefiltered": 20,
+   "prefilter_dropped": {
+    "time": 20,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 0,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -536563,91 +538521,69 @@
   }
  ],
  "structured_content": {
-  "run_id": "github-34900837437-1",
-  "attempted": 6,
-  "ready": 6,
-  "figures": 16,
+  "run_id": "github-34930568448-1",
+  "attempted": 2,
+  "ready": 2,
+  "figures": 8,
   "tables": 1,
-  "media_cached": 16,
-  "media_link_only": 0,
-  "candidate_duplicates": 27,
-  "candidate_quality_rejected": 17,
+  "media_cached": 0,
+  "media_link_only": 8,
+  "candidate_duplicates": 26,
+  "candidate_quality_rejected": 2,
   "strategies": {
-   "rss_document_fallback": 3,
-   "semantic_container": 2,
-   "nested_content": 1
+   "nested_content": 2
   },
   "quality_statuses": {
-   "pass": 6
+   "pass": 2
   },
   "content_modes": {
-   "original": 6
+   "original": 1,
+   "translated": 1
   },
   "fallbacks": {},
   "by_source": {
-   "Snowflake Engineering（Medium）": {
-    "attempted": 3,
-    "ready": 3,
-    "figures": 11,
-    "tables": 0,
-    "media_cached": 11
-   },
-   "Databricks Blog": {
-    "attempted": 1,
-    "ready": 1,
-    "figures": 0,
-    "tables": 0,
-    "media_cached": 0
-   },
-   "Visier Blog": {
-    "attempted": 1,
-    "ready": 1,
-    "figures": 4,
-    "tables": 0,
-    "media_cached": 4
-   },
-   "AWS Big Data Blog": {
-    "attempted": 1,
-    "ready": 1,
-    "figures": 1,
+   "Google Cloud Data Analytics Blog": {
+    "attempted": 2,
+    "ready": 2,
+    "figures": 8,
     "tables": 1,
-    "media_cached": 1
+    "media_cached": 0
    }
   },
   "catalog": {
-   "events": 442,
-   "structured": 394,
-   "renderable": 393,
-   "current_pass": 387,
+   "events": 444,
+   "structured": 396,
+   "renderable": 395,
+   "current_pass": 389,
    "parser_debt": 7,
    "display_trimmed": 0,
    "display_suspect": 0,
    "embedded_ui_trimmed": 0,
    "embedded_ui_blocks": 0,
    "modes": {
-    "original": 68,
-    "translated": 326,
+    "original": 69,
+    "translated": 327,
     "editorial_excerpt": 19,
     "ai_fallback": 15,
     "missing": 14
    },
    "processor_versions": {
-    "original-first-v7": 422,
+    "original-first-v7": 424,
     "missing": 20
    }
   },
   "metadata_backfill": {
    "limit": 3,
    "eligible": 3,
-   "attempted": 0,
-   "complete": 0,
-   "deferred_budget": 1,
+   "attempted": 3,
+   "complete": 3,
+   "deferred_budget": 0,
    "skipped": 0,
    "failed": 0
   },
   "backfill": {
    "foreign_limit": 6,
-   "eligible": 15,
+   "eligible": 16,
    "attempted": 12,
    "ready": 0,
    "original": 0,
@@ -536671,7 +538607,7 @@
   },
   "article_ui_cleanup": {
    "policy_version": "article-chrome-v3",
-   "scanned": 437,
+   "scanned": 442,
    "cleaned_events": 0,
    "removed_blocks": 0
   }

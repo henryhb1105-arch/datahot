@@ -38,7 +38,13 @@ def match_products(event, products=None):
     items = event.get("items") or []
     text = " ".join(str(s or "") for s in [event.get("zh_title"), event.get("zh_summary"),
                      *[i.get("title") for i in items]])
-    hosts = {(urlparse(str(i.get("link") or "")).hostname or "").removeprefix("www.") for i in items}
+    hosts = set()
+    for item in items:
+        try:
+            host = urlparse(str(item.get("link") or "")).hostname or ""
+        except ValueError:
+            continue
+        hosts.add(host.removeprefix("www."))
     return [p["id"] for p in products if
             event.get("event_id") in p["event_ids"] or
             text_matches(text, p["aliases"]) or bool(hosts & set(p["domains"]))]

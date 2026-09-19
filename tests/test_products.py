@@ -32,6 +32,11 @@ class ProductIdentityTests(unittest.TestCase):
         self.assertEqual(len(payload["products"]), 10)
         self.assertEqual(len({p["id"] for p in payload["products"]}), 10)
 
+    def test_malformed_source_url_does_not_drop_other_product_evidence(self):
+        event = {"items": [{"link": "https://[bad"}, {"link": "https://hex.tech/blog/"}]}
+        self.assertEqual(match_products(event), ["hex"])
+        self.assertEqual(match_products({"items": [{"link": "https://[bad"}]}), [])
+
     def test_reference_paths_resolve_to_existing_articles_and_cases(self):
         events = json.loads((ROOT / "site/data/latest.json").read_text())["events"]
         records, _ = library_records(load_product_cases(events=events), events, load_studies(events))

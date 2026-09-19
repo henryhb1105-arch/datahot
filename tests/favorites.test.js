@@ -56,6 +56,52 @@ test("saved snapshots remain renderable when the metadata index no longer contai
   assert.match(favorites.renderCard(retained[0], new Date("2026-08-23T12:00:00+08:00")), /标题 aaaaaaaaaaaa/);
 });
 
+test("lightweight and full events keep the original URL through save and Markdown export", () => {
+  for (const source of [
+    { original_url: "https://hex.tech/blog/context-studio/", items: [{ source: "Hex" }] },
+    { items: [{ source: "Hex", link: "https://hex.tech/blog/context-studio/" }] }
+  ]) {
+    const local = storage();
+    const snapshot = favorites.eventSnapshot({ event_id: "aaaaaaaaaaaa", zh_title: "Context Studio", ...source });
+    favorites.writeRecords(local, [snapshot]);
+    const saved = favorites.readRecords(local);
+    assert.equal(saved[0].original_url, "https://hex.tech/blog/context-studio/");
+    assert.match(favorites.exportMarkdown(saved, favorites.readLibrary(local)), /原文：<https:\/\/hex.tech\/blog\/context-studio\/>/);
+  }
+});
+
+test("source-link backfill preserves titled snapshots, saved dates, projects and notes", () => {
+  const local = storage();
+  const saved = record("aaaaaaaaaaaa", "2026-09-19T00:00:00Z", { original_url: "" });
+  const library = favorites.normalizeLibrary({ projects: [{ id: "p_project1", name: "语义研究" }], entries: {
+    aaaaaaaaaaaa: { project_id: "p_project1", note: "验证口径\n检查权限" }
+  }});
+  favorites.writeLibrary(local, library);
+  favorites.writeRecords(local, favorites.enrichRecords([saved], [{
+    event_id: saved.event_id, zh_title: "索引更新后的标题", original_url: "https://example.com/original",
+    items: [{ source: "更新后的信源" }]
+  }]));
+  const restored = favorites.readRecords(local)[0];
+  assert.equal(restored.title, saved.title);
+  assert.equal(restored.source, saved.source);
+  assert.equal(restored.saved_at, saved.saved_at);
+  assert.equal(restored.original_url, "https://example.com/original");
+  assert.deepEqual(favorites.readLibrary(local), library);
+  const markdown = favorites.exportMarkdown([restored], favorites.readLibrary(local));
+  assert.match(markdown, /原文：<https:\/\/example.com\/original>/);
+  assert.match(markdown, /项目：语义研究/);
+  assert.match(markdown, /> 验证口径\n> 检查权限/);
+});
+
+test("snapshots and exports reject malformed or credential-bearing original URLs", () => {
+  for (const url of ["javascript:alert(1)", "https://", "https://[bad", "https://user:password@example.com",
+    "https://exa mple.com", "https://example.com/\npath", "https://example.com/\\path", "https://example.com/" + "a".repeat(2000)]) {
+    const item = record("aaaaaaaaaaaa", "", { original_url: url });
+    assert.equal(favorites.normalizeRecord(item).original_url, "");
+    assert.doesNotMatch(favorites.exportMarkdown([item], favorites.normalizeLibrary({})), /原文：/);
+  }
+});
+
 test("design-study favorites retain their safe route without a news event", () => {
   const item = record("aaaaaaaaaaaa", "2026-09-05T01:00:00Z", { detail_path: "cases/metabase-metabot.html" });
   const local = storage();

@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import string
 import subprocess
 import sys
 import tempfile
@@ -32,7 +33,8 @@ class SourceSecretQuarantineTests(unittest.TestCase):
             baseline = {"events":[{"event_id":"a"*12,"body":"existing safe source"}]}
             path.write_text(json.dumps(baseline))
             git("add", "."); git("commit", "-m", "safe baseline")
-            canary = uuid.uuid4().hex
+            # A bare UUID can fall below the scanner's entropy threshold.
+            canary = string.ascii_letters + string.digits + uuid.uuid4().hex
             candidate = {"events":baseline["events"] + [
                 {"event_id":"b"*12,"body":"api_key = '" + canary + "'"},
                 {"event_id":"c"*12,"body":"new safe source"}]}

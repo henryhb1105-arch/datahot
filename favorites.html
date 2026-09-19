@@ -4,7 +4,7 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>我的收藏 · DataHot</title>
-<meta name="description" content="你收藏的数据领域资讯">
+<meta name="description" content="收藏、项目资料夹与个人笔记">
 
 <meta name="robots" content="noindex,follow">
 <link rel="icon" href="favicon.ico" sizes="any">
@@ -13,7 +13,7 @@
 <link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://datahot.xiahongbin.com/feed.xml">
 <meta name="datahot-analytics" data-enabled="true" data-endpoint="https://metrics.datahot.xiahongbin.com/v1/events" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
 <script defer src="analytics.js?v=20077f7d7e8b"></script>
-<script defer src="favorites.js?v=d80c0b507585"></script>
+<script defer src="favorites.js?v=257897ea9464"></script>
 <style>
   :root{
     color-scheme: light dark;
@@ -220,6 +220,7 @@
   footer{border-top:1px solid var(--line);padding:26px 0;text-align:center;font-size:12px;color:var(--sub)}
   .mock-banner{background:#1a1d23;color:#fff;text-align:center;font-size:12px;padding:7px;letter-spacing:1px}
   .mock-banner b{color:#f5b48a}
+.project-tools{margin:18px 0 20px;padding:16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card)}.project-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:10px}.project-toolbar>label{font-size:12px;color:var(--sub);white-space:nowrap}.project-tools select,.project-tools input,.project-tools button,.project-editor select,.project-editor textarea{min-height:44px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);padding:10px 12px;font:inherit;font-size:12px;max-width:100%;min-width:0}.project-toolbar select{flex:1;min-width:150px}.project-tools button{cursor:pointer;background:var(--soft);white-space:nowrap}.project-tools button:disabled{opacity:.4;cursor:default}.project-tools button:focus-visible,.project-tools select:focus,.project-tools input:focus,.project-editor textarea:focus,.project-editor select:focus{outline:2px solid var(--accent);outline-offset:2px}.project-manager{margin-top:10px;font-size:12px;color:var(--sub)}.project-manager summary{cursor:pointer;padding:8px 0;min-height:36px}.project-manage-row{display:flex;gap:8px;flex-wrap:wrap;padding:8px 0}.project-manage-row input{flex:1;min-width:160px}.project-manager p{font-size:11px;line-height:1.7}.project-status{font-size:12px;line-height:1.7;color:var(--sub);margin:6px 0 0}.project-status:empty{display:none}.project-editor{grid-column:1/-1;border-top:1px solid var(--line);padding:0 16px 10px;min-width:0;overflow-wrap:anywhere}.project-editor summary{cursor:pointer;font-size:12px;line-height:1.65;color:var(--sub);padding:12px 0;min-height:44px}.project-editor label{display:block;font-size:12px;color:var(--txt2);margin:8px 0}.project-editor label span{font-size:10px;color:var(--sub)}.project-editor select{width:100%}.project-editor textarea{display:block;width:100%;line-height:1.8;resize:vertical;min-height:110px}.project-editor[open]{padding-bottom:16px}@media(max-width:600px){.project-tools{padding:13px}.project-toolbar{gap:8px}.project-toolbar>label{width:100%}.project-toolbar select{min-width:0}.project-toolbar button{font-size:11px;padding:9px}.project-manage-row input{flex-basis:100%}.project-manage-row button{flex:1}.project-editor{padding-left:13px;padding-right:13px}}
 
 
 body{overflow-x:clip}
@@ -631,15 +632,20 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="logo"><a href="index.html" style="text-decoration:none">Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
 </div></header>
 
-<main class="wrap favorites-page" data-favorites-page data-favorites-data-url="data/latest-lite.json?v=91f884d4a335">
+<main class="wrap favorites-page" data-favorites-page data-favorites-data-url="data/latest-lite.json?v=72a8449e6b71">
   <header class="favorites-head">
     <div>
       <h1 class="favorites-title"><svg width="22" height="22" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg> 我的收藏 <span class="favorites-count" id="favoritesCount">0 条</span></h1>
       <p class="favorites-trust">仅保存在当前浏览器 · 不上传；清除浏览器数据可能丢失。<a href="privacy.html">了解隐私</a></p>
     </div>
   </header>
+  <section class="project-tools" aria-label="项目资料夹">
+    <div class="project-toolbar"><label for="projectFilter">项目资料夹</label><select id="projectFilter"><option value="">全部收藏</option></select><button type="button" id="projectExport" disabled>导出当前结果 · Markdown</button></div>
+    <details class="project-manager"><summary>管理项目</summary><div class="project-manage-row"><input id="projectName" maxlength="80" placeholder="例如：销售数据 Agent" aria-label="项目名称"><button type="button" id="projectCreate">新建项目</button><button type="button" id="projectRename" disabled>重命名</button><button type="button" id="projectDelete" disabled>移除项目</button></div><p>移除项目会保留其中的收藏和笔记，归回未分类。</p></details>
+    <p id="projectStatus" class="project-status" role="status" aria-live="polite"></p>
+  </section>
   <section class="favorites-tools" id="favoritesTools" aria-label="查找收藏" hidden>
-    <input class="favorites-search" id="favoritesSearch" type="search" placeholder="搜索收藏" aria-label="搜索收藏">
+    <input class="favorites-search" id="favoritesSearch" type="search" placeholder="搜索收藏与笔记" aria-label="搜索收藏与笔记">
     <div class="favorites-filters" id="favoritesFilters" aria-label="按主题筛选收藏"></div>
   </section>
   <div id="favList" aria-live="polite" aria-busy="true"><div class="favorites-loading">正在读取本机收藏…</div></div>

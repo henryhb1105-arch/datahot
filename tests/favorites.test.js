@@ -100,3 +100,49 @@ test("rendered favorite cards escape snapshot text and keep a direct remove acti
   assert.match(html, /data-fav="aaaaaaaaaaaa"/);
   assert.match(html, /aria-label="取消收藏"/);
 });
+
+test("projects and notes survive legacy favorite writes and project removal", () => {
+  const local = storage();
+  const library = favorites.normalizeLibrary({ projects:[{id:"p_project1",name:"Agent 调研"}], entries:{
+    aaaaaaaaaaaa:{project_id:"p_project1",note:"口径问题\n下一步验证"}
+  }});
+  assert.equal(favorites.writeLibrary(local, library), true);
+  favorites.writeRecords(local, [record("aaaaaaaaaaaa", "2026-09-19T00:00:00Z")]);
+  assert.equal(favorites.readLibrary(local).entries.aaaaaaaaaaaa.note, "口径问题\n下一步验证");
+  const removed = favorites.removeProject(library, "p_project1");
+  assert.equal(removed.entries.aaaaaaaaaaaa.project_id, "");
+  assert.equal(removed.entries.aaaaaaaaaaaa.note, library.entries.aaaaaaaaaaaa.note);
+  assert.equal(favorites.readRecords(local).length, 1);
+  const failing = {setItem(){throw new Error("quota");}};
+  assert.equal(favorites.writeLibrary(failing, library), false);
+});
+
+test("project search includes notes and unassigned filter keeps records", () => {
+  const library = favorites.normalizeLibrary({projects:[{id:"p_project1",name:"评测"}],entries:{
+    aaaaaaaaaaaa:{project_id:"p_project1",note:"待做配对实验"}
+  }});
+  const records = [record("aaaaaaaaaaaa",""),record("bbbbbbbbbbbb","")];
+  assert.equal(favorites.filterLibrary(records,library,"p_project1","配对","").length,1);
+  assert.deepEqual(favorites.filterLibrary(records,library,"unassigned","","").map(r=>r.event_id),["bbbbbbbbbbbb"]);
+  const html = favorites.renderCard(records[0],new Date(),library);
+  assert.match(html,/data-project-note="aaaaaaaaaaaa"/);
+  assert.match(html,/p_project1" selected/);
+});
+
+test("Markdown export carries stable case links, source and literal personal notes", () => {
+  const library = favorites.normalizeLibrary({projects:[{id:"p_project1",name:"Agent 调研"}],entries:{
+    aaaaaaaaaaaa:{project_id:"p_project1",note:"<script>\n# 仍是笔记"}
+  }});
+  const item = record("aaaaaaaaaaaa","",{detail_path:"cases/metabase-metabot.html",title:"指标 [口径]"});
+  const markdown = favorites.exportMarkdown([item],library,"Agent 调研",new Date("2026-09-19T00:00:00Z"));
+  assert.match(markdown,/https:\/\/datahot.xiahongbin.com\/cases\/metabase-metabot.html/);
+  assert.match(markdown,/原文：<https:\/\/example.com\/article>/);
+  assert.ok(markdown.includes("指标 \\[口径\\]"));
+  assert.ok(markdown.includes("> \\<script\\>\n> \\# 仍是笔记"));
+  assert.doesNotMatch(markdown,/<script>/);
+});
+
+test("versioned favorite client resolves toast link from nested pages", () => {
+  const document = {querySelector(){return {src:"https://datahot.xiahongbin.com/favorites.js?v=123"};},baseURI:"https://datahot.xiahongbin.com/products/hex.html"};
+  assert.equal(favorites.favoritesUrl(document),"https://datahot.xiahongbin.com/favorites.html");
+});

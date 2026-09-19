@@ -35,6 +35,19 @@ test("state is local, bounded and de-duplicated", () => {
   assert.equal(state.lastVisit, "");
 });
 
+test("one product provides an exact feed while old topic preferences survive", () => {
+  const old = forMe.normalizeState({ topics: ["语义层"], vendors: ["Snowflake"] });
+  assert.deepEqual(old.products, []);
+  assert.deepEqual(old.topics, ["语义层"]);
+  const state = forMe.normalizeState({ products: ["hex", "hex", "../bad"] });
+  assert.deepEqual(state.products, ["hex"]);
+  const target = { ...event("aaaaaaaaaaaa"), product_ids: ["hex"] };
+  const unrelated = event("bbbbbbbbbbbb", { vendors: ["Hex"] });
+  assert.deepEqual(forMe.rankEvents([unrelated, target], state, Date.now(), true).map(e => e.event_id), ["aaaaaaaaaaaa"]);
+  assert.deepEqual(forMe.matchReasons(target, state), [{ kind: "product", value: "hex" }]);
+  assert.deepEqual(forMe.buildSuggestions([], [{id:"hex",name:"Hex"}])[0], {kind:"product",value:"hex",label:"Hex"});
+});
+
 test("explicit follows outrank global popularity and explain the match", () => {
   const state = forMe.normalizeState({ topics: ["语义层"], vendors: [] });
   const matching = event("aaaaaaaaaaaa", { topics: ["语义层"], importance: 55, heat: 30 });

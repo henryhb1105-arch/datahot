@@ -37,6 +37,7 @@
       version: 1,
       topics: uniqueStrings(source.topics, 50),
       vendors: uniqueStrings(source.vendors, 50),
+      products: uniqueStrings(source.products, 50).filter(function (id) { return /^[a-z][a-z0-9-]{1,63}$/.test(id); }),
       dismissed: uniqueStrings(source.dismissed, 200),
       read: read,
       lastVisit: /^\d{4}-\d{2}-\d{2}T/.test(String(source.lastVisit || "")) ? String(source.lastVisit) : ""
@@ -44,7 +45,8 @@
   }
 
   function follows(state) {
-    return state.topics.map(function (value) { return { kind: "topic", value: value }; })
+    return (state.products || []).map(function (value) { return { kind: "product", value: value }; })
+      .concat(state.topics.map(function (value) { return { kind: "topic", value: value }; }))
       .concat(state.vendors.map(function (value) { return { kind: "vendor", value: value }; }));
   }
 
@@ -61,6 +63,8 @@
       return { kind: "topic", value: value };
     }).concat(state.vendors.filter(function (value) { return vendors.indexOf(value) >= 0; }).map(function (value) {
       return { kind: "vendor", value: value };
+    })).concat((state.products || []).filter(function (value) { return (event.product_ids || []).indexOf(value) >= 0; }).map(function (value) {
+      return { kind: "product", value: value };
     }));
   }
 
@@ -147,7 +151,7 @@
     return eventTime(event, "first_seen") > since;
   }
 
-  function buildSuggestions(events) {
+  function buildSuggestions(events, products) {
     var topicCounts = Object.create(null);
     var vendorCounts = Object.create(null);
     (events || []).forEach(function (event) {
@@ -162,7 +166,9 @@
     var vendors = Object.keys(vendorCounts).sort(function (a, b) {
       return vendorCounts[b] - vendorCounts[a] || a.localeCompare(b);
     }).slice(0, 8).map(function (value) { return { kind: "vendor", value: value, count: vendorCounts[value] }; });
-    return topics.concat(vendors);
+    return (products || []).map(function (product) {
+      return { kind: "product", value: product.id, label: product.name };
+    }).concat(topics, vendors);
   }
 
   function boot(win) {
@@ -208,7 +214,7 @@
       if (separator > 0) {
         var kind = followParam.slice(0, separator);
         var value = followParam.slice(separator + 1).trim().slice(0, 80);
-        if ((kind === "topic" || kind === "vendor") && value) addFollow(kind, value);
+        if ((kind === "topic" || kind === "vendor" || (kind === "product" && /^[a-z][a-z0-9-]{1,63}$/.test(value))) && value) addFollow(kind, value);
         if (win.history && win.history.replaceState) win.history.replaceState({}, "", win.location.pathname + win.location.hash);
       }
     } catch (_error) {}
@@ -222,7 +228,12 @@
       discoveryList: doc.getElementById("fmDiscoveryList"), empty: doc.getElementById("fmEmpty"), weeklyCount: doc.getElementById("fmWeeklyCount")
     };
     var events = [];
-    var setupOpen = follows(state).length < 3;
+    var products = [], productNames = {};
+    var setupOpen = follows(state).length < 1;
+
+    function kindLabel(kind) { return kind === "product" ? "产品" : (kind === "topic" ? "主题" : "厂商"); }
+    function followLabel(follow) { return follow.kind === "product" ? (productNames[follow.value] || follow.value) : follow.value; }
+    function followList(kind) { return kind === "product" ? state.products : (kind === "topic" ? state.topics : state.vendors); }
 
     function saveState() {
       var clean = normalizeState(state);
@@ -230,15 +241,15 @@
       saveJson(storage, STORAGE_KEY, clean);
     }
     function isFollowing(kind, value) {
-      return (kind === "topic" ? state.topics : state.vendors).indexOf(value) >= 0;
+      return followList(kind).indexOf(value) >= 0;
     }
     function addFollow(kind, value) {
-      var list = kind === "topic" ? state.topics : state.vendors;
+      var list = followList(kind);
       if (list.indexOf(value) < 0) list.push(value);
       saveState();
     }
     function removeFollow(kind, value) {
-      var list = kind === "topic" ? state.topics : state.vendors;
+      var list = followList(kind);
       var index = list.indexOf(value);
       if (index >= 0) list.splice(index, 1);
       saveState();
@@ -280,7 +291,7 @@
 
       var reasons = matchReasons(event, state);
       var why = reasons.length
-        ? "因为你关注了 " + reasons.map(function (reason) { return reason.value; }).join("、")
+        ? "因为你关注了 " + reasons.map(followLabel).join("、")
         : (context === "discovery" ? "与你关注的领域相邻，帮助发现意外变化" : "热门内容预览 · 关注后只保留与你相关的变化");
       var whyNode = element("div", "fm-why");
       whyNode.appendChild(element("span", "fm-why-label", "For Me"));
@@ -304,9 +315,22 @@
       var save = element("button", "fm-action", favorite ? "已收藏" : "收藏");
       save.type = "button"; save.dataset.action = "favorite"; save.setAttribute("aria-pressed", favorite ? "true" : "false");
       save.addEventListener("click", function () {
-        var index = state.favorites.indexOf(id);
-        if (index >= 0) state.favorites.splice(index, 1); else state.favorites.push(id);
-        saveJson(storage, FAVORITES_KEY, state.favorites); render();
+        var favorites = win.DataHotFavorites;
+        if (favorites) {
+          var result = favorites.toggleRecords(favorites.readRecords(storage), favorites.eventSnapshot(event), new Date());
+          if (!favorites.writeRecords(storage, result.records)) {
+            save.textContent = "保存失败，请重试";
+            return;
+          }
+          state.favorites = result.records.map(function (record) { return record.event_id; });
+          if (win.dhInitFav) win.dhInitFav();
+          win.dispatchEvent(new win.CustomEvent("datahot:favorites-change", { detail:{action:result.action,record:result.record} }));
+        } else {
+          var index = state.favorites.indexOf(id);
+          if (index >= 0) state.favorites.splice(index, 1); else state.favorites.push(id);
+          saveJson(storage, FAVORITES_KEY, state.favorites);
+        }
+        render();
       });
       var dismiss = element("button", "fm-action fm-dismiss", "不感兴趣");
       dismiss.type = "button"; dismiss.dataset.action = "dismiss";
@@ -323,19 +347,19 @@
     }
     function renderSuggestions() {
       refs.suggestions.replaceChildren();
-      buildSuggestions(events).forEach(function (suggestion) {
+      buildSuggestions(events, products).forEach(function (suggestion) {
         var selected = isFollowing(suggestion.kind, suggestion.value);
         var button = element("button", "fm-follow-chip" + (selected ? " on" : ""));
         button.type = "button";
         button.dataset.kind = suggestion.kind;
         button.dataset.value = suggestion.value;
         button.setAttribute("aria-pressed", selected ? "true" : "false");
-        button.appendChild(element("span", "fm-follow-kind", suggestion.kind === "topic" ? "主题" : "厂商"));
-        button.appendChild(element("span", "", suggestion.value));
+        button.appendChild(element("span", "fm-follow-kind", kindLabel(suggestion.kind)));
+        button.appendChild(element("span", "", suggestion.label || suggestion.value));
         button.addEventListener("click", function () {
           if (isFollowing(suggestion.kind, suggestion.value)) removeFollow(suggestion.kind, suggestion.value);
           else addFollow(suggestion.kind, suggestion.value);
-          if (follows(state).length >= 3) setupOpen = false;
+          if (follows(state).length >= 1) setupOpen = false;
           render();
         });
         refs.suggestions.appendChild(button);
@@ -345,12 +369,15 @@
       refs.watch.replaceChildren();
       follows(state).forEach(function (follow) {
         var related = ranked.filter(function (event) {
-          return matchReasons(event, { topics: follow.kind === "topic" ? [follow.value] : [], vendors: follow.kind === "vendor" ? [follow.value] : [] }).length;
+          return matchReasons(event, { products: follow.kind === "product" ? [follow.value] : [], topics: follow.kind === "topic" ? [follow.value] : [], vendors: follow.kind === "vendor" ? [follow.value] : [] }).length;
         });
+        related.sort(function (a, b) { return eventTime(b) - eventTime(a); });
         var row = element("div", "fm-watch-row");
         var label = element("div", "fm-watch-label");
-        label.appendChild(element("span", "fm-follow-kind", follow.kind === "topic" ? "主题" : "厂商"));
-        label.appendChild(element("b", "", follow.value));
+        label.appendChild(element("span", "fm-follow-kind", kindLabel(follow.kind)));
+        var name = element(follow.kind === "product" ? "a" : "b", "", followLabel(follow));
+        if (follow.kind === "product") name.href = "products/" + follow.value + ".html";
+        label.appendChild(name);
         label.appendChild(element("span", "fm-watch-count", related.length + " 条相关变化" + (related[0] ? " · 最新：" + String(related[0].zh_title || "") : "")));
         var remove = element("button", "fm-watch-remove", "取消关注");
         remove.type = "button";
@@ -360,7 +387,7 @@
     }
     function render() {
       var followed = follows(state);
-      var personalized = followed.length >= 3;
+      var personalized = followed.length >= 1;
       var now = Date.now();
       var ranked = rankEvents(events, state, now, personalized);
       var preview = personalized ? ranked : rankEvents(events, state, now, false);
@@ -369,7 +396,7 @@
       refs.newCount.textContent = personalized ? String(newCount) : "—";
       refs.progress.textContent = personalized
         ? "已关注 " + followed.length + " 个对象，可以随时调整"
-        : "已选择 " + followed.length + "/3 · 再选 " + (3 - followed.length) + " 个即可生成";
+        : "选择 1 个产品、主题或厂商即可开始";
       refs.setup.hidden = !setupOpen;
       refs.customize.setAttribute("aria-expanded", setupOpen ? "true" : "false");
       refs.customize.textContent = setupOpen ? "收起设置" : "调整关注";
@@ -403,11 +430,19 @@
       state.feedback = normalizeFeedbackStore(loadJson(storage, FEEDBACK_KEY, {}));
       render();
     });
+    win.addEventListener("datahot:favorites-change", function () {
+      state.favorites = win.DataHotFavorites ? win.DataHotFavorites.readRecords(storage).map(function (r) { return r.event_id; }) : uniqueStrings(loadJson(storage, FAVORITES_KEY, []), 500);
+      render();
+    });
     fetch(config.dataset.liteUrl || "data/latest-lite.json", { credentials: "same-origin" }).then(function (response) {
       if (!response.ok) throw new Error("HTTP " + response.status);
       return response.json();
     }).then(function (payload) {
       events = Array.isArray(payload.events) ? payload.events : [];
+      products = (Array.isArray(payload.products) ? payload.products : []).filter(function (p) {
+        return p && /^[a-z][a-z0-9-]{1,63}$/.test(p.id) && typeof p.name === "string";
+      });
+      products.forEach(function (p) { productNames[p.id] = p.name; });
       refs.loading.hidden = true; refs.content.hidden = false; render();
     }).catch(function () {
       refs.loading.hidden = true; refs.error.hidden = false;

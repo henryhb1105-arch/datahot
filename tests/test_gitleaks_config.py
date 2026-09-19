@@ -42,6 +42,9 @@ class DataWritebackBoundaryTests(unittest.TestCase):
         stage = workflow.index("git add -- site/data")
         scan = workflow.index("./gitleaks git --pre-commit --staged --redact .")
         commit = workflow.index('git commit -m "chore:')
+        quarantine = workflow.index("python3 pipeline/quarantine_secrets.py")
+        build = workflow.index("python3 pipeline/build_site.py")
+        self.assertLess(stage, quarantine)
+        self.assertLess(quarantine, build)
         self.assertLess(stage, scan)
         self.assertLess(scan, commit)
-

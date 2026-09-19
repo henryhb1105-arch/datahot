@@ -5,6 +5,15 @@ const assert = require("node:assert/strict");
 const home = require("../pipeline/assets/home.js");
 const detail = require("../pipeline/assets/detail.js");
 
+test("freshness is based on the successful data timestamp and tolerates clock skew", () => {
+  const generated = "2026-09-16T01:02:09+08:00";
+  const now = Date.parse(generated);
+  assert.equal(home.freshnessLabel(generated, now + 23 * 3600000), "");
+  assert.equal(home.freshnessLabel(generated, now + 72 * 3600000), " · 已 3 天未更新");
+  assert.equal(home.freshnessLabel(generated, now - 3600000), "");
+  assert.equal(home.freshnessLabel("invalid", now), "");
+});
+
 function event(id, topic = "Agent", source = "Source") {
   return {
     event_id: id.toString(16).padStart(12, "0"), zh_title: `Title ${id}`,

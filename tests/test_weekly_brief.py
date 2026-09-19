@@ -345,8 +345,10 @@ class WeeklySignalValidationTests(unittest.TestCase):
         prompt = _personal_prompt(signal_doc, evidence_map)
 
         self.assertIn("1个主题时，insight 230至260字", prompt)
-        self.assertIn("2个主题时，每项依次130至160字", prompt)
-        self.assertIn("3个主题时，每项依次90至120字", prompt)
+        self.assertIn("2个主题时，每项依次125至145字", prompt)
+        self.assertIn("3个主题时，每项依次90至100字", prompt)
+        self.assertIn("950至1050字符", prompt)
+        self.assertIn("不包括证据标题或JSON键名", prompt)
         self.assertIn("title 12至24字", prompt)
 
     def test_schema_rejects_extra_text_fields(self):
@@ -845,6 +847,27 @@ class WeeklyBriefBuildTests(unittest.TestCase):
                 "schema_version": 3, "kind": "weekly", "status": "pending",
             }), encoding="utf-8")
             self.assertIsNone(build_site.load_weekly_brief(path))
+
+    def test_pending_week_shows_last_valid_issue_without_misdating_it(self):
+        events = [event(i) for i in range(10)]
+        brief = self.make_brief(events)
+        page = build_site.render_weekly_brief_page(None, events, "", archives=[
+            {"week_id": "2026-W99", "status": "pending"}, brief,
+        ])
+        self.assertIn(brief["title"], page)
+        self.assertIn("新一期仍在整理", page)
+        self.assertIn("2026-08-03 至 2026-08-09", page)
+        self.assertIn("这期与你有关", page)
+        self.assertNotIn("本周与你有关", page)
+        self.assertIn('href="weekly/2026-W32.html"', page)
+        self.assertNotIn("2026-W99", page)
+        self.assertEqual(brief["status"], "ready")
+
+    def test_first_issue_pending_offers_existing_content(self):
+        page = build_site.render_weekly_brief_page(None, [], "", archives=[])
+        self.assertIn('href="index.html?view=editor"', page)
+        self.assertIn('href="cases.html"', page)
+        self.assertNotIn('class="weekly-theme"', page)
 
 
 class WeeklyBriefHealthTests(unittest.TestCase):

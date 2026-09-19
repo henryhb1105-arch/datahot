@@ -6,6 +6,7 @@ from __future__ import annotations
 import re
 from collections import Counter
 from datetime import datetime, timedelta, timezone
+from products import match_products, product_metadata
 
 
 LITE_SCHEMA_VERSION = 1
@@ -350,6 +351,8 @@ def lite_event(event, *, source_badge=None):
         "category_label": event.get("category_label", ""),
         "vendors": list(event.get("vendors") or []),
         "topics": list(event.get("topics") or []),
+        "product_ids": match_products(event),
+        **({"source_date_label": event["source_date_label"]} if event.get("source_date_label") else {}),
         **({"work_tags": event["work_tags"]} if isinstance(event.get("work_tags"), dict) else {}),
         "heat": int(event.get("heat") or 0),
         "quality_score": int(
@@ -384,6 +387,7 @@ def build_lite_payload(
         ranking = rank_timeline_events(events, page_size=page_size)
     return {
         "schema_version": LITE_SCHEMA_VERSION,
+        "products": product_metadata(),
         "generated_at": generated_at,
         "page_size": page_size,
         "home_event_ids": [event["event_id"] for event in ranking],

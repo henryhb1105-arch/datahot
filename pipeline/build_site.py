@@ -34,6 +34,7 @@ from design_studies import (
 )
 from case_readings import reading_path, render_reading_body
 from case_visuals import card_image
+from products import load_products, load_paths, render_product_index, render_product_body, render_paths_body
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
@@ -851,7 +852,7 @@ def render_home_brand_update(gen):
     """首页品牌刷新入口与可交互的更新机制说明。"""
     return f'''<a class="logo home-logo" href="index.html" data-home-refresh aria-label="刷新 DataHot 首页" title="刷新首页">Data<em>Hot</em><span class="tag">每 6 小时更新</span></a>
   <details class="update-info" data-update-info>
-    <summary class="upd-time" aria-describedby="updateMechanism">{ic("clock",12)} {gen.strftime("%m-%d %H:%M")} 更新</summary>
+    <summary class="upd-time" aria-describedby="updateMechanism">{ic("clock",12)} {gen.strftime("%m-%d %H:%M")} 更新<span id="contentFreshness" data-generated-at="{esc(gen.isoformat())}" style="color:#e4b96e" hidden></span></summary>
     <div class="update-popover" id="updateMechanism" role="tooltip"><b>页面如何更新</b>{esc(UPDATE_MECHANISM)}</div>
   </details>'''
 
@@ -2642,6 +2643,7 @@ def render_cases_page(product_cases, events, css, studies=(), site_root=None):
     <span class="cases-count"><span data-case-count>{len(prepared)}</span> 个案例</span>
   </header>
   <nav class="cases-question-nav" aria-label="从设计问题开始">
+    <div style="display:flex;gap:20px;flex-wrap:wrap;font-size:12px;margin-bottom:16px"><a href="paths.html">按实施路径动手 →</a><a href="products.html">按产品找资料 →</a></div>
     <div class="cases-question-label">从设计问题开始<span>先选困惑，再看不同产品如何处理</span></div>
     <div class="cases-question-row">{''.join(question_buttons)}</div>
   </nav>
@@ -2804,6 +2806,31 @@ def render_hot_page(events, css, reference_time=None):
         tabbar("home"), prefix="", active="hot", canonical_path="hot.html",
     )
 
+def write_research_pages(events, product_cases, studies, css):
+    research_css = css + (ROOT / "pipeline/assets/products.css").read_text(encoding="utf-8")
+    records, _ = library_records(product_cases, events, studies)
+    cases = {}
+    for case in records:
+        study = case.get("study")
+        key = study["slug"] if study else "case-" + case["event_id"]
+        cases[key] = {"product":case["product"], "problem":(study or {}).get("problem") or case.get("user_problem"),
+                      "href":study_path(study) if study else reading_path(case)}
+    paths = load_paths(events, cases)
+    eligible = [e for e in events if is_list_eligible(e)]
+    (SITE / "products").mkdir(exist_ok=True)
+    pages = [("products.html", "产品雷达", "按产品持续跟踪数据与 AI 产品动态", render_product_index(eligible), ""),
+             ("paths.html", "实施参考路径", "从数据 Agent 到 AI 看板的五条实施参考路径", render_paths_body(paths, events, cases), "")]
+    for product in load_products():
+        pages.append(("products/" + product["id"] + ".html", product["name"], product["focus"],
+                      render_product_body(product, eligible, list(cases.values()), render_card), "../"))
+    for path, title, description, body, prefix in pages:
+        (SITE / path).write_text(page_shell(
+            title + " · DataHot", description, research_css, body, tabbar("for-me", prefix),
+            prefix=prefix, active="for-me", canonical_path=path,
+        ), encoding="utf-8")
+    return [p[0] for p in pages]
+
+
 def render_favorites_page(css, data_url="data/latest-lite.json"):
     """收藏页：本机快照优先，数据索引只用于补全旧版 event_id 收藏。"""
     body = f'''
@@ -2814,15 +2841,20 @@ def render_favorites_page(css, data_url="data/latest-lite.json"):
       <p class="favorites-trust">仅保存在当前浏览器 · 不上传；清除浏览器数据可能丢失。<a href="privacy.html">了解隐私</a></p>
     </div>
   </header>
+  <section class="project-tools" aria-label="项目资料夹">
+    <div class="project-toolbar"><label for="projectFilter">项目资料夹</label><select id="projectFilter"><option value="">全部收藏</option></select><button type="button" id="projectExport" disabled>导出当前结果 · Markdown</button></div>
+    <details class="project-manager"><summary>管理项目</summary><div class="project-manage-row"><input id="projectName" maxlength="80" placeholder="例如：销售数据 Agent" aria-label="项目名称"><button type="button" id="projectCreate">新建项目</button><button type="button" id="projectRename" disabled>重命名</button><button type="button" id="projectDelete" disabled>移除项目</button></div><p>移除项目会保留其中的收藏和笔记，归回未分类。</p></details>
+    <p id="projectStatus" class="project-status" role="status" aria-live="polite"></p>
+  </section>
   <section class="favorites-tools" id="favoritesTools" aria-label="查找收藏" hidden>
-    <input class="favorites-search" id="favoritesSearch" type="search" placeholder="搜索收藏" aria-label="搜索收藏">
+    <input class="favorites-search" id="favoritesSearch" type="search" placeholder="搜索收藏与笔记" aria-label="搜索收藏与笔记">
     <div class="favorites-filters" id="favoritesFilters" aria-label="按主题筛选收藏"></div>
   </section>
   <div id="favList" aria-live="polite" aria-busy="true"><div class="favorites-loading">正在读取本机收藏…</div></div>
   <noscript><div class="favorites-empty"><div class="favorites-empty-inner"><h2>需要启用 JavaScript</h2><p>收藏保存在当前浏览器中，启用 JavaScript 后即可读取。</p></div></div></noscript>
 </main>'''
     return page_shell(
-        "我的收藏 · DataHot", "你收藏的数据领域资讯", css, body,
+        "我的收藏 · DataHot", "收藏、项目资料夹与个人笔记", css + (ROOT / "pipeline/assets/projects.css").read_text(encoding="utf-8"), body,
         tabbar("favorites"), prefix="", active="favorites", indexable=False,
     )
 
@@ -2839,6 +2871,7 @@ def render_for_me_page(css, data_url="data/latest-lite.json"):
       <p class="fm-eyebrow">Your signal radar</p>
       <h1>For Me</h1>
       <p class="fm-subtitle">只看与你相关的重要变化</p>
+      <div class="research-shortcuts" style="display:flex;gap:18px;flex-wrap:wrap;font-size:12px;margin-top:14px"><a href="products.html">浏览产品雷达 →</a><a href="paths.html">实施参考路径 →</a></div>
     </div>
     <button class="fm-customize" id="fmCustomize" type="button" aria-expanded="false" aria-controls="fmSetup">调整关注</button>
     <div class="fm-visit"><span id="fmVisit">正在读取上次访问…</span><strong><span id="fmNewCount">—</span> 条未读变化</strong></div>
@@ -2846,10 +2879,10 @@ def render_for_me_page(css, data_url="data/latest-lite.json"):
 
   <section class="fm-setup" id="fmSetup" aria-labelledby="fmSetupTitle">
     <div class="fm-setup-head">
-      <div><h2 id="fmSetupTitle">先选择你关心的内容</h2><p>主题和厂商可以混选，至少选择 3 个</p></div>
-      <span class="fm-progress" id="fmProgress">已选择 0/3</span>
+      <div><h2 id="fmSetupTitle">先选择你关心的内容</h2><p>产品、主题和厂商可以混选，关注 1 个即可开始</p></div>
+      <span class="fm-progress" id="fmProgress">选择一个关注对象</span>
     </div>
-    <div class="fm-suggestions" id="fmSuggestions" aria-label="可关注的主题与厂商"></div>
+    <div class="fm-suggestions" id="fmSuggestions" aria-label="可关注的产品、主题与厂商"></div>
     <p class="fm-privacy">关注、已读和反馈只保存在这台设备，不需要登录，也不会上传。</p>
   </section>
 
@@ -2884,7 +2917,7 @@ def render_for_me_page(css, data_url="data/latest-lite.json"):
   </div>
   <noscript><div class="fm-error">For Me 需要浏览器 JavaScript 来保存本地关注。你仍可继续使用热榜、主题和周报。</div></noscript>
 </main>
-<script defer src="for-me.js"></script>'''
+<script defer src="for-me.js?v={hashlib.sha256(FOR_ME_ASSET.read_bytes()).hexdigest()[:12]}"></script>'''
     return page_shell(
         "For Me · DataHot", "只看与你相关的数据与 AI 重要变化",
         css + FOR_ME_CSS, body, tabbar("for-me"), prefix="", active="for-me",
@@ -2951,11 +2984,19 @@ def render_weekly_brief_page(
     brief, events, css, *, prefix="", archives=None, archive_prefix="weekly/",
     canonical_path="weekly.html",
 ):
+    # A rejected draft must never replace the last reviewed, readable issue.
+    # Keep the source document pending; only the presentation falls back.
+    archives = [item for item in (archives or []) if valid_weekly_brief(item)]
+    latest_published = False
+    if not brief:
+        if archives:
+            brief = max(archives, key=lambda item: str(item.get("week_id") or ""))
+            latest_published = True
     if not brief:
         body = '''
 <div class="wrap" style="padding:28px 20px 60px;max-width:860px">
   <div class="section-title"><h2>每周简报</h2><span>每周一发布</span></div>
-  <div class="scard" style="font-size:13.5px;color:var(--txt2);line-height:1.8">本期周报正在进行跨事件聚类、历史基线比较和证据校验。AI 或校验暂时不可用时不会发布规则摘要；首页、热榜和详情页仍可正常浏览。</div>
+  <div class="scard" style="font-size:13.5px;color:var(--txt2);line-height:1.8">第一期周报正在整理。你可以先阅读<a href="index.html?view=editor">编辑精选</a>，或查看<a href="cases.html">产品案例</a>。</div>
 </div>'''
         return page_shell(
             "每周简报 · DataHot", "DataHot 每周数据 AI 高价值事件简报", css, body,
@@ -3036,9 +3077,15 @@ def render_weekly_brief_page(
     archive_nav = _weekly_archive_nav(
         archives or [], str(brief.get("week_id") or ""), archive_prefix=archive_prefix,
     )
+    publication_note = (
+        '<p class="weekly-publication-note" role="status" style="color:var(--sub);font-size:13px;line-height:1.7">'
+        '新一期仍在整理，以下为最新已发布周报。内容对应下方标明的日期，可从历史周报查看往期。</p>'
+        if latest_published else ""
+    )
     body = f'''
 <div class="wrap" style="padding:28px 20px 60px;max-width:860px">
   <div class="section-title"><h2>{ic("calendar",18)} 每周情报</h2><span>{esc(brief.get("period_start"))} 至 {esc(brief.get("period_end"))} · 每周一次</span></div>
+  {publication_note}
   {archive_nav}
   <div class="scard weekly-summary">
     <div class="weekly-kicker">DATAHOT WEEKLY · {esc(brief.get("period_start"))} 至 {esc(brief.get("period_end"))}</div>
@@ -3046,7 +3093,7 @@ def render_weekly_brief_page(
     <p>{esc(brief.get("bottom_line"))}</p>
     <div class="weekly-meta" style="margin-top:10px;color:#aeb4be;font-size:11px">{len(theme_rows)} 个信号 · 约 3 分钟读完 · {esc(baseline_text)} · {fmt_date(brief.get("generated_at"))} 更新</div>
   </div>
-  <div class="section-title"><h2>本周与你有关</h2><span>最多 3 个，不凑数</span></div>
+  <div class="section-title"><h2>{'这期与你有关' if latest_published else '本周与你有关'}</h2><span>最多 3 个，不凑数</span></div>
   <div class="weekly-themes">{themes}</div>
   <div class="section-title"><h2>判断边界</h2><span>反证、缺口与下周验证</span></div>
   <div class="weekly-secondary">
@@ -3337,7 +3384,9 @@ def main():
 
     # 首页筛选顺序保持稳定；短名称只用于显示，底层筛选值继续兼容旧 URL。
     topic_fchips = render_home_filter_chips(timeline_events)
-    weekly_teaser = render_weekly_brief_teaser(weekly_brief) if weekly_enabled else ""
+    weekly_teaser = render_weekly_brief_teaser(
+        weekly_brief or next(iter(weekly_archives), None)
+    ) if weekly_enabled else ""
     weekly_header_link = f'<a class="tab d-only" href="weekly.html" style="text-decoration:none">{ic("calendar",14)} 周报</a>' if weekly_enabled else ""
     home_config = (
         f'<meta id="homeDataConfig" data-lite-url="{lite_data_url}" '
@@ -3542,7 +3591,8 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
     )
     favorite_data_url = lite_data_url if lite_enabled else "data/latest.json"
     (SITE / "favorites.html").write_text(render_favorites_page(css, favorite_data_url), encoding="utf-8")
-    (SITE / "for-me.html").write_text(render_for_me_page(css, favorite_data_url), encoding="utf-8")
+    (SITE / "for-me.html").write_text(render_for_me_page(css, lite_data_url), encoding="utf-8")
+    research_paths = write_research_pages(all_events, product_cases, design_studies, css)
     (SITE / "weekly.html").write_text(
         render_weekly_brief_page(
             weekly_brief, all_events, css, archives=weekly_archives,
@@ -3590,7 +3640,7 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
         valid_ids, valid_topic_slugs, valid_weekly_pages,
         weekly_enabled=weekly_enabled,
     )
-    sitemap_paths = (*sitemap_paths, *(study_path(study) for study in design_studies),
+    sitemap_paths = (*sitemap_paths, *research_paths, *(study_path(study) for study in design_studies),
                      *(reading_path(case) for case in reference_cases), "cases/compare.html")
     sitemap_day = gen.astimezone(TZ).date().isoformat()
     sitemap_lastmod = {path: sitemap_day for path in sitemap_paths}

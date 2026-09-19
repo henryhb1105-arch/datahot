@@ -9,6 +9,7 @@
 
   var STORAGE_KEY = "dh_favs_v2";
   var LEGACY_KEY = "dh_favs";
+  var PROJECTS_KEY = "dh_projects_v1";
   var SCHEMA_VERSION = 2;
   var SEARCH_THRESHOLD = 8;
   var EVENT_ID_RE = /^[a-f0-9]{12}$/;
@@ -38,6 +39,79 @@
 
   function storageValue(storage, key) {
     try { return storage && storage.getItem(key); } catch (error) { return null; }
+  }
+
+  function normalizeLibrary(raw) {
+    var source = raw && typeof raw === "object" ? raw : {};
+    var seen = new Set();
+    var projects = (Array.isArray(source.projects) ? source.projects : []).filter(function (p) {
+      if (!p || !/^p_[a-z0-9-]{6,64}$/.test(p.id) || seen.has(p.id) || !cleanString(p.name, 80)) return false;
+      seen.add(p.id); return true;
+    }).slice(0, 100).map(function (p) { return { id:p.id, name:cleanString(p.name, 80) }; });
+    var ids = new Set(projects.map(function (p) { return p.id; }));
+    var entries = {};
+    Object.keys(source.entries || {}).slice(-5000).forEach(function (id) {
+      var row = source.entries[id];
+      if (!validEventId(id) || !row || typeof row !== "object") return;
+      entries[id] = { project_id:ids.has(row.project_id) ? row.project_id : "", note:String(row.note || "").replace(/\r\n?/g, "\n").slice(0, 8000) };
+    });
+    return { version:1, projects:projects, entries:entries };
+  }
+
+  function readLibrary(storage) { return normalizeLibrary(safeParse(storageValue(storage, PROJECTS_KEY))); }
+  function writeLibrary(storage, library) {
+    try { storage.setItem(PROJECTS_KEY, JSON.stringify(normalizeLibrary(library))); return true; }
+    catch (_error) { return false; }
+  }
+  function removeProject(library, id) {
+    var copy = normalizeLibrary(library);
+    copy.projects = copy.projects.filter(function (p) { return p.id !== id; });
+    Object.keys(copy.entries).forEach(function (key) { if (copy.entries[key].project_id === id) copy.entries[key].project_id = ""; });
+    return copy;
+  }
+  function filterLibrary(records, library, project, query, topic) {
+    var q = cleanString(query, 120).toLocaleLowerCase("zh-CN");
+    return filterRecords(records, "", topic).filter(function (record) {
+      var entry = library.entries[record.event_id] || {};
+      if (project === "unassigned" && entry.project_id) return false;
+      if (project && project !== "unassigned" && entry.project_id !== project) return false;
+      if (!q) return true;
+      return [record.title,record.summary,record.source,entry.note].concat(record.topics).join(" ").toLocaleLowerCase("zh-CN").indexOf(q) >= 0;
+    });
+  }
+  function markdownText(value) { return String(value || "").replace(/[\\`*_[\]<>#]/g, "\\$&").replace(/\r?\n/g, " "); }
+  function exportMarkdown(records, library, title, now) {
+    var lines = ["# " + markdownText(title || "DataHot 收藏"), "", "导出于 " + (now || new Date()).toISOString().slice(0,10), "", "共 " + records.length + " 条资料。个人笔记仅来自本机。", ""];
+    records.forEach(function (raw) {
+      var record = normalizeRecord(raw);
+      if (!record) return;
+      var entry = library.entries[record.event_id] || {};
+      var project = library.projects.find(function (p) { return p.id === entry.project_id; });
+      var url = "https://datahot.xiahongbin.com/" + (record.detail_path || "e/" + record.event_id + ".html");
+      lines.push("## " + markdownText(record.title || "已保存的内容"), "", "[在 DataHot 阅读](" + url + ")", "");
+      lines.push("来源：" + markdownText(record.source || "DataHot") + (record.published ? " · " + markdownText(record.published.slice(0,10)) : ""));
+      if (project) lines.push("项目：" + markdownText(project.name));
+      if (record.original_url) lines.push("原文：<" + record.original_url.replace(/[<>\s]/g, function (s) { return encodeURIComponent(s); }) + ">");
+      if (record.summary) lines.push("", markdownText(record.summary));
+      if (entry.note) lines.push("", "我的笔记：", "", entry.note.split("\n").map(function (line) { return "> " + markdownText(line); }).join("\n"));
+      lines.push("", "---", "");
+    });
+    return lines.join("\n");
+  }
+
+  function projectOptions(library, selected, filter) {
+    var options = filter ? '<option value="">全部收藏</option><option value="unassigned">未归类</option>' : '<option value="">未归类</option>';
+    return options + library.projects.map(function (p) {
+      return '<option value="' + escapeHtml(p.id) + '"' + (selected === p.id ? ' selected' : '') + '>' + escapeHtml(p.name) + '</option>';
+    }).join("");
+  }
+  function renderProjectEditor(record, library) {
+    if (!library) return "";
+    var entry = library.entries[record.event_id] || {};
+    var id = record.event_id;
+    return '<details class="project-editor"><summary>' + (entry.note ? '我的笔记 · ' + escapeHtml(entry.note.slice(0, 60)) : '整理到项目 · 添加笔记') + '</summary>' +
+      '<label for="project-' + id + '">所属项目</label><select id="project-' + id + '" data-project-for="' + id + '">' + projectOptions(library, entry.project_id, false) + '</select>' +
+      '<label for="note-' + id + '">我的笔记 <span>输入时自动保存，仅在本机</span></label><textarea id="note-' + id + '" data-project-note="' + id + '" maxlength="8000" rows="3" placeholder="记录可借鉴的做法、疑问或下一步…">' + escapeHtml(entry.note || "") + '</textarea></details>';
   }
 
   function validEventId(value) {
@@ -252,7 +326,7 @@
     return escapeHtml(JSON.stringify(record));
   }
 
-  function renderCard(record, now) {
+  function renderCard(record, now, library) {
     var topic = record.topics[0] || CATEGORY_LABELS[record.category] || "收藏";
     var title = record.title || "已保存的内容";
     var summary = record.summary || "旧版收藏已保留；打开详情查看原内容。";
@@ -266,13 +340,13 @@
       '<h3>' + escapeHtml(title) + '</h3><p class="favorite-card-summary">' + escapeHtml(summary) + '</p>' +
       '<div class="favorite-card-meta"><span>' + meta + '</span></div></a>' +
       '<button class="favbtn on" type="button" data-fav="' + escapeHtml(record.event_id) + '" data-fav-record="' +
-      recordAttribute(record) + '" title="取消收藏" aria-label="取消收藏" aria-pressed="true">' + BOOKMARK_ICON + '</button></article>';
+      recordAttribute(record) + '" title="取消收藏" aria-label="取消收藏" aria-pressed="true">' + BOOKMARK_ICON + '</button>' + renderProjectEditor(record, library) + '</article>';
   }
 
-  function renderGroups(records, now) {
+  function renderGroups(records, now, library) {
     return groupRecords(records, now).map(function (group) {
       return '<section class="favorites-group"><h2>' + group.label + '</h2><div class="favorites-list" role="list">' +
-        group.records.map(function (record) { return renderCard(record, now); }).join("") + '</div></section>';
+        group.records.map(function (record) { return renderCard(record, now, library); }).join("") + '</div></section>';
     }).join("");
   }
 
@@ -308,7 +382,7 @@
   }
 
   function favoritesUrl(document) {
-    var script = document.querySelector('script[src$="favorites.js"]');
+    var script = document.querySelector('script[src*="favorites.js"]');
     try { return new URL("favorites.html", script && script.src ? script.src : document.baseURI).href; }
     catch (error) { return "favorites.html"; }
   }
@@ -360,17 +434,40 @@
     var tools = document.getElementById("favoritesTools");
     var search = document.getElementById("favoritesSearch");
     var filters = document.getElementById("favoritesFilters");
-    var state = { query: "", topic: "" };
+    var projectSelect = document.getElementById("projectFilter");
+    var projectName = document.getElementById("projectName");
+    var projectStatus = document.getElementById("projectStatus");
+    var projectRename = document.getElementById("projectRename");
+    var projectDelete = document.getElementById("projectDelete");
+    var exportButton = document.getElementById("projectExport");
+    var library = readLibrary(storage);
+    var state = { query: "", topic: "", project:"" };
+
+    function status(message) { if (projectStatus) projectStatus.textContent = message; }
+    function saveLibrary(message) {
+      var saved = writeLibrary(storage, library);
+      status(saved ? (message || "已保存在当前浏览器") : "保存失败：当前修改仅在本页，请先导出 Markdown 备份。");
+      return saved;
+    }
+    function currentRecords() { return filterLibrary(readRecords(storage), library, state.project, state.query, state.topic); }
 
     function render() {
       var records = sortRecords(readRecords(storage));
       var topics = topicOptions(records);
       if (state.topic && topics.indexOf(state.topic) < 0) state.topic = "";
       count.textContent = records.length + " 条";
-      tools.hidden = records.length < SEARCH_THRESHOLD;
+      tools.hidden = !records.length;
       filters.innerHTML = renderFilters(topics, state.topic);
-      var visible = filterRecords(records, state.query, state.topic);
-      list.innerHTML = records.length ? (visible.length ? renderGroups(visible, new Date()) : renderEmpty(true)) : renderEmpty(false);
+      var visible = filterLibrary(records, library, state.project, state.query, state.topic);
+      list.innerHTML = records.length ? (visible.length ? renderGroups(visible, new Date(), library) : renderEmpty(true)) : renderEmpty(false);
+      if (projectSelect) {
+        projectSelect.innerHTML = projectOptions(library, state.project, true);
+        projectSelect.value = state.project;
+        var selected = library.projects.find(function (p) { return p.id === state.project; });
+        projectRename.disabled = !selected; projectDelete.disabled = !selected;
+        exportButton.disabled = !visible.length;
+        count.textContent = visible.length + " / " + records.length + " 条";
+      }
       list.setAttribute("aria-busy", "false");
       syncButtons(document, storage);
     }
@@ -382,6 +479,81 @@
       state.topic = button.getAttribute("data-favorites-topic") || "";
       render();
     });
+    if (projectSelect) {
+      projectSelect.addEventListener("change", function () {
+        state.project = projectSelect.value;
+        var selected = library.projects.find(function (p) { return p.id === state.project; });
+        projectName.value = selected ? selected.name : "";
+        status(""); render();
+      });
+      function requestedName(exceptId) {
+        var name = cleanString(projectName.value, 80);
+        if (!name) { status("先输入项目名称"); projectName.focus(); return ""; }
+        if (library.projects.some(function (p) { return p.id !== exceptId && p.name.toLocaleLowerCase() === name.toLocaleLowerCase(); })) {
+          status("已有同名项目，请直接选择或换一个名称"); return "";
+        }
+        return name;
+      }
+      document.getElementById("projectCreate").addEventListener("click", function () {
+        var name = requestedName(""); if (!name) return;
+        if (library.projects.length >= 100) { status("最多保存 100 个项目，请先整理已有项目"); return; }
+        var id = "p_" + (win.crypto && win.crypto.randomUUID ? win.crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+        library.projects.push({ id:id, name:name }); state.project = id;
+        saveLibrary("项目已创建；在全部收藏中展开「整理到项目」即可归类。"); render();
+      });
+      projectRename.addEventListener("click", function () {
+        var selected = library.projects.find(function (p) { return p.id === state.project; });
+        if (!selected) return;
+        var name = requestedName(selected.id); if (!name) return;
+        selected.name = name; saveLibrary("项目已重命名"); render();
+      });
+      projectDelete.addEventListener("click", function () {
+        var selected = library.projects.find(function (p) { return p.id === state.project; });
+        if (!selected) return;
+        var assigned = Object.keys(library.entries).filter(function (id) { return library.entries[id].project_id === selected.id; });
+        library = removeProject(library, selected.id); state.project = ""; projectName.value = "";
+        saveLibrary("项目已移除，收藏与笔记保留在未归类中。"); render();
+        showToast(win, "项目已移除，资料保留", "撤销", function () {
+          library.projects.push(selected);
+          assigned.forEach(function (id) { if (library.entries[id] && !library.entries[id].project_id) library.entries[id].project_id = selected.id; });
+          state.project = selected.id; saveLibrary("项目已恢复"); render();
+        });
+      });
+      list.addEventListener("change", function (event) {
+        var id = event.target.getAttribute("data-project-for");
+        if (!validEventId(id)) return;
+        var entry = library.entries[id] || { project_id:"", note:"" };
+        entry.project_id = event.target.value; library.entries[id] = entry;
+        saveLibrary("归类已保存"); render();
+      });
+      list.addEventListener("input", function (event) {
+        var id = event.target.getAttribute("data-project-note");
+        if (!validEventId(id)) return;
+        var entry = library.entries[id] || { project_id:"", note:"" };
+        entry.note = event.target.value.slice(0, 8000); library.entries[id] = entry;
+        saveLibrary("笔记已自动保存");
+      });
+      exportButton.addEventListener("click", function () {
+        var records = currentRecords(); if (!records.length) return;
+        var selected = library.projects.find(function (p) { return p.id === state.project; });
+        var title = selected ? selected.name : (state.project === "unassigned" ? "DataHot 未归类" : "DataHot 收藏");
+        var text = exportMarkdown(records, library, title, new Date());
+        try {
+          var url = win.URL.createObjectURL(new win.Blob([text], {type:"text/markdown;charset=utf-8"}));
+          var link = document.createElement("a"); link.href = url;
+          link.download = "DataHot-" + title.replace(/[\\/:*?"<>|]/g, "-").slice(0, 60) + ".md";
+          document.body.appendChild(link); link.click(); link.remove();
+          win.setTimeout(function () { win.URL.revokeObjectURL(url); }, 1000);
+          status("已生成 Markdown 文件，包含当前结果的来源链接和个人笔记。");
+        } catch (_error) { status("导出失败，请更换支持文件下载的浏览器后重试。"); }
+      });
+      win.addEventListener("storage", function (event) {
+        if (event.key !== PROJECTS_KEY) return;
+        library = readLibrary(storage);
+        if (!library.projects.some(function (p) { return p.id === state.project; })) state.project = "";
+        render();
+      });
+    }
     win.addEventListener("datahot:favorites-change", render);
     render();
 
@@ -405,7 +577,7 @@
     var document = win.document;
     var storage;
     try { storage = win.localStorage; } catch (error) { storage = null; }
-    if (!storage) return;
+    if (!storage) showToast(win, "当前浏览器无法保存本机资料", "", null);
     var initial = readRecords(storage);
     if (initial.length && storageValue(storage, STORAGE_KEY) === null) writeRecords(storage, initial);
     win.dhInitFav = function () { syncButtons(document, storage); };
@@ -451,6 +623,15 @@
   }
 
   return {
+    PROJECTS_KEY: PROJECTS_KEY,
+    normalizeLibrary: normalizeLibrary,
+    readLibrary: readLibrary,
+    writeLibrary: writeLibrary,
+    removeProject: removeProject,
+    filterLibrary: filterLibrary,
+    exportMarkdown: exportMarkdown,
+    favoritesUrl: favoritesUrl,
+    eventSnapshot: eventSnapshot,
     STORAGE_KEY: STORAGE_KEY,
     LEGACY_KEY: LEGACY_KEY,
     SCHEMA_VERSION: SCHEMA_VERSION,

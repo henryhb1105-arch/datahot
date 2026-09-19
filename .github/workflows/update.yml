@@ -120,6 +120,9 @@ jobs:
             python3 pipeline/run_discovery.py
             python3 pipeline/run_update.py
           fi
+          git add -- site/data site/media pipeline/discovery_state
+          python3 pipeline/quarantine_secrets.py \
+            --baseline "$RUNNER_TEMP/datahot-main-baseline/latest.json"
           python3 pipeline/quarantine_content.py \
             --baseline "$RUNNER_TEMP/datahot-main-baseline/latest.json" \
             --candidate site/data/latest.json \

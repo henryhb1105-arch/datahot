@@ -44,7 +44,27 @@ class LitePayloadTests(unittest.TestCase):
         self.assertEqual(find_forbidden_fields(payload), [])
         encoded = json.dumps(payload, ensure_ascii=False)
         self.assertNotIn("forbidden full body", encoded)
-        self.assertNotIn("https://example.com", encoded)
+        self.assertEqual(payload["events"][0]["original_url"], "https://example.com")
+        self.assertEqual(payload["events"][0]["items"], [{"source": "Source 0"}])
+
+    def test_payload_keeps_only_the_primary_original_url(self):
+        item = event(1, sources=2)
+        item["items"][1]["link"] = "https://secondary.example/large-article"
+        payload = build_lite_payload([item], "2026-09-19T00:00:00Z")
+        self.assertEqual(payload["events"][0]["original_url"], "https://example.com")
+        self.assertNotIn("secondary.example", json.dumps(payload))
+        self.assertEqual(find_forbidden_fields(payload), [])
+
+    def test_original_url_rejects_invalid_or_credential_bearing_links(self):
+        for url in ("", "javascript:alert(1)", "//example.com", "https://", "https://[bad",
+                    "https://user:password@example.com", "https://exa mple.com",
+                    "https://example.com/\npath", "https://example.com/\\path",
+                    "https://example.com/" + "a" * 2000):
+            with self.subTest(url=url):
+                item = event(1)
+                item["items"][0]["link"] = url
+                payload = build_lite_payload([item], "2026-09-19T00:00:00Z")
+                self.assertEqual(payload["events"][0]["original_url"], "")
 
     def test_payload_carries_a_safe_primary_source_badge_for_dynamic_cards(self):
         payload = build_lite_payload(

@@ -6,6 +6,7 @@ from __future__ import annotations
 import re
 from collections import Counter
 from datetime import datetime, timedelta, timezone
+from urllib.parse import urlsplit
 from products import match_products, product_metadata
 
 
@@ -32,6 +33,23 @@ FORBIDDEN_FIELDS = {
 def _primary_source(event):
     items = event.get("items") or []
     return str(items[0].get("source") or "") if items else ""
+
+
+def _primary_original_url(event):
+    """Keep one public source link without carrying full article items."""
+    items = event.get("items") or []
+    url = str(items[0].get("link") or "").strip() if items else ""
+    if len(url) > 2000 or re.search(r"[\s\x00-\x1f\x7f\\]", url):
+        return ""
+    try:
+        parsed = urlsplit(url)
+        if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+            return ""
+        if parsed.username or parsed.password:
+            return ""
+    except ValueError:
+        return ""
+    return url
 
 
 def _primary_vendor(event):
@@ -371,6 +389,7 @@ def lite_event(event, *, source_badge=None):
         "pinned": bool(event.get("pinned")),
         "published": event.get("published"),
         "first_seen": event.get("first_seen"),
+        "original_url": _primary_original_url(event),
         "items": [
             {"source": item.get("source", "")}
             for item in (event.get("items") or []) if item.get("source")

@@ -6,6 +6,7 @@ on:
     paths:
       - ".github/workflows/update.yml"
       - ".github/workflows/deploy.yml"
+      - ".gitleaks.toml"
       - "pipeline/**"
       - "integrations/**"
       - "skills/**"
@@ -151,6 +152,9 @@ jobs:
             echo "本轮没有需要回写的数据"
             exit 0
           fi
+          # Inspect newly collected content before it can enter main history.
+          # The next run's full-history scan must never be the first check.
+          ./gitleaks git --pre-commit --staged --redact .
           git commit -m "chore: 定时更新数据 [skip ci]"
           for attempt in 1 2 3; do
             echo "数据推送尝试 ${attempt}/3"

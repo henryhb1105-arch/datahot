@@ -1,16 +1,16 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-09-15T11:47:10.644946+00:00
-- 本轮原始发现：7
-- 未收录文章候选：19
-- 新信源候选：16
+- 生成时间：2026-09-19T15:54:58.090216+00:00
+- 本轮原始发现：8
+- 未收录文章候选：22
+- 新信源候选：19
 - 已收录链接去重：0
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
 
 ## 发现通道
 
 - openai_web_search: skipped · OPENAI_API_KEY 未配置
-- hn_official: ok · 2 条
+- hn_official: ok · 3 条
 - accepted_link_graph: ok · 5 条
 
 ## 优先检查的新信源
@@ -39,9 +39,12 @@
 - [Data collected by cars and sold to third parties](https://www.theverge.com/column/994172/your-car-is-selling-your-data) · hn
 - [Evidence of Fraud in an Influential Study About Procrastination](https://datacolada.org/138) · hn
 - [The Waymo effect: how AI is quietly making research less collaborative](https://www.researchagenda.news/articles/the-waymo-effect.html) · hn
+- [Korea raises data breach fines to 10% of revenue](https://www.koreajoongangdaily.com/business/korea-raises-data-breach-fines-to-10-of-revenue/12869899) · hn
 - [EPA says power for data centers can sidestep pollution laws](https://www.epa.gov/newsreleases/epa-issues-permitting-guidance-further-president-trumps-agenda-promoting-data-centers) · hn
 - [Charts built for Chat](https://dbtcharts.com/blog/charts-built-for-chat) · hn
 - [SQLite as a Document Database (2020)](https://dgl.cx/2020/06/sqlite-json-support) · hn
+- [You can run Git on object storage if you re-make packfiles](https://www.tigrisdata.com/blog/objgit-packfiles) · hn
+- [What Zig felt like, coming from Rust](https://besok.github.io/posts/what-zig-felt-like-coming-from-rust) · hn
 - [Intrusive linked lists (2019)](https://www.data-structures-in-practice.com/intrusive-linked-lists) · hn
 - [Revolut confirms customer data breach through fake government requests](https://techcrunch.com/2026/09/12/revolut-confirms-customer-data-breach-through-fake-government-requests) · hn
 - [Texas Data Center Map: See where data centers are operating or planned](https://www.kxan.com/news/texas/texas-data-center-tracker-see-where-600-projects-are-operating-or-planned-across-state-in-interactive-map) · hn
@@ -50,5 +53,3 @@
 - [www.imf.org](https://www.imf.org/-/media/files/publications/sdn/2024/english/sdnea2024001.pdf) · accepted_link_graph
 - [www-cdn.anthropic.com](https://www-cdn.anthropic.com/0dd865075ad3132672ee0ab40b05a53f14cf5288.pdf) · accepted_link_graph
 - [cdn.sanity.io](https://cdn.sanity.io/files/4zrzovbb/website/03ed1410f74a65ae4cc2a27120d0875e1e569535.pdf) · accepted_link_graph
-- [www.infoq.com](https://www.infoq.com/news/2026/05/duckdb-quack-protocol) · accepted_link_graph
-- [www.infoq.com](https://www.infoq.com/news/2026/08/agent-framework-harness-ga) · accepted_link_graph

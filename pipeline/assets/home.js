@@ -13,6 +13,22 @@
     });
   }
 
+  function freshnessLabel(generatedAt, now) {
+    var generated = Date.parse(generatedAt);
+    var current = now == null ? Date.now() : Number(now);
+    if (!Number.isFinite(generated) || !Number.isFinite(current)) return "";
+    var hours = Math.floor((current - generated) / 3600000);
+    if (hours < 24) return "";
+    return " · 已 " + Math.floor(hours / 24) + " 天未更新";
+  }
+
+  function syncFreshness(doc) {
+    var node = doc.getElementById("contentFreshness");
+    if (!node) return;
+    node.textContent = freshnessLabel(node.dataset.generatedAt);
+    node.hidden = !node.textContent;
+  }
+
   function normalizedPage(value) {
     var page = parseInt(value || "1", 10);
     return Number.isFinite(page) && page > 0 ? page : 1;
@@ -384,6 +400,7 @@
 
   function boot(win) {
     var doc = win.document;
+    syncFreshness(doc);
     initWeeklyTeaser(win);
     var config = doc.getElementById("homeDataConfig");
     if (!config) return;
@@ -657,6 +674,7 @@
       else restoreHomePosition(initialSnapshot);
     }
     win.addEventListener("pageshow", function (event) {
+      syncFreshness(doc);
       if (consumeHomeTopRequest(win)) {
         restoredSnapshot = false;
         scrollHomeToTop("auto");
@@ -670,6 +688,7 @@
   }
 
   return {
+    freshnessLabel: freshnessLabel,
     escapeHtml: escapeHtml,
     stateFromSearch: stateFromSearch,
     searchForState: searchForState,

@@ -851,7 +851,7 @@ def render_home_brand_update(gen):
     """首页品牌刷新入口与可交互的更新机制说明。"""
     return f'''<a class="logo home-logo" href="index.html" data-home-refresh aria-label="刷新 DataHot 首页" title="刷新首页">Data<em>Hot</em><span class="tag">每 6 小时更新</span></a>
   <details class="update-info" data-update-info>
-    <summary class="upd-time" aria-describedby="updateMechanism">{ic("clock",12)} {gen.strftime("%m-%d %H:%M")} 更新</summary>
+    <summary class="upd-time" aria-describedby="updateMechanism">{ic("clock",12)} {gen.strftime("%m-%d %H:%M")} 更新<span id="contentFreshness" data-generated-at="{esc(gen.isoformat())}" style="color:#e4b96e" hidden></span></summary>
     <div class="update-popover" id="updateMechanism" role="tooltip"><b>页面如何更新</b>{esc(UPDATE_MECHANISM)}</div>
   </details>'''
 
@@ -2951,11 +2951,19 @@ def render_weekly_brief_page(
     brief, events, css, *, prefix="", archives=None, archive_prefix="weekly/",
     canonical_path="weekly.html",
 ):
+    # A rejected draft must never replace the last reviewed, readable issue.
+    # Keep the source document pending; only the presentation falls back.
+    archives = [item for item in (archives or []) if valid_weekly_brief(item)]
+    latest_published = False
+    if not brief:
+        if archives:
+            brief = max(archives, key=lambda item: str(item.get("week_id") or ""))
+            latest_published = True
     if not brief:
         body = '''
 <div class="wrap" style="padding:28px 20px 60px;max-width:860px">
   <div class="section-title"><h2>每周简报</h2><span>每周一发布</span></div>
-  <div class="scard" style="font-size:13.5px;color:var(--txt2);line-height:1.8">本期周报正在进行跨事件聚类、历史基线比较和证据校验。AI 或校验暂时不可用时不会发布规则摘要；首页、热榜和详情页仍可正常浏览。</div>
+  <div class="scard" style="font-size:13.5px;color:var(--txt2);line-height:1.8">第一期周报正在整理。你可以先阅读<a href="index.html?view=editor">编辑精选</a>，或查看<a href="cases.html">产品案例</a>。</div>
 </div>'''
         return page_shell(
             "每周简报 · DataHot", "DataHot 每周数据 AI 高价值事件简报", css, body,
@@ -3036,9 +3044,15 @@ def render_weekly_brief_page(
     archive_nav = _weekly_archive_nav(
         archives or [], str(brief.get("week_id") or ""), archive_prefix=archive_prefix,
     )
+    publication_note = (
+        '<p class="weekly-publication-note" role="status" style="color:var(--sub);font-size:13px;line-height:1.7">'
+        '新一期仍在整理，以下为最新已发布周报。内容对应下方标明的日期，可从历史周报查看往期。</p>'
+        if latest_published else ""
+    )
     body = f'''
 <div class="wrap" style="padding:28px 20px 60px;max-width:860px">
   <div class="section-title"><h2>{ic("calendar",18)} 每周情报</h2><span>{esc(brief.get("period_start"))} 至 {esc(brief.get("period_end"))} · 每周一次</span></div>
+  {publication_note}
   {archive_nav}
   <div class="scard weekly-summary">
     <div class="weekly-kicker">DATAHOT WEEKLY · {esc(brief.get("period_start"))} 至 {esc(brief.get("period_end"))}</div>
@@ -3046,7 +3060,7 @@ def render_weekly_brief_page(
     <p>{esc(brief.get("bottom_line"))}</p>
     <div class="weekly-meta" style="margin-top:10px;color:#aeb4be;font-size:11px">{len(theme_rows)} 个信号 · 约 3 分钟读完 · {esc(baseline_text)} · {fmt_date(brief.get("generated_at"))} 更新</div>
   </div>
-  <div class="section-title"><h2>本周与你有关</h2><span>最多 3 个，不凑数</span></div>
+  <div class="section-title"><h2>{'这期与你有关' if latest_published else '本周与你有关'}</h2><span>最多 3 个，不凑数</span></div>
   <div class="weekly-themes">{themes}</div>
   <div class="section-title"><h2>判断边界</h2><span>反证、缺口与下周验证</span></div>
   <div class="weekly-secondary">
@@ -3337,7 +3351,9 @@ def main():
 
     # 首页筛选顺序保持稳定；短名称只用于显示，底层筛选值继续兼容旧 URL。
     topic_fchips = render_home_filter_chips(timeline_events)
-    weekly_teaser = render_weekly_brief_teaser(weekly_brief) if weekly_enabled else ""
+    weekly_teaser = render_weekly_brief_teaser(
+        weekly_brief or next(iter(weekly_archives), None)
+    ) if weekly_enabled else ""
     weekly_header_link = f'<a class="tab d-only" href="weekly.html" style="text-decoration:none">{ic("calendar",14)} 周报</a>' if weekly_enabled else ""
     home_config = (
         f'<meta id="homeDataConfig" data-lite-url="{lite_data_url}" '

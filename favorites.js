@@ -120,8 +120,12 @@
   }
 
   function safeOriginalUrl(value) {
-    var url = cleanString(value, 2000);
-    return /^https?:\/\//i.test(url) ? url : "";
+    var url = String(value == null ? "" : value).trim();
+    if (url.length > 2000 || /[\s\x00-\x1f\x7f\\]/.test(url) || !/^https?:\/\//i.test(url)) return "";
+    try {
+      var parsed = new URL(url);
+      return parsed.hostname && !parsed.username && !parsed.password ? url : "";
+    } catch (_error) { return ""; }
   }
 
   function normalizeTopics(value) {
@@ -229,6 +233,7 @@
       source: item.source,
       category: event && event.category,
       topics: event && event.topics,
+      original_url: event && event.original_url || item.link,
       published: event && (event.published || event.first_seen)
     });
   }
@@ -558,7 +563,7 @@
     render();
 
     var records = readRecords(storage);
-    var needsEnrichment = records.some(function (record) { return !record.title; });
+    var needsEnrichment = records.some(function (record) { return !record.title || !record.original_url; });
     var dataUrl = page.getAttribute("data-favorites-data-url");
     if (needsEnrichment && dataUrl && typeof win.fetch === "function") {
       win.fetch(dataUrl, { cache: "default", credentials: "same-origin" }).then(function (response) {

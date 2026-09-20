@@ -1,7 +1,7 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-09-19T15:54:58.090216+00:00
-- 本轮原始发现：8
+- 生成时间：2026-09-20T16:08:34.587655+00:00
+- 本轮原始发现：7
 - 未收录文章候选：22
 - 新信源候选：19
 - 已收录链接去重：0
@@ -10,7 +10,7 @@
 ## 发现通道
 
 - openai_web_search: skipped · OPENAI_API_KEY 未配置
-- hn_official: ok · 3 条
+- hn_official: ok · 2 条
 - accepted_link_graph: ok · 5 条
 
 ## 优先检查的新信源
@@ -22,6 +22,7 @@
 - **www-cdn.anthropic.com** · PROBATION · 1 篇 · accepted_link_graph
 - **cdn.sanity.io** · PROBATION · 1 篇 · accepted_link_graph
 - **dbtcharts.com** · PROBATION · 1 篇 · hn
+- **besok.github.io** · PROBATION · 1 篇 · hn
 - **www.epa.gov** · DISCOVERED · 1 篇 · hn
 - **dgl.cx** · DISCOVERED · 1 篇 · hn
 - **datacolada.org** · DISCOVERED · 1 篇 · hn
@@ -29,7 +30,6 @@
 - **www.kxan.com** · DISCOVERED · 1 篇 · hn
 - **lapcatsoftware.com** · DISCOVERED · 1 篇 · hn
 - **lareviewofbooks.org** · DISCOVERED · 1 篇 · hn
-- **capitalbnews.org** · DISCOVERED · 1 篇 · hn
 
 ## 优先检查的文章
 
@@ -38,13 +38,13 @@
 - [Can I opt out of my input or output data being used for training?](https://help.mistral.ai/en/articles/455207-can-i-opt-out-of-my-input-or-output-data-being-used-for-training) · hn
 - [Data collected by cars and sold to third parties](https://www.theverge.com/column/994172/your-car-is-selling-your-data) · hn
 - [Evidence of Fraud in an Influential Study About Procrastination](https://datacolada.org/138) · hn
-- [The Waymo effect: how AI is quietly making research less collaborative](https://www.researchagenda.news/articles/the-waymo-effect.html) · hn
 - [Korea raises data breach fines to 10% of revenue](https://www.koreajoongangdaily.com/business/korea-raises-data-breach-fines-to-10-of-revenue/12869899) · hn
+- [The Waymo effect: how AI is quietly making research less collaborative](https://www.researchagenda.news/articles/the-waymo-effect.html) · hn
 - [EPA says power for data centers can sidestep pollution laws](https://www.epa.gov/newsreleases/epa-issues-permitting-guidance-further-president-trumps-agenda-promoting-data-centers) · hn
+- [What Zig felt like, coming from Rust](https://besok.github.io/posts/what-zig-felt-like-coming-from-rust) · hn
 - [Charts built for Chat](https://dbtcharts.com/blog/charts-built-for-chat) · hn
 - [SQLite as a Document Database (2020)](https://dgl.cx/2020/06/sqlite-json-support) · hn
 - [You can run Git on object storage if you re-make packfiles](https://www.tigrisdata.com/blog/objgit-packfiles) · hn
-- [What Zig felt like, coming from Rust](https://besok.github.io/posts/what-zig-felt-like-coming-from-rust) · hn
 - [Intrusive linked lists (2019)](https://www.data-structures-in-practice.com/intrusive-linked-lists) · hn
 - [Revolut confirms customer data breach through fake government requests](https://techcrunch.com/2026/09/12/revolut-confirms-customer-data-breach-through-fake-government-requests) · hn
 - [Texas Data Center Map: See where data centers are operating or planned](https://www.kxan.com/news/texas/texas-data-center-tracker-see-where-600-projects-are-operating-or-planned-across-state-in-interactive-map) · hn

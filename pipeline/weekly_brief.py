@@ -24,7 +24,7 @@ SCHEMA_VERSION = 3
 SIGNAL_SCHEMA_VERSION = 1
 INPUT_SCHEMA_VERSION = 1
 PROMPT_VERSION = "weekly-personal-v4"
-SIGNAL_PROMPT_VERSION = "weekly-signals-v2"
+SIGNAL_PROMPT_VERSION = "weekly-signals-v3"
 MAX_WEEKLY_ATTEMPTS = 3
 RETRY_HOURS = 12
 MIN_ITEMS = 10
@@ -400,7 +400,7 @@ def _prompt_event_rows(rows):
 
 def _signals_prompt(current_rows, baseline, week, daily_candidates=None):
     schema_hint = {
-        "weekly_judgement": "本周相较过去发生了什么，不超过180字",
+        "weekly_judgement": "本周相较过去发生了什么，建议90至130字，硬上限180字",
         "signals": [{
             "signal_id": "lowercase-kebab-case",
             "title": "具体信号，不超过32字",
@@ -660,6 +660,25 @@ def _normalize_personal_response(response):
         response.get("bottom_line"), 80, 16,
     )
     return normalized
+
+
+def _normalize_signal_response(response):
+    """Keep the short display judgement within complete sentence boundaries.
+
+    Detailed mechanisms, evidence and uncertainty remain unchanged. If the
+    model supplies no complete sentence within the limit, validation still
+    rejects the response and requests a repair.
+    """
+    if not isinstance(response, dict):
+        return response
+    judgement = response.get("weekly_judgement")
+    if not isinstance(judgement, str) or len(judgement) <= 180:
+        return response
+    endings = [match.end() for match in re.finditer(r"[。！？](?:[”’」』])?", judgement)
+               if 12 <= match.end() <= 180]
+    if not endings:
+        return response
+    return {**response, "weekly_judgement": judgement[:endings[-1]]}
 
 
 def _overstates_early_signal(text):
@@ -1095,6 +1114,7 @@ def generate_weekly_brief(
                 lambda value: validate_signal_response(
                     value, evidence_map, current_ids, baseline,
                 ),
+                normalizer=_normalize_signal_response,
             )
         except Exception as exc:
             signal_response, errors = None, [type(exc).__name__[:80]]

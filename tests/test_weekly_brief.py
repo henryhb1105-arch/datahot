@@ -321,6 +321,26 @@ class WeeklyBriefSelectionTests(unittest.TestCase):
 
 
 class WeeklySignalValidationTests(unittest.TestCase):
+    def test_signal_judgement_keeps_complete_sentences_and_all_evidence(self):
+        from weekly_brief import _normalize_signal_response
+        response = public_response([event(i) for i in range(4)])
+        response["weekly_judgement"] = "甲" * 99 + "。" + "乙" * 98 + "。"
+        normalized = _normalize_signal_response(response)
+        self.assertEqual(len(response["weekly_judgement"]), 199)
+        self.assertEqual(normalized["weekly_judgement"], "甲" * 99 + "。")
+        for field in ("signals", "signals_not_promoted", "uncertainty", "next_week_question"):
+            self.assertEqual(normalized[field], response[field])
+        self.assertEqual(validate_json_schema(normalized, SIGNAL_RESPONSE_SCHEMA), [])
+
+    def test_signal_judgement_without_sentence_boundary_still_fails(self):
+        from weekly_brief import _normalize_signal_response
+        response = public_response([event(i) for i in range(4)])
+        response["weekly_judgement"] = "甲" * 198 + "。"
+        normalized = _normalize_signal_response(response)
+        self.assertEqual(normalized, response)
+        self.assertTrue(any("weekly_judgement: string is too long" in error
+                            for error in validate_json_schema(normalized, SIGNAL_RESPONSE_SCHEMA)))
+
     def test_repair_keeps_referenced_facts_without_resending_entire_baseline(self):
         from weekly_brief import _signals_prompt, _repair_prompt
         events = [event(i) for i in range(15)]
@@ -597,6 +617,26 @@ class WeeklyBriefGenerationTests(unittest.TestCase):
         self.assertEqual(second_status, "retry_deferred")
         self.assertEqual(first["status"], "pending")
         self.assertEqual(second["status"], "pending")
+        self.assertEqual(len(calls), 2)
+
+    def test_overlong_judgement_is_recovered_without_extra_paid_repair(self):
+        events = [event(i) for i in range(10)]
+        calls = []
+        valid_callback = two_stage_callback({"2026-W32": events}, calls)
+        def callback(prompt, *, item_id):
+            response = valid_callback(prompt, item_id=item_id)
+            if ":signals" in item_id:
+                response["weekly_judgement"] = "甲" * 99 + "。" + "乙" * 98 + "。"
+            return response
+        with tempfile.TemporaryDirectory() as tmp:
+            cache, output, archive = self.paths(tmp)
+            brief, status = generate_weekly_brief(
+                events, now=datetime(2026, 8, 11, 2, tzinfo=timezone.utc),
+                model="deepseek-v4", llm_generate=callback,
+                cache_path=cache, output_path=output, archive_dir=archive,
+            )
+        self.assertEqual(status, "generated_ai")
+        self.assertTrue(valid_brief(brief))
         self.assertEqual(len(calls), 2)
 
     def test_failed_week_stops_after_three_rounds_without_more_model_calls(self):

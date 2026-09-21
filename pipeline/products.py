@@ -9,8 +9,10 @@ import html
 import json
 import re
 from functools import lru_cache
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import quote, urlparse
+from content_focus import focus_sort_key
 
 ROOT = Path(__file__).parent
 SLUG = re.compile(r"^[a-z][a-z0-9-]{1,63}$")
@@ -74,28 +76,90 @@ def esc(value):
     return html.escape(str(value or ""), quote=True)
 
 
-def render_product_index(events):
-    counts = {p["id"]:0 for p in load_products()}
+def _source_time(value):
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        return parsed.replace(tzinfo=timezone.utc) if parsed.tzinfo is None else parsed
+    except (ValueError, TypeError):
+        return None
+
+
+def source_publication_time(event):
+    # Aggregated events can receive a later date from another report. That is
+    # not the publication date of the primary article shown by this card.
+    label = str(event.get("source_date_label") or "")
+    if label:
+        confirmed = re.match(r"^原文\s+(\d{4}-\d{2}-\d{2})", label)
+        return _source_time(confirmed.group(1)) if confirmed else None
+    items = event.get("items") or []
+    if items and items[0].get("published"):
+        return _source_time(items[0]["published"])
+    if len(items) > 1:
+        return None
+    return _source_time(event.get("published"))
+
+
+def recent_product_events(events, *, reference_time=None, days=30):
+    """Original publication time only; discovery cannot make an old item new."""
+    reference = _source_time(reference_time) if reference_time else datetime.now(timezone.utc)
+    if reference is None:
+        raise ValueError("invalid product radar reference time")
+    cutoff = reference - timedelta(days=days)
+    recent = [e for e in events if (published := source_publication_time(e))
+              and cutoff <= published <= reference]
+    return sorted(recent, key=lambda e: (
+        *focus_sort_key(e), bool(e.get("editorial_pick")),
+        int(e.get("quality_score") or e.get("importance") or 0),
+        source_publication_time(e), str(e.get("event_id") or ""),
+    ), reverse=True)
+
+
+def _radar_reference(event, prefix=""):
+    published = source_publication_time(event)
+    collected = _source_time(event.get("first_seen") or event.get("curated_at"))
+    tz = timezone(timedelta(hours=8))
+    def stamp(value):
+        return value.astimezone(tz).date().isoformat()
+    dates = f'原文 {stamp(published)}' if published else '原文日期未确认'
+    if collected:
+        dates += f' · 收录 {stamp(collected)}'
+    return f'<li><a href="{prefix}e/{esc(event["event_id"])}.html">{esc(event.get("zh_title"))}</a><small>{esc(dates)}</small></li>'
+
+
+def render_product_index(events, *, reference_time=None):
+    reference = _source_time(reference_time) if reference_time else datetime.now(timezone.utc)
+    groups = {p["id"]: [] for p in load_products()}
     for event in events:
         for product_id in match_products(event):
-            counts[product_id] += 1
+            groups[product_id].append(event)
     cards = []
     for p in load_products():
-        cards.append(f'''<article class="research-card">
+        recent = recent_product_events(groups[p['id']], reference_time=reference)
+        highlights = ''.join(_radar_reference(e) for e in recent[:3])
+        changes = f'<ul class="radar-updates">{highlights}</ul>' if highlights else '<p class="radar-quiet">近 30 天暂无已收录的新资料，可查看历史参考。</p>'
+        cards.append(f'''<article class="research-card" data-radar-product="{p['id']}">
           <span class="research-kicker">{esc(p['category'])}</span>
           <h2><a href="products/{p['id']}.html">{esc(p['name'])}</a></h2>
-          <p>{esc(p['focus'])}</p><div class="research-actions">
-          <a href="products/{p['id']}.html">{counts[p['id']]} 条已收录资料 →</a>
-          <a href="for-me.html?follow=product:{p['id']}" aria-label="关注 {esc(p['name'])}">关注产品</a></div></article>''')
-    return f'''<main class="wrap research-page"><header class="research-head">
+          <p>{esc(p['focus'])}</p><span class="radar-period">近 30 天 {len(recent)} 条 · 优先展示重点资料</span>
+          {changes}<div class="research-actions">
+          <a href="products/{p['id']}.html">全部 {len(groups[p['id']])} 条资料 →</a>
+          <a data-radar-follow="{p['id']}" data-product-name="{esc(p['name'])}" href="for-me.html?follow=product:{p['id']}" aria-label="关注 {esc(p['name'])}">关注产品</a></div></article>''')
+    end = reference.astimezone(timezone(timedelta(hours=8))).date()
+    return f'''<main class="wrap research-page" data-product-radar><header class="research-head">
       <p class="research-kicker">按产品持续跟踪</p><h1>产品雷达</h1>
-      <p>把产品动态、精选参考与设计案例放在一起。关注一个产品，就能在「关注」页看到相关内容。</p>
+      <p>近 30 天哪些资料值得研究？每个产品最多 3 条，优先数据 Agent、交互、评测、权限与上下文设计。</p>
       <nav class="research-actions" aria-label="研究入口"><a href="for-me.html">我的关注 →</a><a href="paths.html">从实施路径开始 →</a></nav>
-      </header><div class="research-grid">{''.join(cards)}</div>
+      </header><div class="radar-toolbar" data-radar-controls hidden><div role="group" aria-label="产品范围">
+      <button type="button" data-radar-filter="all" aria-pressed="true">全部产品</button>
+      <button type="button" data-radar-filter="following" aria-pressed="false">只看已关注</button></div>
+      <span data-radar-count role="status" aria-live="polite"></span></div>
+      <p class="research-note radar-date">截至 {end.isoformat()}，按原文发布日期统计；收录旧文不会增加近期变化。</p>
+      <div class="research-grid">{''.join(cards)}</div>
+      <div class="radar-empty" data-radar-empty hidden><h2>还没有关注的产品</h2><p>先浏览全部产品，点击“关注产品”，下次即可只看你的关注。</p><button type="button" data-radar-reset>浏览全部产品</button></div>
       <p class="research-note">覆盖范围为已收录材料，不代表产品的完整更新日志。功能状态以各篇原文对应版本为准。</p></main>'''
 
 
-def render_product_body(product, events, cases, render_card):
+def render_product_body(product, events, cases, render_card, *, reference_time=None):
     related = [e for e in events if product["id"] in match_products(e)]
     related.sort(key=lambda e: str(e.get("published") or e.get("first_seen") or ""), reverse=True)
     picks = [e for e in related if e.get("editorial_pick")]
@@ -108,12 +172,16 @@ def render_product_body(product, events, cases, render_card):
             return ''
         return f'<section class="research-section"><h2>{title} <small>{len(rows)} 条</small></h2>{cards}</section>'
     case_html = ''.join(f'<a class="research-reference" href="../{esc(c["href"])}"><b>{esc(c["product"])}</b><span>{esc(c["problem"])}</span></a>' for c in related_cases)
+    recent = recent_product_events(related, reference_time=reference_time)
+    recent_html = ''.join(_radar_reference(e, "../") for e in recent[:3])
+    recent_html = f'<ul class="radar-updates">{recent_html}</ul>' if recent_html else '<p class="research-note">近 30 天暂无已收录的新资料，下面保留历史参考。</p>'
     return f'''<main class="wrap research-page research-detail"><header class="research-head">
       <a class="research-back" href="../products.html">← 产品雷达</a><p class="research-kicker">{esc(product['category'])}</p>
       <h1>{esc(product['name'])}</h1><p>{esc(product['focus'])}</p>
       <nav class="research-actions" aria-label="产品操作"><a class="research-primary" href="../for-me.html?follow=product:{product['id']}">关注这个产品</a>
       <a href="{esc(product['url'])}" target="_blank" rel="noopener noreferrer">官方网站 ↗</a></nav></header>
       <p class="research-note">{len(related)} 条已收录资料 · {len(related_cases)} 个设计案例。下列日期对应各篇材料，不代表产品当前能力清单。</p>
+      <section class="research-section radar-recent"><h2>近 30 天重点 <small>{len(recent)} 条资料中优先展示，按原文日期</small></h2>{recent_html}</section>
       {section('精选参考', picks, 8)}{section('产品动态', news, 15)}
       {f'<section class="research-section"><h2>设计案例</h2>{case_html}</section>' if case_html else ''}
       <div class="research-next"><a href="../paths.html">将这些资料用于具体任务：查看实施路径 →</a></div></main>'''

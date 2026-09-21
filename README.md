@@ -123,7 +123,9 @@ Issue [#33](https://github.com/henryhb1105-arch/datahot/issues/33) 将周报拆�
 
 每周一北京时间 08:17 处理上一个完整自然周（周一至周日）。周度分析会规范化去重、按具体产品机制聚类、检查信源家族与证据独立性，并允许输出 0–3 个主题。没有历史基线时只能标记 `early_signal` 或 `unknown`；单一供应商或客户案例不能成为高置信趋势；异质事件不能因为都涉及 AI、成本或可靠性而强行合并。本周与过去 4 周的输入保存在 `site/data/weekly_inputs/`，公共信号写入 `weekly_signals.json` 及其历史目录，个人周报写入 `weekly_brief.json` 及 `weekly/`。
 
-两层模型输出都使用固定 JSON Schema、合法 `event_id`、证据标题和跨层引用校验；失败时仅重试一次。模型未配置、调用失败、预算耗尽或任一层校验失败时，周报保持“整理中”，不会发布规则叙事，下一次定时任务仍会重试。只有 AI 结果完整通过后才进入同周不可变缓存；缓存覆盖本周输入、4 周基线、两层 Prompt、Schema 和模型版本。页面只展示结论、具体锚点、个人影响和行动，资讯标题集中在默认折叠的证据索引中。
+两层模型输出都使用固定 JSON Schema、合法 `event_id`、证据标题和跨层引用校验；每阶段最多修复一次，修复请求携带失败 JSON、证据分组诊断和正文长度。模型未配置、调用失败、预算耗尽或校验失败时，周报保持“整理中”，不会发布规则叙事。同周同模型/编辑版本最多尝试 3 轮，两轮至少间隔 12 小时；达到上限后保留历史周报并发出 Actions 告警，不再持续付费重试。只有 AI 结果完整通过后才进入同周不可变缓存；缓存覆盖本周输入、4 周基线、两层 Prompt、Schema 和模型版本。页面只展示结论、具体锚点、个人影响和行动，资讯标题集中在默认折叠的证据索引中。
+
+运行状态检查核对周一 08:00 之后应有的最新完整周，过期或 pending 时写入 Actions warning 和运行摘要，不阻塞其他合格资讯。恢复最新周报可用 `python3 pipeline/refresh_weekly.py`，或在经审核的发布提交同时注明 `[publish-reviewed] [refresh-weekly]`：只读已有证据，跳过发现、抓取与全文加工；不强制覆盖有效缓存，单次恢复最多 80,000 token 预算，并继续受既有每日预算约束。
 
 两层调用均以 `weekly_brief` 用途计入 `llm_usage.json`，并分别标记 `weekly_signals` 与 `weekly_personal`。设置 `WEEKLY_BRIEF_ENABLED=false` 可停止生成并隐藏入口；`WEEKLY_BRIEF_FORCE=true` 只在手动触发工作流时生效。已有 `DAILY_BRIEF_ENABLED` / `DAILY_BRIEF_FORCE` 仓库变量继续作为迁移期后备值。
 

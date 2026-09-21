@@ -8,6 +8,7 @@ from collections import Counter
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlsplit
 from products import match_products, product_metadata
+from content_focus import content_focus, focus_sort_key
 
 
 LITE_SCHEMA_VERSION = 1
@@ -157,6 +158,7 @@ def _quality_gate(event):
 def _sort_key(event):
     timestamp = event_timestamp(event)
     return (
+        *focus_sort_key(event),
         timestamp.isoformat() if timestamp else "",
         int(event.get("heat") or 0),
         int(event.get("importance") or 0),
@@ -370,6 +372,7 @@ def lite_event(event, *, source_badge=None):
         "vendors": list(event.get("vendors") or []),
         "topics": list(event.get("topics") or []),
         "product_ids": match_products(event),
+        "focus": content_focus(event),
         **({"source_date_label": event["source_date_label"]} if event.get("source_date_label") else {}),
         **({"work_tags": event["work_tags"]} if isinstance(event.get("work_tags"), dict) else {}),
         "heat": int(event.get("heat") or 0),

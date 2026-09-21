@@ -2824,6 +2824,10 @@ def write_research_pages(events, product_cases, studies, css):
         pages.append(("products/" + product["id"] + ".html", product["name"], product["focus"],
                       render_product_body(product, eligible, list(cases.values()), render_card), "../"))
     for path, title, description, body, prefix in pages:
+        if path == "products.html":
+            asset = ROOT / "pipeline/assets/products.js"
+            shutil.copyfile(asset, SITE / "products.js")
+            body += f'<script defer src="products.js?v={hashlib.sha256(asset.read_bytes()).hexdigest()[:12]}"></script>'
         (SITE / path).write_text(page_shell(
             title + " · DataHot", description, research_css, body, tabbar("for-me", prefix),
             prefix=prefix, active="for-me", canonical_path=path,

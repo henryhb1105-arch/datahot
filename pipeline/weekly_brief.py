@@ -23,8 +23,10 @@ TZ = timezone(timedelta(hours=8))
 SCHEMA_VERSION = 3
 SIGNAL_SCHEMA_VERSION = 1
 INPUT_SCHEMA_VERSION = 1
-PROMPT_VERSION = "weekly-personal-v3"
-SIGNAL_PROMPT_VERSION = "weekly-signals-v1"
+PROMPT_VERSION = "weekly-personal-v4"
+SIGNAL_PROMPT_VERSION = "weekly-signals-v2"
+MAX_WEEKLY_ATTEMPTS = 3
+RETRY_HOURS = 12
 MIN_ITEMS = 10
 MAX_ITEMS = 15
 MAX_EVIDENCE_ITEMS = 60
@@ -386,13 +388,11 @@ def _prompt_event_rows(rows):
             "week_id": row.get("week_id", ""),
             "title": row.get("title", ""),
             "summary": row.get("summary", ""),
-            "category": row.get("category", ""),
-            "source": row.get("source", ""),
             "source_family": row.get("source_family", ""),
             "source_type": row.get("source_type", ""),
             "vendors": row.get("vendors", []),
             "topics": row.get("topics", []),
-            "importance": row.get("importance", 0),
+            "mechanism_tags": sorted(_event_tags(row)),
         }
         for row in rows
     ]
@@ -434,7 +434,12 @@ def _signals_prompt(current_rows, baseline, week, daily_candidates=None):
         "7. 允许输出0到3个信号。宁缺毋滥，禁止凑满数量。\n"
         "8. 本周原始事件是事实输入；日报候选只帮助发现主题，不能替代原始证据。\n"
         "9. 不得添加输入中不存在的事实、公司、数字和事件。\n"
-        "10. 只输出一个JSON对象，不得使用Markdown代码围栏，不得在对象前后写说明。"
+        "10. 只输出一个JSON对象，不得使用Markdown代码围栏，不得在对象前后写说明。\n"
+        "11. 优先研究数据Agent，其次AI数据平台、语义层、AI数据分析、AI看板。"
+        "普通数据库发布、融资和泛AI新闻只有直接改变上述产品设计时才提升为信号。\n"
+        "12. mechanism_tags是基于原始材料提取的辅助标签，不是机制相同的证明。"
+        "同一信号的所有证据必须围绕同一具体机制；缺少关联的历史事件不要塞入evidence_ids，"
+        "历史缺口可在baseline_comparison中明确说明。不得仅凭Agent等宽泛标签凑趋势。"
     )
     payload = {
         "period": {
@@ -481,7 +486,8 @@ def _personal_prompt(signal_doc, evidence_map):
     return (
         "你是 Henry 的每周 AI 与数据行业情报编辑。\n\n"
         "输入是一份已经通过证据校验的周报分析结果。请将其改写成适合 Henry 阅读的个人周报。\n\n"
-        "读者关注 AI 产品落地、Agent 工作流、数据基础设施，以及成本、可靠性和可维护性。"
+        "读者优先关注数据Agent，其次AI数据平台、语义层、AI数据分析、AI看板；"
+        "尤其关注交互设计、评测方法、权限与业务上下文，普通数据库更新降低优先级。"
         "他希望快速知道什么真正发生了变化、与自己有什么关系、是否需要行动，不需要重新浏览新闻。\n\n"
         "写作要求：\n"
         "1. 正文必须达到800至1200个汉字，3分钟内读完；中文、字母、数字和标点均按1个字符计算。\n"
@@ -606,7 +612,9 @@ def validate_signal_response(response, evidence_map, current_ids, baseline):
         ):
             errors.append(f"{path}.confidence: high requires 3 events, 2 families and full baseline")
         if not _cohesive_evidence(evidence_ids, evidence_map):
-            errors.append(f"{path}.evidence_ids: heterogeneous evidence does not share one mechanism")
+            tags = {event_id: sorted(_event_tags(evidence_map[event_id])) for event_id in evidence_ids}
+            errors.append(f"{path}.evidence_ids: heterogeneous evidence does not share one mechanism; "
+                          f"evidence tags={json.dumps(tags, ensure_ascii=False)}; split unrelated cases or omit this signal")
         if not _anchor_grounded(signal["anchor"], rows):
             errors.append(f"{path}.anchor: anchor is not grounded in evidence")
     for index, item in enumerate(response["signals_not_promoted"]):
@@ -622,6 +630,8 @@ def _personal_prose_length(response):
         response.get("next_week_question", ""),
     ]
     for item in response.get("for_you", []):
+        if not isinstance(item, dict):
+            continue
         values.extend([
             item.get("insight", ""), item.get("why_it_matters", ""), item.get("action", ""),
         ])
@@ -706,19 +716,47 @@ def validate_personal_response(response, signal_doc, evidence_map):
     return errors
 
 
-def _repair_prompt(original_prompt, errors):
-    return (
+def _repair_prompt(original_prompt, errors, response=None):
+    # The first analysis sees the full four-week evidence pool. A repair only
+    # needs the records used by the failed answer, not the other hundreds of
+    # records again. Keep complete summaries and source-family boundaries.
+    if isinstance(response, dict) and isinstance(response.get("signals"), list):
+        try:
+            instructions, encoded = original_prompt.split("\n输入：", 1)
+            payload = json.loads(encoded)
+            referenced = set()
+            for item in response["signals"] + response.get("signals_not_promoted", []):
+                if isinstance(item, dict):
+                    referenced.update(v for v in item.get("evidence_ids", []) if isinstance(v, str))
+            current = [row for row in payload["current_events"] if row["event_id"] in referenced]
+            payload["current_events"] = current or payload["current_events"][:6]
+            payload["baseline_events"] = [row for row in payload["baseline_events"] if row["event_id"] in referenced]
+            payload["repair_scope"] = "本次只附失败稿引用的完整证据。仅修正已有候选，不扩展新主题；证据不一致则拆开或不提升为信号，减少证据后必须重新判断置信度。"
+            original_prompt = instructions + "\n输入：" + json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+        except (ValueError, KeyError, TypeError):
+            pass
+    prompt = (
         original_prompt
         + "\n\n上一次输出未通过校验。只修复下列问题，严格遵守错误中标出的长度上下限，"
         + "中文、字母、数字和标点均按1个字符计算；仍然只输出一个JSON对象：\n- "
         + "\n- ".join(errors[:12])
     )
+    if isinstance(response, dict):
+        # Repair the actual failed answer instead of paying for another blind
+        # regeneration. This is context only; validation still runs unchanged.
+        prompt += "\n待修正JSON（不是已验证事实，保留合法证据，不得为过校验伪造或改写事实）：\n"
+        prompt += json.dumps(response, ensure_ascii=False, separators=(",", ":"))
+        if isinstance(response.get("for_you"), list):
+            prompt += f"\n当前正文共{_personal_prose_length(response)}字符；"
+            prompt += "按原要求压缩或补充到950至1050字符，先分配各段长度，不得截断句子或删除必要的证据边界。"
+    return prompt
 
 
 def _call_validated(llm_generate, prompt, item_id, validator, normalizer=None):
     errors = []
+    response = None
     for attempt in range(2):
-        current_prompt = prompt if attempt == 0 else _repair_prompt(prompt, errors)
+        current_prompt = prompt if attempt == 0 else _repair_prompt(prompt, errors, response)
         try:
             response = llm_generate(
                 current_prompt,
@@ -1004,13 +1042,44 @@ def generate_weekly_brief(
             week=week, now=local_now, model=model, input_hash=input_hash,
             baseline_hash=baseline_hash, reason=reason, selected=selected,
         )
-        cache.setdefault("failures", {})[week_id] = {
-            "reason": reason, "updated_at": local_now.isoformat(),
-        }
+        cache.setdefault("failures", {}).setdefault(week_id, {}).update(
+            reason=reason, updated_at=local_now.isoformat(),
+        )
         _atomic_json(output_path, pending)
         _atomic_json(cache_path, _cache_payload(cache, local_now))
         return pending, "pending_llm"
 
+    # Persist an attempt before calling a paid service. The limit is per week
+    # and editorial version, so changing source metadata cannot reset it.
+    attempt_key = _fingerprint([model, PROMPT_VERSION, SIGNAL_PROMPT_VERSION])
+    failures = cache.setdefault("failures", {})
+    previous = failures.get(week_id, {})
+    if previous.get("attempt_key") != attempt_key:
+        previous = {}
+    attempts = int(previous.get("attempts") or 0)
+    retry_at = None
+    try:
+        retry_at = datetime.fromisoformat(previous["last_attempt_at"]) + timedelta(hours=RETRY_HOURS)
+    except (KeyError, ValueError, TypeError):
+        pass
+    if not force and (attempts >= MAX_WEEKLY_ATTEMPTS or (retry_at and local_now < retry_at)):
+        status = "retry_limit_reached" if attempts >= MAX_WEEKLY_ATTEMPTS else "retry_deferred"
+        pending = _pending_document(
+            week=week, now=local_now, model=model, input_hash=input_hash,
+            baseline_hash=baseline_hash, reason=previous.get("reason", status), selected=selected,
+        )
+        pending.update(generation_attempts=attempts, retry_status=status,
+                       next_retry_at=retry_at.isoformat() if status == "retry_deferred" else None)
+        _atomic_json(output_path, pending)
+        return pending, status
+    failures[week_id] = {
+        "attempt_key": attempt_key, "attempts": attempts + 1,
+        "last_attempt_at": local_now.isoformat(), "updated_at": local_now.isoformat(),
+        "reason": "generation_in_progress",
+    }
+    _atomic_json(cache_path, _cache_payload(cache, local_now))
+
+    weeks, entries = cache["weeks"], cache["entries"]
     signal_key = brief_cache_key(
         week_id, input_hash, SIGNAL_PROMPT_VERSION, model,
         baseline_hash=baseline_hash, schema_version=SIGNAL_SCHEMA_VERSION,
@@ -1034,9 +1103,8 @@ def generate_weekly_brief(
                 week=week, now=local_now, model=model, input_hash=input_hash,
                 baseline_hash=baseline_hash, reason=reason, selected=selected,
             )
-            cache.setdefault("failures", {})[week_id] = {
-                "reason": reason, "updated_at": local_now.isoformat(),
-            }
+            cache["failures"][week_id].update(reason=reason, updated_at=local_now.isoformat())
+            pending["generation_attempts"] = attempts + 1
             _atomic_json(output_path, pending)
             _atomic_json(cache_path, _cache_payload(cache, local_now))
             return pending, "pending_signals"
@@ -1071,9 +1139,8 @@ def generate_weekly_brief(
             week=week, now=local_now, model=model, input_hash=input_hash,
             baseline_hash=baseline_hash, reason=reason, selected=selected,
         )
-        cache.setdefault("failures", {})[week_id] = {
-            "reason": reason, "updated_at": local_now.isoformat(),
-        }
+        cache["failures"][week_id].update(reason=reason, updated_at=local_now.isoformat())
+        pending["generation_attempts"] = attempts + 1
         _atomic_json(output_path, pending)
         _atomic_json(cache_path, _cache_payload(cache, local_now))
         return pending, "pending_personal"

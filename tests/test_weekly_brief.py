@@ -321,6 +321,21 @@ class WeeklyBriefSelectionTests(unittest.TestCase):
 
 
 class WeeklySignalValidationTests(unittest.TestCase):
+    def test_repair_keeps_referenced_facts_without_resending_entire_baseline(self):
+        from weekly_brief import _signals_prompt, _repair_prompt
+        events = [event(i) for i in range(15)]
+        current, _ = evidence_context(events)
+        baseline = {"requested_weeks": 4, "requested_week_ids": [], "available_weeks": 4,
+                    "available_week_ids": [], "coverage": "complete", "items": current[4:] * 4}
+        prompt = _signals_prompt(current[:4], baseline, completed_week(datetime(2026, 8, 11, tzinfo=timezone.utc)))
+        response = public_response(events[:4])
+        repair = _repair_prompt(prompt, ["heterogeneous evidence"], response)
+        self.assertLess(len(repair), len(prompt))
+        self.assertIn(current[0]["summary"], repair)
+        self.assertIn(current[0]["source_family"], repair)
+        self.assertNotIn(current[-1]["event_id"], repair)
+        self.assertIn("待修正JSON", repair)
+
     def test_schema_length_error_reports_actual_and_allowed_length(self):
         errors = validate_json_schema(
             "甲" * 81, {"type": "string", "maxLength": 80}, "$.bottom_line",
@@ -579,10 +594,54 @@ class WeeklyBriefGenerationTests(unittest.TestCase):
                 cache_path=cache, output_path=output, archive_dir=archive,
             )
         self.assertEqual(status, "pending_signals")
-        self.assertEqual(second_status, "pending_signals")
+        self.assertEqual(second_status, "retry_deferred")
         self.assertEqual(first["status"], "pending")
         self.assertEqual(second["status"], "pending")
-        self.assertEqual(len(calls), 4)
+        self.assertEqual(len(calls), 2)
+
+    def test_failed_week_stops_after_three_rounds_without_more_model_calls(self):
+        events = [event(i) for i in range(10)]
+        calls = []
+        def invalid(_prompt, *, item_id):
+            calls.append(item_id)
+            return {}
+        with tempfile.TemporaryDirectory() as tmp:
+            cache, output, archive = self.paths(tmp)
+            for day in (11, 12, 13, 14):
+                brief, status = generate_weekly_brief(
+                    events, now=datetime(2026, 8, day, 2, tzinfo=timezone.utc),
+                    model="deepseek-v4", llm_generate=invalid,
+                    cache_path=cache, output_path=output, archive_dir=archive,
+                )
+            self.assertEqual(json.loads(cache.read_text())["failures"]["2026-W32"]["attempts"], 3)
+        self.assertEqual(status, "retry_limit_reached")
+        self.assertEqual(brief["generation_attempts"], 3)
+        self.assertEqual(len(calls), 6)
+
+    def test_repair_receives_failed_answer_and_keeps_validation(self):
+        events = [event(i) for i in range(10)]
+        signals = public_response(events)
+        prompts = []
+        def callback(prompt, *, item_id):
+            if ":signals" in item_id:
+                return signals
+            prompts.append(prompt)
+            response = personal_response(signals, events)
+            if not item_id.endswith(":repair"):
+                response["uncertainty"] = "需核验的失败稿标记" * 50
+            return response
+        with tempfile.TemporaryDirectory() as tmp:
+            cache, output, archive = self.paths(tmp)
+            brief, status = generate_weekly_brief(
+                events, now=datetime(2026, 8, 11, 2, tzinfo=timezone.utc),
+                model="deepseek-v4", llm_generate=callback,
+                cache_path=cache, output_path=output, archive_dir=archive,
+            )
+        self.assertEqual(status, "generated_ai")
+        self.assertEqual(len(prompts), 2)
+        self.assertIn("需核验的失败稿标记", prompts[1])
+        self.assertIn("当前正文共", prompts[1])
+        self.assertTrue(valid_brief(brief))
 
     def test_model_format_error_gets_one_repair_attempt(self):
         events = [event(i) for i in range(10)]
@@ -627,7 +686,7 @@ class WeeklyBriefGenerationTests(unittest.TestCase):
             )
             phase["personal_valid"] = True
             brief, second_status = generate_weekly_brief(
-                events, now=datetime(2026, 8, 11, 8, tzinfo=timezone.utc),
+                events, now=datetime(2026, 8, 12, 2, tzinfo=timezone.utc),
                 model="deepseek-v4", llm_generate=callback,
                 cache_path=cache, output_path=output, archive_dir=archive,
             )
@@ -889,11 +948,22 @@ class WeeklyBriefHealthTests(unittest.TestCase):
                 cache_path=root / "cache.json", output_path=output,
                 archive_dir=root / "weekly",
             )
-            ready_ok, ready_message = inspect_weekly_brief(output, expect_ai=True)
+            ready_ok, ready_message = inspect_weekly_brief(
+                output, expect_ai=True, now=datetime(2026, 8, 11, 8, tzinfo=timezone.utc),
+            )
+            stale_ok, stale_message = inspect_weekly_brief(
+                output, expect_ai=True, now=datetime(2026, 8, 17, 0, tzinfo=timezone.utc),
+            )
+            before_ok, _ = inspect_weekly_brief(
+                output, expect_ai=True, now=datetime(2026, 8, 16, 23, tzinfo=timezone.utc),
+            )
         self.assertFalse(pending_ok)
         self.assertIn("整理中", pending_message)
         self.assertTrue(ready_ok)
         self.assertIn("2 个信号", ready_message)
+        self.assertFalse(stale_ok)
+        self.assertIn("2026-W33", stale_message)
+        self.assertTrue(before_ok)
 
 
 class WeeklyWorkflowRoutingTests(unittest.TestCase):

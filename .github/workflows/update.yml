@@ -63,11 +63,12 @@ jobs:
       - name: 回归测试（Python + 浏览器事件客户端）
         run: |
           python3 -m unittest discover -s tests -v
-          node --test tests/analytics.test.js tests/cases.test.js tests/content-feedback.test.js tests/favorites.test.js tests/for-me.test.js tests/home.test.js tests/tts-player.test.js
+          node --test tests/analytics.test.js tests/cases.test.js tests/content-feedback.test.js tests/favorites.test.js tests/for-me.test.js tests/products.test.js tests/home.test.js tests/tts-player.test.js
 
       - name: 采集 → AI 加工 → 生成静态站
         env:
           PUBLISH_REVIEWED_ONLY: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[publish-reviewed]') }}
+          REFRESH_WEEKLY_ONLY: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[refresh-weekly]') }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           LLM_BASE_URL: "https://api.deepseek.com"
           LLM_MODEL: "deepseek-v4-flash"
@@ -116,6 +117,9 @@ jobs:
           if [ "$PUBLISH_REVIEWED_ONLY" = "true" ]; then
             echo "发布已审核内容：复用已入库数据，跳过采集和付费 AI 加工"
             python3 pipeline/import_manual_batch.py --registered
+            if [ "$REFRESH_WEEKLY_ONLY" = "true" ]; then
+              python3 pipeline/refresh_weekly.py
+            fi
           else
             python3 pipeline/run_discovery.py
             python3 pipeline/run_update.py

@@ -12,8 +12,8 @@
   var FAVORITES_KEY = "dh_favs";
   var FEEDBACK_KEY = "dh_content_feedback_v1";
   var TOPIC_PRIORITY = [
-    "Data Agent", "平台AI化", "语义层", "实时分析", "ChatBI", "湖仓",
-    "BI变局", "数据人", "组织人才", "财务经营", "销售增长", "风险管理"
+    "Data Agent", "平台AI化", "语义层", "ChatBI", "BI变局", "实时分析", "湖仓",
+    "数据人", "组织人才", "财务经营", "销售增长", "风险管理"
   ];
 
   function uniqueStrings(values, maximum) {
@@ -138,6 +138,11 @@
       if (!/^[A-Za-z0-9_-]{1,64}$/.test(id) || dismissed.has(id)) return false;
       return !requireMatch || matchReasons(event, state).length > 0;
     }).slice().sort(function (a, b) {
+      var aFocus = a.focus || {}, bFocus = b.focus || {};
+      var aPriority = Number.isInteger(aFocus.priority) && aFocus.priority >= 0 && aFocus.priority <= 5 ? aFocus.priority : 5;
+      var bPriority = Number.isInteger(bFocus.priority) && bFocus.priority >= 0 && bFocus.priority <= 5 ? bFocus.priority : 5;
+      if (aPriority !== bPriority) return aPriority - bPriority;
+      if (Boolean(aFocus.practical) !== Boolean(bFocus.practical)) return aFocus.practical ? -1 : 1;
       var score = scoreEvent(b, state, now) - scoreEvent(a, state, now);
       if (score) return score;
       return eventTime(b) - eventTime(a) || String(a.event_id).localeCompare(String(b.event_id));
@@ -276,7 +281,8 @@
       article.dataset.category = String(event.category || "");
       article.dataset.source = primarySource(event);
       var top = element("div", "fm-signal-top");
-      var badge = element("span", "fm-signal-badge", priority ? "必须知道" : String(event.category_label || "动态"));
+      var focusLabel = event.focus && event.focus.id !== "other" ? event.focus.label : "";
+      var badge = element("span", "fm-signal-badge", priority ? "必须知道" : String(focusLabel || event.category_label || "动态"));
       top.appendChild(badge);
       if (isNewSince(event, baseline)) top.appendChild(element("span", "fm-new", "新"));
       var sourceText = (event.items || []).length > 1 ? (event.items.length + " 个来源") : (primarySource(event) || "DataHot");
@@ -405,7 +411,7 @@
       var must = preview.slice(0, 3);
       var feed = personalized ? preview.slice(3, 15) : [];
       refs.must.querySelector("h2").textContent = personalized ? "必须知道" : "先感受一下";
-      refs.must.querySelector("p").textContent = personalized ? "与你的关注最相关，最多 3 条" : "近期高价值变化预览，完成关注后将只显示相关内容";
+      refs.must.querySelector("p").textContent = personalized ? "与你的关注相关，优先数据 Agent 与可落地实践，最多 3 条" : "数据 Agent 优先，其次 AI 数据平台、语义层、AI 分析与 AI 看板";
       renderCards(refs.mustList, must, 3, personalized);
       refs.feed.hidden = !feed.length;
       renderCards(refs.feedList, feed, 12, false);

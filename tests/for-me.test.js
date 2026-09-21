@@ -20,6 +20,17 @@ function event(id, options = {}) {
   };
 }
 
+test("five core directions outrank ordinary news while follows and dismissals remain authoritative", () => {
+  const rows = [0, 1, 2, 3, 4, 5].map(priority => ({
+    ...event(String(priority + 1).repeat(12), { vendors: ["Vendor"], heat: priority * 19 }),
+    focus: { priority, practical: false },
+  }));
+  const state = forMe.normalizeState({ vendors: ["Vendor"], dismissed: [rows[0].event_id] });
+  const unrelated = { ...rows[0], event_id: "ffffffffffff", vendors: ["Other"] };
+  const ranked = forMe.rankEvents([unrelated, ...rows.slice().reverse()], state, Date.now(), true);
+  assert.deepEqual(ranked.map(e => e.focus.priority), [1, 2, 3, 4, 5]);
+});
+
 test("state is local, bounded and de-duplicated", () => {
   const state = forMe.normalizeState({
     topics: ["Data Agent", "Data Agent", " 语义层 "],

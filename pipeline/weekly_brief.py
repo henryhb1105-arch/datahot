@@ -457,6 +457,7 @@ def _signals_prompt(current_rows, baseline, week, daily_candidates=None):
         "baseline_events": _prompt_event_rows(baseline["items"]),
         "daily_candidate_hints": daily_candidates or [],
         "output_shape": schema_hint,
+        "output_json_schema": SIGNAL_RESPONSE_SCHEMA,
     }
     return instructions + "\n输入：" + json.dumps(
         payload, ensure_ascii=False, separators=(",", ":"),
@@ -1051,10 +1052,10 @@ def generate_weekly_brief(
 
     # Persist an attempt before calling a paid service. The limit is per week
     # and editorial version, so changing source metadata cannot reset it.
-    attempt_key = _fingerprint([model, PROMPT_VERSION, SIGNAL_PROMPT_VERSION])
+    attempt_fingerprint = _fingerprint([model, PROMPT_VERSION, SIGNAL_PROMPT_VERSION])
     failures = cache.setdefault("failures", {})
     previous = failures.get(week_id, {})
-    if previous.get("attempt_key") != attempt_key:
+    if previous.get("attempt_fingerprint") != attempt_fingerprint:
         previous = {}
     attempts = int(previous.get("attempts") or 0)
     retry_at = None
@@ -1073,7 +1074,7 @@ def generate_weekly_brief(
         _atomic_json(output_path, pending)
         return pending, status
     failures[week_id] = {
-        "attempt_key": attempt_key, "attempts": attempts + 1,
+        "attempt_fingerprint": attempt_fingerprint, "attempts": attempts + 1,
         "last_attempt_at": local_now.isoformat(), "updated_at": local_now.isoformat(),
         "reason": "generation_in_progress",
     }

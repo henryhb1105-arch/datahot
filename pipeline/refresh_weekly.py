@@ -22,10 +22,14 @@ def main():
 
     events = json.loads((run_update.DATA / "latest.json").read_text())["events"]
     try:
-        _brief, status = run_update.generate_weekly_brief_for_events(
+        brief, status = run_update.generate_weekly_brief_for_events(
             events, run_update.load_llm_config(), datetime.now(timezone.utc),
         )
         print(f"[weekly-only] {status}; no source ingestion or article processing")
+        if brief.get("fallback_reason"):
+            print("[weekly-only] validation: " + json.dumps(
+                brief["fallback_reason"], ensure_ascii=False,
+            ))
     finally:
         run_update.LLM_USAGE.finalize()
         print(run_update.LLM_USAGE.one_line_summary())

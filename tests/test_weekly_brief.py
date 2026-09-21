@@ -321,6 +321,70 @@ class WeeklyBriefSelectionTests(unittest.TestCase):
 
 
 class WeeklySignalValidationTests(unittest.TestCase):
+    def test_prompt_excludes_generic_database_updates_but_keeps_original_archive(self):
+        from weekly_brief import _signals_prompt
+        rows = _stable_items([event(1), event(2, title="dbt State 按变更减少计算",
+            summary="通过模型 SQL 和元数据判断是否需要重新运行，降低计算成本。", topics=[])])
+        baseline = {"requested_weeks": 4, "requested_week_ids": [], "available_weeks": 1,
+                    "available_week_ids": [], "coverage": "partial", "items": rows}
+        prompt = _signals_prompt(rows, baseline, completed_week(datetime(2026, 8, 11, tzinfo=timezone.utc)))
+        payload = json.loads(prompt.split("\n输入：", 1)[1])
+        self.assertEqual([row["event_id"] for row in payload["current_events"]], [rows[0]["event_id"]])
+        self.assertEqual(len(payload["baseline_events"]), 1)
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(len(baseline["items"]), 2)
+
+    def test_partial_signal_recovery_keeps_all_original_evidence_checks(self):
+        from weekly_brief import _retain_valid_signals, _call_validated
+        events = [event(i) for i in range(4)]
+        rows, evidence_map = evidence_context(events)
+        current_ids = {row["event_id"] for row in rows}
+        baseline = {"available_weeks": 0}
+        response = public_response(events)
+        response["weekly_judgement"] = "不成立的跨机制趋势不应保留在通过校验的周报介绍中。"
+        response["signals"][1]["evidence_ids"] = [events[2]["event_id"], "ffffffffffff"]
+        validator = lambda value: validate_signal_response(value, evidence_map, current_ids, baseline)
+        self.assertTrue(validator(response))
+        calls = []
+        def model(_prompt, *, item_id):
+            calls.append(item_id)
+            return response
+        recovered, errors = _call_validated(model, "input", "signals", validator,
+            retain_valid=lambda value: _retain_valid_signals(value, evidence_map, current_ids, baseline))
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(errors, [])
+        self.assertEqual(recovered["signals"], [response["signals"][0]])
+        self.assertEqual(validator(recovered), [])
+        self.assertNotIn("不成立的跨机制趋势", recovered["weekly_judgement"])
+        self.assertEqual(recovered["signals_not_promoted"][0]["evidence_ids"], [events[2]["event_id"]])
+        self.assertEqual(recovered["signals"][0]["confidence"], response["signals"][0]["confidence"])
+
+    def test_partial_recovery_never_publishes_when_all_signals_are_invalid(self):
+        from weekly_brief import _retain_valid_signals
+        events = [event(i) for i in range(4)]
+        rows, evidence_map = evidence_context(events)
+        response = public_response(events)
+        for signal in response["signals"]:
+            signal["evidence_ids"] = ["ffffffffffff"]
+        self.assertIsNone(_retain_valid_signals(response, evidence_map,
+            {row["event_id"] for row in rows}, {"available_weeks": 0}))
+
+    def test_partial_recovery_excludes_heterogeneous_database_and_ai_bundle(self):
+        from weekly_brief import _retain_valid_signals
+        events = [event(0), event(1),
+            event(2, title="按变更构建数据库模型", summary="仅构建数据发生变化的模型。", topics=[]),
+            event(3, title="数据平台发布 Agent 上下文能力", summary="Agent 读取企业上下文。", topics=["Data Agent"]),
+            event(4, title="AI 分析函数", summary="Agent 通过分析函数获取统计结果。", topics=["平台AI化"])]
+        rows, evidence_map = evidence_context(events)
+        current_ids = {row["event_id"] for row in rows}
+        response = public_response(events)
+        response["signals"][1]["evidence_ids"] = [row["event_id"] for row in rows[2:]]
+        errors = validate_signal_response(response, evidence_map, current_ids, {"available_weeks": 0})
+        self.assertTrue(any("heterogeneous evidence" in error for error in errors))
+        recovered = _retain_valid_signals(response, evidence_map, current_ids, {"available_weeks": 0})
+        self.assertEqual(recovered["signals"], [response["signals"][0]])
+        self.assertEqual(validate_signal_response(recovered, evidence_map, current_ids, {"available_weeks": 0}), [])
+
     def test_signal_judgement_keeps_complete_sentences_and_all_evidence(self):
         from weekly_brief import _normalize_signal_response
         response = public_response([event(i) for i in range(4)])

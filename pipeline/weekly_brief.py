@@ -12,6 +12,7 @@ from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 
 from taxonomy import CATEGORY_LABELS
+from content_focus import content_focus
 
 from lite_data import event_timestamp, is_list_eligible
 from weekly_schema import (
@@ -24,7 +25,7 @@ SCHEMA_VERSION = 3
 SIGNAL_SCHEMA_VERSION = 1
 INPUT_SCHEMA_VERSION = 1
 PROMPT_VERSION = "weekly-personal-v4"
-SIGNAL_PROMPT_VERSION = "weekly-signals-v3"
+SIGNAL_PROMPT_VERSION = "weekly-signals-v4"
 MAX_WEEKLY_ATTEMPTS = 3
 RETRY_HOURS = 12
 MIN_ITEMS = 10
@@ -453,8 +454,13 @@ def _signals_prompt(current_rows, baseline, week, daily_candidates=None):
                 "available_week_ids", "coverage",
             )
         },
-        "current_events": _prompt_event_rows(current_rows),
-        "baseline_events": _prompt_event_rows(baseline["items"]),
+        "current_events": _prompt_event_rows([
+            row for row in current_rows if content_focus(row)["priority"] < 5
+        ]),
+        "baseline_events": _prompt_event_rows([
+            row for row in baseline["items"] if content_focus(row)["priority"] < 5
+        ]),
+        "input_scope": "只分析数据Agent、AI数据平台、语义层、AI分析和AI看板；完整原始证据另存档。",
         "daily_candidate_hints": daily_candidates or [],
         "output_shape": schema_hint,
         "output_json_schema": SIGNAL_RESPONSE_SCHEMA,
@@ -772,7 +778,48 @@ def _repair_prompt(original_prompt, errors, response=None):
     return prompt
 
 
-def _call_validated(llm_generate, prompt, item_id, validator, normalizer=None):
+def _retain_valid_signals(response, evidence_map, current_ids, baseline):
+    """Keep validated AI signals when another candidate fails evidence checks.
+
+    Never repair or invent evidence. No usable signals means the whole response
+    remains pending. Rebuild only the display introduction and next question so
+    discarded claims cannot survive there.
+    """
+    if validate_json_schema(response, SIGNAL_RESPONSE_SCHEMA):
+        return None
+    kept, rejected, seen = [], [], set()
+    for signal in response["signals"]:
+        candidate = {**response, "signals": [signal], "signals_not_promoted": []}
+        errors = validate_signal_response(candidate, evidence_map, current_ids, baseline)
+        if signal["signal_id"] in seen:
+            errors.append("duplicate signal_id")
+        seen.add(signal["signal_id"])
+        if not errors:
+            kept.append(signal)
+            continue
+        known_ids = [event_id for event_id in signal["evidence_ids"] if event_id in evidence_map]
+        if known_ids:
+            rejected.append({
+                "label": signal["title"],
+                "reason": "候选未通过证据关联、来源独立性或事实锚点校验，暂不提升为信号。",
+                "evidence_ids": known_ids,
+            })
+    if not kept or len(kept) == len(response["signals"]):
+        return None
+    titles = "；".join(signal["title"] for signal in kept)
+    curated = {
+        **response, "signals": kept,
+        "weekly_judgement": f"本周保留{len(kept)}个通过证据校验的信号：{titles}。其余候选未通过校验，不据此推断行业趋势。",
+        "signals_not_promoted": (rejected + response["signals_not_promoted"])[:4],
+        "next_week_question": f"下周能否找到独立证据，检验这些信号的实际效果与适用边界：{titles}？",
+    }
+    if validate_signal_response(curated, evidence_map, current_ids, baseline):
+        return None
+    print(f"[weekly-signals] retained {len(kept)} validated signals; excluded {len(response['signals']) - len(kept)} invalid candidates")
+    return curated
+
+
+def _call_validated(llm_generate, prompt, item_id, validator, normalizer=None, retain_valid=None):
     errors = []
     response = None
     for attempt in range(2):
@@ -790,6 +837,10 @@ def _call_validated(llm_generate, prompt, item_id, validator, normalizer=None):
         errors = validator(response)
         if not errors:
             return response, []
+    if retain_valid is not None:
+        curated = retain_valid(response)
+        if curated is not None and not validator(curated):
+            return curated, []
     return None, errors
 
 
@@ -1115,6 +1166,9 @@ def generate_weekly_brief(
                     value, evidence_map, current_ids, baseline,
                 ),
                 normalizer=_normalize_signal_response,
+                retain_valid=lambda value: _retain_valid_signals(
+                    value, evidence_map, current_ids, baseline,
+                ),
             )
         except Exception as exc:
             signal_response, errors = None, [type(exc).__name__[:80]]

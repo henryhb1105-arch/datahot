@@ -1,9 +1,9 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-09-20T16:08:34.587655+00:00
+- 生成时间：2026-09-21T12:51:34.639816+00:00
 - 本轮原始发现：7
-- 未收录文章候选：22
-- 新信源候选：19
+- 未收录文章候选：23
+- 新信源候选：20
 - 已收录链接去重：0
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
 
@@ -23,13 +23,13 @@
 - **cdn.sanity.io** · PROBATION · 1 篇 · accepted_link_graph
 - **dbtcharts.com** · PROBATION · 1 篇 · hn
 - **besok.github.io** · PROBATION · 1 篇 · hn
+- **datagubbe.se** · PROBATION · 1 篇 · hn
 - **www.epa.gov** · DISCOVERED · 1 篇 · hn
 - **dgl.cx** · DISCOVERED · 1 篇 · hn
 - **datacolada.org** · DISCOVERED · 1 篇 · hn
 - **www.data-structures-in-practice.com** · DISCOVERED · 1 篇 · hn
 - **www.kxan.com** · DISCOVERED · 1 篇 · hn
 - **lapcatsoftware.com** · DISCOVERED · 1 篇 · hn
-- **lareviewofbooks.org** · DISCOVERED · 1 篇 · hn
 
 ## 优先检查的文章
 
@@ -40,8 +40,9 @@
 - [Evidence of Fraud in an Influential Study About Procrastination](https://datacolada.org/138) · hn
 - [Korea raises data breach fines to 10% of revenue](https://www.koreajoongangdaily.com/business/korea-raises-data-breach-fines-to-10-of-revenue/12869899) · hn
 - [The Waymo effect: how AI is quietly making research less collaborative](https://www.researchagenda.news/articles/the-waymo-effect.html) · hn
-- [EPA says power for data centers can sidestep pollution laws](https://www.epa.gov/newsreleases/epa-issues-permitting-guidance-further-president-trumps-agenda-promoting-data-centers) · hn
 - [What Zig felt like, coming from Rust](https://besok.github.io/posts/what-zig-felt-like-coming-from-rust) · hn
+- [EPA says power for data centers can sidestep pollution laws](https://www.epa.gov/newsreleases/epa-issues-permitting-guidance-further-president-trumps-agenda-promoting-data-centers) · hn
+- [The Effect of CRTs on Pixel Art (2024)](https://datagubbe.se/crt) · hn
 - [Charts built for Chat](https://dbtcharts.com/blog/charts-built-for-chat) · hn
 - [SQLite as a Document Database (2020)](https://dgl.cx/2020/06/sqlite-json-support) · hn
 - [You can run Git on object storage if you re-make packfiles](https://www.tigrisdata.com/blog/objgit-packfiles) · hn
@@ -52,4 +53,3 @@
 - [www.snowflake.com](https://www.snowflake.com/en/blog/enterprise-ai-agents-agentic-ai) · accepted_link_graph
 - [www.imf.org](https://www.imf.org/-/media/files/publications/sdn/2024/english/sdnea2024001.pdf) · accepted_link_graph
 - [www-cdn.anthropic.com](https://www-cdn.anthropic.com/0dd865075ad3132672ee0ab40b05a53f14cf5288.pdf) · accepted_link_graph
-- [cdn.sanity.io](https://cdn.sanity.io/files/4zrzovbb/website/03ed1410f74a65ae4cc2a27120d0875e1e569535.pdf) · accepted_link_graph

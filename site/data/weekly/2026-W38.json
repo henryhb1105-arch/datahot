@@ -9,13 +9,13 @@
  "mode": "ai",
  "ai_assisted": true,
  "fallback_reason": "",
- "content_fingerprint": "af0b7a18be7f7c58cd0231b03e143cf4d0d97f80bafa93b5e9694fb95861a4b7",
+ "content_fingerprint": "a27bff4711ebdc55feec4d138ba20b547abbf3e8f91e447d07739de561c8371a",
  "input_hash": "88861f6a4baab948bc0512f35fb1dc386f064bdbc4c73cc489ca7a83f7e0efc6",
  "baseline_hash": "695bf6fed07ef98a8f93de2323045b97e332d7540785f013c03ad366a3f618e5",
  "prompt_version": "weekly-personal-v4",
  "signal_prompt_version": "weekly-signals-v4",
  "model": "deepseek-v4-flash",
- "public_signals_fingerprint": "f630dde6f860f4ceba11c7b57ad84bc133203fc9e94585756c0ef14d6fc88ca3",
+ "public_signals_fingerprint": "b86b15f73ee2767235649845b8a85a54f83688376ab5f175e67e8e304cf049e8",
  "baseline": {
   "requested_weeks": 4,
   "requested_week_ids": [
@@ -57,14 +57,14 @@
    "confidence": "medium",
    "confidence_reason": "W36已有ClickHouse和Amplitude两套独立评测框架，本周新增Spotter对比BIRD，跨周多供应商方向一致，但全部为厂商自评。",
    "anchor": "Spotter在BIRD 1,533题上总体执行准确率82.8%，高于前沿LLM 78.4%与编码agent 72.5%，挑战级70.6%；仅换更新模型、harness不变即提升3.4个百分点；文中引用万人员工企业约65万次数据问题/年，1个准确率点对应6,500个答案对错。",
-   "mechanism": "多家厂商在同一批公开基准上以统一评分、每题一次机会的方式对比Agentic Analytics引擎，并把模型层收益与harness层收益拆开度量，形成可横向比较的能力口径。",
+   "mechanism": "厂商通过各自任务集或公开基准评估分析Agent，并区分模型与完整执行流程对准确率的贡献。这些评测的任务集和评分口径不同，目前可比较评测方法，不能把跨厂商的数字直接横向排序。",
    "baseline_comparison": "W36 ClickHouse用201个生产问题评28个模型，Amplitude用四类分析任务框架给Global Agent 76%；本周Spotter把评测拉回BIRD公开基准并强调准确率斜率，评测对象从模型选择扩展到完整引擎对比。",
    "evidence_ids": [
     "40c2caf96019",
     "d59935fed7ef",
     "bd501c61d0f5"
    ],
-   "counter_evidence": "本周仅ThoughtSpot一条新证据且为vendor_claim，题干与评分细节未公开；W36两项证据分属不同厂商，均无第三方复现。"
+   "counter_evidence": "本周新增证据仅为ThoughtSpot的厂商自评；历史两项评测使用不同任务集和评分口径，现有材料不能证明跨厂商结果可以直接比较，也不足以确认第三方复现。"
   },
   {
    "signal_id": "agent-onboarding-cold-start",
@@ -99,7 +99,7 @@
    "action": "暂时无需行动。若要观察，可先定义冷启动度量：从接入数据到业务首次可用提问所需的配置人时、需人工确认的练习题数量、校准后前20个问题的纠正率，待有客户侧数据再决定是否试用。"
   }
  ],
- "what_not_to_overread": "Spotter的BIRD成绩与换模型提升均为厂商自评，题干与评分细节未公开，不能等同于第三方复现；Fivetran Context Layer仍在Limited Public Preview，Snowflake技能目录与Spotter Memory均无客户侧量化效果。不要把GA或预览发布直接理解为能力已被验证。",
+ "what_not_to_overread": "Spotter的BIRD成绩与换模型提升来自厂商自评，现有材料不足以确认第三方复现或不同评测间的可比性；Fivetran Context Layer仍在Limited Public Preview，Snowflake技能目录为预览发布。这些材料尚未给出所述能力的客户侧量化验证，不要把GA或预览发布直接等同于效果已验证。",
  "uncertainty": "所有本周信号证据均来自供应商自述或厂商博客，缺少客户侧独立实测。Agent记忆的实际准确率增益、治理成本，以及按岗位共享技能后的权限风险无法验证；冷启动30分钟说法没有任何客户配置时长或成功率支撑，可能只是营销表述。",
  "next_week_question": "Agent记忆与共享上下文层能否给出客户侧准确率或配置时长改善的量化数据，而非仅停留在GA与预览发布？",
  "evidence_index": [
@@ -209,5 +209,10 @@
    "week_id": "2026-W38"
   }
  ],
- "candidate_count": 60
+ "candidate_count": 60,
+ "editorial_review": {
+  "reviewed_by": "Codex",
+  "reviewed_at": "2026-09-21T16:07:37.478519+00:00",
+  "note": "核对原文摘要，校正不同评测集的可比性及独立复现边界。"
+ }
 }

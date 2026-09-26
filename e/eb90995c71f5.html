@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-UeCncd7v+KupHlApWL4AZiz5LnaOq6AlLf+YqkMdWNw=' 'sha256-sfEG7V/j0q3IG6s/uS181km4UfHAzUHwUW1EbEKVrSM='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-Ga8ALcIyJdu+qtVgx+U6BakSEMIPF8tJTEcY0CUHBSs=' 'sha256-UeCncd7v+KupHlApWL4AZiz5LnaOq6AlLf+YqkMdWNw='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>DuckDB-Wasm 结合 OPFS 实现浏览器持久化数据库 · DataHot</title>
@@ -984,7 +984,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title":"DuckDB-Wasm 结合 OPFS 实现浏览器持久化数据库","summary":"DuckDB-Wasm 自 2021 年发布以来无法持久化数据库，数据只存在于 Wasm 堆内存中，关闭标签页即丢失，此前只能把表序列化为 Parquet 存入 IndexedDB 再重新注册。现代浏览器自 2023 年 3 月起支持 Origin Private File System（OPFS），提供按源隔离的沙箱文件系统与随机读写能力，DuckDB-Wasm 可将其作为存储后端。文章演示了以 opfs:// 路径打开数据库（如 opfs://analytics.duckdb，读写模式），生成带预写日志和检查点的标准 .duckdb 文件，可在页面重载与浏览器重启后存活。作者提醒 npm 上 latest 版本 1.33.1-dev57.0 会创建 OPFS 文件却不写入、路径被规范化为单斜杠导致不匹配，建议锁定 1.32.0 或使用 1.33.1-dev64.0 及以后的 next 标签。","reason":"浏览器端持久化是 DuckDB-Wasm 长期缺失的关键能力，OPFS 方案让纯前端分析应用无需自建应用层序列化即可保留数据，对做嵌入式分析与轻量数据产品的从业者有直接参考价值。","topic":"湖仓","heat":45,"source":"DuckDB Engineering Blog","date":"2026-09-18","url":"https://datahot.xiahongbin.com/e/eb90995c71f5.html","qr":"../qr/eb90995c71f5.png"};
+var SH_EV = {"title":"DuckDB-Wasm 结合 OPFS 实现浏览器持久化数据库","summary":"DuckDB-Wasm 自 2021 年发布以来无法持久化数据库，数据只存在于 Wasm 堆内存中，关闭标签页即丢失，此前只能把表序列化为 Parquet 存入 IndexedDB 再重新注册。现代浏览器自 2023 年 3 月起支持 Origin Private File System（OPFS），提供按源隔离的沙箱文件系统与随机读写能力，DuckDB-Wasm 可将其作为存储后端。文章演示了以 opfs:// 路径打开数据库（如 opfs://analytics.duckdb，读写模式），生成带预写日志和检查点的标准 .duckdb 文件，可在页面重载与浏览器重启后存活。作者提醒 npm 上 latest 版本 1.33.1-dev57.0 会创建 OPFS 文件却不写入、路径被规范化为单斜杠导致不匹配，建议锁定 1.32.0 或使用 1.33.1-dev64.0 及以后的 next 标签。","reason":"浏览器端持久化是 DuckDB-Wasm 长期缺失的关键能力，OPFS 方案让纯前端分析应用无需自建应用层序列化即可保留数据，对做嵌入式分析与轻量数据产品的从业者有直接参考价值。","topic":"湖仓","heat":37,"source":"DuckDB Engineering Blog","date":"2026-09-18","url":"https://datahot.xiahongbin.com/e/eb90995c71f5.html","qr":"../qr/eb90995c71f5.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

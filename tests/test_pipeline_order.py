@@ -341,6 +341,75 @@ class EventFirstPipelineTests(unittest.TestCase):
         self.assertEqual(result, "保留摘要")
         self.assertEqual(target["content_mode"], "ai_fallback")
 
+    def test_merge_secondary_report_does_not_replace_completed_body(self):
+        # 回归：同题合并的新 primary 不得用另一篇文章覆盖已有完整正文。
+        target = event("merged", title="数据 Agent 上下文")
+        target.update({
+            "full_zh": "主编辑译文正文。",
+            "content_blocks": [
+                {
+                    "id": "b-fig1", "type": "figure",
+                    "src": "https://example.com/a/fig1.png",
+                    "cached_src": "../media/merged/fig1.png",
+                    "media_status": "cached",
+                },
+                {
+                    "id": "b-p1", "type": "paragraph",
+                    "children": [{"text": "正文段落"}],
+                },
+            ],
+            "content_format": "blocks-v1",
+            "content_mode": "translated",
+            "content_level": "translated",
+            "source_language": "other",
+            "translation_status": "complete",
+            "source_content_hash": "hash-of-primary-a",
+            "body_chars": 7,
+            "content_parse": {
+                "processor_version": run_update.CONTENT_BLOCKS_PROCESSOR_VERSION,
+                "quality_status": "pass",
+            },
+            "items": [
+                {
+                    "id": "a1", "source": "a16z",
+                    "link": "https://example.com/a", "title": "Primary",
+                    "published": NOW.isoformat(), "ingested_at": NOW.isoformat(),
+                },
+                {
+                    "id": "s2", "source": "Databricks Blog",
+                    "link": "https://example.com/s2", "title": "同题跟进报道",
+                    "published": NOW.isoformat(), "ingested_at": NOW.isoformat(),
+                },
+            ],
+        })
+        secondary = item(
+            "s2", "同题跟进报道", source="Databricks Blog",
+            link="https://example.com/s2",
+            article_text="A different article about the same topic. " * 50,
+            article_blocks=[
+                {"id": "x1", "type": "paragraph",
+                 "children": [{"text": "Other article body"}]},
+            ],
+        )
+        with patch.object(
+            run_update, "translate_article_blocks",
+            side_effect=AssertionError("must not retranslate a completed body"),
+        ):
+            result = run_update.generate_event_body(
+                target, secondary, ("k", "base", "model"), {},
+            )
+        self.assertEqual(result, "主编辑译文正文。")
+        self.assertEqual(
+            [block.get("type") for block in target["content_blocks"]],
+            ["figure", "paragraph"],
+        )
+        self.assertEqual(
+            target["content_blocks"][0]["cached_src"], "../media/merged/fig1.png",
+        )
+        self.assertEqual(target["content_mode"], "translated")
+        self.assertEqual(target["translation_status"], "complete")
+        self.assertEqual(target["source_content_hash"], "hash-of-primary-a")
+
     def test_late_merge_can_be_disabled_for_existing_events(self):
         existing = [event("a"), event("b")]
         with patch.object(run_update, "llm_same_event") as judge:

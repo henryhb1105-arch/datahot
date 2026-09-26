@@ -1322,6 +1322,27 @@ def source_media_policy(source_name, source_configs=None):
     }
 
 
+def _event_body_completed(event):
+    """事件是否已有完整正文（当前解析器版本 + 质检通过 + 完成态）。
+
+    同题合并新报道时只应追加条目，不得用另一篇文章覆盖已有正文，
+    因此调用方在换 primary 生成正文前应先检查本函数。
+    """
+    previous = event.get("content_parse") if isinstance(event.get("content_parse"), dict) else {}
+    return bool(
+        (event.get("content_blocks") or event.get("full_zh"))
+        and previous.get("processor_version") == CONTENT_BLOCKS_PROCESSOR_VERSION
+        and previous.get("quality_status") == "pass"
+        and (
+            event.get("content_mode") == "translated"
+            and event.get("translation_status") == "complete"
+            or event.get("content_mode") == "original"
+            and event.get("source_language") == "zh"
+            and event.get("translation_status") == "not_needed"
+        )
+    )
+
+
 def generate_event_body(
     event, primary, cfg, body_state=None, *, purpose="body_translation", media_policy=None,
 ):
@@ -1354,6 +1375,15 @@ def generate_event_body(
         )
     )
     if completed_same_source:
+        return event.get("full_zh", "")
+
+    if (
+        content_hash
+        and content_hash != event.get("source_content_hash")
+        and _event_body_completed(event)
+    ):
+        # 同题合并的新 primary 只追加报道条目：事件已有完整正文时，
+        # 不得用另一篇文章覆盖主编辑正文（见 merge_group_sources）。
         return event.get("full_zh", "")
 
     if not original_text:

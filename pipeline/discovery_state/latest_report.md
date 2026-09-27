@@ -1,17 +1,17 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-09-26T14:27:26.142183+00:00
+- 生成时间：2026-09-27T12:03:50.816923+00:00
 - 本轮原始发现：8
 - 未收录文章候选：26
-- 新信源候选：23
+- 新信源候选：24
 - 已收录链接去重：0
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
 
 ## 发现通道
 
 - openai_web_search: skipped · OPENAI_API_KEY 未配置
-- hn_official: ok · 2 条
-- accepted_link_graph: ok · 6 条
+- hn_official: ok · 1 条
+- accepted_link_graph: ok · 7 条
 
 ## 优先检查的新信源
 
@@ -25,11 +25,11 @@
 - **besok.github.io** · PROBATION · 1 篇 · hn
 - **datagubbe.se** · PROBATION · 1 篇 · hn
 - **4906807.fs1.hubspotusercontent-na1.net** · PROBATION · 1 篇 · accepted_link_graph
+- **metr.org** · PROBATION · 1 篇 · accepted_link_graph
 - **www.epa.gov** · DISCOVERED · 1 篇 · hn
 - **dgl.cx** · DISCOVERED · 1 篇 · hn
 - **datacolada.org** · DISCOVERED · 1 篇 · hn
 - **www.data-structures-in-practice.com** · DISCOVERED · 1 篇 · hn
-- **www.kxan.com** · DISCOVERED · 1 篇 · hn
 
 ## 优先检查的文章
 
@@ -42,9 +42,9 @@
 - [The Waymo effect: how AI is quietly making research less collaborative](https://www.researchagenda.news/articles/the-waymo-effect.html) · hn
 - [What Zig felt like, coming from Rust](https://besok.github.io/posts/what-zig-felt-like-coming-from-rust) · hn
 - [EPA says power for data centers can sidestep pollution laws](https://www.epa.gov/newsreleases/epa-issues-permitting-guidance-further-president-trumps-agenda-promoting-data-centers) · hn
+- [One Piece of Flock Camera Data Put This Innocent Woman in Jail for 13 Days](https://www.jezebel.com/flock-cameras-data-innocent-woman-arrested-lindsey-isaacs-palm-beach-florida-lawsuit-vehicular-homicide) · hn
 - [The Effect of CRTs on Pixel Art (2024)](https://datagubbe.se/crt) · hn
 - [Charts built for Chat](https://dbtcharts.com/blog/charts-built-for-chat) · hn
-- [One Piece of Flock Camera Data Put This Innocent Woman in Jail for 13 Days](https://www.jezebel.com/flock-cameras-data-innocent-woman-arrested-lindsey-isaacs-palm-beach-florida-lawsuit-vehicular-homicide) · hn
 - [SQLite as a Document Database (2020)](https://dgl.cx/2020/06/sqlite-json-support) · hn
 - [You can run Git on object storage if you re-make packfiles](https://www.tigrisdata.com/blog/objgit-packfiles) · hn
 - [Intrusive linked lists (2019)](https://www.data-structures-in-practice.com/intrusive-linked-lists) · hn

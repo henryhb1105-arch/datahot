@@ -1,0 +1,283 @@
+{
+ "schema_version": 3,
+ "kind": "weekly",
+ "status": "ready",
+ "week_id": "2026-W39",
+ "period_start": "2026-09-21",
+ "period_end": "2026-09-27",
+ "generated_at": "2026-09-28T13:27:54.776653+08:00",
+ "mode": "ai",
+ "ai_assisted": true,
+ "fallback_reason": "",
+ "content_fingerprint": "7cbaf109185996a41274e933bb29a29a1cc748a189189f5c3ffda9bf2c6e7c9d",
+ "input_hash": "3745253e24f82a47afe0a533f7860fbdc8bcf8212b5df6c01f4cc1bb494cfb22",
+ "baseline_hash": "9ec4114647798f3fa6d614792f04f7d157c89dc9eeb5dbc0bd38410848b99edb",
+ "prompt_version": "weekly-personal-v4",
+ "signal_prompt_version": "weekly-signals-v4",
+ "model": "deepseek-v4-flash",
+ "public_signals_fingerprint": "654ad99efc82e2ea0e403af297f8febf9b6939f8dc7194276f056432fb68f188",
+ "baseline": {
+  "requested_weeks": 4,
+  "requested_week_ids": [
+   "2026-W38",
+   "2026-W37",
+   "2026-W36",
+   "2026-W35"
+  ],
+  "available_weeks": 4,
+  "available_week_ids": [
+   "2026-W38",
+   "2026-W37",
+   "2026-W36",
+   "2026-W35"
+  ],
+  "coverage": "complete"
+ },
+ "signals": [
+  {
+   "signal_id": "governed-context-over-mcp",
+   "title": "治理上下文经MCP分发给任意Agent",
+   "change_type": "early_signal",
+   "confidence": "low",
+   "confidence_reason": "证据集中在Databricks一家内多篇与两位其具名客户，跨厂商独立证据仅Fivetran、dbt各一篇且非同一机制，单一供应商为主，故降为early_signal与low。",
+   "anchor": "Genie One MCP服务器在Unity Gateway正式GA，暴露提问、取结果、增量进度、调整回答等工具，客户GetYourGuide称在Genie One UI、Claude Cowork或IDE获得一致受治理答案；S&P Global用Genie Agents作受管MCP服务器加代理层组合领域包。",
+   "mechanism": "把语义定义、可信关系与权限收敛到Genie Ontology/Unity Catalog，再以标准MCP接口把同一受治理上下文投喂给外部Agent，Agent不直接从原始表推断含义。",
+   "baseline_comparison": "W36有Genie Ontology落地与Genie Agents Agent mode扩展，W35有TOTVS动态MCP工具选择；W38主要是Context Layer与语义视图叙事，到W39才出现MCP服务器GA与外部客户端一致答案的接口级证据。",
+   "evidence_ids": [
+    "ac77d8cab004",
+    "999778ff0658",
+    "0c45b872e223",
+    "f79f63c63e0d"
+   ],
+   "counter_evidence": "客户案例仅GetYourGuide与S&P Global两例且均由Databricks侧叙述，无第三方留存或错误率数据；MCP一致性未给出可复现评测。"
+  },
+  {
+   "signal_id": "semantic-layer-agent-error-cost",
+   "title": "语义层接口被量化为Agent准确率与成本",
+   "change_type": "early_signal",
+   "confidence": "low",
+   "confidence_reason": "同一Fivetran作者一次实验，source_family单一，无第二独立方向复现，只能作早期信号。",
+   "anchor": "Fivetran测试5种接入同一dbt项目的方式：要求Haiku先读dbt文档后join错误从4降到0；Semantic Layer是唯一让Haiku与Opus都0错且每个可信答案成本最低的接口。",
+   "mechanism": "用受治理的语义接口替代Agent直接对明细表生成SQL，从而同题不因模型不同给出自信却不同的答案，并把可信答案成本压到最低。",
+   "baseline_comparison": "过去4周多为语义层必要性的定性论证（W38口径分裂、W36术语表），本周首次出现同题下多模型错误数与成本的可比实验数据。",
+   "evidence_ids": [
+    "bfde167efa74",
+    "f2cae75df487",
+    "951b7e33e52c"
+   ],
+   "counter_evidence": "实验仅4张零售演示表、单一厂商语境，‘成本最低’未给计价口径；ThoughtSpot与dbt文章仍属立场论述而非独立复现。"
+  }
+ ],
+ "title": "治理上下文与语义层的Agent接口验证",
+ "bottom_line": "两个早期信号都指向同一方向：Agent不直接读原始表，而是通过受治理接口取数。但证据同源，先做小范围验证。",
+ "for_you": [
+  {
+   "signal_id": "governed-context-over-mcp",
+   "priority": "安排测试",
+   "insight": "你的数据Agent一旦通过MCP接入治理上下文，语义定义、可信关系与权限就在Ontology和Unity Catalog侧统一收敛，Agent不再逐表推断含义。客户案例称在Genie One UI、Claude Cowork或IDE能拿到一致答案，这正是你要的权限与业务上下文控制点。",
+   "why_it_matters": "这直接决定Agent能否跨客户端复用同一套业务口径，避免同一问题因入口不同给出不同答案；权限与业务上下文若在Agent侧自行拼装，治理成本会随客户端数量放大，与你对交互一致性的要求相冲突。",
+   "action": "选一个已有语义定义的业务域，用MCP方式接入现有Agent，固定同一批问题在UI、IDE、聊天客户端各跑一遍，记录答案差异与权限越界情况；先不追求覆盖全部域。"
+  },
+  {
+   "signal_id": "semantic-layer-agent-error-cost",
+   "priority": "继续观察",
+   "insight": "同一dbt项目上，五种接入方式里语义层是唯一让Haiku与Opus都零错、且每个可信答案成本最低的接口；先读文档再join也能把错误从4降到0。这说明接口选择比模型选择更先决定正确率，评测方法也因此可落在可比错误数与单位成本上。",
+   "why_it_matters": "它给你一个具体评测口径：同题、多模型、记错误数与单位可信答案成本，而不是只看单模型演示；这比模型升级更能解释准确率差异，也影响你如何评估语义层投入产出与看板口径稳定性。",
+   "action": "等第二家独立来源复现前，不必采购决策；可先在自己的零售或演示表上复刻这组对照，固定Haiku与Opus、同一批问题，记录错误数与成本口径，作为内部基线。"
+  }
+ ],
+ "what_not_to_overread": "两个信号都来自单一供应商语境，客户案例由Databricks侧叙述，Fivetran实验只有一次且仅4张零售演示表，没有第三方复现或错误分布。MCP一致性、准确率与成本数字都不能当成已验证的行业结论，只能当作待检验假设。",
+ "uncertainty": "最大缺口是缺少第三方或跨厂商对同一语义层与MCP接口的复现。多数准确率、成本与一致性数字来自供应商自述，Databricks与Fivetran证据高度同源，无法排除发布节奏带来的伪趋势；下周仍需找独立证据确认效果与适用边界。",
+ "next_week_question": "下周能否找到独立来源，复现语义层接口在多模型下的错误数与成本，或验证MCP上下文在外部客户端的一致性？",
+ "evidence_index": [
+  {
+   "event_id": "ac77d8cab004",
+   "title": "Databricks Genie One MCP 正式开放"
+  },
+  {
+   "event_id": "999778ff0658",
+   "title": "Genie One MCP：为任意AI Agent提供业务上下文"
+  },
+  {
+   "event_id": "0c45b872e223",
+   "title": "Databricks发布Unity Catalog Pages治理知识层"
+  },
+  {
+   "event_id": "f79f63c63e0d",
+   "title": "S&P Global 用 Databricks Genie+MCP 实现数据对话"
+  },
+  {
+   "event_id": "bfde167efa74",
+   "title": "实验：dbt 项目对 AI Agent 究竟值多少"
+  },
+  {
+   "event_id": "f2cae75df487",
+   "title": "AI智能体的上下文问题：语义层采购前先解决治理与定义"
+  },
+  {
+   "event_id": "951b7e33e52c",
+   "title": "dbt：在数据仓库中开始上下文工程"
+  }
+ ],
+ "items": [
+  {
+   "event_id": "ac77d8cab004",
+   "title": "Databricks Genie One MCP 正式开放",
+   "summary": "Databricks 宣布 Genie One Model Context Protocol（MCP）服务器已面向所有用户正式可用（GA）。该 MCP 以托管服务形式运行在 Unity Gateway 中，向任意 Agent 提供统一接口，用于检索结构化与非结构化数据、洞察与答案，并基于 Genie Ontology 的受治理业务上下文。它暴露提问、获取查询结果、查看增量进度、调整回答等工具，MCP App 还能在支持的客户端中嵌入可视化与 Genie Ontology 引用。客户 GetYourGuide 表示，该集成让团队在 Genie One UI、Claude Cowork 或 IDE 中获得一致的受治理答案。",
+   "category": "agent",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.databricks.com/blog/genie-one-mcp-now-generally-available",
+   "published": "2026-09-23T00:00:00+08:00",
+   "heat": 29,
+   "importance": 52,
+   "vendors": [
+    "Databricks"
+   ],
+   "topics": [
+    "Data Agent",
+    "语义层"
+   ],
+   "week_id": "2026-W39"
+  },
+  {
+   "event_id": "999778ff0658",
+   "title": "Genie One MCP：为任意AI Agent提供业务上下文",
+   "summary": "Genie One MCP 为任何兼容 MCP 的 AI Agent 提供受治理的业务上下文，可连接 ChatGPT、Claude、Microsoft Copilot 和编码 Agent 等。它把净销售额、活跃促销、准时等指标定义、可信数据关系和权限控制集中到 Genie Ontology 中，让 Agent 不必从原始表或冗长提示中推断含义。文章指出通用 Agent 面临事实分散、语义不一致、权威来源与血缘缺失三类问题，例如回答“最大客户上周净收入为何下降8%”需跨销售、财务、促销、库存和客户数据。通过这些上下文，Agent 能使用经批准的定义、可信关系和权限感知访问来回答业务问题。",
+   "category": "platform",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.databricks.com/blog/genie-one-mcp-give-any-ai-agent-right-business-context",
+   "published": "2026-09-23T00:00:00+08:00",
+   "heat": 28,
+   "importance": 50,
+   "vendors": [
+    "Databricks",
+    "Genie One"
+   ],
+   "topics": [
+    "语义层",
+    "Data Agent"
+   ],
+   "week_id": "2026-W39"
+  },
+  {
+   "event_id": "0c45b872e223",
+   "title": "Databricks发布Unity Catalog Pages治理知识层",
+   "summary": "Databricks 推出 Unity Catalog Pages，作为 Genie Ontology 中由人工策展的治理层，为人和 AI 智能体提供业务概念定义。Genie Ontology 会自动从仪表板、查询、表和管道中提取知识，组织成图谱来指导智能体查找和信任数据。Pages 让数据管家借助 Genie Code 明确定义“已完成行程”“活跃客户”等关键概念的权威含义，并让 Genie 将其作为事实来源。这旨在解决企业术语分散、同一指标多种定义导致智能体自信猜测的问题。",
+   "category": "platform",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.databricks.com/blog/unity-catalog-pages-governed-home-your-business-knowledge-genie-ontology",
+   "published": "2026-09-22T21:57:06+08:00",
+   "heat": 31,
+   "importance": 57,
+   "vendors": [
+    "Databricks"
+   ],
+   "topics": [
+    "语义层",
+    "Data Agent"
+   ],
+   "week_id": "2026-W39"
+  },
+  {
+   "event_id": "f79f63c63e0d",
+   "title": "S&P Global 用 Databricks Genie+MCP 实现数据对话",
+   "summary": "S&P Global Energy 希望让客户通过自然语言访问其跨商品的结构化数据，以更快做出决策。其数据覆盖化学品、原油、成品油、天然气与电力、LNG 等，分布在 Databricks 和多个非 Databricks 来源。团队评估多种方案后，采用 Databricks Genie Agents 作为受管 MCP 服务器，并通过 MCP 代理层组合成领域专用包。业务专家（SME）按数据集组维护聚焦的 Genie Agent，使客户和自有助手能获得可信、受治理的答案。",
+   "category": "agent",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.databricks.com/blog/data-dialogue-how-sp-global-energy-made-its-structured-data-estate-conversational-databricks",
+   "published": "2026-09-26T00:00:00+08:00",
+   "heat": 47,
+   "importance": 68,
+   "vendors": [
+    "Databricks",
+    "S&P Global"
+   ],
+   "topics": [
+    "Data Agent"
+   ],
+   "week_id": "2026-W39"
+  },
+  {
+   "event_id": "bfde167efa74",
+   "title": "实验：dbt 项目对 AI Agent 究竟值多少",
+   "summary": "Fivetran 作者用同 4 张零售演示表向两个 AI Agent 提同一个问题（总营收是多少），Haiku 直接对明细行求和，Opus 先看订单表剔除了已取消订单并注明，两者给出自信却不同的答案。作者因此对比了 5 种接入同一 dbt 项目的方式，发现要求 Haiku 先读 dbt 文档后，其 join 问题的错误答案从 4 个降到 0 个；Semantic Layer 是唯一让两个模型都做到 0 错、且每个可信答案成本最低的接口。结论是对话式分析中，受治理的数据访问方式可能与模型本身同样重要。",
+   "category": "agent",
+   "source": "Fivetran Blog",
+   "source_family": "fivetran",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.fivetran.com/blog/what-a-dbt-project-is-worth-to-an-agent",
+   "published": "2026-09-25T01:38:12+08:00",
+   "heat": 53,
+   "importance": 91,
+   "vendors": [
+    "Fivetran",
+    "dbt Labs",
+    "MotherDuck"
+   ],
+   "topics": [
+    "Data Agent",
+    "语义层"
+   ],
+   "week_id": "2026-W39"
+  },
+  {
+   "event_id": "f2cae75df487",
+   "title": "AI智能体的上下文问题：语义层采购前先解决治理与定义",
+   "summary": "文章指出，多数AI Agent能写SQL，但常基于错误的收入定义、错误团队和错误业务规则，演示中很难发现。语义层市场拥挤，各大分析厂商、数据平台和BI工具都宣称有语义层，但技术可信度取决于采购前的治理与定义决策。作者建议在评估语义层厂商前先确认治理机制，锁定核心指标、KPI和术语定义，并要求厂商在自身技术栈中压力测试核心能力。",
+   "category": "platform",
+   "source": "ThoughtSpot Blog",
+   "source_family": "thoughtspot",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.thoughtspot.com/blog/evaluate-semantic-layer-for-ai",
+   "published": "2026-09-24T01:09:35+08:00",
+   "heat": 29,
+   "importance": 46,
+   "vendors": [
+    "ThoughtSpot"
+   ],
+   "topics": [
+    "语义层",
+    "Data Agent"
+   ],
+   "week_id": "2026-W39"
+  },
+  {
+   "event_id": "951b7e33e52c",
+   "title": "dbt：在数据仓库中开始上下文工程",
+   "summary": "文章提出，分析团队过去为 BI 建模数据，而上下文工程是为 AI Agent 建模数据，起点是语义搜索。AI Agent 正成为最大数据用户，其所需上下文不再局限于结构化表，还包括转录、工单、PDF 和邮件。团队可复用 dbt 的工程模式：转换数据、关联富化、描述字段含义并治理访问权限；栈仍是 Fivetran 入仓、dbt 建模。仓库厂商正加大对非结构化数据的投入，文末还介绍了 dbt_context_engineering 包和一场相关 session。",
+   "category": "platform",
+   "source": "dbt Blog",
+   "source_family": "dbt",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.getdbt.com/blog/context-engineering-in-your-warehouse",
+   "published": "2026-09-24T23:57:00+08:00",
+   "heat": 33,
+   "importance": 48,
+   "vendors": [
+    "dbt Labs",
+    "Fivetran"
+   ],
+   "topics": [
+    "Data Agent",
+    "语义层"
+   ],
+   "week_id": "2026-W39"
+  }
+ ],
+ "candidate_count": 49
+}

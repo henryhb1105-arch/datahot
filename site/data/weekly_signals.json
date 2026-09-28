@@ -2,186 +2,311 @@
  "schema_version": 1,
  "kind": "weekly_signals",
  "status": "ready",
- "week_id": "2026-W38",
- "period_start": "2026-09-14",
- "period_end": "2026-09-20",
- "generated_at": "2026-09-22T00:00:16.600382+08:00",
+ "week_id": "2026-W39",
+ "period_start": "2026-09-21",
+ "period_end": "2026-09-27",
+ "generated_at": "2026-09-28T13:27:54.776653+08:00",
  "ai_assisted": true,
- "content_fingerprint": "3338a10cddb4a2a816df9b9b1245534b0d261c2fff2af6cc654e62f2fd5e851f",
- "input_hash": "88861f6a4baab948bc0512f35fb1dc386f064bdbc4c73cc489ca7a83f7e0efc6",
- "baseline_hash": "695bf6fed07ef98a8f93de2323045b97e332d7540785f013c03ad366a3f618e5",
+ "content_fingerprint": "c6345f91a2fb4ea0ff49667619e2004709cf1653cb95bfdbfb786c1ede7132df",
+ "input_hash": "3745253e24f82a47afe0a533f7860fbdc8bcf8212b5df6c01f4cc1bb494cfb22",
+ "baseline_hash": "9ec4114647798f3fa6d614792f04f7d157c89dc9eeb5dbc0bd38410848b99edb",
  "prompt_version": "weekly-signals-v4",
  "model": "deepseek-v4-flash",
  "baseline": {
   "requested_weeks": 4,
   "requested_week_ids": [
+   "2026-W38",
    "2026-W37",
    "2026-W36",
-   "2026-W35",
-   "2026-W34"
+   "2026-W35"
   ],
   "available_weeks": 4,
   "available_week_ids": [
+   "2026-W38",
    "2026-W37",
    "2026-W36",
-   "2026-W35",
-   "2026-W34"
+   "2026-W35"
   ],
   "coverage": "complete"
  },
- "weekly_judgement": "本周相较过去4周，Data Agent竞争重心从“能不能答对”转向“记忆、上下文与上岗门槛”。Spotter Memory正式GA、Fivetran Context Layer预览、Snowflake技能目录共享，都指向让Agent积累并治理业务定义；同时BIRD对比与“30分钟上岗”讨论说明准确率与冷启动仍是未解难题。",
+ "weekly_judgement": "本周保留2个通过证据校验的信号：治理上下文经MCP分发给任意Agent；语义层接口被量化为Agent准确率与成本。其余候选未通过校验，不据此推断行业趋势。",
  "signals": [
   {
-   "signal_id": "agent-memory-shared-context",
-   "title": "Data Agent记忆与共享上下文层落地",
-   "change_type": "strengthening",
-   "confidence": "medium",
-   "confidence_reason": "Spotter Memory GA与Fivetran Context Layer预览为不同供应商、不同代码库的两条独立发布，方向一致但均为vendor_claim，缺第三方验证。",
-   "anchor": "ThoughtSpot Spotter Memory正式GA，保留rules/recipes并按个人、数据模型、组织三级治理；Fivetran Context Layer进入Limited Public Preview，向任意Agent提供受治理上下文；Snowflake CoCo技能目录预览，把SKILL.md变为账户级带版本对象并可认证。",
-   "mechanism": "三者都在Agent之外建立可持久、可治理、可复用的业务知识层：把指标定义、查询路径或技能从单次会话中抽离，按权限和范围共享给多个Agent，从而减少重复配置与token消耗。",
-   "baseline_comparison": "W37已有Snowflake语义视图导入ThoughtSpot、Fivetran dbt Wizard等上下文准备动作，但均为一次性建模或单一项目上下文；本周首次出现Agent记忆正式GA、跨Agent托管上下文层和可认证技能目录三类持久化机制。",
-   "evidence_ids": [
-    "1df11e6f8515",
-    "f612fb56e8cb",
-    "4fddad85a065"
-   ],
-   "counter_evidence": "三条证据全部来自供应商自述，无客户独立实测；Fivetran仍为Limited Public Preview，Spotter Memory的纠正与权限效果无量化数据。"
-  },
-  {
-   "signal_id": "agent-accuracy-benchmark-competition",
-   "title": "数据分析Agent准确率评测公开化",
-   "change_type": "continuing",
-   "confidence": "medium",
-   "confidence_reason": "W36已有ClickHouse和Amplitude两套独立评测框架，本周新增Spotter对比BIRD，跨周多供应商方向一致，但全部为厂商自评。",
-   "anchor": "Spotter在BIRD 1,533题上总体执行准确率82.8%，高于前沿LLM 78.4%与编码agent 72.5%，挑战级70.6%；仅换更新模型、harness不变即提升3.4个百分点；文中引用万人员工企业约65万次数据问题/年，1个准确率点对应6,500个答案对错。",
-   "mechanism": "厂商通过各自任务集或公开基准评估分析Agent，并区分模型与完整执行流程对准确率的贡献。这些评测的任务集和评分口径不同，目前可比较评测方法，不能把跨厂商的数字直接横向排序。",
-   "baseline_comparison": "W36 ClickHouse用201个生产问题评28个模型，Amplitude用四类分析任务框架给Global Agent 76%；本周Spotter把评测拉回BIRD公开基准并强调准确率斜率，评测对象从模型选择扩展到完整引擎对比。",
-   "evidence_ids": [
-    "40c2caf96019",
-    "d59935fed7ef",
-    "bd501c61d0f5"
-   ],
-   "counter_evidence": "本周新增证据仅为ThoughtSpot的厂商自评；历史两项评测使用不同任务集和评分口径，现有材料不能证明跨厂商结果可以直接比较，也不足以确认第三方复现。"
-  },
-  {
-   "signal_id": "agent-onboarding-cold-start",
-   "title": "Data Agent冷启动与上岗门槛成焦点",
+   "signal_id": "governed-context-over-mcp",
+   "title": "治理上下文经MCP分发给任意Agent",
    "change_type": "early_signal",
    "confidence": "low",
-   "confidence_reason": "仅Aloudata一篇厂商观点提出30分钟上岗，无第二个独立案例或量化结果支撑，属单一供应商主张。",
-   "anchor": "文章指出Data Agent上线后常需IT、数据团队和厂商花三五个月配置权限、元数据、指标口径与语义，业务才能提问；提出让Agent在部门岗位与数据权限就绪后自主冷启动，探查核心资产、字段、报表和历史SQL，并生成练习题校准。",
-   "mechanism": "把Agent交付的瓶颈从模型准确率转移到最后一公里配置：通过自主探查企业已有资产并自造练习题，压缩传统语义建模与权限配置周期。",
-   "baseline_comparison": "W34-W37关于上下文层和语义层的讨论多聚焦建模质量，本周首次把上线配置时长本身作为产品指标提出。",
+   "confidence_reason": "证据集中在Databricks一家内多篇与两位其具名客户，跨厂商独立证据仅Fivetran、dbt各一篇且非同一机制，单一供应商为主，故降为early_signal与low。",
+   "anchor": "Genie One MCP服务器在Unity Gateway正式GA，暴露提问、取结果、增量进度、调整回答等工具，客户GetYourGuide称在Genie One UI、Claude Cowork或IDE获得一致受治理答案；S&P Global用Genie Agents作受管MCP服务器加代理层组合领域包。",
+   "mechanism": "把语义定义、可信关系与权限收敛到Genie Ontology/Unity Catalog，再以标准MCP接口把同一受治理上下文投喂给外部Agent，Agent不直接从原始表推断含义。",
+   "baseline_comparison": "W36有Genie Ontology落地与Genie Agents Agent mode扩展，W35有TOTVS动态MCP工具选择；W38主要是Context Layer与语义视图叙事，到W39才出现MCP服务器GA与外部客户端一致答案的接口级证据。",
    "evidence_ids": [
-    "537b81bfdf56"
+    "ac77d8cab004",
+    "999778ff0658",
+    "0c45b872e223",
+    "f79f63c63e0d"
    ],
-   "counter_evidence": "仅单一供应商观点，未给出任何客户实际配置时长或成功率数据；同周Spotter、Snowflake等仍以人工治理语义模型为前提。"
+   "counter_evidence": "客户案例仅GetYourGuide与S&P Global两例且均由Databricks侧叙述，无第三方留存或错误率数据；MCP一致性未给出可复现评测。"
+  },
+  {
+   "signal_id": "semantic-layer-agent-error-cost",
+   "title": "语义层接口被量化为Agent准确率与成本",
+   "change_type": "early_signal",
+   "confidence": "low",
+   "confidence_reason": "同一Fivetran作者一次实验，source_family单一，无第二独立方向复现，只能作早期信号。",
+   "anchor": "Fivetran测试5种接入同一dbt项目的方式：要求Haiku先读dbt文档后join错误从4降到0；Semantic Layer是唯一让Haiku与Opus都0错且每个可信答案成本最低的接口。",
+   "mechanism": "用受治理的语义接口替代Agent直接对明细表生成SQL，从而同题不因模型不同给出自信却不同的答案，并把可信答案成本压到最低。",
+   "baseline_comparison": "过去4周多为语义层必要性的定性论证（W38口径分裂、W36术语表），本周首次出现同题下多模型错误数与成本的可比实验数据。",
+   "evidence_ids": [
+    "bfde167efa74",
+    "f2cae75df487",
+    "951b7e33e52c"
+   ],
+   "counter_evidence": "实验仅4张零售演示表、单一厂商语境，‘成本最低’未给计价口径；ThoughtSpot与dbt文章仍属立场论述而非独立复现。"
   }
  ],
  "signals_not_promoted": [
   {
-   "label": "Data Agent成本与配额治理",
-   "reason": "Snowflake AI Credits与用户级配额GA分属定价说明和版本说明，CoCo技能目录是能力发布而非成本机制，三者未围绕同一成本控制机制，且配额事件在W36、W37已重复出现，本周无新增独立证据。",
+   "label": "BI验证查询与dbt CI接入Agent",
+   "reason": "候选未通过证据关联、来源独立性或事实锚点校验，暂不提升为信号。",
    "evidence_ids": [
-    "7ac392ea710c",
-    "c23dcf4cbf7b"
+    "7b6deb18642c"
    ]
   },
   {
-   "label": "语义层指标口径分裂",
-   "reason": "本周三篇语义层文章均为观点阐述，缺少新发布或客户落地数据，且与W37已有语义视图导入、术语表治理重复，未形成新增机制。",
+   "label": "DAB基准突破90%",
+   "reason": "OceanBase单一供应商自报，DAB由Hasura参与推出，无第三方复跑或错误分布；与W38 Spotter BIRD、W36 ClickHouse基准属不同基准，无法合并成同一机制趋势。",
    "evidence_ids": [
-    "d7b6cc4a3303",
-    "1040324d5b86",
-    "9f8f09e080f9"
+    "d204ffe24b0c",
+    "40c2caf96019",
+    "d59935fed7ef"
    ]
   },
   {
-   "label": "Databricks Genie客户案例",
-   "reason": "营销团队用量提升3倍与能源盗电检测闭环均来自Databricks单一供应商，且分别属于内部使用和风险行业应用，机制不同，不能合并为同一信号。",
+   "label": "SQL内置AI函数下推",
+   "reason": "仅ClickHouse W37一条，本周无新增事件或独立复现，且更接近数据库能力而非数据Agent设计变化。",
    "evidence_ids": [
-    "0afd2b5824d2",
-    "a1ebe51c3113"
+    "8909b0c2878f"
    ]
   },
   {
-   "label": "dbt v2与ClickHouse适配器",
-   "reason": "dbt v2 Rust引擎GA与ClickHouse v2适配器beta主要改变转换引擎性能与集成，未直接改变数据Agent、语义层或AI看板的产品设计。",
+   "label": "非结构化数据进入Agent上下文",
+   "reason": "AWS SageMaker Catalog、dbt上下文工程、ClickHouse Functions均提非结构化，但机制分别指目录检索、建模方法与SQL函数，缺少同一具体机制的独立证据链。",
    "evidence_ids": [
-    "ba2c40416e8f",
-    "1c8fc1d29479",
-    "39972c74aa29"
+    "9013c2752aa4",
+    "951b7e33e52c",
+    "8909b0c2878f"
    ]
   }
  ],
- "uncertainty": "所有新信号证据均来自供应商自述或厂商博客，缺少客户侧独立实测；Fivetran Context Layer仍为Limited Public Preview，Spotter Memory与BIRD评测均无第三方复现，Agent记忆的实际准确率增益与治理成本无法验证。",
- "next_week_question": "Agent记忆与共享上下文层能否给出客户侧准确率或配置时长改善的量化数据，而非仅停留在GA与预览发布？",
+ "uncertainty": "最大缺口是缺少第三方或跨厂商对同一语义层/MCP接口的复现：本周准确率、成本与一致性数字几乎全部来自供应商自述，且Databricks与Fivetran证据高度同源，无法排除发布节奏导致的伪趋势。",
+ "next_week_question": "下周能否找到独立证据，检验这些信号的实际效果与适用边界：治理上下文经MCP分发给任意Agent；语义层接口被量化为Agent准确率与成本？",
  "evidence_index": [
   {
-   "event_id": "1df11e6f8515",
-   "title": "ThoughtSpot Spotter Memory 正式发布：AI分析助手不再遗忘",
-   "summary": "ThoughtSpot 宣布 Spotter Memory 正式可用，Spotter 会保留学习到的业务定义与查询路径，而非每次会话从零开始。记忆分为两类：rules 定义指标在业务中的含义，recipes 记录高频问题的回答方式。记忆来源包括用户对话、团队信任的 Liveboard 及已连接应用，并可在 Show work 中查看、在对话中纠正，按数据模型范围与既有权限治理。Spotter 支持个人、数据模型和组织三个层级的设置。",
+   "event_id": "ac77d8cab004",
+   "title": "Databricks Genie One MCP 正式开放",
+   "summary": "Databricks 宣布 Genie One Model Context Protocol（MCP）服务器已面向所有用户正式可用（GA）。该 MCP 以托管服务形式运行在 Unity Gateway 中，向任意 Agent 提供统一接口，用于检索结构化与非结构化数据、洞察与答案，并基于 Genie Ontology 的受治理业务上下文。它暴露提问、获取查询结果、查看增量进度、调整回答等工具，MCP App 还能在支持的客户端中嵌入可视化与 Genie Ontology 引用。客户 GetYourGuide 表示，该集成让团队在 Genie One UI、Claude Cowork 或 IDE 中获得一致的受治理答案。",
    "category": "agent",
-   "source": "ThoughtSpot Blog",
-   "source_family": "thoughtspot",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
    "source_type": "vendor_claim",
    "source_count": 1,
-   "source_url": "https://www.thoughtspot.com/blog/spotter-memory-live",
-   "published": "2026-09-18T23:09:23+08:00",
-   "heat": 50,
-   "importance": 75,
+   "source_url": "https://www.databricks.com/blog/genie-one-mcp-now-generally-available",
+   "published": "2026-09-23T00:00:00+08:00",
+   "heat": 29,
+   "importance": 52,
    "vendors": [
-    "ThoughtSpot"
-   ],
-   "topics": [
-    "ChatBI",
-    "语义层"
-   ],
-   "week_id": "2026-W38"
-  },
-  {
-   "event_id": "f612fb56e8cb",
-   "title": "Fivetran 发布 Agent 上下文层 Context Layer",
-   "summary": "Fivetran 发布 Fivetran Context Layer，目前处于 Limited Public Preview，这是一个托管服务，用于帮助企业构建受治理的上下文层。它可让团队在自有数据仓库或 Fivetran Managed Data Lake Service 中构建和维护上下文，并向任意 Agent 提供所需上下文。Fivetran 称该服务运行在其已迁移的数据和 dbt 已建模的元数据之上，目标是让 Agent 输出更可信，同时降低 token 成本。文中提到仅 22% 组织成功在多个业务部门规模化 AI，72% 企业仍缺乏 Agent 所需的统一、可访问数据。",
-   "category": "platform",
-   "source": "Fivetran Blog",
-   "source_family": "fivetran",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://www.fivetran.com/blog/announcing-fivetran-context-layer",
-   "published": "2026-09-17T01:00:52+08:00",
-   "heat": 45,
-   "importance": 82,
-   "vendors": [
-    "Fivetran",
-    "dbt"
+    "Databricks"
    ],
    "topics": [
     "Data Agent",
     "语义层"
    ],
-   "week_id": "2026-W38"
+   "week_id": "2026-W39"
   },
   {
-   "event_id": "4fddad85a065",
-   "title": "Snowflake CoCo 推出技能与插件目录，实现技能共享与治理",
-   "summary": "Snowflake 为旗下智能体 AI 助手 CoCo（原 Cortex Code）推出技能与插件共享预览功能，将本地 SKILL.md 技能转化为账户级、可治理、带版本的对象，底层由 Cortex Extension SQL 构造支撑。用户可通过链接共享技能、浏览他人共享的技能目录，管理员还能对优质技能进行认证并打上信任徽章。文章以实际 SQL 代码分步讲解了技能的编写、共享、发现与认证全生命周期。技能是无需写代码的 Markdown 操作手册，可让智能体执行成本报告对账、高管指标周报等可重复任务。",
-   "category": "agent",
-   "source": "Snowflake Engineering（Medium）",
-   "source_family": "snowflake",
+   "event_id": "999778ff0658",
+   "title": "Genie One MCP：为任意AI Agent提供业务上下文",
+   "summary": "Genie One MCP 为任何兼容 MCP 的 AI Agent 提供受治理的业务上下文，可连接 ChatGPT、Claude、Microsoft Copilot 和编码 Agent 等。它把净销售额、活跃促销、准时等指标定义、可信数据关系和权限控制集中到 Genie Ontology 中，让 Agent 不必从原始表或冗长提示中推断含义。文章指出通用 Agent 面临事实分散、语义不一致、权威来源与血缘缺失三类问题，例如回答“最大客户上周净收入为何下降8%”需跨销售、财务、促销、库存和客户数据。通过这些上下文，Agent 能使用经批准的定义、可信关系和权限感知访问来回答业务问题。",
+   "category": "platform",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
    "source_type": "vendor_claim",
    "source_count": 1,
-   "source_url": "https://medium.com/snowflake/sharing-and-governing-skills-in-snowflake-coco-f45a2d57462d?source=rss----34b6daafc07---4",
-   "published": "2026-09-15T01:04:44+08:00",
-   "heat": 39,
-   "importance": 78,
+   "source_url": "https://www.databricks.com/blog/genie-one-mcp-give-any-ai-agent-right-business-context",
+   "published": "2026-09-23T00:00:00+08:00",
+   "heat": 28,
+   "importance": 50,
    "vendors": [
-    "Snowflake"
+    "Databricks",
+    "Genie One"
+   ],
+   "topics": [
+    "语义层",
+    "Data Agent"
+   ],
+   "week_id": "2026-W39"
+  },
+  {
+   "event_id": "0c45b872e223",
+   "title": "Databricks发布Unity Catalog Pages治理知识层",
+   "summary": "Databricks 推出 Unity Catalog Pages，作为 Genie Ontology 中由人工策展的治理层，为人和 AI 智能体提供业务概念定义。Genie Ontology 会自动从仪表板、查询、表和管道中提取知识，组织成图谱来指导智能体查找和信任数据。Pages 让数据管家借助 Genie Code 明确定义“已完成行程”“活跃客户”等关键概念的权威含义，并让 Genie 将其作为事实来源。这旨在解决企业术语分散、同一指标多种定义导致智能体自信猜测的问题。",
+   "category": "platform",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.databricks.com/blog/unity-catalog-pages-governed-home-your-business-knowledge-genie-ontology",
+   "published": "2026-09-22T21:57:06+08:00",
+   "heat": 31,
+   "importance": 57,
+   "vendors": [
+    "Databricks"
+   ],
+   "topics": [
+    "语义层",
+    "Data Agent"
+   ],
+   "week_id": "2026-W39"
+  },
+  {
+   "event_id": "f79f63c63e0d",
+   "title": "S&P Global 用 Databricks Genie+MCP 实现数据对话",
+   "summary": "S&P Global Energy 希望让客户通过自然语言访问其跨商品的结构化数据，以更快做出决策。其数据覆盖化学品、原油、成品油、天然气与电力、LNG 等，分布在 Databricks 和多个非 Databricks 来源。团队评估多种方案后，采用 Databricks Genie Agents 作为受管 MCP 服务器，并通过 MCP 代理层组合成领域专用包。业务专家（SME）按数据集组维护聚焦的 Genie Agent，使客户和自有助手能获得可信、受治理的答案。",
+   "category": "agent",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.databricks.com/blog/data-dialogue-how-sp-global-energy-made-its-structured-data-estate-conversational-databricks",
+   "published": "2026-09-26T00:00:00+08:00",
+   "heat": 47,
+   "importance": 68,
+   "vendors": [
+    "Databricks",
+    "S&P Global"
    ],
    "topics": [
     "Data Agent"
    ],
-   "week_id": "2026-W38"
+   "week_id": "2026-W39"
+  },
+  {
+   "event_id": "bfde167efa74",
+   "title": "实验：dbt 项目对 AI Agent 究竟值多少",
+   "summary": "Fivetran 作者用同 4 张零售演示表向两个 AI Agent 提同一个问题（总营收是多少），Haiku 直接对明细行求和，Opus 先看订单表剔除了已取消订单并注明，两者给出自信却不同的答案。作者因此对比了 5 种接入同一 dbt 项目的方式，发现要求 Haiku 先读 dbt 文档后，其 join 问题的错误答案从 4 个降到 0 个；Semantic Layer 是唯一让两个模型都做到 0 错、且每个可信答案成本最低的接口。结论是对话式分析中，受治理的数据访问方式可能与模型本身同样重要。",
+   "category": "agent",
+   "source": "Fivetran Blog",
+   "source_family": "fivetran",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.fivetran.com/blog/what-a-dbt-project-is-worth-to-an-agent",
+   "published": "2026-09-25T01:38:12+08:00",
+   "heat": 53,
+   "importance": 91,
+   "vendors": [
+    "Fivetran",
+    "dbt Labs",
+    "MotherDuck"
+   ],
+   "topics": [
+    "Data Agent",
+    "语义层"
+   ],
+   "week_id": "2026-W39"
+  },
+  {
+   "event_id": "f2cae75df487",
+   "title": "AI智能体的上下文问题：语义层采购前先解决治理与定义",
+   "summary": "文章指出，多数AI Agent能写SQL，但常基于错误的收入定义、错误团队和错误业务规则，演示中很难发现。语义层市场拥挤，各大分析厂商、数据平台和BI工具都宣称有语义层，但技术可信度取决于采购前的治理与定义决策。作者建议在评估语义层厂商前先确认治理机制，锁定核心指标、KPI和术语定义，并要求厂商在自身技术栈中压力测试核心能力。",
+   "category": "platform",
+   "source": "ThoughtSpot Blog",
+   "source_family": "thoughtspot",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.thoughtspot.com/blog/evaluate-semantic-layer-for-ai",
+   "published": "2026-09-24T01:09:35+08:00",
+   "heat": 29,
+   "importance": 46,
+   "vendors": [
+    "ThoughtSpot"
+   ],
+   "topics": [
+    "语义层",
+    "Data Agent"
+   ],
+   "week_id": "2026-W39"
+  },
+  {
+   "event_id": "951b7e33e52c",
+   "title": "dbt：在数据仓库中开始上下文工程",
+   "summary": "文章提出，分析团队过去为 BI 建模数据，而上下文工程是为 AI Agent 建模数据，起点是语义搜索。AI Agent 正成为最大数据用户，其所需上下文不再局限于结构化表，还包括转录、工单、PDF 和邮件。团队可复用 dbt 的工程模式：转换数据、关联富化、描述字段含义并治理访问权限；栈仍是 Fivetran 入仓、dbt 建模。仓库厂商正加大对非结构化数据的投入，文末还介绍了 dbt_context_engineering 包和一场相关 session。",
+   "category": "platform",
+   "source": "dbt Blog",
+   "source_family": "dbt",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.getdbt.com/blog/context-engineering-in-your-warehouse",
+   "published": "2026-09-24T23:57:00+08:00",
+   "heat": 33,
+   "importance": 48,
+   "vendors": [
+    "dbt Labs",
+    "Fivetran"
+   ],
+   "topics": [
+    "Data Agent",
+    "语义层"
+   ],
+   "week_id": "2026-W39"
+  },
+  {
+   "event_id": "7b6deb18642c",
+   "title": "Looker 26.14 更新：验证查询 GA，dbt CI 集成与 Dashboard Agent 预览",
+   "summary": "Looker 宣布从 2026年8月24日至26日，面向运行 Looker 26.14 的实例自动启用多项功能。其中，Conversational Analytics 的 verified queries（golden queries）正式可用，并支持在 Looker (Google Cloud core) 中定义。新增的 CI 集成可在 dbt Cloud CI 作业完成后自动运行 CI 套件，以在 dbt 变更部署前检查 Looker Explores 是否会因模型变更产生 SQL 错误。此外，预览功能包括在 LookML 仪表板上定义并对话 data agents，以及从 LookML Explores 派生数据库内分析模型。",
+   "category": "bi",
+   "source": "Google Looker Release Notes",
+   "source_family": "googlelookerreleasenotes",
+   "source_type": "other",
+   "source_count": 1,
+   "source_url": "https://docs.cloud.google.com/looker/docs/release-notes#August_28_2026",
+   "published": "2026-08-28T15:00:00+08:00",
+   "heat": 50,
+   "importance": 80,
+   "vendors": [
+    "Google",
+    "Looker",
+    "dbt"
+   ],
+   "topics": [
+    "BI变局"
+   ],
+   "week_id": "2026-W35"
+  },
+  {
+   "event_id": "d204ffe24b0c",
+   "title": "OceanBase Data Agent登顶DAB，准确率90.62%",
+   "summary": "OceanBase 团队提交的 Data Agent 方案在 Data Agent Benchmark（DAB）以 90.62% 准确率位列第一，成为首个突破 90% 的参评方案。该方案基于国产大模型 GLM-5.2 构建，超过多项基于 GPT、Claude Opus、Claude Fable 的方案，内部代号 Scout，能力将融入 OceanBase DataPilot。DAB 由 UC Berkeley EPIC Data Lab 与 Hasura PromptQL 推出，覆盖多领域和多数据库，评估 Data Agent 从理解数据到拿到答案的完整能力。OceanBase 称这验证了数据库向 AI 数据平台演进的方向。",
+   "category": "agent",
+   "source": "雷锋网",
+   "source_family": "雷锋网",
+   "source_type": "other",
+   "source_count": 3,
+   "source_url": "https://www.leiphone.com/category/industrynews/ug9HpmoWVwNMZZTH.html",
+   "published": "2026-09-21T15:20:00+08:00",
+   "heat": 44,
+   "importance": 73,
+   "vendors": [
+    "OceanBase",
+    "Hasura",
+    "MongoDB",
+    "DuckDB"
+   ],
+   "topics": [
+    "Data Agent",
+    "平台AI化"
+   ],
+   "week_id": "2026-W39"
   },
   {
    "event_id": "40c2caf96019",
@@ -229,267 +354,50 @@
    "week_id": "2026-W36"
   },
   {
-   "event_id": "bd501c61d0f5",
-   "title": "Amplitude发布AI分析智能体评测框架，四类任务得分76%",
-   "summary": "Amplitude 联合其 AI 产品经理发布面向企业分析场景的 AI 智能体评测框架，将能力拆分为描述性、诊断性、预测性和规范性四类分析任务。其 Global Agent 综合得分 76%，相比六个月提升 7 倍以上，其中描述性 80%、诊断性 76%、预测性 63%、规范性 50%。文章还以仓库级 Text-to-SQL 最佳性能 9% 作为基线，展示智能体在多查询生产工作流上的优势。该框架为行业提供了可复用的评估语言，帮助团队区分营销话术与真实能力。",
-   "category": "agent",
-   "source": "Amplitude Blog",
-   "source_family": "amplitude",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://amplitude.com/blog/ai-analytics-agents-task-based-evaluation",
-   "published": "2026-09-01T07:50:56+08:00",
-   "heat": 42,
-   "importance": 83,
-   "vendors": [
-    "Amplitude"
-   ],
-   "topics": [
-    "Data Agent"
-   ],
-   "week_id": "2026-W36"
-  },
-  {
-   "event_id": "537b81bfdf56",
-   "title": "Data Agent 上线了，为什么还不能上岗",
-   "summary": "文章指出，客户对 Data Agent 的关注点正从面试式准确率验证转向真实业务试用。但当前 Data Agent 上线后，往往需 IT、数据团队和厂商先花三五个月做权限、元数据、指标口径、语义与知识配置，业务部门才能提问。作者提出“30 分钟上岗”，让 Agent 在部门岗位和数据权限就绪后自主冷启动，探查核心资产、字段、报表和历史 SQL，并生成练习题校准。建议企业少准备面试题，多设计真实试岗，并提供历史需求、SQL、报表和分析文档。",
-   "category": "agent",
-   "source": "Aloudata 动态",
-   "source_family": "aloudata",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://aloudata.com/news/data-agent-deployed-but-not-ready-for-work",
-   "published": "2026-09-15T14:47:26+08:00",
-   "heat": 32,
-   "importance": 60,
-   "vendors": [
-    "Aloudata"
-   ],
-   "topics": [
-    "Data Agent"
-   ],
-   "week_id": "2026-W38"
-  },
-  {
-   "event_id": "7ac392ea710c",
-   "title": "Snowflake AI 服务成本解析与治理指南",
-   "summary": "本文系统梳理 Snowflake 上 Cortex AI 服务的成本构成与治理方式，涵盖 Cortex AI Functions、Cortex Agents、Cortex Search、CoCo 等组件的定价、计量与监控。Snowflake 引入独立于 Platform Credits 的 AI Credits 计费单位，所有版本客户按同一费率付费，跨区域路由方式可影响约 9% 的成本。文章说明 AI_COMPLETE() 这类调用会同时产生 AI Credits（大模型 token 处理）与 Platform Credits（仓库计算）两项费用，并给出用量视图、监控查询与支出护栏的实践方法。",
-   "category": "platform",
-   "source": "Snowflake Engineering（Medium）",
-   "source_family": "snowflake",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://medium.com/snowflake/understanding-and-managing-ai-service-costs-on-snowflake-a18db691909d?source=rss----34b6daafc07---4",
-   "published": "2026-09-18T01:35:49+08:00",
-   "heat": 49,
-   "importance": 83,
-   "vendors": [
-    "Snowflake"
-   ],
-   "topics": [
-    "平台AI化"
-   ],
-   "week_id": "2026-W38"
-  },
-  {
-   "event_id": "c23dcf4cbf7b",
-   "title": "Snowflake发布成本异常监控器预览",
-   "summary": "Snowflake 发布成本异常监控器（Anomaly Monitors）公开预览。该功能允许用户使用对象标签和服务类型自定义监控范围，如业务部门、成本中心或项目，并按天归因消耗、运行检测算法，支持邮件通知。每个账户最多可创建20个监控器，分别跟踪 credits 或 AI credits。可通过 Snowsight 或 SQL（ANOMALY_INSIGHTS 类）操作。",
-   "category": "platform",
-   "source": "Snowflake Release Notes",
-   "source_family": "snowflakereleasenotes",
-   "source_type": "other",
-   "source_count": 1,
-   "source_url": "https://docs.snowflake.com/en/release-notes/2026/10_29",
-   "published": "2026-08-23T10:00:46.953231+08:00",
-   "heat": 59,
-   "importance": 70,
-   "vendors": [
-    "Snowflake"
-   ],
-   "topics": [],
-   "week_id": "2026-W34"
-  },
-  {
-   "event_id": "d7b6cc4a3303",
-   "title": "一致性星型模型：多事实表如何在语义视图中共享维度而不产生歧义",
-   "summary": "这是一组13篇系列文章的第1篇，主题是语义视图中的一致性星型模型。文中举例说明：两个团队为同一季度复盘拉取“按地区统计的收入”，数字对不上却都没写错查询，原因是各自查询了记录交易发生的系统与记录回款的系统，两者都叫 REVENUE、连接同样的客户与日历表，但衡量的是根本不同的业务流程。作者认为问题在于模式本身对指标含义保持沉默，语义视图通过为每个事实表注册各自的命名指标（如 total_principal、total_repaid、total_balance）并限定其关系范围来解决，避免直接写 SQL 或 AI 生成 SQL 时护栏失效。",
-   "category": "platform",
-   "source": "Snowflake Engineering（Medium）",
-   "source_family": "snowflake",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://medium.com/snowflake/conformed-star-schema-in-semantic-views-how-multi-fact-models-share-dimensions-without-ambiguity-cd2f99e81bfb?source=rss----34b6daafc07---4",
-   "published": "2026-09-14T22:01:07+08:00",
-   "heat": 36,
-   "importance": 71,
-   "vendors": [
-    "Snowflake"
-   ],
-   "topics": [
-    "语义层",
-    "ChatBI"
-   ],
-   "week_id": "2026-W38"
-  },
-  {
-   "event_id": "1040324d5b86",
-   "title": "把 Snowflake 指标导入 ThoughtSpot，避免 AI 与看板各算一套",
-   "summary": "原生导入 Semantic Views 的指标、维度与关系，审阅后保存为 ThoughtSpot Model，供 Spotter 和看板使用；另有开源 skills 路径做双向转换。",
-   "category": "platform",
-   "source": "ThoughtSpot",
-   "source_family": "thoughtspot",
-   "source_type": "other",
-   "source_count": 2,
-   "source_url": "https://www.thoughtspot.com/blog/snowflake-semantic-views-thoughtspot-one-ai-context-layer",
-   "published": "2026-09-12T13:30:00+08:00",
-   "heat": 60,
-   "importance": 80,
-   "vendors": [
-    "ThoughtSpot"
-   ],
-   "topics": [
-    "语义层"
-   ],
-   "week_id": "2026-W37"
-  },
-  {
-   "event_id": "9f8f09e080f9",
-   "title": "什么是劳动力上下文？AI与员工数据之间缺失的一层",
-   "summary": "文章用 Google Maps 从经纬度到路线指引的类比，说明原始员工数据虽准确却不足以让 AI 给出可行动答案。S&P Global 451 Research 的调查显示，生产级生成式 AI 的四大限制是数据隐私与安全、准确性与回答质量、部署成本、与现有系统集成。员工数据动态变化，向 LLM 询问“当前 headcount”会立刻涉及计算口径、统计时点、是否含承包商以及查看权限。文章据此提出 workforce context（劳动力上下文），强调 AI 需要理解含义、时效和权限，才能可信回答人员数据问题。",
-   "category": "platform",
-   "source": "Visier Blog",
-   "source_family": "visier",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://www.visier.com/blog/what-is-workforce-context/",
-   "published": "2026-09-15T05:53:14.713318+08:00",
-   "heat": 30,
-   "importance": 56,
-   "vendors": [
-    "Visier"
-   ],
-   "topics": [
-    "语义层",
-    "组织人才"
-   ],
-   "week_id": "2026-W38"
-  },
-  {
-   "event_id": "0afd2b5824d2",
-   "title": "Databricks营销团队如何用Genie让数据使用量提升3倍",
-   "summary": "Databricks营销团队曾面临数据分散、看板陈旧或不一致、可信答案获取慢等问题。团队在受治理的湖仓上统一营销数据，并基于Genie Agents构建内部助手Marge，让营销人员用自然语言获取受治理答案。结果显示，营销数据使用频率提升3倍，85%以上营销组织使用Marge，季度使用量增长50%，每月处理800+问题、累计回答5000+。标记错误响应下降25%，并在不增加分析人力的前提下扩大洞察访问；其做法是把对话式分析作为持续产品和运营模式。",
-   "category": "agent",
-   "source": "Databricks Blog",
-   "source_family": "databricks",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://www.databricks.com/blog/databricks-marketers-use-data-3x-genie-ai-analytics-assistant",
-   "published": "2026-09-15T08:36:33+08:00",
-   "heat": 42,
-   "importance": 82,
-   "vendors": [
-    "Databricks"
-   ],
-   "topics": [
-    "Data Agent",
-    "ChatBI"
-   ],
-   "week_id": "2026-W38"
-  },
-  {
-   "event_id": "a1ebe51c3113",
-   "title": "能源团队用Genie将盗电检测转为受治理行动",
-   "summary": "Databricks 官方博客介绍能源行业如何将燃气/电力盗窃检测转化为受治理的行动闭环。文章指出英国能源消费者每年因盗窃损失超过 14 亿英镑，目标案件中仅 40% 被侦测。团队已有 ML 模型标记可疑账户，但真正挑战是打通检测、调查、损失回收和报告流程。方案在 Databricks App 中运行，并用 Lakebase 保存实时案件状态，通过 Genie 和 AI 业务流程把洞察推进为行动并反馈模型。",
-   "category": "platform",
-   "source": "Databricks Blog",
-   "source_family": "databricks",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://www.databricks.com/blog/how-energy-teams-turn-theft-detection-governed-action-genie-and-ai-business-processes",
-   "published": "2026-09-16T00:50:00+08:00",
-   "heat": 35,
-   "importance": 65,
-   "vendors": [
-    "Databricks"
-   ],
-   "topics": [
-    "平台AI化",
-    "风险管理"
-   ],
-   "week_id": "2026-W38"
-  },
-  {
-   "event_id": "ba2c40416e8f",
-   "title": "Fivetran与dbt Labs发布dbt v2及上下文层",
-   "summary": "Fivetran + dbt Labs 宣布 dbt v2 与 dbt State 正式 GA，并推出 Fivetran Context Layer、dbt Wizard 新体验、dbt Charts 以及开放湖仓愿景。dbt v2 是 dbt 引擎的 Rust 重写，称解析 10,000 模型项目比 v1 快最多 10 倍，并提供实时错误、列检查与血缘反馈。公司称 Core/Fusion 双引擎时代结束，dbt 变为一个引擎两个版本：dbt Core v1（Python）与 dbt v2（Rust）。其 Open Data Infrastructure 愿景强调厂商中立、可互操作，让企业自主选择存储、计算、数据移动、转换和可视化层，使 AI Agent 可使用企业拥有的数据与上下文。",
-   "category": "platform",
-   "source": "dbt Blog",
-   "source_family": "dbt",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://www.getdbt.com/blog/fivetran-dbt-labs-announces-new-capabilities-to-make-enterprise-data-agent-ready-at-dbt-summit",
-   "published": "2026-09-17T01:00:00+08:00",
-   "heat": 38,
-   "importance": 65,
-   "vendors": [
-    "dbt Labs",
-    "Fivetran"
-   ],
-   "topics": [
-    "Data Agent",
-    "湖仓"
-   ],
-   "week_id": "2026-W38"
-  },
-  {
-   "event_id": "1c8fc1d29479",
-   "title": "ClickHouse 登陆 dbt 平台，dbt v2 适配器公测",
-   "summary": "dbt 在 dbt Summit 上宣布，ClickHouse 的 dbt v2 适配器进入公开 beta，由 Rust 引擎驱动；ClickHouse 也作为原生支持数仓加入 dbt Platform 的私有 beta，支持开源 ClickHouse 与 ClickHouse Cloud。它是 dbt Platform 上首个由合作伙伴构建的 v2 适配器，通过 ADBC 驱动和 Apache Arrow 连接 ClickHouse。dbt v1 适配器自 2021 年 GA 并继续维护；v2 适配器与平台集成都于 2026 年 9 月 16 日开放 beta。",
+   "event_id": "8909b0c2878f",
+   "title": "ClickHouse 发布 SQL 内置 AI Functions（Beta）",
+   "summary": "ClickHouse 推出内置 AI Functions，可在 SQL 引擎中直接调用 LLM 或 embedding 服务，把模型调用变成类似 SUM() 的 SQL 函数。相关功能处于 Beta，按版本逐步加入：26.4 引入 aiGenerate/aiClassify/aiExtract/aiTranslate，26.6 加入 aiEmbed，26.8 加入 aiFilter/aiRedact/aiSimilarity。官方称其目标是“把模型搬到数据旁”，减少将数据抽到外部 RAG、向量库和编排框架的复杂度。ClickHouse Cloud 中无需额外配置，目前 AI Functions 处于 private preview。",
    "category": "platform",
    "source": "ClickHouse Blog",
    "source_family": "clickhouse",
    "source_type": "vendor_claim",
    "source_count": 1,
-   "source_url": "https://clickhouse.com/blog/clickhouse-is-now-available-on-the-dbt-platform",
-   "published": "2026-09-16T08:00:00+08:00",
-   "heat": 38,
-   "importance": 69,
-   "vendors": [
-    "ClickHouse",
-    "dbt Labs"
-   ],
-   "topics": [
-    "Data Agent"
-   ],
-   "week_id": "2026-W38"
-  },
-  {
-   "event_id": "39972c74aa29",
-   "title": "智能网络运营：从网络数据到代理式运营与更明智投资",
-   "summary": "该白皮书讨论电信网络在软件化、分布式和數據密集型趋势下，运营商面临提升服务质量、降低运营支出并优化资本投向的压力。Snowflake 提出企业智能层，将网络、OSS、服务、客户与规划数据统一在受治理环境中，支持流式数据产品、分析与 AI 异常检测、语义上下文和代理，使智能可通过自然语言获取，并将建议连接到运营或规划行动。文章给出功能、诊断、自主和战略分析框架，面向工程师、NOC 团队以及网络运营总监和 CTO 等管理角色。",
-   "category": "platform",
-   "source": "Snowflake Engineering（Medium）",
-   "source_family": "snowflake",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://medium.com/snowflake/intelligent-network-operations-d84056379aba?source=rss----34b6daafc07---4",
-   "published": "2026-09-17T03:01:01+08:00",
-   "heat": 39,
+   "source_url": "https://clickhouse.com/blog/ai-functions-in-clickhouse",
+   "published": "2026-09-11T20:49:32+08:00",
+   "heat": 46,
    "importance": 67,
    "vendors": [
-    "Snowflake"
+    "ClickHouse"
    ],
    "topics": [
-    "Data Agent",
-    "语义层"
+    "平台AI化"
    ],
-   "week_id": "2026-W38"
+   "week_id": "2026-W37"
+  },
+  {
+   "event_id": "9013c2752aa4",
+   "title": "在 Amazon SageMaker Catalog 中用生成式 AI 查询非结构化数据",
+   "summary": "这是系列文章第二部分，介绍非结构化数据消费侧流程。数据消费者登录 SageMaker Unified Studio，利用 AI 生成元数据关键词在 Amazon SageMaker Catalog 中搜索并订阅 S3 数据资产，经生产者审批后使用两种方式查询：面向分析师和业务用户的无代码聊天 Agent 自然语言查询，以及面向应用工程师的 Amazon Bedrock 模型推理编程访问。生产侧此前使用 Amazon Textract 和 Amazon Bedrock 上的 Anthropic Claude 提取并丰富元数据，目标是让组织更易发现并利用 PDF、图像、邮件等非结构化数据中的业务知识。",
+   "category": "platform",
+   "source": "AWS Big Data Blog",
+   "source_family": "awsbigdata",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://aws.amazon.com/blogs/big-data/query-unstructured-data-in-amazon-sagemaker-catalog-using-generative-ai/",
+   "published": "2026-09-24T02:22:00+08:00",
+   "heat": 38,
+   "importance": 66,
+   "vendors": [
+    "AWS",
+    "Amazon SageMaker",
+    "Amazon Bedrock",
+    "Anthropic"
+   ],
+   "topics": [
+    "平台AI化",
+    "Data Agent"
+   ],
+   "week_id": "2026-W39"
   }
- ],
- "editorial_review": {
-  "reviewed_by": "Codex",
-  "reviewed_at": "2026-09-21T16:07:37.478519+00:00",
-  "note": "核对原文摘要，校正不同评测集的可比性及独立复现边界。"
- }
+ ]
 }

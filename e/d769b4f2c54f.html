@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-dXhmq+yBROGXgbgCkWRSRzKE0CYc6UTBNYMnw0s5yjc=' 'sha256-lFda6AEGtaE6z0aiVTF/hT4+3uVckq59uvIOpt0ZGOI='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Forter：两周让200名团队成员成为Agent构建者 · DataHot</title>
+<meta name="description" content="Forter首席工程师Ben Maraney分享如何降低AI Agent创建门槛，让技术和非技术员工都能参与。团队利用自定义MCP服务器、结合无代码与代码平台，并有意避开复杂RAG方案。他们还协调安全与法务团队，以加速R&amp;D内部的Agent采用。标题称两周内将200名团队成员转化为Agent创建者。">
+<link rel="canonical" href="https://datahot.xiahongbin.com/e/d769b4f2c54f.html">
+<meta property="og:title" content="Forter：两周让200名团队成员成为Agent构建者">
+<meta property="og:description" content="Forter首席工程师Ben Maraney分享如何降低AI Agent创建门槛，让技术和非技术员工都能参与。团队利用自定义MCP服务器、结合无代码与代码平台，并有意避开复杂RAG方案。他们还协调安全与法务团队，以加速R&amp;D内部的Agent采用。标题称两周内将200名团队成员转化为Agent创建者。">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://datahot.xiahongbin.com/e/d769b4f2c54f.html">
+<meta property="og:site_name" content="DataHot · 数据领域 AI 热榜">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="theme-color" content="#1a1d23">
+<link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://datahot.xiahongbin.com/feed.xml">
+<meta name="datahot-analytics" data-enabled="true" data-endpoint="https://metrics.datahot.xiahongbin.com/v1/events" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
+<script defer src="../analytics.js?v=20077f7d7e8b"></script>
+<script defer src="../favorites.js?v=db2283bc3548"></script>
+<script defer src="../content-feedback.js"></script>
+<script defer src="../detail.js"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"Forter：两周让200名团队成员成为Agent构建者","description":"Forter首席工程师Ben Maraney分享如何降低AI Agent创建门槛，让技术和非技术员工都能参与。团队利用自定义MCP服务器、结合无代码与代码平台，并有意避开复杂RAG方案。他们还协调安全与法务团队，以加速R\u0026D内部的Agent采用。标题称两周内将200名团队成员转化为Agent创建者。","datePublished":"2026-09-28T19:00:00+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://www.infoq.com/presentations/building-internal-ai-agents/?utm_campaign=infoq_content\u0026utm_source=infoq\u0026utm_medium=feed\u0026utm_term=AI%2C+ML+%26+Data+Engineering"}</script>
+<style>
+  :root{
+    color-scheme: light dark;
+    --bg:#f6f7f9; --card:#ffffff; --ink:#1a1d23; --sub:#6b7280; --line:#e5e7eb;
+    --accent:#d94f2b; --accent-soft:#fdf0ec;
+    --blue:#2563eb; --green:#0f9d6c; --purple:#7c3aed; --amber:#b45309;
+    --txt2:#4b5563; --txt3:#374151; --soft:#f3f4f6; --hover:#f0f1f3;
+    --header-bg:rgba(255,255,255,.92); --tabbar-bg:rgba(255,255,255,.95);
+    --mobile-page-left:14px; --mobile-page-right:14px;
+    --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#121417; --card:#1e2126; --ink:#e9ebef; --sub:#9aa1ab; --line:#2e323a;
+      --accent:#e5603c; --accent-soft:rgba(229,96,60,.16);
+      --blue:#6ea8ff; --green:#34c98e; --purple:#a78bfa; --amber:#e0a455;
+      --txt2:#b6bcc6; --txt3:#cdd2da; --soft:#2a2e35; --hover:#2a2e35;
+      --header-bg:rgba(18,20,23,.92); --tabbar-bg:rgba(30,33,38,.95);
+    }
+    .tab.on,.fchip.on{background:var(--ink);color:#121417}
+    .sidebar a.mi.on{background:rgba(229,96,60,.14);color:var(--accent)}
+    .sub-box input,.tlsearch{color:var(--ink)}
+    .mock-banner{background:#000}
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 20px}
+
+  /* ── 顶部导航 ── */
+  header{position:sticky;top:0;z-index:50;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+  .nav{display:flex;align-items:center;gap:18px;min-height:56px}
+  .logo{font-size:20px;font-weight:800;letter-spacing:-.5px}
+  .logo em{font-style:normal;color:var(--accent)}
+  .logo .tag{font-size:11px;font-weight:500;color:var(--sub);margin-left:8px;border:1px solid var(--line);border-radius:99px;padding:2px 8px;vertical-align:middle}
+  .home-logo{display:inline-flex;align-items:center;border-radius:8px}
+  .home-logo:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+  .update-info{position:relative;margin-left:auto}
+  .update-info summary{list-style:none}
+  .update-info summary::-webkit-details-marker{display:none}
+  .upd-time{font-size:11.5px;color:var(--sub);white-space:nowrap;display:inline-flex;align-items:center;gap:4px;padding:5px 8px;border-radius:99px;cursor:help;transition:background .15s,color .15s}
+  .update-info:focus-within .upd-time,.update-info[open] .upd-time{background:var(--hover);color:var(--ink)}
+  .upd-time:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .update-popover{position:absolute;right:0;top:calc(100% + 9px);z-index:90;width:min(330px,calc(100vw - 28px));padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);box-shadow:0 12px 32px rgba(0,0,0,.14);font-size:12.5px;line-height:1.7;color:var(--txt2);white-space:normal;opacity:0;visibility:hidden;transform:translateY(-4px);pointer-events:none;transition:opacity .15s,transform .15s,visibility .15s}
+  .update-popover b{display:block;margin-bottom:3px;color:var(--ink);font-size:13px}
+  .update-info:not(.is-dismissed):focus-within .update-popover,.update-info[open]:not(.is-dismissed) .update-popover{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto}
+  .tabs{display:flex;gap:4px;flex:1}
+  .tab{padding:6px 14px;border-radius:99px;font-size:14px;color:var(--sub);cursor:pointer;white-space:nowrap}
+  .tab.on{background:var(--ink);color:#fff;font-weight:600}
+  .search{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:6px 14px;font-size:13px;color:var(--sub);min-width:180px;cursor:pointer}
+  .btn-sub{background:var(--accent);color:#fff;border-radius:99px;padding:7px 16px;font-size:13px;font-weight:600;white-space:nowrap}
+
+  .layout{display:grid;grid-template-columns:1fr 320px;gap:24px;padding:28px 0 60px}
+  @media(max-width:1199px){.layout{grid-template-columns:1fr}}
+
+  /* ── 移动端导航适配 ── */
+  @media(max-width:1199px){
+    .nav{flex-wrap:wrap;height:auto;padding:8px 0;gap:10px;min-height:52px}
+    .logo{font-size:19px}
+    .logo .tag{display:none}
+    .tabs{order:3;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
+    .tabs::-webkit-scrollbar{display:none}
+    .tab{flex-shrink:0;padding:5px 12px;font-size:13px}
+    .search{margin-left:auto;min-width:0;padding:5px 12px}
+    .btn-sub{display:none}
+  }
+
+  /* ── iPhone 体验适配 ── */
+  @media(max-width:600px){
+    :root{--mobile-page-left:max(14px,env(safe-area-inset-left));--mobile-page-right:max(14px,env(safe-area-inset-right))}
+    body{-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+    .wrap{padding:0 14px}
+    .section-title h2{font-size:17px}
+    .hotlist{grid-template-columns:1fr;gap:10px}
+    .hot{padding:14px 16px}
+    .hot h3{font-size:14px}
+    .item{padding:14px 16px;border-radius:12px}
+    .item h3{font-size:15px;overflow-wrap:anywhere}
+    .item .sum{font-size:13px;line-height:1.7;overflow-wrap:anywhere}
+    .item .top{font-size:11px;gap:4px}
+    .heatnum{font-size:12px}
+    .why{font-size:12.5px;line-height:1.7}
+    .brief{padding:16px 18px}
+    .brief p{font-size:13.5px}
+    .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-left:calc(-1 * var(--mobile-page-left));margin-right:calc(-1 * var(--mobile-page-right));padding:4px calc(var(--mobile-page-right) + 18px) 12px var(--mobile-page-left);scroll-padding-left:var(--mobile-page-left);scroll-padding-right:var(--mobile-page-right)}
+    .chiprow::after{display:block;content:"";position:sticky;right:0;flex:0 0 18px;width:18px;margin-left:-18px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+    .chiprow::-webkit-scrollbar{display:none}
+    .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:44px;display:inline-flex;align-items:center}
+    .tab,.fchip,.chip{touch-action:manipulation}
+    aside{align-self:start;position:sticky;top:20px}
+    aside .card{padding:14px 16px}
+    .article{padding:20px 14px 48px}
+    .article h1{font-size:20px}
+    .article .body{font-size:14.5px}
+    .fulltext p{font-size:14px}
+    .cta{width:100%;text-align:center;padding:13px 0;font-size:15px}
+    .day-head .date{font-size:15px}
+  }
+  @media(min-width:1280px){.wrap{max-width:1320px}}
+
+  /* ── 每周简报 ── */
+  .brief{background:linear-gradient(135deg,#1a1d23 0%,#2b2418 60%,#3d2412 100%);color:#fff;border-radius:var(--radius);padding:22px 26px;margin-bottom:22px;position:relative;overflow:hidden}
+  .brief .label{font-size:12px;letter-spacing:2px;color:#f5b48a;font-weight:700;margin-bottom:8px}
+  .brief p{font-size:15px;line-height:1.8;color:#f3f4f6}
+  .brief .meta{margin-top:10px;font-size:12px;color:#9ca3af}
+  .brief::after{content:"⚡";position:absolute;right:18px;top:14px;font-size:42px;opacity:.25}
+
+  /* ── 热点榜 ── */
+  .section-title{display:flex;align-items:baseline;gap:10px;margin:6px 0 14px}
+  .section-title h2{font-size:19px;font-weight:800}
+  .section-title span{font-size:12px;color:var(--sub)}
+  .timeline-toolbar{align-items:center;flex-wrap:nowrap}
+  .timeline-toolbar h2,.timeline-toolbar .timeline-count{white-space:nowrap}
+  .timeline-searchbox{display:flex;align-items:center;min-width:0;width:min(150px,40vw);margin-left:auto}
+  .timeline-searchbox .tlsearch{margin-left:0;min-width:0;flex:1 1 0}
+  .timeline-clear{appearance:none;display:inline-grid;place-items:center;min-width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:var(--sub);cursor:pointer;margin-left:4px;font:inherit}
+  .timeline-count{font-size:11px;color:var(--sub)}
+  @media(max-width:600px){
+    .timeline-toolbar{gap:8px}
+    .timeline-searchbox{width:min(120px,34vw)}
+    .timeline-searchbox .tlsearch,.timeline-searchbox .tlsearch:focus{width:100%}
+    .timeline-clear{min-width:44px;height:44px}
+  }
+  .hotlist{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:30px}
+  @media(max-width:600px){.hotlist{grid-template-columns:1fr;gap:10px}}
+  @media(max-width:1399px) and (min-width:601px){.hotlist{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .hot{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;position:relative;transition:.15s;cursor:pointer}
+  .hot .rank{position:absolute;top:-1px;left:16px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:0 0 8px 8px}
+  .hot .heat{position:absolute;top:12px;right:16px;font-size:12px;color:var(--accent);font-weight:700}
+  .hot h3{font-size:15px;font-weight:700;margin:14px 0 8px;line-height:1.5}
+  .hot .sources{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
+  .src{font-size:11px;background:var(--soft);color:var(--sub);border-radius:6px;padding:2px 8px}
+  .src.more{background:var(--accent-soft);color:var(--accent)}
+
+  /* ── 时间轴 ── */
+  .day{margin-bottom:8px}
+  .day-head{display:flex;align-items:center;gap:12px;margin:22px 0 12px}
+  .day-head .date{font-size:17px;font-weight:800}
+  .day-head .info{font-size:12px;color:var(--sub)}
+  .day-head::after{content:"";flex:1;height:1px;background:var(--line)}
+  .back-to-top{display:none}
+  @media(max-width:600px){
+    .home-page .home-header{position:static}
+    .home-page #timeline .day-head{position:sticky;top:0;z-index:35;min-height:40px;margin:18px -14px 12px;padding:0 14px;justify-content:space-between;background:var(--bg);border-bottom:1px solid var(--line)}
+    .home-page #timeline .day-head .date,.home-page #timeline .day-head .info{white-space:nowrap}
+    .home-page #timeline .day-head::after{display:none}
+    .back-to-top{position:fixed;right:16px;bottom:calc(70px + env(safe-area-inset-bottom));z-index:69;width:44px;height:44px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;background:var(--ink);color:var(--bg);box-shadow:0 6px 20px rgba(0,0,0,.18);font-size:22px;line-height:1;cursor:pointer;touch-action:manipulation;opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .18s ease,transform .18s ease}
+    .back-to-top.show{opacity:1;transform:translateY(0);pointer-events:auto}
+    .back-to-top:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+  }
+  .item{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin-bottom:12px;transition:.15s;cursor:pointer}
+  @media(hover:hover) and (pointer:fine){
+    .update-info:hover .upd-time,.tab:hover{background:var(--hover);color:var(--ink)}
+    .update-info:not(.is-dismissed):hover .update-popover{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto}
+    .hot:hover,.item:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+    .hot a:hover,.item a:hover{color:var(--accent)}
+  }
+  @media(hover:none) and (pointer:coarse){
+    .hot:active,.item:active{border-color:#d1d5db;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+  }
+  .fchip:focus-visible,.timeline-clear:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  }
+  .item .top{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub)}
+  .card-source{display:flex;align-items:center;gap:6px;min-width:0;flex:1 1 auto;overflow:hidden;white-space:nowrap}
+  .card-source-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;color:var(--txt3)}
+  .card-time{flex:0 0 auto;white-space:nowrap}
+  .badge{font-weight:600;border-radius:6px;padding:1px 8px;font-size:11px}
+  .b-agent{background:#eef2ff;color:var(--blue)}
+  .b-platform{background:#ecfdf5;color:var(--green)}
+  .b-bi{background:#f5f3ff;color:var(--purple)}
+  .b-product{background:#fef7e8;color:var(--amber)}
+  .b-insight{background:#fff1f2;color:#be123c}
+  .star,.editorial-pick{color:var(--accent);font-weight:700}
+  .item .heatnum{flex:0 0 auto;white-space:nowrap;font-weight:800;color:var(--accent);font-size:13px}
+  .item .heatnum.is-featured{padding:2px 7px;border-radius:99px;background:var(--accent-soft)}
+  .item h3{font-size:16px;font-weight:700;margin:8px 0 6px;line-height:1.55}
+  .item .sum{font-size:13.5px;color:var(--txt2);line-height:1.75}
+  .item .also{margin-top:10px;font-size:12px;color:var(--sub)}
+  .item .also b{color:var(--ink)}
+  .why{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;font-size:13px;color:var(--txt2);line-height:1.75}
+.why .w{color:var(--accent);font-weight:700;white-space:nowrap;font-size:12px;letter-spacing:1px}
+.why .w svg{vertical-align:-2px}
+  .vendors{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
+  .vtag{font-size:11px;border:1px dashed var(--line);color:var(--sub);border-radius:99px;padding:1px 10px;cursor:default}
+  
+
+  /* ── 侧栏 ── */
+  aside .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
+  aside h4{font-size:14px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+  .vendor-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--soft);font-size:13px;cursor:pointer}
+  .vendor-row:last-child{border-bottom:none}
+  .vendor-row .n{width:16px;color:var(--sub);font-size:12px}
+  .vendor-row .count{margin-left:auto;font-size:12px;color:var(--accent);font-weight:700}
+  .up{transform:scale(.8)}
+  .sub-box input{width:100%;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:8px;outline:none}
+  .sub-box button{width:100%;background:var(--ink);color:var(--bg);border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer}
+  .status{font-size:12.5px;color:var(--sub);line-height:2}
+  .status b{color:var(--green)}
+  .legend{display:flex;flex-direction:column;gap:6px;font-size:12.5px}
+  .legend .row{display:flex;align-items:center;gap:8px;color:var(--sub)}
+
+  footer{border-top:1px solid var(--line);padding:26px 0;text-align:center;font-size:12px;color:var(--sub)}
+  .mock-banner{background:#1a1d23;color:#fff;text-align:center;font-size:12px;padding:7px;letter-spacing:1px}
+  .mock-banner b{color:#f5b48a}
+
+
+body{overflow-x:clip}
+main,.layout>*,.hotlist>*{min-width:0}
+.d-only{display:inline-block}
+@media(max-width:1199px){.d-only{display:none}}
+.chip{display:inline-block;font-size:11px;background:#eef2ff;color:var(--blue);border-radius:99px;padding:1px 10px;text-decoration:none}
+.tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
+.tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
+.chiprow{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 18px 12px 0;margin-bottom:4px;position:relative;scroll-padding-inline:8px}
+.chiprow::after{display:block;content:"";position:sticky;right:0;flex:0 0 18px;width:18px;margin-left:-18px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+.chiprow::-webkit-scrollbar{display:none}
+.chiprow .fchip{appearance:none;flex-shrink:0;min-height:36px;font:inherit;font-size:12.5px;line-height:1.4;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
+.chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
+@media(max-width:600px){
+  .home-page>.wrap{padding-left:var(--mobile-page-left);padding-right:var(--mobile-page-right)}
+  .chiprow{gap:6px;margin-left:calc(-1 * var(--mobile-page-left));margin-right:calc(-1 * var(--mobile-page-right));padding:4px calc(var(--mobile-page-right) + 18px) 12px var(--mobile-page-left);scroll-padding-left:var(--mobile-page-left);scroll-padding-right:var(--mobile-page-right)}
+  .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:44px;display:inline-flex;align-items:center}
+}
+@media (prefers-color-scheme: dark){
+  .chip{background:rgba(110,168,255,.16);color:#6ea8ff}
+  .chiprow .fchip.on{background:var(--ink);color:#121417;border-color:var(--ink)}
+  .chiprow .fchip{background:var(--card);color:var(--sub);border-color:var(--line)}
+}
+.scard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 20px;margin-bottom:14px}
+.source-page{padding:30px 20px 60px;max-width:820px}
+.source-intro{margin-bottom:30px}
+.source-intro h1{font-size:27px;line-height:1.35;margin:0 0 10px}
+.source-intro p{font-size:14px;line-height:1.8;color:var(--txt2);margin:0;max-width:720px}
+.source-alert{margin-top:14px;padding:10px 12px;border-left:3px solid var(--amber);background:var(--soft);border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.7;color:var(--txt2)}
+.source-alert b{color:var(--ink);margin-right:6px}
+.source-group{margin:0 0 28px}
+.source-group-head{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:8px}
+.source-group-head h2{font-size:16px;line-height:1.4;margin:0}
+.source-group-head span{font-size:11.5px;color:var(--sub)}
+.source-row{display:flex;align-items:center;gap:12px;min-height:49px;border-bottom:1px solid var(--soft)}
+.source-name{display:inline-flex;align-items:center;gap:4px;min-width:0;color:var(--ink);font-size:13.5px;font-weight:650;line-height:1.5;text-decoration:none}
+.source-name svg{flex:0 0 auto}
+.source-focus{margin-left:auto;color:var(--sub);font-size:11.5px;line-height:1.45;text-align:right}
+.source-health{color:var(--amber);font-size:11.5px;white-space:nowrap}
+.source-disabled{margin:2px 0 28px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.source-disabled summary{cursor:pointer;padding:13px 0;font-size:13px;font-weight:650;color:var(--txt2)}
+.source-disabled .source-row{align-items:flex-start;padding:11px 0;min-height:0}
+.source-disabled-reason{margin-left:auto;max-width:62%;font-size:11.5px;line-height:1.6;color:var(--sub);text-align:right}
+.source-contribute{display:flex;align-items:center;gap:18px;background:var(--soft);border-radius:var(--radius);padding:17px 18px;margin-bottom:20px}
+.source-contribute-copy{min-width:0;flex:1}
+.source-contribute h2{font-size:15px;margin:0 0 4px}
+.source-contribute p{font-size:12.5px;line-height:1.6;color:var(--sub);margin:0}
+.source-cta{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border-radius:99px;background:var(--ink);color:var(--bg);padding:8px 14px;font-size:12px;font-weight:650;text-decoration:none}
+.source-principle{font-size:12px;line-height:1.75;color:var(--sub);margin:0}
+@media(max-width:600px){
+  .source-page{padding:22px 18px 52px}
+  .source-intro{margin-bottom:25px}
+  .source-intro h1{font-size:24px}
+  .source-row{gap:8px}
+  .source-name{font-size:13px;min-height:44px}
+  .source-focus{max-width:45%;font-size:11px}
+  .source-disabled .source-row{display:block}
+  .source-disabled-reason{max-width:none;margin:4px 0 0;text-align:left}
+  .source-contribute{align-items:flex-start;flex-direction:column;gap:12px}
+}
+.crow{display:flex;align-items:baseline;gap:8px;padding:9px 0;border-bottom:1px solid var(--soft);text-decoration:none;color:var(--ink)}
+.crow:last-child{border-bottom:none}
+.cpin{width:18px;flex-shrink:0;font-size:12px}
+.ctitle{font-size:13.5px;font-weight:600;line-height:1.55;flex:1}
+.cmeta{font-size:11px;color:var(--sub);white-space:nowrap}
+.favbtn{appearance:none;min-width:36px;min-height:36px;border:none;background:none;color:var(--sub);cursor:pointer;padding:6px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%}
+.favbtn.on{color:var(--accent)}
+.favbtn.on svg{fill:currentColor}
+.favbtn svg{pointer-events:none}
+.favbtn .sbtn-label{pointer-events:none}
+.fav-toast{position:fixed;left:50%;bottom:28px;z-index:100;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 28px);min-height:44px;padding:8px 10px 8px 16px;border-radius:99px;background:rgba(26,29,35,.94);box-shadow:0 10px 30px rgba(0,0,0,.18);color:#fff;font-size:13px;line-height:1.4;opacity:0;pointer-events:none;transform:translate(-50%,12px);transition:opacity .2s ease,transform .2s ease}
+.fav-toast.show{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+.fav-toast-action{appearance:none;min-height:36px;border:0;border-radius:99px;padding:6px 12px;background:rgba(255,255,255,.14);color:#fff;font:inherit;font-size:12px;font-weight:750;cursor:pointer;white-space:nowrap}
+.fav-entry{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--sub);white-space:nowrap;text-decoration:none}
+.privacy-btn{min-height:44px;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:9px 16px;font-size:12.5px;font-weight:650;cursor:pointer;margin:4px 6px 4px 0}
+.privacy-btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.load-more{display:block;margin:18px auto 4px;border:1px solid var(--line);background:var(--card);color:var(--txt2);border-radius:99px;padding:9px 22px;font-size:12.5px;font-weight:650;cursor:pointer}
+.load-more[hidden]{display:none}
+.load-more[disabled]{opacity:.65;cursor:default}
+.filter-error b{display:block;margin-bottom:5px;color:var(--ink);font-size:14px}
+.filter-error p{margin:0;color:var(--sub);font-size:12.5px;line-height:1.7}
+.filter-error-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.filter-error-actions button{min-height:44px;border:1px solid var(--line);border-radius:99px;padding:8px 15px;background:var(--card);color:var(--ink);font:inherit;font-size:12.5px;font-weight:650;cursor:pointer}
+.filter-error-actions button:first-child{border-color:var(--accent);background:var(--accent);color:#fff}
+.weekly-strip{display:flex;align-items:stretch;min-height:52px;margin-bottom:16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);overflow:hidden}
+.weekly-strip[hidden]{display:none}
+.weekly-strip-link{display:flex;align-items:center;gap:10px;min-width:0;min-height:52px;flex:1;padding:0 4px 0 14px;color:var(--ink);text-decoration:none}
+.weekly-strip-label{flex:0 0 auto;border-radius:99px;padding:3px 8px;background:var(--accent-soft);color:var(--accent);font-size:11px;font-weight:750;white-space:nowrap}
+.weekly-strip-title{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:700}
+.weekly-strip-view{flex:0 0 auto;color:var(--accent);font-size:12px;font-weight:700;white-space:nowrap}
+.weekly-dismiss{appearance:none;display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;min-height:44px;margin:4px;border:0;border-radius:50%;background:transparent;color:var(--sub);cursor:pointer}
+.weekly-dismiss svg{pointer-events:none}
+.today-hot{margin-bottom:12px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);overflow:hidden}
+.today-hot-head{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:34px;padding:0 12px;border-bottom:1px solid var(--soft)}
+.today-hot-head h2{margin:0;font-size:12px;line-height:1.3;font-weight:800;letter-spacing:.04em;color:var(--ink)}
+.today-hot-more{flex:0 0 auto;color:var(--accent);font-size:11.5px;font-weight:700;text-decoration:none;white-space:nowrap}
+.today-hot-list{display:block}
+.today-hot-row{display:grid;grid-template-columns:22px minmax(0,1fr) auto;align-items:center;gap:8px;min-height:35px;padding:0 12px;color:var(--ink);text-decoration:none}
+.today-hot-row+.today-hot-row{border-top:1px solid var(--soft)}
+.today-hot-rank{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:5px;background:var(--soft);color:var(--sub);font-size:10px;font-weight:800;font-variant-numeric:tabular-nums}
+.today-hot-row.is-lead .today-hot-rank{background:var(--accent);color:#fff}
+.today-hot-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;font-weight:650}
+.today-hot-row.is-lead .today-hot-title{font-weight:750}
+.today-hot-heat{display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;color:var(--accent);font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.top-rank{flex:0 0 auto;border-radius:5px;padding:2px 6px;background:var(--accent);color:#fff;font-size:10px;font-weight:800;line-height:1.3;white-space:nowrap}
+.vendor-card-head{justify-content:space-between}
+.vendor-card-title{display:inline-flex;align-items:center;gap:6px}
+.vendor-card-link{margin-left:auto;color:var(--accent);font-size:11px;font-weight:650;text-decoration:none;white-space:nowrap}
+.vendor-row{color:var(--ink);text-decoration:none}
+@media(max-width:360px){
+  .weekly-strip-link{gap:7px;padding-left:10px}
+  .weekly-strip-label{padding:3px 7px}
+  .weekly-strip-view-arrow{display:none}
+}
+@media(max-width:600px){
+  .weekly-strip{min-height:48px;margin-bottom:10px}
+  .weekly-strip-link{min-height:48px}
+  .today-hot{margin-bottom:8px}
+  .today-hot-head{min-height:32px;padding:0 10px}
+  .today-hot-head h2{font-size:11.5px}
+  .today-hot-more{font-size:11px}
+  .today-hot-row{grid-template-columns:20px minmax(0,1fr) auto;gap:7px;min-height:34px;padding:0 10px}
+  .today-hot-rank{width:18px;height:18px;font-size:9.5px}
+  .today-hot-title{font-size:12px}
+  .today-hot-heat{font-size:10.5px}
+  .top-rank{padding:2px 5px;font-size:9.5px}
+}
+.weekly-summary{background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border:0;padding:20px 22px}
+.weekly-summary h1{font-size:25px;line-height:1.4;margin:4px 0 8px}
+.weekly-summary p{font-size:14px;line-height:1.75;color:#e5e7eb;margin:0}
+.weekly-change{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.12);font-size:13px;line-height:1.7;color:#f3f4f6}
+.weekly-change:last-child{border-bottom:0}
+.weekly-themes{display:grid;gap:14px}
+.weekly-theme{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px}
+.weekly-theme h2{font-size:19px;line-height:1.5;margin:9px 0 12px}
+.weekly-theme p{font-size:13.5px;line-height:1.85;color:var(--txt2);margin:0 0 12px}
+.weekly-badges{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.weekly-pill{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:99px;padding:3px 8px;font-size:10.5px;color:var(--sub)}
+.weekly-pill.priority-now{border-color:#dc2626;color:#b91c1c;background:#fef2f2}
+.weekly-pill.priority-test{border-color:#d97706;color:#b45309;background:#fffbeb}
+.weekly-pill.priority-watch{border-color:#2563eb;color:#1d4ed8;background:#eff6ff}
+.weekly-pill.priority-ignore{color:var(--sub);background:var(--soft)}
+.weekly-anchor{background:var(--soft);border-left:3px solid var(--accent);padding:10px 12px;border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.75;color:var(--txt2);margin:0 0 14px}
+.weekly-anchor b,.weekly-why b{color:var(--ink)}
+.weekly-why{font-size:13px;line-height:1.8;color:var(--txt2);border-top:1px solid var(--soft);padding-top:12px}
+.weekly-action{margin-top:12px;background:#fff8ed;border:1px solid #f3d5aa;border-radius:9px;padding:11px 12px;font-size:13px;line-height:1.75;color:var(--txt2)}
+.weekly-action b{color:#9a4f08;margin-right:7px}
+.weekly-signal-meta{font-size:11px;color:var(--sub);margin-top:12px}
+.weekly-secondary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.weekly-secondary .scard{font-size:12.5px;line-height:1.75;color:var(--txt2)}
+.weekly-secondary b{display:block;color:var(--ink);font-size:12px;margin-bottom:6px}
+.weekly-evidence{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:0 18px}
+.weekly-evidence summary{cursor:pointer;padding:15px 0;font-size:13px;font-weight:700;color:var(--ink)}
+.weekly-evidence-row{display:flex;gap:12px;align-items:baseline;padding:11px 0;border-top:1px solid var(--soft);text-decoration:none;color:var(--ink)}
+.weekly-evidence-row span:first-child{font-size:13px;line-height:1.55;flex:1}
+.weekly-evidence-row span:last-child{font-size:10.5px;color:var(--sub);white-space:nowrap}
+.weekly-archive{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 22px}
+.weekly-archive a{font-size:12px;color:var(--sub);border:1px solid var(--line);border-radius:99px;padding:5px 10px;text-decoration:none}
+.weekly-archive a.on{border-color:var(--accent);color:var(--accent)}
+@media (prefers-color-scheme: dark){
+  .weekly-pill.priority-now{border-color:#ef7b7b;color:#ffaaaa;background:rgba(220,38,38,.14)}
+  .weekly-pill.priority-test{border-color:#d89a3d;color:#f2bd70;background:rgba(217,119,6,.14)}
+  .weekly-pill.priority-watch{border-color:#6ea8ff;color:#9cc3ff;background:rgba(37,99,235,.14)}
+  .weekly-action{background:rgba(217,119,6,.12);border-color:rgba(242,189,112,.38);color:var(--txt2)}
+  .weekly-action b{color:#f2bd70}
+}
+@media(max-width:700px){
+  .weekly-summary{padding:16px 20px}
+  .weekly-summary h1{font-size:23px}
+  .weekly-theme{padding:17px}
+  .weekly-theme h2{font-size:17px}
+  .weekly-secondary{grid-template-columns:1fr}
+  .weekly-evidence-row{align-items:flex-start;flex-direction:column;gap:4px}
+  .weekly-evidence-row span:last-child{white-space:normal}
+}
+.hrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--soft);text-decoration:none;color:var(--ink)}
+.hrow:last-child{border-bottom:none}
+.hrow .rk{font-size:15px;font-weight:800;color:var(--accent);width:26px;flex-shrink:0;text-align:center}
+.hrow .ht{flex:1;font-size:14px;font-weight:600;line-height:1.5}
+.hrow .hm{font-size:11px;color:var(--sub);white-space:nowrap}
+.rank-page{padding:28px 20px 60px;max-width:900px}
+.rank-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.rank-head h1{display:flex;align-items:center;gap:7px;font-size:20px;line-height:1.4;margin:0}
+.rank-head p{font-size:12px;color:var(--sub);margin:0}
+.rank-list{padding:6px 18px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+.rank-row{display:grid;grid-template-columns:26px minmax(0,1fr) minmax(150px,auto);align-items:center;gap:12px;min-height:48px;padding:12px 0;border-bottom:1px solid var(--soft);color:var(--ink);text-decoration:none}
+.rank-row:last-child{border-bottom:none}
+.rank-no{font-size:14px;font-weight:750;color:var(--sub);font-variant-numeric:tabular-nums;text-align:center}
+.rank-no.is-top{color:var(--accent);font-size:16px;font-weight:850}
+.rank-title{min-width:0;font-size:14px;font-weight:650;line-height:1.5}
+.rank-meta{display:flex;align-items:center;justify-content:flex-end;gap:9px;min-width:0;max-width:280px;color:var(--sub);font-size:11px}
+.rank-source{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank-heat{display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;color:var(--accent);font-weight:700;white-space:nowrap}
+.rank-note{margin-top:8px;color:var(--sub);font-size:12px}
+.rank-note summary{display:flex;align-items:center;width:max-content;max-width:100%;min-height:44px;cursor:pointer;list-style:none}
+.rank-note summary::-webkit-details-marker{display:none}
+.rank-note summary::after{content:" ↓";margin-left:4px}
+.rank-note[open] summary::after{content:" ↑"}
+.rank-note p{margin:0 0 8px;line-height:1.7}
+@media(max-width:600px){
+  .rank-page{padding:18px 14px calc(32px + env(safe-area-inset-bottom))}
+  .rank-head{display:block;margin-bottom:14px}
+  .rank-head h1{font-size:22px}
+  .rank-head p{margin-top:4px;font-size:12px}
+  .rank-list{display:grid;gap:10px;padding:0;background:transparent;border:0;border-radius:0}
+  .rank-row{grid-template-columns:30px minmax(0,1fr);grid-template-rows:auto auto;align-items:start;gap:5px 10px;min-height:76px;padding:13px 14px;background:var(--card);border:1px solid var(--line);border-radius:12px}
+  .rank-row:last-child{border-bottom:1px solid var(--line)}
+  .rank-no{grid-row:1/3;padding-top:1px;font-size:14px;text-align:left}
+  .rank-no.is-top{font-size:17px}
+  .rank-title{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;font-size:15px;line-height:1.5}
+  .rank-meta{grid-column:2;justify-content:flex-start;max-width:none;width:100%;gap:8px}
+  .rank-source{flex:1}
+  .rank-note{margin-top:4px}
+}
+.srcbadge{font-size:10px;border:1px solid var(--line);border-radius:5px;padding:0 5px;color:var(--sub);flex-shrink:0;line-height:1.6}
+.sidebar{display:none}
+@media(min-width:1200px){
+  body.has-sb{padding-left:224px}
+  body.has-sb>header{display:none}
+  .sidebar{display:flex;position:fixed;left:0;top:0;bottom:0;width:224px;flex-direction:column;background:var(--card);border-right:1px solid var(--line);padding:22px 16px;z-index:40}
+  .sidebar .slogo{font-size:20px;font-weight:800;margin-bottom:26px}
+  .sidebar .slogo em{font-style:normal;color:var(--accent)}
+  .sidebar .sidebar-nav{display:grid}
+  .sidebar a.mi{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:14px;color:var(--sub);text-decoration:none;margin-bottom:2px}
+  .sidebar a.mi.on{background:var(--ink);color:var(--bg);font-weight:600}
+  .sidebar .sidebar-tools{margin-top:auto;padding-top:14px;border-top:1px solid var(--line)}
+  .sidebar .sidebar-tools a.mi{margin-bottom:0;font-size:12.5px}
+  .sidebar .sfoot{margin-top:10px;font-size:11.5px;color:var(--sub);line-height:1.8}
+}
+.hot .hsum{font-size:12.5px;color:var(--txt2);line-height:1.65;margin:6px 0 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hot .htime{margin-left:auto;font-size:11px;color:var(--sub)}
+.hot .sources{align-items:center}
+.hot .sources .favbtn{flex:0 0 auto;margin:-8px -8px -8px 0}
+.tabbar{display:none}
+.more-mask,.more-sheet{display:none}
+@media(max-width:1199px){
+  body{padding-bottom:64px}
+  footer{padding-bottom:96px}
+  body.mobile-section{padding-top:env(safe-area-inset-top)}
+  .section-brand-header,.detail-brand-header{display:none}
+  .tabbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));position:fixed;bottom:0;left:0;right:0;background:var(--tabbar-bg);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:70;padding:0 0 env(safe-area-inset-bottom)}
+  .tabbar a,.tabbar button{appearance:none;border:0;background:transparent;min-width:0;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 2px 5px;font:inherit;font-size:11px;color:var(--sub);text-decoration:none;gap:2px;cursor:pointer;touch-action:manipulation}
+  .tabbar .ico{display:grid;place-items:center;height:22px}
+  .tabbar a.on,.tabbar button.on{color:var(--accent);font-weight:650}
+  .more-mask{display:block;position:fixed;inset:0;background:rgba(0,0,0,.42);opacity:0;pointer-events:none;transition:opacity .22s ease;z-index:78}
+  .more-mask.show{opacity:1;pointer-events:auto}
+  .more-sheet{display:block;position:fixed;left:0;right:0;bottom:0;z-index:80;max-height:70vh;overflow:auto;background:var(--card);border-radius:18px 18px 0 0;padding:8px 16px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -14px 40px rgba(0,0,0,.18);transform:translateY(110%);transition:transform .28s cubic-bezier(.32,.72,.35,1)}
+  .more-sheet.show{transform:translateY(0)}
+  .more-handle{width:36px;height:4px;border-radius:99px;background:var(--line);margin:2px auto 12px}
+  .more-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .more-head h2{font-size:18px}
+  .more-close{appearance:none;border:0;background:var(--soft);color:var(--sub);width:44px;height:44px;border-radius:50%;font-size:18px;cursor:pointer}
+  .more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .more-link{display:flex;align-items:center;gap:11px;min-height:58px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);text-decoration:none;color:var(--ink)}
+  .more-link .more-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent);flex:0 0 auto}
+  .more-link span:last-child{min-width:0;font-size:13px;font-weight:650}
+  .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  body.more-open{overflow:hidden}
+}
+.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.fav-toast-action:focus-visible,.favorites-search:focus-visible,.favorites-filter:focus-visible,.favorites-empty-cta:focus-visible,.favorite-card-main:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.today-hot-row:focus-visible,.today-hot-more:focus-visible,.rank-row:focus-visible,.rank-note summary:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible,.tcard-main:focus-visible,.tchild-link:focus-visible,.scenario-row:focus-visible,.topic-back:focus-visible,.topic-follow:focus-visible,.topic-recent-card:focus-visible,.topic-update-row:focus-visible,.topic-load-more:focus-visible,.topic-vendors summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:600px){.favbtn{min-width:44px;min-height:44px}}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+.topic-map-page,.topic-page{max-width:900px;padding-top:28px;padding-bottom:60px}
+.topic-map-intro{font-size:13px;color:var(--sub);line-height:1.7;margin:-4px 0 26px}
+.topic-family{margin-top:26px}
+.topic-family:first-of-type{margin-top:0}
+.topic-family-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.topic-family-head h2{font-size:17px;font-weight:800}
+.topic-family-head p{font-size:12px;color:var(--sub)}
+.tgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;min-width:0}
+@media(max-width:960px){.tgrid{grid-template-columns:minmax(0,1fr)}}
+.tcard{min-width:0;width:100%;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);display:flex;flex-direction:column;transition:.15s}
+.tcard-main{display:block;min-width:0;padding:18px 20px;text-decoration:none;color:var(--ink);flex:1}
+.tcard h3{font-size:17px;font-weight:800;margin-bottom:6px}
+.tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:12px}
+.topic-counts{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;font-weight:650}
+.topic-counts .recent{color:var(--accent)}
+.topic-counts .total{color:var(--sub);font-weight:500}
+.tchildren{display:flex;align-items:center;gap:7px;border-top:1px solid var(--soft);padding:10px 20px;font-size:11.5px;color:var(--sub)}
+.tchild-link{display:inline-flex;align-items:center;min-height:30px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-weight:650;padding:3px 10px;text-decoration:none}
+.scenario-list{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.scenario-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 16px;align-items:center;min-height:58px;padding:10px 16px;border-bottom:1px solid var(--soft);color:var(--ink);text-decoration:none}
+.scenario-row:last-child{border-bottom:none}
+.scenario-copy{min-width:0}
+.scenario-name{display:block;font-size:14px;font-weight:750}
+.scenario-desc{display:block;margin-top:2px;font-size:11.5px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scenario-count{font-size:11.5px;color:var(--sub);white-space:nowrap}
+.scenario-count.is-active{color:var(--accent);font-weight:650}
+.topic-hero{margin-bottom:24px}
+.topic-back{display:inline-flex;align-items:center;min-height:36px;color:var(--sub);font-size:13px;text-decoration:none}
+.topic-hero h1{font-size:28px;font-weight:800;margin:10px 0 6px}
+.topic-hero-desc{font-size:14px;color:var(--sub);line-height:1.7;margin:0 0 8px}
+.topic-follow{display:inline-flex;align-items:center;justify-content:center;min-height:40px;margin:7px 0 4px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink);font-size:12.5px;font-weight:700;text-decoration:none}
+.topic-parent{font-size:12px;color:var(--sub);margin-top:9px}
+.topic-parent a{color:var(--accent);font-weight:650;text-decoration:none}
+.topic-section{margin-top:24px}
+.topic-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:10px}
+.topic-section-head h2{font-size:16px;font-weight:800}
+.topic-section-head p{font-size:11.5px;color:var(--sub);text-align:right}
+.topic-recent-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.topic-recent-wrap{position:relative;min-width:0}
+.topic-recent-card{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;text-decoration:none;color:var(--ink)}
+.topic-recent-wrap .topic-recent-card{display:block;height:100%;padding-right:54px}
+.topic-recent-fav{position:absolute;top:7px;right:7px;z-index:2}
+.topic-recent-card h3{font-size:14px;line-height:1.55;margin:6px 0}
+.topic-recent-card p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-size:12px;line-height:1.65;color:var(--txt2)}
+.topic-recent-meta{font-size:10.5px;color:var(--sub)}
+.topic-empty{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:15px 16px;color:var(--sub);font-size:12.5px}
+.topic-reading{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:6px 16px 10px}
+.topic-updates{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.topic-update-row{display:grid;grid-template-columns:88px minmax(0,1fr) 150px;gap:12px;align-items:center;min-height:52px;padding:9px 14px;border-bottom:1px solid var(--soft);color:var(--ink);text-decoration:none}
+.topic-update-row:last-child{border-bottom:none}
+.topic-update-row.is-extra{display:none}
+.topic-update-date{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums}
+.topic-update-title{min-width:0;font-size:13px;font-weight:650;line-height:1.5}
+.topic-update-source{min-width:0;font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+.topic-load-more{appearance:none;width:100%;min-height:48px;margin-top:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:12.5px;font-weight:650;cursor:pointer}
+.topic-vendors{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:0 14px}
+.topic-vendors summary{display:flex;align-items:center;justify-content:space-between;min-height:48px;font-size:12.5px;font-weight:650;cursor:pointer;list-style:none}
+.topic-vendors summary::-webkit-details-marker{display:none}
+.topic-vendors summary span{color:var(--sub);font-size:11px;font-weight:500}
+.topic-vendors[open] summary span{color:var(--accent)}
+.topic-vendors .vendors{padding:0 0 14px;margin-top:0}
+@media(max-width:720px){.topic-recent-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){
+  .topic-map-page,.topic-page{padding-top:18px;padding-right:var(--mobile-page-right);padding-left:var(--mobile-page-left)}
+  .topic-map-intro{margin-bottom:22px}
+  .topic-family-head{display:block}
+  .topic-family-head p{margin-top:3px}
+  .tcard-main{padding:15px 16px}
+  .tchildren{padding:8px 16px}
+  .scenario-row{padding:10px 14px}
+  .scenario-desc{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .topic-hero h1{font-size:26px}
+  .topic-follow{min-height:44px}
+  .topic-section-head{display:block}
+  .topic-section-head p{text-align:left;margin-top:3px}
+  .topic-update-row{grid-template-columns:70px minmax(0,1fr);gap:3px 10px;padding:10px 12px}
+  .topic-update-source{grid-column:2;text-align:left}
+}
+.favorites-page{max-width:900px;min-height:calc(100vh - 145px);padding:28px 20px 60px}
+.favorites-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:18px}
+.favorites-title{display:flex;align-items:center;gap:8px;margin:0;font-size:22px;line-height:1.35}
+.favorites-count{color:var(--sub);font-size:12px;font-weight:500;white-space:nowrap}
+.favorites-trust{margin:6px 0 0;color:var(--sub);font-size:12px;line-height:1.6}
+.favorites-trust a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.favorites-tools{margin-bottom:16px}
+.favorites-search{width:min(360px,100%);min-height:44px;border:1px solid var(--line);border-radius:99px;padding:9px 15px;background:var(--card);color:var(--ink);font:inherit;font-size:13px;outline:none}
+.favorites-search:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.favorites-filters{display:flex;gap:7px;overflow-x:auto;margin-top:10px;padding-bottom:2px;scrollbar-width:none}
+.favorites-filters::-webkit-scrollbar{display:none}
+.favorites-filter{appearance:none;flex:0 0 auto;min-height:36px;border:1px solid var(--line);border-radius:99px;padding:6px 13px;background:var(--card);color:var(--sub);font:inherit;font-size:12px;cursor:pointer}
+.favorites-filter.on{border-color:var(--ink);background:var(--ink);color:var(--bg);font-weight:700}
+.favorites-group{margin:0 0 18px}
+.favorites-group h2{margin:0 0 8px;color:var(--sub);font-size:12px;font-weight:700}
+.favorites-list{display:grid;gap:10px}
+.favorite-card{display:grid;grid-template-columns:minmax(0,1fr) 48px;align-items:start;background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+.favorite-card-main{min-width:0;padding:15px 4px 15px 17px;color:var(--ink);text-decoration:none}
+.favorite-card-top{display:flex;align-items:center;gap:7px;margin-bottom:6px;color:var(--sub);font-size:10.5px;line-height:1.4}
+.favorite-card-topic{max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-radius:99px;padding:2px 8px;background:var(--soft);color:var(--txt2)}
+.favorite-card-saved{margin-left:auto;white-space:nowrap}
+.favorite-card h3{margin:0;font-size:15px;line-height:1.5}
+.favorite-card-summary{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;margin:6px 0 0;color:var(--txt2);font-size:12.5px;line-height:1.65}
+.favorite-card-meta{display:flex;align-items:center;gap:7px;margin-top:8px;color:var(--sub);font-size:11px;line-height:1.4}
+.favorite-card-meta span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.favorite-card>.favbtn{align-self:center;margin:4px 4px 4px 0}
+.favorites-empty{display:grid;place-items:center;min-height:330px;padding:34px 20px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);text-align:center}
+.favorites-empty-inner{max-width:360px}
+.favorites-empty-icon{display:grid;place-items:center;width:54px;height:54px;margin:0 auto 14px;border-radius:50%;background:var(--soft);color:var(--sub)}
+.favorites-empty h2{margin:0 0 7px;font-size:17px}
+.favorites-empty p{margin:0;color:var(--sub);font-size:12.5px;line-height:1.75}
+.favorites-empty-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin-top:17px;border-radius:99px;padding:8px 17px;background:var(--ink);color:var(--bg);font-size:12.5px;font-weight:700;text-decoration:none}
+.favorites-loading{padding:22px 0;color:var(--sub);font-size:13px}
+@media(max-width:600px){
+  .favorites-page{min-height:calc(100dvh - 145px - env(safe-area-inset-bottom));padding:20px 14px calc(36px + env(safe-area-inset-bottom))}
+  .favorites-head{display:block;margin-bottom:15px}
+  .favorites-title{font-size:21px}
+  .favorites-trust{font-size:11.5px}
+  .favorites-search{width:100%}
+  .favorite-card{grid-template-columns:minmax(0,1fr) 52px}
+  .favorite-card-main{padding:14px 2px 14px 14px}
+  .favorite-card h3{font-size:15px}
+  .favorite-card>.favbtn{margin-right:4px}
+  .favorites-empty{min-height:350px;padding:32px 18px}
+  .fav-toast{bottom:calc(68px + env(safe-area-inset-bottom))}
+}
+@media(hover:hover) and (pointer:fine){
+  .chip:hover{background:#dbe4ff}
+  a.source-name:hover,.crow:hover .ctitle,.fav-entry:hover,.weekly-evidence-row:hover span:first-child,.hrow:hover .ht,.rank-row:hover .rank-title{color:var(--accent)}
+  .source-cta:hover{opacity:.86}
+  .load-more:hover,.weekly-archive a:hover{border-color:var(--accent);color:var(--accent)}
+  .weekly-strip:hover{border-color:var(--accent)}
+  .weekly-strip-link:hover .weekly-strip-title,.weekly-dismiss:hover{color:var(--accent)}
+  .today-hot-row:hover .today-hot-title,.today-hot-more:hover{color:var(--accent)}
+  .sidebar a.mi:hover{background:var(--hover);color:var(--ink)}
+  .tcard:hover,.topic-recent-card:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+  .tcard-main:hover h3,.scenario-row:hover .scenario-name,.topic-update-row:hover .topic-update-title,.topic-follow:hover{color:var(--accent)}
+}
+@media(prefers-color-scheme:dark) and (hover:hover) and (pointer:fine){
+  .chip:hover{background:rgba(110,168,255,.26)}
+}
+
+
+.article{max-width:1040px;margin:0 auto;padding:36px 20px 60px}
+.article-layout{max-width:1000px;margin:0 auto}
+.article-content{max-width:840px;margin:0 auto}
+.article-layout.has-toc{display:grid;grid-template-columns:minmax(0,840px) 144px;gap:16px;align-items:start}
+.article-layout.has-toc .article-content{min-width:0;margin:0}
+.article .back{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}
+.article h1{max-width:700px;font-size:30px;font-weight:800;line-height:1.38;margin:14px auto 20px}
+.article .meta{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
+.article .meta,.article-brief,.tts-player{max-width:700px;margin-left:auto;margin-right:auto}
+.meta-source-link{display:inline-flex;align-items:center;gap:3px;color:var(--txt3);font-weight:650;text-decoration:none}
+.meta-source-link svg{flex:0 0 auto}
+.meta-source-text{color:var(--txt3);font-weight:650}
+.meta-content-mode{display:inline-flex;align-items:center;min-height:22px;padding:2px 8px;border-radius:99px;background:var(--soft);color:var(--txt2);font-size:10.5px;font-weight:700}
+.article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
+.article h4{font-size:14px;font-weight:800;margin-bottom:10px}
+.article-brief{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:18px;margin-bottom:30px}
+.article-brief>summary{cursor:pointer;list-style:none;padding:13px 0;font-size:13px;font-weight:750;color:var(--txt2)}
+.article-brief>summary::-webkit-details-marker{display:none}
+.article-brief>summary::after{content:" ↓";color:var(--sub)}
+.article-brief[open]>summary::after{content:" ↑"}
+.article-brief-body{padding:0 0 16px;color:var(--txt3)}
+.article-brief-body p{font-size:14px;line-height:1.8;margin:0}
+.article-brief-body .brief-why{margin-top:9px;color:var(--txt2)}
+.content-section{margin:0 0 30px}
+.content-heading{max-width:700px;margin:0 auto 22px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}
+.content-heading h2{display:flex;align-items:center;gap:7px;font-size:15px;line-height:1.5;margin:0;color:var(--ink)}
+.content-origin-badge{font-size:11px;color:var(--sub);font-weight:500}
+.article .vendor-row{text-decoration:none}
+.related-title{min-width:0;flex:1;line-height:1.55}
+.related-meta{flex:0 0 auto;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub);font-size:11px}
+.article-toc-mobile{display:none;max-width:700px;margin:0 auto 24px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+.article-toc-mobile>summary{display:flex;align-items:center;justify-content:space-between;min-height:46px;padding:0 14px;cursor:pointer;list-style:none;color:var(--ink);font-size:13px;font-weight:750}
+.article-toc-mobile>summary::-webkit-details-marker{display:none}
+.article-toc-mobile>summary span,.article-toc-title span{color:var(--sub);font-size:10.5px;font-weight:500}
+.article-toc-mobile ol,.article-toc-rail ol{list-style:none;margin:0;padding:0}
+.article-toc-mobile ol{max-height:50vh;overflow-y:auto;padding:0 14px 12px;border-top:1px solid var(--soft)}
+.article-toc-mobile li{margin:0}
+.article-toc-mobile a{display:block;padding:8px 0;border-bottom:1px solid var(--soft);color:var(--txt2);font-size:12px;line-height:1.5;text-decoration:none}
+.article-toc-mobile li:last-child a{border-bottom:0}
+.article-toc-mobile .toc-level-3 a,.article-toc-mobile .toc-level-4 a{padding-left:12px}
+.article-toc-rail{position:sticky;top:82px;max-height:calc(100vh - 104px);overflow-y:auto;padding:10px 0 12px 14px;border-left:1px solid var(--line);scrollbar-width:thin}
+.article-toc-title{display:flex;justify-content:space-between;gap:6px;margin-bottom:7px;color:var(--ink);font-size:11.5px;font-weight:800}
+.article-toc-rail a{display:block;padding:5px 0;color:var(--sub);font-size:10.5px;line-height:1.45;text-decoration:none}
+.article-toc-rail .toc-level-3 a,.article-toc-rail .toc-level-4 a{padding-left:9px}
+.article-toc-rail a[aria-current="location"]{color:var(--accent);font-weight:750}
+[data-article-heading]{scroll-margin-top:88px}
+.reading-progress{position:absolute;left:0;right:0;bottom:-1px;height:2px;overflow:hidden;background:transparent}
+.reading-progress>span{display:block;width:100%;height:100%;background:var(--accent);transform:scaleX(0);transform-origin:left center;will-change:transform}
+.source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
+.source-heading{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.source-heading h4{margin:0}
+.source-summary{font-size:11.5px;color:var(--sub)}
+.source-group{padding:10px 0;border-bottom:1px solid var(--soft)}
+.source-group-head{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txt3);margin-bottom:2px}
+.source-group-head b{font-weight:700}
+.source-group-head span{font-size:10.5px;color:var(--sub)}
+.source-report{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:14px;padding:4px 0;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.55}
+.source-report-title{min-width:0;overflow-wrap:anywhere}
+.source-report-date{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}
+.source-more{padding-top:8px}
+.source-more>summary{width:max-content;max-width:100%;font-size:12px;color:var(--accent);cursor:pointer;list-style:none;padding:4px 0}
+.source-more>summary::-webkit-details-marker{display:none}
+.source-more>summary::after{content:" ↓"}
+.source-more[open]>summary::after{content:" ↑"}
+.content-feedback{max-width:700px;margin:28px auto 22px;padding:18px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.content-feedback-main{display:flex;align-items:center;justify-content:space-between;gap:18px}
+.content-feedback h2{font-size:14px;line-height:1.5;margin:0 0 3px;color:var(--ink)}
+.content-feedback p{font-size:11.5px;line-height:1.5;margin:0;color:var(--sub)}
+.content-feedback-actions{display:flex;gap:8px;flex:0 0 auto}
+.content-feedback button{min-height:38px;border:1px solid var(--line);border-radius:99px;background:var(--card);color:var(--txt2);font-size:12px;font-weight:700;padding:7px 14px;cursor:pointer}
+.content-feedback button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.content-feedback-reasons{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:12px}
+.content-feedback-reasons[hidden]{display:none}
+.content-feedback-reasons span{font-size:11px;color:var(--sub)}
+.content-feedback-reasons button{min-height:32px;font-size:11px;font-weight:600;padding:5px 10px}
+@media(max-width:600px){.content-feedback-main{align-items:flex-start;flex-direction:column;gap:12px}.content-feedback-actions{width:100%}.content-feedback-actions button{flex:1}}
+@media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
+.fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:700px;margin-left:auto;margin-right:auto}
+.fulltext .cb-heading{font-size:19px;line-height:1.55;margin-top:32px;margin-bottom:12px;color:var(--ink)}
+.fulltext p{margin-top:0;margin-bottom:18px}
+.fulltext strong{font-weight:750;color:var(--ink)}
+.fulltext em{font-style:italic}
+.fulltext a{color:var(--blue);text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere}
+.fulltext ul,.fulltext ol{padding-left:26px;margin-top:10px;margin-bottom:22px}
+.fulltext li{margin:6px 0;padding-left:2px}
+.fulltext blockquote{margin-top:20px;margin-bottom:20px;padding:12px 18px;border-left:4px solid var(--accent);background:var(--soft);border-radius:0 8px 8px 0;color:var(--txt2)}
+.fulltext code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+.fulltext pre{overflow:auto;background:#171a20;color:#e8ebf0;border-radius:10px;padding:14px 16px;margin:16px 0;line-height:1.65}
+.fulltext pre code{background:none;border:none;padding:0;color:inherit}
+.cb-table-shell{position:relative;margin:16px 0}
+.cb-table{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;margin:0;border:1px solid var(--line);border-radius:9px}
+.cb-table:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.cb-table table{border-collapse:collapse;width:100%;min-width:480px;font-size:13px}
+.cb-table th,.cb-table td{padding:9px 12px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:left;vertical-align:top}
+.cb-table th{background:var(--soft);color:var(--ink);font-weight:700}
+.cb-table tr:last-child td{border-bottom:none}
+.cb-table th:first-child,.cb-table td:first-child{position:sticky;left:0;z-index:1;background:var(--card);box-shadow:1px 0 0 var(--line)}
+.cb-table th:first-child{z-index:2;background:var(--soft)}
+.table-scroll-hint{display:none;position:absolute;right:8px;bottom:8px;z-index:3;padding:4px 8px;border-radius:99px;background:rgba(26,29,35,.88);color:#fff;font-size:10.5px;font-weight:700;pointer-events:none;box-shadow:0 3px 12px rgba(0,0,0,.16)}
+.cb-table-shell.is-overflowing:not(.has-scrolled) .table-scroll-hint{display:block}
+.cb-table-shell.is-overflowing:not(.at-end)::after{content:"";position:absolute;top:1px;right:1px;bottom:1px;width:24px;border-radius:0 8px 8px 0;background:linear-gradient(90deg,transparent,var(--card));pointer-events:none}
+.cb-figure{margin:20px 0;background:var(--soft);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.cb-media-link{display:block;background:#f5f7fa;text-decoration:none}
+.cb-figure img{display:block;width:100%;height:auto;max-height:72vh;object-fit:contain;margin:0 auto}
+@media(max-width:600px){.cb-figure{margin:16px -8px;border-radius:9px}.cb-table-shell{max-width:100%;margin-left:0;margin-right:0}}
+@media (prefers-color-scheme: dark){.cb-media-link{background:#171a20}}
+.tone-accent{color:var(--accent);font-weight:650}.tone-warning{color:var(--amber);font-weight:650}
+.tone-positive{color:var(--green);font-weight:650}.tone-info{color:var(--blue);font-weight:650}.tone-emphasis{color:var(--ink);font-weight:650}
+.cta{display:inline-block;background:var(--accent);color:#fff;font-size:14px;font-weight:700;border-radius:10px;padding:11px 26px;margin:6px 0 4px}
+.fulltext h5.fh{font-size:15px;font-weight:800;color:var(--ink);margin:20px 0 8px;padding-left:10px;border-left:3px solid var(--accent)}
+.fulltext p.fwarn{font-size:12.5px;color:var(--amber);background:var(--accent-soft);border-radius:8px;padding:8px 12px}
+.fulltext p,.fulltext li{font-size:16px;line-height:1.86;color:var(--txt3)}
+.tts-player{display:grid;grid-template-columns:auto auto minmax(120px,1fr) auto auto;align-items:center;gap:10px 12px;background:linear-gradient(135deg,var(--card),var(--soft));border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:2px 0 18px}
+.tts-player[hidden]{display:none}
+.tts-copy{display:flex;flex-direction:column;min-width:112px;line-height:1.35}
+.tts-copy b{font-size:12.5px;color:var(--ink)}
+.tts-copy span{font-size:10.5px;color:var(--sub);margin-top:2px}
+.tts-toggle{min-width:58px;min-height:44px;border:0;border-radius:99px;background:var(--ink);color:var(--card);font-size:12px;font-weight:750;padding:7px 13px;cursor:pointer}
+.tts-progress{width:100%;accent-color:var(--accent);cursor:pointer}
+.tts-time{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tts-rate-label{font-size:10.5px;color:var(--sub);display:flex;align-items:center;gap:4px}
+.tts-rate-label select{border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--ink);font-size:11px;padding:4px 5px}
+@media(max-width:600px){.tts-player{grid-template-columns:1fr auto auto;gap:9px;padding:11px 12px}.tts-copy{grid-column:1/-1;grid-row:1;flex-direction:row;align-items:baseline;gap:8px}.tts-toggle{grid-column:1;grid-row:2}.tts-time{grid-column:2;grid-row:2}.tts-rate-label{grid-column:3;grid-row:2}.tts-progress{grid-column:1/-1;grid-row:3}}
+@media(prefers-reduced-motion:reduce){.tts-player *{scroll-behavior:auto!important;transition:none!important}}
+@media(hover:hover) and (pointer:fine){
+  .article .back:hover,.meta-source-link:hover,.source-report:hover .source-report-title,.original-footer-link:hover,.article-toc-mobile a:hover,.article-toc-rail a:hover{color:var(--accent)}
+  .cta:hover{opacity:.9}
+}
+.content-footer{max-width:700px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin:20px auto 0}
+.disclaimer{flex:1;font-size:12px;color:var(--sub)}
+.original-footer-link{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:7px 12px;border-radius:99px;color:var(--blue);font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap}
+.original-footer-link:focus-visible,.meta-source-link:focus-visible,.article-toc-mobile summary:focus-visible,.article-toc-mobile a:focus-visible,.article-toc-rail a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:1199px){.article-layout.has-toc{display:block}.article-layout.has-toc .article-content{margin:0 auto}.article-toc-rail{display:none}.article-toc-mobile{display:block}}
+@media(max-width:600px){.article{padding-left:16px;padding-right:16px}.article h1{font-size:24px;line-height:1.45}.fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:none}.fulltext p,.fulltext li{font-size:16px;line-height:1.82}.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}.related-meta{max-width:88px}}
+</style><style>
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;margin-bottom:14px}
+.topbar .back{flex:0 0 auto;white-space:nowrap}
+.sharebtns{display:flex;justify-content:flex-end;gap:8px;min-width:0;max-width:100%;margin-left:auto}
+.sharebtns .sbtn{min-width:76px}
+.sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-height:44px;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
+.sbtn svg{flex:0 0 auto}
+.sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.sbtn:active{transform:scale(.95)}
+.topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topbar.detail-context .back{display:inline-flex;align-items:center;justify-content:center;align-self:center;min-width:88px;min-height:44px;margin-bottom:0;padding:0 14px;border-radius:99px;font-size:14px;font-weight:650;color:var(--ink);text-decoration:none}
+.topbar.detail-context .back{gap:5px}
+.topbar.detail-context .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:600px){
+.article{padding:20px 14px 48px}
+.topbar{align-items:center;flex-direction:row;gap:8px}
+.topbar.detail-context{margin:-20px -14px 14px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
+.topbar.detail-context .back{align-self:center}
+.sharebtns{width:auto;gap:4px;overflow:visible;padding-bottom:0}
+.sharebtns .sbtn{width:56px;min-width:56px;height:44px;padding:0 6px;font-size:12px}
+.sharebtns .sbtn-label{display:inline}
+}
+@media(max-width:359px){
+.topbar.detail-context .back{width:44px;min-width:44px;padding:0}
+.topbar.detail-context .back-label{display:none}
+}
+.sh-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.25s;z-index:80}
+.sh-mask.show{opacity:1;pointer-events:auto}
+.sh-sheet{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(110%);transition:transform .3s cubic-bezier(.32,.72,.35,1);padding:0 10px calc(10px + env(safe-area-inset-bottom))}
+.sh-sheet.show{transform:translateY(0)}
+.sh-panel{max-width:430px;margin:0 auto}
+.sh-group{background:var(--card);border-radius:16px;overflow:hidden;margin-bottom:8px}
+.sh-title{font-size:12px;color:var(--sub);text-align:center;padding:12px;border-bottom:.5px solid var(--line)}
+.sh-opt{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px;font-size:16px;font-weight:500;border:none;border-bottom:.5px solid var(--line);cursor:pointer;background:none;width:100%;color:var(--ink)}
+.sh-opt:last-child{border-bottom:none}
+.sh-opt:active{background:var(--hover)}
+.sh-cancel{background:var(--card);border-radius:16px;padding:15px;text-align:center;font-size:16px;font-weight:600;color:var(--blue);cursor:pointer;width:100%;border:none}
+.sh-poster-modal{position:fixed;inset:0;z-index:95;background:rgba(15,17,20,.92);display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.sh-poster-modal.show{display:flex}
+.sh-poster-wrap{width:min(340px,86vw);border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.sh-poster-wrap img{width:100%;display:block}
+.sh-poster-actions{margin-top:18px;display:flex;gap:10px}
+.sh-save,.sh-close{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:none;border-radius:99px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
+.sbtn:focus-visible,.sh-opt:focus-visible,.sh-cancel:focus-visible,.sh-save:focus-visible,.sh-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sh-save{background:var(--accent);color:#fff}
+.sh-close{background:rgba(255,255,255,.15);color:#fff}
+.sh-poster-tip{margin-top:10px;font-size:11px;color:#8b919b}
+.sh-toast{position:fixed;top:18%;left:50%;transform:translateX(-50%);background:rgba(26,29,35,.92);color:#fff;font-size:13px;padding:10px 20px;border-radius:99px;opacity:0;transition:.25s;z-index:99;pointer-events:none}
+.sh-toast.show{opacity:1}
+</style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="d769b4f2c54f" data-category="agent" data-source="InfoQ（AI/数据工程）">
+<aside class="sidebar"><div class="slogo"><a href="../index.html" data-smart-home-return aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><nav class="sidebar-nav" aria-label="主导航"><a class="mi on" href="../index.html" data-smart-home-return><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../for-me.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg>关注</a><a class="mi" href="../cases.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg>案例</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>周报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>收藏</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a></nav><nav class="sidebar-tools" aria-label="工具"><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a></nav><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a> · <a href="https://bsky.app/profile/datahot.xiahongbin.com" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Bluesky" style="color:var(--sub);text-decoration:underline">Bluesky</a><br>数据领域 AI 资讯分享</div></aside>
+<header class="detail-brand-header"><div class="wrap nav">
+  <div class="logo"><a href="../index.html" data-smart-home-return>Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
+</div></header>
+<div class="article">
+  <div class="topbar detail-context">
+    <a class="back" href="../index.html" data-smart-back aria-label="返回"><span aria-hidden="true">←</span><span class="back-label">返回</span></a>
+    <span class="sharebtns">
+      <button class="sbtn ghost favbtn" type="button" data-fav="d769b4f2c54f" data-fav-record="{&quot;event_id&quot;:&quot;d769b4f2c54f&quot;,&quot;title&quot;:&quot;Forter：两周让200名团队成员成为Agent构建者&quot;,&quot;summary&quot;:&quot;Forter首席工程师Ben Maraney分享如何降低AI Agent创建门槛，让技术和非技术员工都能参与。团队利用自定义MCP服务器、结合无代码与代码平台，并有意避开复杂RAG方案。他们还协调安全与法务团队，以加速R&amp;D内部的Agent采用。标题称两周内将200名团队成员转化为Agent创建者。&quot;,&quot;source&quot;:&quot;InfoQ (AI/数据工程)&quot;,&quot;category&quot;:&quot;agent&quot;,&quot;topics&quot;:[&quot;组织人才&quot;],&quot;published&quot;:&quot;2026-09-28T19:00:00+08:00&quot;,&quot;original_url&quot;:&quot;https://www.infoq.com/presentations/building-internal-ai-agents/?utm_campaign=infoq_content&amp;utm_source=infoq&amp;utm_medium=feed&amp;utm_term=AI%2C+ML+%26+Data+Engineering&quot;}" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg><span class="sbtn-label">收藏</span></button>
+
+      <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/d769b4f2c54f.png" title="海报" aria-label="海报"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg><span class="sbtn-label">海报</span></button>
+      <button class="sbtn" type="button" data-share-action="open" title="分享" aria-label="分享"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span class="sbtn-label">分享</span></button>
+    </span>
+    <span class="reading-progress" aria-hidden="true"><span data-reading-progress></span></span>
+  </div>
+  <div class="article-layout has-toc">
+  <main class="article-content">
+  <div class="meta">
+    <span class="srcbadge">RSS</span>
+    <a class="meta-source-link" href="https://www.infoq.com/presentations/building-internal-ai-agents/?utm_campaign=infoq_content&amp;utm_source=infoq&amp;utm_medium=feed&amp;utm_term=AI%2C+ML+%26+Data+Engineering" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="InfoQ（AI/数据工程）" aria-label="查看 InfoQ (AI/数据工程) 原文"><span>InfoQ (AI/数据工程)</span><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+    <span class="meta-content-mode">原文 · 未翻译</span>
+    
+    <span title="发布时间">发布 2026-09-28 19:00</span>
+    
+  </div>
+  <h1>Forter：两周让200名团队成员成为Agent构建者</h1>
+
+  
+  <details class="article-brief" open>
+  <summary>DataHot 速览</summary>
+  <div class="article-brief-body"><p>Forter首席工程师Ben Maraney分享如何降低AI Agent创建门槛，让技术和非技术员工都能参与。团队利用自定义MCP服务器、结合无代码与代码平台，并有意避开复杂RAG方案。他们还协调安全与法务团队，以加速R&amp;D内部的Agent采用。标题称两周内将200名团队成员转化为Agent创建者。</p>
+  <p class="brief-why"><b>为什么值得关注：</b>该实践展示了企业内部规模化构建Agent的落地路径，涉及MCP、无代码/代码平台、RAG取舍与安全法务协同，对数据团队建设Data Agent和提升内部采用率有参考价值。</p></div>
+</details>
+  <details class="article-toc-mobile"><summary>本文目录 <span>7 节</span></summary><ol><li class="toc-level-2"><a href="#article-section-1" data-toc-link data-toc-target="article-section-1">Transcript</a></li><li class="toc-level-2"><a href="#article-section-2" data-toc-link data-toc-target="article-section-2">A Two-Week Sprint Hackathon</a></li><li class="toc-level-2"><a href="#article-section-3" data-toc-link data-toc-target="article-section-3">1. Tools</a></li><li class="toc-level-2"><a href="#article-section-4" data-toc-link data-toc-target="article-section-4">2. Platform</a></li><li class="toc-level-2"><a href="#article-section-5" data-toc-link data-toc-target="article-section-5">3. No Roadblocks</a></li><li class="toc-level-2"><a href="#article-section-6" data-toc-link data-toc-target="article-section-6">Conclusions</a></li><li class="toc-level-2"><a href="#article-section-7" data-toc-link data-toc-target="article-section-7">Questions and Answers</a></li></ol></details>
+  <section class="content-section" aria-labelledby="articleBodyTitle">
+  <div class="content-heading"><h2 id="articleBodyTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 原文</h2></div>
+  <div class="fulltext"><h2 class="cb-heading" id="article-section-1" data-article-heading>Transcript</h2><p><strong>Ben Maraney:</strong> I was at QCon in London a few months ago, and in one of the breakout sessions I got talking to Krys Flores, who was one of the speakers. I mentioned some work we&#x27;ve been doing around enabling people across R&amp;D to build agents for ourself. She looked at me and she said, you know in my organization that seems impossibly far away. That puzzled me a bit. As I went through the rest of the conference, I sat in a bunch of really interesting, engaging, relevant talks on AI. What I realized was that mostly they were dealing with the hard parts about building agents. I thought about what we&#x27;d done, and it hadn&#x27;t felt that hard. The truth is that what happened was we just sidestepped a lot of the hard parts about building agents. What I want to do with this talk is to tell you that building agents does not need to be hard. You can and you should make it easy.</p><p>My name is Ben Maraney. I&#x27;m a principal engineer at Forter, where I&#x27;ve dealt with machine learning, data engineering, a bunch of cross-cutting stuff. I was lucky enough in 2023 to do our first LLM-based solution. Previously, I was at BigPanda. Before BigPanda, I was at Klarna. I work for Forter. I&#x27;ve been there six and a half years. We&#x27;re an identity-driven, fraud and payment decisions company. We work with some of the largest merchants and largest brands in the world, some of which are headquartered right here in Boston. As a result, we know about 2 billion or so different identities, different people around the world. We know quite a lot about them. As a result, data governance is really important to us, and security matters a lot. Early on in the company&#x27;s development, we decided that every decision we made for merchants, no matter how high stakes, needed to be made in real time, which meant that we couldn&#x27;t have humans involved doing manual review.</p><p>To do that well and precisely, we need a system which understands deeply both how fraudsters behave, but also both how normal customers, normal individuals behave. Getting that right requires a lot of research. The people who can do that research best are not the people in here, they&#x27;re not engineers. They&#x27;re analysts. Analysts come from all sorts of different backgrounds. Some of them were lawyers. Some of them were psychologists. Some of them were lab scientists. What they had in common when they joined Forter is that, largely speaking, they haven&#x27;t really met code before. They might not have written a line of SQL before. We needed to enable them to be able to do research and build logic that goes into our system.</p><h2 class="cb-heading" id="article-section-2" data-article-heading>A Two-Week Sprint Hackathon</h2><p>I&#x27;m going to take you back to last summer. I was asked to be a founding member of an AI engineering team we were just setting up. It was very exciting. What we got asked to do first was to run this two-week sprint hackathon thing in which people would get hands-on experience building their own agents so they could develop intuition about what AI does well and what it does less well, and to start them planning for this agentic future where also confidence is coming. We were told it needed to be for all of R&amp;D, which included those analysts I mentioned before, which meant that it needed to be relatively easy to do even for folks who aren&#x27;t that technical. We also got told that we had five weeks to do it in. It meant it had to be easy for us to build as well. This got us thinking very much about what is the absolute minimum we need to have a whole bunch of people building their own agents.</p><p>It took us to three things, tools, frameworks, and getting roadblocks out of people&#x27;s way. I&#x27;m going to break up the talk into those three things as well. I&#x27;m going to try and convince you that with tools, building your own in-house MCP server is really high ROI and definitely worth doing. I will try and convince you that you need to have more than one framework, and I&#x27;ll explain why. I&#x27;ll give you some tips and tricks to get various roadblocks your organization might have out of your way.</p><h2 class="cb-heading" id="article-section-3" data-article-heading>1. Tools</h2><p>With tools, we needed them to be easy for our users, our agent builders to find, so they knew what tools were out there. We needed them to be easy for agents to understand so the agents could use them well. We also wanted an easy path to create new tools. Before, just as the team was founded, my colleague Andy had put together this thing called Toolchain, which was an MCP server he was using to connect his Copilot at the time to various tools in his development workflow, Asana and some metric stuff and some Kubernetes stuff. We figured that would be a good basis as a system to add a whole bunch more tools to. What it did was it gave us this nice UI where people could go and see what tools were out there, what we had available, and then click into the tools and explore how they work and try them out.</p><p>Finding tools was suddenly easy because they were all in this one place. Once you found the tools you wanted, you would create a connection for your agent. You just select the tools that it should have access to, because if you give an agent access to too many tools, it gets confused and it can do some bad things. They would create the connection to the agents, choose the tools, do a little bit of configuration for them, and then it would spit out some connection details that you could then hand over to your agent so it would have access to the tools you wanted and only the tools you wanted. Really easy, nice flow. If you wanted to create a tool that didn&#x27;t already exist, this was all in one repo. You could clone it and you had plenty of examples you could look at. Then, per tool, you would create this configuration file.</p><p>The most important thing in it was this description that the agent would see about how to use the tool. There&#x27;s also some other bits and pieces about how it&#x27;s executed and whatever. Also, a list of the input schema. What parameters the agents would need to pass to each tool and some examples of using them. It turned out that people found this smooth and found this easy. When the team was founded, we have about 20 or so tools in Toolchain. Five weeks later when the sprint kicked off, we were close to 60. By the time the sprint was over, two weeks later, we had nearly 100. Because it was all in this one repo, because there were all these examples, people found it super easy to add their own tools. It was really high ROI. As well as it providing an easy path for people, it gave us all sorts of governance applications we could do, take advantage of. We could see token consumption, tool usage, and things like that. That&#x27;s my first tip to you. If you&#x27;re building agents, consider having your own single central MCP server where you can add stuff as you go.</p><p>I haven&#x27;t spoken to you about RAG. The reason I haven&#x27;t spoken to you about RAG is that RAG is really hard to get right. You need to think how you want to chunk your documents. You need to think how to index them, how to retrieve them, how to sort them. That&#x27;s not something you&#x27;re going to do well or in a generic way in a two-week sprint. Yet you still need a way to retrieve context to your agents. We had a few different ways. What I want to call out in particular is that we have this tool called Glean, which is this enterprise search tool that connects to a whole bunch of different data sources in our company. Could be things like Confluence or Asana or Jira or Slack or Salesforce, a bunch of useful data. They&#x27;ve been around for ages and they&#x27;re really good at indexing that stuff, and they&#x27;re really good at search on top of that.</p><p>We exposed three tools in Toolchain on top of Glean. We had this search tool, which what it did was the agent would give it a search term. It maybe would select which data sources it wanted to include or exclude. Then it would go away and retrieve the relevant documents, find the relevant snippets from them, rank them and send them back to the user. The search was designed for humans but now being used by agents. It did a good job of it. Then if the agent saw a document that was useful for whatever use case it was trying to solve, it could then use the reads tool to get back the full document. Or if the agent was worried that the document would be too big, there was a third tool, which was a summarize tool, which gives back a few paragraph summary of what&#x27;s in the doc.</p><p>The nice thing with the summarize tool is you can also give it as a parameter what it is you want the summary to focus on or what question is you&#x27;re trying to answer. Then the summary of the document would focus on just that stuff. This tool, which was originally built for humans, adapted very well for agents and meant we could sidestep building RAG.</p><h2 class="cb-heading" id="article-section-4" data-article-heading>2. Platform</h2><p>We&#x27;ve spoken about tools. Now we should speak about platform. A platform is the thing that connects the LLM to the tools and the thing that invokes the agent. The first question you want to ask yourself with the platform is, how should it run? Should your agent be an interactive chat, like a ChatGPT-like experience? Should it be triggered by some events, like maybe tickets getting created, or should it run on some schedule? The answer was that when we spoke to our users about what agents they wanted to build, they wanted all of these. We needed solutions for all of them. With chat agents, we wanted to provide two experiences. One was designed more for analysts originally and it was like a no-code experience, and the second was code based. For our no-code solution, there was this open-source tool we decided to use called LibreChat. What LibreChat was originally designed for was letting you pick an LLM model and then just have a regular ChatGPT-like experience with it, open source, off-the-shelf, easy to use.</p><p>A little bit clunky to set up actually. Just prior to the sprint, they&#x27;d added this MCP capability. You could connect to MCP servers and it would be able to use the tools. Unfortunately, at the time you couldn&#x27;t connect to an MCP server and then say, for this chat, I only want you to use these three or four tools. To work around that, we created multiple connections to Toolchain from LibreChat, each of which exposed a subset of tools, and then the user would then say, ok, I want to connect to this version of Toolchain and this version and this version to get the relevant tools they would use. Then they put in a query, and what you can see, those nice little blue ticks are the tools being used by the agent, by the chat. If you click them, what&#x27;s really lovely is you can see exactly the query, the parameters that were sent to the tool, and exactly the response that the MCP server sent back to the agent.</p><p>That was really nice because it let people understand how the tools were being used, which turned out to be really valuable and really important. I&#x27;ll tell you more about that later. If you then in this interactive chat experience found a set of tools and a system message that was useful for people, you then had this UI where you could create an agent and you put in your system message. You would choose your model. You would choose which tools it had access to. Then you had something which you could share out to your colleagues.</p><p>What was great with LibreChat was it provided a really quick and easy way for people to experiment. What we saw, which surprised us a bit is even people who were building agents which were using our code-based solutions, or even people who were building non-interactive agents would often start at LibreChat, because they could iterate so fast, try things out, get very quick feedback about what was working. Experimentation was really easy. The tool usage and thinking were really clearly visible in the UI. At the time, and this may have changed, the MCP integration was a bit flaky and those connections tended to disconnect. Of course, agents you build this way don&#x27;t have any source control and customizability is really pretty limited. It was great for those quick, easy experiments. For people who needed chat agents which did more, there was a template repo available which gave you a nice UI and got you started really quickly.</p><p>The nice thing with it being a template repo is then you can have whatever kind of customizability you want under the hood. You can add whatever tooling you want. You can do subagents and all sorts of good things. Cute example here with this thing is they added a picker where you could say what your role was and then the agent would under the hood get a slightly different system message so you get a more appropriate response for your user. Template repos were great because they gave you the source control, complete customizability. What we did see though was that setting them up was a lot slower for people. Especially the analysts struggled with deployment a bit. The development cycles were a lot slower than with LibreChat. Since then, we wanted to overcome some of the LibreChat issues that we saw. We built in an AI Hub this interface that lets people build their own agents there.</p><p>They put in the system message. They select the model that they want. They select the tools, and that&#x27;s integrated directly with that in-house MCP server. It works really smoothly. They choose who they want to share it with and that&#x27;s it. They have an agent, they&#x27;re ready to go in really just a few clicks. In retrospect, I wish we would have made the time before the sprint to build something like this because it worked really smoothly, really nicely, and you can put something together like this in really just a few days.</p><p>With chat agents, what did people actually create? Some of the agents were really rubber ducks that didn&#x27;t use tools very much. A couple of examples that come to mind there. One of our analysts who was from the lab science background, who&#x27;d been at Forter a really long time, understood deeply how we do research, how we come up with a hypothesis, and how we test it. Some of the younger analysts weren&#x27;t always as disciplined as she was about that. They would do experiments, come to conclusions, share them with their colleagues, and then have to get sent back to the lab and to do more research. She created this agent which had a lot of expertise in how to successfully run experiments at Forter. People would then talk to that agent and it would prompt them to think about how to do the research a bit more effectively and to sharpen their hypothesis.</p><p>Or on the engineering side, at Forter, thankfully not that often, sometimes things go wrong. Sometimes our systems don&#x27;t behave the way we want them to. When that happens, we have what we call a BetterNext, which is a really polite, nice way to say a post-mortem, where we write up what happened, the lead-up to the events, what we&#x27;re going to do better next time to avoid that happening in the future. Sometimes when people write those BetterNext, they also don&#x27;t really follow all the rules, they don&#x27;t do it in an optimum way. We had this agent which would know what we look for in a BetterNext, read that BetterNext, ask them difficult questions and help them improve them.</p><p>Getting a bit more advanced, Forter works for thousands and thousands of merchants around the world. Sometimes we see the performance of one of those merchants degrade a little bit. Then we need to understand what&#x27;s going on, and how to make improvements for them. Some analysts put together this agent which knows how to do what we call gap analysis. You&#x27;d run it for a particular merchant. It would then use and have access to tools like Snowflake. It could invoke certain specialist Databricks Notebooks we have, and use a whole other bunch of tools and a quite involved system message to analyze what was going on, and suggest what changes we could make to that merchant&#x27;s configuration to help them perform better. Then we had a system experts agents. We have Layla and we have Penny, and what they have access to is all of that analytical code.</p><p>Also, they can see our current configuration in production, and they can see the underlying transactions. That combination of the code and the config and the data enabled them to really get a rich understanding of what was going on. In the case of Layla on the left, we also have different bits in our system which we call attributes, and we have, they&#x27;re kind of like features, and we have thousands of them and they interconnect in complex ways, and she has access to a whole bunch of metadata about how they connect to each other. You could then ask Layla a question like, why was this transaction declined or why was this fraudulent transaction approved? Or if I want to change this attribute which other attribute will be affected? She&#x27;s really this deep expert in the system and actually has broader knowledge than any one individual in the organization.</p><p>Originally, Layla was supposed to be built for engineers and analysts, but it turned out to know so much about our system that we&#x27;ve handed it to our customer success team and our customer support team, and it&#x27;s deflecting a lot of the questions that otherwise would go to the engineers or to the analysts. Penny is very similar to Layla but deals with questions around billing, so why a particular transaction was billed in a particular way. The key thing there is if you can give something access to your code and your data and your configuration, it can do some really cool stuff.</p><p>That&#x27;s the chat agents. Now let&#x27;s go to the non-interactive ones. There are two kinds: some are triggered by time, some are triggered by events. The most popular events to be triggered by turned out to be where the work gets triggered for humans, so Jira or Asana. Those we decided to build using Strands rather than LangChain or LangGraph or any of the competitors. The reason we chose Strands was that we looked at the API and we decided it would be much easier to teach people, and teachability is a really important thing. We told ourselves that it&#x27;s a simple API and if people end up needing something more complex, then we can rewrite it into one of those other solutions. That&#x27;s actually never happened. It just turned out that it&#x27;s both an easy API and also quite rich when you need it to be. In terms of where it ran, we had Argo workflows already for scheduled jobs, and we figured, we might not need anything special for agents.</p><p>For the time-based ones, we just have a cron schedule which triggers the relevant Argo workflow which calls Strands, which runs an agent, which calls Toolchain, and does its agentic stuff and does whatever we need it to do. For the ones triggered by events, we have webhooks which get sent to an Argo event sensor, which says, which agents need to respond to this event, triggers the relevant workflows and then the same flow. What I&#x27;m trying to tell you there is that if you have a work scheduling thing in place already, you might not need anything special for your agents. When someone wanted to create a new non-interactive agent, we gave them this scaffold tool where they could run scaffold create, the name of their agent, system message and some tools. They would need to grab the TOOLCHAIN_API_KEY and give it to the agent, and then they were good to go. The scaffold also created this Readme with some guide on how to do local dev and testing, but also guidance on how to write good system messages and mistakes we&#x27;ve seen people making. That was just a nice opportunity to inject some extra education into the flow.</p><p>I will tell you that scaffolding hasn&#x27;t passed the test of time. We ran into two issues there. One was that analysts found it really clunky to go from a brand-new repo to something running and deployed. Also, our devs don&#x27;t like having to go from a brand-new repo to something deployed. The other problem we found was that if we introduce some new capability, some better tracing or whatever, having to go through every single repo for the many agents people have created is a real pain. What&#x27;s happened since the sprint is that we&#x27;ve actually ended up retracting to have a smaller number of repos, each of which contain a number of related agents, some of which are really quite big now. That took away a lot of the friction. I wish we&#x27;d started that way. I&#x27;ll also mention that a number of developers went off-piste, meaning they decided they didn&#x27;t like part of the solution we&#x27;ve given them and they figured they would build something themselves, so they&#x27;d take out Strands and drop in something else. That was totally fine. I feel good about the fact that we let them do that. What we saw is actually if they replace Strands with something else, then they would still continue to use Toolchain or they&#x27;d still use the pattern we&#x27;re using with Argo events. Just building things in a modular way, as always, was helpful.</p><p>In terms of non-interactive agents, I want to give you a few examples of things people built. Adding a new merchant to Forter requires at this stage configuring to get the best performance, like a couple of hundred different things, because every merchant is different. They deal with different kinds of fraud, different kinds of customers. That&#x27;s a really time-consuming process. The analyst built this agent which looked at the new customer, looked at our existing customers, and tried to find customers that were similar. Similar could mean they had a similar e-commerce setup. They had a similar contract with Forter. They were selling into the similar geographies, selling similar products, all sorts of different things, some of which are quite subjective. When it finds a few similar merchants, it would look at their configuration and then use those to come up with a suggestion that seems most appropriate for this new merchant.</p><p>It would then open a PR which would go to the analyst who could then very quickly just tweak anything they needed and save hours or even days of work configuring that new merchant. When we have tickets coming in from merchants, there&#x27;s a bunch of questions we need to ask ourselves. How&#x27;s the performance been in recent days? Have we seen similar tickets to this coming from other merchants? This is a recurring pattern for this merchant. All sorts of bits and pieces that take quite a bit of time to research. We built an agent which does all of that research ahead of time. The ticket comes in, agent starts working, gathers all the research, and then writes it as an internal comment on the ticket. By the time a human gets there, all of that boring work they would have to do at the beginning is done for them.</p><p>Another secret about Forter is we have this anomaly detection system that will look at a merchant&#x27;s traffic. If they see any spikes that might indicate a performance issue or a sudden fraud attack, it will send an alert. Various things can cause that. It could be a fraud ring. It could be that a merchant has done some drop sale without telling us, since they get loads more traffic. Or it could be they appeared in the news. Or it could even be that there&#x27;s a new version of Chrome and that behaves differently, and so the signals we look at suddenly look different. Sometimes the reason for the anomaly is we made a code change that had some impact we weren&#x27;t expecting. What we did was we built this agent that would look at the alert we received, look at the change, look at code changes that happened around that time, and say, could this have caused that? If the agent sees that, yes, the code change might be responsible, it would fire a ton of alerts and make sure we knew all about it.</p><p>Last one I want to mention is an agent called the AI-powered Incident Response Agent, or IRA. IRA was really exciting. If we had some production incident, the theory was that IRA would look at our logs, look at our metrics, look at our documentation, look at the state of Kubernetes cluster, and try and suggest what is going on. Like, what is the problem? What can we do to fix it? Thankfully, we don&#x27;t have that many incidents. We would run IRA in development on these old historic incidents and see how it performed. The results we got initially were just fantastic. It would take a little while when it&#x27;s running, but it would come up with the root cause analysis that felt like spot on and really great next steps. We were super excited. Far too long later, realized what was happening was, yes, it was looking at the logs, yes, it was looking at the metrics, it was trying to retrieve the docs, and then it would find the BetterNext that a human wrote with this root cause analysis.</p><p>It would more or less copy that verbatim, reword it a little bit, and send us the answer, and we were blown away. The reason I tell you the story, other than the fact it&#x27;s fun, is that you should remember that it&#x27;s really important that people can see when they&#x27;re developing an agent, which tools it&#x27;s calling, what parameters it&#x27;s sending, but also crucially what response it&#x27;s getting. Since then, we&#x27;ve added a tool called Langfuse, there&#x27;s an open-source version, which makes it really easy to look at an individual session and see which tools the agent is invoking, what&#x27;s going on in its thinking process, the responses it gets for its tool use. That&#x27;s been incredibly helpful. Actually, you&#x27;ll see amongst the vendors, there&#x27;s a few of them that offer solutions like that, and it&#x27;s definitely worth having something like that in your system.</p><p>Reflecting for just a second. I&#x27;ve told you it needed to be fast and easy. I&#x27;ve told you about a whole bunch of different platforms we decided to provide. Did we really need all of them? The answer is, I think, yes. I think that having that no-code agent building solution was powerful, not just because it enabled analysts who might otherwise not have been able to build agents to build them, it also enabled our most technical users to try out their ideas really fast. As a result, they tried five ideas, and maybe three of them they realized weren&#x27;t going to work, and they realized that before they&#x27;d had to write a line of code. The two that were working, they could tune a bit and decide which of them were worth investing in. It&#x27;s totally worth having a really easy no-code solution for people to experiment fast.</p><p>Then, yes, we really did need the code-based chat solution, because some people did need to add more complexity than a no-code solution could enable. For the non-interactive agents, they were also incredibly helpful, because we needed these agents which would get triggered where the work happens. Being able to trigger an agent when a Jira ticket is created or an Asana ticket is created is something you need. It&#x27;s totally worth providing different but related and interconnected platforms for those different use cases.</p><p>I haven&#x27;t spoken about evals. Evals can look really easy. Any open-source solution, any vendor will give you a whole bunch of evaluators out the box. They&#x27;ll promise to evaluate things like relevance, safety, coherence, conciseness, all of which sound important. In my opinion, with any modern LLM, its answer will more or less be relevant, coherent, concise, and safe. These evaluators will give you a number that you might feel good about, and you might be able to nudge a little bit, but ultimately won&#x27;t be that valuable to you, because it won&#x27;t be answering the question, is this answer correct? Good evals are totally doable. You can have evaluators that assess the correctness of an answer, whether the right tools were used, whether we pulled the right context. The thing those useful evals have in common is that they&#x27;re hard. We said we don&#x27;t want to do hard things right now, because they require you to know how people are going to use this tool while you&#x27;re building it, and what good looks like.</p><p>These are great for more advanced projects, but for many projects, especially ones where the user is internal to your organization, and they&#x27;re in the loop when any key decisions get made by the agent, it might be the case that evals don&#x27;t really matter to you yet. I would say consider evals, but don&#x27;t let that stop you from building and experimenting and getting stuff out there. Decide on what level of maturity you need from your project, and only introduce evals when they&#x27;re necessary.</p><h2 class="cb-heading" id="article-section-5" data-article-heading>3. No Roadblocks</h2><p>We&#x27;ve spoken about tools. We&#x27;ve spoken about platform. Now let&#x27;s talk about roadblocks. When you want hundreds of people in your org to build agents, there are a few things that will get in your way. What you want to do is create a very wide path through which people can build agents in a way which is relatively friction free, and you want to make that path as wide as possible. One of the things that might add friction is your legal team. They might tell you that AI is scary, because it is. They might tell you that because it&#x27;s scary, they need to improve every individual use case. That is not something that is going to happen when you have lots of people building agents. They&#x27;ll become a bottleneck really fast. You need to think about how to avoid them saying they need to approve every individual use case.</p><p>The way to do that is to approach them early and to treat them as the colleagues that they are that are trying to protect your company. You speak to them early about their real concerns. Ultimately, they should come down to two. The first is going to be when you use an LLM, when you send a prompt, when you send the context, where does that data go? Who is processing it? Are we going to be sending customer data? If we are, will the person providing the LLM be someone that our customers are ok with their data flowing to? The way to sidestep that, the easiest thing is that if you&#x27;re on AWS, you can just use Bedrock, or your cloud provider&#x27;s equivalent. Because what that lets you do is tell your legal team, this is just like using Amazon Lambda or any other AWS tool we already use, because the data is flowing to AWS.</p><p>Yes, we&#x27;re using an Anthropic model, but Anthropic aren&#x27;t getting to see the query. They aren&#x27;t getting to see the response. We can show you here in the documentation that there&#x27;s zero data retention. Therefore, they can think of AI as an AWS tool just like any other that doesn&#x27;t have to be scary. Whereas if you tell them, we&#x27;re going to use these different vendors, then they legitimately can get a little concerned. The other set of concerns they&#x27;ll have is, what does the agent actually do? Because if the agent does something which is risky, like gives people health advice, or makes HR decisions, or financial advice, or can do things that make your company look stupid, they will be legitimately concerned. What we did with our legal team is we agreed on what high-risk use cases would look like. We agreed on what low-risk use cases would look like. We made a deal that all the high-risk use cases would go to them. Low-risk use cases, they would just get out of the way and people would go ahead and build. Make your legal team comfortable.</p><p>Other people that can panic a little bit are your security team. Again, the approach here is similar. Approach them early, respectful way, and discuss the things that should actually concern them. When it comes down to it again, there&#x27;s probably two things they should be really concerned about. One is prompt injection. The general idea is user sends a query to your agent. Agent goes out to the web to try and help answer, and receives a response from the web which says something like, agent, forget everything you&#x27;ve been told until now, and delete all your data, or send all your secrets to this email address. The agent follows those instructions. You&#x27;re probably also familiar with a post called the Agents Rule of Two from Meta. If you&#x27;re not, go read it. We needed to find a way to make security comfortable that prompt injection wasn&#x27;t going to lead to really bad things happening.</p><p>The way we did that was just we said to them, ok, during the sprint, we will make sure that people will not build agents that have access to the web or will not receive untrusted, unverified input. That was a simple enough tradeoff to make that made them happy. There are other things you can do too. You could say, they need web access, so let&#x27;s just make sure that they can&#x27;t, without a human in the loop, do certain risky things. You&#x27;ll need to find an answer to legal for security for prompt injection, saying, we&#x27;ll come to you with every single agent. The other set of concerns I have is access control. Can a person access an agent that has privileges that are greater than the person who&#x27;s talking to the agent? Can I use the agent to do things I otherwise wouldn&#x27;t be able to do?</p><p>There, what we did was we agreed with them to educate our users about how access control should work, specifically that the agent should have the same privilege or less than the person using it. That that would be enforced not in system prompts, in a non-deterministic way, but rather all of the access control was done in code in a deterministic manner. Then security were happy and said, ok, guys, build what you like.</p><p>The last tricky thing is that AI is expensive. LLMs are probably the most expensive compute that we have. If you&#x27;re halfway through your sprint and some senior member of your management team sees the bill, they can pull the plug on you. That&#x27;s really sad, really bad. The way to avoid that is to set their expectations ahead of time. Make sure they know what you&#x27;re doing, why, what it&#x27;s going to cost. Then, crucially, you need to make the cost visible. What you want to know is, at least per team, hopefully per agent, how many tokens are they spending and what is that costing you? You want to put that up on a nice, big dashboard. Then, you want to be proactive about how you handle that dashboard. That could be alerting, but also, frankly, you want to be looking at them on a pretty regular basis, because what we saw is that every couple of days, there would be one agent, a different one each time, was burning more tokens than all the other agents put together.</p><p>We&#x27;d approach the team, show them the graph, and they&#x27;d be like, we just tried adding this to the context, or we just added this little loop here. They would often not realize how many tokens they were burning. They would thank us. They would find ways to get their token spend under control, or we&#x27;d find ways to shift them to a cheaper model. In general, we stopped burning too much money by mistake.</p><p>Last set of roadblocks come with user knowledge. The answer there is training. Poor LLMs are sometimes quite misunderstood. I&#x27;ve seen three sets of places where people misunderstand AI. First lot are the people who maybe used very early versions of ChatGPT. They assume that it&#x27;s really dumb, and it&#x27;s just going to hallucinate all the time and be unusably full of garbage. Second set are the people who are all sci-fi and assume that AI, even with the same inputs that humans get, will be somehow magically much smarter than those humans. Then the third people are people who&#x27;ve heard the term machine learning, and they get stuck on the learning bit and assume that an agent will get better and smarter over time, even if you haven&#x27;t built some explicit learning mechanism. You want to get people into a more realistic place. My favorite way to do that, really, this applies both from engineers through people outside of R&amp;D, is to tell them to think about agents in a specific way.</p><p>I tell them to imagine that they have an intern starting at their company, graduate of a good university, perhaps a Boston university, with a broad set of hobbies, pretty good general knowledge. They get there and you hand them some instructions. You hand them some tools they can use. You give them a task. They go away and they do their absolute best to fulfill your request, send back the result. Then you immediately fire them, and you hire a new intern for the next task. The reason I think this analogy works, besides being funny and quirky, is that it sets reasonable expectations on the LLM&#x27;s intelligence. It makes it clear to them that the success is their responsibility. It is their responsibility to give a very easy to use set of tools and a very clear system message. If the intern does well, it&#x27;s not the intern&#x27;s fault, it&#x27;s their fault.</p><p>If that does badly, it&#x27;s not the intern&#x27;s fault, it&#x27;s their fault. It helps them understand that interns can be really keen to please you. They will do their best to answer your question, even if they don&#x27;t quite have the right knowledge to back it up. LLMs can be a bit the same. Like they will give you an answer that is based on just like one or two words in the input. It reminds them that, like taking work from an intern, the burden is on them to check that the quality of the response is really as good as it seems. Then, finally, the fact that you&#x27;re firing the intern every time and handing the task to a brand-new intern helps people remember that the agents don&#x27;t learn unless you give them some special tooling to do that. The other thing you want to do is teach about your platform.</p><p>Of course, if you&#x27;ve given them lots of different platforms, they&#x27;ll need to know which to use and when. They&#x27;ll need to know where to find documentation and how to get help and all that basic stuff. The last part is that you should not be afraid to sit down and hold your users&#x27; hands ahead of the sprint. By which I mean, before they get started, you should spend some time with them and talk to them about what it is they want to achieve, what it is they want to build, because you will have really good instincts about what&#x27;s feasible and what of your platform, what of your tooling they should be using. A few-minute conversation with them can save them really days of frustration and redirect them into doing something that will be much more successful. Some of my favorite time leading up to this sprint was spent sat down with people who wanted to build things, helping them think about what they can build be effective.</p><h2 class="cb-heading" id="article-section-6" data-article-heading>Conclusions</h2><p>How did the sprint go? I think it went great. If we asked our users if it made them more likely to use or build AI tools, they were overwhelmingly positive. They built a bunch of useful agents. They published 80 during the sprint. Since then, some of those have merged into being super agents, which do a bunch of things which are really helping the business day to day. Some of them stayed more or less as they are, or developed a bit. A bunch of them disappeared, meaning people stopped using them. A bunch of them were on backlogs of things that the business wants to develop. We got a bunch of great agents out of this two-week sprint. Management team is much more confident about AI and its ability to deliver value to the organization. As a result, they&#x27;re much more willing to make investments there. We&#x27;ve also had a bunch of ideas that people had during the sprint, which were customer facing that have developed into fully fledged parts of their product.</p><p>They&#x27;re accessible to Forter&#x27;s users, and really contributing directly to the business&#x27;s bottom line. This 2-week craziness was absolutely worth doing. Another lovely side effect is that when Claude Code skills became a thing, we saw really big adoption very quickly. When I prepared this, we had 112 skills built by engineers, 46 built by analysts, which makes me incredibly happy. Many of those tools are using Toolchain, the MCP server I mentioned. I just don&#x27;t think people would have the confidence to do this if they hadn&#x27;t been through that experience of building agents for themselves. If you remember one thing, it is you can and you should make it easy for people to build agents. You should make sure that tools are easy to find. Strongly recommend building an in-house MCP server, if you can. You will need a few different ways in which agents can be triggered. There are a bunch of things you can and should do to get roadblocks out of people&#x27;s way to make the process a lot easier and smoother for them.</p><h2 class="cb-heading" id="article-section-7" data-article-heading>Questions and Answers</h2><p><strong>Participant 1:</strong> What kind of guidelines do you give people for iterating on the system prompts?</p><p><strong>Ben Maraney:</strong> The main thing is to try it out, look at the output and crucially see how it&#x27;s using the tools. That&#x27;s where Langfuse and that UI I describe becomes really helpful, because by looking at which tools it&#x27;s invoking, what parameters it&#x27;s sending, what response it&#x27;s getting, you can have a really good understanding of how to make it better. Then you can either improve the description of how to use the tool or improve the system prompt. That visibility into what&#x27;s going on under the hood is the important bit there.</p><p><strong>Participant 2:</strong> These days, tools like Claude and ChatGPT provide you ways to create agents yourself and give users the way to create agents. What&#x27;s your experience with them? Do you suggest people creating their own agents or would you prefer adding a framework on top of those?</p><p><strong>Ben Maraney:</strong> With ChatGPT and with Gemini Gems outside of R&amp;D, we&#x27;ve seen people being able to build some quite nice stuff. It tends to be fairly exploratory and they don&#x27;t tend to mature all that much. I think it&#x27;s great that those capabilities are there and I think they&#x27;ll get better over time. I think at the minute, they&#x27;re not sufficient for many of the things R&amp;D would want to build. Actually, with Claude Code, some of the things that people are building agents for during the sprint, they&#x27;re now just using Claude Code and skills for. That&#x27;s a useful transition that people should be encouraged to make where it&#x27;s relevant. They share less well than some of the other things though, although not terrible.</p><p><strong>Participant 3:</strong> With non-interactive agents, it&#x27;s often that you&#x27;re going to want a more deterministic loop in there, whether you have particular triage steps that are mandatory. Depending on the framework you&#x27;re using, that can be a little bit hard to wrangle. Do you have any tips on how to produce a more deterministic, non-interactive agent when you have mandatory checks and milestones an agent needs to do?</p><p><strong>Ben Maraney:</strong> I would think carefully about which bits should be done by agents in a non-deterministic way. It&#x27;s often the case that there are many steps that you want to happen which don&#x27;t need an LLM in the loop where you can just shoot old school code. In fact, I feel like you should only really use the LLM bit where you have to, where those smarts that come coupled with non-determinism and high cost add value. That&#x27;s my main tip. Use the LLM but only where you need to, otherwise write code.</p><p><strong>Participant 4:</strong> I was hoping you could talk a little bit more about the UI that you guys created for adding tools to the MCP for some of the more non-technical folks. Maybe some of the challenges you came up with, some of the iterations you had to do with that tool before you got it in like a sweet spot.</p><p><strong>Ben Maraney:</strong> That UI is to discover the tools we have there and to let people execute them with different parameters and see the results. It&#x27;s not creating tools.</p><p><strong>Participant 5:</strong> Could you cover discoverability in terms of, you mentioned that at this point you guys are at 80 agents, but I&#x27;m guessing that will go up over time. How do you approach that when somebody comes into the system that they can find an existing agent instead of creating their own?</p><p><strong>Ben Maraney:</strong> In this AI Hub thing, we have this marketplace bit, and that is built exactly for that. That&#x27;s a place where people go and share the agents that are there and they&#x27;re searchable. I think we just built a chat agent actually on top of that to help people find what&#x27;s there already.</p><p><strong>Participant 6:</strong> A lot of the tools you&#x27;re showing here, I&#x27;m wondering how many of them are in-house tools versus tools that you can go leverage. I look at this and I want to go immediately build something to help my teams be able to understand what their agents are doing. How many of the things you&#x27;re showing here are in-house tools that you guys build versus products that we can just go leverage right away?</p><p><strong>Ben Maraney:</strong> Most of the tools in Toolchain are really thin clients on top of existing APIs. Once you build that MCP framework where all you need to do is have a description of the tool and the description of its parameters, writing a little Python script that maps from that to an API call is really easy. Every vendor these days will also provide their own MCP server exposing their tools and just their tools. I think it&#x27;s not necessarily worth using those when you can have one MCP server that just wraps their APIs, because that&#x27;s usually relatively fast. Unless they&#x27;re providing you with like 60, 70 different endpoints, in which case you want to be really selective about which you expose, because otherwise the agents will get confused.</p><p><strong>Participant 7:</strong> How do you enforce governance and safety with regards to the non-technical people creating all these tools and agents? They can technically write whatever they want, given, here are the rules, please don&#x27;t break it. Are you having engineers review what they&#x27;re doing? What&#x27;s the process to make sure that they&#x27;re not doing something nefarious or silly.</p><p><strong>Ben Maraney:</strong> I will say that&#x27;s the dilemma we have with the analysts, just generally. We have all sorts of non-AI specific processes there in place already. We know how to do that for them. Another cool thing we have is a place where anyone in Forter, including people outside R&amp;D, can build like a little website with some limited backend, that they can then upload to the hub and make it available to other people. The way that works is under the hood there&#x27;s a pull request process and we have an agent which reviews that PR. If it&#x27;s highly confident that there&#x27;s nothing risky there, it will merge automatically. Otherwise, it will call out for engineering to say, please review this PR before that gets merged. I can answer what we do with analysts more offline, I would just say it&#x27;s not particularly agent specific.</p><p><strong>See more </strong><a href="https://www.infoq.com/transcripts/presentations/" target="_blank" rel="noopener noreferrer nofollow"><strong>presentations with transcripts</strong></a></p></div>
+  <div class="content-footer"><div class="disclaimer">当前直接显示原文，自动翻译暂不可用；未进行 AI 摘写或重组</div><a class="original-footer-link" href="https://www.infoq.com/presentations/building-internal-ai-agents/?utm_campaign=infoq_content&amp;utm_source=infoq&amp;utm_medium=feed&amp;utm_term=AI%2C+ML+%26+Data+Engineering" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="InfoQ（AI/数据工程）"><span>查看原文</span><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div>
+</section>
+  <div class="vendors article-tags" aria-label="文章主题"><a class="chip" href="../topics/people-insights.html">组织人才</a></div>
+
+  <section class="content-feedback" data-content-feedback data-event-id="d769b4f2c54f" data-feedback-context="{&quot;topics&quot;:[&quot;组织人才&quot;],&quot;vendors&quot;:[],&quot;source&quot;:&quot;InfoQ（AI/数据工程）&quot;}" aria-labelledby="contentFeedbackTitle">
+  <div class="content-feedback-main">
+    <div><h2 id="contentFeedbackTitle">这篇内容对你有用吗？</h2><p data-feedback-status aria-live="polite">反馈只用于改善内容筛选，不等同于收藏</p></div>
+    <div class="content-feedback-actions">
+      <button type="button" data-feedback-value="useful" aria-pressed="false">有用</button>
+      <button type="button" data-feedback-value="not_useful" aria-pressed="false">没用</button>
+    </div>
+  </div>
+  <div class="content-feedback-reasons" data-feedback-reasons="useful" hidden aria-label="有用的原因">
+    <span>可选原因</span><button type="button" data-feedback-reason="solid">内容扎实</button><button type="button" data-feedback-reason="relevant">贴合工作</button><button type="button" data-feedback-reason="novel">提供新观点</button><button type="button" data-feedback-reason="source_discovery">发现好信源</button>
+  </div>
+  <div class="content-feedback-reasons" data-feedback-reasons="not_useful" hidden aria-label="没用的原因">
+    <span>可选原因</span><button type="button" data-feedback-reason="irrelevant">不相关</button><button type="button" data-feedback-reason="shallow">太浅</button><button type="button" data-feedback-reason="marketing">营销软文</button><button type="button" data-feedback-reason="duplicate">内容重复</button><button type="button" data-feedback-reason="body_quality">正文质量差</button>
+  </div>
+</section>
+  
+  </main>
+  <aside class="article-toc-rail" aria-label="本文目录"><div class="article-toc-title">本文目录 <span>7 节</span></div><ol><li class="toc-level-2"><a href="#article-section-1" data-toc-link data-toc-target="article-section-1">Transcript</a></li><li class="toc-level-2"><a href="#article-section-2" data-toc-link data-toc-target="article-section-2">A Two-Week Sprint Hackathon</a></li><li class="toc-level-2"><a href="#article-section-3" data-toc-link data-toc-target="article-section-3">1. Tools</a></li><li class="toc-level-2"><a href="#article-section-4" data-toc-link data-toc-target="article-section-4">2. Platform</a></li><li class="toc-level-2"><a href="#article-section-5" data-toc-link data-toc-target="article-section-5">3. No Roadblocks</a></li><li class="toc-level-2"><a href="#article-section-6" data-toc-link data-toc-target="article-section-6">Conclusions</a></li><li class="toc-level-2"><a href="#article-section-7" data-toc-link data-toc-target="article-section-7">Questions and Answers</a></li></ol></aside>
+  </div>
+</div>
+<footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a> · <a href="https://bsky.app/profile/datahot.xiahongbin.com" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Bluesky" style="color:var(--sub);text-decoration:underline">Bluesky</a></footer>
+<nav class="tabbar" aria-label="移动端主导航">
+  <a href="../index.html" class="on" data-home-top><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../for-me.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg></span><span>关注</span></a><a href="../cases.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg></span><span>案例</span></a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>
+  <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
+</nav>
+<div class="more-mask" data-more-mask aria-hidden="true"></div>
+<section class="more-sheet" id="mobileMoreSheet" role="dialog" aria-modal="true" aria-labelledby="mobileMoreTitle" aria-hidden="true">
+  <div class="more-handle" aria-hidden="true"></div>
+  <div class="more-head"><h2 id="mobileMoreTitle">更多</h2><button class="more-close" type="button" data-more-close aria-label="关闭更多导航">×</button></div>
+  <div class="more-grid"><a class="more-link" href="../weekly.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span>每周简报</span></a><a class="more-link" href="../topics.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a class="more-link" href="../hot.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></span><span>完整榜单</span></a><a class="more-link" href="../sources.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span><span>信源</span></a><a class="more-link" href="../agent.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg></span><span>接入 Agent</span></a><a class="more-link" href="../privacy.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg></span><span>隐私说明</span></a></div>
+</section>
+<script>
+(function(){
+  var homeLink=document.querySelector('[data-home-top]');
+  if(homeLink) homeLink.addEventListener('click',function(event){
+    if(document.body&&document.body.classList.contains('home-page')) return;
+    var button=event.button==null?0:event.button;
+    if(event.defaultPrevented||button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey) return;
+    try{
+      var current=new URL(window.location.href);
+      var target=new URL(homeLink.href,current);
+      var source=new URL(document.referrer,current);
+      var targetRoot=target.pathname.replace(/index\.html$/,'');
+      var sourceIsHome=source.origin===target.origin&&(source.pathname===target.pathname||source.pathname===targetRoot);
+      if(!sourceIsHome||window.history.length<=1) return;
+      window.sessionStorage.setItem('datahotForceHomeTop','1');
+      event.preventDefault();window.history.back();
+    }catch(error){}
+  });
+  var trigger=document.querySelector('[data-more-open]');
+  var sheet=document.getElementById('mobileMoreSheet');
+  var mask=document.querySelector('[data-more-mask]');
+  var closeBtn=document.querySelector('[data-more-close]');
+  if(!trigger||!sheet||!mask||!closeBtn) return;
+  var background=Array.from(document.body.children).filter(function(node){return node!==sheet&&node!==mask&&node.tagName!=='SCRIPT'});
+  function setMore(open){
+    if(!open) background.forEach(function(node){node.removeAttribute('inert')});
+    trigger.setAttribute('aria-expanded',open?'true':'false');
+    sheet.setAttribute('aria-hidden',open?'false':'true');
+    sheet.classList.toggle('show',open);
+    mask.classList.toggle('show',open);
+    document.body.classList.toggle('more-open',open);
+    if(open){background.forEach(function(node){node.setAttribute('inert','')});closeBtn.focus()}else trigger.focus();
+  }
+  trigger.addEventListener('click',function(){setMore(true)});
+  closeBtn.addEventListener('click',function(){setMore(false)});
+  mask.addEventListener('click',function(){setMore(false)});
+  document.addEventListener('keydown',function(event){
+    if(!sheet.classList.contains('show')) return;
+    if(event.key==='Escape'){setMore(false);return}
+    if(event.key!=='Tab') return;
+    var focusable=Array.from(sheet.querySelectorAll('a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])'));
+    if(!focusable.length) return;
+    var first=focusable[0],last=focusable[focusable.length-1];
+    if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+    else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+  });
+})();
+</script>
+
+
+<div class="sh-mask" id="shMask" data-share-action="close"></div>
+<div class="sh-sheet" id="shSheet"><div class="sh-panel">
+  <div class="sh-group">
+    <div class="sh-title">分享这条资讯</div>
+    <button class="sh-opt" type="button" data-share-action="copy"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 复制链接</button>
+    <button class="sh-opt" type="button" data-share-action="native"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 系统分享…</button>
+  </div>
+  <button class="sh-cancel" type="button" data-share-action="close">取消</button>
+</div></div>
+<div class="sh-poster-modal" id="shPoster">
+  <div class="sh-poster-wrap"><img id="shPosterImg" alt="分享海报"></div>
+  <div class="sh-poster-actions">
+    <a class="sh-save" id="shSave" href="#" data-share-action="save">保存图片</a>
+    <button class="sh-close" type="button" data-share-action="close">关闭</button>
+  </div>
+  <div class="sh-poster-tip">iOS 也可以长按图片保存</div>
+</div>
+<div class="sh-toast" id="shToast"></div>
+
+<script>
+if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
+}
+var SH_EV = {"title":"Forter：两周让200名团队成员成为Agent构建者","summary":"Forter首席工程师Ben Maraney分享如何降低AI Agent创建门槛，让技术和非技术员工都能参与。团队利用自定义MCP服务器、结合无代码与代码平台，并有意避开复杂RAG方案。他们还协调安全与法务团队，以加速R\u0026D内部的Agent采用。标题称两周内将200名团队成员转化为Agent创建者。","reason":"该实践展示了企业内部规模化构建Agent的落地路径，涉及MCP、无代码/代码平台、RAG取舍与安全法务协同，对数据团队建设Data Agent和提升内部采用率有参考价值。","topic":"组织人才","heat":60,"source":"InfoQ (AI/数据工程)","date":"2026-09-28","url":"https://datahot.xiahongbin.com/e/d769b4f2c54f.html","qr":"../qr/d769b4f2c54f.png"};
+function shClose(){
+  document.getElementById('shMask').classList.remove('show');
+  document.getElementById('shSheet').classList.remove('show');
+  document.getElementById('shPoster').classList.remove('show');
+}
+function openSheet(){
+  document.getElementById('shMask').classList.add('show');
+  document.getElementById('shSheet').classList.add('show');
+}
+function shToast(t){
+  var el=document.getElementById('shToast'); el.textContent=t; el.classList.add('show');
+  setTimeout(function(){el.classList.remove('show')},1600);
+}
+function shCopy(){
+  shClose();
+  function fallbackCopy(text){
+    var i=document.createElement('input');i.value=text;i.setAttribute('readonly','');document.body.appendChild(i);i.select();
+    var ok=false;try{ok=document.execCommand('copy');}catch(e){ok=false}i.remove();return ok;
+  }
+  var copied=navigator.clipboard&&navigator.clipboard.writeText
+    ?navigator.clipboard.writeText(SH_EV.url).then(function(){return true},function(){return fallbackCopy(SH_EV.url)})
+    :Promise.resolve(fallbackCopy(SH_EV.url));
+  copied.then(function(ok){shToast(ok?'链接已复制，去粘贴吧':'复制失败，请手动复制链接');});
+}
+function shSaveClick(ev){
+  ev.preventDefault();
+  if(!posterURL){return;}
+  var blob=dataToBlob(posterURL);
+  // iOS 相册直存：Web Share API 文件分享 → 原生面板选「存储图像」
+  try{
+    var file=new File([blob],'datahot-'+SH_EV.title.slice(0,20)+'.png',{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      navigator.share({files:[file],title:SH_EV.title}).then(function(){
+        shToast('已调起系统分享，选择"存储图像"即可存入相册');
+      }).catch(function(){});
+      return;
+    }
+  }catch(e){}
+  // 降级：新标签页打开，长按保存
+  var bu=URL.createObjectURL(blob);
+  var w=window.open(bu,'_blank');
+  if(!w){shToast('请长按图片保存到相册');}
+  else{shToast('已在新页面打开，长按图片保存');}
+}
+function shNative(){
+  shClose();
+  if(navigator.share){
+    navigator.share({title:SH_EV.title,text:(SH_EV.reason||SH_EV.summary).slice(0,60)+' | DataHot',url:SH_EV.url}).catch(function(){});
+  }else{shCopy();}
+}
+function wrapText(ctx,text,x,y,maxW,lineH,maxLines){
+  var line='',lines=0;
+  for(var i=0;i<text.length;i++){
+    var t=line+text[i];
+    if(ctx.measureText(t).width>maxW&&line){
+      ctx.fillText(line,x,y);y+=lineH;lines++;line=text[i];
+      if(lines>=maxLines-1){
+        line=line+text.slice(i+1);
+        while(ctx.measureText(line+'…').width>maxW&&line.length>1){line=line.slice(0,-1);}
+        ctx.fillText(line+'…',x,y);return y+lineH;
+      }
+    }else{line=t;}
+  }
+  if(line){ctx.fillText(line,x,y);y+=lineH;}
+  return y;
+}
+function posterPalette(dark){
+  return dark ? {
+    bg:['#1a1d23','#231d17','#33200f'], title:'#ffffff', sum:'#c9cdd4',
+    reasonBg:'rgba(217,79,43,.14)', reasonHd:'#f5b48a', reasonTxt:'#f0d9cf',
+    meta:'#8b919b', dash:'rgba(255,255,255,.18)', name:'#ffffff', foot:'#c9cdd4',
+    qrBox:'#ffffff', qrBorder:null, topic:'#f5b48a', topicBd:'rgba(245,180,138,.7)'
+  } : {
+    bg:['#ffffff','#fdf8f4','#fdf0e9'], title:'#1a1d23', sum:'#4b5563',
+    reasonBg:'rgba(217,79,43,.07)', reasonHd:'#d94f2b', reasonTxt:'#7c3a24',
+    meta:'#6b7280', dash:'rgba(0,0,0,.15)', name:'#1a1d23', foot:'#6b7280',
+    qrBox:'#ffffff', qrBorder:'rgba(0,0,0,.12)', topic:'#d94f2b', topicBd:'rgba(217,79,43,.5)'
+  };
+}
+function posterLayout(x,W,P,qrImg){
+  // 绘制一遍并返回内容结束 y（用于动态高度）
+  var g=x.createLinearGradient(0,0,W,2000);
+  g.addColorStop(0,P.bg[0]);g.addColorStop(.55,P.bg[1]);g.addColorStop(1,P.bg[2]);
+  x.fillStyle=g;x.fillRect(0,0,W,2000);
+  x.fillStyle='#d94f2b';x.beginPath();x.roundRect(64,60,72,72,18);x.fill();
+  x.fillStyle='#fff';x.font='800 44px -apple-system,sans-serif';x.textBaseline='middle';
+  x.fillText('D',88,98);
+  x.fillStyle=P.name;x.font='800 38px -apple-system,sans-serif';x.fillText('DataHot',152,100);
+  if(SH_EV.topic){
+    x.font='500 26px -apple-system,PingFang SC,sans-serif';
+    var tw=x.measureText(SH_EV.topic).width;
+    x.strokeStyle=P.topicBd;x.lineWidth=2;
+    x.beginPath();x.roundRect(W-64-tw-48,66,tw+48,56,28);x.stroke();
+    x.fillStyle=P.topic;x.fillText(SH_EV.topic,W-64-tw-24,96);
+  }
+  var y=210;x.fillStyle=P.title;x.font='800 58px -apple-system,PingFang SC,sans-serif';x.textBaseline='top';
+  y=wrapText(x,SH_EV.title,64,y,W-128,84,3)+16;
+  x.fillStyle=P.sum;x.font='400 32px -apple-system,PingFang SC,sans-serif';
+  y=wrapText(x,SH_EV.summary,64,y,W-128,52,5)+20;
+  if(SH_EV.reason){
+    // 先测量推荐理由行数，动态确定色块高度（不再截断在中间）
+    var reasonLines=1,rl='',lineW=W-176;
+    x.font='400 28px -apple-system,PingFang SC,sans-serif';
+    for(var ri=0;ri<SH_EV.reason.length;ri++){
+      var rt=rl+SH_EV.reason[ri];
+      if(x.measureText(rt).width>lineW&&rl){reasonLines++;rl=SH_EV.reason[ri];}else{rl=rt;}
+    }
+    reasonLines=Math.min(reasonLines,3);
+    var boxH=56+reasonLines*44+22;
+    var ry=y+8;
+    x.fillStyle=P.reasonBg;x.fillRect(64,ry,W-128,boxH);
+    x.fillStyle='#d94f2b';x.fillRect(64,ry,8,boxH);
+    x.fillStyle=P.reasonHd;x.font='700 28px -apple-system,PingFang SC,sans-serif';
+    x.fillText('推荐理由',92,ry+26);
+    x.fillStyle=P.reasonTxt;x.font='400 28px -apple-system,PingFang SC,sans-serif';
+    wrapText(x,SH_EV.reason,92,ry+66,W-176,44,3);
+    y=ry+boxH+30;
+  }
+  x.fillStyle=P.meta;x.font='400 26px -apple-system,sans-serif';
+  x.fillText('热度 '+SH_EV.heat+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);
+  y=y+4+56;
+  // 分隔线 + 二维码区（紧跟内容，不再锚底）
+  x.strokeStyle=P.dash;x.setLineDash([8,8]);x.lineWidth=2;
+  x.beginPath();x.moveTo(64,y);x.lineTo(W-64,y);x.stroke();x.setLineDash([]);
+  x.fillStyle=P.qrBox;x.beginPath();x.roundRect(64,y+36,150,150,14);x.fill();
+  if(P.qrBorder){x.strokeStyle=P.qrBorder;x.lineWidth=2;x.beginPath();x.roundRect(64,y+36,150,150,14);x.stroke();}
+  x.drawImage(qrImg,74,y+46,130,130);
+  x.fillStyle=P.name;x.font='700 30px -apple-system,PingFang SC,sans-serif';
+  x.fillText('扫码阅读全文或忠实译文',240,y+60);
+  x.fillStyle=P.foot;x.font='400 24px -apple-system,PingFang SC,sans-serif';
+  x.fillText('DataHot · 数据领域 AI 热榜',240,y+110);
+  x.fillText('henryhb1105-arch.github.io/datahot',240,y+150);
+  return y+186+56; // 二维码块底 + 下边距
+}
+function drawPoster(qrImg,dark){
+  var P=posterPalette(dark),W=1080;
+  var m=document.createElement('canvas');m.width=W;m.height=2000;
+  var H=posterLayout(m.getContext('2d'),W,P,qrImg);
+  var c=document.createElement('canvas');c.width=W;c.height=H;
+  posterLayout(c.getContext('2d'),W,P,qrImg);
+  return c.toDataURL('image/png');
+}
+var posterURL=null,posterDark=null,posterLoading=false;
+function openPoster(){
+  var dark=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches;
+  if(posterURL&&posterDark===dark){showPoster();return;}
+  if(posterLoading){return;}
+  posterLoading=true;
+  posterDark=dark;
+  var qr=new Image();
+  qr.onload=function(){
+    try{posterURL=drawPoster(qr,dark);posterLoading=false;showPoster();}
+    catch(error){posterLoading=false;posterURL=null;shToast('海报生成失败，请稍后重试');}
+  };
+  qr.onerror=function(){posterLoading=false;posterURL=null;shToast('海报生成失败，请稍后重试');};
+  qr.src=SH_EV.qr;
+}
+function dataToBlob(d){
+  var p=d.split(','),m=p[0].match(/:(.*?);/)[1],b=atob(p[1]),a=new Uint8Array(b.length);
+  for(var i=0;i<b.length;i++){a[i]=b.charCodeAt(i);}
+  return new Blob([a],{type:m});
+}
+function showPoster(){
+  document.getElementById('shPosterImg').src=posterURL;
+  var a=document.getElementById('shSave');
+  a.href=URL.createObjectURL(dataToBlob(posterURL)); a.target='_blank';a.rel='noopener noreferrer';
+  document.getElementById('shPoster').classList.add('show');
+}
+document.querySelectorAll('[data-share-action]').forEach(function(control){
+  control.addEventListener('click',function(event){
+    var action=control.dataset.shareAction;
+    if(action==='open'){openSheet();}
+    else if(action==='close'){shClose();}
+    else if(action==='copy'){shCopy();}
+    else if(action==='poster'){shClose();openPoster();}
+    else if(action==='native'){shNative();}
+    else if(action==='save'){shSaveClick(event);}
+  });
+});
+</script></body></html>

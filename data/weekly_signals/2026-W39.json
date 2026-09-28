@@ -1,0 +1,403 @@
+{
+ "schema_version": 1,
+ "kind": "weekly_signals",
+ "status": "ready",
+ "week_id": "2026-W39",
+ "period_start": "2026-09-21",
+ "period_end": "2026-09-27",
+ "generated_at": "2026-09-28T13:27:54.776653+08:00",
+ "ai_assisted": true,
+ "content_fingerprint": "c6345f91a2fb4ea0ff49667619e2004709cf1653cb95bfdbfb786c1ede7132df",
+ "input_hash": "3745253e24f82a47afe0a533f7860fbdc8bcf8212b5df6c01f4cc1bb494cfb22",
+ "baseline_hash": "9ec4114647798f3fa6d614792f04f7d157c89dc9eeb5dbc0bd38410848b99edb",
+ "prompt_version": "weekly-signals-v4",
+ "model": "deepseek-v4-flash",
+ "baseline": {
+  "requested_weeks": 4,
+  "requested_week_ids": [
+   "2026-W38",
+   "2026-W37",
+   "2026-W36",
+   "2026-W35"
+  ],
+  "available_weeks": 4,
+  "available_week_ids": [
+   "2026-W38",
+   "2026-W37",
+   "2026-W36",
+   "2026-W35"
+  ],
+  "coverage": "complete"
+ },
+ "weekly_judgement": "本周保留2个通过证据校验的信号：治理上下文经MCP分发给任意Agent；语义层接口被量化为Agent准确率与成本。其余候选未通过校验，不据此推断行业趋势。",
+ "signals": [
+  {
+   "signal_id": "governed-context-over-mcp",
+   "title": "治理上下文经MCP分发给任意Agent",
+   "change_type": "early_signal",
+   "confidence": "low",
+   "confidence_reason": "证据集中在Databricks一家内多篇与两位其具名客户，跨厂商独立证据仅Fivetran、dbt各一篇且非同一机制，单一供应商为主，故降为early_signal与low。",
+   "anchor": "Genie One MCP服务器在Unity Gateway正式GA，暴露提问、取结果、增量进度、调整回答等工具，客户GetYourGuide称在Genie One UI、Claude Cowork或IDE获得一致受治理答案；S&P Global用Genie Agents作受管MCP服务器加代理层组合领域包。",
+   "mechanism": "把语义定义、可信关系与权限收敛到Genie Ontology/Unity Catalog，再以标准MCP接口把同一受治理上下文投喂给外部Agent，Agent不直接从原始表推断含义。",
+   "baseline_comparison": "W36有Genie Ontology落地与Genie Agents Agent mode扩展，W35有TOTVS动态MCP工具选择；W38主要是Context Layer与语义视图叙事，到W39才出现MCP服务器GA与外部客户端一致答案的接口级证据。",
+   "evidence_ids": [
+    "ac77d8cab004",
+    "999778ff0658",
+    "0c45b872e223",
+    "f79f63c63e0d"
+   ],
+   "counter_evidence": "客户案例仅GetYourGuide与S&P Global两例且均由Databricks侧叙述，无第三方留存或错误率数据；MCP一致性未给出可复现评测。"
+  },
+  {
+   "signal_id": "semantic-layer-agent-error-cost",
+   "title": "语义层接口被量化为Agent准确率与成本",
+   "change_type": "early_signal",
+   "confidence": "low",
+   "confidence_reason": "同一Fivetran作者一次实验，source_family单一，无第二独立方向复现，只能作早期信号。",
+   "anchor": "Fivetran测试5种接入同一dbt项目的方式：要求Haiku先读dbt文档后join错误从4降到0；Semantic Layer是唯一让Haiku与Opus都0错且每个可信答案成本最低的接口。",
+   "mechanism": "用受治理的语义接口替代Agent直接对明细表生成SQL，从而同题不因模型不同给出自信却不同的答案，并把可信答案成本压到最低。",
+   "baseline_comparison": "过去4周多为语义层必要性的定性论证（W38口径分裂、W36术语表），本周首次出现同题下多模型错误数与成本的可比实验数据。",
+   "evidence_ids": [
+    "bfde167efa74",
+    "f2cae75df487",
+    "951b7e33e52c"
+   ],
+   "counter_evidence": "实验仅4张零售演示表、单一厂商语境，‘成本最低’未给计价口径；ThoughtSpot与dbt文章仍属立场论述而非独立复现。"
+  }
+ ],
+ "signals_not_promoted": [
+  {
+   "label": "BI验证查询与dbt CI接入Agent",
+   "reason": "候选未通过证据关联、来源独立性或事实锚点校验，暂不提升为信号。",
+   "evidence_ids": [
+    "7b6deb18642c"
+   ]
+  },
+  {
+   "label": "DAB基准突破90%",
+   "reason": "OceanBase单一供应商自报，DAB由Hasura参与推出，无第三方复跑或错误分布；与W38 Spotter BIRD、W36 ClickHouse基准属不同基准，无法合并成同一机制趋势。",
+   "evidence_ids": [
+    "d204ffe24b0c",
+    "40c2caf96019",
+    "d59935fed7ef"
+   ]
+  },
+  {
+   "label": "SQL内置AI函数下推",
+   "reason": "仅ClickHouse W37一条，本周无新增事件或独立复现，且更接近数据库能力而非数据Agent设计变化。",
+   "evidence_ids": [
+    "8909b0c2878f"
+   ]
+  },
+  {
+   "label": "非结构化数据进入Agent上下文",
+   "reason": "AWS SageMaker Catalog、dbt上下文工程、ClickHouse Functions均提非结构化，但机制分别指目录检索、建模方法与SQL函数，缺少同一具体机制的独立证据链。",
+   "evidence_ids": [
+    "9013c2752aa4",
+    "951b7e33e52c",
+    "8909b0c2878f"
+   ]
+  }
+ ],
+ "uncertainty": "最大缺口是缺少第三方或跨厂商对同一语义层/MCP接口的复现：本周准确率、成本与一致性数字几乎全部来自供应商自述，且Databricks与Fivetran证据高度同源，无法排除发布节奏导致的伪趋势。",
+ "next_week_question": "下周能否找到独立证据，检验这些信号的实际效果与适用边界：治理上下文经MCP分发给任意Agent；语义层接口被量化为Agent准确率与成本？",
+ "evidence_index": [
+  {
+   "event_id": "ac77d8cab004",
+   "title": "Databricks Genie One MCP 正式开放",
+   "summary": "Databricks 宣布 Genie One Model Context Protocol（MCP）服务器已面向所有用户正式可用（GA）。该 MCP 以托管服务形式运行在 Unity Gateway 中，向任意 Agent 提供统一接口，用于检索结构化与非结构化数据、洞察与答案，并基于 Genie Ontology 的受治理业务上下文。它暴露提问、获取查询结果、查看增量进度、调整回答等工具，MCP App 还能在支持的客户端中嵌入可视化与 Genie Ontology 引用。客户 GetYourGuide 表示，该集成让团队在 Genie One UI、Claude Cowork 或 IDE 中获得一致的受治理答案。",
+   "category": "agent",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.databricks.com/blog/genie-one-mcp-now-generally-available",
+   "published": "2026-09-23T00:00:00+08:00",
+   "heat": 29,
+   "importance": 52,
+   "vendors": [
+    "Databricks"
+   ],
+   "topics": [
+    "Data Agent",
+    "语义层"
+   ],
+   "week_id": "2026-W39"
+  },
+  {
+   "event_id": "999778ff0658",
+   "title": "Genie One MCP：为任意AI Agent提供业务上下文",
+   "summary": "Genie One MCP 为任何兼容 MCP 的 AI Agent 提供受治理的业务上下文，可连接 ChatGPT、Claude、Microsoft Copilot 和编码 Agent 等。它把净销售额、活跃促销、准时等指标定义、可信数据关系和权限控制集中到 Genie Ontology 中，让 Agent 不必从原始表或冗长提示中推断含义。文章指出通用 Agent 面临事实分散、语义不一致、权威来源与血缘缺失三类问题，例如回答“最大客户上周净收入为何下降8%”需跨销售、财务、促销、库存和客户数据。通过这些上下文，Agent 能使用经批准的定义、可信关系和权限感知访问来回答业务问题。",
+   "category": "platform",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.databricks.com/blog/genie-one-mcp-give-any-ai-agent-right-business-context",
+   "published": "2026-09-23T00:00:00+08:00",
+   "heat": 28,
+   "importance": 50,
+   "vendors": [
+    "Databricks",
+    "Genie One"
+   ],
+   "topics": [
+    "语义层",
+    "Data Agent"
+   ],
+   "week_id": "2026-W39"
+  },
+  {
+   "event_id": "0c45b872e223",
+   "title": "Databricks发布Unity Catalog Pages治理知识层",
+   "summary": "Databricks 推出 Unity Catalog Pages，作为 Genie Ontology 中由人工策展的治理层，为人和 AI 智能体提供业务概念定义。Genie Ontology 会自动从仪表板、查询、表和管道中提取知识，组织成图谱来指导智能体查找和信任数据。Pages 让数据管家借助 Genie Code 明确定义“已完成行程”“活跃客户”等关键概念的权威含义，并让 Genie 将其作为事实来源。这旨在解决企业术语分散、同一指标多种定义导致智能体自信猜测的问题。",
+   "category": "platform",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.databricks.com/blog/unity-catalog-pages-governed-home-your-business-knowledge-genie-ontology",
+   "published": "2026-09-22T21:57:06+08:00",
+   "heat": 31,
+   "importance": 57,
+   "vendors": [
+    "Databricks"
+   ],
+   "topics": [
+    "语义层",
+    "Data Agent"
+   ],
+   "week_id": "2026-W39"
+  },
+  {
+   "event_id": "f79f63c63e0d",
+   "title": "S&P Global 用 Databricks Genie+MCP 实现数据对话",
+   "summary": "S&P Global Energy 希望让客户通过自然语言访问其跨商品的结构化数据，以更快做出决策。其数据覆盖化学品、原油、成品油、天然气与电力、LNG 等，分布在 Databricks 和多个非 Databricks 来源。团队评估多种方案后，采用 Databricks Genie Agents 作为受管 MCP 服务器，并通过 MCP 代理层组合成领域专用包。业务专家（SME）按数据集组维护聚焦的 Genie Agent，使客户和自有助手能获得可信、受治理的答案。",
+   "category": "agent",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.databricks.com/blog/data-dialogue-how-sp-global-energy-made-its-structured-data-estate-conversational-databricks",
+   "published": "2026-09-26T00:00:00+08:00",
+   "heat": 47,
+   "importance": 68,
+   "vendors": [
+    "Databricks",
+    "S&P Global"
+   ],
+   "topics": [
+    "Data Agent"
+   ],
+   "week_id": "2026-W39"
+  },
+  {
+   "event_id": "bfde167efa74",
+   "title": "实验：dbt 项目对 AI Agent 究竟值多少",
+   "summary": "Fivetran 作者用同 4 张零售演示表向两个 AI Agent 提同一个问题（总营收是多少），Haiku 直接对明细行求和，Opus 先看订单表剔除了已取消订单并注明，两者给出自信却不同的答案。作者因此对比了 5 种接入同一 dbt 项目的方式，发现要求 Haiku 先读 dbt 文档后，其 join 问题的错误答案从 4 个降到 0 个；Semantic Layer 是唯一让两个模型都做到 0 错、且每个可信答案成本最低的接口。结论是对话式分析中，受治理的数据访问方式可能与模型本身同样重要。",
+   "category": "agent",
+   "source": "Fivetran Blog",
+   "source_family": "fivetran",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.fivetran.com/blog/what-a-dbt-project-is-worth-to-an-agent",
+   "published": "2026-09-25T01:38:12+08:00",
+   "heat": 53,
+   "importance": 91,
+   "vendors": [
+    "Fivetran",
+    "dbt Labs",
+    "MotherDuck"
+   ],
+   "topics": [
+    "Data Agent",
+    "语义层"
+   ],
+   "week_id": "2026-W39"
+  },
+  {
+   "event_id": "f2cae75df487",
+   "title": "AI智能体的上下文问题：语义层采购前先解决治理与定义",
+   "summary": "文章指出，多数AI Agent能写SQL，但常基于错误的收入定义、错误团队和错误业务规则，演示中很难发现。语义层市场拥挤，各大分析厂商、数据平台和BI工具都宣称有语义层，但技术可信度取决于采购前的治理与定义决策。作者建议在评估语义层厂商前先确认治理机制，锁定核心指标、KPI和术语定义，并要求厂商在自身技术栈中压力测试核心能力。",
+   "category": "platform",
+   "source": "ThoughtSpot Blog",
+   "source_family": "thoughtspot",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.thoughtspot.com/blog/evaluate-semantic-layer-for-ai",
+   "published": "2026-09-24T01:09:35+08:00",
+   "heat": 29,
+   "importance": 46,
+   "vendors": [
+    "ThoughtSpot"
+   ],
+   "topics": [
+    "语义层",
+    "Data Agent"
+   ],
+   "week_id": "2026-W39"
+  },
+  {
+   "event_id": "951b7e33e52c",
+   "title": "dbt：在数据仓库中开始上下文工程",
+   "summary": "文章提出，分析团队过去为 BI 建模数据，而上下文工程是为 AI Agent 建模数据，起点是语义搜索。AI Agent 正成为最大数据用户，其所需上下文不再局限于结构化表，还包括转录、工单、PDF 和邮件。团队可复用 dbt 的工程模式：转换数据、关联富化、描述字段含义并治理访问权限；栈仍是 Fivetran 入仓、dbt 建模。仓库厂商正加大对非结构化数据的投入，文末还介绍了 dbt_context_engineering 包和一场相关 session。",
+   "category": "platform",
+   "source": "dbt Blog",
+   "source_family": "dbt",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.getdbt.com/blog/context-engineering-in-your-warehouse",
+   "published": "2026-09-24T23:57:00+08:00",
+   "heat": 33,
+   "importance": 48,
+   "vendors": [
+    "dbt Labs",
+    "Fivetran"
+   ],
+   "topics": [
+    "Data Agent",
+    "语义层"
+   ],
+   "week_id": "2026-W39"
+  },
+  {
+   "event_id": "7b6deb18642c",
+   "title": "Looker 26.14 更新：验证查询 GA，dbt CI 集成与 Dashboard Agent 预览",
+   "summary": "Looker 宣布从 2026年8月24日至26日，面向运行 Looker 26.14 的实例自动启用多项功能。其中，Conversational Analytics 的 verified queries（golden queries）正式可用，并支持在 Looker (Google Cloud core) 中定义。新增的 CI 集成可在 dbt Cloud CI 作业完成后自动运行 CI 套件，以在 dbt 变更部署前检查 Looker Explores 是否会因模型变更产生 SQL 错误。此外，预览功能包括在 LookML 仪表板上定义并对话 data agents，以及从 LookML Explores 派生数据库内分析模型。",
+   "category": "bi",
+   "source": "Google Looker Release Notes",
+   "source_family": "googlelookerreleasenotes",
+   "source_type": "other",
+   "source_count": 1,
+   "source_url": "https://docs.cloud.google.com/looker/docs/release-notes#August_28_2026",
+   "published": "2026-08-28T15:00:00+08:00",
+   "heat": 50,
+   "importance": 80,
+   "vendors": [
+    "Google",
+    "Looker",
+    "dbt"
+   ],
+   "topics": [
+    "BI变局"
+   ],
+   "week_id": "2026-W35"
+  },
+  {
+   "event_id": "d204ffe24b0c",
+   "title": "OceanBase Data Agent登顶DAB，准确率90.62%",
+   "summary": "OceanBase 团队提交的 Data Agent 方案在 Data Agent Benchmark（DAB）以 90.62% 准确率位列第一，成为首个突破 90% 的参评方案。该方案基于国产大模型 GLM-5.2 构建，超过多项基于 GPT、Claude Opus、Claude Fable 的方案，内部代号 Scout，能力将融入 OceanBase DataPilot。DAB 由 UC Berkeley EPIC Data Lab 与 Hasura PromptQL 推出，覆盖多领域和多数据库，评估 Data Agent 从理解数据到拿到答案的完整能力。OceanBase 称这验证了数据库向 AI 数据平台演进的方向。",
+   "category": "agent",
+   "source": "雷锋网",
+   "source_family": "雷锋网",
+   "source_type": "other",
+   "source_count": 3,
+   "source_url": "https://www.leiphone.com/category/industrynews/ug9HpmoWVwNMZZTH.html",
+   "published": "2026-09-21T15:20:00+08:00",
+   "heat": 44,
+   "importance": 73,
+   "vendors": [
+    "OceanBase",
+    "Hasura",
+    "MongoDB",
+    "DuckDB"
+   ],
+   "topics": [
+    "Data Agent",
+    "平台AI化"
+   ],
+   "week_id": "2026-W39"
+  },
+  {
+   "event_id": "40c2caf96019",
+   "title": "AI分析引擎难题评测：Spotter领跑BIRD",
+   "summary": "该文将 Spotter 与四款竞争性 agentic analytics 引擎放在 BIRD 基准上对比：1,533 道题、11 个数据库、统一评分、每题一次机会。Spotter 总体执行准确率 82.8%，高于前沿 LLM 的 78.4% 和编码 agent 的 72.5%；在挑战级题目中为 70.6%，最低引擎仅 46.8%。作者强调应看准确率斜率而非单一总体准确率，且仅更换更新模型、底层 agent harness 不变，就带来整体 3.4 个百分点提升。文中还引用 BARC 调查估算：万人员工企业约 65 万次数据问题/年，1 个准确率点对应 6,500 个答案对错。",
+   "category": "agent",
+   "source": "ThoughtSpot Blog",
+   "source_family": "thoughtspot",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.thoughtspot.com/blog/ai-analyst-accuracy-bird-benchmark",
+   "published": "2026-09-16T08:18:54+08:00",
+   "heat": 46,
+   "importance": 88,
+   "vendors": [
+    "ThoughtSpot",
+    "Spotter"
+   ],
+   "topics": [
+    "Data Agent",
+    "ChatBI"
+   ],
+   "week_id": "2026-W38"
+  },
+  {
+   "event_id": "d59935fed7ef",
+   "title": "ClickHouse发布Agentic Analytics基准：28模型对比评测",
+   "summary": "ClickHouse基于其内部分析Agent DWAINE的生产流量，构建了包含201个真实分析问题的基准，对28个模型（涵盖专有与开源权重）在正确性、成本和速度上进行评测，并发布了开源测试工具。该基准不同于传统Text-to-SQL，强调Agent自行发现schema、多轮交互以及以结果集为答案。文章还介绍了如何基于自己的数仓流量构建同类评测框架，帮助选择适合自身场景的模型。",
+   "category": "agent",
+   "source": "ClickHouse Blog",
+   "source_family": "clickhouse",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://clickhouse.com/blog/agentic-analytics-benchmark-data-agent-mnist",
+   "published": "2026-09-02T03:15:00+08:00",
+   "heat": 47,
+   "importance": 91,
+   "vendors": [
+    "ClickHouse",
+    "Hex"
+   ],
+   "topics": [
+    "Data Agent"
+   ],
+   "week_id": "2026-W36"
+  },
+  {
+   "event_id": "8909b0c2878f",
+   "title": "ClickHouse 发布 SQL 内置 AI Functions（Beta）",
+   "summary": "ClickHouse 推出内置 AI Functions，可在 SQL 引擎中直接调用 LLM 或 embedding 服务，把模型调用变成类似 SUM() 的 SQL 函数。相关功能处于 Beta，按版本逐步加入：26.4 引入 aiGenerate/aiClassify/aiExtract/aiTranslate，26.6 加入 aiEmbed，26.8 加入 aiFilter/aiRedact/aiSimilarity。官方称其目标是“把模型搬到数据旁”，减少将数据抽到外部 RAG、向量库和编排框架的复杂度。ClickHouse Cloud 中无需额外配置，目前 AI Functions 处于 private preview。",
+   "category": "platform",
+   "source": "ClickHouse Blog",
+   "source_family": "clickhouse",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://clickhouse.com/blog/ai-functions-in-clickhouse",
+   "published": "2026-09-11T20:49:32+08:00",
+   "heat": 46,
+   "importance": 67,
+   "vendors": [
+    "ClickHouse"
+   ],
+   "topics": [
+    "平台AI化"
+   ],
+   "week_id": "2026-W37"
+  },
+  {
+   "event_id": "9013c2752aa4",
+   "title": "在 Amazon SageMaker Catalog 中用生成式 AI 查询非结构化数据",
+   "summary": "这是系列文章第二部分，介绍非结构化数据消费侧流程。数据消费者登录 SageMaker Unified Studio，利用 AI 生成元数据关键词在 Amazon SageMaker Catalog 中搜索并订阅 S3 数据资产，经生产者审批后使用两种方式查询：面向分析师和业务用户的无代码聊天 Agent 自然语言查询，以及面向应用工程师的 Amazon Bedrock 模型推理编程访问。生产侧此前使用 Amazon Textract 和 Amazon Bedrock 上的 Anthropic Claude 提取并丰富元数据，目标是让组织更易发现并利用 PDF、图像、邮件等非结构化数据中的业务知识。",
+   "category": "platform",
+   "source": "AWS Big Data Blog",
+   "source_family": "awsbigdata",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://aws.amazon.com/blogs/big-data/query-unstructured-data-in-amazon-sagemaker-catalog-using-generative-ai/",
+   "published": "2026-09-24T02:22:00+08:00",
+   "heat": 38,
+   "importance": 66,
+   "vendors": [
+    "AWS",
+    "Amazon SageMaker",
+    "Amazon Bedrock",
+    "Anthropic"
+   ],
+   "topics": [
+    "平台AI化",
+    "Data Agent"
+   ],
+   "week_id": "2026-W39"
+  }
+ ]
+}

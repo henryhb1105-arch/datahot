@@ -1,23 +1,23 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-09-29T12:55:43.334630+00:00
-- 本轮原始发现：10
-- 未收录文章候选：29
-- 新信源候选：27
+- 生成时间：2026-09-30T12:38:05.579831+00:00
+- 本轮原始发现：12
+- 未收录文章候选：34
+- 新信源候选：31
 - 已收录链接去重：1
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
 
 ## 发现通道
 
 - openai_web_search: skipped · OPENAI_API_KEY 未配置
-- hn_official: ok · 3 条
-- accepted_link_graph: ok · 7 条
+- hn_official: ok · 4 条
+- accepted_link_graph: ok · 8 条
 
 ## 优先检查的新信源
 
 - **www.infoq.com** · PROBATION · 3 篇 · accepted_link_graph
 - **www-cdn.anthropic.com** · PROBATION · 2 篇 · accepted_link_graph
-- **www.snowflake.com** · PROBATION · 1 篇 · accepted_link_graph
+- **www.snowflake.com** · PROBATION · 2 篇 · accepted_link_graph
 - **help.mistral.ai** · PROBATION · 1 篇 · hn
 - **www.imf.org** · PROBATION · 1 篇 · accepted_link_graph
 - **cdn.sanity.io** · PROBATION · 1 篇 · accepted_link_graph
@@ -26,10 +26,10 @@
 - **datagubbe.se** · PROBATION · 1 篇 · hn
 - **4906807.fs1.hubspotusercontent-na1.net** · PROBATION · 1 篇 · accepted_link_graph
 - **metr.org** · PROBATION · 1 篇 · accepted_link_graph
+- **www.langchain.com** · PROBATION · 1 篇 · accepted_link_graph
 - **datacolada.org** · DISCOVERED · 1 篇 · hn
 - **www.data-structures-in-practice.com** · DISCOVERED · 1 篇 · hn
 - **www.kxan.com** · DISCOVERED · 1 篇 · hn
-- **lapcatsoftware.com** · DISCOVERED · 1 篇 · hn
 
 ## 优先检查的文章
 
@@ -48,8 +48,8 @@
 - [AI companies leak data to advertisers [pdf]](https://jorgegarciaherrero.com/wp-content/interactivos/20260916-Prompt-like-a-butterfly-sting-like-a-tracker-(clean).pdf) · hn
 - [You can run Git on object storage if you re-make packfiles](https://www.tigrisdata.com/blog/objgit-packfiles) · hn
 - [Intrusive linked lists (2019)](https://www.data-structures-in-practice.com/intrusive-linked-lists) · hn
+- [Most data centers refusing to say how much water, electricity they use](https://nltimes.nl/2026/09/30/data-centers-refusing-say-much-water-electricity-use) · hn
+- [Testing WebGPU data layouts with Facet](https://www.mattkeeter.com/blog/2026-08-23-wgpu-facet) · hn
 - [The Copilot+ PC brand is dead](https://www.windowscentral.com/microsoft/windows-11/the-copilot-pc-brand-is-dead-microsoft-and-pc-makers-quietly-pull-back-on-tarnished-windows-11-ai-pc-branding) · hn
+- [Show HN: JBR-001 – An open-source 3D printable desktop robot](https://projecthub.arduino.cc/syntheticaidata/jbr-001-a-desktop-companion-robot-powered-by-arduino-uno-q-b11c96) · hn
 - [Revolut confirms customer data breach through fake government requests](https://techcrunch.com/2026/09/12/revolut-confirms-customer-data-breach-through-fake-government-requests) · hn
-- [Texas Data Center Map: See where data centers are operating or planned](https://www.kxan.com/news/texas/texas-data-center-tracker-see-where-600-projects-are-operating-or-planned-across-state-in-interactive-map) · hn
-- [Does Reddit have an astroturfing problem? What the data suggests](https://www.petervijeh.com/projects/reddit-astroturf) · hn
-- [The Empire of Information](https://lareviewofbooks.org/article/data-empire-roopika-risam-information-organize-control-dominate) · hn

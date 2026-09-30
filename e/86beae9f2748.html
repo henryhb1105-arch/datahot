@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-4v+JxQZUDEL1rYOJymVwNfzWF26RokmZy28g/cPL7aA=' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-cuUIr28W2voaHpAn5E+i4BssGjQYqvqlIlsQC3jL8Bw='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-4v+JxQZUDEL1rYOJymVwNfzWF26RokmZy28g/cPL7aA=' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-vvNK/JVflJm6RnHnCxhZbd/hzi+JjlKvs4zlLgaPFEw='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>如何把 Agent 的判断与行动变成可恢复的软件事实 | KDC 工程补篇 · DataHot</title>
@@ -19,7 +19,7 @@
 <link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
-<meta name="theme-color" content="#1a1d23">
+<meta name="theme-color" content="#f5f4ef" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#131c19" media="(prefers-color-scheme: dark)">
 <link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://datahot.xiahongbin.com/feed.xml">
 <meta name="datahot-analytics" data-enabled="true" data-endpoint="https://metrics.datahot.xiahongbin.com/v1/events" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
 <script defer src="../analytics.js?v=20077f7d7e8b"></script>
@@ -822,7 +822,8 @@ main,.layout>*,.hotlist>*{min-width:0}
 .sh-poster-tip{margin-top:10px;font-size:11px;color:#8b919b}
 .sh-toast{position:fixed;top:18%;left:50%;transform:translateX(-50%);background:rgba(26,29,35,.92);color:#fff;font-size:13px;padding:10px 20px;border-radius:99px;opacity:0;transition:.25s;z-index:99;pointer-events:none}
 .sh-toast.show{opacity:1}
-</style></head><body class="has-sb mobile-detail" data-page="detail" data-event-id="86beae9f2748" data-category="agent" data-source="InfoQ 中文">
+</style><link id="datahot-theme" rel="stylesheet" href="../theme.css?v=e96cce983156">
+</head><body class="has-sb mobile-detail" data-page="detail" data-event-id="86beae9f2748" data-category="agent" data-source="InfoQ 中文">
 <aside class="sidebar"><div class="slogo"><a href="../index.html" data-smart-home-return aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><nav class="sidebar-nav" aria-label="主导航"><a class="mi on" href="../index.html" data-smart-home-return><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../for-me.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg>关注</a><a class="mi" href="../cases.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg>案例</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>周报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>收藏</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a></nav><nav class="sidebar-tools" aria-label="工具"><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a></nav><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a> · <a href="https://bsky.app/profile/datahot.xiahongbin.com" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Bluesky" style="color:var(--sub);text-decoration:underline">Bluesky</a><br>数据领域 AI 资讯分享</div></aside>
 <header class="detail-brand-header"><div class="wrap nav">
   <div class="logo"><a href="../index.html" data-smart-home-return>Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
@@ -840,6 +841,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   </div>
   <div class="article-layout has-toc">
   <main class="article-content">
+  <h1>如何把 Agent 的判断与行动变成可恢复的软件事实 | KDC 工程补篇</h1>
   <div class="meta">
     <span class="srcbadge">RSS</span>
     <a class="meta-source-link" href="https://www.infoq.cn/article/AkgUFEFE4uG7WIlqaO2g?utm_source=rss&amp;utm_medium=article" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="InfoQ 中文" aria-label="查看 InfoQ 中文 原文"><span>InfoQ 中文</span><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
@@ -848,7 +850,6 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span title="发布时间">发布 2026-08-27 18:00</span>
     <span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 08-28</span>
   </div>
-  <h1>如何把 Agent 的判断与行动变成可恢复的软件事实 | KDC 工程补篇</h1>
 
   
   <details class="article-brief" open>
@@ -1037,15 +1038,15 @@ function wrapText(ctx,text,x,y,maxW,lineH,maxLines){
 }
 function posterPalette(dark){
   return dark ? {
-    bg:['#1a1d23','#231d17','#33200f'], title:'#ffffff', sum:'#c9cdd4',
-    reasonBg:'rgba(217,79,43,.14)', reasonHd:'#f5b48a', reasonTxt:'#f0d9cf',
-    meta:'#8b919b', dash:'rgba(255,255,255,.18)', name:'#ffffff', foot:'#c9cdd4',
-    qrBox:'#ffffff', qrBorder:null, topic:'#f5b48a', topicBd:'rgba(245,180,138,.7)'
+    bg:['#131c19','#18251f','#1b2c24'], title:'#e6ece6', sum:'#bdc9c0',
+    reasonBg:'#253d33', reasonHd:'#92cdbb', reasonTxt:'#d2ddd4',
+    meta:'#a4b2a9', dash:'#35453c', name:'#e6ece6', foot:'#a4b2a9',
+    qrBox:'#ffffff', qrBorder:null, topic:'#92cdbb', topicBd:'#507b6c', brand:'#175c53'
   } : {
-    bg:['#ffffff','#fdf8f4','#fdf0e9'], title:'#1a1d23', sum:'#4b5563',
-    reasonBg:'rgba(217,79,43,.07)', reasonHd:'#d94f2b', reasonTxt:'#7c3a24',
-    meta:'#6b7280', dash:'rgba(0,0,0,.15)', name:'#1a1d23', foot:'#6b7280',
-    qrBox:'#ffffff', qrBorder:'rgba(0,0,0,.12)', topic:'#d94f2b', topicBd:'rgba(217,79,43,.5)'
+    bg:['#fcfcf9','#f5f4ef','#e6eeea'], title:'#202a29', sum:'#4e5b56',
+    reasonBg:'#e6eeea', reasonHd:'#175c53', reasonTxt:'#34423d',
+    meta:'#5f6b65', dash:'#dde2db', name:'#202a29', foot:'#5f6b65',
+    qrBox:'#ffffff', qrBorder:'#dde2db', topic:'#175c53', topicBd:'#8da89d', brand:'#175c53'
   };
 }
 function posterLayout(x,W,P,qrImg){
@@ -1053,7 +1054,7 @@ function posterLayout(x,W,P,qrImg){
   var g=x.createLinearGradient(0,0,W,2000);
   g.addColorStop(0,P.bg[0]);g.addColorStop(.55,P.bg[1]);g.addColorStop(1,P.bg[2]);
   x.fillStyle=g;x.fillRect(0,0,W,2000);
-  x.fillStyle='#d94f2b';x.beginPath();x.roundRect(64,60,72,72,18);x.fill();
+  x.fillStyle=P.brand;x.beginPath();x.roundRect(64,60,72,72,18);x.fill();
   x.fillStyle='#fff';x.font='800 44px -apple-system,sans-serif';x.textBaseline='middle';
   x.fillText('D',88,98);
   x.fillStyle=P.name;x.font='800 38px -apple-system,sans-serif';x.fillText('DataHot',152,100);
@@ -1080,7 +1081,7 @@ function posterLayout(x,W,P,qrImg){
     var boxH=56+reasonLines*44+22;
     var ry=y+8;
     x.fillStyle=P.reasonBg;x.fillRect(64,ry,W-128,boxH);
-    x.fillStyle='#d94f2b';x.fillRect(64,ry,8,boxH);
+    x.fillStyle=P.brand;x.fillRect(64,ry,8,boxH);
     x.fillStyle=P.reasonHd;x.font='700 28px -apple-system,PingFang SC,sans-serif';
     x.fillText('推荐理由',92,ry+26);
     x.fillStyle=P.reasonTxt;x.font='400 28px -apple-system,PingFang SC,sans-serif';

@@ -49,6 +49,7 @@ FOR_ME_ASSET = ROOT / "pipeline" / "assets" / "for-me.js"
 FAVORITES_ASSET = ROOT / "pipeline" / "assets" / "favorites.js"
 DETAIL_ASSET = ROOT / "pipeline" / "assets" / "detail.js"
 CASES_ASSET = ROOT / "pipeline" / "assets" / "cases.js"
+THEME_ASSET = ROOT / "pipeline" / "assets" / "theme.css"
 TTS_ASSET = ROOT / "pipeline" / "assets" / "tts-player.js"
 TTS_MANIFEST = SITE / "data" / "tts-manifest.json"
 TZ = timezone(timedelta(hours=8))
@@ -1058,8 +1059,24 @@ def _analytics_connect_origin():
     return f"{parsed.scheme}://{parsed.netloc}"
 
 
+def apply_site_theme(document):
+    """Load the shared, content-versioned theme after each page's component CSS."""
+    icon = re.search(r'<link rel="icon" href="((?:\.\./)*)favicon.ico"', document)
+    if not icon or 'id="datahot-theme"' in document:
+        return document
+    version = hashlib.sha256(THEME_ASSET.read_bytes()).hexdigest()[:12]
+    theme = f'<link id="datahot-theme" rel="stylesheet" href="{icon.group(1)}theme.css?v={version}">'
+    document = document.replace('</head>', theme + '\n</head>', 1)
+    return document.replace(
+        '<meta name="theme-color" content="#1a1d23">',
+        '<meta name="theme-color" content="#f5f4ef" media="(prefers-color-scheme: light)">'
+        '<meta name="theme-color" content="#131c19" media="(prefers-color-scheme: dark)">',
+    )
+
+
 def finalize_html_security(document):
     """Inject a restrictive CSP after all trusted inline scripts are finalized."""
+    document = apply_site_theme(document)
     if INLINE_EVENT_HANDLER_RE.search(document):
         raise ValueError("inline event handlers are forbidden by the site CSP")
     hashes = sorted({
@@ -1914,6 +1931,7 @@ def render_detail(e, all_events, css, tts_item=None, product_case=None, site_roo
   </div>
   <div class="article-layout{' has-toc' if toc_entries else ''}">
   <main class="article-content">
+  <h1>{esc(e["zh_title"])}</h1>
   <div class="meta">
     <span class="srcbadge">{src_badge(main_src_name)}</span>
     {main_source_meta}
@@ -1922,7 +1940,6 @@ def render_detail(e, all_events, css, tts_item=None, product_case=None, site_roo
     <span title="{'来源日期' if e.get('source_date_label') else '发布时间'}">{esc(e["source_date_label"]) if e.get("source_date_label") else (("发布 " + fmt_date(e["published"])) if e.get("published") else "收录 " + fmt_date(e.get("first_seen")))}</span>
     {f'<span style="color:var(--sub);font-size:11px" title="加入编辑精选的时间">精选于 {fmt_date(e.get("curated_at"))}</span>' if e.get("editorial_pick") and e.get("curated_at") else (f'<span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 {md(e.get("first_seen"))}</span>' if e.get("published") and e.get("first_seen") and e["published"][:10] != e["first_seen"][:10] else "")}
   </div>
-  <h1>{esc(e["zh_title"])}</h1>
 {("  " + tts_player) if tts_player else ""}
   {case_breakdown_html}
   {brief_html}
@@ -2099,15 +2116,15 @@ function wrapText(ctx,text,x,y,maxW,lineH,maxLines){
 }
 function posterPalette(dark){
   return dark ? {
-    bg:['#1a1d23','#231d17','#33200f'], title:'#ffffff', sum:'#c9cdd4',
-    reasonBg:'rgba(217,79,43,.14)', reasonHd:'#f5b48a', reasonTxt:'#f0d9cf',
-    meta:'#8b919b', dash:'rgba(255,255,255,.18)', name:'#ffffff', foot:'#c9cdd4',
-    qrBox:'#ffffff', qrBorder:null, topic:'#f5b48a', topicBd:'rgba(245,180,138,.7)'
+    bg:['#131c19','#18251f','#1b2c24'], title:'#e6ece6', sum:'#bdc9c0',
+    reasonBg:'#253d33', reasonHd:'#92cdbb', reasonTxt:'#d2ddd4',
+    meta:'#a4b2a9', dash:'#35453c', name:'#e6ece6', foot:'#a4b2a9',
+    qrBox:'#ffffff', qrBorder:null, topic:'#92cdbb', topicBd:'#507b6c', brand:'#175c53'
   } : {
-    bg:['#ffffff','#fdf8f4','#fdf0e9'], title:'#1a1d23', sum:'#4b5563',
-    reasonBg:'rgba(217,79,43,.07)', reasonHd:'#d94f2b', reasonTxt:'#7c3a24',
-    meta:'#6b7280', dash:'rgba(0,0,0,.15)', name:'#1a1d23', foot:'#6b7280',
-    qrBox:'#ffffff', qrBorder:'rgba(0,0,0,.12)', topic:'#d94f2b', topicBd:'rgba(217,79,43,.5)'
+    bg:['#fcfcf9','#f5f4ef','#e6eeea'], title:'#202a29', sum:'#4e5b56',
+    reasonBg:'#e6eeea', reasonHd:'#175c53', reasonTxt:'#34423d',
+    meta:'#5f6b65', dash:'#dde2db', name:'#202a29', foot:'#5f6b65',
+    qrBox:'#ffffff', qrBorder:'#dde2db', topic:'#175c53', topicBd:'#8da89d', brand:'#175c53'
   };
 }
 function posterLayout(x,W,P,qrImg){
@@ -2115,7 +2132,7 @@ function posterLayout(x,W,P,qrImg){
   var g=x.createLinearGradient(0,0,W,2000);
   g.addColorStop(0,P.bg[0]);g.addColorStop(.55,P.bg[1]);g.addColorStop(1,P.bg[2]);
   x.fillStyle=g;x.fillRect(0,0,W,2000);
-  x.fillStyle='#d94f2b';x.beginPath();x.roundRect(64,60,72,72,18);x.fill();
+  x.fillStyle=P.brand;x.beginPath();x.roundRect(64,60,72,72,18);x.fill();
   x.fillStyle='#fff';x.font='800 44px -apple-system,sans-serif';x.textBaseline='middle';
   x.fillText('D',88,98);
   x.fillStyle=P.name;x.font='800 38px -apple-system,sans-serif';x.fillText('DataHot',152,100);
@@ -2142,7 +2159,7 @@ function posterLayout(x,W,P,qrImg){
     var boxH=56+reasonLines*44+22;
     var ry=y+8;
     x.fillStyle=P.reasonBg;x.fillRect(64,ry,W-128,boxH);
-    x.fillStyle='#d94f2b';x.fillRect(64,ry,8,boxH);
+    x.fillStyle=P.brand;x.fillRect(64,ry,8,boxH);
     x.fillStyle=P.reasonHd;x.font='700 28px -apple-system,PingFang SC,sans-serif';
     x.fillText('推荐理由',92,ry+26);
     x.fillStyle=P.reasonTxt;x.font='400 28px -apple-system,PingFang SC,sans-serif';
@@ -3232,6 +3249,7 @@ def main():
     write_bluesky_handle_verification()
     if not all(asset.exists() for asset in (ANALYTICS_ASSET, CONTENT_FEEDBACK_ASSET, HOME_ASSET, FOR_ME_ASSET, FAVORITES_ASSET, DETAIL_ASSET, CASES_ASSET, TTS_ASSET)):
         raise FileNotFoundError("missing browser asset")
+    shutil.copyfile(THEME_ASSET, SITE / "theme.css")
     shutil.copyfile(ANALYTICS_ASSET, SITE / "analytics.js")
     shutil.copyfile(CONTENT_FEEDBACK_ASSET, SITE / "content-feedback.js")
     shutil.copyfile(HOME_ASSET, SITE / "home.js")

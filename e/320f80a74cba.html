@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-5atBg/bX1AtVll0t2kkSoBF2HkThsMpzwU9/bGQE7bA=' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-nquNy/fjv7TEIpk4SuW6tHXr+bB8d8DCuUuzuoROqwU='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-5atBg/bX1AtVll0t2kkSoBF2HkThsMpzwU9/bGQE7bA=' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-gsDVoypTqCoqNa2OEqfyIS2wsv7UgrRtXSVlFXVOSgk='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>ClickHouse托管Postgres用直接I/O加速备份 · DataHot</title>
@@ -974,7 +974,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title":"ClickHouse托管Postgres用直接I/O加速备份","summary":"ClickHouse Managed Postgres 备份时需要从服务查询的 NVMe 盘读取全库并传到对象存储，默认缓冲 I/O 会污染 page cache，进而影响查询延迟。直接 I/O 跳过 page cache，测试中把备份期间查询延迟影响降低约三分之二，并减少约14% CPU，但会关闭内核预读。ClickHouse 按 RAID0 stripe 大小设置直接读取，并扩展 reader 数；在 48 vCPU、4 块 NVMe、467GB 数据库测试中，直接 I/O 备份未驱逐 40GiB 热数据，71 秒完成。","reason":"数据库备份与在线查询争抢 I/O 是生产环境常见痛点；该文给出 direct I/O、预读、RAID0 stripe 与 reader 数的可复现调优思路和量化收益，对数据平台与数据库从业者有直接参考价值。","topic":"","heat":58,"source":"ClickHouse Blog","date":"2026-10-02","url":"https://datahot.xiahongbin.com/e/320f80a74cba.html","qr":"../qr/320f80a74cba.png"};
+var SH_EV = {"title":"ClickHouse托管Postgres用直接I/O加速备份","summary":"ClickHouse Managed Postgres 备份时需要从服务查询的 NVMe 盘读取全库并传到对象存储，默认缓冲 I/O 会污染 page cache，进而影响查询延迟。直接 I/O 跳过 page cache，测试中把备份期间查询延迟影响降低约三分之二，并减少约14% CPU，但会关闭内核预读。ClickHouse 按 RAID0 stripe 大小设置直接读取，并扩展 reader 数；在 48 vCPU、4 块 NVMe、467GB 数据库测试中，直接 I/O 备份未驱逐 40GiB 热数据，71 秒完成。","reason":"数据库备份与在线查询争抢 I/O 是生产环境常见痛点；该文给出 direct I/O、预读、RAID0 stripe 与 reader 数的可复现调优思路和量化收益，对数据平台与数据库从业者有直接参考价值。","topic":"","heat":57,"source":"ClickHouse Blog","date":"2026-10-02","url":"https://datahot.xiahongbin.com/e/320f80a74cba.html","qr":"../qr/320f80a74cba.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

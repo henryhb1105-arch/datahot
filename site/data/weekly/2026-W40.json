@@ -1,0 +1,174 @@
+{
+ "schema_version": 3,
+ "kind": "weekly",
+ "status": "ready",
+ "week_id": "2026-W40",
+ "period_start": "2026-09-28",
+ "period_end": "2026-10-04",
+ "generated_at": "2026-10-05T13:44:15.423806+08:00",
+ "mode": "ai",
+ "ai_assisted": true,
+ "fallback_reason": "",
+ "content_fingerprint": "d7cdafed04636aa4d704de05eb77bd258bfe10c2f745b698a1fd4fdb9f0b0d42",
+ "input_hash": "fc607af733efe449dc6c890333b1fe02547dabd6b34ea580bc186e388cc638e3",
+ "baseline_hash": "c77ed7c415a56a186d3b7c1c574b9ca496b2ed967bc077f59b3c31844904eeeb",
+ "prompt_version": "weekly-personal-v4",
+ "signal_prompt_version": "weekly-signals-v4",
+ "model": "deepseek-v4-flash",
+ "public_signals_fingerprint": "0c8506d49ca95a4aef531c0a949e7828d6e4d5bc276b6215eba0b2aa8eca16cf",
+ "baseline": {
+  "requested_weeks": 4,
+  "requested_week_ids": [
+   "2026-W39",
+   "2026-W38",
+   "2026-W37",
+   "2026-W36"
+  ],
+  "available_weeks": 4,
+  "available_week_ids": [
+   "2026-W39",
+   "2026-W38",
+   "2026-W37",
+   "2026-W36"
+  ],
+  "coverage": "complete"
+ },
+ "signals": [
+  {
+   "signal_id": "agent-output-observability-guardrail",
+   "title": "Agent与语义缺陷的运行时可观测性",
+   "change_type": "early_signal",
+   "confidence": "low",
+   "confidence_reason": "机制首次出现，但W40仅一条来源自述的实操证据，且与W39治理/上下文层叙事是不同机制，无第二独立证据方向。",
+   "anchor": "单个Snowflake Interactive Warehouse上Cortex Agents基于Semantic View对约2500万行销售数据生成Text-to-SQL，AI Observability自动将trace/span/工具调用/token写入SNOWFLAKE.LOCAL.AI_OBSERVABILITY_EVENTS，最终暴露一个被Agent 100%成功率掩盖的语义视图缺陷。",
+   "mechanism": "把数据Agent的运行轨迹与语义层正确性绑定为同一仓库内的可查询观测对象，用运行时证据（而非离线准确率或人工评审）来发现语义层缺陷并反馈修正，属于AI数据平台内的Agent可信度运维机制。",
+   "baseline_comparison": "过去4周讨论集中在语义层/上下文层的设计选择与Data Agent上线前配置（如W39 dbt接入方式对比、W39/W38 Genie Ontology与语义视图治理），未出现以Agent自身trace数据反向审计语义层缺陷的机制。",
+   "evidence_ids": [
+    "60bf8e4b7542"
+   ],
+   "counter_evidence": "仅Snowflake单一供应商、单一作者实操，source_family为vendor_claim；无第三方复现，也未说明该可观测事件表能否直接驱动语义视图自动修复或计算成本。"
+  },
+  {
+   "signal_id": "semantic-memory-write-adjudication",
+   "title": "企业语义记忆的写入裁决与持久化分歧",
+   "change_type": "early_signal",
+   "confidence": "low",
+   "confidence_reason": "两条W40证据分属工业多智能体语义记忆与编码Agent分析状态持久化，虽同属写入侧治理议题但供应商与场景不同，不构成同机制的双独立证据。",
+   "anchor": "卡奥斯COSMOPlat提出写入侧由大模型提议、真实数据裁决、证据分级入库，冲突用时间轴校验与对抗评审消解，并称只注入一半语义时正确率反而低于不注入；chDB Durable Layer则把coding agent的项目规则、偏好与召回轨迹存入自有对象存储，以解决本地状态无法带到CI或第二台笔记本的问题。",
+   "mechanism": "围绕Agent长期记忆的写入与持久化治理：一个是写入内容需经真实数据裁决与冲突消解，一个是记忆状态需跨沙箱/CI可移植，两者都把\"写错或丢状态\"视为比遗忘更严重的故障模式。",
+   "baseline_comparison": "W38已有ThoughtSpot Spotter Memory（rules/recipes分层记忆）与Fivetran Context Layer，但前者是BI助手会话记忆、后者是托管上下文层，均未涉及写入裁决与状态跨环境持久化机制。",
+   "evidence_ids": [
+    "cdc582d9ae58",
+    "c243cf15e712"
+   ],
+   "counter_evidence": "cdc582d9ae58为QCon演讲预告、尚无实测数据公开；c243cf15e712为厂商自述且衡量指标有限，两者厂商与场景不同，不足以确认为同一机制的趋势。"
+  }
+ ],
+ "title": "数据Agent运行时可信度初现",
+ "bottom_line": "Snowflake用Agent运行trace反向暴露语义视图缺陷，卡奥斯与chDB把记忆写入裁决与持久化视为比遗忘更严重的故障模式，其余多为已有叙事延伸。",
+ "for_you": [
+  {
+   "signal_id": "agent-output-observability-guardrail",
+   "priority": "安排测试",
+   "insight": "Snowflake在单个Interactive Warehouse上让Cortex Agents基于Semantic View对约2500万行销售数据生成Text-to-SQL，AI Observability自动把trace、span、工具调用、token写入本地可查询事件表，最终暴露了一个被Agent 100%成功率掩盖的语义视图缺陷。机制上，它把运行轨迹与语义层正确性绑成同一仓库内可查询的观测对象，用运行时证据发现语义缺陷。",
+   "why_it_matters": "你关心的数据Agent与语义层，此前主要在离线准确率和人工评审里验证。这条把Agent自身trace变成审计语义层的证据来源，意味着可信度可以在运行时被运维。若成立，你的数据Agent评测与看板口径应加入trace回查环节，而不是只看回答是否正确。",
+   "action": "在你的数据Agent环境选一条Text-to-SQL链路，开启运行事件落表，用一次已知语义视图缺陷回查能否被trace暴露。若无同类能力，先记录该假设和所需字段，暂不采购。"
+  },
+  {
+   "signal_id": "semantic-memory-write-adjudication",
+   "priority": "继续观察",
+   "insight": "卡奥斯COSMOPlat提出写入侧由大模型提议、真实数据裁决、证据分级入库，冲突用时间轴校验与对抗评审消解，并称只注入一半语义时正确率反而低于不注入；chDB Durable Layer把coding agent的项目规则、偏好与召回轨迹存入自有对象存储，解决本地状态无法带到CI或第二台笔记本的问题。两者都把写错或丢状态视为比遗忘更严重的故障模式。",
+   "why_it_matters": "你的数据Agent依赖业务上下文与权限，记忆写入错误会污染后续所有查询。这两条虽不同供应商、不同场景，但共同指向写入侧治理与跨环境持久化，是业务上下文可信的前置条件。",
+   "action": "在下一次数据Agent评审中，追问语义记忆的写入裁决规则、冲突消解方式、跨CI或跨环境持久化方案。暂无成对比的正确率数据，先列为待验证假设，不据此改架构。"
+  }
+ ],
+ "what_not_to_overread": "W40三条证据多为厂商自述或单一作者实操，属early_signal与low confidence，缺少第三方复现、缺陷检出率与写入裁决后的正确率对比。它们描述的是具体案例与待验证假设，不证明数据Agent可信度运维已被广泛采用，也不代表语义记忆写入问题已在产品层解决。",
+ "uncertainty": "缺少可独立验证的运行数据：多数为厂商自述或单一作者实操，没有第三方复现，缺失Agent语义缺陷检出率、写入裁决后的正确率对比数字，也没有跨供应商的同机制证据。语义视图缺陷能否直接驱动自动修复或影响计算成本，同样未说明。",
+ "next_week_question": "是否有第二个独立平台把Agent运行trace与语义层缺陷检测打通，或公开写入侧语义记忆裁决后的准确率对比数据？",
+ "evidence_index": [
+  {
+   "event_id": "60bf8e4b7542",
+   "title": "Snowflake交互式数仓上的一体化AI应用与可观测性"
+  },
+  {
+   "event_id": "cdc582d9ae58",
+   "title": "Agent记忆不在对话：企业数仓沉淀为可治理共享语义记忆"
+  },
+  {
+   "event_id": "c243cf15e712",
+   "title": "chDB 为 Agent 记忆提供持久化层"
+  }
+ ],
+ "items": [
+  {
+   "event_id": "60bf8e4b7542",
+   "title": "Snowflake交互式数仓上的一体化AI应用与可观测性",
+   "summary": "作者在单个 Snowflake Interactive Warehouse 上同时构建零售运营 AI 应用和其可观测性管线。Cortex Agents 基于 Semantic View 生成 Text-to-SQL，查询约 2500 万行销售数据；AI Observability 自动将 trace、span、工具调用和 token 数写入 SNOWFLAKE.LOCAL.AI_OBSERVABILITY_EVENTS，无需 SDK 或 collector。监控看板与 Agent 共用同一仓库，最终发现了一个被 Agent 100% 成功率掩盖的语义视图缺陷。完整 SQL、代码和 Streamlit 应用已发布在 GitHub。",
+   "category": "agent",
+   "source": "Snowflake Engineering（Medium）",
+   "source_family": "snowflake",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://medium.com/snowflake/running-an-ai-app-and-its-observability-on-one-snowflake-interactive-warehouse-21f36ad739fa?source=rss----34b6daafc07---4",
+   "published": "2026-09-29T22:01:07+08:00",
+   "heat": 47,
+   "importance": 91,
+   "vendors": [
+    "Snowflake"
+   ],
+   "topics": [
+    "Data Agent",
+    "语义层"
+   ],
+   "week_id": "2026-W40"
+  },
+  {
+   "event_id": "cdc582d9ae58",
+   "title": "Agent记忆不在对话：企业数仓沉淀为可治理共享语义记忆",
+   "summary": "QCon 上海站演讲预告，卡奥斯 COSMOPlat 工业智能首席科学家余锦泽将分享《Agent 的记忆不在对话里：把企业数仓沉淀为可治理的共享语义记忆》。他指出 Mem0、Zep、Letta/MemGPT 等主流框架多解决跨会话记住用户，而工业多智能体更缺的是指标分子分母、工单号多表写法等企业数据语义。方案包括写入侧由大模型提议、真实数据裁决、证据分级入库，冲突用时间轴校验、双源融合与对抗评审消解，使用侧按对象锚定动态构建上下文。其结论是企业语义记忆需治理，写错比遗忘更危险，实测只注入一半语义时正确率反而低于不注入。",
+   "category": "agent",
+   "source": "InfoQ 中文",
+   "source_family": "infoq",
+   "source_type": "media_report",
+   "source_count": 1,
+   "source_url": "https://www.infoq.cn/article/M4mgbKf4RDv5AKTwQvFH?utm_source=rss&utm_medium=article",
+   "published": "2026-10-04T18:00:00+08:00",
+   "heat": 60,
+   "importance": 68,
+   "vendors": [
+    "卡奥斯 COSMOPlat",
+    "Mem0",
+    "Zep",
+    "Letta/MemGPT"
+   ],
+   "topics": [
+    "Data Agent",
+    "语义层"
+   ],
+   "week_id": "2026-W40"
+  },
+  {
+   "event_id": "c243cf15e712",
+   "title": "chDB 为 Agent 记忆提供持久化层",
+   "summary": "chDB 是 ClickHouse 驱动的嵌入式 SQL OLAP 引擎。团队曾用 chDB 在单台笔记本上为 coding agent 保存项目规则、用户偏好、决策、原始转录和召回轨迹，运行数周后却无法把状态带到 CI、可能一小时即消失的沙箱或第二台笔记本。改用 ClickHouse server 后端虽可移植，但会把本地 recall 变成带凭据、连接管理和远程延迟的网络查询。chDB Durable Layer 试图把可恢复的分析状态存入自有对象存储，同时保留本地查询速度。",
+   "category": "agent",
+   "source": "ClickHouse Blog",
+   "source_family": "clickhouse",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://clickhouse.com/blog/chdb-durable-layer-for-agent-memory",
+   "published": "2026-09-28T17:42:20+08:00",
+   "heat": 36,
+   "importance": 72,
+   "vendors": [
+    "ClickHouse",
+    "chDB"
+   ],
+   "topics": [
+    "Data Agent"
+   ],
+   "week_id": "2026-W40"
+  }
+ ],
+ "candidate_count": 60
+}

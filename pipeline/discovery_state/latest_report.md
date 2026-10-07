@@ -1,7 +1,7 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-10-06T18:27:16.926707+00:00
-- 本轮原始发现：11
+- 生成时间：2026-10-07T23:09:26.701728+00:00
+- 本轮原始发现：6
 - 未收录文章候选：40
 - 新信源候选：43
 - 已收录链接去重：0
@@ -10,14 +10,14 @@
 ## 发现通道
 
 - openai_web_search: skipped · OPENAI_API_KEY 未配置
-- hn_official: ok · 3 条
-- accepted_link_graph: ok · 8 条
+- hn_official: ok · 0 条
+- accepted_link_graph: ok · 6 条
 
 ## 优先检查的新信源
 
 - **www.infoq.com** · PROBATION · 3 篇 · accepted_link_graph
+- **www.snowflake.com** · PROBATION · 3 篇 · accepted_link_graph
 - **www-cdn.anthropic.com** · PROBATION · 2 篇 · accepted_link_graph
-- **www.snowflake.com** · PROBATION · 2 篇 · accepted_link_graph
 - **www.imf.org** · PROBATION · 1 篇 · accepted_link_graph
 - **cdn.sanity.io** · PROBATION · 1 篇 · accepted_link_graph
 - **dbtcharts.com** · PROBATION · 1 篇 · hn
@@ -33,7 +33,6 @@
 
 ## 优先检查的文章
 
-- [Chrome again exempts Google from user site data settings](https://lapcatsoftware.com/articles/2026/9/1.html) · hn
 - [Improper redaction reveals Google Data Center water and electricity usage](https://www.1011now.com/2026/09/30/more-questions-than-answers-about-lincolns-google-data-center-water-electricity-usage) · hn
 - [The EPA is planning to scrap public review rules for data center pollution](https://capitalbnews.org/data-centers-permit-rules-epa) · hn
 - [Denmark data breach exposes 8.8M people's personal data](https://www.cpr.dk/cpr-nyt/nyhedsarkiv/2026/okt/omfattende-uautoriseret-adgang-til-borgeres-cpr-oplysninger) · hn
@@ -53,3 +52,4 @@
 - [We ported the original Doom to SQL](https://cedardb.com/blog/sqldoom) · hn
 - [Automatic Transmission – a data-privacy study of connected vehicles](https://automatictransmission.khoury.northeastern.edu/index.html) · hn
 - [AI companies leak data to advertisers [pdf]](https://jorgegarciaherrero.com/wp-content/interactivos/20260916-Prompt-like-a-butterfly-sting-like-a-tracker-(clean).pdf) · hn
+- [You can run Git on object storage if you re-make packfiles](https://www.tigrisdata.com/blog/objgit-packfiles) · hn

@@ -1,17 +1,17 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-10-07T23:09:26.701728+00:00
-- 本轮原始发现：6
-- 未收录文章候选：40
-- 新信源候选：43
+- 生成时间：2026-10-08T23:24:35.310263+00:00
+- 本轮原始发现：9
+- 未收录文章候选：42
+- 新信源候选：45
 - 已收录链接去重：0
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
 
 ## 发现通道
 
 - openai_web_search: skipped · OPENAI_API_KEY 未配置
-- hn_official: ok · 0 条
-- accepted_link_graph: ok · 6 条
+- hn_official: ok · 2 条
+- accepted_link_graph: ok · 7 条
 
 ## 优先检查的新信源
 
@@ -42,6 +42,7 @@
 - [RIP, vector database](https://turbopuffer.com/blog/rip-vector-database) · hn
 - [Korea raises data breach fines to 10% of revenue](https://www.koreajoongangdaily.com/business/korea-raises-data-breach-fines-to-10-of-revenue/12869899) · hn
 - [The Waymo effect: how AI is quietly making research less collaborative](https://www.researchagenda.news/articles/the-waymo-effect.html) · hn
+- [Man discovers his parents' coffee machine used 1TB of data in 10 days](https://www.dexerto.com/entertainment/man-discovers-his-parents-coffee-machine-used-1tb-of-data-in-10-days-3416399) · hn
 - [What Zig felt like, coming from Rust](https://besok.github.io/posts/what-zig-felt-like-coming-from-rust) · hn
 - [Meta Uses A.I. Data Centers to Avoid Billions in Federal Taxes](https://www.nytimes.com/2026/09/30/technology/meta-ai-data-centers-taxes.html) · hn
 - [One Piece of Flock Camera Data Put This Innocent Woman in Jail for 13 Days](https://www.jezebel.com/flock-cameras-data-innocent-woman-arrested-lindsey-isaacs-palm-beach-florida-lawsuit-vehicular-homicide) · hn
@@ -52,4 +53,3 @@
 - [We ported the original Doom to SQL](https://cedardb.com/blog/sqldoom) · hn
 - [Automatic Transmission – a data-privacy study of connected vehicles](https://automatictransmission.khoury.northeastern.edu/index.html) · hn
 - [AI companies leak data to advertisers [pdf]](https://jorgegarciaherrero.com/wp-content/interactivos/20260916-Prompt-like-a-butterfly-sting-like-a-tracker-(clean).pdf) · hn
-- [You can run Git on object storage if you re-make packfiles](https://www.tigrisdata.com/blog/objgit-packfiles) · hn

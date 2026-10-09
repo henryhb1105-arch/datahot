@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-K9l8cgmr6soHD2D0qMbB4HQynBZKmLoSLPxvil5ix2Q=' 'sha256-TKCZQWBRLcq2/5YZ/S1mxuby1xPeXVG9nM41ALeBk5k='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>医疗大模型院内落地路径与产品化难点 · DataHot</title>
+<meta name="description" content="文章基于作者多年医疗数据平台与AI应用落地经验，指出截至2025年末全国已发布352个医疗垂直大模型，但能跑通“部署—使用—付费”闭环的产品仍稀缺。作者将卡点归为数据治理、临床信任、工作流嵌入、收费模式四重结构性障碍，其中清洗标注成本占AI研发总成本40%以上，通用大模型约50%医疗回答被评为“有问">
+<link rel="canonical" href="https://datahot.xiahongbin.com/e/32c1d135e095.html">
+<meta property="og:title" content="医疗大模型院内落地路径与产品化难点">
+<meta property="og:description" content="文章基于作者多年医疗数据平台与AI应用落地经验，指出截至2025年末全国已发布352个医疗垂直大模型，但能跑通“部署—使用—付费”闭环的产品仍稀缺。作者将卡点归为数据治理、临床信任、工作流嵌入、收费模式四重结构性障碍，其中清洗标注成本占AI研发总成本40%以上，通用大模型约50%医疗回答被评为“有问">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://datahot.xiahongbin.com/e/32c1d135e095.html">
+<meta property="og:site_name" content="DataHot · 数据领域 AI 热榜">
+<meta property="og:image" content="https://datahot.xiahongbin.com/media/32c1d135e095/4af17ea532af306c62faf4bf.webp">
+<meta property="og:image:alt" content="医疗大模型院内落地路径与产品化难点">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://datahot.xiahongbin.com/media/32c1d135e095/4af17ea532af306c62faf4bf.webp">
+<meta name="twitter:image:alt" content="医疗大模型院内落地路径与产品化难点">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="theme-color" content="#f5f4ef" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#131c19" media="(prefers-color-scheme: dark)">
+<link rel="alternate" type="application/atom+xml" title="DataHot Feed" href="https://datahot.xiahongbin.com/feed.xml">
+<meta name="datahot-analytics" data-enabled="true" data-endpoint="https://metrics.datahot.xiahongbin.com/v1/events" data-site-id="datahot" data-environment="production" data-production-host="datahot.xiahongbin.com">
+<script defer src="../analytics.js?v=20077f7d7e8b"></script>
+<script defer src="../favorites.js?v=db2283bc3548"></script>
+<script defer src="../content-feedback.js"></script>
+<script defer src="../detail.js"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"医疗大模型院内落地路径与产品化难点","description":"文章基于作者多年医疗数据平台与AI应用落地经验，指出截至2025年末全国已发布352个医疗垂直大模型，但能跑通“部署—使用—付费”闭环的产品仍稀缺。作者将卡点归为数据治理、临床信任、工作流嵌入、收费模式四重结构性障碍，其中清洗标注成本占AI研发总成本40%以上，通用大模型约50%医疗回答被评为“有问","datePublished":"2026-10-09T12:05:35+08:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://www.woshipm.com/evaluating/6475085.html","image":"https://datahot.xiahongbin.com/media/32c1d135e095/4af17ea532af306c62faf4bf.webp"}</script>
+<style>
+  :root{
+    color-scheme: light dark;
+    --bg:#f6f7f9; --card:#ffffff; --ink:#1a1d23; --sub:#6b7280; --line:#e5e7eb;
+    --accent:#d94f2b; --accent-soft:#fdf0ec;
+    --blue:#2563eb; --green:#0f9d6c; --purple:#7c3aed; --amber:#b45309;
+    --txt2:#4b5563; --txt3:#374151; --soft:#f3f4f6; --hover:#f0f1f3;
+    --header-bg:rgba(255,255,255,.92); --tabbar-bg:rgba(255,255,255,.95);
+    --mobile-page-left:14px; --mobile-page-right:14px;
+    --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#121417; --card:#1e2126; --ink:#e9ebef; --sub:#9aa1ab; --line:#2e323a;
+      --accent:#e5603c; --accent-soft:rgba(229,96,60,.16);
+      --blue:#6ea8ff; --green:#34c98e; --purple:#a78bfa; --amber:#e0a455;
+      --txt2:#b6bcc6; --txt3:#cdd2da; --soft:#2a2e35; --hover:#2a2e35;
+      --header-bg:rgba(18,20,23,.92); --tabbar-bg:rgba(30,33,38,.95);
+    }
+    .tab.on,.fchip.on{background:var(--ink);color:#121417}
+    .sidebar a.mi.on{background:rgba(229,96,60,.14);color:var(--accent)}
+    .sub-box input,.tlsearch{color:var(--ink)}
+    .mock-banner{background:#000}
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 20px}
+
+  /* ── 顶部导航 ── */
+  header{position:sticky;top:0;z-index:50;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+  .nav{display:flex;align-items:center;gap:18px;min-height:56px}
+  .logo{font-size:20px;font-weight:800;letter-spacing:-.5px}
+  .logo em{font-style:normal;color:var(--accent)}
+  .logo .tag{font-size:11px;font-weight:500;color:var(--sub);margin-left:8px;border:1px solid var(--line);border-radius:99px;padding:2px 8px;vertical-align:middle}
+  .home-logo{display:inline-flex;align-items:center;border-radius:8px}
+  .home-logo:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+  .update-info{position:relative;margin-left:auto}
+  .update-info summary{list-style:none}
+  .update-info summary::-webkit-details-marker{display:none}
+  .upd-time{font-size:11.5px;color:var(--sub);white-space:nowrap;display:inline-flex;align-items:center;gap:4px;padding:5px 8px;border-radius:99px;cursor:help;transition:background .15s,color .15s}
+  .update-info:focus-within .upd-time,.update-info[open] .upd-time{background:var(--hover);color:var(--ink)}
+  .upd-time:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .update-popover{position:absolute;right:0;top:calc(100% + 9px);z-index:90;width:min(330px,calc(100vw - 28px));padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);box-shadow:0 12px 32px rgba(0,0,0,.14);font-size:12.5px;line-height:1.7;color:var(--txt2);white-space:normal;opacity:0;visibility:hidden;transform:translateY(-4px);pointer-events:none;transition:opacity .15s,transform .15s,visibility .15s}
+  .update-popover b{display:block;margin-bottom:3px;color:var(--ink);font-size:13px}
+  .update-info:not(.is-dismissed):focus-within .update-popover,.update-info[open]:not(.is-dismissed) .update-popover{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto}
+  .tabs{display:flex;gap:4px;flex:1}
+  .tab{padding:6px 14px;border-radius:99px;font-size:14px;color:var(--sub);cursor:pointer;white-space:nowrap}
+  .tab.on{background:var(--ink);color:#fff;font-weight:600}
+  .search{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:6px 14px;font-size:13px;color:var(--sub);min-width:180px;cursor:pointer}
+  .btn-sub{background:var(--accent);color:#fff;border-radius:99px;padding:7px 16px;font-size:13px;font-weight:600;white-space:nowrap}
+
+  .layout{display:grid;grid-template-columns:1fr 320px;gap:24px;padding:28px 0 60px}
+  @media(max-width:1199px){.layout{grid-template-columns:1fr}}
+
+  /* ── 移动端导航适配 ── */
+  @media(max-width:1199px){
+    .nav{flex-wrap:wrap;height:auto;padding:8px 0;gap:10px;min-height:52px}
+    .logo{font-size:19px}
+    .logo .tag{display:none}
+    .tabs{order:3;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
+    .tabs::-webkit-scrollbar{display:none}
+    .tab{flex-shrink:0;padding:5px 12px;font-size:13px}
+    .search{margin-left:auto;min-width:0;padding:5px 12px}
+    .btn-sub{display:none}
+  }
+
+  /* ── iPhone 体验适配 ── */
+  @media(max-width:600px){
+    :root{--mobile-page-left:max(14px,env(safe-area-inset-left));--mobile-page-right:max(14px,env(safe-area-inset-right))}
+    body{-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+    .wrap{padding:0 14px}
+    .section-title h2{font-size:17px}
+    .hotlist{grid-template-columns:1fr;gap:10px}
+    .hot{padding:14px 16px}
+    .hot h3{font-size:14px}
+    .item{padding:14px 16px;border-radius:12px}
+    .item h3{font-size:15px;overflow-wrap:anywhere}
+    .item .sum{font-size:13px;line-height:1.7;overflow-wrap:anywhere}
+    .item .top{font-size:11px;gap:4px}
+    .heatnum{font-size:12px}
+    .why{font-size:12.5px;line-height:1.7}
+    .brief{padding:16px 18px}
+    .brief p{font-size:13.5px}
+    .chiprow{flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-left:calc(-1 * var(--mobile-page-left));margin-right:calc(-1 * var(--mobile-page-right));padding:4px calc(var(--mobile-page-right) + 18px) 12px var(--mobile-page-left);scroll-padding-left:var(--mobile-page-left);scroll-padding-right:var(--mobile-page-right)}
+    .chiprow::after{display:block;content:"";position:sticky;right:0;flex:0 0 18px;width:18px;margin-left:-18px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+    .chiprow::-webkit-scrollbar{display:none}
+    .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:44px;display:inline-flex;align-items:center}
+    .tab,.fchip,.chip{touch-action:manipulation}
+    aside{align-self:start;position:sticky;top:20px}
+    aside .card{padding:14px 16px}
+    .article{padding:20px 14px 48px}
+    .article h1{font-size:20px}
+    .article .body{font-size:14.5px}
+    .fulltext p{font-size:14px}
+    .cta{width:100%;text-align:center;padding:13px 0;font-size:15px}
+    .day-head .date{font-size:15px}
+  }
+  @media(min-width:1280px){.wrap{max-width:1320px}}
+
+  /* ── 每周简报 ── */
+  .brief{background:linear-gradient(135deg,#1a1d23 0%,#2b2418 60%,#3d2412 100%);color:#fff;border-radius:var(--radius);padding:22px 26px;margin-bottom:22px;position:relative;overflow:hidden}
+  .brief .label{font-size:12px;letter-spacing:2px;color:#f5b48a;font-weight:700;margin-bottom:8px}
+  .brief p{font-size:15px;line-height:1.8;color:#f3f4f6}
+  .brief .meta{margin-top:10px;font-size:12px;color:#9ca3af}
+  .brief::after{content:"⚡";position:absolute;right:18px;top:14px;font-size:42px;opacity:.25}
+
+  /* ── 热点榜 ── */
+  .section-title{display:flex;align-items:baseline;gap:10px;margin:6px 0 14px}
+  .section-title h2{font-size:19px;font-weight:800}
+  .section-title span{font-size:12px;color:var(--sub)}
+  .timeline-toolbar{align-items:center;flex-wrap:nowrap}
+  .timeline-toolbar h2,.timeline-toolbar .timeline-count{white-space:nowrap}
+  .timeline-searchbox{display:flex;align-items:center;min-width:0;width:min(150px,40vw);margin-left:auto}
+  .timeline-searchbox .tlsearch{margin-left:0;min-width:0;flex:1 1 0}
+  .timeline-clear{appearance:none;display:inline-grid;place-items:center;min-width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:var(--sub);cursor:pointer;margin-left:4px;font:inherit}
+  .timeline-count{font-size:11px;color:var(--sub)}
+  @media(max-width:600px){
+    .timeline-toolbar{gap:8px}
+    .timeline-searchbox{width:min(120px,34vw)}
+    .timeline-searchbox .tlsearch,.timeline-searchbox .tlsearch:focus{width:100%}
+    .timeline-clear{min-width:44px;height:44px}
+  }
+  .hotlist{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:30px}
+  @media(max-width:600px){.hotlist{grid-template-columns:1fr;gap:10px}}
+  @media(max-width:1399px) and (min-width:601px){.hotlist{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .hot{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;position:relative;transition:.15s;cursor:pointer}
+  .hot .rank{position:absolute;top:-1px;left:16px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:0 0 8px 8px}
+  .hot .heat{position:absolute;top:12px;right:16px;font-size:12px;color:var(--accent);font-weight:700}
+  .hot h3{font-size:15px;font-weight:700;margin:14px 0 8px;line-height:1.5}
+  .hot .sources{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
+  .src{font-size:11px;background:var(--soft);color:var(--sub);border-radius:6px;padding:2px 8px}
+  .src.more{background:var(--accent-soft);color:var(--accent)}
+
+  /* ── 时间轴 ── */
+  .day{margin-bottom:8px}
+  .day-head{display:flex;align-items:center;gap:12px;margin:22px 0 12px}
+  .day-head .date{font-size:17px;font-weight:800}
+  .day-head .info{font-size:12px;color:var(--sub)}
+  .day-head::after{content:"";flex:1;height:1px;background:var(--line)}
+  .back-to-top{display:none}
+  @media(max-width:600px){
+    .home-page .home-header{position:static}
+    .home-page #timeline .day-head{position:sticky;top:0;z-index:35;min-height:40px;margin:18px -14px 12px;padding:0 14px;justify-content:space-between;background:var(--bg);border-bottom:1px solid var(--line)}
+    .home-page #timeline .day-head .date,.home-page #timeline .day-head .info{white-space:nowrap}
+    .home-page #timeline .day-head::after{display:none}
+    .back-to-top{position:fixed;right:16px;bottom:calc(70px + env(safe-area-inset-bottom));z-index:69;width:44px;height:44px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;background:var(--ink);color:var(--bg);box-shadow:0 6px 20px rgba(0,0,0,.18);font-size:22px;line-height:1;cursor:pointer;touch-action:manipulation;opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .18s ease,transform .18s ease}
+    .back-to-top.show{opacity:1;transform:translateY(0);pointer-events:auto}
+    .back-to-top:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+  }
+  .item{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin-bottom:12px;transition:.15s;cursor:pointer}
+  @media(hover:hover) and (pointer:fine){
+    .update-info:hover .upd-time,.tab:hover{background:var(--hover);color:var(--ink)}
+    .update-info:not(.is-dismissed):hover .update-popover{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto}
+    .hot:hover,.item:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+    .hot a:hover,.item a:hover{color:var(--accent)}
+  }
+  @media(hover:none) and (pointer:coarse){
+    .hot:active,.item:active{border-color:#d1d5db;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+  }
+  .fchip:focus-visible,.timeline-clear:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  }
+  .item .top{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub)}
+  .card-source{display:flex;align-items:center;gap:6px;min-width:0;flex:1 1 auto;overflow:hidden;white-space:nowrap}
+  .card-source-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;color:var(--txt3)}
+  .card-time{flex:0 0 auto;white-space:nowrap}
+  .badge{font-weight:600;border-radius:6px;padding:1px 8px;font-size:11px}
+  .b-agent{background:#eef2ff;color:var(--blue)}
+  .b-platform{background:#ecfdf5;color:var(--green)}
+  .b-bi{background:#f5f3ff;color:var(--purple)}
+  .b-product{background:#fef7e8;color:var(--amber)}
+  .b-insight{background:#fff1f2;color:#be123c}
+  .star,.editorial-pick{color:var(--accent);font-weight:700}
+  .item .heatnum{flex:0 0 auto;white-space:nowrap;font-weight:800;color:var(--accent);font-size:13px}
+  .item .heatnum.is-featured{padding:2px 7px;border-radius:99px;background:var(--accent-soft)}
+  .item h3{font-size:16px;font-weight:700;margin:8px 0 6px;line-height:1.55}
+  .item .sum{font-size:13.5px;color:var(--txt2);line-height:1.75}
+  .item .also{margin-top:10px;font-size:12px;color:var(--sub)}
+  .item .also b{color:var(--ink)}
+  .why{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;font-size:13px;color:var(--txt2);line-height:1.75}
+.why .w{color:var(--accent);font-weight:700;white-space:nowrap;font-size:12px;letter-spacing:1px}
+.why .w svg{vertical-align:-2px}
+  .vendors{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
+  .vtag{font-size:11px;border:1px dashed var(--line);color:var(--sub);border-radius:99px;padding:1px 10px;cursor:default}
+  
+
+  /* ── 侧栏 ── */
+  aside .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
+  aside h4{font-size:14px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+  .vendor-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--soft);font-size:13px;cursor:pointer}
+  .vendor-row:last-child{border-bottom:none}
+  .vendor-row .n{width:16px;color:var(--sub);font-size:12px}
+  .vendor-row .count{margin-left:auto;font-size:12px;color:var(--accent);font-weight:700}
+  .up{transform:scale(.8)}
+  .sub-box input{width:100%;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:8px;outline:none}
+  .sub-box button{width:100%;background:var(--ink);color:var(--bg);border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer}
+  .status{font-size:12.5px;color:var(--sub);line-height:2}
+  .status b{color:var(--green)}
+  .legend{display:flex;flex-direction:column;gap:6px;font-size:12.5px}
+  .legend .row{display:flex;align-items:center;gap:8px;color:var(--sub)}
+
+  footer{border-top:1px solid var(--line);padding:26px 0;text-align:center;font-size:12px;color:var(--sub)}
+  .mock-banner{background:#1a1d23;color:#fff;text-align:center;font-size:12px;padding:7px;letter-spacing:1px}
+  .mock-banner b{color:#f5b48a}
+
+
+body{overflow-x:clip}
+main,.layout>*,.hotlist>*{min-width:0}
+.d-only{display:inline-block}
+@media(max-width:1199px){.d-only{display:none}}
+.chip{display:inline-block;font-size:11px;background:#eef2ff;color:var(--blue);border-radius:99px;padding:1px 10px;text-decoration:none}
+.tlsearch{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;width:120px;outline:none;background:var(--card)}
+.tlsearch:focus{width:160px;border-color:var(--accent);transition:width .2s}
+.chiprow{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 18px 12px 0;margin-bottom:4px;position:relative;scroll-padding-inline:8px}
+.chiprow::after{display:block;content:"";position:sticky;right:0;flex:0 0 18px;width:18px;margin-left:-18px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+.chiprow::-webkit-scrollbar{display:none}
+.chiprow .fchip{appearance:none;flex-shrink:0;min-height:36px;font:inherit;font-size:12.5px;line-height:1.4;border:1px solid var(--line);border-radius:99px;padding:4px 14px;color:var(--sub);cursor:pointer;background:var(--card)}
+.chiprow .fchip.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
+@media(max-width:600px){
+  .home-page>.wrap{padding-left:var(--mobile-page-left);padding-right:var(--mobile-page-right)}
+  .chiprow{gap:6px;margin-left:calc(-1 * var(--mobile-page-left));margin-right:calc(-1 * var(--mobile-page-right));padding:4px calc(var(--mobile-page-right) + 18px) 12px var(--mobile-page-left);scroll-padding-left:var(--mobile-page-left);scroll-padding-right:var(--mobile-page-right)}
+  .chiprow .fchip{font-size:12px;padding:4px 12px;min-height:44px;display:inline-flex;align-items:center}
+}
+@media (prefers-color-scheme: dark){
+  .chip{background:rgba(110,168,255,.16);color:#6ea8ff}
+  .chiprow .fchip.on{background:var(--ink);color:#121417;border-color:var(--ink)}
+  .chiprow .fchip{background:var(--card);color:var(--sub);border-color:var(--line)}
+}
+.scard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 20px;margin-bottom:14px}
+.source-page{padding:30px 20px 60px;max-width:820px}
+.source-intro{margin-bottom:30px}
+.source-intro h1{font-size:27px;line-height:1.35;margin:0 0 10px}
+.source-intro p{font-size:14px;line-height:1.8;color:var(--txt2);margin:0;max-width:720px}
+.source-alert{margin-top:14px;padding:10px 12px;border-left:3px solid var(--amber);background:var(--soft);border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.7;color:var(--txt2)}
+.source-alert b{color:var(--ink);margin-right:6px}
+.source-group{margin:0 0 28px}
+.source-group-head{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:8px}
+.source-group-head h2{font-size:16px;line-height:1.4;margin:0}
+.source-group-head span{font-size:11.5px;color:var(--sub)}
+.source-row{display:flex;align-items:center;gap:12px;min-height:49px;border-bottom:1px solid var(--soft)}
+.source-name{display:inline-flex;align-items:center;gap:4px;min-width:0;color:var(--ink);font-size:13.5px;font-weight:650;line-height:1.5;text-decoration:none}
+.source-name svg{flex:0 0 auto}
+.source-focus{margin-left:auto;color:var(--sub);font-size:11.5px;line-height:1.45;text-align:right}
+.source-health{color:var(--amber);font-size:11.5px;white-space:nowrap}
+.source-disabled{margin:2px 0 28px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.source-disabled summary{cursor:pointer;padding:13px 0;font-size:13px;font-weight:650;color:var(--txt2)}
+.source-disabled .source-row{align-items:flex-start;padding:11px 0;min-height:0}
+.source-disabled-reason{margin-left:auto;max-width:62%;font-size:11.5px;line-height:1.6;color:var(--sub);text-align:right}
+.source-contribute{display:flex;align-items:center;gap:18px;background:var(--soft);border-radius:var(--radius);padding:17px 18px;margin-bottom:20px}
+.source-contribute-copy{min-width:0;flex:1}
+.source-contribute h2{font-size:15px;margin:0 0 4px}
+.source-contribute p{font-size:12.5px;line-height:1.6;color:var(--sub);margin:0}
+.source-cta{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border-radius:99px;background:var(--ink);color:var(--bg);padding:8px 14px;font-size:12px;font-weight:650;text-decoration:none}
+.source-principle{font-size:12px;line-height:1.75;color:var(--sub);margin:0}
+@media(max-width:600px){
+  .source-page{padding:22px 18px 52px}
+  .source-intro{margin-bottom:25px}
+  .source-intro h1{font-size:24px}
+  .source-row{gap:8px}
+  .source-name{font-size:13px;min-height:44px}
+  .source-focus{max-width:45%;font-size:11px}
+  .source-disabled .source-row{display:block}
+  .source-disabled-reason{max-width:none;margin:4px 0 0;text-align:left}
+  .source-contribute{align-items:flex-start;flex-direction:column;gap:12px}
+}
+.crow{display:flex;align-items:baseline;gap:8px;padding:9px 0;border-bottom:1px solid var(--soft);text-decoration:none;color:var(--ink)}
+.crow:last-child{border-bottom:none}
+.cpin{width:18px;flex-shrink:0;font-size:12px}
+.ctitle{font-size:13.5px;font-weight:600;line-height:1.55;flex:1}
+.cmeta{font-size:11px;color:var(--sub);white-space:nowrap}
+.favbtn{appearance:none;min-width:36px;min-height:36px;border:none;background:none;color:var(--sub);cursor:pointer;padding:6px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%}
+.favbtn.on{color:var(--accent)}
+.favbtn.on svg{fill:currentColor}
+.favbtn svg{pointer-events:none}
+.favbtn .sbtn-label{pointer-events:none}
+.fav-toast{position:fixed;left:50%;bottom:28px;z-index:100;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 28px);min-height:44px;padding:8px 10px 8px 16px;border-radius:99px;background:rgba(26,29,35,.94);box-shadow:0 10px 30px rgba(0,0,0,.18);color:#fff;font-size:13px;line-height:1.4;opacity:0;pointer-events:none;transform:translate(-50%,12px);transition:opacity .2s ease,transform .2s ease}
+.fav-toast.show{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+.fav-toast-action{appearance:none;min-height:36px;border:0;border-radius:99px;padding:6px 12px;background:rgba(255,255,255,.14);color:#fff;font:inherit;font-size:12px;font-weight:750;cursor:pointer;white-space:nowrap}
+.fav-entry{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--sub);white-space:nowrap;text-decoration:none}
+.privacy-btn{min-height:44px;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:9px 16px;font-size:12.5px;font-weight:650;cursor:pointer;margin:4px 6px 4px 0}
+.privacy-btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.load-more{display:block;margin:18px auto 4px;border:1px solid var(--line);background:var(--card);color:var(--txt2);border-radius:99px;padding:9px 22px;font-size:12.5px;font-weight:650;cursor:pointer}
+.load-more[hidden]{display:none}
+.load-more[disabled]{opacity:.65;cursor:default}
+.filter-error b{display:block;margin-bottom:5px;color:var(--ink);font-size:14px}
+.filter-error p{margin:0;color:var(--sub);font-size:12.5px;line-height:1.7}
+.filter-error-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.filter-error-actions button{min-height:44px;border:1px solid var(--line);border-radius:99px;padding:8px 15px;background:var(--card);color:var(--ink);font:inherit;font-size:12.5px;font-weight:650;cursor:pointer}
+.filter-error-actions button:first-child{border-color:var(--accent);background:var(--accent);color:#fff}
+.weekly-strip{display:flex;align-items:stretch;min-height:52px;margin-bottom:16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);overflow:hidden}
+.weekly-strip[hidden]{display:none}
+.weekly-strip-link{display:flex;align-items:center;gap:10px;min-width:0;min-height:52px;flex:1;padding:0 4px 0 14px;color:var(--ink);text-decoration:none}
+.weekly-strip-label{flex:0 0 auto;border-radius:99px;padding:3px 8px;background:var(--accent-soft);color:var(--accent);font-size:11px;font-weight:750;white-space:nowrap}
+.weekly-strip-title{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:700}
+.weekly-strip-view{flex:0 0 auto;color:var(--accent);font-size:12px;font-weight:700;white-space:nowrap}
+.weekly-dismiss{appearance:none;display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;min-height:44px;margin:4px;border:0;border-radius:50%;background:transparent;color:var(--sub);cursor:pointer}
+.weekly-dismiss svg{pointer-events:none}
+.today-hot{margin-bottom:12px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);overflow:hidden}
+.today-hot-head{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:34px;padding:0 12px;border-bottom:1px solid var(--soft)}
+.today-hot-head h2{margin:0;font-size:12px;line-height:1.3;font-weight:800;letter-spacing:.04em;color:var(--ink)}
+.today-hot-more{flex:0 0 auto;color:var(--accent);font-size:11.5px;font-weight:700;text-decoration:none;white-space:nowrap}
+.today-hot-list{display:block}
+.today-hot-row{display:grid;grid-template-columns:22px minmax(0,1fr) auto;align-items:center;gap:8px;min-height:35px;padding:0 12px;color:var(--ink);text-decoration:none}
+.today-hot-row+.today-hot-row{border-top:1px solid var(--soft)}
+.today-hot-rank{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:5px;background:var(--soft);color:var(--sub);font-size:10px;font-weight:800;font-variant-numeric:tabular-nums}
+.today-hot-row.is-lead .today-hot-rank{background:var(--accent);color:#fff}
+.today-hot-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;font-weight:650}
+.today-hot-row.is-lead .today-hot-title{font-weight:750}
+.today-hot-heat{display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;color:var(--accent);font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.top-rank{flex:0 0 auto;border-radius:5px;padding:2px 6px;background:var(--accent);color:#fff;font-size:10px;font-weight:800;line-height:1.3;white-space:nowrap}
+.vendor-card-head{justify-content:space-between}
+.vendor-card-title{display:inline-flex;align-items:center;gap:6px}
+.vendor-card-link{margin-left:auto;color:var(--accent);font-size:11px;font-weight:650;text-decoration:none;white-space:nowrap}
+.vendor-row{color:var(--ink);text-decoration:none}
+@media(max-width:360px){
+  .weekly-strip-link{gap:7px;padding-left:10px}
+  .weekly-strip-label{padding:3px 7px}
+  .weekly-strip-view-arrow{display:none}
+}
+@media(max-width:600px){
+  .weekly-strip{min-height:48px;margin-bottom:10px}
+  .weekly-strip-link{min-height:48px}
+  .today-hot{margin-bottom:8px}
+  .today-hot-head{min-height:32px;padding:0 10px}
+  .today-hot-head h2{font-size:11.5px}
+  .today-hot-more{font-size:11px}
+  .today-hot-row{grid-template-columns:20px minmax(0,1fr) auto;gap:7px;min-height:34px;padding:0 10px}
+  .today-hot-rank{width:18px;height:18px;font-size:9.5px}
+  .today-hot-title{font-size:12px}
+  .today-hot-heat{font-size:10.5px}
+  .top-rank{padding:2px 5px;font-size:9.5px}
+}
+.weekly-summary{background:linear-gradient(135deg,#1a1d23,#34302a);color:#fff;border:0;padding:20px 22px}
+.weekly-summary h1{font-size:25px;line-height:1.4;margin:4px 0 8px}
+.weekly-summary p{font-size:14px;line-height:1.75;color:#e5e7eb;margin:0}
+.weekly-change{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.12);font-size:13px;line-height:1.7;color:#f3f4f6}
+.weekly-change:last-child{border-bottom:0}
+.weekly-themes{display:grid;gap:14px}
+.weekly-theme{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px}
+.weekly-theme h2{font-size:19px;line-height:1.5;margin:9px 0 12px}
+.weekly-theme p{font-size:13.5px;line-height:1.85;color:var(--txt2);margin:0 0 12px}
+.weekly-badges{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.weekly-pill{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:99px;padding:3px 8px;font-size:10.5px;color:var(--sub)}
+.weekly-pill.priority-now{border-color:#dc2626;color:#b91c1c;background:#fef2f2}
+.weekly-pill.priority-test{border-color:#d97706;color:#b45309;background:#fffbeb}
+.weekly-pill.priority-watch{border-color:#2563eb;color:#1d4ed8;background:#eff6ff}
+.weekly-pill.priority-ignore{color:var(--sub);background:var(--soft)}
+.weekly-anchor{background:var(--soft);border-left:3px solid var(--accent);padding:10px 12px;border-radius:0 8px 8px 0;font-size:12.5px;line-height:1.75;color:var(--txt2);margin:0 0 14px}
+.weekly-anchor b,.weekly-why b{color:var(--ink)}
+.weekly-why{font-size:13px;line-height:1.8;color:var(--txt2);border-top:1px solid var(--soft);padding-top:12px}
+.weekly-action{margin-top:12px;background:#fff8ed;border:1px solid #f3d5aa;border-radius:9px;padding:11px 12px;font-size:13px;line-height:1.75;color:var(--txt2)}
+.weekly-action b{color:#9a4f08;margin-right:7px}
+.weekly-signal-meta{font-size:11px;color:var(--sub);margin-top:12px}
+.weekly-secondary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.weekly-secondary .scard{font-size:12.5px;line-height:1.75;color:var(--txt2)}
+.weekly-secondary b{display:block;color:var(--ink);font-size:12px;margin-bottom:6px}
+.weekly-evidence{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:0 18px}
+.weekly-evidence summary{cursor:pointer;padding:15px 0;font-size:13px;font-weight:700;color:var(--ink)}
+.weekly-evidence-row{display:flex;gap:12px;align-items:baseline;padding:11px 0;border-top:1px solid var(--soft);text-decoration:none;color:var(--ink)}
+.weekly-evidence-row span:first-child{font-size:13px;line-height:1.55;flex:1}
+.weekly-evidence-row span:last-child{font-size:10.5px;color:var(--sub);white-space:nowrap}
+.weekly-archive{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 22px}
+.weekly-archive a{font-size:12px;color:var(--sub);border:1px solid var(--line);border-radius:99px;padding:5px 10px;text-decoration:none}
+.weekly-archive a.on{border-color:var(--accent);color:var(--accent)}
+@media (prefers-color-scheme: dark){
+  .weekly-pill.priority-now{border-color:#ef7b7b;color:#ffaaaa;background:rgba(220,38,38,.14)}
+  .weekly-pill.priority-test{border-color:#d89a3d;color:#f2bd70;background:rgba(217,119,6,.14)}
+  .weekly-pill.priority-watch{border-color:#6ea8ff;color:#9cc3ff;background:rgba(37,99,235,.14)}
+  .weekly-action{background:rgba(217,119,6,.12);border-color:rgba(242,189,112,.38);color:var(--txt2)}
+  .weekly-action b{color:#f2bd70}
+}
+@media(max-width:700px){
+  .weekly-summary{padding:16px 20px}
+  .weekly-summary h1{font-size:23px}
+  .weekly-theme{padding:17px}
+  .weekly-theme h2{font-size:17px}
+  .weekly-secondary{grid-template-columns:1fr}
+  .weekly-evidence-row{align-items:flex-start;flex-direction:column;gap:4px}
+  .weekly-evidence-row span:last-child{white-space:normal}
+}
+.hrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--soft);text-decoration:none;color:var(--ink)}
+.hrow:last-child{border-bottom:none}
+.hrow .rk{font-size:15px;font-weight:800;color:var(--accent);width:26px;flex-shrink:0;text-align:center}
+.hrow .ht{flex:1;font-size:14px;font-weight:600;line-height:1.5}
+.hrow .hm{font-size:11px;color:var(--sub);white-space:nowrap}
+.rank-page{padding:28px 20px 60px;max-width:900px}
+.rank-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.rank-head h1{display:flex;align-items:center;gap:7px;font-size:20px;line-height:1.4;margin:0}
+.rank-head p{font-size:12px;color:var(--sub);margin:0}
+.rank-list{padding:6px 18px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+.rank-row{display:grid;grid-template-columns:26px minmax(0,1fr) minmax(150px,auto);align-items:center;gap:12px;min-height:48px;padding:12px 0;border-bottom:1px solid var(--soft);color:var(--ink);text-decoration:none}
+.rank-row:last-child{border-bottom:none}
+.rank-no{font-size:14px;font-weight:750;color:var(--sub);font-variant-numeric:tabular-nums;text-align:center}
+.rank-no.is-top{color:var(--accent);font-size:16px;font-weight:850}
+.rank-title{min-width:0;font-size:14px;font-weight:650;line-height:1.5}
+.rank-meta{display:flex;align-items:center;justify-content:flex-end;gap:9px;min-width:0;max-width:280px;color:var(--sub);font-size:11px}
+.rank-source{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank-heat{display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;color:var(--accent);font-weight:700;white-space:nowrap}
+.rank-note{margin-top:8px;color:var(--sub);font-size:12px}
+.rank-note summary{display:flex;align-items:center;width:max-content;max-width:100%;min-height:44px;cursor:pointer;list-style:none}
+.rank-note summary::-webkit-details-marker{display:none}
+.rank-note summary::after{content:" ↓";margin-left:4px}
+.rank-note[open] summary::after{content:" ↑"}
+.rank-note p{margin:0 0 8px;line-height:1.7}
+@media(max-width:600px){
+  .rank-page{padding:18px 14px calc(32px + env(safe-area-inset-bottom))}
+  .rank-head{display:block;margin-bottom:14px}
+  .rank-head h1{font-size:22px}
+  .rank-head p{margin-top:4px;font-size:12px}
+  .rank-list{display:grid;gap:10px;padding:0;background:transparent;border:0;border-radius:0}
+  .rank-row{grid-template-columns:30px minmax(0,1fr);grid-template-rows:auto auto;align-items:start;gap:5px 10px;min-height:76px;padding:13px 14px;background:var(--card);border:1px solid var(--line);border-radius:12px}
+  .rank-row:last-child{border-bottom:1px solid var(--line)}
+  .rank-no{grid-row:1/3;padding-top:1px;font-size:14px;text-align:left}
+  .rank-no.is-top{font-size:17px}
+  .rank-title{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;font-size:15px;line-height:1.5}
+  .rank-meta{grid-column:2;justify-content:flex-start;max-width:none;width:100%;gap:8px}
+  .rank-source{flex:1}
+  .rank-note{margin-top:4px}
+}
+.srcbadge{font-size:10px;border:1px solid var(--line);border-radius:5px;padding:0 5px;color:var(--sub);flex-shrink:0;line-height:1.6}
+.sidebar{display:none}
+@media(min-width:1200px){
+  body.has-sb{padding-left:224px}
+  body.has-sb>header{display:none}
+  .sidebar{display:flex;position:fixed;left:0;top:0;bottom:0;width:224px;flex-direction:column;background:var(--card);border-right:1px solid var(--line);padding:22px 16px;z-index:40}
+  .sidebar .slogo{font-size:20px;font-weight:800;margin-bottom:26px}
+  .sidebar .slogo em{font-style:normal;color:var(--accent)}
+  .sidebar .sidebar-nav{display:grid}
+  .sidebar a.mi{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:14px;color:var(--sub);text-decoration:none;margin-bottom:2px}
+  .sidebar a.mi.on{background:var(--ink);color:var(--bg);font-weight:600}
+  .sidebar .sidebar-tools{margin-top:auto;padding-top:14px;border-top:1px solid var(--line)}
+  .sidebar .sidebar-tools a.mi{margin-bottom:0;font-size:12.5px}
+  .sidebar .sfoot{margin-top:10px;font-size:11.5px;color:var(--sub);line-height:1.8}
+}
+.hot .hsum{font-size:12.5px;color:var(--txt2);line-height:1.65;margin:6px 0 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hot .htime{margin-left:auto;font-size:11px;color:var(--sub)}
+.hot .sources{align-items:center}
+.hot .sources .favbtn{flex:0 0 auto;margin:-8px -8px -8px 0}
+.tabbar{display:none}
+.more-mask,.more-sheet{display:none}
+@media(max-width:1199px){
+  body{padding-bottom:64px}
+  footer{padding-bottom:96px}
+  body.mobile-section{padding-top:env(safe-area-inset-top)}
+  .section-brand-header,.detail-brand-header{display:none}
+  .tabbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));position:fixed;bottom:0;left:0;right:0;background:var(--tabbar-bg);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:70;padding:0 0 env(safe-area-inset-bottom)}
+  .tabbar a,.tabbar button{appearance:none;border:0;background:transparent;min-width:0;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 2px 5px;font:inherit;font-size:11px;color:var(--sub);text-decoration:none;gap:2px;cursor:pointer;touch-action:manipulation}
+  .tabbar .ico{display:grid;place-items:center;height:22px}
+  .tabbar a.on,.tabbar button.on{color:var(--accent);font-weight:650}
+  .more-mask{display:block;position:fixed;inset:0;background:rgba(0,0,0,.42);opacity:0;pointer-events:none;transition:opacity .22s ease;z-index:78}
+  .more-mask.show{opacity:1;pointer-events:auto}
+  .more-sheet{display:block;position:fixed;left:0;right:0;bottom:0;z-index:80;max-height:70vh;overflow:auto;background:var(--card);border-radius:18px 18px 0 0;padding:8px 16px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -14px 40px rgba(0,0,0,.18);transform:translateY(110%);transition:transform .28s cubic-bezier(.32,.72,.35,1)}
+  .more-sheet.show{transform:translateY(0)}
+  .more-handle{width:36px;height:4px;border-radius:99px;background:var(--line);margin:2px auto 12px}
+  .more-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .more-head h2{font-size:18px}
+  .more-close{appearance:none;border:0;background:var(--soft);color:var(--sub);width:44px;height:44px;border-radius:50%;font-size:18px;cursor:pointer}
+  .more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .more-link{display:flex;align-items:center;gap:11px;min-height:58px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);text-decoration:none;color:var(--ink)}
+  .more-link .more-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent);flex:0 0 auto}
+  .more-link span:last-child{min-width:0;font-size:13px;font-weight:650}
+  .more-link.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  body.more-open{overflow:hidden}
+}
+.fchip:focus-visible,.timeline-clear:focus-visible,.favbtn:focus-visible,.fav-toast-action:focus-visible,.favorites-search:focus-visible,.favorites-filter:focus-visible,.favorites-empty-cta:focus-visible,.favorite-card-main:focus-visible,.load-more:focus-visible,.weekly-strip-link:focus-visible,.weekly-dismiss:focus-visible,.today-hot-row:focus-visible,.today-hot-more:focus-visible,.rank-row:focus-visible,.rank-note summary:focus-visible,.more-close:focus-visible,.more-link:focus-visible,.tabbar a:focus-visible,.tabbar button:focus-visible,.sidebar a:focus-visible,.source-name:focus-visible,.source-cta:focus-visible,.tcard-main:focus-visible,.tchild-link:focus-visible,.scenario-row:focus-visible,.topic-back:focus-visible,.topic-follow:focus-visible,.topic-recent-card:focus-visible,.topic-update-row:focus-visible,.topic-load-more:focus-visible,.topic-vendors summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:600px){.favbtn{min-width:44px;min-height:44px}}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+.topic-map-page,.topic-page{max-width:900px;padding-top:28px;padding-bottom:60px}
+.topic-map-intro{font-size:13px;color:var(--sub);line-height:1.7;margin:-4px 0 26px}
+.topic-family{margin-top:26px}
+.topic-family:first-of-type{margin-top:0}
+.topic-family-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.topic-family-head h2{font-size:17px;font-weight:800}
+.topic-family-head p{font-size:12px;color:var(--sub)}
+.tgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;min-width:0}
+@media(max-width:960px){.tgrid{grid-template-columns:minmax(0,1fr)}}
+.tcard{min-width:0;width:100%;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);display:flex;flex-direction:column;transition:.15s}
+.tcard-main{display:block;min-width:0;padding:18px 20px;text-decoration:none;color:var(--ink);flex:1}
+.tcard h3{font-size:17px;font-weight:800;margin-bottom:6px}
+.tcard .td{font-size:12.5px;color:var(--sub);line-height:1.6;margin-bottom:12px}
+.topic-counts{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;font-weight:650}
+.topic-counts .recent{color:var(--accent)}
+.topic-counts .total{color:var(--sub);font-weight:500}
+.tchildren{display:flex;align-items:center;gap:7px;border-top:1px solid var(--soft);padding:10px 20px;font-size:11.5px;color:var(--sub)}
+.tchild-link{display:inline-flex;align-items:center;min-height:30px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-weight:650;padding:3px 10px;text-decoration:none}
+.scenario-list{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.scenario-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 16px;align-items:center;min-height:58px;padding:10px 16px;border-bottom:1px solid var(--soft);color:var(--ink);text-decoration:none}
+.scenario-row:last-child{border-bottom:none}
+.scenario-copy{min-width:0}
+.scenario-name{display:block;font-size:14px;font-weight:750}
+.scenario-desc{display:block;margin-top:2px;font-size:11.5px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scenario-count{font-size:11.5px;color:var(--sub);white-space:nowrap}
+.scenario-count.is-active{color:var(--accent);font-weight:650}
+.topic-hero{margin-bottom:24px}
+.topic-back{display:inline-flex;align-items:center;min-height:36px;color:var(--sub);font-size:13px;text-decoration:none}
+.topic-hero h1{font-size:28px;font-weight:800;margin:10px 0 6px}
+.topic-hero-desc{font-size:14px;color:var(--sub);line-height:1.7;margin:0 0 8px}
+.topic-follow{display:inline-flex;align-items:center;justify-content:center;min-height:40px;margin:7px 0 4px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink);font-size:12.5px;font-weight:700;text-decoration:none}
+.topic-parent{font-size:12px;color:var(--sub);margin-top:9px}
+.topic-parent a{color:var(--accent);font-weight:650;text-decoration:none}
+.topic-section{margin-top:24px}
+.topic-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:10px}
+.topic-section-head h2{font-size:16px;font-weight:800}
+.topic-section-head p{font-size:11.5px;color:var(--sub);text-align:right}
+.topic-recent-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.topic-recent-wrap{position:relative;min-width:0}
+.topic-recent-card{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;text-decoration:none;color:var(--ink)}
+.topic-recent-wrap .topic-recent-card{display:block;height:100%;padding-right:54px}
+.topic-recent-fav{position:absolute;top:7px;right:7px;z-index:2}
+.topic-recent-card h3{font-size:14px;line-height:1.55;margin:6px 0}
+.topic-recent-card p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-size:12px;line-height:1.65;color:var(--txt2)}
+.topic-recent-meta{font-size:10.5px;color:var(--sub)}
+.topic-empty{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:15px 16px;color:var(--sub);font-size:12.5px}
+.topic-reading{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:6px 16px 10px}
+.topic-updates{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.topic-update-row{display:grid;grid-template-columns:88px minmax(0,1fr) 150px;gap:12px;align-items:center;min-height:52px;padding:9px 14px;border-bottom:1px solid var(--soft);color:var(--ink);text-decoration:none}
+.topic-update-row:last-child{border-bottom:none}
+.topic-update-row.is-extra{display:none}
+.topic-update-date{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums}
+.topic-update-title{min-width:0;font-size:13px;font-weight:650;line-height:1.5}
+.topic-update-source{min-width:0;font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+.topic-load-more{appearance:none;width:100%;min-height:48px;margin-top:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:12.5px;font-weight:650;cursor:pointer}
+.topic-vendors{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:0 14px}
+.topic-vendors summary{display:flex;align-items:center;justify-content:space-between;min-height:48px;font-size:12.5px;font-weight:650;cursor:pointer;list-style:none}
+.topic-vendors summary::-webkit-details-marker{display:none}
+.topic-vendors summary span{color:var(--sub);font-size:11px;font-weight:500}
+.topic-vendors[open] summary span{color:var(--accent)}
+.topic-vendors .vendors{padding:0 0 14px;margin-top:0}
+@media(max-width:720px){.topic-recent-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){
+  .topic-map-page,.topic-page{padding-top:18px;padding-right:var(--mobile-page-right);padding-left:var(--mobile-page-left)}
+  .topic-map-intro{margin-bottom:22px}
+  .topic-family-head{display:block}
+  .topic-family-head p{margin-top:3px}
+  .tcard-main{padding:15px 16px}
+  .tchildren{padding:8px 16px}
+  .scenario-row{padding:10px 14px}
+  .scenario-desc{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .topic-hero h1{font-size:26px}
+  .topic-follow{min-height:44px}
+  .topic-section-head{display:block}
+  .topic-section-head p{text-align:left;margin-top:3px}
+  .topic-update-row{grid-template-columns:70px minmax(0,1fr);gap:3px 10px;padding:10px 12px}
+  .topic-update-source{grid-column:2;text-align:left}
+}
+.favorites-page{max-width:900px;min-height:calc(100vh - 145px);padding:28px 20px 60px}
+.favorites-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:18px}
+.favorites-title{display:flex;align-items:center;gap:8px;margin:0;font-size:22px;line-height:1.35}
+.favorites-count{color:var(--sub);font-size:12px;font-weight:500;white-space:nowrap}
+.favorites-trust{margin:6px 0 0;color:var(--sub);font-size:12px;line-height:1.6}
+.favorites-trust a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.favorites-tools{margin-bottom:16px}
+.favorites-search{width:min(360px,100%);min-height:44px;border:1px solid var(--line);border-radius:99px;padding:9px 15px;background:var(--card);color:var(--ink);font:inherit;font-size:13px;outline:none}
+.favorites-search:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.favorites-filters{display:flex;gap:7px;overflow-x:auto;margin-top:10px;padding-bottom:2px;scrollbar-width:none}
+.favorites-filters::-webkit-scrollbar{display:none}
+.favorites-filter{appearance:none;flex:0 0 auto;min-height:36px;border:1px solid var(--line);border-radius:99px;padding:6px 13px;background:var(--card);color:var(--sub);font:inherit;font-size:12px;cursor:pointer}
+.favorites-filter.on{border-color:var(--ink);background:var(--ink);color:var(--bg);font-weight:700}
+.favorites-group{margin:0 0 18px}
+.favorites-group h2{margin:0 0 8px;color:var(--sub);font-size:12px;font-weight:700}
+.favorites-list{display:grid;gap:10px}
+.favorite-card{display:grid;grid-template-columns:minmax(0,1fr) 48px;align-items:start;background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+.favorite-card-main{min-width:0;padding:15px 4px 15px 17px;color:var(--ink);text-decoration:none}
+.favorite-card-top{display:flex;align-items:center;gap:7px;margin-bottom:6px;color:var(--sub);font-size:10.5px;line-height:1.4}
+.favorite-card-topic{max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-radius:99px;padding:2px 8px;background:var(--soft);color:var(--txt2)}
+.favorite-card-saved{margin-left:auto;white-space:nowrap}
+.favorite-card h3{margin:0;font-size:15px;line-height:1.5}
+.favorite-card-summary{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;margin:6px 0 0;color:var(--txt2);font-size:12.5px;line-height:1.65}
+.favorite-card-meta{display:flex;align-items:center;gap:7px;margin-top:8px;color:var(--sub);font-size:11px;line-height:1.4}
+.favorite-card-meta span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.favorite-card>.favbtn{align-self:center;margin:4px 4px 4px 0}
+.favorites-empty{display:grid;place-items:center;min-height:330px;padding:34px 20px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);text-align:center}
+.favorites-empty-inner{max-width:360px}
+.favorites-empty-icon{display:grid;place-items:center;width:54px;height:54px;margin:0 auto 14px;border-radius:50%;background:var(--soft);color:var(--sub)}
+.favorites-empty h2{margin:0 0 7px;font-size:17px}
+.favorites-empty p{margin:0;color:var(--sub);font-size:12.5px;line-height:1.75}
+.favorites-empty-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin-top:17px;border-radius:99px;padding:8px 17px;background:var(--ink);color:var(--bg);font-size:12.5px;font-weight:700;text-decoration:none}
+.favorites-loading{padding:22px 0;color:var(--sub);font-size:13px}
+@media(max-width:600px){
+  .favorites-page{min-height:calc(100dvh - 145px - env(safe-area-inset-bottom));padding:20px 14px calc(36px + env(safe-area-inset-bottom))}
+  .favorites-head{display:block;margin-bottom:15px}
+  .favorites-title{font-size:21px}
+  .favorites-trust{font-size:11.5px}
+  .favorites-search{width:100%}
+  .favorite-card{grid-template-columns:minmax(0,1fr) 52px}
+  .favorite-card-main{padding:14px 2px 14px 14px}
+  .favorite-card h3{font-size:15px}
+  .favorite-card>.favbtn{margin-right:4px}
+  .favorites-empty{min-height:350px;padding:32px 18px}
+  .fav-toast{bottom:calc(68px + env(safe-area-inset-bottom))}
+}
+@media(hover:hover) and (pointer:fine){
+  .chip:hover{background:#dbe4ff}
+  a.source-name:hover,.crow:hover .ctitle,.fav-entry:hover,.weekly-evidence-row:hover span:first-child,.hrow:hover .ht,.rank-row:hover .rank-title{color:var(--accent)}
+  .source-cta:hover{opacity:.86}
+  .load-more:hover,.weekly-archive a:hover{border-color:var(--accent);color:var(--accent)}
+  .weekly-strip:hover{border-color:var(--accent)}
+  .weekly-strip-link:hover .weekly-strip-title,.weekly-dismiss:hover{color:var(--accent)}
+  .today-hot-row:hover .today-hot-title,.today-hot-more:hover{color:var(--accent)}
+  .sidebar a.mi:hover{background:var(--hover);color:var(--ink)}
+  .tcard:hover,.topic-recent-card:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+  .tcard-main:hover h3,.scenario-row:hover .scenario-name,.topic-update-row:hover .topic-update-title,.topic-follow:hover{color:var(--accent)}
+}
+@media(prefers-color-scheme:dark) and (hover:hover) and (pointer:fine){
+  .chip:hover{background:rgba(110,168,255,.26)}
+}
+
+
+.article{max-width:1040px;margin:0 auto;padding:36px 20px 60px}
+.article-layout{max-width:1000px;margin:0 auto}
+.article-content{max-width:840px;margin:0 auto}
+.article-layout.has-toc{display:grid;grid-template-columns:minmax(0,840px) 144px;gap:16px;align-items:start}
+.article-layout.has-toc .article-content{min-width:0;margin:0}
+.article .back{font-size:13px;color:var(--sub);display:inline-block;margin-bottom:18px}
+.article h1{max-width:700px;font-size:30px;font-weight:800;line-height:1.38;margin:14px auto 20px}
+.article .meta{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
+.article .meta,.article-brief,.tts-player{max-width:700px;margin-left:auto;margin-right:auto}
+.meta-source-link{display:inline-flex;align-items:center;gap:3px;color:var(--txt3);font-weight:650;text-decoration:none}
+.meta-source-link svg{flex:0 0 auto}
+.meta-source-text{color:var(--txt3);font-weight:650}
+.meta-content-mode{display:inline-flex;align-items:center;min-height:22px;padding:2px 8px;border-radius:99px;background:var(--soft);color:var(--txt2);font-size:10.5px;font-weight:700}
+.article .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
+.article h4{font-size:14px;font-weight:800;margin-bottom:10px}
+.article-brief{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:18px;margin-bottom:30px}
+.article-brief>summary{cursor:pointer;list-style:none;padding:13px 0;font-size:13px;font-weight:750;color:var(--txt2)}
+.article-brief>summary::-webkit-details-marker{display:none}
+.article-brief>summary::after{content:" ↓";color:var(--sub)}
+.article-brief[open]>summary::after{content:" ↑"}
+.article-brief-body{padding:0 0 16px;color:var(--txt3)}
+.article-brief-body p{font-size:14px;line-height:1.8;margin:0}
+.article-brief-body .brief-why{margin-top:9px;color:var(--txt2)}
+.content-section{margin:0 0 30px}
+.content-heading{max-width:700px;margin:0 auto 22px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}
+.content-heading h2{display:flex;align-items:center;gap:7px;font-size:15px;line-height:1.5;margin:0;color:var(--ink)}
+.content-origin-badge{font-size:11px;color:var(--sub);font-weight:500}
+.article .vendor-row{text-decoration:none}
+.related-title{min-width:0;flex:1;line-height:1.55}
+.related-meta{flex:0 0 auto;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub);font-size:11px}
+.article-toc-mobile{display:none;max-width:700px;margin:0 auto 24px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+.article-toc-mobile>summary{display:flex;align-items:center;justify-content:space-between;min-height:46px;padding:0 14px;cursor:pointer;list-style:none;color:var(--ink);font-size:13px;font-weight:750}
+.article-toc-mobile>summary::-webkit-details-marker{display:none}
+.article-toc-mobile>summary span,.article-toc-title span{color:var(--sub);font-size:10.5px;font-weight:500}
+.article-toc-mobile ol,.article-toc-rail ol{list-style:none;margin:0;padding:0}
+.article-toc-mobile ol{max-height:50vh;overflow-y:auto;padding:0 14px 12px;border-top:1px solid var(--soft)}
+.article-toc-mobile li{margin:0}
+.article-toc-mobile a{display:block;padding:8px 0;border-bottom:1px solid var(--soft);color:var(--txt2);font-size:12px;line-height:1.5;text-decoration:none}
+.article-toc-mobile li:last-child a{border-bottom:0}
+.article-toc-mobile .toc-level-3 a,.article-toc-mobile .toc-level-4 a{padding-left:12px}
+.article-toc-rail{position:sticky;top:82px;max-height:calc(100vh - 104px);overflow-y:auto;padding:10px 0 12px 14px;border-left:1px solid var(--line);scrollbar-width:thin}
+.article-toc-title{display:flex;justify-content:space-between;gap:6px;margin-bottom:7px;color:var(--ink);font-size:11.5px;font-weight:800}
+.article-toc-rail a{display:block;padding:5px 0;color:var(--sub);font-size:10.5px;line-height:1.45;text-decoration:none}
+.article-toc-rail .toc-level-3 a,.article-toc-rail .toc-level-4 a{padding-left:9px}
+.article-toc-rail a[aria-current="location"]{color:var(--accent);font-weight:750}
+[data-article-heading]{scroll-margin-top:88px}
+.reading-progress{position:absolute;left:0;right:0;bottom:-1px;height:2px;overflow:hidden;background:transparent}
+.reading-progress>span{display:block;width:100%;height:100%;background:var(--accent);transform:scaleX(0);transform-origin:left center;will-change:transform}
+.source-section{border-top:1px solid var(--line);margin:26px 0 18px;padding-top:16px}
+.source-heading{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.source-heading h4{margin:0}
+.source-summary{font-size:11.5px;color:var(--sub)}
+.source-group{padding:10px 0;border-bottom:1px solid var(--soft)}
+.source-group-head{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txt3);margin-bottom:2px}
+.source-group-head b{font-weight:700}
+.source-group-head span{font-size:10.5px;color:var(--sub)}
+.source-report{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:14px;padding:4px 0;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.55}
+.source-report-title{min-width:0;overflow-wrap:anywhere}
+.source-report-date{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}
+.source-more{padding-top:8px}
+.source-more>summary{width:max-content;max-width:100%;font-size:12px;color:var(--accent);cursor:pointer;list-style:none;padding:4px 0}
+.source-more>summary::-webkit-details-marker{display:none}
+.source-more>summary::after{content:" ↓"}
+.source-more[open]>summary::after{content:" ↑"}
+.content-feedback{max-width:700px;margin:28px auto 22px;padding:18px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.content-feedback-main{display:flex;align-items:center;justify-content:space-between;gap:18px}
+.content-feedback h2{font-size:14px;line-height:1.5;margin:0 0 3px;color:var(--ink)}
+.content-feedback p{font-size:11.5px;line-height:1.5;margin:0;color:var(--sub)}
+.content-feedback-actions{display:flex;gap:8px;flex:0 0 auto}
+.content-feedback button{min-height:38px;border:1px solid var(--line);border-radius:99px;background:var(--card);color:var(--txt2);font-size:12px;font-weight:700;padding:7px 14px;cursor:pointer}
+.content-feedback button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.content-feedback-reasons{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:12px}
+.content-feedback-reasons[hidden]{display:none}
+.content-feedback-reasons span{font-size:11px;color:var(--sub)}
+.content-feedback-reasons button{min-height:32px;font-size:11px;font-weight:600;padding:5px 10px}
+@media(max-width:600px){.content-feedback-main{align-items:flex-start;flex-direction:column;gap:12px}.content-feedback-actions{width:100%}.content-feedback-actions button{flex:1}}
+@media(max-width:600px){.source-report{grid-template-columns:1fr;gap:0}.source-report-date{margin-top:1px}}
+.fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:700px;margin-left:auto;margin-right:auto}
+.fulltext .cb-heading{font-size:19px;line-height:1.55;margin-top:32px;margin-bottom:12px;color:var(--ink)}
+.fulltext p{margin-top:0;margin-bottom:18px}
+.fulltext strong{font-weight:750;color:var(--ink)}
+.fulltext em{font-style:italic}
+.fulltext a{color:var(--blue);text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere}
+.fulltext ul,.fulltext ol{padding-left:26px;margin-top:10px;margin-bottom:22px}
+.fulltext li{margin:6px 0;padding-left:2px}
+.fulltext blockquote{margin-top:20px;margin-bottom:20px;padding:12px 18px;border-left:4px solid var(--accent);background:var(--soft);border-radius:0 8px 8px 0;color:var(--txt2)}
+.fulltext code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+.fulltext pre{overflow:auto;background:#171a20;color:#e8ebf0;border-radius:10px;padding:14px 16px;margin:16px 0;line-height:1.65}
+.fulltext pre code{background:none;border:none;padding:0;color:inherit}
+.cb-table-shell{position:relative;margin:16px 0}
+.cb-table{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;margin:0;border:1px solid var(--line);border-radius:9px}
+.cb-table:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.cb-table table{border-collapse:collapse;width:100%;min-width:480px;font-size:13px}
+.cb-table th,.cb-table td{padding:9px 12px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:left;vertical-align:top}
+.cb-table th{background:var(--soft);color:var(--ink);font-weight:700}
+.cb-table tr:last-child td{border-bottom:none}
+.cb-table th:first-child,.cb-table td:first-child{position:sticky;left:0;z-index:1;background:var(--card);box-shadow:1px 0 0 var(--line)}
+.cb-table th:first-child{z-index:2;background:var(--soft)}
+.table-scroll-hint{display:none;position:absolute;right:8px;bottom:8px;z-index:3;padding:4px 8px;border-radius:99px;background:rgba(26,29,35,.88);color:#fff;font-size:10.5px;font-weight:700;pointer-events:none;box-shadow:0 3px 12px rgba(0,0,0,.16)}
+.cb-table-shell.is-overflowing:not(.has-scrolled) .table-scroll-hint{display:block}
+.cb-table-shell.is-overflowing:not(.at-end)::after{content:"";position:absolute;top:1px;right:1px;bottom:1px;width:24px;border-radius:0 8px 8px 0;background:linear-gradient(90deg,transparent,var(--card));pointer-events:none}
+.cb-figure{margin:20px 0;background:var(--soft);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.cb-media-link{display:block;background:#f5f7fa;text-decoration:none}
+.cb-figure img{display:block;width:100%;height:auto;max-height:72vh;object-fit:contain;margin:0 auto}
+@media(max-width:600px){.cb-figure{margin:16px -8px;border-radius:9px}.cb-table-shell{max-width:100%;margin-left:0;margin-right:0}}
+@media (prefers-color-scheme: dark){.cb-media-link{background:#171a20}}
+.tone-accent{color:var(--accent);font-weight:650}.tone-warning{color:var(--amber);font-weight:650}
+.tone-positive{color:var(--green);font-weight:650}.tone-info{color:var(--blue);font-weight:650}.tone-emphasis{color:var(--ink);font-weight:650}
+.cta{display:inline-block;background:var(--accent);color:#fff;font-size:14px;font-weight:700;border-radius:10px;padding:11px 26px;margin:6px 0 4px}
+.fulltext h5.fh{font-size:15px;font-weight:800;color:var(--ink);margin:20px 0 8px;padding-left:10px;border-left:3px solid var(--accent)}
+.fulltext p.fwarn{font-size:12.5px;color:var(--amber);background:var(--accent-soft);border-radius:8px;padding:8px 12px}
+.fulltext p,.fulltext li{font-size:16px;line-height:1.86;color:var(--txt3)}
+.tts-player{display:grid;grid-template-columns:auto auto minmax(120px,1fr) auto auto;align-items:center;gap:10px 12px;background:linear-gradient(135deg,var(--card),var(--soft));border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:2px 0 18px}
+.tts-player[hidden]{display:none}
+.tts-copy{display:flex;flex-direction:column;min-width:112px;line-height:1.35}
+.tts-copy b{font-size:12.5px;color:var(--ink)}
+.tts-copy span{font-size:10.5px;color:var(--sub);margin-top:2px}
+.tts-toggle{min-width:58px;min-height:44px;border:0;border-radius:99px;background:var(--ink);color:var(--card);font-size:12px;font-weight:750;padding:7px 13px;cursor:pointer}
+.tts-progress{width:100%;accent-color:var(--accent);cursor:pointer}
+.tts-time{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tts-rate-label{font-size:10.5px;color:var(--sub);display:flex;align-items:center;gap:4px}
+.tts-rate-label select{border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--ink);font-size:11px;padding:4px 5px}
+@media(max-width:600px){.tts-player{grid-template-columns:1fr auto auto;gap:9px;padding:11px 12px}.tts-copy{grid-column:1/-1;grid-row:1;flex-direction:row;align-items:baseline;gap:8px}.tts-toggle{grid-column:1;grid-row:2}.tts-time{grid-column:2;grid-row:2}.tts-rate-label{grid-column:3;grid-row:2}.tts-progress{grid-column:1/-1;grid-row:3}}
+@media(prefers-reduced-motion:reduce){.tts-player *{scroll-behavior:auto!important;transition:none!important}}
+@media(hover:hover) and (pointer:fine){
+  .article .back:hover,.meta-source-link:hover,.source-report:hover .source-report-title,.original-footer-link:hover,.article-toc-mobile a:hover,.article-toc-rail a:hover{color:var(--accent)}
+  .cta:hover{opacity:.9}
+}
+.content-footer{max-width:700px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin:20px auto 0}
+.disclaimer{flex:1;font-size:12px;color:var(--sub)}
+.original-footer-link{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:7px 12px;border-radius:99px;color:var(--blue);font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap}
+.original-footer-link:focus-visible,.meta-source-link:focus-visible,.article-toc-mobile summary:focus-visible,.article-toc-mobile a:focus-visible,.article-toc-rail a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:1199px){.article-layout.has-toc{display:block}.article-layout.has-toc .article-content{margin:0 auto}.article-toc-rail{display:none}.article-toc-mobile{display:block}}
+@media(max-width:600px){.article{padding-left:16px;padding-right:16px}.article h1{font-size:24px;line-height:1.45}.fulltext>:not(.cb-figure):not(.cb-table-shell){max-width:none}.fulltext p,.fulltext li{font-size:16px;line-height:1.82}.content-footer{align-items:flex-start;flex-direction:column;gap:4px}.original-footer-link{align-self:flex-end}.related-meta{max-width:88px}}
+</style><style>
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;margin-bottom:14px}
+.topbar .back{flex:0 0 auto;white-space:nowrap}
+.sharebtns{display:flex;justify-content:flex-end;gap:8px;min-width:0;max-width:100%;margin-left:auto}
+.sharebtns .sbtn{min-width:76px}
+.sbtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-height:44px;white-space:nowrap;line-height:1.2;border:none;background:var(--accent);color:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
+.sbtn svg{flex:0 0 auto}
+.sbtn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.sbtn:active{transform:scale(.95)}
+.topbar.detail-context{position:sticky;top:0;z-index:55;margin:-36px -20px 16px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;background:var(--header-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topbar.detail-context .back{display:inline-flex;align-items:center;justify-content:center;align-self:center;min-width:88px;min-height:44px;margin-bottom:0;padding:0 14px;border-radius:99px;font-size:14px;font-weight:650;color:var(--ink);text-decoration:none}
+.topbar.detail-context .back{gap:5px}
+.topbar.detail-context .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:600px){
+.article{padding:20px 14px 48px}
+.topbar{align-items:center;flex-direction:row;gap:8px}
+.topbar.detail-context{margin:-20px -14px 14px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
+.topbar.detail-context .back{align-self:center}
+.sharebtns{width:auto;gap:4px;overflow:visible;padding-bottom:0}
+.sharebtns .sbtn{width:56px;min-width:56px;height:44px;padding:0 6px;font-size:12px}
+.sharebtns .sbtn-label{display:inline}
+}
+@media(max-width:359px){
+.topbar.detail-context .back{width:44px;min-width:44px;padding:0}
+.topbar.detail-context .back-label{display:none}
+}
+.sh-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.25s;z-index:80}
+.sh-mask.show{opacity:1;pointer-events:auto}
+.sh-sheet{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(110%);transition:transform .3s cubic-bezier(.32,.72,.35,1);padding:0 10px calc(10px + env(safe-area-inset-bottom))}
+.sh-sheet.show{transform:translateY(0)}
+.sh-panel{max-width:430px;margin:0 auto}
+.sh-group{background:var(--card);border-radius:16px;overflow:hidden;margin-bottom:8px}
+.sh-title{font-size:12px;color:var(--sub);text-align:center;padding:12px;border-bottom:.5px solid var(--line)}
+.sh-opt{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px;font-size:16px;font-weight:500;border:none;border-bottom:.5px solid var(--line);cursor:pointer;background:none;width:100%;color:var(--ink)}
+.sh-opt:last-child{border-bottom:none}
+.sh-opt:active{background:var(--hover)}
+.sh-cancel{background:var(--card);border-radius:16px;padding:15px;text-align:center;font-size:16px;font-weight:600;color:var(--blue);cursor:pointer;width:100%;border:none}
+.sh-poster-modal{position:fixed;inset:0;z-index:95;background:rgba(15,17,20,.92);display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.sh-poster-modal.show{display:flex}
+.sh-poster-wrap{width:min(340px,86vw);border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.sh-poster-wrap img{width:100%;display:block}
+.sh-poster-actions{margin-top:18px;display:flex;gap:10px}
+.sh-save,.sh-close{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:none;border-radius:99px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
+.sbtn:focus-visible,.sh-opt:focus-visible,.sh-cancel:focus-visible,.sh-save:focus-visible,.sh-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sh-save{background:var(--accent);color:#fff}
+.sh-close{background:rgba(255,255,255,.15);color:#fff}
+.sh-poster-tip{margin-top:10px;font-size:11px;color:#8b919b}
+.sh-toast{position:fixed;top:18%;left:50%;transform:translateX(-50%);background:rgba(26,29,35,.92);color:#fff;font-size:13px;padding:10px 20px;border-radius:99px;opacity:0;transition:.25s;z-index:99;pointer-events:none}
+.sh-toast.show{opacity:1}
+</style><link id="datahot-theme" rel="stylesheet" href="../theme.css?v=18a517950ce0">
+</head><body class="has-sb mobile-detail" data-page="detail" data-event-id="32c1d135e095" data-category="product" data-source="人人都是产品经理">
+<aside class="sidebar"><div class="slogo"><a href="../index.html" data-smart-home-return aria-label="刷新 DataHot 首页" title="刷新首页" style="text-decoration:none;color:inherit">Data<em>Hot</em></a></div><nav class="sidebar-nav" aria-label="主导航"><a class="mi on" href="../index.html" data-smart-home-return><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg>热榜</a><a class="mi" href="../for-me.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg>关注</a><a class="mi" href="../cases.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg>案例</a><a class="mi" href="../weekly.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>周报</a><a class="mi" href="../topics.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>主题</a><a class="mi" href="../favorites.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg>收藏</a><a class="mi" href="../sources.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg>信源</a></nav><nav class="sidebar-tools" aria-label="工具"><a class="mi" href="../agent.html"><svg width="16" height="16" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg>接入 Agent</a></nav><div class="sfoot">每 6 小时自动更新 · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub)">GitHub</a> · <a href="https://bsky.app/profile/datahot.xiahongbin.com" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Bluesky" style="color:var(--sub);text-decoration:underline">Bluesky</a><br>数据领域 AI 资讯分享</div></aside>
+<header class="detail-brand-header"><div class="wrap nav">
+  <div class="logo"><a href="../index.html" data-smart-home-return>Data<em>Hot</em></a><span class="tag">每 6 小时更新</span></div>
+</div></header>
+<div class="article">
+  <div class="topbar detail-context">
+    <a class="back" href="../index.html" data-smart-back aria-label="返回"><span aria-hidden="true">←</span><span class="back-label">返回</span></a>
+    <span class="sharebtns">
+      <button class="sbtn ghost favbtn" type="button" data-fav="32c1d135e095" data-fav-record="{&quot;event_id&quot;:&quot;32c1d135e095&quot;,&quot;title&quot;:&quot;医疗大模型院内落地路径与产品化难点&quot;,&quot;summary&quot;:&quot;文章基于作者多年医疗数据平台与AI应用落地经验，指出截至2025年末全国已发布352个医疗垂直大模型，但能跑通“部署—使用—付费”闭环的产品仍稀缺。作者将卡点归为数据治理、临床信任、工作流嵌入、收费模式四重结构性障碍，其中清洗标注成本占AI研发总成本40%以上，通用大模型约50%医疗回答被评为“有问题”。文章对比讯飞医疗星火、京东健康京医千询与卓医、商汤医疗“大医”三条路径，并提出数据治理先行、低风险场景积累信任、能力内生进流程、立项锁定付费主体的落地次序。&quot;,&quot;source&quot;:&quot;人人都是产品经理&quot;,&quot;category&quot;:&quot;product&quot;,&quot;topics&quot;:[&quot;平台AI化&quot;],&quot;published&quot;:&quot;2026-10-09T12:05:35+08:00&quot;,&quot;original_url&quot;:&quot;https://www.woshipm.com/evaluating/6475085.html&quot;}" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg><span class="sbtn-label">收藏</span></button>
+
+      <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/32c1d135e095.png" title="海报" aria-label="海报"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg><span class="sbtn-label">海报</span></button>
+      <button class="sbtn" type="button" data-share-action="open" title="分享" aria-label="分享"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span class="sbtn-label">分享</span></button>
+    </span>
+    <span class="reading-progress" aria-hidden="true"><span data-reading-progress></span></span>
+  </div>
+  <div class="article-layout has-toc">
+  <main class="article-content">
+  <h1>医疗大模型院内落地路径与产品化难点</h1>
+  <div class="meta">
+    <span class="srcbadge">RSS</span>
+    <a class="meta-source-link" href="https://www.woshipm.com/evaluating/6475085.html" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="人人都是产品经理" aria-label="查看 人人都是产品经理 原文"><span>人人都是产品经理</span><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+    <span class="meta-content-mode">原文</span>
+    
+    <span title="发布时间">发布 2026-10-09 12:05</span>
+    
+  </div>
+
+  
+  <details class="article-brief" open>
+  <summary>DataHot 速览</summary>
+  <div class="article-brief-body"><p>文章基于作者多年医疗数据平台与AI应用落地经验，指出截至2025年末全国已发布352个医疗垂直大模型，但能跑通“部署—使用—付费”闭环的产品仍稀缺。作者将卡点归为数据治理、临床信任、工作流嵌入、收费模式四重结构性障碍，其中清洗标注成本占AI研发总成本40%以上，通用大模型约50%医疗回答被评为“有问题”。文章对比讯飞医疗星火、京东健康京医千询与卓医、商汤医疗“大医”三条路径，并提出数据治理先行、低风险场景积累信任、能力内生进流程、立项锁定付费主体的落地次序。</p>
+  <p class="brief-why"><b>为什么值得关注：</b>对数据从业者而言，文章把医疗AI产品化失败的第一性原因落到院内多源异构数据治理、业务口径标准化和BI/360视图的数据底座上，并给出可复用的落地次序与产品化取舍，适合做垂直行业AI数据项目复盘参考。</p></div>
+</details>
+  <details class="article-toc-mobile"><summary>本文目录 <span>26 节</span></summary><ol><li class="toc-level-2"><a href="#article-section-1" data-toc-link data-toc-target="article-section-1">1. 落地困局的总体判断：技术验证已经过关，商业化闭环仍未打通</a></li><li class="toc-level-2"><a href="#article-section-2" data-toc-link data-toc-target="article-section-2">2. 医院数据底座：AI落地的第一道门槛</a></li><li class="toc-level-3"><a href="#article-section-3" data-toc-link data-toc-target="article-section-3">2.1 三级数据孤岛：院内、院际、全域的割裂形态</a></li><li class="toc-level-3"><a href="#article-section-4" data-toc-link data-toc-target="article-section-4">2.2 数据质量与成本：99%的原始数据不可直接训练</a></li><li class="toc-level-3"><a href="#article-section-5" data-toc-link data-toc-target="article-section-5">2.3 破局路径：可信数据空间与利益共享机制</a></li><li class="toc-level-2"><a href="#article-section-6" data-toc-link data-toc-target="article-section-6">3. 数据底座之上的三类应用形态</a></li><li class="toc-level-3"><a href="#article-section-7" data-toc-link data-toc-target="article-section-7">3.1 患者360视图：为模型提供完整上下文的临床载体</a></li><li class="toc-level-3"><a href="#article-section-8" data-toc-link data-toc-target="article-section-8">3.2 BI看板AI应用：从”看报表”到”问数据”的决策链重构</a></li><li class="toc-level-3"><a href="#article-section-9" data-toc-link data-toc-target="article-section-9">3.3 共性前提：三类应用都卡在同一个地方</a></li><li class="toc-level-2"><a href="#article-section-10" data-toc-link data-toc-target="article-section-10">4. 大模型临床安全校验：严肃医疗不可逾越的底线</a></li><li class="toc-level-3"><a href="#article-section-11" data-toc-link data-toc-target="article-section-11">4.1 幻觉控制与循证溯源</a></li><li class="toc-level-3"><a href="#article-section-12" data-toc-link data-toc-target="article-section-12">4.2 工程化管控与可信AI框架</a></li><li class="toc-level-3"><a href="#article-section-13" data-toc-link data-toc-target="article-section-13">4.3 责任边界：AI是临床助理而非决策主体</a></li><li class="toc-level-2"><a href="#article-section-14" data-toc-link data-toc-target="article-section-14">5. 为什么很多医疗AI落不了地：四大结构性难点</a></li><li class="toc-level-3"><a href="#article-section-15" data-toc-link data-toc-target="article-section-15">5.1 数据治理：从”有数据”到”能用数据”的鸿沟</a></li><li class="toc-level-3"><a href="#article-section-16" data-toc-link data-toc-target="article-section-16">5.2 临床信任：从”评测第一”到”医生签字”的距离</a></li><li class="toc-level-3"><a href="#article-section-17" data-toc-link data-toc-target="article-section-17">5.3 工作流嵌入：从”外挂工具”到”内生能力”的跨越</a></li><li class="toc-level-3"><a href="#article-section-18" data-toc-link data-toc-target="article-section-18">5.4 收费模式：从”有用”到”有人付钱”的商业闭环断裂</a></li><li class="toc-level-2"><a href="#article-section-19" data-toc-link data-toc-target="article-section-19">6. 主流产品拆解：三种差异化落地路径</a></li><li class="toc-level-3"><a href="#article-section-20" data-toc-link data-toc-target="article-section-20">6.1 讯飞医疗星火医疗大模型：全域覆盖加数据飞轮</a></li><li class="toc-level-3"><a href="#article-section-21" data-toc-link data-toc-target="article-section-21">6.2 京东健康京医千询与京东卓医：AI加供应链的服务闭环</a></li><li class="toc-level-3"><a href="#article-section-22" data-toc-link data-toc-target="article-section-22">6.3 商汤医疗”大医”：通专融合与医疗世界模型</a></li><li class="toc-level-3"><a href="#article-section-23" data-toc-link data-toc-target="article-section-23">6.4 三种路径对比与适用边界</a></li><li class="toc-level-2"><a href="#article-section-24" data-toc-link data-toc-target="article-section-24">7. 趋势研判与院内AI建设建议</a></li><li class="toc-level-3"><a href="#article-section-25" data-toc-link data-toc-target="article-section-25">7.1 行业趋势：专科深耕、AI原生底座与支付多元化</a></li><li class="toc-level-3"><a href="#article-section-26" data-toc-link data-toc-target="article-section-26">7.2 对院内AI建设的五条建议</a></li></ol></details>
+  <section class="content-section" aria-labelledby="articleBodyTitle">
+  <div class="content-heading"><h2 id="articleBodyTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 原文</h2></div>
+  <div class="fulltext"><blockquote>医疗大模型数量已超352个，但能跑通“部署—使用—付费”闭环的产品依然稀缺。本文基于作者多年医疗数据平台与AI应用落地经验，拆解数据治理、临床信任、工作流嵌入、收费模式四重结构性障碍，并对比讯飞医疗、京东健康、商汤医疗三条突围路径，为院内AI产品化提供实战复盘。 </blockquote><figure class="cb-figure"><a class="cb-media-link" href="https://image.woshipm.com/2023/04/17/381527c4-dcf5-11ed-9781-00163e0b5ff3.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../derived-media/ff3f804d607bf4d0274e-480.webp" alt="" loading="lazy" decoding="async" width="900" height="420" srcset="../derived-media/ff3f804d607bf4d0274e-480.webp 480w, ../derived-media/ff3f804d607bf4d0274e-900.webp 900w" sizes="(max-width:600px) calc(100vw - 14px), (max-width:1199px) calc(100vw - 240px), 840px"></a></figure><p>——一个在医疗软件行业从业多年，从底层数据平台做到医疗AI应用的人，对当前落地困局的复盘</p><p>我这些年在医疗行业做过医院信息平台、区域健康信息平台、数据平台、集成平台，也直接负责过患者360视图应用、BI看板应用与临床AI辅助应用的设计研发落地。这篇报告以这段经历为视角，复盘医疗大模型在院内的落地路径与产品化难点。</p><p>行业层面，截至2025年末全国已发布352个医疗垂直大模型，模型已经过剩，但能跑通”部署—使用—付费”完整链条的产品依然稀缺。</p><p>我把卡点归为四重结构性障碍：</p><ol><li>数据治理上，院内HIS/LIS/EMR/PACS割裂形成三级孤岛，清洗标注成本占AI研发总成本40%以上；</li><li>临床信任上，通用大模型约50%的医疗回答被评为”有问题”，医生不会为不可解释的输出签字；</li><li>工作流嵌入上，通用AI技术栈、数据平台、传统集成平台三条路径的设计目标都不是实时执行，外挂式部署使医生负担不降反升；</li><li>收费模式上，独立收费编码、医保目录、商保产品三重缺位。</li></ol><p>患者360视图、BI看板与临床辅助决策三类应用看似不同，在我做过的全部项目里却共享同一个失败原因：院内多源异构数据的治理与业务口径标准化没有先行。</p><p>产品拆解显示三条互不通用的路径：</p><ol><li>讯飞医疗星火以16亿人次语音与12亿次诊疗数据构成飞轮，病历采纳率达91%并转向按采纳量计费；</li><li>京东健康京医千询与卓医以AI加供应链实现方案到履约的闭环，绕开医疗服务收费难题；</li><li>商汤医疗”大医”以通专融合与HIMSS可信AI框架主攻影像、病理、科研高壁垒专科。</li></ol><p>我的结论是：院内AI没有通吃产品，选产品即选路径；落地次序必须是数据治理先行、低风险场景积累信任、能力内生进流程、立项阶段锁定付费主体，四道门槛不能并行跨越。</p><h2 class="cb-heading" id="article-section-1" data-article-heading>1. 落地困局的总体判断：技术验证已经过关，商业化闭环仍未打通</h2><p>写这篇报告之前，我先说明自己的位置：这些年在医疗行业里，我从医院信息平台、区域健康信息平台做到数据平台与集成平台，后来又负责患者360视图应用、BI看板应用和临床AI辅助应用的设计研发与落地。</p><p>也就是说，大模型进来之前要打的那几层地基，我基本都亲手铺过一遍。</p><p>这个经历让我在看今天的医疗大模型时，关注的重点和纯算法背景的人不太一样——我不太关心模型评测排第几，我更关心它要求我把数据底座整到什么状态、能不能嵌进我已经跑了十年的那些流程、以及验收之后第二年还有没有人愿意为它掏钱。</p><p>先看行业所处的阶段。</p><p>截至2025年末，全国已发布352个医疗垂直大模型，行业正式从技术爆发期进入聚焦落地与商业化闭环的拐点。这个数字对我这种做交付的人来说，含义很直接：模型已经过剩了，能在院内跑通”部署—使用—付费”完整链条的产品依然稀缺。讯飞医疗、京东健康、商汤医疗三家头部企业分别在病历生成、患者服务、专科辅诊场景取得阶段性成果，但整个行业的规模化落地仍被四重结构性障碍卡住。</p><p>这四重障碍，恰好是我这些年做项目时逐个撞过的墙。</p><p><strong>第一重是数据治理</strong></p><p>院内HIS、LIS、EMR、PACS系统割裂形成三级孤岛，数据清洗与标注成本占AI研发总成本40%以上。</p><p><strong>第二重是临床信任</strong></p><p>《BMJ Open》2026年的系统评估显示，主流通用大模型约50%的医疗回答被评为”有问题”，医生对黑盒模型的信任无法仅靠技术参数建立。</p><p><strong>第三重是工作流嵌入</strong></p><p>旧系统缺乏标准化接口，AI多以外挂形式运行，反而增加医生操作负担。</p><p><strong>第四重是收费模式</strong></p><p>AI辅助诊疗缺乏独立收费编码，医保未纳入支付目录，按词元收费的创新模式仍处试点阶段。</p><p>表1：医疗大模型院内落地的四重结构性障碍（含本人交付经验中的对应表现）</p><figure class="cb-figure"><a class="cb-media-link" href="https://image.woshipm.com/2026/10/09/a575f17c-c388-11f1-8891-00163e4b86a1.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../derived-media/304dd7047922725c983e-480.webp" alt="" loading="lazy" decoding="async" width="1162" height="620" srcset="../derived-media/304dd7047922725c983e-480.webp 480w, ../derived-media/304dd7047922725c983e-960.webp 960w, ../derived-media/304dd7047922725c983e-1162.webp 1162w" sizes="(max-width:600px) calc(100vw - 14px), (max-width:1199px) calc(100vw - 240px), 840px"></a></figure><p>需要说明的是，表格最后一列是我基于自身交付经历的定性判断，不是外部数据。</p><p>这四重障碍之间存在明确的因果顺序，而不是并列关系——这一点是我在多个项目里反复验证过的。</p><ol><li>数据底座不达标，患者360视图与BI看板就只能是演示级产品，我见过太多在汇报现场跑得很漂亮、一进真实环境就口径错乱的看板；</li><li>模型输出缺乏循证溯源，临床科室就不会签字采信；</li><li>AI不能内生进业务流程，医生就没有持续使用的动机；</li></ol><p>而前三者哪怕全部解决，只要付费主体缺位，项目依然会在验收后停运。</p><p>所以本报告的分析次序，就是我这些年踩坑的次序：先拆数据底座及其上的三类应用形态（这三类我都做过），再分析临床安全校验的技术与责任框架，随后逐一深挖四重难点，最后通过三款主流产品的路径对比，回答”什么样的产品才可能穿越周期”。</p><h2 class="cb-heading" id="article-section-2" data-article-heading>2. 医院数据底座：AI落地的第一道门槛</h2><h3 class="cb-heading" id="article-section-3" data-article-heading>2.1 三级数据孤岛：院内、院际、全域的割裂形态</h3><p>医疗大模型的效能上限不取决于算法参数规模，而取决于数据底座的质量。这句话我在做集成平台的年代就相信，做大模型应用的今天更相信。当前中国医疗数据呈现”多而不优、散而不通”的特征，而这种特征在三个层级上同时存在、层层叠加。</p><p><strong>院内层面</strong>，HIS（医院信息系统）、LIS（检验系统）、EMR（电子病历）、PACS（影像归档系统）建设年代不同、厂商各异、接口封闭，同一医院内部的病历、检验、影像数据难以自动贯通，手动归集成本极高。</p><p>这一层的割裂最为隐蔽，因为它发生在同一家法人主体内部。</p><p>我做医院信息平台时最常见的场景是：院领导和信息科都默认”我们的数据是通的”，直到项目启动做数据盘点，才发现一次完整的患者就诊轨迹需要跨系统人工拼接——门诊挂在HIS、检验结果在LIS、报告在PACS、病程记录在EMR，四套系统的患者主索引都不完全一致。</p><p><strong>院际层面</strong>，各级医疗机构将临床数据视为核心竞争资产，省、市、县三级医保、公共卫生、临床数据分属不同管理条线，跨机构数据协作审批流程冗长。</p><p>这在我做区域健康信息平台时体会更深：技术上的数据交换从来不是难点，难点是每一级条线的管理权属与审批链条。</p><p><strong>全域层面</strong>，院前体检、院内诊疗、院外居家监测、康复护理数据割裂，无法形成患者全生命周期数据链，直接限制慢病管理、预后预测类AI模型的精度上限。</p><p>三层孤岛对产品形态的影响是不同的，这一点在我从集成平台转向患者360视图应用时变得非常清楚。院内孤岛决定了单点AI应用能否跑通，是病历生成、影像辅诊类产品的生死线；院际孤岛决定了模型能否获得足够规模的训练样本，是专科模型精度的天花板；全域孤岛则决定了健康管理类产品的价值上限，因为它切断了从诊疗到随访的因果链。</p><p>这也解释了我在不同医院看到同一个模型实测效果差异极大的原因——差异来源不是算法，而是该院数据底座的贯通程度。</p><h3 class="cb-heading" id="article-section-4" data-article-heading>2.2 数据质量与成本：99%的原始数据不可直接训练</h3><p>数据孤岛之外，第二重困境是数据本身的质量与治理成本。</p><p>据行业测算，数据清洗与标注成本占据AI研发总成本的40%以上。</p><p>更严峻的是可用比例：99%的原始医疗数据无法直接用于AI训练或交易，只有经过结构化、标准化、脱敏、标注在内的六道工序炼出的高质量数据集才具备价值。</p><p>做过数据平台的人对这两个数字不会感到意外。我在数据平台项目里做的很大一部分工作，本质就是把非结构化的临床文本变成能被程序消费的字段，这件事的投入产出比长期是负的——医院看不到直接收益，却要先付出一大笔治理成本。</p><p>这一比例在数据交易实践中得到了直接印证。福州长乐区医院售出的100余例颅脑MRI影像数据定价9759元，其溢价完全来自”炼过”的结构化程度。</p><p>换句话说，数据的价值不在采集环节产生，而在治理环节产生；医院手里握着海量数据却不具备变现能力，缺的正是这道治理工序。</p><p>治理成本还带来一个被普遍低估的派生问题：基层数据缺失导致头部医院训练的模型下沉后”水土不服”，根本原因是基层缺乏高质量的生化、影像乃至基因数据，且患者就诊路径不连续，数据天然碎片化。</p><p>这意味着数据治理不是一次性投入，而是一项随部署范围扩大而线性增长的成本。</p><p>厂商在头部三甲医院做出的评测成绩无法自动平移到县域医疗机构，因为二者的数据分布本身就不在同一空间。</p><p>我在区域平台项目里见过完全相同的现象：同一套应用在地市级跑得很好，下沉到县级就要重做一遍数据适配。任何以”一次训练、全域部署”为前提的商业测算，都会在基层落地阶段被推翻。</p><h3 class="cb-heading" id="article-section-5" data-article-heading>2.3 破局路径：可信数据空间与利益共享机制</h3><p>面对孤岛与成本双重困境，行业正在探索两条互补的路径：技术层面解决”能不能流通”，制度层面解决”愿不愿流通”。这两条我都在区域健康信息平台的实践中遇到过对应版本。</p><p><strong>技术路径</strong>是以省为单位建设医疗健康可信数据空间，采用联邦学习、隐私计算实现”原始数据不出院、可用不可见”。这条路径的实质是把数据治理从各家医院的重复投入，转变为区域级公共基础设施的集中投入，从而摊薄前述40%以上的成本占比。</p><p>以我做过区域平台的经验看，这个方向是对的——区域级共建是唯一能把治理成本压到医院可承受范围的办法，单家医院自己建数据底座，投入永远追不上系统迭代速度。北电数智与中日友好医院联合推出的”樱智α·医疗可信平台”采用”1+N+1″架构，在国内率先实现医疗数据从汇聚、治理到流通使用的全链路打通。</p><p><strong>制度路径</strong>是建立利益共享机制：医院贡献数据可免费优先使用迭代后的AI系统并参与商业化收益分成，患者授权脱敏数据用于科研可兑换健康管理服务。这一设计直指当前最大的制度性障碍——患者健康数据、医院衍生数据、医保支付数据缺乏明确的”三权分置”界定，医疗机构因此”不敢开、不愿开”。</p><p>我完全理解这种”不敢开”：在没有权责界定的情况下，信息科负责人开放数据的下行风险是明确的，上行收益却是模糊的。当贡献数据的一方无法从流通中获益，任何技术方案都只会停在试点阶段。可信数据空间提供合规通道，收益分成提供开放动机，两者缺一，数据底座就无法真正重构。</p><h2 class="cb-heading" id="article-section-6" data-article-heading>3. 数据底座之上的三类应用形态</h2><p>患者360视图应用、BI看板应用、临床AI辅助应用，是我近些年直接负责设计研发的三类产品。它们服务的角色不同、解决的问题不同，但在我的实操经验里，三者共享同一个底座、也共享同一个失败原因。这一章我按做过的顺序来讲。</p><h3 class="cb-heading" id="article-section-7" data-article-heading>3.1 患者360视图：为模型提供完整上下文的临床载体</h3><p>患者360视图是医院数据底座在临床侧的核心应用载体，其本质是把分散在多系统中的碎片化数据整合为动态更新的患者全局画像，为大模型提供完整的上下文。没有这层整合，大模型面对的就是单次问诊的孤立文本片段，而不是一个有既往史、有检验趋势、有用药记录的完整患者。我做这个应用时最直观的感受是：360视图对大模型的意义，等同于集成平台对业务系统的意义——它不产生新数据，它只是让数据在正确的时刻以正确的结构出现。</p><p>画像的构建口径正在走向标准化。</p><p>内蒙古自治区人民医院发布的”患者全局画像与智能服务”场景，明确从人口统计学、临床表征、实验室指标、治疗干预、生理监测、环境暴露、行为习惯、社会经济学8个维度构建动态更新的患者全局画像。</p><p>面向医生端的画像则有不同的数据来源结构：太美医疗科技的星图-HCP360整合300万HCP公开数据，覆盖医学文献、会议活动、社交媒体、在线问诊在内的全域数据，通过AI驱动的自动化打标实现精准客户洞察。</p><p>两者的差异说明”360视图”并非单一产品形态：患者侧画像依赖院内多系统打通，医生侧画像依赖公开数据聚合，数据底座的要求完全不同。</p><p>我在设计患者360视图时踩过这个坑——最初按医生画像的思路做标签体系，后来才发现患者侧的核心不是打标，而是把多源数据按时间轴对齐。</p><p>真正能体现底座价值的，是那些已经跑出量化收益的场景。</p><p>讯飞晓医基于院内高质量临床数据与个人健康画像，为试点区域149万余名签约居民生成动态全生命周期健康档案，医生调阅全量健康数据的耗时从5分钟压缩至30秒。</p><p>迈瑞医疗”启元”重症医学大模型在ICU场景中，仅用5秒即可生成危重患者过去72小时的完整病情时间线，同步弹出休克风险预警，使重症患者出院人次提升13%，平均住院日缩短12%。</p><p>ICU这一案例在我看来说服力最强：5秒生成72小时时间线的前提是床旁监测、检验报告、影像资料与医嘱记录四类数据实时贯通，任何一类断链都会让时间线出现空洞，模型也就无法给出可信的风险预警。</p><p>这正是我在集成平台项目里反复处理的问题——实时性要求越高，对接口稳定性和消息时序的要求就越苛刻。</p><p>表2：患者360视图相关实践的画像维度、数据来源与量化成效</p><figure class="cb-figure"><a class="cb-media-link" href="https://image.woshipm.com/2026/10/09/3b95bbd8-c389-11f1-84ff-00163e4b86a1.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../derived-media/94bad78505c4aafe2cd1-480.webp" alt="" loading="lazy" decoding="async" width="1277" height="622" srcset="../derived-media/94bad78505c4aafe2cd1-480.webp 480w, ../derived-media/94bad78505c4aafe2cd1-960.webp 960w, ../derived-media/94bad78505c4aafe2cd1-1277.webp 1277w" sizes="(max-width:600px) calc(100vw - 14px), (max-width:1199px) calc(100vw - 240px), 840px"></a></figure><h3 class="cb-heading" id="article-section-8" data-article-heading>3.2 BI看板AI应用：从”看报表”到”问数据”的决策链重构</h3><p>传统BI工具只能告诉管理者”发生了什么”，AI赋能的BI看板正在重构医院运营管理的决策链路，实现从”人找数据”到”数据找人”的范式转变。我在做BI看板应用的那几年，最深的体会是：医院管理者不是不想用数据，而是被指标口径折磨得不敢用。医院的运营指标数量与口径复杂度远超常规零售或制造业，同一个”平均住院日”在不同科室的统计规则可能就不一样，管理者不可能靠人力遍历，于是干脆回到经验决策。AI在这一层的价值，首先是替管理者承担口径匹配的负担。</p><p><strong>第一层能力是自然语言问数</strong>。腾讯云BI的智能助手ChatBI支持通过自然语言对话完成数据分析，并提供数据解读、波动归因、业务优化建议。Quick BI AIPro让业务用户以对话方式直接驱动”概览→拆解→归因→诊断→行动”的完整决策路径，响应速度从传统BI的需求排期数天缩短至秒级。落到医院场景，院长只需提问”上周哪个科室超支病种最多？原因是什么？”，系统即可自动解析意图、匹配指标口径、生成可视化图表并附带文字解读。这里的”匹配指标口径”是技术难点所在，也是数据底座能力的直接体现——我在BI看板项目里投入精力最多的地方，从来不是图表，而是指标字典与口径映射表。</p><p><strong>第二层能力是智能归因与自动运营报告</strong>。中国电信联合北京安贞医院发布的全国首个”公立医院运行管理大模型”，打通HIS、SPD、ODR三大核心系统，治理300余万条基础数据，建立800余个核心管理指标，使运行管理报告生成速度从几天提升至5分钟，管理响应速度提升95%，异常预警响应时间不超过5分钟。熙软科技打造的HO-Agent医院运营智能体”小熙”，基于DeepSeek在内的基座模型，通过自然语言交互为管理者提供智能报告分析及运营辅助决策，并构建了涵盖财务收支、人力物资、绩效考核全维度的ODR运营数据中心知识库。安贞医院的案例给出一条我认为最值得抄的成功要素链：先打通三大系统，再治理300余万条数据，再建立800余个指标，最后才谈得上报告提速与预警前置。这个顺序不能颠倒。我见过的项目失败案例，绝大多数都是跳过前两步直接上智能体，产出的只会是口径错误的报表——而一份口径错误的报表比没有报表更危险，因为它会带着管理者的信任做出错误决策。</p><p><strong>第三层能力是DRG/DIP智能分组与病种成本分析</strong>，这是当前刚性最强的落地场景。在支付改革压力下，AI驱动的BI看板已深入病种成本管理：安徽医尔康的DRG/DIP智能入组系统通过病案首页语义解析与临床特征深度匹配，实现分组动态校准，并为医生提供预测盈亏、平均住院日、费用构成详情，辅助规避亏损风险。思迈特Smartbi的医院运营管理决策平台以BI为基础架构，覆盖财务管理、人事管理、资产设备、成本分析全模块，支持自由新增分析主题而无需重新开发系统。DRG/DIP场景之所以刚性，是因为它直接关联医院收入：分组错误即意味着实际亏损，管理者有明确动机为这类能力付费。这一点与临床辅助决策的付费困境形成鲜明对照，也是我判断院内AI商业化次序的依据——先做能算清账的运营场景，再碰算不清账的临床场景。</p><p>表3：BI看板AI应用的能力层次、代表实践与量化指标</p><figure class="cb-figure"><a class="cb-media-link" href="https://image.woshipm.com/2026/10/09/00ec8a6a-c38a-11f1-bf4f-00163e4b86a1.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../derived-media/8fd88ebffe3a05b8f400-480.webp" alt="" loading="lazy" decoding="async" width="1189" height="808" srcset="../derived-media/8fd88ebffe3a05b8f400-480.webp 480w, ../derived-media/8fd88ebffe3a05b8f400-960.webp 960w, ../derived-media/8fd88ebffe3a05b8f400-1189.webp 1189w" sizes="(max-width:600px) calc(100vw - 14px), (max-width:1199px) calc(100vw - 240px), 840px"></a></figure><h3 class="cb-heading" id="article-section-9" data-article-heading>3.3 共性前提：三类应用都卡在同一个地方</h3><p>患者360视图、BI看板、临床辅助决策看似服务不同角色、解决不同问题，但成败都取决于同一件事：院内多源异构数据的治理与标准化是否先行完成，以及业务口径能否被模型正确理解。这是我把三类应用都做了一遍之后最确定的一条结论。</p><p>这里存在一个容易被忽视的错配——同一临床数据在不同科室、不同患者背景下含义截然不同，通用大模型能”读懂”文字却难以理解院内业务口径和统计规则。</p><p>我做临床AI辅助应用时对这个错配的印象最深：模型能把一段病程记录总结得很通顺，但它不知道本院的”入院评估完成率”是按什么分母算的，也不知道哪个指标在绩效方案里有特殊权重。</p><p>语言能力和业务口径理解是两件事。</p><p>这一错配的后果在三类应用中表现一致。</p><p>患者360视图里，它表现为同一个检验指标在不同科室参考区间下的误读；BI看板里，它表现为指标口径匹配错误导致的归因失真；临床辅助决策里，它表现为模型给出的建议在本院流程下不可执行。三者的解决方案也一致：在建设AI应用前，优先完成院内多源异构数据的治理与标准化，构建高质量专病数据集，这是所有AI应用的根基。</p><p>因此，医院在评估任何一款AI产品时，我建议第一个问的问题不是模型评测排第几，而是”这款产品要求我的数据底座达到什么状态，而我现在离那个状态有多远”。这个差距决定了项目的真实成本，也决定了它能否在验收之后继续被使用。以我的经验，这个差距在项目前期几乎总是被低估——因为它藏在信息科的日常运维里，不写在任何一份招标文档中。</p><h2 class="cb-heading" id="article-section-10" data-article-heading>4. 大模型临床安全校验：严肃医疗不可逾越的底线</h2><h3 class="cb-heading" id="article-section-11" data-article-heading>4.1 幻觉控制与循证溯源</h3><p>医疗场景对错误的容忍度极低，一次错误建议的代价可能是不可逆的患者伤害。《BMJ Open》2026年的研究系统评估显示，主流通用大模型约50%的医疗回答被评为”有问题”，近20%属于”高度有问题”。</p><p>这一数据决定了严肃医疗大模型必须攻克三座大山：性能优化以降低幻觉、监管合规、信任背书。</p><p>我在做临床AI辅助应用立项时，第一个被医务科问住的问题就是这个——你们怎么保证它不胡说。这个问题在当时没有好答案，现在有了几条可操作的技术路线。</p><p>第一条是推理链改造。</p><p>讯飞星火医疗大模型V3.5搭建了基础医学与临床医学双思维链：基础医学思维链依托生理、病理、解剖经典理论溯源底层逻辑，临床医学思维链结合权威诊疗指南与真实病例推导方案，配套完整循证溯源体系。该模型独创”证据对齐—反思校验—专家强化”循证推理技术，六大核心能力平均效果提升至92.4%。</p><p>双思维链的设计意图在我看来很明确：让模型的每一步推导都能追溯到一个可被医生核验的证据源，而不是输出一个看似合理但无从验证的结论。这与我做集成平台时的思路是同构的——不追求单点聪明，追求全链路可追溯。</p><p>第二条路线是知识库约束与幻觉率硬指标。医渡科技将幻觉发生率控制在1%以内，其循证知识库覆盖超3万部精选临床指南、超2000万篇高质量医学文献。把幻觉率作为可披露的产品指标，本身就是一种信任建设——它承认风险存在，并给出可被第三方复核的量化承诺，这与单纯宣称”模型更准确”的营销话术有本质区别，因为无法复核的承诺在医疗场景里等于没有承诺。</p><h3 class="cb-heading" id="article-section-12" data-article-heading>4.2 工程化管控与可信AI框架</h3><p>算法层面的可靠性并不自动等于临床层面的可采信，中间需要一层工程与评估机制完成翻译。做过交付的人对这一层不会陌生：技术验证通过到临床能用之间，隔着的全部是工程活。</p><p>工程侧的代表方案是讯飞医疗自研的Harness双模式技术架构。该架构立足于临床应用痛点与药监合规要求，无需改动模型权重，依靠刚性约束、标准化封装、全链路业务编排，将碎片化的医疗行业经验转化为可批量复制、合规可控的工业化生产力。”不改权重”这一点在我看来尤其值得注意：它意味着安全管控发生在模型外层的确定性逻辑中，输出结果因此具备可审计性与可回溯性，这正契合药监对医疗器械软件变更控制的严格要求。相较于持续微调模型，外层工程管控的合规成本更低、验证周期更短——以我过去做项目的经验，任何需要重新验证模型本体的变更，都会把项目周期拉长一个量级。</p><p>评估侧的代表方案是可信AI框架。商汤医疗CMO钱琨指出，AI本质上仍属于黑盒统计模型，医生的信任无法靠技术参数堆砌获得。为此商汤与全球医院评级机构HIMSS共同设计了针对医学与临床的可信AI框架，包含三个维度：一是参考FDA审核逻辑的有效性与安全性标准，二是AI嵌入临床工作流的量化评估支撑，三是价值与卫生经济学评价，评估是否改善患者健康结局、提升效率并降低长期成本。这三个维度的组合逻辑是递进的——先证明安全有效，再证明能嵌进流程，最后证明值得付费。第二个维度对我这样的交付负责人最有价值，因为它把”嵌入工作流”从一个主观感受变成了可量化评估项。第三个维度则把技术评估直接对接到了支付方的决策依据上，这正是国内厂商普遍欠缺的一环。</p><h3 class="cb-heading" id="article-section-13" data-article-heading>4.3 责任边界：AI是临床助理而非决策主体</h3><p>安全校验的最终落点不是技术指标，而是责任归属。行业共识是AI定位为”临床助理”，所有生成的医疗文书必须由具备资质的执业医师审核、修改并电子签名确认后方可归档，AI不承担直接法律责任。中国科学院院士张钹进一步明确：医生是临床决策者也是安全监督者，AI与医生是共生关系而非替代关系。</p><p>这一责任边界对产品设计的反向约束，远比表面看起来更强，而且我在临床AI辅助应用的设计过程中是直接感受到它的。既然医师必须审核并签名，那么产品就必须提供可核验的证据链，让医师能在合理时间内完成审核——如果医师需要逐字重查一遍模型输出，审核成本会超过手写成本，产品自然被弃用。所以在我参与的设计里，”医师审核”从来不是一个流程节点，而是一整套交互要求：证据要可点击、修改要可留痕、超范围要能一键转人工。这也解释了为什么循证溯源不是锦上添花的功能，而是决定采纳率的前置条件：讯飞医疗在头部三甲医院实现91%的病历采纳率，其底层支撑正是双思维链配套的证据溯源体系。责任在医生、能力在模型、证据在系统，三者的清晰分工是严肃医疗AI得以成立的前提。</p><h2 class="cb-heading" id="article-section-14" data-article-heading>5. 为什么很多医疗AI落不了地：四大结构性难点</h2><p>这一章是全文我最想写的部分。前面几章讲的是”应该怎么做”，这一章讲的是”为什么明明知道该怎么做，还是做不成”。四条难点我都亲自撞过，下面每一条我都把行业层面的结论和我自己项目里的具体感受分开写，便于读者判断哪些是可引用的事实、哪些是我个人的经验判断。</p><h3 class="cb-heading" id="article-section-15" data-article-heading>5.1 数据治理：从”有数据”到”能用数据”的鸿沟</h3><p>核心矛盾在于：医院拥有海量数据，但多为非结构化、非标化的”脏数据”，而通用大模型能读懂文字却难以理解院内业务口径和统计规则。这一矛盾在项目执行中会分解为三条具体障碍。</p><p><strong>第一条是对接成本</strong></p><p>医院各系统品牌厂家众多，接口不标准，数据格式与权限管控各异，需要协调信息科、医务科在内的多部门反复沟通，周期长、成本高。<strong>我的经验是</strong>：这条障碍的性质不是技术难度，而是组织协同。我在做集成平台项目时，纯技术工作通常占三成时间，剩下七成花在协调上——各厂商对接口文档的理解不一致、数据权限归属有争议、变更需要走院内多层审批。即便厂商具备对接能力，医院内部各科室的数据权限归属争议也足以让项目停滞数月。很多AI项目的实际工期远超预期，超期部分大多消耗在这一环节。</p><p><strong>第二条是基层数据缺失</strong></p><p>头部医院训练的大模型下沉到基层后”水土不服”，根本原因是基层缺乏高质量的生化、影像乃至基因数据，且患者就诊路径不连续，数据天然碎片化。<strong>我的经验是</strong>：这条障碍决定了”以头部医院背书换取基层市场”的策略存在内在断裂。我在区域健康信息平台项目里做过同样的下沉，得出的教训是——背书来自数据丰富的环境，交付却发生在数据贫瘠的环境，两者的适配工作量在投标阶段几乎无法准确估算。</p><p><strong>第三条是制度性壁垒</strong></p><p>患者健康数据、医院衍生数据、医保支付数据缺乏明确的”三权分置”界定，医疗机构因此”不敢开、不愿开”。三条障碍中，前两条靠投入可以缓解，第三条只能靠制度演进解决。这也是我认为数据治理是四重难点中最难被厂商单方面攻克的一项的原因——它不是花钱能解决的问题。</p><h3 class="cb-heading" id="article-section-16" data-article-heading>5.2 临床信任：从”评测第一”到”医生签字”的距离</h3><p>核心矛盾在于：评测榜单上的高分不等于临床可用性。医生群体相对保守，规避风险意识强，对新工具的准确率、可解释性和潜在法律风险有极高顾虑。</p><p><strong>失信任的第一个原因是黑盒特性</strong>。纵然模型输出逻辑通顺的诊疗意见，若缺乏证据溯源、推理链路不可解释、无法对齐临床指南，便无法获得临床采信。这与第4章的责任边界形成闭环：医师要为签名承担法律责任，就必须看得见推理依据；看不见的东西，无法签字。我做临床AI辅助应用时，医务科评审的第一份材料从来不是准确率报告，而是”出错之后责任怎么划分”。</p><p><strong>失信任的第二个原因是场景错位</strong>。用为复杂疾病训练的模型应对基层常见病，或用通用模型处理专科问题，导致判断准确率下降，医生不敢轻易否定模型就要花更多时间核对，反而增加负担。<strong>我的经验是</strong>：这里暴露出一个产品设计的常见误区——厂商习惯用”最难场景下的表现”证明能力，但医院实际使用的是”最高频场景”，两者往往不重合。</p><p>信任的建立路径因此必须是自下而上、由细节累积的。商汤医疗钱琨强调，信任必须从临床工作流程的每一个细节入手，通过设置”专属边界”限定模型处理范围、超出范围自动转接人工的方式逐步积累。左医科技的经验则给出了组织层面的路径：第一步不是说服院长，而是深入科室争取主任和骨干医生支持，在试点中见到实效后再推广。这两条经验与我自己的交付体会完全一致：临床信任是一种科室级的社会资本，无法通过行政命令自上而下灌注，也无法通过评测榜单直接兑换。我见过院领导强推、科室消极应付最终停用的项目，也见过从一位科主任的试点起步、两年后铺满全院的项目。</p><h3 class="cb-heading" id="article-section-17" data-article-heading>5.3 工作流嵌入：从”外挂工具”到”内生能力”的跨越</h3><p>核心矛盾在于：当前大量AI产品以外部集成方式附着于现有业务系统，与原有流程和数据体系割裂，造成跨系统操作和业务体验不一致。这一条对我来说最有发言权，因为我做的集成平台，本身就是”外挂式集成”的典型形态——我知道它的边界在哪里。</p><p>问题的根源可以从三条主流技术路径的原始设计目标中找到。</p><ol><li>通用AI技术栈（LLM+RAG）本质是文本理解系统而非医疗业务系统；</li><li>数据平台路径的设计目标是”分析”而非”执行”，缺乏实时响应能力；</li><li>传统集成平台的设计初衷是”数据交换”而非”智能协同”，缺乏语义建模能力。</li></ol><p>三条路径都不是为”在诊疗流程中实时介入并触发动作”而设计的，把它们改造成临床可用系统所需的补强工作，往往超过重新构建的成本。作为集成平台的从业者，我承认第三条评价是准确的：我们当年做的是消息路由与数据交换，语义层从来不在设计范围内。</p><p><strong>表4：三条主流技术路径的设计目标与在院内场景的能力缺口</strong></p><figure class="cb-figure"><a class="cb-media-link" href="https://image.woshipm.com/2026/10/09/6ef37a46-c38a-11f1-8a75-00163e4b86a1.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../derived-media/da0c7a3a5b544cd0312b-480.webp" alt="" loading="lazy" decoding="async" width="897" height="356" srcset="../derived-media/da0c7a3a5b544cd0312b-480.webp 480w, ../derived-media/da0c7a3a5b544cd0312b-897.webp 897w" sizes="(max-width:600px) calc(100vw - 14px), (max-width:1199px) calc(100vw - 240px), 840px"></a></figure><p>嵌入失败的直接后果是使用率。如果AI不能无缝嵌入医嘱、病历、转诊、随访在内的核心闭环，医生就需要在多个系统间切换，使用负担不降反升，实际落地使用率偏低。<strong>我的经验是</strong>：这是院内AI项目最常见的失败形态——验收指标全部达标，上线三个月后科室悄悄停用，因为没有人为”多开一个窗口”付出持续成本。我在BI看板应用项目里也见过同样的曲线：上线第一个月使用量很高，因为新鲜；第三个月开始下滑，因为它没有长在医生的日常动作里。</p><p>行业给出的解法是AI原生底座。东软添翼提出的”AI原生”理念，强调以AI重新定义业务系统能力架构，将大模型、智能体、知识、数据与业务能力原生融合，使AI成为业务系统的内生能力而非外挂。深圳医学AI创新平台的做法是从区域层面降低这一重构的门槛：通过统一API接口为全市医疗机构提供算力与模型能力支持，显著降低重复开发成本。</p><p>两条路径的共同点是承认——在既有系统上打补丁无法实现真正的流程融合，必须改动底座本身。以我做过集成平台和区域平台的双重经验看，这个判断是残酷但正确的：补丁式集成有明确的能力上限，而这个上限恰好低于临床场景的要求。</p><h3 class="cb-heading" id="article-section-18" data-article-heading>5.4 收费模式：从”有用”到”有人付钱”的商业闭环断裂</h3><p>核心矛盾在于：AI辅助诊疗服务缺乏独立收费编码和定价标准，医保尚未纳入支付目录，商业保险也未开发相应产品，三重支付缺位使AI陷入”有用但没人付钱”的困境。</p><p><strong>表5：五种现行收费模式的代表案例、优势与局限</strong></p><figure class="cb-figure"><a class="cb-media-link" href="https://image.woshipm.com/2026/10/09/c202c7fa-c38a-11f1-8891-00163e4b86a1.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../derived-media/21f5fae97d63e9f44895-480.webp" alt="" loading="lazy" decoding="async" width="1214" height="777" srcset="../derived-media/21f5fae97d63e9f44895-480.webp 480w, ../derived-media/21f5fae97d63e9f44895-960.webp 960w, ../derived-media/21f5fae97d63e9f44895-1214.webp 1214w" sizes="(max-width:600px) calc(100vw - 14px), (max-width:1199px) calc(100vw - 240px), 840px"></a></figure><p>深层症结在于价值链条断裂：数据提供方（医院）、技术研发方（AI企业）、支付方（医保、商保、患者）、监管方四方的利益分配机制几乎空白。四方的诉求本身并不冲突——医院希望数据换能力，厂商希望能力换收入，支付方希望收入换疗效证据，监管方希望全程可控——但由于缺乏分配规则，任何一方都无法确认自己的投入能否获得对等回报，于是集体选择观望。我在区域健康信息平台项目里见过这个僵局的完整版本：平台建好了，数据接进来了，但没有一个规则说明谁为持续运营付费，于是平台在验收后进入低维护状态。</p><p>从三端格局看，To G项目是当前唯一能释放大额预算的支付方，但更像阶段性托底而非最终形态；To B端医院支付能力整体承压；To C端天花板高但用户付费心智难撼动。这一格局决定了未来两三年内，厂商的现金流仍将高度依赖政府与医院信息化预算，而真正可持续的商业模式突破点，落在医保按词元支付与商保直付两条尚未跑通的通道上。影像AI的定价遭遇尤其值得注意：国家医保局立项指南明确不与主项目重复收费，这一规定的政策意图是保护患者负担，客观效果却是把影像AI的独立变现路径锁死，迫使厂商转向软件销售或设备捆绑——这也解释了为什么影像AI赛道技术最成熟、获批产品最多，商业化却长期艰难。</p><p><strong>我的判断是</strong>：在四类障碍中，收费模式是唯一一个厂商和医院都无法自行解决的，它必须等待支付制度演进。因此在做院内AI规划时，我会建议把项目分成两类：一类是能算清账、可以直接进运营预算的（如DRG/DIP病种成本分析），另一类是暂时算不清账、只能靠信息化预算托底的（如临床辅助决策）。前者要快上、要量化收益；后者要小规模试点、不要一次性铺大。混淆这两类，是院内AI预算失控最常见的原因。</p><h2 class="cb-heading" id="article-section-19" data-article-heading>6. 主流产品拆解：三种差异化落地路径</h2><h3 class="cb-heading" id="article-section-20" data-article-heading>6.1 讯飞医疗星火医疗大模型：全域覆盖加数据飞轮</h3><p>核心定位是”每个医生的AI诊疗助理、每个人的AI健康助手”。</p><p>技术底座与安全校验方面，星火医疗大模型V3.5基于全国产算力训练，在IDC《中国医疗大模型技术评估，2026》中综合实力行业第一，15项核心指标中12项领跑。具体能力数据为：医疗知识问答解答率92.7%、诊断治疗推荐合理率92.1%、医疗文书生成合理率92.2%，均超越GPT-5.5最高推理档。安全机制上采用Harness双模式技术架构提供外层确定性工程管控，配合”证据对齐—反思校验—专家强化”循证推理技术，六大核心能力平均效果提升至92.4%。</p><p>真正构成壁垒的是数据飞轮：依托16亿人次脱敏医疗语音数据、12亿次真实诊疗数据持续训练，每日新增学习数据超220万份。做过数据平台的人看到这个数字会明白它的分量：这一规模意味着后来者即便在算法上追平，也需要以年为单位追赶数据积累，而追赶过程中的部署量差距又会继续拉大数据差距。这是一个自我强化的循环，不是靠融资能在短期内补齐的。</p><p>落地规模方面，产品已覆盖全国828区县、7.7万余家基层医疗机构，累计辅助诊断超12亿次，辅助生成规范化电子病历4.9亿份。在多家头部三甲医院真实应用中，生成病历医生采纳率达91%，病历书写时间缩短52%；X线、MR报告生成医生采纳率达75%。AI诊疗助理已服务700余家等级医院，智医助理在已部署AI辅诊的基层区县市占率超80%。以我做临床AI辅助应用的经验看，91%的病历采纳率是四重难点中”临床信任”与”工作流嵌入”两项同时被解决的直接证据——采纳率低于此水平时，医生会退回手写，产品随即失去使用价值。</p><p><strong>表6：讯飞医疗星火医疗大模型的能力指标与落地规模</strong></p><figure class="cb-figure"><a class="cb-media-link" href="https://image.woshipm.com/2026/10/09/ba3959b6-c38b-11f1-bf4f-00163e4b86a1.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../derived-media/5d14ababdaaa73f013be-480.webp" alt="" loading="lazy" decoding="async" width="1091" height="1056" srcset="../derived-media/5d14ababdaaa73f013be-480.webp 480w, ../derived-media/5d14ababdaaa73f013be-960.webp 960w, ../derived-media/5d14ababdaaa73f013be-1091.webp 1091w" sizes="(max-width:600px) calc(100vw - 14px), (max-width:1199px) calc(100vw - 240px), 840px"></a></figure><p>商业模式方面，2026年上半年AI诊疗助理收入2.02亿元，同比增长47.5%，毛利率56.1%；AI健康助手收入1.82亿元，同比增长74.9%；影像云业务收入同比增幅超200%。更值得我关注的信号是收入结构调整：资源向ARR经常性收入业务倾斜，正在探索按病历采纳量计费的经常性收入模式，推动从一次性项目交付向平台运营转型。按采纳量计费直接回应了第5.4节的支付困境——它把付费单位从”项目”改为”被医生实际接受的产出”，医院只为有效使用付钱，厂商则有动机持续提升采纳率。56.1%的毛利率也说明这一模式具备规模化盈利的基础，而非单纯以低价换量。以我做过项目制交付的经验，这种计费方式对厂商的内部要求极高：它要求采纳率可被双方共同核验，否则结算必然产生争议。</p><p>其差异化优势可概括为：十年深耕积累的”场景→数据→治理→模型→更广场景”自强化循环体系，使其在评测成绩与临床价值之间实现了罕见的”对上账”。”对上账”这三个字，是我在这些年里认为最难得的东西。</p><h3 class="cb-heading" id="article-section-21" data-article-heading>6.2 京东健康京医千询与京东卓医：AI加供应链的服务闭环</h3><p>核心定位是业内首个医院全场景AI大模型产品，打造”可问、可诊、可检、可药、可管理”的完整服务闭环。</p><p>产品矩阵基于自研”京医千询”医疗大模型构建，该模型为MedBench大语言模型和多模态大模型双榜冠军，矩阵覆盖toC（AI京医、AI医生大为）、toD（知医）、toH/toG（京东卓医）、toB全场景。京东卓医2.0通过”卓医智脑”（JoyDocBrain）构建基础系统，聚焦临床营养、药事管理、体重管理三大核心场景。<strong>在我看来</strong>，这三个场景的选择本身体现了对落地难点的深刻理解：它们都不是高风险临床决策，而是有明确执行动作、可量化效果、且存在成熟商品承接的场景。这恰好符合我在第5.4节提出的分类原则——先做能算清账的场景。</p><p>落地成效方面，温医大附一院门诊AI服务体系累计使用量超910万人次；营养科风险筛查率接近100%，全院风险检出率达35%，营养师效率提升至50%。AI医生”大为”完成亿次交互，满意率超98%；循证医学AI工具”知医”服务超百万医生，辅助诊疗决策超2000万次。产品已与华中科技大学同济医学院附属协和医院、苏州市立医院在内的多家头部公立医院落地应用。910万人次的使用量在院内AI产品里属于罕见量级，它说明这个场景确实长在了流程里，而不是被行政命令推出来的。</p><p>商业模式的差异化在于”AI+供应链”闭环。在临床营养场景中，AI生成个性化营养方案后，京东健康作为品类最全的特医食品线上零售渠道，可实现特医食品直达患者家中，AI定期跟踪执行情况与健康指标，形成从辅助诊断、方案生成、配送到随访的全病程管理闭环。这一模式的战略价值在于绕开了医疗服务收费难题，通过商品和服务变现。</p><p>但它的可复制边界同样清晰：变现依赖供应链能力，非纯AI企业可复制。反过来说，这也意味着该模式对具备零售与物流基础设施的参与者构成结构性优势——它把竞争维度从”模型准确率”转移到”方案能否被履约”，而在后一维度上，传统医疗AI厂商几乎没有追赶路径。对医院而言，这类产品的吸引力在于它自带支付出口，不需要院方在医保目录之外寻找预算科目。<strong>以我做院内应用的立场看</strong>，这一点在当前的支付环境下，可能比任何技术优势都更决定项目能否续期。</p><h3 class="cb-heading" id="article-section-22" data-article-heading>6.3 商汤医疗”大医”：通专融合与医疗世界模型</h3><p>核心定位是医疗领域的世界模型构建者，打造可自主学习、持续进化的未来智慧医院。</p><p>技术架构上，自研医疗大语言模型”大医”基于千亿参数”商量”基模型，经超300亿token医学知识数据训练，构建了超250B tokens（约4000亿汉字）的语料库，覆盖100余个医学学科。路线选择是”通专融合”：”大医”中枢统筹调度覆盖病理、影像、内镜在内的多模态基础模型群，结合医学专病知识库及工具集。支撑体系为双中台架构——大医Bots智能体开发平台与多模态基础模型应用生产平台，形成”数据-模型-场景-产业”完整闭环。安全策略上，与HIMSS共建可信AI框架，通过设置”专属边界”限定模型处理范围来管控风险。做过平台架构的人会对”双中台”这个设计有共鸣：它把智能体开发与模型生产分开，本质上是把应用迭代速度与基础模型迭代速度解耦，这在我做数据平台与集成平台时是被反复验证的必要设计。</p><p>产品与落地方面，已推出”大医智健””大医智研””大医医助”三款标准化产品；SenseCare智慧医院方案包含智慧诊疗、就医、科研、云平台，已上线40余款AI模块，覆盖肺、心脏冠脉、头颈血管、肝脏、肌骨在内的十余个方向。具体案例包括：与罗氏制药合作搭建小罗智多星平台，覆盖90城700家三甲医院，帮助4000余名医生落地科研项目600余项，节约科研工时超2万小时；上海市肺科医院数智病理平台实现肿瘤检出敏感性接近100%，存储利用率提升35%以上；苏北人民医院上线AI门诊病历生成系统，采用35B医疗大模型辅以院内知识库，初诊场景效果较好。苏北人民医院的35B选型印证了一条我认为更务实的路线：基层与地市级医院不需要最大参数模型，而需要在本地算力可承受范围内配合院内知识库达到可用效果。这与我做区域平台时总结的”算力分层”思路一致。</p><p>商业化与前瞻布局方面，商汤医疗半年内累计融资10亿元，入选2026胡润全球独角兽。CEO张少霆提出软件业3.0时代拼模型泛化能力，需将庞大医疗知识体系解构成多个专业模块做深。公司进一步提出”医疗世界模型”概念，旨在推动大模型突破纯文本交互，进入高度拟真的数字临床环境，模拟患者反馈、病灶结构解析乃至药物代谢动态演进。</p><p>客观地看，商汤医疗的强项集中在影像、病理、科研这类高壁垒专科，技术前瞻性突出，但当前商业化仍依赖软件销售与科研服务，并依靠融资驱动扩张，尚未形成讯飞医疗那样可披露的经常性收入结构。这不构成对其技术路线的否定，而是提示其变现路径仍在验证期——高壁垒专科的付费方通常是设备采购预算与科研经费，天花板受限于医院的资本性支出周期。<strong>以我的经验补充一点</strong>：科研场景虽然付费意愿明确，但它的用户是少数科研骨干医生，规模天花板天然有限，很难支撑起全院级的经常性支出。</p><h3 class="cb-heading" id="article-section-23" data-article-heading>6.4 三种路径对比与适用边界</h3><p><strong>表7：三款主流产品在六个维度的路径对比</strong></p><figure class="cb-figure"><a class="cb-media-link" href="https://image.woshipm.com/2026/10/09/16776556-c38c-11f1-8891-00163e4b86a1.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../derived-media/2dceff6bf4d614d7eee1-480.webp" alt="" loading="lazy" decoding="async" width="1075" height="787" srcset="../derived-media/2dceff6bf4d614d7eee1-480.webp 480w, ../derived-media/2dceff6bf4d614d7eee1-960.webp 960w, ../derived-media/2dceff6bf4d614d7eee1-1075.webp 1075w" sizes="(max-width:600px) calc(100vw - 14px), (max-width:1199px) calc(100vw - 240px), 840px"></a></figure><p>三款产品的对比给出一个明确结论：院内AI不存在可通吃的产品，选产品实质上是选路径。如果医院的首要诉求是覆盖广、单点提效明显、且愿意用长期运营换取经常性支出，讯飞医疗的数据飞轮与按采纳量计费模式匹配度最高；如果医院希望AI自带支付出口、不愿在医保目录外新增预算科目，京东健康的供应链闭环提供了绕开收费难题的方案；如果医院的需求集中在影像、病理、科研这类需要多模态能力与深度专科知识的场景，商汤医疗的通专融合架构更契合。</p><p>对我这样既做过平台又做过应用的人来说，比选型更重要的是自评：本院数据底座处于哪一层贯通状态、目标科室的骨干医生是否愿意参与试点、付费主体是信息化预算还是运营预算。这三项前置条件不满足时，任何一款领先产品都会退化为演示系统。我在这些年的项目里见过太多”产品很好、医院没准备好”的失败案例，它们的责任并不在厂商。</p><h2 class="cb-heading" id="article-section-24" data-article-heading>7. 趋势研判与院内AI建设建议</h2><h3 class="cb-heading" id="article-section-25" data-article-heading>7.1 行业趋势：专科深耕、AI原生底座与支付多元化</h3><p>第一条趋势是从通用比拼转向专科深耕。严肃医疗大模型必须以专科切入打造信任背书，通过高水平临床合作建立行业壁垒。协和太初罕见病智能体、安贞心血管超声智能体在内的专科产品已验证这一路径。专科切入之所以有效，在我看来是因为它同时缓解了三重难点：专科数据边界清晰，治理范围可控；专科医生群体规模小、共识易建立，信任成本更低；专科价值可量化，便于对接卫生经济学评价。这与我在数据平台项目里坚持”先做专病数据集、不做大而全数据仓库”的经验完全吻合。</p><p>第二条趋势是从外挂工具转向AI原生底座。新一代医院信息系统将以AI重新定义能力架构，使大模型成为业务系统的内生能力。深圳医学AI创新平台通过统一API接口为全市医疗机构提供算力与模型能力支持，显著降低重复开发成本，代表的是区域级公共底座的方向——单家医院无力承担原生重构成本，区域共建则可以把这项投入摊薄。我做过区域健康信息平台，深知区域共建的难度不在技术而在协同，但一旦建成，它对辖区内所有医院的AI能力起点提升是决定性的。</p><p>第三条趋势是收费模式多元化探索。按词元收费、AI+供应链、政府购买服务在内的多元模式并行，其中医保按词元支付和商保直付是下一阶段的突破重点。这两条通道一旦跑通，AI才第一次拥有独立于信息化预算的支付来源。</p><p>第四条趋势是G-B-C三端融合驱动价值循环：G端定标准、B端强技术、C端拓市场，三方协同才能跑通商业闭环。三端各自解决一个前置问题——G端解决合规与定价依据，B端解决临床有效性，C端解决规模化使用量，缺任一端，价值循环都无法闭合。</p><h3 class="cb-heading" id="article-section-26" data-article-heading>7.2 对院内AI建设的五条建议</h3><p>以下五条，是我把自己这些年做医院信息平台、区域健康信息平台、数据平台、集成平台、患者360视图、BI看板与临床AI辅助应用的经验，对照行业公开实践之后整理出的落地次序。</p><p><strong>第一，数据先行。</strong> 在建设AI应用前，优先完成院内多源异构数据的治理与标准化，构建高质量专病数据集，这是所有AI应用的根基。我额外建议把数据治理作为独立预算科目而非AI项目的附属支出，因为它的收益会被后续所有应用共享——挂在单个AI项目下，项目停了治理也就停了。</p><p><strong>第二，场景克制。</strong> 选择高频、低争议、实时性要求不高的场景作为切入点，例如病历质控、预问诊、运营报告生成，避免一开始就触碰高风险临床决策。前述安贞医院运行管理大模型与京东卓医的临床营养场景，都属于这一类低风险高确定性切入点。我做BI看板应用时的教训是：第一个场景选得越”安全”，后续推广反而越快，因为科室对信息部门的信任是攒出来的。</p><p><strong>第三，轻量起步。</strong> 对于算力有限的医院，可采用轻量级模型配合算力分层与错峰调度策略，以小博大实现AI成本与价值的统一。苏北人民医院采用35B医疗大模型辅以院内知识库并在初诊场景取得较好效果，为地市级医院提供了可参照的选型样本。以我做区域平台的算力规划经验，错峰调度在地市级医院通常能把峰值算力需求压低一大截，这比采购更多卡划算得多。</p><p><strong>第四，安全前置。</strong> 将循证溯源、可解释性、幻觉控制作为产品选型的一票否决项，而非事后补救。可操作的评估动作包括：要求厂商披露幻觉率一类的量化安全指标、核验输出是否附带可点击的证据来源、确认超出模型能力范围时是否自动转接人工。</p><p><strong>第五，关注付费可持续性。</strong> 在项目规划阶段即明确付费主体与模式，避免建成后陷入”有用但没人付钱”的困境。立项时就应写清：本项目的付费方是信息化预算、运营预算、医保还是患者自费，续约依据是采纳率、报告数量还是疗效指标。付费主体不明确的项目，即使技术验收全部通过，也很难在第二年获得续投。</p><p>四重障碍的破除次序由此清晰：先用数据治理打通底座，再用低风险场景积累科室信任，随后把验证有效的能力内生进业务流程，最后在立项阶段就锁定付费主体与计费单位。跳过任一步，后续投入的边际收益都会急剧下降——这正是”很多医疗AI落不了地”的真实机制：不是模型不够强，而是四道门槛被当成了可以并行跨越的选项。以我这些年的交付经验，凡是按这个次序走的项目，即便进展慢，也几乎没有中途停摆的；凡是想四步同时上的项目，最后都停在了最贵的那一步上。</p><p>本文由 @Chrisiris 原创发布于人人都是产品经理。未经作者许可，禁止转载</p><p>题图来自Unsplash，基于CC0协议</p></div>
+  <div class="content-footer"><div class="disclaimer">正文来自 RSS 或原网页；DataHot 仅做安全清洗和版式整理，未使用 AI 改写</div><a class="original-footer-link" href="https://www.woshipm.com/evaluating/6475085.html" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="人人都是产品经理"><span>查看原文</span><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div>
+</section>
+  <div class="vendors article-tags" aria-label="文章主题"><a class="chip" href="../topics/platform-ai.html">平台AI化</a><span class="vtag">讯飞医疗</span><span class="vtag">京东健康</span><span class="vtag">商汤医疗</span></div>
+
+  <section class="content-feedback" data-content-feedback data-event-id="32c1d135e095" data-feedback-context="{&quot;topics&quot;:[&quot;平台AI化&quot;],&quot;vendors&quot;:[&quot;讯飞医疗&quot;,&quot;京东健康&quot;,&quot;商汤医疗&quot;],&quot;source&quot;:&quot;人人都是产品经理&quot;}" aria-labelledby="contentFeedbackTitle">
+  <div class="content-feedback-main">
+    <div><h2 id="contentFeedbackTitle">这篇内容对你有用吗？</h2><p data-feedback-status aria-live="polite">反馈只用于改善内容筛选，不等同于收藏</p></div>
+    <div class="content-feedback-actions">
+      <button type="button" data-feedback-value="useful" aria-pressed="false">有用</button>
+      <button type="button" data-feedback-value="not_useful" aria-pressed="false">没用</button>
+    </div>
+  </div>
+  <div class="content-feedback-reasons" data-feedback-reasons="useful" hidden aria-label="有用的原因">
+    <span>可选原因</span><button type="button" data-feedback-reason="solid">内容扎实</button><button type="button" data-feedback-reason="relevant">贴合工作</button><button type="button" data-feedback-reason="novel">提供新观点</button><button type="button" data-feedback-reason="source_discovery">发现好信源</button>
+  </div>
+  <div class="content-feedback-reasons" data-feedback-reasons="not_useful" hidden aria-label="没用的原因">
+    <span>可选原因</span><button type="button" data-feedback-reason="irrelevant">不相关</button><button type="button" data-feedback-reason="shallow">太浅</button><button type="button" data-feedback-reason="marketing">营销软文</button><button type="button" data-feedback-reason="duplicate">内容重复</button><button type="button" data-feedback-reason="body_quality">正文质量差</button>
+  </div>
+</section>
+  
+  </main>
+  <aside class="article-toc-rail" aria-label="本文目录"><div class="article-toc-title">本文目录 <span>26 节</span></div><ol><li class="toc-level-2"><a href="#article-section-1" data-toc-link data-toc-target="article-section-1">1. 落地困局的总体判断：技术验证已经过关，商业化闭环仍未打通</a></li><li class="toc-level-2"><a href="#article-section-2" data-toc-link data-toc-target="article-section-2">2. 医院数据底座：AI落地的第一道门槛</a></li><li class="toc-level-3"><a href="#article-section-3" data-toc-link data-toc-target="article-section-3">2.1 三级数据孤岛：院内、院际、全域的割裂形态</a></li><li class="toc-level-3"><a href="#article-section-4" data-toc-link data-toc-target="article-section-4">2.2 数据质量与成本：99%的原始数据不可直接训练</a></li><li class="toc-level-3"><a href="#article-section-5" data-toc-link data-toc-target="article-section-5">2.3 破局路径：可信数据空间与利益共享机制</a></li><li class="toc-level-2"><a href="#article-section-6" data-toc-link data-toc-target="article-section-6">3. 数据底座之上的三类应用形态</a></li><li class="toc-level-3"><a href="#article-section-7" data-toc-link data-toc-target="article-section-7">3.1 患者360视图：为模型提供完整上下文的临床载体</a></li><li class="toc-level-3"><a href="#article-section-8" data-toc-link data-toc-target="article-section-8">3.2 BI看板AI应用：从”看报表”到”问数据”的决策链重构</a></li><li class="toc-level-3"><a href="#article-section-9" data-toc-link data-toc-target="article-section-9">3.3 共性前提：三类应用都卡在同一个地方</a></li><li class="toc-level-2"><a href="#article-section-10" data-toc-link data-toc-target="article-section-10">4. 大模型临床安全校验：严肃医疗不可逾越的底线</a></li><li class="toc-level-3"><a href="#article-section-11" data-toc-link data-toc-target="article-section-11">4.1 幻觉控制与循证溯源</a></li><li class="toc-level-3"><a href="#article-section-12" data-toc-link data-toc-target="article-section-12">4.2 工程化管控与可信AI框架</a></li><li class="toc-level-3"><a href="#article-section-13" data-toc-link data-toc-target="article-section-13">4.3 责任边界：AI是临床助理而非决策主体</a></li><li class="toc-level-2"><a href="#article-section-14" data-toc-link data-toc-target="article-section-14">5. 为什么很多医疗AI落不了地：四大结构性难点</a></li><li class="toc-level-3"><a href="#article-section-15" data-toc-link data-toc-target="article-section-15">5.1 数据治理：从”有数据”到”能用数据”的鸿沟</a></li><li class="toc-level-3"><a href="#article-section-16" data-toc-link data-toc-target="article-section-16">5.2 临床信任：从”评测第一”到”医生签字”的距离</a></li><li class="toc-level-3"><a href="#article-section-17" data-toc-link data-toc-target="article-section-17">5.3 工作流嵌入：从”外挂工具”到”内生能力”的跨越</a></li><li class="toc-level-3"><a href="#article-section-18" data-toc-link data-toc-target="article-section-18">5.4 收费模式：从”有用”到”有人付钱”的商业闭环断裂</a></li><li class="toc-level-2"><a href="#article-section-19" data-toc-link data-toc-target="article-section-19">6. 主流产品拆解：三种差异化落地路径</a></li><li class="toc-level-3"><a href="#article-section-20" data-toc-link data-toc-target="article-section-20">6.1 讯飞医疗星火医疗大模型：全域覆盖加数据飞轮</a></li><li class="toc-level-3"><a href="#article-section-21" data-toc-link data-toc-target="article-section-21">6.2 京东健康京医千询与京东卓医：AI加供应链的服务闭环</a></li><li class="toc-level-3"><a href="#article-section-22" data-toc-link data-toc-target="article-section-22">6.3 商汤医疗”大医”：通专融合与医疗世界模型</a></li><li class="toc-level-3"><a href="#article-section-23" data-toc-link data-toc-target="article-section-23">6.4 三种路径对比与适用边界</a></li><li class="toc-level-2"><a href="#article-section-24" data-toc-link data-toc-target="article-section-24">7. 趋势研判与院内AI建设建议</a></li><li class="toc-level-3"><a href="#article-section-25" data-toc-link data-toc-target="article-section-25">7.1 行业趋势：专科深耕、AI原生底座与支付多元化</a></li><li class="toc-level-3"><a href="#article-section-26" data-toc-link data-toc-target="article-section-26">7.2 对院内AI建设的五条建议</a></li></ol></aside>
+  </div>
+</div>
+<footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a> · <a href="https://bsky.app/profile/datahot.xiahongbin.com" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Bluesky" style="color:var(--sub);text-decoration:underline">Bluesky</a></footer>
+<nav class="tabbar" aria-label="移动端主导航">
+  <a href="../index.html" class="on" data-home-top><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"/></svg></span><span>热榜</span></a><a href="../for-me.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M13.5 10.5 18 6"/></svg></span><span>关注</span></a><a href="../cases.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg></span><span>案例</span></a><a href="../favorites.html" class=""><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9 2.9-6z"/></svg></span><span>收藏</span></a>
+  <button class="tabbar-more" type="button" data-more-open aria-expanded="false" aria-controls="mobileMoreSheet"><span class="ico"><svg width="20" height="20" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span>更多</span></button>
+</nav>
+<div class="more-mask" data-more-mask aria-hidden="true"></div>
+<section class="more-sheet" id="mobileMoreSheet" role="dialog" aria-modal="true" aria-labelledby="mobileMoreTitle" aria-hidden="true">
+  <div class="more-handle" aria-hidden="true"></div>
+  <div class="more-head"><h2 id="mobileMoreTitle">更多</h2><button class="more-close" type="button" data-more-close aria-label="关闭更多导航">×</button></div>
+  <div class="more-grid"><a class="more-link" href="../weekly.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span>每周简报</span></a><a class="more-link" href="../topics.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span><span>主题</span></a><a class="more-link" href="../hot.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></span><span>完整榜单</span></a><a class="more-link" href="../sources.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5"/></svg></span><span>信源</span></a><a class="more-link" href="../agent.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8-4.8-1.9 4.8-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8.8-2z"/></svg></span><span>接入 Agent</span></a><a class="more-link" href="../privacy.html"><span class="more-icon"><svg width="18" height="18" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg></span><span>隐私说明</span></a></div>
+</section>
+<script>
+(function(){
+  var homeLink=document.querySelector('[data-home-top]');
+  if(homeLink) homeLink.addEventListener('click',function(event){
+    if(document.body&&document.body.classList.contains('home-page')) return;
+    var button=event.button==null?0:event.button;
+    if(event.defaultPrevented||button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey) return;
+    try{
+      var current=new URL(window.location.href);
+      var target=new URL(homeLink.href,current);
+      var source=new URL(document.referrer,current);
+      var targetRoot=target.pathname.replace(/index\.html$/,'');
+      var sourceIsHome=source.origin===target.origin&&(source.pathname===target.pathname||source.pathname===targetRoot);
+      if(!sourceIsHome||window.history.length<=1) return;
+      window.sessionStorage.setItem('datahotForceHomeTop','1');
+      event.preventDefault();window.history.back();
+    }catch(error){}
+  });
+  var trigger=document.querySelector('[data-more-open]');
+  var sheet=document.getElementById('mobileMoreSheet');
+  var mask=document.querySelector('[data-more-mask]');
+  var closeBtn=document.querySelector('[data-more-close]');
+  if(!trigger||!sheet||!mask||!closeBtn) return;
+  var background=Array.from(document.body.children).filter(function(node){return node!==sheet&&node!==mask&&node.tagName!=='SCRIPT'});
+  function setMore(open){
+    if(!open) background.forEach(function(node){node.removeAttribute('inert')});
+    trigger.setAttribute('aria-expanded',open?'true':'false');
+    sheet.setAttribute('aria-hidden',open?'false':'true');
+    sheet.classList.toggle('show',open);
+    mask.classList.toggle('show',open);
+    document.body.classList.toggle('more-open',open);
+    if(open){background.forEach(function(node){node.setAttribute('inert','')});closeBtn.focus()}else trigger.focus();
+  }
+  trigger.addEventListener('click',function(){setMore(true)});
+  closeBtn.addEventListener('click',function(){setMore(false)});
+  mask.addEventListener('click',function(){setMore(false)});
+  document.addEventListener('keydown',function(event){
+    if(!sheet.classList.contains('show')) return;
+    if(event.key==='Escape'){setMore(false);return}
+    if(event.key!=='Tab') return;
+    var focusable=Array.from(sheet.querySelectorAll('a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])'));
+    if(!focusable.length) return;
+    var first=focusable[0],last=focusable[focusable.length-1];
+    if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+    else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+  });
+})();
+</script>
+
+
+<div class="sh-mask" id="shMask" data-share-action="close"></div>
+<div class="sh-sheet" id="shSheet"><div class="sh-panel">
+  <div class="sh-group">
+    <div class="sh-title">分享这条资讯</div>
+    <button class="sh-opt" type="button" data-share-action="copy"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> 复制链接</button>
+    <button class="sh-opt" type="button" data-share-action="native"><svg width="17" height="17" style="vertical-align:-3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg> 系统分享…</button>
+  </div>
+  <button class="sh-cancel" type="button" data-share-action="close">取消</button>
+</div></div>
+<div class="sh-poster-modal" id="shPoster">
+  <div class="sh-poster-wrap"><img id="shPosterImg" alt="分享海报"></div>
+  <div class="sh-poster-actions">
+    <a class="sh-save" id="shSave" href="#" data-share-action="save">保存图片</a>
+    <button class="sh-close" type="button" data-share-action="close">关闭</button>
+  </div>
+  <div class="sh-poster-tip">iOS 也可以长按图片保存</div>
+</div>
+<div class="sh-toast" id="shToast"></div>
+
+<script>
+if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
+}
+var SH_EV = {"title":"医疗大模型院内落地路径与产品化难点","summary":"文章基于作者多年医疗数据平台与AI应用落地经验，指出截至2025年末全国已发布352个医疗垂直大模型，但能跑通“部署—使用—付费”闭环的产品仍稀缺。作者将卡点归为数据治理、临床信任、工作流嵌入、收费模式四重结构性障碍，其中清洗标注成本占AI研发总成本40%以上，通用大模型约50%医疗回答被评为“有问题”。文章对比讯飞医疗星火、京东健康京医千询与卓医、商汤医疗“大医”三条路径，并提出数据治理先行、低风险场景积累信任、能力内生进流程、立项锁定付费主体的落地次序。","reason":"对数据从业者而言，文章把医疗AI产品化失败的第一性原因落到院内多源异构数据治理、业务口径标准化和BI/360视图的数据底座上，并给出可复用的落地次序与产品化取舍，适合做垂直行业AI数据项目复盘参考。","topic":"平台AI化","heat":70,"source":"人人都是产品经理","date":"2026-10-09","url":"https://datahot.xiahongbin.com/e/32c1d135e095.html","qr":"../qr/32c1d135e095.png"};
+function shClose(){
+  document.getElementById('shMask').classList.remove('show');
+  document.getElementById('shSheet').classList.remove('show');
+  document.getElementById('shPoster').classList.remove('show');
+}
+function openSheet(){
+  document.getElementById('shMask').classList.add('show');
+  document.getElementById('shSheet').classList.add('show');
+}
+function shToast(t){
+  var el=document.getElementById('shToast'); el.textContent=t; el.classList.add('show');
+  setTimeout(function(){el.classList.remove('show')},1600);
+}
+function shCopy(){
+  shClose();
+  function fallbackCopy(text){
+    var i=document.createElement('input');i.value=text;i.setAttribute('readonly','');document.body.appendChild(i);i.select();
+    var ok=false;try{ok=document.execCommand('copy');}catch(e){ok=false}i.remove();return ok;
+  }
+  var copied=navigator.clipboard&&navigator.clipboard.writeText
+    ?navigator.clipboard.writeText(SH_EV.url).then(function(){return true},function(){return fallbackCopy(SH_EV.url)})
+    :Promise.resolve(fallbackCopy(SH_EV.url));
+  copied.then(function(ok){shToast(ok?'链接已复制，去粘贴吧':'复制失败，请手动复制链接');});
+}
+function shSaveClick(ev){
+  ev.preventDefault();
+  if(!posterURL){return;}
+  var blob=dataToBlob(posterURL);
+  // iOS 相册直存：Web Share API 文件分享 → 原生面板选「存储图像」
+  try{
+    var file=new File([blob],'datahot-'+SH_EV.title.slice(0,20)+'.png',{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      navigator.share({files:[file],title:SH_EV.title}).then(function(){
+        shToast('已调起系统分享，选择"存储图像"即可存入相册');
+      }).catch(function(){});
+      return;
+    }
+  }catch(e){}
+  // 降级：新标签页打开，长按保存
+  var bu=URL.createObjectURL(blob);
+  var w=window.open(bu,'_blank');
+  if(!w){shToast('请长按图片保存到相册');}
+  else{shToast('已在新页面打开，长按图片保存');}
+}
+function shNative(){
+  shClose();
+  if(navigator.share){
+    navigator.share({title:SH_EV.title,text:(SH_EV.reason||SH_EV.summary).slice(0,60)+' | DataHot',url:SH_EV.url}).catch(function(){});
+  }else{shCopy();}
+}
+function wrapText(ctx,text,x,y,maxW,lineH,maxLines){
+  var line='',lines=0;
+  for(var i=0;i<text.length;i++){
+    var t=line+text[i];
+    if(ctx.measureText(t).width>maxW&&line){
+      ctx.fillText(line,x,y);y+=lineH;lines++;line=text[i];
+      if(lines>=maxLines-1){
+        line=line+text.slice(i+1);
+        while(ctx.measureText(line+'…').width>maxW&&line.length>1){line=line.slice(0,-1);}
+        ctx.fillText(line+'…',x,y);return y+lineH;
+      }
+    }else{line=t;}
+  }
+  if(line){ctx.fillText(line,x,y);y+=lineH;}
+  return y;
+}
+function posterPalette(dark){
+  return dark ? {
+    bg:['#131c19','#18251f','#1b2c24'], title:'#e6ece6', sum:'#bdc9c0',
+    reasonBg:'#253d33', reasonHd:'#92cdbb', reasonTxt:'#d2ddd4',
+    meta:'#a4b2a9', dash:'#35453c', name:'#e6ece6', foot:'#a4b2a9',
+    qrBox:'#ffffff', qrBorder:null, topic:'#92cdbb', topicBd:'#507b6c', brand:'#175c53'
+  } : {
+    bg:['#fcfcf9','#f5f4ef','#e6eeea'], title:'#202a29', sum:'#4e5b56',
+    reasonBg:'#e6eeea', reasonHd:'#175c53', reasonTxt:'#34423d',
+    meta:'#5f6b65', dash:'#dde2db', name:'#202a29', foot:'#5f6b65',
+    qrBox:'#ffffff', qrBorder:'#dde2db', topic:'#175c53', topicBd:'#8da89d', brand:'#175c53'
+  };
+}
+function posterLayout(x,W,P,qrImg){
+  // 绘制一遍并返回内容结束 y（用于动态高度）
+  var g=x.createLinearGradient(0,0,W,2000);
+  g.addColorStop(0,P.bg[0]);g.addColorStop(.55,P.bg[1]);g.addColorStop(1,P.bg[2]);
+  x.fillStyle=g;x.fillRect(0,0,W,2000);
+  x.fillStyle=P.brand;x.beginPath();x.roundRect(64,60,72,72,18);x.fill();
+  x.fillStyle='#fff';x.font='800 44px -apple-system,sans-serif';x.textBaseline='middle';
+  x.fillText('D',88,98);
+  x.fillStyle=P.name;x.font='800 38px -apple-system,sans-serif';x.fillText('DataHot',152,100);
+  if(SH_EV.topic){
+    x.font='500 26px -apple-system,PingFang SC,sans-serif';
+    var tw=x.measureText(SH_EV.topic).width;
+    x.strokeStyle=P.topicBd;x.lineWidth=2;
+    x.beginPath();x.roundRect(W-64-tw-48,66,tw+48,56,28);x.stroke();
+    x.fillStyle=P.topic;x.fillText(SH_EV.topic,W-64-tw-24,96);
+  }
+  var y=210;x.fillStyle=P.title;x.font='800 58px -apple-system,PingFang SC,sans-serif';x.textBaseline='top';
+  y=wrapText(x,SH_EV.title,64,y,W-128,84,3)+16;
+  x.fillStyle=P.sum;x.font='400 32px -apple-system,PingFang SC,sans-serif';
+  y=wrapText(x,SH_EV.summary,64,y,W-128,52,5)+20;
+  if(SH_EV.reason){
+    // 先测量推荐理由行数，动态确定色块高度（不再截断在中间）
+    var reasonLines=1,rl='',lineW=W-176;
+    x.font='400 28px -apple-system,PingFang SC,sans-serif';
+    for(var ri=0;ri<SH_EV.reason.length;ri++){
+      var rt=rl+SH_EV.reason[ri];
+      if(x.measureText(rt).width>lineW&&rl){reasonLines++;rl=SH_EV.reason[ri];}else{rl=rt;}
+    }
+    reasonLines=Math.min(reasonLines,3);
+    var boxH=56+reasonLines*44+22;
+    var ry=y+8;
+    x.fillStyle=P.reasonBg;x.fillRect(64,ry,W-128,boxH);
+    x.fillStyle=P.brand;x.fillRect(64,ry,8,boxH);
+    x.fillStyle=P.reasonHd;x.font='700 28px -apple-system,PingFang SC,sans-serif';
+    x.fillText('推荐理由',92,ry+26);
+    x.fillStyle=P.reasonTxt;x.font='400 28px -apple-system,PingFang SC,sans-serif';
+    wrapText(x,SH_EV.reason,92,ry+66,W-176,44,3);
+    y=ry+boxH+30;
+  }
+  x.fillStyle=P.meta;x.font='400 26px -apple-system,sans-serif';
+  x.fillText('热度 '+SH_EV.heat+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);
+  y=y+4+56;
+  // 分隔线 + 二维码区（紧跟内容，不再锚底）
+  x.strokeStyle=P.dash;x.setLineDash([8,8]);x.lineWidth=2;
+  x.beginPath();x.moveTo(64,y);x.lineTo(W-64,y);x.stroke();x.setLineDash([]);
+  x.fillStyle=P.qrBox;x.beginPath();x.roundRect(64,y+36,150,150,14);x.fill();
+  if(P.qrBorder){x.strokeStyle=P.qrBorder;x.lineWidth=2;x.beginPath();x.roundRect(64,y+36,150,150,14);x.stroke();}
+  x.drawImage(qrImg,74,y+46,130,130);
+  x.fillStyle=P.name;x.font='700 30px -apple-system,PingFang SC,sans-serif';
+  x.fillText('扫码阅读全文或忠实译文',240,y+60);
+  x.fillStyle=P.foot;x.font='400 24px -apple-system,PingFang SC,sans-serif';
+  x.fillText('DataHot · 数据领域 AI 热榜',240,y+110);
+  x.fillText('henryhb1105-arch.github.io/datahot',240,y+150);
+  return y+186+56; // 二维码块底 + 下边距
+}
+function drawPoster(qrImg,dark){
+  var P=posterPalette(dark),W=1080;
+  var m=document.createElement('canvas');m.width=W;m.height=2000;
+  var H=posterLayout(m.getContext('2d'),W,P,qrImg);
+  var c=document.createElement('canvas');c.width=W;c.height=H;
+  posterLayout(c.getContext('2d'),W,P,qrImg);
+  return c.toDataURL('image/png');
+}
+var posterURL=null,posterDark=null,posterLoading=false;
+function openPoster(){
+  var dark=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches;
+  if(posterURL&&posterDark===dark){showPoster();return;}
+  if(posterLoading){return;}
+  posterLoading=true;
+  posterDark=dark;
+  var qr=new Image();
+  qr.onload=function(){
+    try{posterURL=drawPoster(qr,dark);posterLoading=false;showPoster();}
+    catch(error){posterLoading=false;posterURL=null;shToast('海报生成失败，请稍后重试');}
+  };
+  qr.onerror=function(){posterLoading=false;posterURL=null;shToast('海报生成失败，请稍后重试');};
+  qr.src=SH_EV.qr;
+}
+function dataToBlob(d){
+  var p=d.split(','),m=p[0].match(/:(.*?);/)[1],b=atob(p[1]),a=new Uint8Array(b.length);
+  for(var i=0;i<b.length;i++){a[i]=b.charCodeAt(i);}
+  return new Blob([a],{type:m});
+}
+function showPoster(){
+  document.getElementById('shPosterImg').src=posterURL;
+  var a=document.getElementById('shSave');
+  a.href=URL.createObjectURL(dataToBlob(posterURL)); a.target='_blank';a.rel='noopener noreferrer';
+  document.getElementById('shPoster').classList.add('show');
+}
+document.querySelectorAll('[data-share-action]').forEach(function(control){
+  control.addEventListener('click',function(event){
+    var action=control.dataset.shareAction;
+    if(action==='open'){openSheet();}
+    else if(action==='close'){shClose();}
+    else if(action==='copy'){shCopy();}
+    else if(action==='poster'){shClose();openPoster();}
+    else if(action==='native'){shNative();}
+    else if(action==='save'){shSaveClick(event);}
+  });
+});
+</script></body></html>

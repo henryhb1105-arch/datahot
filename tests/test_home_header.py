@@ -235,7 +235,7 @@ class HomeHeaderTests(unittest.TestCase):
         self.assertIn("09-04 收录 · 原文 03-10", card)
         self.assertIn("X 线索·@JasonSCui", card)
 
-    def test_home_hot_list_is_compact_top_three_and_ranks_remain_in_timeline(self):
+    def test_home_hot_list_has_one_lead_intro_and_two_secondary_links(self):
         items = []
         for rank, heat in enumerate((66, 62, 59), 1):
             items.append({
@@ -258,7 +258,11 @@ class HomeHeaderTests(unittest.TestCase):
         self.assertIn('href="e/000000000002.html"', hot)
         self.assertIn('href="e/000000000003.html"', hot)
         self.assertIn('href="hot.html"', hot)
-        self.assertNotIn("不应出现在榜单的摘要", hot)
+        self.assertEqual(hot.count("不应出现在榜单的摘要"), 1)
+        self.assertEqual(hot.count('class="today-hot-intro"'), 1)
+        self.assertLess(card.index("<h3>"), card.index('class="top card-meta"'))
+        self.assertIn('<details class="why"><summary>为什么值得关注</summary>', card)
+        self.assertNotIn('<details class="why" open', card)
         self.assertNotIn("不应出现在榜单的理由", hot)
         self.assertNotIn('class="hot"', hot)
         self.assertIn('class="top-rank"', card)

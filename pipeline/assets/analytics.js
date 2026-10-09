@@ -408,7 +408,7 @@
         return;
       }
       var card = event.target.closest("[data-analytics-list][data-event-id]");
-      if (card && !event.target.closest("button")) emit("detail_click", context(card), 750);
+      if (card && !event.target.closest("button,details,summary")) emit("detail_click", context(card), 750);
     }, true);
 
     var search = doc.getElementById("q");

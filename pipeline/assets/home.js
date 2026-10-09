@@ -333,8 +333,8 @@
     var vendors = (event.vendors || []).map(function (vendor) {
       return '<span class="vtag">' + escapeHtml(vendor) + "</span>";
     }).join("");
-    var reason = event.reason ? '<div class="why"><span><span class="w">推荐理由：</span>' +
-      escapeHtml(cleanReason(event.reason)) + "</span></div>" : "";
+    var reason = event.reason ? '<details class="why"><summary>为什么值得关注</summary><p>' +
+      escapeHtml(cleanReason(event.reason)) + "</p></details>" : "";
     var additionalSources = (event.items || []).slice(1).map(function (item) {
       return escapeHtml(item.source || "");
     }).filter(Boolean);
@@ -364,15 +364,15 @@
       (event.editorial_pick ? "true" : "false") + '" data-link="' + url +
       '" data-analytics-list="1" data-event-id="' + escapeHtml(event.event_id) +
       '" data-category="' + escapeHtml(event.category) + '" data-source="' + escapeHtml(source) + '">' +
+      '<h3><a href="' + url + '">' + escapeHtml(event.zh_title) + "</a></h3>" +
+      '<p class="sum">' + escapeHtml(event.zh_summary) + "</p>" +
       '<div class="top card-meta"><span class="card-source"><span class="srcbadge">' + escapeHtml(sourceBadge) +
       '</span><span class="card-source-name">' + escapeHtml(source) + '</span><span class="card-time">' +
       escapeHtml(cardTime(event)) + '</span></span>' + topRankHtml + '<span class="heatnum' + (status ? ' is-featured' : '') +
       '" title="热度分">' + flameIcon + ' ' + escapeHtml(heatLabel) + '</span><button class="favbtn" data-fav="' +
       escapeHtml(event.event_id) + '" data-fav-record="' + escapeHtml(JSON.stringify(favoriteRecord)) +
       '" type="button" title="收藏" aria-label="收藏" aria-pressed="false">' + bookmarkIcon + '</button></div>' +
-      '<h3><a href="' + url + '">' + escapeHtml(event.zh_title) + "</a></h3>" +
-      '<p class="sum">' + escapeHtml(event.zh_summary) + "</p>" + also + reason +
-      ((topics || vendors) ? '<div class="vendors">' + topics + vendors + "</div>" : "") + "</div>";
+      ((topics || vendors) ? '<div class="vendors">' + topics + vendors + "</div>" : "") + reason + also + "</div>";
   }
 
   function renderTimeline(events, topRanks, editorialView) {
@@ -646,7 +646,7 @@
       var card = event.target.closest && event.target.closest(".item,.hot");
       if (!card) return;
       var detailLink = event.target.closest && event.target.closest('a[href^="e/"]');
-      var cardNavigation = !event.target.closest("a,button") && card.dataset.link;
+      var cardNavigation = !event.target.closest("a,button,details,summary") && card.dataset.link;
       if (card.classList.contains("item") && (detailLink || cardNavigation)) saveHomePosition(card);
       if (cardNavigation) win.location.href = card.dataset.link;
     });

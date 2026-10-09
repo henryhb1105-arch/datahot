@@ -1244,8 +1244,8 @@ def render_card(e, prefix="", top_rank=None):
     if n > 1:
         names = " · ".join(esc(s["source"]) for s in e["items"][1:])
         also = f'<div class="also">另有 <b>{n-1} 家信源</b>报道：{names}</div>'
-    reason = (f'<div class="why"><span><span class="w">{ic("sparkle",13)} 推荐理由：</span>'
-              f'{esc(clean_reason(e["reason"]))}</span></div>') if e.get("reason") else ""
+    reason = (f'<details class="why"><summary>为什么值得关注</summary>'
+              f'<p>{esc(clean_reason(e["reason"]))}</p></details>') if e.get("reason") else ""
     tchips = "".join(
         f'<a class="chip" href="{prefix}topics/{TOPIC_SLUG[t]}.html">{esc(t)}</a>'
         for t in e.get("topics", []) if t in TOPIC_SLUG)
@@ -1257,17 +1257,18 @@ def render_card(e, prefix="", top_rank=None):
         if top_rank else ""
     )
     return f'''<div class="item" data-cat="{esc(e["category"])}" data-topics="{esc("|".join(e.get("topics", [])))}" data-editorial="{str(bool(e.get("editorial_pick"))).lower()}" data-link="{url}" data-analytics-list="1" data-event-id="{event_id}" data-category="{esc(e["category"])}" data-source="{esc(e["items"][0]["source"])}">
+      <h3><a href="{url}">{esc(e["zh_title"])}</a></h3>
+      <p class="sum">{esc(e["zh_summary"])}</p>
       <div class="top card-meta"><span class="card-source"><span class="srcbadge">{src_badge(e["items"][0]["source"])}</span><span class="card-source-name">{esc(src_display(e["items"][0]["source"]))}</span><span class="card-time">{card_time(e)}</span></span>
       {rank_html}
       <span class="heatnum{status_class}" title="热度分：{HEAT_FORMULA}">{ic("flame",13)} {esc(status_text)}</span>
       {favorite_button(e)}</div>
-      <h3><a href="{url}">{esc(e["zh_title"])}</a></h3>
-      <p class="sum">{esc(e["zh_summary"])}</p>{also}{reason}{vbox}
+      {vbox}{reason}{also}
     </div>'''
 
 
 def render_today_hot(events):
-    """Render a compact TOP 3 index; full cards remain in the timeline."""
+    """Give the leading story a short introduction, with two secondary headlines."""
     ranked = list(events or [])[:3]
     if not ranked:
         return ""
@@ -1275,9 +1276,14 @@ def render_today_hot(events):
     for rank, event in enumerate(ranked, 1):
         event_id = safe_event_id(event["event_id"])
         lead_class = " is-lead" if rank == 1 else ""
+        intro = str(event.get("zh_summary") or "").strip()
+        # A short excerpt from existing copy; never invent a separate headline/claim.
+        if len(intro) > 140:
+            intro = intro[:140].rstrip() + "…"
+        intro_html = f'<span class="today-hot-intro">{esc(intro)}</span>' if rank == 1 and intro else ""
         rows.append(f'''<a class="today-hot-row{lead_class}" href="{detail_url(event)}" data-event-id="{event_id}" data-analytics="today_hot" aria-label="TOP {rank}：{esc(event["zh_title"])}，热度 {int(event.get("heat") or 0)}">
     <span class="today-hot-rank" aria-hidden="true">{rank}</span>
-    <span class="today-hot-title">{esc(event["zh_title"])}</span>
+    <span class="today-hot-copy"><span class="today-hot-title">{esc(event["zh_title"])}</span>{intro_html}</span>
     <span class="today-hot-heat">{ic("flame",11)} {int(event.get("heat") or 0)}</span>
   </a>''')
     return f'''<section class="today-hot" aria-labelledby="todayHotTitle">
@@ -3466,8 +3472,8 @@ def main():
 </div></header>
 
 <div class="wrap"><div class="layout"><main>
-  {weekly_teaser}
   {render_today_hot(top_events)}
+  {weekly_teaser}
   {render_timeline_toolbar(len(timeline_events))}
   <div class="chiprow" id="chiprow" role="group" aria-label="筛选时间轴">
     <button class="fchip on" type="button" aria-pressed="true" data-topic="all">全部</button>
@@ -3541,7 +3547,7 @@ if(qClear)qClear.addEventListener('click',()=>{{qEl.value='';doSearch();}});
 // 整卡可点：进入站内详情页
 document.querySelectorAll('.item,.hot').forEach(el=>{{
   el.addEventListener('click',e=>{{
-    if(e.target.closest('a')||e.target.closest('button')) return;
+    if(e.target.closest('a,button,details,summary')) return;
     const url=el.dataset.link;
     if(url) location.href=url;
   }});

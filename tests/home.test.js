@@ -451,3 +451,25 @@ test("clear-filter recovery restores the known unfiltered first page", async () 
   assert.equal(fixture.elements.rCount.textContent, "3");
   assert.equal(fixture.elements.q.focused, true);
 });
+
+test("feed puts the title first and preserves the full reason in a closed disclosure", () => {
+  const item = event(1);
+  item.reason = 'A < B & source evidence';
+  const html = home.renderTimeline([item]);
+  assert.ok(html.indexOf('<h3>') < html.indexOf('class="sum"'));
+  assert.ok(html.indexOf('class="sum"') < html.indexOf('class="top card-meta"'));
+  assert.match(html, /<details class="why"><summary>为什么值得关注<\/summary><p>A &lt; B &amp; source evidence<\/p><\/details>/);
+  assert.doesNotMatch(html, /<details[^>]* open/);
+});
+
+test("opening a recommendation disclosure never navigates the surrounding card", () => {
+  const { win } = scrollRestoreWindow('navigate');
+  const clicks = [];
+  win.document.addEventListener = (type, handler) => { if (type === 'click') clicks.push(handler); };
+  home.boot(win);
+  const card = { dataset: { link: 'e/000000000001.html' }, classList: { contains: () => true } };
+  const target = { closest: (selector) => selector === '.item,.hot' ? card :
+    (selector.includes('details') ? {} : null) };
+  clicks.forEach(handler => handler({ target }));
+  assert.equal(win.location.href, 'https://example.com/datahot/index.html');
+});

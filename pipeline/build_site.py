@@ -139,25 +139,38 @@ def src_display(name):
 
 
 def render_home_filter_chips(timeline_events):
-    """Render stable home-filter order while preserving canonical filter values."""
+    """Keep common filters visible and group canonical topics in a disclosure."""
     active_topics = {t for e in timeline_events for t in e.get("topics", [])}
-    configured_topics = [topic["name"] for topic in TOPICS_META]
-    preferred = [name for name in HOME_FILTER_TOPIC_ORDER if name in active_topics]
-    remaining = [
-        name for name in configured_topics
-        if name in active_topics and name not in HOME_FILTER_TOPIC_ORDER
-    ]
-    parts = []
-    for name in (*preferred, *remaining):
-        parts.append(
-            f'<button class="fchip" type="button" aria-pressed="false" data-topic="{esc(name)}">'
-            f'{esc(HOME_FILTER_TOPIC_LABELS.get(name, name))}</button>'
-        )
-        if name == "Data Agent":
-            parts.append('<button class="fchip" type="button" aria-pressed="false" data-category="insight">AI分析</button>')
-    if "Data Agent" not in active_topics:
-        parts.insert(0, '<button class="fchip" type="button" aria-pressed="false" data-category="insight">AI分析</button>')
-    return "".join(parts)
+    names = [name for name in HOME_FILTER_TOPIC_ORDER if name in active_topics]
+    names += [t["name"] for t in TOPICS_META if t["name"] in active_topics and t["name"] not in names]
+    def chips(topics):
+        return "".join(f'<button class="fchip" type="button" aria-pressed="false" data-topic="{esc(name)}">'
+                       f'{esc(HOME_FILTER_TOPIC_LABELS.get(name, name))}</button>' for name in topics)
+    technical = chips([name for name in names if name not in TOPIC_BUSINESS_SCENES and name != "Data Agent"])
+    business = chips([name for name in names if name in TOPIC_BUSINESS_SCENES])
+    return f'''<div class="home-filters">
+  <div class="home-filterbar">
+    <div class="chiprow" id="chiprow" role="group" aria-label="筛选时间轴">
+      <button class="fchip on" type="button" aria-pressed="true" data-topic="all">全部</button>
+      <button class="fchip" type="button" aria-pressed="false" data-editorial="true">编辑精选</button>
+      <button class="fchip" type="button" aria-pressed="false" data-primary="true" data-topic="Data Agent">Agent</button>
+      <button class="fchip" type="button" aria-pressed="false" data-primary="true" data-category="platform">数据平台</button>
+      <button class="fchip" type="button" aria-pressed="false" data-primary="true" data-category="bi">分析应用</button>
+    </div>
+    <details class="filter-more" id="filterMore">
+      <summary aria-label="更多主题">更多 <span aria-hidden="true">⌄</span></summary>
+      <div class="filter-options">
+        <fieldset><legend>技术主题</legend><div class="filter-option-grid">{technical}</div></fieldset>
+        <fieldset><legend>业务场景</legend><div class="filter-option-grid">{business}</div></fieldset>
+        <fieldset><legend>内容类型</legend><div class="filter-option-grid">
+          <button class="fchip" type="button" aria-pressed="false" data-category="insight">AI分析</button>
+          <button class="fchip" type="button" aria-pressed="false" data-category="product">产品动态</button>
+        </div></fieldset>
+      </div>
+    </details>
+  </div>
+  <p class="filter-selection" id="filterSelection" hidden aria-live="polite"></p>
+</div>'''
 
 def src_badge(source_name):
     """信源类型标识：公众号/RSS/官网/HN/Bluesky/收录（参考 AI HOT 的信源标注）"""
@@ -3476,11 +3489,7 @@ def main():
   {weekly_teaser}
   <section class="timeline-panel" aria-label="资讯时间轴">
   {render_timeline_toolbar(len(timeline_events))}
-  <div class="chiprow" id="chiprow" role="group" aria-label="筛选时间轴">
-    <button class="fchip on" type="button" aria-pressed="true" data-topic="all">全部</button>
-    <button class="fchip" type="button" aria-pressed="false" data-editorial="true">编辑精选</button>
-    {topic_fchips}
-  </div>
+  {topic_fchips}
   {timeline_html}
   {load_more}
   </section>
@@ -3516,9 +3525,9 @@ function applyFilter(pred){{
   if(rc)rc.textContent=total;
 }}
 // 主题筛选条（支持再点取消）
-document.querySelectorAll('#chiprow .fchip').forEach(c=>c.addEventListener('click',()=>{{
+document.querySelectorAll('.home-filters .fchip').forEach(c=>c.addEventListener('click',()=>{{
   const wasOn=c.classList.contains('on');
-  document.querySelectorAll('#chiprow .fchip').forEach(x=>{{x.classList.remove('on');x.setAttribute('aria-pressed','false');}});
+  document.querySelectorAll('.home-filters .fchip').forEach(x=>{{x.classList.remove('on');x.setAttribute('aria-pressed','false');}});
   const title=document.querySelector('[data-timeline-title]');
   if(!wasOn&&c.dataset.editorial==='true'){{
     c.classList.add('on');

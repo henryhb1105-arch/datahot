@@ -3474,6 +3474,7 @@ def main():
 <div class="wrap"><div class="layout"><main>
   {render_today_hot(top_events)}
   {weekly_teaser}
+  <section class="timeline-panel" aria-label="资讯时间轴">
   {render_timeline_toolbar(len(timeline_events))}
   <div class="chiprow" id="chiprow" role="group" aria-label="筛选时间轴">
     <button class="fchip on" type="button" aria-pressed="true" data-topic="all">全部</button>
@@ -3482,6 +3483,7 @@ def main():
   </div>
   {timeline_html}
   {load_more}
+  </section>
 </main>
 
 <aside>

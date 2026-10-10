@@ -56,12 +56,9 @@ class HomeHeaderTests(unittest.TestCase):
         self.assertNotIn("不限时间 · 每批 {DEFAULT_PAGE_SIZE} 条", source)
         self.assertIn('data-category="insight">AI分析</button>', source)
         self.assertIn('placeholder="搜索"', source)
-        self.assertIn(
-            'data-topic="all">全部</button>\n'
-            '    <button class="fchip" type="button" aria-pressed="false" '
-            'data-editorial="true">编辑精选</button>',
-            source,
-        )
+        chips = build_site.render_home_filter_chips([])
+        self.assertIn('data-topic="all">全部</button>', chips)
+        self.assertIn('data-editorial="true">编辑精选</button>', chips)
 
     def test_completed_progressive_timeline_hides_load_more_button(self):
         self.assertIn(".load-more[hidden]{display:none}", build_site.SHARED_CSS)
@@ -72,29 +69,23 @@ class HomeHeaderTests(unittest.TestCase):
             "湖仓", "实时分析", "数据人", "组织人才", "财务经营",
         ]}]
         chips = build_site.render_home_filter_chips(events)
-        ordered_markup = [
-            'data-topic="Data Agent">Agent</button>',
-            'data-category="insight">AI分析</button>',
-            'data-topic="平台AI化">AI平台</button>',
-            'data-topic="语义层">语义层</button>',
-            'data-topic="实时分析">实时</button>',
-            'data-topic="ChatBI">ChatBI</button>',
-            'data-topic="湖仓">湖仓</button>',
-            'data-topic="BI变局">BI变局</button>',
-            'data-topic="数据人">数据人</button>',
-            'data-topic="组织人才">组织人才</button>',
-            'data-topic="财务经营">财务经营</button>',
-        ]
-        positions = [chips.index(markup) for markup in ordered_markup]
-        self.assertEqual(positions, sorted(positions))
-        self.assertNotIn("AI 分析与洞察", chips)
+        primary, more = chips.split('<details', 1)
+        self.assertEqual(primary.count('class="fchip'), 5)
+        self.assertIn('data-topic="Data Agent">Agent</button>', primary)
+        self.assertIn('data-category="platform">数据平台</button>', primary)
+        self.assertIn('data-category="bi">分析应用</button>', primary)
+        self.assertNotIn('data-topic="语义层"', primary)
+        technical, business = more.split('<legend>业务场景</legend>', 1)
+        self.assertIn('data-topic="语义层"', technical)
+        self.assertNotIn('data-topic="组织人才"', technical)
+        self.assertIn('data-topic="组织人才"', business)
+        self.assertIn('data-topic="财务经营"', business)
+        self.assertNotIn('<details class="filter-more" id="filterMore" open', chips)
 
     def test_insight_chip_stays_available_when_agent_topic_is_inactive(self):
         chips = build_site.render_home_filter_chips([{"topics": ["语义层"]}])
-        self.assertTrue(chips.startswith(
-            '<button class="fchip" type="button" aria-pressed="false" '
-            'data-category="insight">AI分析</button>'
-        ))
+        self.assertIn('data-category="insight">AI分析</button>', chips)
+        self.assertIn('data-category="product">产品动态</button>', chips)
 
     def test_home_filter_chips_keep_canonical_topic_values_for_urls(self):
         chips = build_site.render_home_filter_chips([

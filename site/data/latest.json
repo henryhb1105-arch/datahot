@@ -1,6 +1,804 @@
 {
-  "generated_at": "2026-10-12T06:03:53.982026+08:00",
+  "generated_at": "2026-10-12T14:02:41.023410+08:00",
   "events": [
+    {
+      "event_id": "5d4bf78db846",
+      "zh_title": "Fivetran 发布 dbt 平台与 Context Layer 更新",
+      "zh_summary": "Fivetran 月度产品更新汇总了 dbt Summit 上发布的下一代 Fivetran + dbt 平台，包括 dbt v2 引擎、dbt State、Lake Compute、dbt Wizard、dbt Charts 等。Fivetran Context Layer 进入 Limited Public Preview，可从现有管道构建 Agent 上下文，把分析、运营和知识源（含非结构化内容索引）发布到用户仓库中的 Agents Schema 开放 SQL 表，供任意 AI 工具查询。面向 dbt 用户，开源 dbt context engineering 包提供宏，帮助把数据转化为 Agent-ready 上下文。Lake Compute 处于 private beta，是运行在 Apache Iceberg 表上的托管无服务器 dbt 转换计算引擎，可与现有仓库并行以优化各模型计算。",
+      "reason": "关注 Fivetran 如何把数据集成管道与 dbt 转换延伸到 Agent 上下文和 Iceberg 湖仓计算，是数据平台 AI 化与 Agent 数据底座的重要产品动向。",
+      "full_zh": "每个月，我们都会发送一份客户通讯，重点介绍产品和连接器的发布。以下是本月完整的 product update，其中包含未收录进邮件中的额外内容。\n\n我们也鼓励你查看 Fivetran 发布说明，其中包含 schema 变更。\n\n新发布\n\n来自 dbt Summit 的新内容以及它对你意味着什么\n\n在 dbt Summit 上，我们发布了下一代 Fivetran + dbt 平台，包括全新的 dbt v2 引擎和 dbt State，以及 Lake Compute、dbt Wizard、dbt Charts 等。这些创新共同帮助你的团队更快前进、优化计算成本，并构建 AI 所需的可信数据与上下文基础。了解更多，了解我们宣布的一切以及它对你的数据与 AI 战略意味着什么。\n\n使用 Fivetran Context Layer 构建 AI 信任与效率\n\n现已进入 Limited Public Preview。Fivetran Context Layer 直接从你已在运行的管道构建 agent 上下文，就在你的数据仓库或湖中完成。Fivetran 摄取你的分析、运营和知识来源，包括为非结构化内容建立索引，并将其全部发布到 Agents Schema：你自己仓库中的开放、纯 SQL 表，任何 AI 工具都可以查询。这意味着不会被锁定在单独的上下文孤岛中，也不会在下游额外附加、仅在构建完成之后才收集含义。结果是 agents 基于你的业务上下文进行推理，而不是从原始来源中猜测，从而提升信任并在此过程中减少 token 消耗。\n\n对于使用 dbt 的团队，新的开源 dbt context engineering package 提供宏，让团队可以直接控制将数据转换为可构建 agent-ready 上下文的基础设施。\n\n了解更多，如果你的团队感兴趣，请加入 Preview 等待名单。\n\n使用 Lake Compute 合理配置你的 dbt 转换计算资源\n\nLake compute 是一个托管的无服务器计算引擎，用于在\n\nApache Iceberg tables 上运行 dbt 转换。现已进入 private beta，它与您现有的仓库并行运行，因此您可以针对每个模型优化计算——所有这些都在一个 dbt project、DAG 和 ref graph 内完成。使用 Lake Compute 处理更简单的转换，同时将分布式处理和高级仓库工作负载保留在您的主仓库上，从而优化您的成本。\n\n了解更多并申请加入 private beta。\n\n采用开放数据湖而无需重新同步数据\n\n通过迁移到 Fivetran Managed Data Lake 重新掌控你的数据——降低你的 CDW 摄取成本，并让你能够连接多个计算引擎，为每个工作负载使用合适的工具（包括你现有的 CDW）。数据以开放格式 Apache Iceberg(™) tables 存储在你云账户中的存储桶里，全部由 Fivetran 管理。\n\n我们用于将你现有的 Snowflake destination 升级为 Fivetran Managed Data Lake 的自动流程现已提供 beta 版本，无需重新同步数据或重新指向你的管道。如果你想了解更多，请填写此 form。\n\n使用 Fivetran CLI（beta）编排平台\n\nFivetran CLI 现已进入 beta。它为你和 AI agents 提供了一种管理平台的新方式，使运行脚本和 AI 驱动的工作流全部可以在终端中更轻松地完成。无需直接使用 APIs 或 MCP server。\n\n你可以创建和更新连接、配置 schema、管理用户和团队、部署自定义连接等——全部通过 CLI 完成。\n\n准备好尝试了吗？查看安装说明和文档。\n\n新的标准连接器和改进\n\n设置任何新连接器，即可享受免费的历史同步以及 14 天连接器试用，以探索其完整功能。处于 private preview 的连接器在此发布阶段完全免费使用。我们还重点介绍了一些对连接器做出的关键改进。\n\nStripe connector 现在可捕获扩展的账单、信用和结账数据，让你更完整地了解信用、基于用量的计费、订阅项目折扣、结账响应和 Connected Accounts。 Email connector 现在可直接从电子邮件正文中的 URL 获取并摄取文件，让你可以更灵活地同步传统电子邮件附件之外的文件。 Zuora connector 现在支持三个新的 Audit Trail 表，让你可以更深入地了解整个 Zuora tenant 中的登录活动、配置变更和对象级变更。SAP ECC on Oracle 现已进入 Private PreviewSAP OData 现已正式可用\n\n新的 Lite 连接器\n\nLite 连接器具有为特定用例构建的加速开发周期。在文档中了解更多关于 Lite 连接器 in the docs 的信息，并在 connector directory 中查看所有可用的 Lite 连接器。你可以通过点击下方链接前往你的 Fivetran dashboard，添加本月任何新的 Lite 连接器（如下）。\n\nPrivate Preview\n\nKyribaPennylaneOdoo Synconics",
+      "content_blocks": [
+        {
+          "type": "paragraph",
+          "id": "b-83f02d419e91",
+          "children": [
+            {
+              "type": "text",
+              "text": "每个月，我们都会发送一份客户通讯，重点介绍产品和连接器的发布。以下是本月完整的 product update，其中包含未收录进邮件中的额外内容。",
+              "marks": [],
+              "id": "t-715cf5cc0c3f"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-940693b77cb8",
+          "children": [
+            {
+              "type": "text",
+              "text": "我们也鼓励你查看 ",
+              "marks": [],
+              "id": "t-bf2cb9d22bb2"
+            },
+            {
+              "type": "text",
+              "text": "Fivetran 发布说明",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://fivetran.com/docs/changelog"
+                }
+              ],
+              "id": "t-52dca7517d3f"
+            },
+            {
+              "type": "text",
+              "text": "，其中包含 schema 变更。",
+              "marks": [],
+              "id": "t-0e4215343f38"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-dece368ba83c",
+          "children": [
+            {
+              "type": "text",
+              "text": "新发布",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-c53b49914222"
+            }
+          ],
+          "level": 2
+        },
+        {
+          "type": "heading",
+          "id": "b-099d738a8877",
+          "children": [
+            {
+              "type": "text",
+              "text": "来自 dbt Summit 的新内容以及它对你意味着什么",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-7c8adc5de702"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-9ff5a7a2d9e0",
+          "children": [
+            {
+              "type": "text",
+              "text": "在 dbt Summit 上，我们发布了下一代 Fivetran + dbt 平台，包括全新的 dbt v2 引擎和 dbt State，以及 Lake Compute、dbt Wizard、dbt Charts 等。这些创新共同帮助你的团队更快前进、优化计算成本，并构建 AI 所需的可信数据与上下文基础。",
+              "marks": [],
+              "id": "t-9708f5987674"
+            },
+            {
+              "type": "text",
+              "text": "了解更多",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://www.getdbt.com/blog/dbt-summit-2026-product-announcements"
+                }
+              ],
+              "id": "t-2b5676fa8935"
+            },
+            {
+              "type": "text",
+              "text": "，了解我们宣布的一切以及它对你的数据与 AI 战略意味着什么。",
+              "marks": [],
+              "id": "t-34800b979338"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-5b63882a2696",
+          "children": [
+            {
+              "type": "text",
+              "text": "使用 Fivetran Context Layer 构建 AI 信任与效率",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-3ac8b6616da0"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-8ad739841394",
+          "children": [
+            {
+              "type": "text",
+              "text": "现已进入 Limited Public Preview。Fivetran Context Layer 直接从你已在运行的管道构建 agent 上下文，就在你的数据仓库或湖中完成。Fivetran 摄取你的分析、运营和知识来源，包括为非结构化内容建立索引，并将其全部发布到 Agents Schema：你自己仓库中的开放、纯 SQL 表，任何 AI 工具都可以查询。这意味着不会被锁定在单独的上下文孤岛中，也不会在下游额外附加、仅在构建完成之后才收集含义。结果是 agents 基于你的业务上下文进行推理，而不是从原始来源中猜测，从而提升信任并在此过程中减少 token 消耗。",
+              "marks": [],
+              "id": "t-d943ba661e61"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-bb9db3a410d9",
+          "children": [
+            {
+              "type": "text",
+              "text": "对于使用 dbt 的团队，新的开源 ",
+              "marks": [],
+              "id": "t-353b5e3c59df"
+            },
+            {
+              "type": "text",
+              "text": "dbt context engineering package",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://docs.getdbt.com/blog/dbt-context-engineering"
+                }
+              ],
+              "id": "t-5df377e2064e"
+            },
+            {
+              "type": "text",
+              "text": " 提供宏，让团队可以直接控制将数据转换为可构建 agent-ready 上下文的基础设施。",
+              "marks": [],
+              "id": "t-d4ecf3eecd9f"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-4087b49c66d1",
+          "children": [
+            {
+              "type": "text",
+              "text": "了解更多",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://www.fivetran.com/blog/announcing-fivetran-context-layer"
+                }
+              ],
+              "id": "t-939eccc5300e"
+            },
+            {
+              "type": "text",
+              "text": "，如果你的团队感兴趣，请加入 Preview 等待名单。",
+              "marks": [],
+              "id": "t-f608e9f13eac"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-9cd71024a239",
+          "children": [
+            {
+              "type": "text",
+              "text": "使用 Lake Compute 合理配置你的 dbt 转换计算资源",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-654f95917271"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-46d14129cf5e",
+          "children": [
+            {
+              "type": "text",
+              "text": "Lake compute 是一个托管的无服务器计算引擎，用于在 ",
+              "marks": [],
+              "id": "t-582c3222c961"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-74c6ed5dd9c1",
+          "children": [
+            {
+              "type": "text",
+              "text": "Apache Iceberg tables 上运行 dbt 转换。现已进入 private beta，它与您现有的仓库并行运行，因此您可以针对每个模型优化计算——所有这些都在一个 dbt project、DAG 和 ref graph 内完成。使用 Lake Compute 处理更简单的转换，同时将分布式处理和高级仓库工作负载保留在您的主仓库上，从而优化您的成本。",
+              "marks": [],
+              "id": "t-175773200f85"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-bc1448c68f6a",
+          "children": [
+            {
+              "type": "text",
+              "text": "了解更多",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://docs.getdbt.com/docs/lake-compute?version=2"
+                }
+              ],
+              "id": "t-e5b0b10ff7e1"
+            },
+            {
+              "type": "text",
+              "text": "并",
+              "marks": [],
+              "id": "t-8ce5452094e2"
+            },
+            {
+              "type": "text",
+              "text": "申请加入",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://docs.google.com/forms/d/e/1FAIpQLSdWXHU3VFqq1t8GVAA2BMfY_AfeVJH26OXJFlNwXiVv4pcuXQ/viewform"
+                }
+              ],
+              "id": "t-0bdf37edba00"
+            },
+            {
+              "type": "text",
+              "text": " private beta。",
+              "marks": [],
+              "id": "t-d2d019b9d055"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-6bb3cb2e0b50",
+          "children": [
+            {
+              "type": "text",
+              "text": "采用开放数据湖而无需重新同步数据",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-cbc5ce649ee9"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-1a851fbdfd31",
+          "children": [
+            {
+              "type": "text",
+              "text": "通过迁移到 Fivetran Managed Data Lake 重新掌控你的数据——降低你的 CDW 摄取成本，并让你能够连接多个计算引擎，为每个工作负载使用合适的工具（包括你现有的 CDW）。数据以开放格式 Apache Iceberg(™) tables 存储在你云账户中的存储桶里，全部由 Fivetran 管理。",
+              "marks": [],
+              "id": "t-4d43677b245a"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-46f9df047b9c",
+          "children": [
+            {
+              "type": "text",
+              "text": "我们用于将你现有的 Snowflake destination 升级为 Fivetran Managed Data Lake 的自动流程现已提供 beta 版本，无需重新同步数据或重新指向你的管道。如果你想了解更多，请填写此 ",
+              "marks": [],
+              "id": "t-9aca41fc431c"
+            },
+            {
+              "type": "text",
+              "text": "form",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://docs.google.com/forms/d/1gemc2lztWggxXyoj2XpH9YDZHX4FGD4v9uTFmPZxjTk/edit?ts=6ac50ed1"
+                }
+              ],
+              "id": "t-3444a475c3e4"
+            },
+            {
+              "type": "text",
+              "text": "。",
+              "marks": [],
+              "id": "t-cf730ef6d4c0"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-8912e6f9fb84",
+          "children": [
+            {
+              "type": "text",
+              "text": "使用 Fivetran CLI（beta）编排平台",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-dd5ff4be1f25"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-9417dce058c5",
+          "children": [
+            {
+              "type": "text",
+              "text": "Fivetran CLI 现已进入 beta。它为你和 AI agents 提供了一种管理平台的新方式，使运行脚本和 AI 驱动的工作流全部可以在终端中更轻松地完成。无需直接使用 APIs 或 MCP server。",
+              "marks": [],
+              "id": "t-9ba815c20ee8"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-88d1f706a114",
+          "children": [
+            {
+              "type": "text",
+              "text": "你可以创建和更新连接、配置 schema、管理用户和团队、部署自定义连接等——全部通过 CLI 完成。",
+              "marks": [],
+              "id": "t-7aee37c36cdd"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-19b91b55538f",
+          "children": [
+            {
+              "type": "text",
+              "text": "准备好尝试了吗？查看",
+              "marks": [],
+              "id": "t-0c336891b0f9"
+            },
+            {
+              "type": "text",
+              "text": "安装说明和文档。",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://fivetran.com/docs/developer-resources/fivetran-cli"
+                }
+              ],
+              "id": "t-39c30d047e5a"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-3599c9dba745",
+          "children": [
+            {
+              "type": "text",
+              "text": "新的标准连接器和改进",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-674f05466955"
+            }
+          ],
+          "level": 2
+        },
+        {
+          "type": "paragraph",
+          "id": "b-62e1707ee8d6",
+          "children": [
+            {
+              "type": "text",
+              "text": "设置任何新连接器，即可享受免费的历史同步以及 14 天连接器试用，以探索其完整功能。处于 private preview 的连接器在此发布阶段完全免费使用。我们还重点介绍了一些对连接器做出的关键改进。",
+              "marks": [],
+              "id": "t-4e9a321b3c17"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "b-283bd48b1888",
+          "ordered": false,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": " ",
+                  "marks": [],
+                  "id": "t-4e933a0adcc5"
+                },
+                {
+                  "type": "text",
+                  "text": "Stripe connector",
+                  "marks": [
+                    {
+                      "type": "link",
+                      "href": "https://fivetran.com/docs/connectors/applications/stripe/changelog#august2026"
+                    }
+                  ],
+                  "id": "t-eda3512efd6d"
+                },
+                {
+                  "type": "text",
+                  "text": " 现在可捕获扩展的账单、信用和结账数据，让你更完整地了解信用、基于用量的计费、订阅项目折扣、结账响应和 Connected Accounts。",
+                  "marks": [],
+                  "id": "t-2d83723d2c40"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": " ",
+                  "marks": [],
+                  "id": "t-7486ef89ecb0"
+                },
+                {
+                  "type": "text",
+                  "text": "Email connector",
+                  "marks": [
+                    {
+                      "type": "link",
+                      "href": "https://fivetran.com/docs/connectors/files/email/changelog#august2026"
+                    }
+                  ],
+                  "id": "t-749daa02f5b7"
+                },
+                {
+                  "type": "text",
+                  "text": " 现在可直接从电子邮件正文中的 URL 获取并摄取文件，让你可以更灵活地同步传统电子邮件附件之外的文件。",
+                  "marks": [],
+                  "id": "t-52ddcb94f141"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": " ",
+                  "marks": [],
+                  "id": "t-0c36aa555f46"
+                },
+                {
+                  "type": "text",
+                  "text": "Zuora connector",
+                  "marks": [
+                    {
+                      "type": "link",
+                      "href": "https://fivetran.com/docs/connectors/applications/zuora/changelog#july2026"
+                    }
+                  ],
+                  "id": "t-1bc1b614f9ef"
+                },
+                {
+                  "type": "text",
+                  "text": " 现在支持三个新的 Audit Trail 表，让你可以更深入地了解整个 Zuora tenant 中的登录活动、配置变更和对象级变更。",
+                  "marks": [],
+                  "id": "t-6be1b11fa53a"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "SAP ECC on Oracle",
+                  "marks": [
+                    {
+                      "type": "link",
+                      "href": "https://fivetran.com/docs/connectors/databases/sap/sap-ecc-oracle#sapecconoracle"
+                    }
+                  ],
+                  "id": "t-cca6033823a1"
+                },
+                {
+                  "type": "text",
+                  "text": " 现已进入 Private Preview",
+                  "marks": [],
+                  "id": "t-0d616a3afc4a"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "SAP OData",
+                  "marks": [
+                    {
+                      "type": "link",
+                      "href": "https://fivetran.com/docs/connectors/databases/sap/sap-odata#sapodata"
+                    }
+                  ],
+                  "id": "t-a7b0da720023"
+                },
+                {
+                  "type": "text",
+                  "text": " 现已正式可用 ",
+                  "marks": [],
+                  "id": "t-1bd9fde30024"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-9c5d88bb2e12",
+          "children": [
+            {
+              "type": "text",
+              "text": "新的 Lite 连接器",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-dbca42260535"
+            }
+          ],
+          "level": 2
+        },
+        {
+          "type": "paragraph",
+          "id": "b-f3f57d1dbb35",
+          "children": [
+            {
+              "type": "text",
+              "text": "Lite 连接器具有为特定用例构建的加速开发周期。在文档中了解更多关于 Lite 连接器 ",
+              "marks": [],
+              "id": "t-ffbdb05e0c9a"
+            },
+            {
+              "type": "text",
+              "text": "in the docs",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://fivetran.com/docs/getting-started/core-concepts/lite-connectors"
+                }
+              ],
+              "id": "t-e95908acb3f8"
+            },
+            {
+              "type": "text",
+              "text": " 的信息，并在 ",
+              "marks": [],
+              "id": "t-9351dcd1fb8f"
+            },
+            {
+              "type": "text",
+              "text": "connector directory",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://www.fivetran.com/connectors?features=Lite+connector"
+                }
+              ],
+              "id": "t-816ac9765b63"
+            },
+            {
+              "type": "text",
+              "text": " 中查看所有可用的 Lite 连接器。你可以通过点击下方链接前往你的 Fivetran dashboard，添加本月任何新的 Lite 连接器（如下）。",
+              "marks": [],
+              "id": "t-2b48e291264b"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-ead0cf433340",
+          "children": [
+            {
+              "type": "text",
+              "text": "Private Preview",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-47fc215b4b05"
+            },
+            {
+              "type": "text",
+              "text": " ",
+              "marks": [],
+              "id": "t-f8ca3b8fd6b6"
+            }
+          ],
+          "level": 4
+        },
+        {
+          "type": "list",
+          "id": "b-2f20a5800187",
+          "ordered": false,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Kyriba",
+                  "marks": [
+                    {
+                      "type": "link",
+                      "href": "https://fivetran.com/docs/connectors/applications/kyriba#kyriba"
+                    }
+                  ],
+                  "id": "t-bbd0f205f034"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Pennylane",
+                  "marks": [
+                    {
+                      "type": "link",
+                      "href": "https://fivetran.com/docs/connectors/applications/pennylane#pennylane"
+                    }
+                  ],
+                  "id": "t-94663e1a398a"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Odoo Synconics",
+                  "marks": [
+                    {
+                      "type": "link",
+                      "href": "https://fivetran.com/docs/connectors/applications/odoo-synconics#odoosynconics"
+                    }
+                  ],
+                  "id": "t-3457c10dad20"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "content_format": "blocks-v1",
+      "category": "platform",
+      "category_label": "AI 数据平台",
+      "vendors": [
+        "Fivetran",
+        "dbt Labs"
+      ],
+      "heat": 32,
+      "star": false,
+      "importance": 55,
+      "quality_score": 55,
+      "trend_score": 13,
+      "signal": 0,
+      "topics": [
+        "平台AI化",
+        "湖仓"
+      ],
+      "shelf": "news",
+      "pinned": false,
+      "published": "2026-10-07T21:22:46+08:00",
+      "first_seen": "2026-10-12T14:02:41.023410+08:00",
+      "items": [
+        {
+          "id": "5d4bf78db846",
+          "source": "Fivetran Blog",
+          "link": "https://www.fivetran.com/blog/product-update",
+          "published": "2026-10-07T21:22:46+08:00",
+          "ingested_at": "2026-10-12T14:02:41.023410+08:00",
+          "title": "Fivetran product updates | Blog | Fivetran"
+        }
+      ],
+      "work_tags": {
+        "taxonomy_version": "work-tags-v1",
+        "product_objects": [
+          "知识与上下文",
+          "Agent接口与工具"
+        ],
+        "use_cases": [
+          "数据接入",
+          "Agent构建"
+        ],
+        "decision_concerns": [
+          "准确性与语义一致性",
+          "成本与性能"
+        ]
+      },
+      "quality_breakdown": {
+        "originality": 18,
+        "evidence_density": 10,
+        "information_gain": 15,
+        "actionability_depth": 12
+      },
+      "content_parse": {
+        "run_id": "github-38210153468-1",
+        "processor_version": "original-first-v7",
+        "attempted_at": "2026-10-12T14:04:28.451206+08:00",
+        "status": "ready",
+        "source": "Fivetran Blog",
+        "strategy": "semantic_container",
+        "blocks": 27,
+        "text_chars": 4800,
+        "figures": 0,
+        "tables": 0,
+        "figures_discovered": 0,
+        "figures_selected": 0,
+        "figures_rejected": 0,
+        "candidate_count": 11,
+        "figures_rejected_author": 0,
+        "figures_rejected_decorative": 0,
+        "figures_rejected_duplicate": 0,
+        "figures_rejected_small": 0,
+        "figures_rejected_limit": 0,
+        "trimmed_tail_blocks": 0,
+        "trimmed_head_blocks": 0,
+        "trimmed_promotional_blocks": 0,
+        "trimmed_embedded_ui_blocks": 0,
+        "embedded_ui_components": 0,
+        "selected_depth": 9,
+        "selected_raw_blocks": 27,
+        "selected_raw_text_chars": 4800,
+        "broad_raw_blocks": 59,
+        "broad_raw_text_chars": 4794,
+        "parent_extra_blocks": 32,
+        "candidate_count_raw": 15,
+        "candidate_duplicates": 4,
+        "candidate_quality_rejected": 6,
+        "duplicate_blocks": 0,
+        "selected_score": 1160.2,
+        "quality_status": "pass",
+        "selected_tag": "div",
+        "focus_ratio": 1.0,
+        "link_ratio": 0.0579,
+        "duplicate_ratio": 0.0,
+        "selection_evidence": [
+          "prose_density",
+          "integrity_gate",
+          "semantic_container"
+        ],
+        "media": {
+          "figures": 0,
+          "cached": 0,
+          "link_only": 0,
+          "policy_version": "source-cdn-v1"
+        },
+        "content_mode": "translated",
+        "source_language": "other",
+        "translation_status": "complete",
+        "source_content_hash": "a19c85daf629818a88158029",
+        "translation": {
+          "run_id": "github-38210153468-1",
+          "policy_version": "faithful-translation-retry-v1",
+          "attempted_at": "2026-10-12T14:04:28.451259+08:00",
+          "purpose": "body_translation",
+          "status": "complete"
+        }
+      },
+      "content_mode": "translated",
+      "content_level": "translated",
+      "source_language": "other",
+      "translation_status": "complete",
+      "source_content_hash": "a19c85daf629818a88158029",
+      "body_chars": 2217
+    },
     {
       "event_id": "eb2c204086f2",
       "zh_title": "Apache Iceberg Go 0.7.0 发布",
@@ -953,11 +1751,11 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 49,
+      "heat": 47,
       "star": false,
       "importance": 62,
       "quality_score": 62,
-      "trend_score": 39,
+      "trend_score": 35,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -3023,11 +3821,11 @@
         "Alteryx",
         "BigQuery"
       ],
-      "heat": 36,
+      "heat": 34,
       "star": false,
       "importance": 51,
       "quality_score": 51,
-      "trend_score": 23,
+      "trend_score": 21,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -3766,11 +4564,11 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 39,
+      "heat": 37,
       "star": false,
       "importance": 47,
       "quality_score": 47,
-      "trend_score": 32,
+      "trend_score": 28,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -4339,11 +5137,11 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 45,
+      "heat": 44,
       "star": false,
       "importance": 66,
       "quality_score": 66,
-      "trend_score": 28,
+      "trend_score": 25,
       "signal": 0,
       "topics": [
         "供应链"
@@ -5431,11 +6229,11 @@
         "dbt",
         "Amazon Redshift"
       ],
-      "heat": 55,
+      "heat": 53,
       "star": true,
       "importance": 84,
       "quality_score": 84,
-      "trend_score": 32,
+      "trend_score": 28,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -6005,11 +6803,11 @@
         "ClickHouse",
         "AWS"
       ],
-      "heat": 45,
+      "heat": 44,
       "star": false,
       "importance": 64,
       "quality_score": 64,
-      "trend_score": 30,
+      "trend_score": 27,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -7933,11 +8731,11 @@
         "Snowflake",
         "AWS"
       ],
-      "heat": 47,
+      "heat": 45,
       "star": false,
       "importance": 68,
       "quality_score": 68,
-      "trend_score": 29,
+      "trend_score": 26,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -8375,11 +9173,11 @@
       "category": "platform",
       "category_label": "AI 数据平台",
       "vendors": [],
-      "heat": 36,
+      "heat": 34,
       "star": false,
       "importance": 46,
       "quality_score": 46,
-      "trend_score": 28,
+      "trend_score": 25,
       "signal": 0,
       "topics": [
         "平台AI化",
@@ -11241,11 +12039,11 @@
       "vendors": [
         "Anthropic"
       ],
-      "heat": 49,
+      "heat": 48,
       "star": true,
       "importance": 75,
       "quality_score": 75,
-      "trend_score": 28,
+      "trend_score": 25,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -12202,11 +13000,11 @@
       "vendors": [
         "Hex"
       ],
-      "heat": 32,
+      "heat": 31,
       "star": false,
       "importance": 52,
       "quality_score": 52,
-      "trend_score": 16,
+      "trend_score": 15,
       "signal": 0,
       "topics": [
         "BI变局",
@@ -14478,11 +15276,11 @@
       "vendors": [
         "DuckDB"
       ],
-      "heat": 55,
+      "heat": 53,
       "star": true,
       "importance": 93,
       "quality_score": 93,
-      "trend_score": 23,
+      "trend_score": 21,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -14909,11 +15707,11 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 39,
+      "heat": 37,
       "star": false,
       "importance": 55,
       "quality_score": 55,
-      "trend_score": 25,
+      "trend_score": 23,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -15486,11 +16284,11 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 45,
+      "heat": 43,
       "star": false,
       "importance": 68,
       "quality_score": 68,
-      "trend_score": 25,
+      "trend_score": 23,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -18204,11 +19002,11 @@
         "京东健康",
         "商汤医疗"
       ],
-      "heat": 50,
+      "heat": 48,
       "star": true,
       "importance": 81,
       "quality_score": 81,
-      "trend_score": 25,
+      "trend_score": 22,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -18957,11 +19755,11 @@
       "vendors": [
         "智能小V"
       ],
-      "heat": 39,
+      "heat": 37,
       "star": false,
       "importance": 57,
       "quality_score": 57,
-      "trend_score": 24,
+      "trend_score": 21,
       "signal": 0,
       "topics": [
         "数据人"
@@ -20569,11 +21367,11 @@
       "category": "agent",
       "category_label": "Data Agent",
       "vendors": [],
-      "heat": 42,
+      "heat": 40,
       "star": false,
       "importance": 62,
       "quality_score": 62,
-      "trend_score": 25,
+      "trend_score": 23,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -21763,11 +22561,11 @@
         "Databricks",
         "Workday"
       ],
-      "heat": 41,
+      "heat": 40,
       "star": false,
       "importance": 63,
       "quality_score": 63,
-      "trend_score": 23,
+      "trend_score": 20,
       "signal": 0,
       "topics": [
         "湖仓"
@@ -22729,11 +23527,11 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 39,
+      "heat": 38,
       "star": false,
       "importance": 60,
       "quality_score": 60,
-      "trend_score": 22,
+      "trend_score": 20,
       "signal": 0,
       "topics": [
         "湖仓"
@@ -23538,11 +24336,11 @@
         "Databricks",
         "Lakebase"
       ],
-      "heat": 47,
+      "heat": 46,
       "star": true,
       "importance": 77,
       "quality_score": 77,
-      "trend_score": 22,
+      "trend_score": 20,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -25063,11 +25861,11 @@
         "Philips",
         "Canon"
       ],
-      "heat": 46,
+      "heat": 45,
       "star": true,
       "importance": 75,
       "quality_score": 75,
-      "trend_score": 22,
+      "trend_score": 20,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -26209,11 +27007,11 @@
         "Lakebase",
         "Spark"
       ],
-      "heat": 45,
+      "heat": 44,
       "star": false,
       "importance": 74,
       "quality_score": 74,
-      "trend_score": 21,
+      "trend_score": 19,
       "signal": 0,
       "topics": [
         "湖仓"
@@ -26740,11 +27538,11 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 30,
+      "heat": 29,
       "star": false,
       "importance": 53,
       "quality_score": 53,
-      "trend_score": 11,
+      "trend_score": 9,
       "signal": 0,
       "topics": [
         "ChatBI",
@@ -27644,11 +28442,11 @@
       "vendors": [
         "ClickHouse"
       ],
-      "heat": 40,
+      "heat": 38,
       "star": false,
       "importance": 61,
       "quality_score": 61,
-      "trend_score": 22,
+      "trend_score": 20,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -29080,11 +29878,11 @@
       "vendors": [
         "ClickHouse"
       ],
-      "heat": 48,
+      "heat": 47,
       "star": true,
       "importance": 82,
       "quality_score": 82,
-      "trend_score": 20,
+      "trend_score": 18,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -29861,11 +30659,11 @@
         "Google Cloud",
         "BigQuery"
       ],
-      "heat": 54,
+      "heat": 52,
       "star": false,
       "importance": 70,
       "quality_score": 70,
-      "trend_score": 40,
+      "trend_score": 37,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -30745,11 +31543,11 @@
       "vendors": [
         "Aloudata"
       ],
-      "heat": 48,
+      "heat": 47,
       "star": true,
       "importance": 84,
       "quality_score": 84,
-      "trend_score": 18,
+      "trend_score": 16,
       "signal": 0,
       "topics": [
         "语义层",
@@ -32362,11 +33160,11 @@
         "Databricks",
         "Replit"
       ],
-      "heat": 37,
+      "heat": 36,
       "star": false,
       "importance": 59,
       "quality_score": 59,
-      "trend_score": 20,
+      "trend_score": 18,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -35591,11 +36389,11 @@
         "ClickHouse",
         "BigQuery"
       ],
-      "heat": 49,
+      "heat": 48,
       "star": true,
       "importance": 86,
       "quality_score": 86,
-      "trend_score": 19,
+      "trend_score": 17,
       "signal": 0,
       "topics": [
         "实时分析"
@@ -37792,11 +38590,11 @@
       "vendors": [
         "Hex"
       ],
-      "heat": 48,
+      "heat": 47,
       "star": true,
       "importance": 86,
       "quality_score": 86,
-      "trend_score": 16,
+      "trend_score": 15,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -44890,11 +45688,11 @@
         "Power BI",
         "Looker"
       ],
-      "heat": 37,
+      "heat": 36,
       "star": false,
       "importance": 63,
       "quality_score": 63,
-      "trend_score": 15,
+      "trend_score": 14,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -46249,11 +47047,11 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 46,
+      "heat": 45,
       "star": true,
       "importance": 84,
       "quality_score": 84,
-      "trend_score": 15,
+      "trend_score": 13,
       "signal": 0,
       "topics": [
         "平台AI化",
@@ -48646,11 +49444,11 @@
         "Databricks",
         "dbt Labs"
       ],
-      "heat": 37,
+      "heat": 36,
       "star": false,
       "importance": 69,
       "quality_score": 69,
-      "trend_score": 11,
+      "trend_score": 10,
       "signal": 0,
       "topics": [
         "湖仓"
@@ -50146,11 +50944,11 @@
       "vendors": [
         "ClickHouse"
       ],
-      "heat": 40,
+      "heat": 39,
       "star": false,
       "importance": 70,
       "quality_score": 70,
-      "trend_score": 15,
+      "trend_score": 13,
       "signal": 0,
       "topics": [
         "实时分析"
@@ -51096,11 +51894,11 @@
         "Databricks",
         "DuckDB"
       ],
-      "heat": 47,
+      "heat": 46,
       "star": true,
       "importance": 84,
       "quality_score": 84,
-      "trend_score": 16,
+      "trend_score": 14,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -51623,11 +52421,11 @@
         "Snowflake",
         "Treehouse Software"
       ],
-      "heat": 34,
+      "heat": 33,
       "star": false,
       "importance": 58,
       "quality_score": 58,
-      "trend_score": 14,
+      "trend_score": 13,
       "signal": 0,
       "topics": [
         "湖仓",
@@ -52795,11 +53593,11 @@
       "vendors": [
         "DuckDB"
       ],
-      "heat": 41,
+      "heat": 40,
       "star": true,
       "importance": 76,
       "quality_score": 76,
-      "trend_score": 12,
+      "trend_score": 10,
       "signal": 0,
       "topics": [
         "语义层",
@@ -53686,7 +54484,7 @@
       "star": false,
       "importance": 57,
       "quality_score": 57,
-      "trend_score": 1,
+      "trend_score": 0,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -54469,11 +55267,11 @@
         "Power BI",
         "Looker"
       ],
-      "heat": 35,
+      "heat": 34,
       "star": false,
       "importance": 63,
       "quality_score": 63,
-      "trend_score": 12,
+      "trend_score": 10,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -56233,11 +57031,11 @@
       "category": "platform",
       "category_label": "AI 数据平台",
       "vendors": [],
-      "heat": 45,
+      "heat": 44,
       "star": true,
       "importance": 83,
       "quality_score": 83,
-      "trend_score": 13,
+      "trend_score": 12,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -56734,7 +57532,7 @@
       "star": false,
       "importance": 68,
       "quality_score": 68,
-      "trend_score": 12,
+      "trend_score": 11,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -58616,11 +59414,11 @@
         "Databricks",
         "Cloudera"
       ],
-      "heat": 39,
+      "heat": 38,
       "star": false,
       "importance": 74,
       "quality_score": 74,
-      "trend_score": 10,
+      "trend_score": 9,
       "signal": 0,
       "topics": [
         "湖仓"
@@ -59158,11 +59956,11 @@
         "dbt",
         "Databricks"
       ],
-      "heat": 30,
+      "heat": 29,
       "star": false,
       "importance": 52,
       "quality_score": 52,
-      "trend_score": 11,
+      "trend_score": 10,
       "signal": 0,
       "topics": [
         "湖仓",
@@ -60995,11 +61793,11 @@
       "category": "insight",
       "category_label": "AI分析",
       "vendors": [],
-      "heat": 34,
+      "heat": 33,
       "star": false,
       "importance": 60,
       "quality_score": 60,
-      "trend_score": 12,
+      "trend_score": 11,
       "signal": 0,
       "topics": [
         "供应链",
@@ -63238,7 +64036,7 @@
       "star": false,
       "importance": 66,
       "quality_score": 66,
-      "trend_score": 1,
+      "trend_score": 0,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -64618,11 +65416,11 @@
         "Databricks",
         "dbt Labs"
       ],
-      "heat": 44,
+      "heat": 43,
       "star": true,
       "importance": 85,
       "quality_score": 85,
-      "trend_score": 10,
+      "trend_score": 9,
       "signal": 0,
       "topics": [
         "语义层",
@@ -65107,11 +65905,11 @@
         "Databricks",
         "Meta"
       ],
-      "heat": 35,
+      "heat": 34,
       "star": false,
       "importance": 65,
       "quality_score": 65,
-      "trend_score": 10,
+      "trend_score": 9,
       "signal": 0,
       "topics": [
         "平台AI化",
@@ -68149,7 +68947,7 @@
       "star": true,
       "importance": 75,
       "quality_score": 75,
-      "trend_score": 10,
+      "trend_score": 9,
       "signal": 0,
       "topics": [
         "实时分析"
@@ -72218,11 +73016,11 @@
         "AWS Glue",
         "Amazon EC2"
       ],
-      "heat": 38,
+      "heat": 37,
       "star": false,
       "importance": 72,
       "quality_score": 72,
-      "trend_score": 10,
+      "trend_score": 9,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -76400,7 +77198,7 @@
       "star": true,
       "importance": 90,
       "quality_score": 90,
-      "trend_score": 10,
+      "trend_score": 9,
       "signal": 0,
       "topics": [
         "湖仓"
@@ -78516,11 +79314,11 @@
         "Amazon EMR",
         "AWS Glue"
       ],
-      "heat": 38,
+      "heat": 37,
       "star": false,
       "importance": 72,
       "quality_score": 72,
-      "trend_score": 10,
+      "trend_score": 9,
       "signal": 0,
       "topics": [
         "湖仓"
@@ -80566,11 +81364,11 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 37,
+      "heat": 36,
       "star": false,
       "importance": 70,
       "quality_score": 70,
-      "trend_score": 10,
+      "trend_score": 9,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -93376,7 +94174,7 @@
       "star": false,
       "importance": 50,
       "quality_score": 50,
-      "trend_score": 10,
+      "trend_score": 9,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -93945,7 +94743,7 @@
       "star": true,
       "importance": 79,
       "quality_score": 79,
-      "trend_score": 9,
+      "trend_score": 8,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -98581,7 +99379,7 @@
       "star": false,
       "importance": 70,
       "quality_score": 70,
-      "trend_score": 7,
+      "trend_score": 6,
       "signal": 0,
       "topics": [
         "组织人才"
@@ -100851,7 +101649,7 @@
       "star": true,
       "importance": 78,
       "quality_score": 78,
-      "trend_score": 8,
+      "trend_score": 7,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -104481,7 +105279,7 @@
       "star": true,
       "importance": 83,
       "quality_score": 83,
-      "trend_score": 7,
+      "trend_score": 6,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -105908,7 +106706,7 @@
       "star": false,
       "importance": 74,
       "quality_score": 74,
-      "trend_score": 7,
+      "trend_score": 6,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -106966,7 +107764,7 @@
       "star": false,
       "importance": 52,
       "quality_score": 52,
-      "trend_score": 7,
+      "trend_score": 6,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -107852,7 +108650,7 @@
       "star": false,
       "importance": 72,
       "quality_score": 72,
-      "trend_score": 7,
+      "trend_score": 6,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -110569,7 +111367,7 @@
       "star": true,
       "importance": 85,
       "quality_score": 85,
-      "trend_score": 7,
+      "trend_score": 6,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -113794,7 +114592,7 @@
       "star": true,
       "importance": 85,
       "quality_score": 85,
-      "trend_score": 7,
+      "trend_score": 6,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -122212,7 +123010,7 @@
       "star": true,
       "importance": 80,
       "quality_score": 80,
-      "trend_score": 6,
+      "trend_score": 5,
       "signal": 0,
       "topics": [
         "湖仓"
@@ -125102,7 +125900,7 @@
       "star": false,
       "importance": 72,
       "quality_score": 72,
-      "trend_score": 6,
+      "trend_score": 5,
       "signal": 0,
       "topics": [
         "湖仓"
@@ -126565,7 +127363,7 @@
       "star": false,
       "importance": 68,
       "quality_score": 68,
-      "trend_score": 5,
+      "trend_score": 4,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -132587,7 +133385,7 @@
       "star": false,
       "importance": 72,
       "quality_score": 72,
-      "trend_score": 3,
+      "trend_score": 2,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -134979,7 +135777,7 @@
       "star": false,
       "importance": 52,
       "quality_score": 52,
-      "trend_score": 3,
+      "trend_score": 2,
       "signal": 0,
       "topics": [
         "湖仓"
@@ -139698,7 +140496,7 @@
         "ClickHouse",
         "PostgreSQL"
       ],
-      "heat": 45,
+      "heat": 44,
       "star": true,
       "importance": 96,
       "quality_score": 96,
@@ -614977,9 +615775,9 @@
         ]
       },
       "content_parse": {
-        "run_id": "github-37268685498-1",
+        "run_id": "github-38210153468-1",
         "processor_version": "original-first-v7",
-        "attempted_at": "2026-10-05T13:47:11.979023+08:00",
+        "attempted_at": "2026-10-12T14:04:29.454129+08:00",
         "status": "skipped",
         "source": "Snowflake Engineering（Medium）",
         "strategy": "fetch_failed",
@@ -684042,7 +684840,7 @@
         "BigQuery",
         "Google Cloud"
       ],
-      "heat": 56,
+      "heat": 54,
       "star": false,
       "importance": 70,
       "signal": 0,
@@ -684360,7 +685158,7 @@
       "translation_status": "failed",
       "source_content_hash": "3907a79213df9e15b816330c",
       "quality_score": 70,
-      "trend_score": 44
+      "trend_score": 41
     },
     {
       "event_id": "ba8377c644db",
@@ -775390,9 +776188,20 @@
     {
       "name": "爱分析",
       "ok": true,
-      "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:169m_remaining",
+      "new": 2,
+      "fetched": 7,
+      "eligible": 4,
+      "prefiltered": 3,
+      "prefilter_dropped": {
+        "time": 0,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 3,
+        "excluded": 0
+      },
+      "skipped_seen": 2,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 12.0,
@@ -775410,7 +776219,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:889m_remaining",
+      "skip_reason": "frequency_gate:411m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -775426,7 +776235,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:889m_remaining",
+      "skip_reason": "frequency_gate:411m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -775442,7 +776251,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:889m_remaining",
+      "skip_reason": "frequency_gate:411m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -775462,7 +776271,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:889m_remaining",
+      "skip_reason": "frequency_gate:411m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -775480,7 +776289,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:889m_remaining",
+      "skip_reason": "frequency_gate:411m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -775500,7 +776309,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:889m_remaining",
+      "skip_reason": "frequency_gate:411m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -775520,7 +776329,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:889m_remaining",
+      "skip_reason": "frequency_gate:411m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -775538,7 +776347,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:481m_remaining",
+      "skip_reason": "frequency_gate:2m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 48.0,
@@ -775557,7 +776366,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:481m_remaining",
+      "skip_reason": "frequency_gate:2m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 48.0,
@@ -775576,7 +776385,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:889m_remaining",
+      "skip_reason": "frequency_gate:411m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -775594,7 +776403,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:889m_remaining",
+      "skip_reason": "frequency_gate:411m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -775614,7 +776423,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:481m_remaining",
+      "skip_reason": "frequency_gate:2m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 48.0,
@@ -775634,7 +776443,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:481m_remaining",
+      "skip_reason": "frequency_gate:2m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 48.0,
@@ -775847,7 +776656,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:889m_remaining",
+      "skip_reason": "frequency_gate:411m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -775919,7 +776728,7 @@
     {
       "name": "Fivetran Blog",
       "ok": true,
-      "new": 0,
+      "new": 1,
       "fetched": 20,
       "eligible": 4,
       "prefiltered": 16,
@@ -775930,7 +776739,7 @@
         "keyword": 0,
         "excluded": 0
       },
-      "skipped_seen": 4,
+      "skipped_seen": 3,
       "limit_reached": false,
       "schedule_reason": "interval_elapsed",
       "control": {
@@ -775975,7 +776784,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:889m_remaining",
+      "skip_reason": "frequency_gate:411m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -776022,7 +776831,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:889m_remaining",
+      "skip_reason": "frequency_gate:411m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -776038,7 +776847,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:889m_remaining",
+      "skip_reason": "frequency_gate:411m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -776054,7 +776863,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:889m_remaining",
+      "skip_reason": "frequency_gate:411m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -776070,7 +776879,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:889m_remaining",
+      "skip_reason": "frequency_gate:411m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -776084,9 +776893,20 @@
     {
       "name": "InfoQ（AI/数据工程）",
       "ok": true,
-      "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:169m_remaining",
+      "new": 8,
+      "fetched": 15,
+      "eligible": 15,
+      "prefiltered": 0,
+      "prefilter_dropped": {
+        "time": 0,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 0,
+      "limit_reached": true,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "media_targeted",
         "fetch_interval_hours": 12.0,
@@ -776102,7 +776922,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:889m_remaining",
+      "skip_reason": "frequency_gate:411m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -776118,7 +776938,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:889m_remaining",
+      "skip_reason": "frequency_gate:411m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -776132,9 +776952,20 @@
     {
       "name": "Hacker News（数据关键词）",
       "ok": true,
-      "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:169m_remaining",
+      "new": 5,
+      "fetched": 14,
+      "eligible": 5,
+      "prefiltered": 9,
+      "prefilter_dropped": {
+        "time": 9,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 0,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "community_targeted",
         "fetch_interval_hours": 12.0,
@@ -776148,20 +776979,9 @@
     {
       "name": "Bluesky 数据社区",
       "ok": true,
-      "new": 9,
-      "fetched": 9,
-      "eligible": 9,
-      "prefiltered": 0,
-      "prefilter_dropped": {
-        "time": 0,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 0,
-        "excluded": 0
-      },
-      "skipped_seen": 0,
-      "limit_reached": false,
-      "schedule_reason": "interval_elapsed",
+      "new": 0,
+      "skipped": true,
+      "skip_reason": "frequency_gate:241m_remaining",
       "control": {
         "tier": "community_targeted",
         "fetch_interval_hours": 12.0,
@@ -776234,8 +777054,19 @@
       "name": "Hex Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:169m_remaining",
+      "fetched": 408,
+      "eligible": 6,
+      "prefiltered": 402,
+      "prefilter_dropped": {
+        "time": 391,
+        "missing_date": 11,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 6,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -776253,8 +777084,19 @@
       "name": "Amplitude Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:169m_remaining",
+      "fetched": 2082,
+      "eligible": 0,
+      "prefiltered": 2082,
+      "prefilter_dropped": {
+        "time": 2080,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 2,
+        "excluded": 0
+      },
+      "skipped_seen": 0,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -776272,8 +777114,19 @@
       "name": "Netflix Technology Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:169m_remaining",
+      "fetched": 10,
+      "eligible": 0,
+      "prefiltered": 10,
+      "prefilter_dropped": {
+        "time": 10,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 0,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "engineering_targeted",
         "fetch_interval_hours": 12.0,
@@ -776290,8 +777143,19 @@
       "name": "Google Cloud Data Analytics Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:169m_remaining",
+      "fetched": 7,
+      "eligible": 7,
+      "prefiltered": 0,
+      "prefilter_dropped": {
+        "time": 0,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 7,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -776341,8 +777205,19 @@
       "name": "Google Looker Release Notes",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:169m_remaining",
+      "fetched": 20,
+      "eligible": 3,
+      "prefiltered": 17,
+      "prefilter_dropped": {
+        "time": 16,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 1,
+        "excluded": 0
+      },
+      "skipped_seen": 3,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "structured_high",
         "fetch_interval_hours": 12.0,
@@ -776360,8 +777235,19 @@
       "name": "Microsoft Fabric Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:169m_remaining",
+      "fetched": 10,
+      "eligible": 0,
+      "prefiltered": 10,
+      "prefilter_dropped": {
+        "time": 9,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 1
+      },
+      "skipped_seen": 0,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -776381,16 +777267,16 @@
       "ok": true,
       "new": 0,
       "fetched": 10,
-      "eligible": 6,
-      "prefiltered": 4,
+      "eligible": 5,
+      "prefiltered": 5,
       "prefilter_dropped": {
-        "time": 4,
+        "time": 5,
         "missing_date": 0,
         "path": 0,
         "keyword": 0,
         "excluded": 0
       },
-      "skipped_seen": 6,
+      "skipped_seen": 5,
       "limit_reached": false,
       "schedule_reason": "interval_elapsed",
       "control": {
@@ -776410,8 +777296,19 @@
       "name": "Apache Iceberg Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:169m_remaining",
+      "fetched": 17,
+      "eligible": 3,
+      "prefiltered": 14,
+      "prefilter_dropped": {
+        "time": 14,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 3,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 12.0,
@@ -776428,8 +777325,19 @@
       "name": "TiDB Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:169m_remaining",
+      "fetched": 10,
+      "eligible": 3,
+      "prefiltered": 7,
+      "prefilter_dropped": {
+        "time": 7,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 3,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -776447,8 +777355,19 @@
       "name": "Apache Doris Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:169m_remaining",
+      "fetched": 20,
+      "eligible": 0,
+      "prefiltered": 20,
+      "prefilter_dropped": {
+        "time": 19,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 1
+      },
+      "skipped_seen": 0,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -776465,47 +777384,33 @@
     }
   ],
   "structured_content": {
-    "run_id": "github-38178462928-1",
-    "attempted": 6,
-    "ready": 5,
-    "figures": 13,
-    "tables": 4,
-    "media_cached": 13,
+    "run_id": "github-38210153468-1",
+    "attempted": 5,
+    "ready": 4,
+    "figures": 8,
+    "tables": 1,
+    "media_cached": 8,
     "media_link_only": 0,
-    "candidate_duplicates": 25,
+    "candidate_duplicates": 19,
     "candidate_quality_rejected": 15,
     "strategies": {
+      "rss_document_fallback": 1,
       "semantic_container": 2,
-      "rss_document_fallback": 2,
       "nested_content": 1,
       "fetch_failed": 1
     },
     "quality_statuses": {
-      "pass": 5,
+      "pass": 4,
       "unknown": 1
     },
     "content_modes": {
-      "translated": 5,
+      "translated": 4,
       "unknown": 1
     },
     "fallbacks": {
       "no_usable_original": 1
     },
     "by_source": {
-      "Databricks Blog": {
-        "attempted": 2,
-        "ready": 2,
-        "figures": 1,
-        "tables": 2,
-        "media_cached": 1
-      },
-      "TiDB Blog": {
-        "attempted": 1,
-        "ready": 1,
-        "figures": 4,
-        "tables": 2,
-        "media_cached": 4
-      },
       "Snowflake Engineering（Medium）": {
         "attempted": 2,
         "ready": 1,
@@ -776513,7 +777418,21 @@
         "tables": 0,
         "media_cached": 8
       },
+      "Databricks Blog": {
+        "attempted": 1,
+        "ready": 1,
+        "figures": 0,
+        "tables": 1,
+        "media_cached": 0
+      },
       "DuckDB Engineering Blog": {
+        "attempted": 1,
+        "ready": 1,
+        "figures": 0,
+        "tables": 0,
+        "media_cached": 0
+      },
+      "Fivetran Blog": {
         "attempted": 1,
         "ready": 1,
         "figures": 0,
@@ -776522,24 +777441,24 @@
       }
     },
     "catalog": {
-      "events": 606,
-      "structured": 562,
-      "renderable": 561,
-      "current_pass": 555,
+      "events": 605,
+      "structured": 561,
+      "renderable": 560,
+      "current_pass": 554,
       "parser_debt": 7,
-      "display_trimmed": 4,
+      "display_trimmed": 3,
       "display_suspect": 0,
       "embedded_ui_trimmed": 0,
       "embedded_ui_blocks": 0,
       "modes": {
-        "translated": 463,
-        "original": 99,
+        "translated": 461,
+        "original": 100,
         "ai_fallback": 12,
         "editorial_excerpt": 19,
         "missing": 13
       },
       "processor_versions": {
-        "original-first-v7": 587,
+        "original-first-v7": 586,
         "missing": 19
       }
     },
@@ -776554,18 +777473,18 @@
     },
     "backfill": {
       "foreign_limit": 6,
-      "eligible": 29,
+      "eligible": 28,
       "attempted": 12,
-      "ready": 5,
+      "ready": 3,
       "original": 0,
-      "translated": 5,
-      "deferred_foreign": 6,
-      "deferred_budget": 6,
+      "translated": 3,
+      "deferred_foreign": 8,
+      "deferred_budget": 8,
       "stored_original_retries": 11,
       "parser_debt_eligible": 7,
       "skipped": 1,
       "failed": 0,
-      "planned": 5
+      "planned": 3
     },
     "media_refresh": {
       "policy_version": "source-cdn-v1",
@@ -776578,7 +777497,7 @@
     },
     "article_ui_cleanup": {
       "policy_version": "article-chrome-v3",
-      "scanned": 606,
+      "scanned": 604,
       "cleaned_events": 0,
       "removed_blocks": 0
     }

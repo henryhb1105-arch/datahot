@@ -1,0 +1,408 @@
+{
+ "schema_version": 1,
+ "kind": "weekly_signals",
+ "status": "ready",
+ "week_id": "2026-W41",
+ "period_start": "2026-10-05",
+ "period_end": "2026-10-11",
+ "generated_at": "2026-10-12T14:02:41.023410+08:00",
+ "ai_assisted": true,
+ "content_fingerprint": "878cd442a2782af8a1706c4fcb0cca539024d3f82f1f8ed22b48fdebf6f88b75",
+ "input_hash": "e4fc6c790ef0fedfa983d1f36bc4e9ace6c5d41a9cd3262a809cfe41144c8428",
+ "baseline_hash": "921a1a4e0e4538cdb7a7632296628b37a8d724314cbe2f57c41c5a697b651225",
+ "prompt_version": "weekly-signals-v4",
+ "model": "deepseek-v4-flash",
+ "baseline": {
+  "requested_weeks": 4,
+  "requested_week_ids": [
+   "2026-W40",
+   "2026-W39",
+   "2026-W38",
+   "2026-W37"
+  ],
+  "available_weeks": 4,
+  "available_week_ids": [
+   "2026-W40",
+   "2026-W39",
+   "2026-W38",
+   "2026-W37"
+  ],
+  "coverage": "complete"
+ },
+ "weekly_judgement": "本周相较前四周，最明确的变化是语义层从“讨论价值”转向“自动生成与自动化盘点”：Aloudata 用算子级血缘+大模型批量还原口径，IFCO 用 Delta 写入语义把语义层作业耗时砍60%以上，Snowflake 首次给出无/有语义模型的对照实验。同时多Agent 平台治理进入工程化，幻觉率从15%降到1.5%。",
+ "signals": [
+  {
+   "signal_id": "semantic-layer-auto-authoring",
+   "title": "语义层口径自动盘点成新机制",
+   "change_type": "early_signal",
+   "confidence": "medium",
+   "confidence_reason": "基线四周语义层证据均为人工策展或评测，自动生成口径仅本周出现；但两条证据同属厂商自述，缺独立第三方验证。",
+   "anchor": "Aloudata BIG 解析 SQL 与任务日志建立算子级血缘并做口径裁剪，两业务域约2000个指标自动盘点、校对后准确率超99%，某银行60人月缩到一周；IFCO 在 Databricks 上按增量映射 Delta Lake 写入（聚类列、merge/replace）优化后核心语义层作业日耗时降超60%并停用夜间全量刷新。",
+   "mechanism": "共同机制是把语义层定义从人工逐条编写，改为由血缘/查询日志/写入行为等机器可读痕迹反向推导并生成可核对口径，再由人校对入库。",
+   "baseline_comparison": "W37-W40 的语义层证据集中在人工策展（Unity Catalog Pages）、语义视图规范、Spotter Memory 记忆与基准评测，未有以血缘自动批量还原口径的路径。",
+   "evidence_ids": [
+    "a5e85b0e5b72",
+    "3bab1efbb5de"
+   ],
+   "counter_evidence": "两条均为厂商自述且无第三方复现；IFCO 未给出血缘盘点环节，属性能而非口径生成；Aloudata 的99%与300倍未说明基线口径。"
+  },
+  {
+   "signal_id": "no-semantic-model-agent-failure",
+   "title": "无语义模型下Agent高置信错误的证据",
+   "change_type": "early_signal",
+   "confidence": "medium",
+   "confidence_reason": "本周首次出现可复现对照实验（33%准确率），但为单一供应商博客、单一数据集，且此前四周仅Fivetran做过同类小样本实验。",
+   "anchor": "Claude Sonnet 4.5 驱动的 AI agent 经 JDBC 访问 Snowflake TPC-H（LINEITEM 6000万行、SALES_ORDER 1500万行、CUSTOMER 150万行，X-Small仓库），无语义视图时六题仅对两题、准确率33%；作者强调错误答案的共性而非错误数量。",
+   "mechanism": "机制是同一 agent 在同一数据上仅切换“有无语义模型”，观测准确率与该错误分布的变化，用于暴露企业 AI 数据策略在业务含义层的脆弱点。",
+   "baseline_comparison": "W39 Fivetran 用5种接入方式对比 dbt 项目，Semantic Layer 是唯一让两模型零错的接口，但样本仅4张表、1个问题；本周把对照扩到更大表规模并给出整体准确率。",
+   "evidence_ids": [
+    "480c1590c586"
+   ],
+   "counter_evidence": "单一供应商博客、单次实验、6道题样本量极小；33%不能外推到生产工作负载，且未报告成本与 latency。"
+  },
+  {
+   "signal_id": "multi-agent-platform-governance",
+   "title": "多Agent平台治理把幻觉压到1.5%",
+   "change_type": "early_signal",
+   "confidence": "low",
+   "confidence_reason": "仅一条经验型媒体报告，无第二独立证据，且为非具名零售企业自述，未披露评测方法。",
+   "anchor": "某大型零售库存准确率平台的多 Agent LLM 系统：早期约15%回复为幻觉，6个月后降至1.5%；手段包括提示词注册与版本管理、schema 强制、按请求归属 token 成本、自动重试循环、意图校验门、资源服务器默认拒绝授权，以及入口埋点监控幻觉率与团队 token 成本。",
+   "mechanism": "机制是把 LLM 栈当作共享平台基础设施而非应用功能，用版本化提示、schema 强制、意图校验与成本归属等平台级控制点统一约束多个 agent。",
+   "baseline_comparison": "W38 Snowflake AI 成本治理与 W40 用户级配额、W37 Agent Identity 讨论均涉及成本与权限边界，但未给出幻觉率随平台化改造下降的量化结果。",
+   "evidence_ids": [
+    "66638a56112b"
+   ],
+   "counter_evidence": "单一案例、无具名、无可复现评测口径；1.5% 是否为持续状态、是否以漏报换取低幻觉均未说明。"
+  }
+ ],
+ "signals_not_promoted": [
+  {
+   "label": "Databricks Genie/Unity Catalog 生态扩张",
+   "reason": "Meta 广告 MCP、Workday 联邦连接器、Replit+Lakebase、Genie One playbook 等均为同一厂商单方宣告，source_family 相同不构成独立证据，且与 W37-W40 已有 Genie One MCP、Pages、Genie Agents 属延续而非新机制。",
+   "evidence_ids": [
+    "549d1d1ddade",
+    "d1b062467e67",
+    "dcacd92fda95",
+    "c3e60124b535"
+   ]
+  },
+  {
+   "label": "ChatGPT Work 数据插件接入潮",
+   "reason": "ClickHouse、AWS Redshift 此前已在 W37 进入 ChatGPT Work，W41 无新增同机制事件，属延续；仅保留为背景未上升。",
+   "evidence_ids": [
+    "782132de7db7",
+    "82ae470fd568"
+   ]
+  },
+  {
+   "label": "数据 Agent 基准与准确率竞赛",
+   "reason": "W41 未出现新的独立基准结果，W38 Spotter/BIRD 与 W39 OceanBase DAB 已消费，本周缺少增量证据。",
+   "evidence_ids": [
+    "40c2caf96019",
+    "d204ffe24b0c"
+   ]
+  },
+  {
+   "label": "DuckDB 远程 Parquet 视图目录",
+   "reason": "单一 DuckDB 厂商博客，核心是存储读取分离的用法介绍，未直接改变数据 Agent 或语义层产品设计，也无第二独立证据。",
+   "evidence_ids": [
+    "6df9230e2f9b"
+   ]
+  }
+ ],
+ "uncertainty": "缺口有三：语义层自动盘点（Aloudata、IFCO）与无语义模型对照（Snowflake）全部来自厂商自述，缺第三方复现与统一评测；多Agent 治理的1.5%幻觉率无可验证口径；“语义层/上下文层”在 W37-W40 已被大量不同机制反复使用，若下周继续以宽泛标签聚合会误判趋势。",
+ "next_week_question": "是否出现独立第三方（学术或客户实测）复现“语义层自动生成”或“无语义模型导致高置信错误”的量化结果，以及是否有多于一家供应商公开语义层作业耗时/成本的同类改造数字？",
+ "evidence_index": [
+  {
+   "event_id": "a5e85b0e5b72",
+   "title": "语义层能否不靠人一条条建？Aloudata 口径自动盘点",
+   "summary": "Aloudata 官方博客讨论 Data Agent 所需语义层如何构建，指出指标口径盘点中约 90% 的工作量花在找材料、读代码、还原口径和对齐分歧上。Aloudata BIG 通过解析 SQL 与任务日志建立算子级血缘，并做口径裁剪，结合大模型生成可核对的盘点报告。某客户选取两个业务域对约 2000 个指标自动盘点，客户校对后数据比对准确性超过 99%；某银行项目口径盘点效率提升 300 倍，原 60 个人月减少到一周。确认后的口径进入 Aloudata CAN，实现指标管理、执行和消费统一。",
+   "category": "platform",
+   "source": "Aloudata 博客",
+   "source_family": "aloudata",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://aloudata.com/blogs/can-semantic-layer-be-built-without-manual-work",
+   "published": "2026-10-08T14:32:46+08:00",
+   "heat": 48,
+   "importance": 84,
+   "vendors": [
+    "Aloudata"
+   ],
+   "topics": [
+    "语义层",
+    "Data Agent"
+   ],
+   "week_id": "2026-W41"
+  },
+  {
+   "event_id": "3bab1efbb5de",
+   "title": "IFCO 在 Databricks 扩展大型 dbt 项目：性能、可见性与调试",
+   "summary": "IFCO 运营着全球最大的可重复使用包装池之一，管理数亿个箱子和托盘，并通过 barcode/RFID/GPS 等追踪信号把数十亿原始事件转化为 KPI。其数据平台团队与 Databricks Forward Deployed Engineering 合作，将转换逻辑保留在 dbt 中，并在 Databricks 上把每个增量设置映射到具体的 Delta Lake 写入行为（聚类列、写入触及范围、merge/replace）。在正确数据粒度上优化后，核心语义层作业每日运行时间减少超过 60%，并停用了昂贵的夜间全量刷新。文章围绕大规模 dbt 项目的性能、可见性与调试展开。",
+   "category": "platform",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.databricks.com/blog/scaling-and-operating-large-dbt-project-databricks-ifcos-data-team-performance-visibility-and-debugging",
+   "published": "2026-10-07T00:00:00+08:00",
+   "heat": 44,
+   "importance": 85,
+   "vendors": [
+    "Databricks",
+    "dbt Labs"
+   ],
+   "topics": [
+    "语义层",
+    "湖仓"
+   ],
+   "week_id": "2026-W41"
+  },
+  {
+   "event_id": "480c1590c586",
+   "title": "自信地犯错：AI分析师在Snowflake上有无语义模型对比",
+   "summary": "文章用一个可复现实验，让运行在Claude Sonnet 4.5上的AI agent扮演分析师，通过JDBC访问Snowflake的TPC-H演示库（LINEITEM 6000万行、SALES_ORDER 1500万行、CUSTOMER 150万行，X-Small仓库）。在“前”场景中，agent只有JDBC连接和数据模型；在“后”场景中，它获得Snowflake语义视图。没有语义模型时，agent六道题只答对两题，准确率33%。作者指出，错误答案的共性更能揭示企业AI数据策略的脆弱点，并强调语义层对AI分析准确性的重要性。",
+   "category": "agent",
+   "source": "Snowflake Engineering（Medium）",
+   "source_family": "snowflake",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://medium.com/snowflake/confidently-wrong-i-let-an-ai-analyst-loose-on-snowflake-with-and-without-a-semantic-model-3ac30c6fe10a?source=rss----34b6daafc07---4",
+   "published": "2026-10-05T22:01:06+08:00",
+   "heat": 42,
+   "importance": 85,
+   "vendors": [
+    "Snowflake"
+   ],
+   "topics": [
+    "Data Agent",
+    "语义层"
+   ],
+   "week_id": "2026-W41"
+  },
+  {
+   "event_id": "66638a56112b",
+   "title": "生产级LLM的平台工程手册：幻觉率从15%降至1.5%",
+   "summary": "作者分享了在大型零售企业库存准确率平台中运行多Agent LLM系统的经验：早期约15%的Agent回复是幻觉，6个月后降至1.5%，关键不是更换基础模型，而是把LLM栈当作平台基础设施而非应用功能。文章提出共享LLM平台应具备提示词注册与版本管理、schema强制、按请求归属token成本等能力，并通过自动重试循环、意图校验门、资源服务器默认拒绝授权、请求入口埋点监控幻觉率与团队token成本来实现治理。作者强调标准APM工具无法发现语义退化，事后补做成本归因会耗费数周工程时间。",
+   "category": "platform",
+   "source": "InfoQ（AI/数据工程）",
+   "source_family": "infoq",
+   "source_type": "media_report",
+   "source_count": 1,
+   "source_url": "https://www.infoq.com/articles/platform-engineering-playbook-production-llms/?utm_campaign=infoq_content&utm_source=infoq&utm_medium=feed&utm_term=AI%2C+ML+%26+Data+Engineering",
+   "published": "2026-10-05T19:00:00+08:00",
+   "heat": 42,
+   "importance": 85,
+   "vendors": [],
+   "topics": [
+    "Data Agent",
+    "平台AI化"
+   ],
+   "week_id": "2026-W41"
+  },
+  {
+   "event_id": "549d1d1ddade",
+   "title": "Meta广告MCP服务器上线Databricks，接入Genie",
+   "summary": "Databricks Marketplace 现已上架 Meta 的广告 MCP 服务器，企业可将其连接到 Genie，用自然语言同时探索 Meta 广告表现与 Databricks 中受治理的业务数据。该 MCP 服务器暴露 25+ 个覆盖活动生命周期的工具，包括创建活动/广告组、调整预算与出价、定义受众、管理创意与目录、拉取表现数据和诊断信号质量。这延续了双方此前的合作：Meta Conversions API 已登陆 Databricks Marketplace，用于发送第一方转化信号。目标是减少 CSV 导出和自维护 Marketing API 集成，让 churn 分数、LTV、归因和 margin 表等洞察更直接进入广告投放决策。",
+   "category": "platform",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.databricks.com/blog/meta-ads-mcp-databricks",
+   "published": "2026-10-06T20:45:00+08:00",
+   "heat": 35,
+   "importance": 65,
+   "vendors": [
+    "Databricks",
+    "Meta"
+   ],
+   "topics": [
+    "平台AI化",
+    "Data Agent"
+   ],
+   "week_id": "2026-W41"
+  },
+  {
+   "event_id": "d1b062467e67",
+   "title": "Databricks 在 Unity Catalog 推出 Workday 联邦连接器",
+   "summary": "Databricks 宣布 Unity Catalog 的 Workday Data Connect 联邦连接器进入公开 Beta，面向需要将 Workday HR 与财务数据同其他企业数据一起分析的数据平台与分析团队。通过 Lakehouse Federation，团队可直接从 Databricks Data + AI Platform 查询 Workday Data Cloud 中的 HR 和财务数据，而无需维护重复副本。管理员可在 Workday 侧共享表并授权 Integration System User 只读访问，在 Databricks 创建 OAuth 连接与 Unity Catalog 外部目录，再通过表级访问控制治理权限。用户可用 Databricks SQL、AI/BI、notebooks 和 Genie 查询该目录。",
+   "category": "platform",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.databricks.com/blog/announcing-workday-data-connect-federation-unity-catalog",
+   "published": "2026-10-09T07:00:00+08:00",
+   "heat": 41,
+   "importance": 63,
+   "vendors": [
+    "Databricks",
+    "Workday"
+   ],
+   "topics": [
+    "湖仓"
+   ],
+   "week_id": "2026-W41"
+  },
+  {
+   "event_id": "dcacd92fda95",
+   "title": "用Replit和Lakebase在Databricks构建受治理企业应用",
+   "summary": "Databricks 官方博客介绍 Replit 与 Databricks 的集成，帮助企业在受治理环境中完成从开发到部署应用。团队可用 Replit Agent 基于实时 Databricks 数据构建前端，并自动配置 Lakebase Postgres 数据库，再部署为 Databricks Apps。部署后应用继承用户认证、安全访问控制，并与 Unity Catalog 集成，从而减少安全与基础设施审批环节。文章面向业务负责人、数据分析师和开发者，说明如何用自然语言提示构建生产级应用。",
+   "category": "platform",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.databricks.com/blog/how-build-governed-enterprise-apps-databricks-replit-and-lakebase",
+   "published": "2026-10-08T21:00:00+08:00",
+   "heat": 37,
+   "importance": 59,
+   "vendors": [
+    "Databricks",
+    "Replit"
+   ],
+   "topics": [
+    "平台AI化"
+   ],
+   "week_id": "2026-W41"
+  },
+  {
+   "event_id": "c3e60124b535",
+   "title": "StubHub、Figma、Reddit：企业BI新范式（Hex）",
+   "summary": "Hex 博客指出，企业 BI 长期由数据团队构建仪表板、业务用户点击查看，造成仪表板泛滥、自助不足和请求积压。随着 AI 能力提升，业务用户希望用自然语言提问、继续探索并自行构建分析，相关 AI 工作流已在企业中自发出现。StubHub、Reddit、Figma、Ramp 等公司正在重新思考 BI：StubHub 借助 Hex 的 Threads 推动对话式自助分析，让业务用户自主回答问题。企业面临的挑战是在释放 AI 原生工作流的同时，维持信任和统一治理。",
+   "category": "bi",
+   "source": "Hex Blog",
+   "source_family": "hex",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://hex.tech/blog/stubhub-figma-reddit-the-new-model-for-enterprise-bi/",
+   "published": "2026-10-08T08:00:00+08:00",
+   "heat": 32,
+   "importance": 52,
+   "vendors": [
+    "Hex"
+   ],
+   "topics": [
+    "BI变局",
+    "ChatBI"
+   ],
+   "week_id": "2026-W41"
+  },
+  {
+   "event_id": "782132de7db7",
+   "title": "AWS 推出 Redshift 数据分析插件，接入 ChatGPT Work",
+   "summary": "AWS 发布 AWS Data Analytics 插件，接入 ChatGPT Work 中新的 Data agent。员工可以用自然语言提问，分析 Amazon Redshift 数仓与数据湖中受治理的数据，并生成可分享的看板。插件强调沿用企业现有的访问控制，让销售、运营、财务等非 SQL 用户也能自助获取分析结果。AWS 称已有数万客户每天用 Redshift 运行高负载分析任务，并可结合 Apache Iceberg 等开放格式的湖上数据形成完整视图。",
+   "category": "agent",
+   "source": "AWS Big Data Blog",
+   "source_family": "awsbigdata",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://aws.amazon.com/blogs/big-data/every-team-is-a-data-team-bring-amazon-redshift-analytics-to-chatgpt-work/",
+   "published": "2026-09-10T23:14:01+08:00",
+   "heat": 35,
+   "importance": 52,
+   "vendors": [
+    "AWS",
+    "Amazon Redshift",
+    "OpenAI"
+   ],
+   "topics": [
+    "ChatBI",
+    "Data Agent"
+   ],
+   "week_id": "2026-W37"
+  },
+  {
+   "event_id": "82ae470fd568",
+   "title": "ClickHouse 成为 ChatGPT Work 数据代理启动合作伙伴",
+   "summary": "ClickHouse 宣布成为 OpenAI 在 ChatGPT Work 中推出的 Data agent 的启动合作伙伴。其插件整合了 ClickHouse Remote MCP server 与开源 ClickHouse Agent Skills，让 ChatGPT Work 和 Codex 可通过插件目录连接 ClickHouse Cloud。用户用 OAuth 登录后，可探索 schema、查询数据，并基于结果构建交互式仪表板。插件暴露 13 个只读工具，可查看数据库/表、schema、执行 SELECT，并读取服务、备份、ClickPipes 和账单信息。",
+   "category": "agent",
+   "source": "ClickHouse Blog",
+   "source_family": "clickhouse",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://clickhouse.com/blog/chatgpt-data-plugin",
+   "published": "2026-09-10T23:13:26+08:00",
+   "heat": 51,
+   "importance": 88,
+   "vendors": [
+    "ClickHouse"
+   ],
+   "topics": [
+    "Data Agent"
+   ],
+   "week_id": "2026-W37"
+  },
+  {
+   "event_id": "40c2caf96019",
+   "title": "AI分析引擎难题评测：Spotter领跑BIRD",
+   "summary": "该文将 Spotter 与四款竞争性 agentic analytics 引擎放在 BIRD 基准上对比：1,533 道题、11 个数据库、统一评分、每题一次机会。Spotter 总体执行准确率 82.8%，高于前沿 LLM 的 78.4% 和编码 agent 的 72.5%；在挑战级题目中为 70.6%，最低引擎仅 46.8%。作者强调应看准确率斜率而非单一总体准确率，且仅更换更新模型、底层 agent harness 不变，就带来整体 3.4 个百分点提升。文中还引用 BARC 调查估算：万人员工企业约 65 万次数据问题/年，1 个准确率点对应 6,500 个答案对错。",
+   "category": "agent",
+   "source": "ThoughtSpot Blog",
+   "source_family": "thoughtspot",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.thoughtspot.com/blog/ai-analyst-accuracy-bird-benchmark",
+   "published": "2026-09-16T08:18:54+08:00",
+   "heat": 46,
+   "importance": 88,
+   "vendors": [
+    "ThoughtSpot",
+    "Spotter"
+   ],
+   "topics": [
+    "Data Agent",
+    "ChatBI"
+   ],
+   "week_id": "2026-W38"
+  },
+  {
+   "event_id": "d204ffe24b0c",
+   "title": "OceanBase Data Agent登顶DAB，准确率90.62%",
+   "summary": "OceanBase 团队提交的 Data Agent 方案在 Data Agent Benchmark（DAB）以 90.62% 准确率位列第一，成为首个突破 90% 的参评方案。该方案基于国产大模型 GLM-5.2 构建，超过多项基于 GPT、Claude Opus、Claude Fable 的方案，内部代号 Scout，能力将融入 OceanBase DataPilot。DAB 由 UC Berkeley EPIC Data Lab 与 Hasura PromptQL 推出，覆盖多领域和多数据库，评估 Data Agent 从理解数据到拿到答案的完整能力。OceanBase 称这验证了数据库向 AI 数据平台演进的方向。",
+   "category": "agent",
+   "source": "雷锋网",
+   "source_family": "雷锋网",
+   "source_type": "other",
+   "source_count": 3,
+   "source_url": "https://www.leiphone.com/category/industrynews/ug9HpmoWVwNMZZTH.html",
+   "published": "2026-09-21T15:20:00+08:00",
+   "heat": 44,
+   "importance": 73,
+   "vendors": [
+    "OceanBase",
+    "Hasura",
+    "MongoDB",
+    "DuckDB"
+   ],
+   "topics": [
+    "Data Agent",
+    "平台AI化"
+   ],
+   "week_id": "2026-W39"
+  },
+  {
+   "event_id": "6df9230e2f9b",
+   "title": "不含数据的 DuckDB 数据库：远程 Parquet 视图目录",
+   "summary": "文章介绍一种用法：DuckDB 数据库文件可以不存数据，只保存指向外部文件的视图定义，例如对象存储上的 Parquet。这样的文件无论描述的数据多大都保持几百 KB，附加后即可看到一组可查询的命名关系。作者引用 Nikolas Goebel 的 “DuckDB doesn't need data”，认为数据库已把数据存储与读取分离，DuckDB 可成为数据云的浏览器。文中以荷兰铁路开放数据集为例，演示安装 httpfs 并创建指向远程数据的视图，构建可分享的目录或语义层。",
+   "category": "platform",
+   "source": "DuckDB Engineering Blog",
+   "source_family": "duckdb",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://duckdb.org/2026/10/07/view-only-mode.html",
+   "published": "2026-10-07T08:00:00+08:00",
+   "heat": 41,
+   "importance": 76,
+   "vendors": [
+    "DuckDB"
+   ],
+   "topics": [
+    "语义层",
+    "湖仓"
+   ],
+   "week_id": "2026-W41"
+  }
+ ]
+}

@@ -473,3 +473,43 @@ test("opening a recommendation disclosure never navigates the surrounding card",
   clicks.forEach(handler => handler({ target }));
   assert.equal(win.location.href, 'https://example.com/datahot/index.html');
 });
+
+test("primary filters reset old topics while preserving search and canonical URLs", () => {
+  const next = home.filterStateAfterSelection({q:"dbt",topic:"组织人才",category:"insight",page:3}, {category:"platform",primary:true});
+  assert.deepEqual(next,{q:"dbt",topic:"all",category:"platform",editorial:false,page:1});
+  assert.equal(home.searchForState(next),"?q=dbt&category=platform");
+  const topic = home.filterStateAfterSelection(next,{topic:"语义层"});
+  assert.equal(topic.category, "");
+  assert.equal(topic.topic,"语义层");
+  const agent = home.filterStateAfterSelection(next,{topic:"Data Agent",primary:true});
+  assert.equal(agent.category, "");
+  assert.equal(agent.topic,"Data Agent");
+});
+
+test("More shows the hidden active filter, closes with Escape or selection and restores focus", () => {
+  let focused = 0, selected = [{textContent:"语义层"}], label = "";
+  const summary = {setAttribute:(_name,value)=>{label=value;},focus:()=>focused++};
+  const caption = {};
+  const chip = {};
+  const more = {open:true,classList:{toggle:()=>{}},querySelectorAll:()=>selected,querySelector:()=>summary,contains:node=>node===chip};
+  const listeners = {};
+  const doc = {getElementById:id=>id==="filterMore"?more:caption,addEventListener:(name,fn)=>listeners[name]=fn};
+  home.initFilterDisclosure(doc);
+  home.syncFilterDisclosure(doc);
+  assert.equal(caption.hidden,false);
+  assert.equal(caption.textContent,"当前筛选：语义层");
+  assert.match(label,/语义层/);
+  listeners.keydown({key:"Escape"});
+  assert.equal(more.open,false);
+  assert.equal(focused,1);
+  more.open=true;chip.closest=()=>chip;
+  listeners.click({target:chip});
+  assert.equal(more.open,false);
+  assert.equal(focused,2);
+  more.open=true;
+  listeners.click({target:{closest:()=>null}});
+  assert.equal(more.open,false);
+  assert.equal(focused,2);
+  selected=[];home.syncFilterDisclosure(doc);
+  assert.equal(caption.hidden,true);
+});

@@ -57,10 +57,12 @@
     } else if (selection.category) {
       next.editorial = false;
       next.category = selection.category === next.category ? "" : normalizedCategory(selection.category);
+      if (selection.primary) next.topic = "all";
       if (next.category === "insight" && INSIGHT_TOPICS.indexOf(next.topic) < 0) next.topic = "all";
     } else if (selection.topic) {
       next.editorial = false;
       next.topic = selection.topic === next.topic ? "all" : selection.topic;
+      if (selection.primary || next.category !== "insight") next.category = "";
       if (next.category === "insight" && next.topic !== "all" && INSIGHT_TOPICS.indexOf(next.topic) < 0) {
         next.category = "";
       }
@@ -398,10 +400,44 @@
     }).join("");
   }
 
+  function syncFilterDisclosure(doc) {
+    var more = doc.getElementById("filterMore");
+    if (!more) return;
+    var labels = Array.from(more.querySelectorAll(".fchip.on")).map(function (chip) { return chip.textContent.trim(); });
+    more.classList.toggle("has-selection", labels.length > 0);
+    more.querySelector("summary").setAttribute("aria-label", "更多主题" + (labels.length ? "，已选：" + labels.join("、") : ""));
+    var caption = doc.getElementById("filterSelection");
+    if (caption) {
+      caption.hidden = !labels.length;
+      caption.textContent = labels.length ? "当前筛选：" + labels.join(" · ") : "";
+    }
+  }
+
+  function initFilterDisclosure(doc) {
+    var more = doc.getElementById("filterMore");
+    if (!more) return;
+    doc.addEventListener("click", function (event) {
+      var chip = event.target.closest && event.target.closest(".home-filters .fchip");
+      if (chip || !more.contains(event.target)) {
+        var returnFocus = chip && more.contains(chip);
+        more.open = false;
+        syncFilterDisclosure(doc);
+        if (returnFocus) more.querySelector("summary").focus();
+      }
+    });
+    doc.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && more.open) {
+        more.open = false;
+        more.querySelector("summary").focus();
+      }
+    });
+  }
+
   function boot(win) {
     var doc = win.document;
     syncFreshness(doc);
     initWeeklyTeaser(win);
+    initFilterDisclosure(doc);
     var config = doc.getElementById("homeDataConfig");
     if (!config) return;
     var root = doc.getElementById("timeline");
@@ -583,7 +619,7 @@
     if (count) count.textContent = String(total);
     if (qInput) qInput.value = state.q;
     function syncChips() {
-      doc.querySelectorAll("#chiprow .fchip").forEach(function (chip) {
+      doc.querySelectorAll(".home-filters .fchip").forEach(function (chip) {
         var isAll = chip.dataset.topic === "all";
         var isEditorial = chip.dataset.editorial === "true";
         var selected = isAll
@@ -595,12 +631,14 @@
         chip.setAttribute("aria-pressed", selected ? "true" : "false");
       });
       if (timelineTitle) timelineTitle.textContent = state.editorial ? "编辑精选" : "时间轴";
+      syncFilterDisclosure(doc);
     }
-    doc.querySelectorAll("#chiprow .fchip").forEach(function (chip) {
+    doc.querySelectorAll(".home-filters .fchip").forEach(function (chip) {
       chip.addEventListener("click", function () {
         state = filterStateAfterSelection(state, {
           all: chip.dataset.topic === "all",
           editorial: chip.dataset.editorial === "true",
+          primary: chip.dataset.primary === "true",
           category: chip.dataset.category || "",
           topic: (chip.dataset.category || chip.dataset.editorial) ? "" : (chip.dataset.topic || "")
         });
@@ -702,6 +740,8 @@
     weeklyDismissed: weeklyDismissed,
     rememberWeeklyDismissal: rememberWeeklyDismissal,
     initWeeklyTeaser: initWeeklyTeaser,
+    initFilterDisclosure: initFilterDisclosure,
+    syncFilterDisclosure: syncFilterDisclosure,
     consumeHomeTopRequest: consumeHomeTopRequest,
     shouldShowBackToTop: shouldShowBackToTop,
     preferredScrollBehavior: preferredScrollBehavior,

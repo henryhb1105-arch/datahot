@@ -1,9 +1,9 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-10-11T22:03:51.392814+00:00
+- 生成时间：2026-10-13T00:42:24.831679+00:00
 - 本轮原始发现：10
-- 未收录文章候选：45
-- 新信源候选：48
+- 未收录文章候选：47
+- 新信源候选：50
 - 已收录链接去重：0
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
 
@@ -38,6 +38,7 @@
 - [The EPA is planning to scrap public review rules for data center pollution](https://capitalbnews.org/data-centers-permit-rules-epa) · hn
 - [Denmark data breach exposes 8.8M people's personal data](https://www.cpr.dk/cpr-nyt/nyhedsarkiv/2026/okt/omfattende-uautoriseret-adgang-til-borgeres-cpr-oplysninger) · hn
 - [Data collected by cars and sold to third parties](https://www.theverge.com/column/994172/your-car-is-selling-your-data) · hn
+- [Google told to halt work on datacentres in Finland over environmental concerns](https://www.theguardian.com/technology/2026/oct/06/google-datacentres-finland-temporary-halt-environmental-impact-assessment) · hn
 - [`123456' password used in Danish CPR data breach](https://cphpost.dk/2026-10-10/news/round-up/123456-password-used-in-massive-danish-cpr-data-breach) · hn
 - [SvelteKit 3](https://svelte.dev/blog/sveltekit-3-is-here) · hn
 - [On caring for user data: NeoVim caused Vim undo files to be deleted](https://unsung.aresluna.org/they-had-no-concept-of-a-duty-of-care-to-their-users) · hn
@@ -52,4 +53,3 @@
 - [Charts built for Chat](https://dbtcharts.com/blog/charts-built-for-chat) · hn
 - [Yandex Takes a Second Data Center Hit in 48 Hours](https://united24media.com/war-in-ukraine/yandex-takes-a-second-data-center-hit-in-48-hours-now-its-biggest-russian-site-is-damaged-23277) · hn
 - [5x faster Edge Functions: V8 isolates to Firecracker MicroVMs](https://www.netlify.com/blog/edge-functions-firecracker-microvms) · hn
-- [AI needs $6T in annual revenue to justify data centre boom](https://www.thenationalnews.com/future/technology/2026/09/29/ai-industry-needs-to-earn-6-trillion-by-2031-to-justify-data-centres) · hn

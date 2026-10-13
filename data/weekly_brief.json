@@ -1,21 +1,186 @@
 {
  "schema_version": 3,
  "kind": "weekly",
- "status": "pending",
+ "status": "ready",
  "week_id": "2026-W41",
  "period_start": "2026-10-05",
  "period_end": "2026-10-11",
- "generated_at": "2026-10-12T23:28:02.880832+08:00",
- "mode": "pending",
- "ai_assisted": false,
- "fallback_reason": "personal_invalid:$: personal prose length must be 800-1200 characters, got 1389",
+ "generated_at": "2026-10-13T08:42:26.816714+08:00",
+ "mode": "ai",
+ "ai_assisted": true,
+ "fallback_reason": "",
+ "content_fingerprint": "e3fdff0d835c488fe4d8304bd644d349dcd5261cb9c4de5887eaf94a7aeabb6a",
  "input_hash": "e4fc6c790ef0fedfa983d1f36bc4e9ace6c5d41a9cd3262a809cfe41144c8428",
  "baseline_hash": "921a1a4e0e4538cdb7a7632296628b37a8d724314cbe2f57c41c5a697b651225",
  "prompt_version": "weekly-personal-v4",
  "signal_prompt_version": "weekly-signals-v4",
  "model": "deepseek-v4-flash",
- "candidate_count": 60,
- "generation_attempts": 1,
- "retry_status": "retry_deferred",
- "next_retry_at": "2026-10-13T02:02:41.023410+08:00"
+ "public_signals_fingerprint": "7c65fd114af86187ea0db8137c03609f10bd65dc962c7f517f1ca456efad121c",
+ "baseline": {
+  "requested_weeks": 4,
+  "requested_week_ids": [
+   "2026-W40",
+   "2026-W39",
+   "2026-W38",
+   "2026-W37"
+  ],
+  "available_weeks": 4,
+  "available_week_ids": [
+   "2026-W40",
+   "2026-W39",
+   "2026-W38",
+   "2026-W37"
+  ],
+  "coverage": "complete"
+ },
+ "signals": [
+  {
+   "signal_id": "semantic-layer-auto-authoring",
+   "title": "语义层口径自动盘点成新机制",
+   "change_type": "early_signal",
+   "confidence": "medium",
+   "confidence_reason": "基线四周语义层证据均为人工策展或评测，自动生成口径仅本周出现；但两条证据同属厂商自述，缺独立第三方验证。",
+   "anchor": "Aloudata BIG 解析 SQL 与任务日志建立算子级血缘并做口径裁剪，两业务域约2000个指标自动盘点、校对后准确率超99%，某银行60人月缩到一周；IFCO 在 Databricks 上按增量映射 Delta Lake 写入（聚类列、merge/replace）优化后核心语义层作业日耗时降超60%并停用夜间全量刷新。",
+   "mechanism": "共同机制是把语义层定义从人工逐条编写，改为由血缘/查询日志/写入行为等机器可读痕迹反向推导并生成可核对口径，再由人校对入库。",
+   "baseline_comparison": "W37-W40 的语义层证据集中在人工策展（Unity Catalog Pages）、语义视图规范、Spotter Memory 记忆与基准评测，未有以血缘自动批量还原口径的路径。",
+   "evidence_ids": [
+    "a5e85b0e5b72",
+    "3bab1efbb5de"
+   ],
+   "counter_evidence": "两条均为厂商自述且无第三方复现；IFCO 未给出血缘盘点环节，属性能而非口径生成；Aloudata 的99%与300倍未说明基线口径。"
+  },
+  {
+   "signal_id": "no-semantic-model-agent-failure",
+   "title": "无语义模型下Agent高置信错误的证据",
+   "change_type": "early_signal",
+   "confidence": "medium",
+   "confidence_reason": "本周首次出现可复现对照实验（33%准确率），但为单一供应商博客、单一数据集，且此前四周仅Fivetran做过同类小样本实验。",
+   "anchor": "Claude Sonnet 4.5 驱动的 AI agent 经 JDBC 访问 Snowflake TPC-H（LINEITEM 6000万行、SALES_ORDER 1500万行、CUSTOMER 150万行，X-Small仓库），无语义视图时六题仅对两题、准确率33%；作者强调错误答案的共性而非错误数量。",
+   "mechanism": "机制是同一 agent 在同一数据上仅切换“有无语义模型”，观测准确率与该错误分布的变化，用于暴露企业 AI 数据策略在业务含义层的脆弱点。",
+   "baseline_comparison": "W39 Fivetran 用5种接入方式对比 dbt 项目，Semantic Layer 是唯一让两模型零错的接口，但样本仅4张表、1个问题；本周把对照扩到更大表规模并给出整体准确率。",
+   "evidence_ids": [
+    "480c1590c586"
+   ],
+   "counter_evidence": "单一供应商博客、单次实验、6道题样本量极小；33%不能外推到生产工作负载，且未报告成本与 latency。"
+  },
+  {
+   "signal_id": "multi-agent-platform-governance",
+   "title": "多Agent平台治理把幻觉压到1.5%",
+   "change_type": "early_signal",
+   "confidence": "low",
+   "confidence_reason": "仅一条经验型媒体报告，无第二独立证据，且为非具名零售企业自述，未披露评测方法。",
+   "anchor": "某大型零售库存准确率平台的多 Agent LLM 系统：早期约15%回复为幻觉，6个月后降至1.5%；手段包括提示词注册与版本管理、schema 强制、按请求归属 token 成本、自动重试循环、意图校验门、资源服务器默认拒绝授权，以及入口埋点监控幻觉率与团队 token 成本。",
+   "mechanism": "机制是把 LLM 栈当作共享平台基础设施而非应用功能，用版本化提示、schema 强制、意图校验与成本归属等平台级控制点统一约束多个 agent。",
+   "baseline_comparison": "W38 Snowflake AI 成本治理与 W40 用户级配额、W37 Agent Identity 讨论均涉及成本与权限边界，但未给出幻觉率随平台化改造下降的量化结果。",
+   "evidence_ids": [
+    "66638a56112b"
+   ],
+   "counter_evidence": "单一案例、无具名、无可复现评测口径；1.5% 是否为持续状态、是否以漏报换取低幻觉均未说明。"
+  }
+ ],
+ "title": "语义层自动生成与无模型对照",
+ "bottom_line": "语义层开始由血缘反向生成，无语义模型对照给出33%准确率；三条线索皆为厂商自述，先小样本复现。",
+ "for_you": [
+  {
+   "signal_id": "semantic-layer-auto-authoring",
+   "priority": "安排测试",
+   "insight": "语义层定义的来源正从人工逐条编写换成机器痕迹反推。Aloudata BIG 用算子级血缘解析SQL与任务日志、做口径裁剪，两个业务域约2000个指标自动盘点，校对后准确率超99%，某银行60人月缩到一周；IFCO 按增量映射优化 Delta Lake 写入，核心语义层作业日耗时降超60%，停用夜间全量刷新。前者改口径从哪里来，后者改作业怎么跑，共同点是把可核对的机器痕迹当输入，人只做校对。",
+   "why_it_matters": "你关心的权限与业务上下文正落在口径这一层：口径若能自动还原，业务上下文的维护成本会从人月级降到校对级，评测也有可对比对象。但两条都是厂商自述，99%与60%的口径和基线都没讲清楚，不能直接当成你环境里的收益。",
+   "action": "选一个业务域做小样本对照：用现有血缘或查询日志反推口径，与人工策展版本逐条比对，记差异条数与校对耗时；再测增量写入在你数仓上的作业耗时，别拿厂商数字做容量规划。暂时无需全量替换。"
+  },
+  {
+   "signal_id": "no-semantic-model-agent-failure",
+   "priority": "继续观察",
+   "insight": "本周出现可直接复现的对照：同一 agent 经 JDBC 访问 Snowflake 的 TPC-H 大表，仅切换有无语义视图，六题仅对两题、准确率33%，作者强调错误答案的共性。样本很小，但它把问题从准确率多少挪到错在什么地方，这比数量更贴近你的评测需求。",
+   "why_it_matters": "你关注评测方法与交互设计，这条给出的方向是评测要记录错误分布而非只报总分：有语义模型时错的题与无语义模型时错的题是否同类，决定你在产品里该补口径还是补交互提示。单一供应商、单一数据集，33%不能外推到生产负载。",
+   "action": "下一轮内部评测加一组对照：同一问题集在挂载与不挂载语义定义两种配置下各跑一遍，记录错误答案的类型而非只记对错数量；若错误集中在指标口径而非查询生成，就优先补语义定义。暂不据此调整采购决策。"
+  }
+ ],
+ "what_not_to_overread": "三条线索全部来自供应商博客或经验型媒体，没有第三方复现，也没有统一评测口径。Aloudata 的99%、IFCO 的60%、Snowflake 的33%各自基线不同，不能横向比较，更不能相加成行业水平。多 Agent 治理那条幻觉率1.5%无具名企业、无评测方法，也未经第二条独立证据，不要当作可复用的效率结论。",
+ "uncertainty": "缺口有三：语义层自动盘点与无语义模型对照都是厂商自述，缺第三方复现与统一评测；1.5%幻觉率既无口径也无具名主体；W37-W40 里语义层、上下文层已被多种不同机制反复指代，若下周继续用宽泛标签聚合，容易把互不相关的机制误判成一条趋势。另外本周缺少数据 Agent 新基准结果，准确率类结论仍停留在小样本。",
+ "next_week_question": "是否出现独立第三方复现语义层自动生成或无语义模型高置信错误的量化结果，以及是否有第二家供应商公开语义层作业耗时或成本的同类改造数字？",
+ "evidence_index": [
+  {
+   "event_id": "a5e85b0e5b72",
+   "title": "语义层能否不靠人一条条建？Aloudata 口径自动盘点"
+  },
+  {
+   "event_id": "3bab1efbb5de",
+   "title": "IFCO 在 Databricks 扩展大型 dbt 项目：性能、可见性与调试"
+  },
+  {
+   "event_id": "480c1590c586",
+   "title": "自信地犯错：AI分析师在Snowflake上有无语义模型对比"
+  }
+ ],
+ "items": [
+  {
+   "event_id": "a5e85b0e5b72",
+   "title": "语义层能否不靠人一条条建？Aloudata 口径自动盘点",
+   "summary": "Aloudata 官方博客讨论 Data Agent 所需语义层如何构建，指出指标口径盘点中约 90% 的工作量花在找材料、读代码、还原口径和对齐分歧上。Aloudata BIG 通过解析 SQL 与任务日志建立算子级血缘，并做口径裁剪，结合大模型生成可核对的盘点报告。某客户选取两个业务域对约 2000 个指标自动盘点，客户校对后数据比对准确性超过 99%；某银行项目口径盘点效率提升 300 倍，原 60 个人月减少到一周。确认后的口径进入 Aloudata CAN，实现指标管理、执行和消费统一。",
+   "category": "platform",
+   "source": "Aloudata 博客",
+   "source_family": "aloudata",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://aloudata.com/blogs/can-semantic-layer-be-built-without-manual-work",
+   "published": "2026-10-08T14:32:46+08:00",
+   "heat": 48,
+   "importance": 84,
+   "vendors": [
+    "Aloudata"
+   ],
+   "topics": [
+    "语义层",
+    "Data Agent"
+   ],
+   "week_id": "2026-W41"
+  },
+  {
+   "event_id": "3bab1efbb5de",
+   "title": "IFCO 在 Databricks 扩展大型 dbt 项目：性能、可见性与调试",
+   "summary": "IFCO 运营着全球最大的可重复使用包装池之一，管理数亿个箱子和托盘，并通过 barcode/RFID/GPS 等追踪信号把数十亿原始事件转化为 KPI。其数据平台团队与 Databricks Forward Deployed Engineering 合作，将转换逻辑保留在 dbt 中，并在 Databricks 上把每个增量设置映射到具体的 Delta Lake 写入行为（聚类列、写入触及范围、merge/replace）。在正确数据粒度上优化后，核心语义层作业每日运行时间减少超过 60%，并停用了昂贵的夜间全量刷新。文章围绕大规模 dbt 项目的性能、可见性与调试展开。",
+   "category": "platform",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.databricks.com/blog/scaling-and-operating-large-dbt-project-databricks-ifcos-data-team-performance-visibility-and-debugging",
+   "published": "2026-10-07T00:00:00+08:00",
+   "heat": 44,
+   "importance": 85,
+   "vendors": [
+    "Databricks",
+    "dbt Labs"
+   ],
+   "topics": [
+    "语义层",
+    "湖仓"
+   ],
+   "week_id": "2026-W41"
+  },
+  {
+   "event_id": "480c1590c586",
+   "title": "自信地犯错：AI分析师在Snowflake上有无语义模型对比",
+   "summary": "文章用一个可复现实验，让运行在Claude Sonnet 4.5上的AI agent扮演分析师，通过JDBC访问Snowflake的TPC-H演示库（LINEITEM 6000万行、SALES_ORDER 1500万行、CUSTOMER 150万行，X-Small仓库）。在“前”场景中，agent只有JDBC连接和数据模型；在“后”场景中，它获得Snowflake语义视图。没有语义模型时，agent六道题只答对两题，准确率33%。作者指出，错误答案的共性更能揭示企业AI数据策略的脆弱点，并强调语义层对AI分析准确性的重要性。",
+   "category": "agent",
+   "source": "Snowflake Engineering（Medium）",
+   "source_family": "snowflake",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://medium.com/snowflake/confidently-wrong-i-let-an-ai-analyst-loose-on-snowflake-with-and-without-a-semantic-model-3ac30c6fe10a?source=rss----34b6daafc07---4",
+   "published": "2026-10-05T22:01:06+08:00",
+   "heat": 42,
+   "importance": 85,
+   "vendors": [
+    "Snowflake"
+   ],
+   "topics": [
+    "Data Agent",
+    "语义层"
+   ],
+   "week_id": "2026-W41"
+  }
+ ],
+ "candidate_count": 60
 }

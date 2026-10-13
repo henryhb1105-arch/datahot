@@ -338,3 +338,14 @@ a, button, input, summary { -webkit-tap-highlight-color: transparent; }
   .home-page .item details.why:not([open]) { padding-bottom: 0; }
   .home-page .item .vendors { display: none; }
 }
+
+/* Persistent selection and immediate feedback while native navigation loads. */
+.tabbar .ico { width: 44px; border-radius: 10px; transition: background .12s ease; }
+.tabbar a.on .ico,.tabbar button.on .ico,.tabbar button[aria-expanded="true"] .ico { background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--line); }
+.tabbar a.on,.tabbar button.on { color: var(--accent); font-weight: 700; }
+.tabbar a:active,.tabbar button:active,.tabbar a.is-pending { background: var(--accent-soft); }
+.tabbar a.is-pending .ico { box-shadow: inset 0 0 0 2px var(--accent); }
+.sidebar a.is-pending,.more-sheet a.is-pending { background: var(--accent-soft); color: var(--accent); }
+.nav-status { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 90; padding: 10px 16px; border-radius: 10px; background: var(--ink); color: var(--bg); font-size: 13px; box-shadow: 0 4px 18px rgba(0,0,0,.12); pointer-events: none; }
+.nav-status[hidden] { display: none; }
+@media(max-width:600px) { .nav-status { bottom: calc(68px + env(safe-area-inset-bottom)); max-width: calc(100% - 32px); white-space: nowrap; } }

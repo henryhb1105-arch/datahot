@@ -452,14 +452,14 @@ test("clear-filter recovery restores the known unfiltered first page", async () 
   assert.equal(fixture.elements.q.focused, true);
 });
 
-test("feed puts the title first and preserves the full reason in a closed disclosure", () => {
+test("feed puts the title first and shows the full reason before metadata by default", () => {
   const item = event(1);
   item.reason = 'A < B & source evidence';
   const html = home.renderTimeline([item]);
   assert.ok(html.indexOf('<h3>') < html.indexOf('class="sum"'));
   assert.ok(html.indexOf('class="sum"') < html.indexOf('class="top card-meta"'));
-  assert.match(html, /<details class="why"><summary>为什么值得关注<\/summary><p>A &lt; B &amp; source evidence<\/p><\/details>/);
-  assert.doesNotMatch(html, /<details[^>]* open/);
+  assert.match(html, /<details class="why" open><summary>为什么值得关注<\/summary><p>A &lt; B &amp; source evidence<\/p><\/details>/);
+  assert.ok(html.indexOf('class="why"') < html.indexOf('class="top card-meta"'));
 });
 
 test("opening a recommendation disclosure never navigates the surrounding card", () => {

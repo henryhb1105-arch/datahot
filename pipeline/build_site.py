@@ -1257,7 +1257,7 @@ def render_card(e, prefix="", top_rank=None):
     if n > 1:
         names = " · ".join(esc(s["source"]) for s in e["items"][1:])
         also = f'<div class="also">另有 <b>{n-1} 家信源</b>报道：{names}</div>'
-    reason = (f'<details class="why"><summary>为什么值得关注</summary>'
+    reason = (f'<details class="why" open><summary>为什么值得关注</summary>'
               f'<p>{esc(clean_reason(e["reason"]))}</p></details>') if e.get("reason") else ""
     tchips = "".join(
         f'<a class="chip" href="{prefix}topics/{TOPIC_SLUG[t]}.html">{esc(t)}</a>'
@@ -1272,11 +1272,12 @@ def render_card(e, prefix="", top_rank=None):
     return f'''<div class="item" data-cat="{esc(e["category"])}" data-topics="{esc("|".join(e.get("topics", [])))}" data-editorial="{str(bool(e.get("editorial_pick"))).lower()}" data-link="{url}" data-analytics-list="1" data-event-id="{event_id}" data-category="{esc(e["category"])}" data-source="{esc(e["items"][0]["source"])}">
       <h3><a href="{url}">{esc(e["zh_title"])}</a></h3>
       <p class="sum">{esc(e["zh_summary"])}</p>
+      {reason}
       <div class="top card-meta"><span class="card-source"><span class="srcbadge">{src_badge(e["items"][0]["source"])}</span><span class="card-source-name">{esc(src_display(e["items"][0]["source"]))}</span><span class="card-time">{card_time(e)}</span></span>
       {rank_html}
       <span class="heatnum{status_class}" title="热度分：{HEAT_FORMULA}">{ic("flame",13)} {esc(status_text)}</span>
       {favorite_button(e)}</div>
-      {vbox}{reason}{also}
+      {vbox}{also}
     </div>'''
 
 

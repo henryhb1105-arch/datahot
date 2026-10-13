@@ -956,7 +956,7 @@ def tabbar(active, prefix=""):
              ("收藏", ic("star",20), "favorites.html", "favorites")]
     primary = "".join(
         f'<a href="{prefix}{u}" class="{"on" if k == active else ""}"'
-        f'{" data-home-top" if k == "home" else ""}><span class="ico">{i}</span><span>{n}</span></a>'
+        f'{" data-home-top" if k == "home" else ""}{" aria-current=page" if k == active else ""}><span class="ico">{i}</span><span>{n}</span></a>'
         for n, i, u, k in items)
     more_items = []
     if weekly_brief_enabled():
@@ -1087,8 +1087,27 @@ def apply_site_theme(document):
     )
 
 
+def optimize_loading(document):
+    """Discover deferred scripts and follow data in the head, preserving script order."""
+    icon = re.search(r'<link rel="icon" href="((?:\.\./)*)favicon.ico"', document)
+    if not icon:
+        return document
+    prefix = icon.group(1)
+    pattern = r'<script defer src="[^"]+"></script>'
+    scripts = re.findall(pattern, document)
+    document = re.sub(pattern, '', document)
+    nav_version = hashlib.sha256((ROOT / "pipeline/assets/navigation.js").read_bytes()).hexdigest()[:12]
+    scripts.append(f'<script defer src="{prefix}navigation.js?v={nav_version}"></script>')
+    preload = ''
+    config = re.search(r'id="forMeDataConfig" data-lite-url="([^"]+)"', document)
+    if config:
+        preload = f'<link rel="preload" as="fetch" href="{config.group(1)}" crossorigin="anonymous">'
+    return document.replace('</head>', preload + '\n' + '\n'.join(scripts) + '\n</head>', 1)
+
+
 def finalize_html_security(document):
     """Inject a restrictive CSP after all trusted inline scripts are finalized."""
+    document = optimize_loading(document)
     document = apply_site_theme(document)
     if INLINE_EVENT_HANDLER_RE.search(document):
         raise ValueError("inline event handlers are forbidden by the site CSP")
@@ -3270,6 +3289,7 @@ def main():
     if not all(asset.exists() for asset in (ANALYTICS_ASSET, CONTENT_FEEDBACK_ASSET, HOME_ASSET, FOR_ME_ASSET, FAVORITES_ASSET, DETAIL_ASSET, CASES_ASSET, TTS_ASSET)):
         raise FileNotFoundError("missing browser asset")
     shutil.copyfile(THEME_ASSET, SITE / "theme.css")
+    shutil.copyfile(ROOT / "pipeline/assets/navigation.js", SITE / "navigation.js")
     shutil.copyfile(ANALYTICS_ASSET, SITE / "analytics.js")
     shutil.copyfile(CONTENT_FEEDBACK_ASSET, SITE / "content-feedback.js")
     shutil.copyfile(HOME_ASSET, SITE / "home.js")

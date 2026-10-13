@@ -25,6 +25,18 @@ class ThemeTests(unittest.TestCase):
                 self.assertEqual(build_site.apply_site_theme(document), document)
                 self.assertIn('media="(prefers-color-scheme: dark)"', document)
 
+    def test_follow_data_preloads_and_deferred_scripts_keep_order_in_head(self):
+        document = build_site.render_for_me_page('', 'data/latest-lite.json?v=example')
+        head, body = document.split('</head>', 1)
+        self.assertIn('<link rel="preload" as="fetch" href="data/latest-lite.json?v=example" crossorigin="anonymous">', head)
+        self.assertIn('for-me.js?v=', head)
+        self.assertIn('navigation.js?v=', head)
+        self.assertLess(head.index('favorites.js?v='), head.index('for-me.js?v='))
+        self.assertNotIn('<script defer', body)
+        self.assertIn('aria-current=page', build_site.tabbar('for-me'))
+        plain = build_site.page_shell('Title', '', '', '', '')
+        self.assertNotIn('rel="preload" as="fetch"', plain)
+
     def test_reading_and_action_colors_meet_normal_text_contrast(self):
         css = build_site.THEME_ASSET.read_text()
         palettes = re.findall(r':root\s*\{([^}]+)\}', css)

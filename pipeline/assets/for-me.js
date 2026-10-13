@@ -137,16 +137,19 @@
       var id = String(event.event_id || "");
       if (!/^[A-Za-z0-9_-]{1,64}$/.test(id) || dismissed.has(id)) return false;
       return !requireMatch || matchReasons(event, state).length > 0;
-    }).slice().sort(function (a, b) {
+    }).map(function (event) {
+      return { event: event, score: scoreEvent(event, state, now), time: eventTime(event) };
+    }).sort(function (left, right) {
+      var a = left.event, b = right.event;
       var aFocus = a.focus || {}, bFocus = b.focus || {};
       var aPriority = Number.isInteger(aFocus.priority) && aFocus.priority >= 0 && aFocus.priority <= 5 ? aFocus.priority : 5;
       var bPriority = Number.isInteger(bFocus.priority) && bFocus.priority >= 0 && bFocus.priority <= 5 ? bFocus.priority : 5;
       if (aPriority !== bPriority) return aPriority - bPriority;
       if (Boolean(aFocus.practical) !== Boolean(bFocus.practical)) return aFocus.practical ? -1 : 1;
-      var score = scoreEvent(b, state, now) - scoreEvent(a, state, now);
+      var score = right.score - left.score;
       if (score) return score;
-      return eventTime(b) - eventTime(a) || String(a.event_id).localeCompare(String(b.event_id));
-    });
+      return right.time - left.time || String(a.event_id).localeCompare(String(b.event_id));
+    }).map(function (row) { return row.event; });
   }
 
   function isNewSince(event, baseline) {
@@ -396,7 +399,7 @@
       var personalized = followed.length >= 1;
       var now = Date.now();
       var ranked = rankEvents(events, state, now, personalized);
-      var preview = personalized ? ranked : rankEvents(events, state, now, false);
+      var preview = ranked;
       var newCount = personalized ? ranked.filter(function (event) { return isNewSince(event, baseline) && !state.read[event.event_id]; }).length : 0;
       refs.visit.textContent = relativeVisit(baseline);
       refs.newCount.textContent = personalized ? String(newCount) : "—";
@@ -440,7 +443,7 @@
       state.favorites = win.DataHotFavorites ? win.DataHotFavorites.readRecords(storage).map(function (r) { return r.event_id; }) : uniqueStrings(loadJson(storage, FAVORITES_KEY, []), 500);
       render();
     });
-    fetch(config.dataset.liteUrl || "data/latest-lite.json", { credentials: "same-origin" }).then(function (response) {
+    win.fetch(config.dataset.liteUrl || "data/latest-lite.json", { credentials: "same-origin" }).then(function (response) {
       if (!response.ok) throw new Error("HTTP " + response.status);
       return response.json();
     }).then(function (payload) {

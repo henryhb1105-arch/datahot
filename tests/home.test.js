@@ -513,3 +513,24 @@ test("More shows the hidden active filter, closes with Escape or selection and r
   selected=[];home.syncFilterDisclosure(doc);
   assert.equal(caption.hidden,true);
 });
+
+// Shared navigation feedback regression coverage.
+const nav = require('../pipeline/assets/navigation.js');
+const location = {href:'https://datahot.xiahongbin.com/index.html'};
+const link = {href:'https://datahot.xiahongbin.com/for-me.html',target:'',hasAttribute:()=>false};
+test('only ordinary same-origin route changes show pending navigation',()=>{
+  assert.equal(nav.isNavigation({},link,location),true);
+  for(const event of [{ctrlKey:true},{metaKey:true},{button:1},{defaultPrevented:true}]) assert.equal(nav.isNavigation(event,link,location),false);
+  assert.equal(nav.isNavigation({}, {...link,href:location.href+'#timeline'},location),false);
+  assert.equal(nav.isNavigation({}, {...link,href:'https://example.com'},location),false);
+});
+test('navigation feedback clears on back-forward restoration and timeout',()=>{
+ const events={}, winEvents={}, classes=new Set(), attrs={}; let timeout;
+ const status={hidden:true,setAttribute(){}};
+ const target={...link,textContent:'关注',classList:{add:x=>classes.add(x),remove:x=>classes.delete(x)},setAttribute:(k,v)=>attrs[k]=v,removeAttribute:k=>delete attrs[k]};
+ const win={location,document:{createElement:()=>status,body:{appendChild(){}},addEventListener:(k,fn)=>events[k]=fn},addEventListener:(k,fn)=>winEvents[k]=fn,setTimeout:fn=>{timeout=fn;return 1;},clearTimeout(){}};
+ nav.boot(win); events.click({target:{closest:()=>target}});
+ assert.equal(status.hidden,false); assert.equal(attrs['aria-busy'],'true'); assert.ok(classes.has('is-pending'));
+ winEvents.pageshow();assert.equal(status.hidden,true);assert.equal(classes.size,0);
+ events.click({target:{closest:()=>target}});timeout();assert.equal(status.hidden,true);assert.equal(attrs['aria-busy'],undefined);
+});

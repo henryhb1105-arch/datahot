@@ -103,3 +103,17 @@ test("suggestions contain both topics and vendors with stable topic priority", (
   assert.deepEqual(suggestions.slice(0, 2).map((item) => item.value), ["Data Agent", "语义层"]);
   assert.ok(suggestions.some((item) => item.kind === "vendor" && item.value === "Snowflake"));
 });
+
+test("ranking computes each score once without mutating events", () => {
+  let calls = 0;
+  const rows = Array.from({length: 80}, (_, i) => {
+    const row = event(String(i).padStart(12, "0"));
+    Object.defineProperty(row, "quality_score", {get() { calls++; return 50; }});
+    return row;
+  });
+  const original = rows.slice();
+  const ranked = forMe.rankEvents(rows, forMe.normalizeState({}), Date.now(), false);
+  assert.equal(calls, rows.length);
+  assert.equal(ranked.length, rows.length);
+  assert.deepEqual(rows, original);
+});

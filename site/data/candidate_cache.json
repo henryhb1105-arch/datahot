@@ -15447,9 +15447,9 @@
   "d82c46f8047a31026a09ff076350fd997e525f075fcc9672b61d5fb148308f43": {
    "normalized_url": "https://www.threads.com/@s.mvac/post/DeYkjH7kl0W/video-watching-a-data-center-burn-to-the-ground-might-be-the-highlight-of-our-year?hpir=1&http_ref=eyJ0cyI6MTc5MTg3MDI3MjAwMCwiciI6Imh0dHBzOlwvXC93d3cuZ29vZ2xlLmNvbVwvIn0%3D",
    "source_id": "Bluesky 数据社区",
-   "content_hash": "c061133696690c0aab6a4fe07b6e73452ea5d5c68d6007dc8dffd391dbeeda56",
+   "content_hash": "93cf04d79cb00267c3baa1b686c0234f6f61e431d3159029909e0b76a072061c",
    "status": "rejected",
-   "decided_at": "2026-10-13T22:18:10.831498+08:00",
+   "decided_at": "2026-10-14T13:00:44.653836+08:00",
    "model": "deepseek-v4-flash",
    "rule_version": "enrich-v4-quality-split-work-tags-v1"
   },
@@ -16165,25 +16165,160 @@
     "trend_score": 59,
     "heat": 60
    }
+  },
+  "ca18bc05b787f5a0708d41243404cd981579c49183c09e7c8b89dea59685f3c1": {
+   "normalized_url": "https://opensource.posit.co/blog/2026-09-24_ggsql_0_5_0",
+   "source_id": "Bluesky 数据社区",
+   "content_hash": "61cb7fb57d30e28e4e8917f03f266a7991ac2ff5089b929be23c8d6bb8252f44",
+   "status": "accepted",
+   "decided_at": "2026-10-14T13:00:44.653754+08:00",
+   "model": "deepseek-v4-flash",
+   "rule_version": "enrich-v4-quality-split-work-tags-v1",
+   "enrichment": {
+    "zh_title": "ggsql 0.5.0 发布 beta：用 SQL 绘图",
+    "zh_summary": "Posit 宣布 ggsql 0.5.0 进入首个 beta 版本。该版本新增 ADBC 读取器与 hybrid-reader 模式，可在只读数据库上先将查询结果转入 DuckDB/SQLite 等内存库处理，并输出 PDF/SVG 图表。ggsql 支持通过 SQL 生成出版级图表，无需切换到 R 或 Python，并内置 Markdown 文本格式。原文提到 hybrid 模式可绕过后端写权限限制，但数据量很大时会带来额外开销。",
+    "reason": "数据从业者可关注 SQL 原生可视化工具如何降低在数据库内出图的门槛，以及只读连接与缓存权衡对分析流程的影响。",
+    "category": "bi",
+    "category_label": "BI 与可视化",
+    "vendors": [
+     "Posit",
+     "DuckDB",
+     "SQLite"
+    ],
+    "topics": [],
+    "work_tags": {
+     "taxonomy_version": "work-tags-v1",
+     "product_objects": [
+      "报表与可视化"
+     ],
+     "use_cases": [
+      "自助分析"
+     ],
+     "decision_concerns": [
+      "成本与性能"
+     ]
+    },
+    "shelf": "news",
+    "importance": 83,
+    "quality_score": 83,
+    "quality_breakdown": {
+     "originality": 25,
+     "evidence_density": 20,
+     "information_gain": 20,
+     "actionability_depth": 18
+    },
+    "trend_score": 58,
+    "heat": 69
+   }
+  },
+  "b99b41cb356f12ab48e167f02f9e4b80af2a1795f93541c920e74747bfad8012": {
+   "normalized_url": "https://www.anthropic.com/news/investigating-unintended-model-actions",
+   "source_id": "Bluesky 数据社区",
+   "content_hash": "52e321b906f4394ac491e76f1e6a7ea43fb842e542dd2d587f79b243733d27d1",
+   "status": "rejected",
+   "decided_at": "2026-10-14T13:00:44.653823+08:00",
+   "model": "deepseek-v4-flash",
+   "rule_version": "enrich-v4-quality-split-work-tags-v1"
+  },
+  "546bd88a2d135533a4fc349b41c810a1539872cc8ec7a6482194d2d464f2f107": {
+   "normalized_url": "https://cloud.google.com/blog/products/data-analytics/cross-cloud-conversational-analytics-with-borderless-lakehouse",
+   "source_id": "Google Cloud Data Analytics Blog",
+   "content_hash": "634ac0a8d2e5d3513710886737545848da6f3b72895792c83b276a3cbe0ab7d0",
+   "status": "accepted",
+   "decided_at": "2026-10-14T13:00:45.093491+08:00",
+   "model": "deepseek-v4-flash",
+   "rule_version": "enrich-v4-quality-split-work-tags-v1",
+   "enrichment": {
+    "zh_title": "Google Cloud 跨云对话式分析：无边界湖仓",
+    "zh_summary": "Google Cloud 介绍无边界湖仓（borderless Lakehouse）在跨云对话式分析中的生产部署注意事项。使用 federated catalogs 时，--refresh-interval 控制元数据同步，最小间隔为 300 秒；大目录同步超时会跳过下一轮以避免排队。BigQuery 会将跨云缓存块存放在 federated catalog 所在区域（如 us-central1），并默认使用 Google 管理加密密钥；若启用 constraints/gcp.restrictNonCmekServices，则绕过缓存直读远端存储。用户可通过 BigQuery 作业统计的 objectStorageStats 比较 cacheBytesRead 与 objectStorageBytesRead 来评估缓存利用率。",
+    "reason": "面向数据平台/湖仓从业者的跨云联邦查询生产实践，涉及缓存、数据驻留、加密和监控，对架构与治理决策有直接参考价值。",
+    "category": "platform",
+    "category_label": "AI 数据平台",
+    "vendors": [
+     "Google",
+     "Google Cloud",
+     "BigQuery"
+    ],
+    "topics": [
+     "湖仓"
+    ],
+    "work_tags": {
+     "taxonomy_version": "work-tags-v1",
+     "product_objects": [
+      "数据资产",
+      "权限与治理"
+     ],
+     "use_cases": [
+      "数据接入"
+     ],
+     "decision_concerns": [
+      "权限与安全",
+      "成本与性能"
+     ]
+    },
+    "shelf": "evergreen",
+    "importance": 70,
+    "quality_score": 70,
+    "quality_breakdown": {
+     "originality": 18,
+     "evidence_density": 18,
+     "information_gain": 16,
+     "actionability_depth": 18
+    },
+    "trend_score": 42,
+    "heat": 55
+   }
+  },
+  "81a248f3fc653f72f56174ad5c68563aae81e78b6c0602a5bb0eb7296d033245": {
+   "normalized_url": "https://www.pingcap.com/blog/persistent-ai-memory",
+   "source_id": "TiDB Blog",
+   "content_hash": "e007987bb87a7c6b3de52caf66a7aed52ac4e94017d5f2c6810fd965701d1457",
+   "status": "accepted",
+   "decided_at": "2026-10-14T13:00:56.359943+08:00",
+   "model": "deepseek-v4-flash",
+   "rule_version": "enrich-v4-quality-split-work-tags-v1",
+   "enrichment": {
+    "zh_title": "持久化AI Agent记忆：跨会话如何记住上下文",
+    "zh_summary": "文章将持久化 AI Agent 记忆定义为模型上下文和权重之外的外部存储层，用于跨会话、工具与机器保存和检索有用上下文，而不是依赖更大的上下文窗口。它区分情节、语义和程序性记忆，并强调通过“捕获到更新”的循环保持记忆最新；Claude Code、Codex 和 Dify 可共享同一持久状态层。作者指出，仅靠向量检索不够，生产级记忆还需要范围、元数据与一致性。文中还以会话保持50轮连贯为例，说明会话连续性不等于持久召回。",
+    "reason": "AI Agent 正在进入生产，跨会话记忆直接影响分析型 Agent 的准确性与可用性；文中关于外部存储、记忆类型和一致性要求的拆解，对构建可运营的 Data Agent 有参考价值。",
+    "category": "agent",
+    "category_label": "Data Agent",
+    "vendors": [
+     "PingCAP",
+     "TiDB"
+    ],
+    "topics": [
+     "Data Agent"
+    ],
+    "work_tags": {
+     "taxonomy_version": "work-tags-v1",
+     "product_objects": [
+      "知识与上下文"
+     ],
+     "use_cases": [
+      "Agent构建",
+      "生产评估与运营"
+     ],
+     "decision_concerns": [
+      "准确性与语义一致性",
+      "可靠性与评估"
+     ]
+    },
+    "shelf": "evergreen",
+    "importance": 45,
+    "quality_score": 45,
+    "quality_breakdown": {
+     "originality": 12,
+     "evidence_density": 6,
+     "information_gain": 15,
+     "actionability_depth": 12
+    },
+    "trend_score": 9,
+    "heat": 25
+   }
   }
  },
  "runs": [
-  {
-   "run_id": "github-36317583856-1",
-   "started_at": "2026-09-27T20:03:53.300672+08:00",
-   "finished_at": "2026-09-27T20:05:28.821987+08:00",
-   "lookups": 4,
-   "hits": 4,
-   "accepted_hits": 0,
-   "rejected_hits": 4,
-   "misses": 0,
-   "expired": 0,
-   "content_changed": 0,
-   "version_invalidated": 0,
-   "error_backoff_hits": 0,
-   "error_retries": 0,
-   "writes": 0
-  },
   {
    "run_id": "github-36335127243-1",
    "started_at": "2026-09-28T01:02:52.296041+08:00",
@@ -16967,23 +17102,39 @@
    "error_backoff_hits": 0,
    "error_retries": 0,
    "writes": 30
+  },
+  {
+   "run_id": "github-38513648530-1",
+   "started_at": "2026-10-14T12:59:28.802548+08:00",
+   "finished_at": "2026-10-14T13:04:51.048372+08:00",
+   "lookups": 30,
+   "hits": 16,
+   "accepted_hits": 1,
+   "rejected_hits": 15,
+   "misses": 14,
+   "expired": 0,
+   "content_changed": 1,
+   "version_invalidated": 0,
+   "error_backoff_hits": 0,
+   "error_retries": 0,
+   "writes": 5
   }
  ],
  "last_stats": {
-  "run_id": "github-38479711980-1",
-  "started_at": "2026-10-14T06:48:59.624086+08:00",
-  "finished_at": "2026-10-14T06:52:15.462357+08:00",
-  "lookups": 45,
-  "hits": 11,
-  "accepted_hits": 0,
-  "rejected_hits": 11,
-  "misses": 34,
+  "run_id": "github-38513648530-1",
+  "started_at": "2026-10-14T12:59:28.802548+08:00",
+  "finished_at": "2026-10-14T13:04:51.048372+08:00",
+  "lookups": 30,
+  "hits": 16,
+  "accepted_hits": 1,
+  "rejected_hits": 15,
+  "misses": 14,
   "expired": 0,
-  "content_changed": 0,
+  "content_changed": 1,
   "version_invalidated": 0,
   "error_backoff_hits": 0,
   "error_retries": 0,
-  "writes": 30
+  "writes": 5
  },
- "updated_at": "2026-10-14T06:52:15.462357+08:00"
+ "updated_at": "2026-10-14T13:04:51.048372+08:00"
 }

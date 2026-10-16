@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-CSxpyNo2d5N5OOj2JFwzYhzovI4teh7Wi3pLVLl7wGA=' 'sha256-e5BRsc++z1LwEcHc6SiA9YYMTmOp8jwWCVBrVi2l3NM='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7+BP2LZiAkblWotcSltoDnlxxWloi8nVnWYxXXhFd40=' 'sha256-e5BRsc++z1LwEcHc6SiA9YYMTmOp8jwWCVBrVi2l3NM=' 'sha256-fRbHDyUAn25v4QGJW8l8iuxgtYZLOj4juWHQIWWU9lo='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>ClickHouse 查询尾延迟 32ms 根因与修复 · DataHot</title>
@@ -971,7 +971,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title":"ClickHouse 查询尾延迟 32ms 根因与修复","summary":"客户在空闲后执行简单 SELECT 查询时，观察到约 32 ms 的额外尾延迟。ClickHouse 团队将其定位为 Native 协议元数据包未批量发送，导致重置后的 TCP 拥塞窗口被撑满。作者用 network namespace 和 tc 模拟约 32 ms 网络 RTT，并设置 initcwnd=8 复现了该问题。最终通过批量发送这些元数据包修复。","reason":"这是 ClickHouse 官方对生产环境尾部延迟的完整根因分析、复现和修复，涉及 Native 协议与 TCP 拥塞控制，对数据库性能排查和网络调优有直接参考价值。","topic":"","heat":58,"source":"ClickHouse Blog","date":"2026-10-13","url":"https://datahot.xiahongbin.com/e/592746be7343.html","qr":"../qr/592746be7343.png"};
+var SH_EV = {"title":"ClickHouse 查询尾延迟 32ms 根因与修复","summary":"客户在空闲后执行简单 SELECT 查询时，观察到约 32 ms 的额外尾延迟。ClickHouse 团队将其定位为 Native 协议元数据包未批量发送，导致重置后的 TCP 拥塞窗口被撑满。作者用 network namespace 和 tc 模拟约 32 ms 网络 RTT，并设置 initcwnd=8 复现了该问题。最终通过批量发送这些元数据包修复。","reason":"这是 ClickHouse 官方对生产环境尾部延迟的完整根因分析、复现和修复，涉及 Native 协议与 TCP 拥塞控制，对数据库性能排查和网络调优有直接参考价值。","topic":"","heat":56,"source":"ClickHouse Blog","date":"2026-10-13","url":"https://datahot.xiahongbin.com/e/592746be7343.html","qr":"../qr/592746be7343.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

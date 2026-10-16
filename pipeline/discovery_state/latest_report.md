@@ -1,21 +1,21 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-10-15T21:27:22.679475+00:00
-- 本轮原始发现：11
-- 未收录文章候选：47
-- 新信源候选：55
+- 生成时间：2026-10-16T21:14:09.436608+00:00
+- 本轮原始发现：9
+- 未收录文章候选：49
+- 新信源候选：56
 - 已收录链接去重：0
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
 
 ## 发现通道
 
 - openai_web_search: skipped · OPENAI_API_KEY 未配置
-- hn_official: ok · 4 条
-- accepted_link_graph: ok · 7 条
+- hn_official: ok · 1 条
+- accepted_link_graph: ok · 8 条
 
 ## 优先检查的新信源
 
-- **www.infoq.com** · PROBATION · 3 篇 · accepted_link_graph
+- **www.infoq.com** · PROBATION · 4 篇 · accepted_link_graph
 - **www.snowflake.com** · PROBATION · 3 篇 · accepted_link_graph
 - **www-cdn.anthropic.com** · PROBATION · 2 篇 · accepted_link_graph
 - **www.imf.org** · PROBATION · 1 篇 · accepted_link_graph

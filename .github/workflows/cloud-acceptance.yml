@@ -1,0 +1,81 @@
+name: DataHot 云端验收
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/cloud-acceptance.yml'
+      - 'tests/cloud-acceptance.cjs'
+      - 'ops/cloud-acceptance/**'
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'local 构建候选站；production 验收已经统一发布的站点'
+        type: choice
+        options: [local, production]
+        default: local
+        required: true
+      expected_source_sha:
+        description: 'production 必须填写预期线上 source SHA（40 位）'
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: datahot-cloud-acceptance-${{ github.ref }}-${{ inputs.target || 'local' }}
+  cancel-in-progress: false
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: 安装固定依赖与 Linux 浏览器
+        run: |
+          python -m pip install --require-hashes -r requirements.txt
+          npm ci --prefix ops/cloud-acceptance --ignore-scripts
+          npm exec --prefix ops/cloud-acceptance -- playwright install --with-deps chromium
+      - name: 回归测试
+        run: |
+          python -m unittest discover -s tests
+          node --test tests/*.test.js
+      - name: 构建候选站并校验数据完整性
+        if: inputs.target != 'production'
+        run: |
+          baseline="$RUNNER_TEMP/datahot-baseline"
+          mkdir -p "$baseline"
+          curl --fail --retry 3 --max-time 60 -o "$baseline/latest.json" https://datahot.xiahongbin.com/data/latest.json
+          curl --fail --retry 3 --max-time 60 -o "$baseline/release.json" https://datahot.xiahongbin.com/data/release.json
+          jq -r '.events[].event_id | "e/\(.).html"' "$baseline/latest.json" > "$baseline/details.txt"
+          python pipeline/build_site.py
+          python pipeline/release_guard.py \
+            --baseline-latest "$baseline/latest.json" \
+            --baseline-details "$baseline/details.txt" \
+            --baseline-manifest "$baseline/release.json" \
+            --candidate-site site --source-sha "$GITHUB_SHA" \
+            --run-id "$GITHUB_RUN_ID" --issue '#243 cloud acceptance, no publication' \
+            --output "$RUNNER_TEMP/candidate-release.json"
+      - name: 实际交互、资源版本与截图
+        env:
+          DATAHOT_TEST_BASE: ${{ inputs.target == 'production' && 'https://datahot.xiahongbin.com/' || '' }}
+          DATAHOT_EXPECTED_SHA: ${{ inputs.expected_source_sha }}
+          DATAHOT_ARTIFACT_DIR: ${{ runner.temp }}/datahot-cloud-acceptance
+        run: node tests/cloud-acceptance.cjs
+      - name: 保存验收证据（截图仍需审阅）
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloud-acceptance-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/datahot-cloud-acceptance/
+            ${{ runner.temp }}/candidate-release.json
+          retention-days: 14
+          if-no-files-found: warn

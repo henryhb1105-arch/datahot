@@ -229,20 +229,24 @@
     return (payload.home_event_ids || []).map(function (id) { return map.get(id); }).filter(Boolean);
   }
 
+  function normalizeSearchText(value) {
+    return String(value || "").normalize("NFKC").toLocaleLowerCase("zh-CN");
+  }
+
   function filterEvents(events, state) {
     var topic = state.topic && state.topic !== "all" ? state.topic : "";
     var category = normalizedCategory(state.category);
     var editorial = Boolean(state.editorial);
-    var q = String(state.q || "").toLocaleLowerCase("zh-CN");
+    var terms = normalizeSearchText(state.q).split(/\s+/).filter(Boolean);
     var filtered = (events || []).filter(function (event) {
       if (editorial && !event.editorial_pick) return false;
       if (category && event.category !== category) return false;
       if (topic && (event.topics || []).indexOf(topic) < 0) return false;
-      if (!q) return true;
-      var text = [event.zh_title, event.zh_summary, event.reason, event.category_label]
+      if (!terms.length) return true;
+      var text = normalizeSearchText([event.zh_title, event.zh_summary, event.reason, event.category_label]
         .concat(event.topics || [], event.vendors || [], (event.items || []).map(function (item) { return item.source; }))
-        .join(" ").toLocaleLowerCase("zh-CN");
-      return text.indexOf(q) >= 0;
+        .join(" "));
+      return terms.every(function (term) { return text.indexOf(term) >= 0; });
     });
     if (editorial) {
       filtered.sort(function (left, right) {
@@ -268,6 +272,12 @@
       String(state && state.topic || "all") !== "all" ||
       normalizedCategory(state && state.category)
     );
+  }
+
+  function renderNoResults() {
+    return '<div class="scard filter-error" role="status"><b>没有匹配的事件</b>' +
+      '<p>试试减少关键词或调整主题。多个关键词用空格分隔，例如 Snowflake Cortex。</p>' +
+      '<div class="filter-error-actions"><button type="button" data-filter-clear>清除搜索与筛选</button></div></div>';
   }
 
   function renderLoadFailure() {
@@ -586,7 +596,7 @@
       }
       return fetchEvents().then(function (events) {
         var result = visibleEvents(events, state, pageSize);
-        root.innerHTML = renderTimeline(result.visible, topRanks, state.editorial) || '<div class="scard" style="color:var(--sub)">没有匹配的事件</div>';
+        root.innerHTML = renderTimeline(result.visible, topRanks, state.editorial) || renderNoResults();
         syncTodayLabels();
         count.textContent = String(result.filtered.length);
         if (qClear) qClear.style.display = state.q ? "" : "none";
@@ -749,6 +759,7 @@
     navigationType: navigationType,
     shouldRestoreInitialSnapshot: shouldRestoreInitialSnapshot,
     renderLoadFailure: renderLoadFailure,
+    renderNoResults: renderNoResults,
     topRanksFromIds: topRanksFromIds,
     renderTimeline: renderTimeline,
     boot: boot

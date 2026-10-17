@@ -876,7 +876,7 @@ def render_timeline_toolbar(total_count):
     return f'''<div class="section-title timeline-toolbar">
   <h2 id="timelineTitle">{ic("calendar",18)} <span data-timeline-title>时间轴</span></h2>
   <div class="timeline-searchbox">
-    <input id="q" class="tlsearch" placeholder="搜索" aria-label="搜索时间轴" title="搜索范围：全部在站时间轴的标题、摘要与标签">
+    <input id="q" class="tlsearch" placeholder="搜索" aria-label="搜索时间轴" title="搜索范围：全部在站时间轴的标题、摘要与标签；多个关键词用空格分隔，不限词序">
     <button id="qClear" class="timeline-clear" type="button" style="display:none" aria-label="清除搜索" title="清除搜索">✕</button>
   </div>
   <span class="timeline-count">（<span id="rCount">{total_count}</span>）</span>

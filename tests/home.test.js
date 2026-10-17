@@ -534,3 +534,29 @@ test('navigation feedback clears on back-forward restoration and timeout',()=>{
  winEvents.pageshow();assert.equal(status.hidden,true);assert.equal(classes.size,0);
  events.click({target:{closest:()=>target}});timeout();assert.equal(status.hidden,true);assert.equal(attrs['aria-busy'],undefined);
 });
+
+
+test("search combines words across fields regardless of order, whitespace and width", () => {
+  const rows = [
+    {...event(1), zh_title:"Cortex Search 更新", vendors:["Snowflake"], zh_summary:"语义检索"},
+    {...event(2), zh_title:"Snowflake 存储更新"},
+    {...event(3), zh_title:"ＣＯＲＴＥＸ 更新", vendors:["Snowflake"]}
+  ];
+  for (const q of ["Snowflake Cortex", "cortex snowflake", "  Snowflake   Cortex  ", "Ｓｎｏｗｆｌａｋｅ　Ｃｏｒｔｅｘ", "Cortex\tSnowflake\n"]) {
+    assert.deepEqual(home.filterEvents(rows,{q}).map(x=>x.event_id),[rows[0].event_id,rows[2].event_id]);
+  }
+  assert.deepEqual(home.filterEvents(rows,{q:"语义检索 Snowflake"}),[rows[0]]);
+  assert.deepEqual(home.filterEvents(rows,{q:"Cortex unknown"}),[]);
+  assert.deepEqual(home.filterEvents(rows,{q:"   "}),rows);
+  assert.deepEqual(home.filterEvents(rows,{q:"Snowflake Cortex",topic:"missing"}),[]);
+  assert.deepEqual(home.filterEvents(rows,{q:"Snowflake Cortex",category:"insight"}),[]);
+  assert.deepEqual(home.filterEvents(rows,{q:"Snowflake Cortex",editorial:true}),[]);
+  assert.deepEqual(home.filterEvents(rows,{q:"Cortex"}).map(x=>x.event_id),[rows[0].event_id,rows[2].event_id]);
+});
+
+test("empty search results explain matching and offer the existing reset action", () => {
+  const html = home.renderNoResults();
+  assert.match(html,/role="status"/);
+  assert.match(html,/多个关键词用空格分隔/);
+  assert.match(html,/<button type="button" data-filter-clear>清除搜索与筛选<\/button>/);
+});

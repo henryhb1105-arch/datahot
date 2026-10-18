@@ -35,6 +35,8 @@ class ForMeBuildTests(unittest.TestCase):
         self.assertIn("为什么重要", script)
         self.assertIn("与你选择的 ", script)
         self.assertRegex(page, r'src="for-me\.js\?v=[a-f0-9]{12}"')
+        self.assertRegex(page, r'src="content-affinity\.js\?v=[a-f0-9]{12}"')
+        self.assertLess(page.index('content-affinity.js?'), page.index('for-me.js?'))
         self.assertIn('data-lite-url="data/latest-lite.json"', page)
         self.assertIn('data-nav-active="for-me"', page)
 

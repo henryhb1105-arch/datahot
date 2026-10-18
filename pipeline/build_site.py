@@ -45,6 +45,7 @@ WEEKLY_DIR = SITE / "weekly"
 ANALYTICS_ASSET = ROOT / "pipeline" / "assets" / "analytics.js"
 CONTENT_FEEDBACK_ASSET = ROOT / "pipeline" / "assets" / "content-feedback.js"
 HOME_ASSET = ROOT / "pipeline" / "assets" / "home.js"
+AFFINITY_ASSET = ROOT / "pipeline" / "assets" / "content-affinity.js"
 READING_ASSET = ROOT / "pipeline" / "assets" / "reading-profile.js"
 FOR_ME_ASSET = ROOT / "pipeline" / "assets" / "for-me.js"
 FAVORITES_ASSET = ROOT / "pipeline" / "assets" / "favorites.js"
@@ -2984,7 +2985,7 @@ def render_for_me_page(css, data_url="data/latest-lite.json"):
   </section>
 
   <div class="fm-home-choice"><label><input type="checkbox" id="fmDefaultHome"> 将「为你」设为默认首页</label><p id="fmDefaultStatus" role="status">默认打开热榜；勾选后访问网站首页将进入为你。</p></div>
-  <details class="fm-home-choice" id="reading-settings"><summary>浏览行为推荐 · 仅保存在当前浏览器</summary><label><input type="checkbox" id="fmBehaviorEnabled" checked> 用浏览行为改善推荐</label><p id="fmBehaviorStatus" role="status">正在读取本地阅读记录…</p><p>前台有效阅读、重访、收藏与反馈帮助发现相关内容；不上传阅读历史。最多保留 200 篇、90 天，旧兴趣逐渐减弱。</p><button type="button" class="fm-action" id="fmClearReading">清除阅读记录</button></details>
+  <details class="fm-home-choice" id="reading-settings"><summary>浏览行为推荐 · 仅保存在当前浏览器</summary><label><input type="checkbox" id="fmBehaviorEnabled" checked> 用浏览行为改善推荐</label><p id="fmBehaviorStatus" role="status">正在读取本地阅读记录…</p><p>依据有效阅读文章的标题与内容介绍匹配具体问题，收藏与反馈权重更高；不上传阅读历史。最多保留 200 篇、90 天，旧兴趣逐渐减弱。</p><button type="button" class="fm-action" id="fmClearReading">清除阅读记录</button></details>
     <nav class="fm-settings-links" aria-label="更多发现"><a href="products.html">产品雷达 →</a><a href="paths.html">实施参考 →</a></nav>
   </dialog>
   <div id="fmNotice" role="status" hidden><span></span> <button type="button" class="fm-action">撤销</button></div>
@@ -3021,6 +3022,7 @@ def render_for_me_page(css, data_url="data/latest-lite.json"):
   </div>
   <noscript><div class="fm-error">为你页面需要浏览器 JavaScript 来保存本地关注。你仍可继续使用热榜、主题和周报。</div></noscript>
 </main>
+<script defer src="content-affinity.js?v={hashlib.sha256(AFFINITY_ASSET.read_bytes()).hexdigest()[:12]}"></script>
 <script defer src="reading-profile.js?v={hashlib.sha256(READING_ASSET.read_bytes()).hexdigest()[:12]}"></script>
 <script defer src="for-me.js?v={hashlib.sha256(FOR_ME_ASSET.read_bytes()).hexdigest()[:12]}"></script>'''
     return page_shell(
@@ -3332,13 +3334,14 @@ def main():
     SITE.mkdir(parents=True, exist_ok=True)
     remove_retired_public_pages()
     write_bluesky_handle_verification()
-    if not all(asset.exists() for asset in (ANALYTICS_ASSET, CONTENT_FEEDBACK_ASSET, HOME_ASSET, READING_ASSET, FOR_ME_ASSET, FAVORITES_ASSET, DETAIL_ASSET, CASES_ASSET, TTS_ASSET)):
+    if not all(asset.exists() for asset in (ANALYTICS_ASSET, CONTENT_FEEDBACK_ASSET, HOME_ASSET, AFFINITY_ASSET, READING_ASSET, FOR_ME_ASSET, FAVORITES_ASSET, DETAIL_ASSET, CASES_ASSET, TTS_ASSET)):
         raise FileNotFoundError("missing browser asset")
     shutil.copyfile(THEME_ASSET, SITE / "theme.css")
     shutil.copyfile(ROOT / "pipeline/assets/navigation.js", SITE / "navigation.js")
     shutil.copyfile(ANALYTICS_ASSET, SITE / "analytics.js")
     shutil.copyfile(CONTENT_FEEDBACK_ASSET, SITE / "content-feedback.js")
     shutil.copyfile(HOME_ASSET, SITE / "home.js")
+    shutil.copyfile(AFFINITY_ASSET, SITE / "content-affinity.js")
     shutil.copyfile(READING_ASSET, SITE / "reading-profile.js")
     shutil.copyfile(FOR_ME_ASSET, SITE / "for-me.js")
     shutil.copyfile(FAVORITES_ASSET, SITE / "favorites.js")

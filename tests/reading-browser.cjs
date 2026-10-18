@@ -9,8 +9,8 @@ module.exports=async function(context,base,out,width){
   localStorage.setItem('dh_for_me_v1',JSON.stringify({setupDone:true}));sessionStorage.clear();
  });
  const data=await (await context.request.get(base+'data/latest-lite.json')).json();
- const candidates=data.events.filter(e=>(e.topics||[]).includes('语义层'));
- assert(candidates.length>=3);
+ const candidates=['64843a2454f2','7175222a4aa1'].map(id=>data.events.find(e=>e.event_id===id));
+ assert(candidates.every(Boolean),'Evaluation reading fixtures must remain in the index');
  const readIds=[];
  for(const e of candidates){
   await page.goto(base+'e/'+e.event_id+'.html',{waitUntil:'networkidle'});
@@ -28,9 +28,28 @@ module.exports=async function(context,base,out,width){
  await page.goto(base+'for-me.html',{waitUntil:'networkidle'});
  assert(!(await page.locator('#fmSetup').isVisible()),'Learned preferences bypass mandatory setup');
  const reasons=await page.locator('#fmMustList .fm-why').allTextContents();
- assert(reasons.some(x=>x.includes('近期的阅读')),'Behavior should recommend without selected keywords');
+ assert(reasons.some(x=>x.includes('接着你读过')),'Behavior should recommend without selected keywords');
  for(const id of readIds) assert.equal(await page.locator(`#fmMustList [data-event-id="${id}"]`).count(),0);
+ const affinityAsset=new URL(await page.locator('script[src*="content-affinity.js?"]').getAttribute('src'),base);
+ const affinityResponse=await context.request.get(affinityAsset.href);assert(affinityResponse.ok());
+ assert.equal(crypto.createHash('sha256').update(await affinityResponse.body()).digest('hex').slice(0,12),affinityAsset.searchParams.get('v'));
+ const evaluationIds=await page.locator('#fmMustList .fm-signal').evaluateAll(nodes=>nodes.map(n=>n.dataset.eventId));
+ assert(evaluationIds.some(id=>['d59935fed7ef','40c2caf96019'].includes(id)),'Evaluation reading must surface concrete evaluation material');
+ assert(!evaluationIds.includes('b8c3b1774462'),'A broad semantic-layer label must not replace the reading intent');
+ assert((await page.locator('#fmMustList .fm-signal').first().boundingBox()).y<200);
+ assert(await page.locator('#fmMustList time').count()>0,'Older references retain visible publication dates');
+ for(const id of evaluationIds){const e=data.events.find(e=>e.event_id===id);assert.equal(await page.locator(`#fmMustList [data-event-id="${id}"] time`).innerText(),String(e.published||e.first_seen).slice(0,10),'Keep source calendar date across time zones');}
  await page.screenshot({path:path.join(out,`${width}-reading-recommendations.png`)});
+ // Counterfactual history is local to this disposable browser, not production activity.
+ const actualHistory=await page.evaluate(()=>localStorage.getItem('dh_reading_v1'));
+ await page.evaluate(()=>localStorage.setItem('dh_reading_v1',JSON.stringify({enabled:true,entries:{a5e85b0e5b72:[Date.now()],f2cae75df487:[Date.now()]}})));
+ await page.reload({waitUntil:'networkidle'});
+ const metricIds=await page.locator('#fmMustList .fm-signal').evaluateAll(nodes=>nodes.map(n=>n.dataset.eventId));
+ assert(metricIds.some(id=>['b8c3b1774462','1040324d5b86','17b3b16903c0'].includes(id)),'Metric definition reading must surface a different concrete need');
+ assert(!metricIds.includes('40c2caf96019'));assert.notDeepEqual(metricIds,evaluationIds);
+ await page.screenshot({path:path.join(out,`${width}-reading-metrics.png`)});
+ await page.evaluate(history=>localStorage.setItem('dh_reading_v1',history),actualHistory);
+ await page.reload({waitUntil:'networkidle'});
  const reduce=page.locator('[data-action="reduce"]').first();await reduce.click();
  assert((await page.evaluate(()=>JSON.parse(localStorage.getItem('dh_reading_v1')).muted.length))>0);
  await page.locator('#fmNotice button').click();
@@ -39,7 +58,7 @@ module.exports=async function(context,base,out,width){
  await page.locator('#reading-settings summary').click();
  await page.locator('#fmBehaviorEnabled').uncheck();
  assert.match(await page.locator('#fmBehaviorStatus').innerText(),/已暂停/);
- assert.equal(await page.locator('.fm-why').filter({hasText:'近期的阅读'}).count(),0);
+ assert.equal(await page.locator('.fm-why').filter({hasText:'接着你读过'}).count(),0);
  await page.locator('#fmClearReading').click();
  assert.equal(await page.evaluate(()=>Object.keys(JSON.parse(localStorage.getItem('dh_reading_v1')).entries).length),0);
  await page.reload({waitUntil:'networkidle'});
@@ -57,5 +76,5 @@ module.exports=async function(context,base,out,width){
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
  assert.deepEqual(errors,[]);
  await page.close();
- return {status:'PASS',readIds,reasons,checks:['real foreground reading','behavior recommendations without keywords','qualified articles folded','reduce/undo','pause and clear persisted','paused detail creates no record','asset hash','no overflow']};
+ return {status:'PASS',readIds,reasons,evaluationIds,metricIds,checks:['real foreground reading','concrete content recommendations without keywords','different histories yield different first picks','no broad label substitution','older references dated','first card under 200px','qualified articles folded','reduce/undo','pause and clear persisted','paused detail creates no record','asset hash','no overflow']};
 };

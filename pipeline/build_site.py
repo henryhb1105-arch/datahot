@@ -45,6 +45,7 @@ WEEKLY_DIR = SITE / "weekly"
 ANALYTICS_ASSET = ROOT / "pipeline" / "assets" / "analytics.js"
 CONTENT_FEEDBACK_ASSET = ROOT / "pipeline" / "assets" / "content-feedback.js"
 HOME_ASSET = ROOT / "pipeline" / "assets" / "home.js"
+READING_ASSET = ROOT / "pipeline" / "assets" / "reading-profile.js"
 FOR_ME_ASSET = ROOT / "pipeline" / "assets" / "for-me.js"
 FAVORITES_ASSET = ROOT / "pipeline" / "assets" / "favorites.js"
 DETAIL_ASSET = ROOT / "pipeline" / "assets" / "detail.js"
@@ -750,6 +751,8 @@ CASE_DETAIL_CSS = """
 
 FOR_ME_CSS = """
 .fm-home-choice{margin:0 0 24px;padding:14px 0;border-block:1px solid var(--line);font-size:13px}
+#reading-settings{scroll-margin-top:250px}
+.fm-home-choice summary{cursor:pointer;min-height:44px;padding:10px 0;scroll-margin-top:240px}
 .fm-home-choice label{display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer}
 .fm-home-choice p{color:var(--sub);margin:4px 0}
 .fm-setup-actions{display:flex;gap:16px;flex-wrap:wrap;margin-top:18px}
@@ -1824,6 +1827,7 @@ def render_detail(e, all_events, css, tts_item=None, product_case=None, site_roo
 {favorites_head("../")}
 <script defer src="../content-feedback.js"></script>
 <script defer src="../detail.js"></script>
+<script defer src="../reading-profile.js?v={hashlib.sha256(READING_ASSET.read_bytes()).hexdigest()[:12]}"></script>
 <script type="application/ld+json">{jsonld}</script>
 <style>{css}
 {SHARED_CSS}
@@ -1990,6 +1994,7 @@ def render_detail(e, all_events, css, tts_item=None, product_case=None, site_roo
     {f'<span style="color:var(--sub);font-size:11px" title="加入编辑精选的时间">精选于 {fmt_date(e.get("curated_at"))}</span>' if e.get("editorial_pick") and e.get("curated_at") else (f'<span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 {md(e.get("first_seen"))}</span>' if e.get("published") and e.get("first_seen") and e["published"][:10] != e["first_seen"][:10] else "")}
   </div>
 {("  " + tts_player) if tts_player else ""}
+  <p class="reading-local-note" style="font-size:12px;color:var(--sub);margin:12px 0">有效阅读仅保存在当前浏览器，用于「为你」推荐；<a href="../for-me.html#reading-settings">暂停或清除记录</a>。</p>
   {case_breakdown_html}
   {brief_html}
   {toc_mobile_html}
@@ -2959,6 +2964,7 @@ def render_for_me_page(css, data_url="data/latest-lite.json"):
   </section>
 
   <div class="fm-home-choice"><label><input type="checkbox" id="fmDefaultHome"> 将「为你」设为默认首页</label><p id="fmDefaultStatus" role="status">默认打开热榜；勾选后访问网站首页将进入为你。</p></div>
+  <details class="fm-home-choice" id="reading-settings"><summary>浏览行为推荐 · 仅保存在当前浏览器</summary><label><input type="checkbox" id="fmBehaviorEnabled" checked> 用浏览行为改善推荐</label><p id="fmBehaviorStatus" role="status">正在读取本地阅读记录…</p><p>前台有效阅读、重访、收藏与反馈帮助发现相关内容；不上传阅读历史。最多保留 200 篇、90 天，旧兴趣逐渐减弱。</p><button type="button" class="fm-action" id="fmClearReading">清除阅读记录</button></details>
   <div id="fmNotice" role="status" hidden><span></span> <button type="button" class="fm-action">撤销</button></div>
   <div class="fm-loading" id="fmLoading" role="status">正在整理与你相关的变化…</div>
   <div class="fm-error" id="fmError" hidden>暂时无法读取最新内容。<br><button type="button">重新加载</button></div>
@@ -2993,6 +2999,7 @@ def render_for_me_page(css, data_url="data/latest-lite.json"):
   </div>
   <noscript><div class="fm-error">为你页面需要浏览器 JavaScript 来保存本地关注。你仍可继续使用热榜、主题和周报。</div></noscript>
 </main>
+<script defer src="reading-profile.js?v={hashlib.sha256(READING_ASSET.read_bytes()).hexdigest()[:12]}"></script>
 <script defer src="for-me.js?v={hashlib.sha256(FOR_ME_ASSET.read_bytes()).hexdigest()[:12]}"></script>'''
     return page_shell(
         "为你 · DataHot", "只看与你相关的数据与 AI 重要变化",
@@ -3204,6 +3211,7 @@ def render_privacy_page(css):
     <p>DataHot 的匿名行为统计默认关闭，只有站点配置了 HTTPS 第一方接收端后才会启用。启用时仅记录页面类型、事件 ID、分类、来源、匿名会话与 30 天轮换的随机设备 ID。</p>
     <p style="margin-top:10px"><b>不会采集：</b>正文内容、完整搜索词、Cookie、姓名/邮箱、API Key、浏览器指纹、精确位置或跨站行为。浏览器的 Global Privacy Control / Do Not Track 会被自动尊重。</p>
     <p style="margin-top:10px"><b>搜索：</b>只记录长度区间（1–3 / 4–8 / 9+）和结果数量，不发送输入文字。</p>
+    <p style="margin-top:10px"><b>本地阅读推荐：</b>有效阅读的文章 ID 与日期只保存在当前浏览器，不上传。最多保留 200 篇、90 天；后台与闲置时间不计。你可以在「为你」暂停或清除阅读记录；收藏、反馈及主动关注单独保留。换设备不会同步。</p>
     <p style="margin-top:10px"><b>为你、收藏与内容反馈：</b>工作任务、默认首页、关注、已读、收藏和文章反馈默认保存在本机，用于立即调整个人排序。匿名统计启用时，文章反馈只会发送事件 ID、“有用/没用”和预设原因，不发送评价文字或正文；关闭匿名统计后不上传。</p>
   </div>
   <div class="scard">
@@ -3302,13 +3310,14 @@ def main():
     SITE.mkdir(parents=True, exist_ok=True)
     remove_retired_public_pages()
     write_bluesky_handle_verification()
-    if not all(asset.exists() for asset in (ANALYTICS_ASSET, CONTENT_FEEDBACK_ASSET, HOME_ASSET, FOR_ME_ASSET, FAVORITES_ASSET, DETAIL_ASSET, CASES_ASSET, TTS_ASSET)):
+    if not all(asset.exists() for asset in (ANALYTICS_ASSET, CONTENT_FEEDBACK_ASSET, HOME_ASSET, READING_ASSET, FOR_ME_ASSET, FAVORITES_ASSET, DETAIL_ASSET, CASES_ASSET, TTS_ASSET)):
         raise FileNotFoundError("missing browser asset")
     shutil.copyfile(THEME_ASSET, SITE / "theme.css")
     shutil.copyfile(ROOT / "pipeline/assets/navigation.js", SITE / "navigation.js")
     shutil.copyfile(ANALYTICS_ASSET, SITE / "analytics.js")
     shutil.copyfile(CONTENT_FEEDBACK_ASSET, SITE / "content-feedback.js")
     shutil.copyfile(HOME_ASSET, SITE / "home.js")
+    shutil.copyfile(READING_ASSET, SITE / "reading-profile.js")
     shutil.copyfile(FOR_ME_ASSET, SITE / "for-me.js")
     shutil.copyfile(FAVORITES_ASSET, SITE / "favorites.js")
     shutil.copyfile(DETAIL_ASSET, SITE / "detail.js")

@@ -165,6 +165,7 @@ async function main() {
     const nav = page.locator('a[href="for-me.html"]:visible').first();
     await nav.click();
     await page.waitForURL('**/for-me.html');
+    await page.locator('#fmCustomize').click();
     if (await page.locator('#fmNext').isVisible()) await page.locator('#fmNext').click();
     const follow = page.locator('.fm-follow-chip:visible').first();
     await follow.waitFor();

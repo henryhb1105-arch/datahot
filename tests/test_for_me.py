@@ -26,10 +26,10 @@ class ForMeBuildTests(unittest.TestCase):
 
     def test_page_exposes_non_empty_preview_and_transparent_personalization(self):
         page = build_site.render_for_me_page("", "data/latest-lite.json")
-        self.assertIn("从你的工作出发，发现值得读、用得上的变化", page)
+        self.assertIn("值得读的变化，打开就看", page)
         script = (ROOT / "pipeline" / "assets" / "for-me.js").read_text(encoding="utf-8")
-        self.assertIn("先看看公共精选", script)
-        self.assertIn("两步设置", page)
+        self.assertIn("近期精选", script)
+        self.assertIn('id="fmSettings"', page)
         self.assertIn('href="products.html"', page)
         self.assertIn('href="paths.html"', page)
         self.assertIn("为什么重要", script)

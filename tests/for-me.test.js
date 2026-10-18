@@ -20,7 +20,7 @@ function event(id, options = {}) {
   };
 }
 
-test("five core directions outrank ordinary news while follows and dismissals remain authoritative", () => {
+test("personal scoring overrides fixed global direction priority while dismissals remain authoritative", () => {
   const rows = [0, 1, 2, 3, 4, 5].map(priority => ({
     ...event(String(priority + 1).repeat(12), { vendors: ["Vendor"], heat: priority * 19 }),
     focus: { priority, practical: false },
@@ -28,7 +28,7 @@ test("five core directions outrank ordinary news while follows and dismissals re
   const state = forMe.normalizeState({ vendors: ["Vendor"], dismissed: [rows[0].event_id] });
   const unrelated = { ...rows[0], event_id: "ffffffffffff", vendors: ["Other"] };
   const ranked = forMe.rankEvents([unrelated, ...rows.slice().reverse()], state, Date.now(), true);
-  assert.deepEqual(ranked.map(e => e.focus.priority), [1, 2, 3, 4, 5]);
+  assert.deepEqual(ranked.map(e => e.focus.priority), [5, 4, 3, 2, 1]);
 });
 
 test("state is local, bounded and de-duplicated", () => {
@@ -116,4 +116,35 @@ test("ranking computes each score once without mutating events", () => {
   assert.equal(calls, rows.length);
   assert.equal(ranked.length, rows.length);
   assert.deepEqual(rows, original);
+});
+
+const today = Date.parse("2026-10-18T07:00:00Z");
+test("work choices produce different leading recommendations and bounded migrated state", () => {
+  const agent = event("aaaaaaaaaaaa", {title: "Agent 工具调用评测", published: "2026-10-18T00:00:00Z"});
+  const platform = event("bbbbbbbbbbbb", {title: "湖仓成本与迁移", published: "2026-10-18T00:00:00Z"});
+  for (const [task, expected] of [["agent", agent], ["platform", platform]]) {
+    const state = forMe.normalizeState({tasks: [task, task, "invalid"], topics: ["语义层"]});
+    assert.deepEqual(state.tasks, [task]);
+    assert.deepEqual(state.topics, ["语义层"]);
+    assert.equal(forMe.rankEvents([agent, platform], state, today, true)[0], expected);
+    assert.equal(forMe.matchReasons(expected, state)[0].kind, "task");
+  }
+});
+test("sections keep read and stale stories out of today's picks and do not duplicate cards", () => {
+  const state = forMe.normalizeState({tasks:["agent"], read:{aaaaaaaaaaaa:"2026-10-18"}});
+  const read = event("aaaaaaaaaaaa", {title:"Agent tools", published:"2026-10-18T00:00:00Z"});
+  const old = event("bbbbbbbbbbbb", {title:"Agent实践", published:"2026-08-01T00:00:00Z"});
+  const fresh = event("cccccccccccc", {title:"Agent评测", published:"2026-10-17T00:00:00Z"});
+  const result = forMe.sections([read, old, fresh], state, today, "2026-10-18T00:00:00Z");
+  assert.deepEqual(result.must, [fresh]); assert.deepEqual(result.work, [old]);
+  const ids = [...result.must,...result.updates,...result.work,...result.discovery].map(e=>e.event_id);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.equal(forMe.sections([read, old],state,today, "2026-10-18T00:00:00Z").must.length,0);
+});
+
+test("generic engineering design tradeoffs do not imply product design relevance", () => {
+  const state = forMe.normalizeState({tasks:["design"]});
+  const training = {...event("aaaaaaaaaaaa", {title:"Qwen训练性能优化"}),zh_summary:"讨论性能测量、实现细节与设计权衡",reason:"对产品设计有启发"};
+  assert.deepEqual(forMe.taskReasons(training,state),[]);
+  assert.equal(forMe.taskReasons({...training,zh_title:"AI产品设计中的交互与界面"},state).length,1);
 });

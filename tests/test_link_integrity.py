@@ -126,7 +126,7 @@ class BuildPathRegressionTests(unittest.TestCase):
         self.assertEqual(primary.count("<a "), 4)
         self.assertEqual(primary.count("<button "), 1)
         self.assertIn("<span>热榜</span>", primary)
-        self.assertIn("<span>关注</span>", primary)
+        self.assertIn("<span>为你</span>", primary)
         self.assertIn("<span>案例</span>", primary)
         self.assertIn("<span>收藏</span>", primary)
         self.assertIn("<span>更多</span>", primary)
@@ -159,7 +159,7 @@ class BuildPathRegressionTests(unittest.TestCase):
         primary = sidebar.split('<nav class="sidebar-nav" aria-label="主导航">', 1)[1].split("</nav>", 1)[0]
         tools = sidebar.split('<nav class="sidebar-tools" aria-label="工具">', 1)[1].split("</nav>", 1)[0]
 
-        labels = ("热榜", "关注", "案例", "周报", "主题", "收藏", "信源")
+        labels = ("热榜", "为你", "案例", "周报", "主题", "收藏", "信源")
         self.assertEqual(primary.count('<a class="mi'), len(labels))
         positions = [primary.index(f">{label}</a>") for label in labels]
         self.assertEqual(positions, sorted(positions))

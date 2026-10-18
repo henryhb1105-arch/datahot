@@ -165,6 +165,7 @@ async function main() {
     const nav = page.locator('a[href="for-me.html"]:visible').first();
     await nav.click();
     await page.waitForURL('**/for-me.html');
+    if (await page.locator('#fmNext').isVisible()) await page.locator('#fmNext').click();
     const follow = page.locator('.fm-follow-chip:visible').first();
     await follow.waitFor();
     const followKind = await follow.getAttribute('data-kind'), followValue = await follow.getAttribute('data-value');
@@ -197,6 +198,9 @@ async function main() {
     await recovery.screenshot({path:path.join(out, `${width}-load-recovered.png`)});
     summary.viewports[summary.viewports.length - 1].loadMoreRecovery = 'PASS: retained cards and retried page 2';
     await recovery.close();
+    await require('./for-you-browser.cjs')(context, base, out, width);
+    summary.viewports[summary.viewports.length - 1].forYou = 'PASS: setup/skip, task relevance, read, dismiss/undo, default/escape, persistence, asset hash';
+    summary.viewports[summary.viewports.length - 1].screenshots += 4;
     await context.close();
   }
   if (production) {

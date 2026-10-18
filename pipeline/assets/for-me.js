@@ -16,6 +16,40 @@
     "数据人", "组织人才", "财务经营", "销售增长", "风险管理"
   ];
 
+  var TASKS = [
+    {id: "agent", label: "搭建 Data Agent", topics: ["Data Agent", "语义层", "ChatBI"], pattern: /agent|智能体|语义层|工具调用|评测/i},
+    {id: "platform", label: "数据平台选型", topics: ["湖仓", "实时分析", "平台AI化"], pattern: /成本|性能|迁移|兼容|湖仓|benchmark|pricing/i},
+    {id: "design", label: "研究 AI 产品设计", topics: ["ChatBI", "BI变局"], pattern: /交互|产品设计|界面|用户体验|体验设计|dashboard|copilot/i}
+  ];
+  var DEFAULT_HOME_KEY = "dh_default_home_v1";
+  function taskReasons(event, state) {
+    var text = [event.zh_title, event.zh_summary].join(" ");
+    return TASKS.filter(function (task) {
+      return (state.tasks || []).indexOf(task.id) >= 0 &&
+        (task.topics.some(function (topic) { return (event.topics || []).indexOf(topic) >= 0; }) || task.pattern.test(text));
+    }).map(function (task) { return {kind: "task", value: task.id}; });
+  }
+  function personal(state) { return follows(state).length > 0 || (state.tasks || []).length > 0; }
+  function sections(events, state, now, baseline) {
+    var ranked = rankEvents(events, state, now, personal(state));
+    var unread = ranked.filter(function (event) { return !state.read[event.event_id]; });
+    var cutoff = now - 7 * 86400000;
+    var fresh = unread.filter(function (event) { return eventTime(event) >= cutoff; });
+    var must = fresh.slice(0, 3), used = new Set(must.map(function (event) {return event.event_id;}));
+    var updates = unread.filter(function (event) {
+      return !used.has(event.event_id) && (baseline ? isNewSince(event, baseline) : eventTime(event, "first_seen") >= cutoff);
+    }).slice(0, 12);
+    updates.forEach(function (event) {used.add(event.event_id);});
+    var work = unread.filter(function (event) {
+      return !used.has(event.event_id) && ((event.focus || {}).practical || event.shelf === "reference" || taskReasons(event, state).length);
+    }).slice(0, 6);
+    work.forEach(function (event) {used.add(event.event_id);});
+    var discovery = personal(state) ? rankEvents(events, state, now, false).filter(function (event) {
+      return !state.read[event.event_id] && !used.has(event.event_id) && !matchReasons(event, state).length && eventTime(event) >= cutoff;
+    }).slice(0, 2) : [];
+    return {must: must, updates: updates, work: work, discovery: discovery, ranked: ranked};
+  }
+
   function uniqueStrings(values, maximum) {
     var seen = Object.create(null);
     return (Array.isArray(values) ? values : []).reduce(function (output, value) {
@@ -35,6 +69,8 @@
     });
     return {
       version: 1,
+      tasks: uniqueStrings(source.tasks, 3).filter(function (id) {return TASKS.some(function (t) {return t.id === id;});}),
+      setupDone: source.setupDone === true,
       topics: uniqueStrings(source.topics, 50),
       vendors: uniqueStrings(source.vendors, 50),
       products: uniqueStrings(source.products, 50).filter(function (id) { return /^[a-z][a-z0-9-]{1,63}$/.test(id); }),
@@ -59,13 +95,13 @@
   function matchReasons(event, state) {
     var topics = Array.isArray(event.topics) ? event.topics : [];
     var vendors = Array.isArray(event.vendors) ? event.vendors : [];
-    return state.topics.filter(function (value) { return topics.indexOf(value) >= 0; }).map(function (value) {
+    return taskReasons(event, state).concat(state.topics.filter(function (value) { return topics.indexOf(value) >= 0; }).map(function (value) {
       return { kind: "topic", value: value };
     }).concat(state.vendors.filter(function (value) { return vendors.indexOf(value) >= 0; }).map(function (value) {
       return { kind: "vendor", value: value };
     })).concat((state.products || []).filter(function (value) { return (event.product_ids || []).indexOf(value) >= 0; }).map(function (value) {
       return { kind: "product", value: value };
-    }));
+    })));
   }
 
   function normalizeFeedbackStore(raw) {
@@ -144,8 +180,11 @@
       var aFocus = a.focus || {}, bFocus = b.focus || {};
       var aPriority = Number.isInteger(aFocus.priority) && aFocus.priority >= 0 && aFocus.priority <= 5 ? aFocus.priority : 5;
       var bPriority = Number.isInteger(bFocus.priority) && bFocus.priority >= 0 && bFocus.priority <= 5 ? bFocus.priority : 5;
-      if (aPriority !== bPriority) return aPriority - bPriority;
-      if (Boolean(aFocus.practical) !== Boolean(bFocus.practical)) return aFocus.practical ? -1 : 1;
+      if (Boolean(state.read && state.read[a.event_id]) !== Boolean(state.read && state.read[b.event_id])) return state.read[a.event_id] ? 1 : -1;
+      if (!personal(state)) {
+        if (aPriority !== bPriority) return aPriority - bPriority;
+        if (Boolean(aFocus.practical) !== Boolean(bFocus.practical)) return aFocus.practical ? -1 : 1;
+      }
       var score = right.score - left.score;
       if (score) return score;
       return right.time - left.time || String(a.event_id).localeCompare(String(b.event_id));
@@ -228,6 +267,8 @@
     } catch (_error) {}
 
     var refs = {
+      work: doc.getElementById("fmWork"), workList: doc.getElementById("fmWorkList"), readList: doc.getElementById("fmReadList"),
+      notice: doc.getElementById("fmNotice"),
       loading: doc.getElementById("fmLoading"), content: doc.getElementById("fmContent"), error: doc.getElementById("fmError"),
       setup: doc.getElementById("fmSetup"), suggestions: doc.getElementById("fmSuggestions"), progress: doc.getElementById("fmProgress"),
       customize: doc.getElementById("fmCustomize"), visit: doc.getElementById("fmVisit"), newCount: doc.getElementById("fmNewCount"),
@@ -237,10 +278,11 @@
     };
     var events = [];
     var products = [], productNames = {};
-    var setupOpen = follows(state).length < 1;
+    var setupOpen = !state.setupDone && !personal(state);
+    var setupStep = 1;
 
     function kindLabel(kind) { return kind === "product" ? "产品" : (kind === "topic" ? "主题" : "厂商"); }
-    function followLabel(follow) { return follow.kind === "product" ? (productNames[follow.value] || follow.value) : follow.value; }
+    function followLabel(follow) { if (follow.kind === "task") return TASKS.find(function(t) {return t.id === follow.value;}).label; return follow.kind === "product" ? (productNames[follow.value] || follow.value) : follow.value; }
     function followList(kind) { return kind === "product" ? state.products : (kind === "topic" ? state.topics : state.vendors); }
 
     function saveState() {
@@ -285,7 +327,7 @@
       article.dataset.source = primarySource(event);
       var top = element("div", "fm-signal-top");
       var focusLabel = event.focus && event.focus.id !== "other" ? event.focus.label : "";
-      var badge = element("span", "fm-signal-badge", priority ? "必须知道" : String(focusLabel || event.category_label || "动态"));
+      var badge = element("span", "fm-signal-badge", priority ? "今天优先看" : String(focusLabel || event.category_label || "动态"));
       top.appendChild(badge);
       if (isNewSince(event, baseline)) top.appendChild(element("span", "fm-new", "新"));
       var sourceText = (event.items || []).length > 1 ? (event.items.length + " 个来源") : (primarySource(event) || "DataHot");
@@ -300,10 +342,10 @@
 
       var reasons = matchReasons(event, state);
       var why = reasons.length
-        ? "因为你关注了 " + reasons.map(followLabel).join("、")
-        : (context === "discovery" ? "与你关注的领域相邻，帮助发现意外变化" : "热门内容预览 · 关注后只保留与你相关的变化");
+        ? "与你选择的 " + reasons.map(followLabel).join("、") + " 相关"
+        : (context === "discovery" ? "关注范围之外的近期内容，帮助发现新方向" : "公共精选 · 设置兴趣后优先显示与你相关的变化");
       var whyNode = element("div", "fm-why");
-      whyNode.appendChild(element("span", "fm-why-label", "For Me"));
+      whyNode.appendChild(element("span", "fm-why-label", "为你推荐"));
       whyNode.appendChild(element("span", "", why));
       article.appendChild(whyNode);
       if (event.reason) {
@@ -345,6 +387,8 @@
       dismiss.type = "button"; dismiss.dataset.action = "dismiss";
       dismiss.addEventListener("click", function () {
         state.dismissed.push(id); state.dismissed = uniqueStrings(state.dismissed, 200); saveState(); render();
+        refs.notice.hidden = false; refs.notice.querySelector("span").textContent = "已隐藏这条内容";
+        refs.notice.querySelector("button").onclick = function () {state.dismissed = state.dismissed.filter(function(value) {return value !== id;}); saveState(); render(); refs.notice.hidden = true;};
       });
       actions.appendChild(read); actions.appendChild(save); actions.appendChild(dismiss);
       article.appendChild(actions);
@@ -368,7 +412,6 @@
         button.addEventListener("click", function () {
           if (isFollowing(suggestion.kind, suggestion.value)) removeFollow(suggestion.kind, suggestion.value);
           else addFollow(suggestion.kind, suggestion.value);
-          if (follows(state).length >= 1) setupOpen = false;
           render();
         });
         refs.suggestions.appendChild(button);
@@ -396,33 +439,37 @@
     }
     function render() {
       var followed = follows(state);
-      var personalized = followed.length >= 1;
+      var personalized = personal(state);
       var now = Date.now();
       var ranked = rankEvents(events, state, now, personalized);
-      var preview = ranked;
-      var newCount = personalized ? ranked.filter(function (event) { return isNewSince(event, baseline) && !state.read[event.event_id]; }).length : 0;
+      var newCount = personalized ? ranked.filter(function (event) { return (baseline ? isNewSince(event, baseline) : eventTime(event, "first_seen") >= now - 7 * 86400000) && !state.read[event.event_id]; }).length : 0;
       refs.visit.textContent = relativeVisit(baseline);
       refs.newCount.textContent = personalized ? String(newCount) : "—";
       refs.progress.textContent = personalized
-        ? "已关注 " + followed.length + " 个对象，可以随时调整"
-        : "选择 1 个产品、主题或厂商即可开始";
+        ? "已选 " + state.tasks.length + " 项工作 · 关注 " + followed.length + " 个对象"
+        : "选择工作或关注对象，也可以跳过";
       refs.setup.hidden = !setupOpen;
       refs.customize.setAttribute("aria-expanded", setupOpen ? "true" : "false");
-      refs.customize.textContent = setupOpen ? "收起设置" : "调整关注";
+      refs.customize.textContent = setupOpen ? "收起设置" : "调整兴趣";
       renderSuggestions();
 
-      var must = preview.slice(0, 3);
-      var feed = personalized ? preview.slice(3, 15) : [];
-      refs.must.querySelector("h2").textContent = personalized ? "必须知道" : "先感受一下";
-      refs.must.querySelector("p").textContent = personalized ? "与你的关注相关，优先数据 Agent 与可落地实践，最多 3 条" : "数据 Agent 优先，其次 AI 数据平台、语义层、AI 分析与 AI 看板";
+      var grouped = sections(events, state, now, baseline);
+      var must = grouped.must;
+      var feed = personalized ? grouped.updates : [];
+      refs.must.querySelector("h2").textContent = personalized ? "今天优先看" : "先看看公共精选";
+      refs.must.querySelector("p").textContent = personalized ? "近 7 天与你相关的未读内容，最多 3 条" : "可跳过设置，先读近期重要变化";
       renderCards(refs.mustList, must, 3, personalized);
-      refs.feed.hidden = !feed.length;
+      refs.feed.hidden = !personalized;
       renderCards(refs.feedList, feed, 12, false);
-      refs.empty.hidden = Boolean(preview.length);
+      refs.empty.hidden = Boolean(must.length);
 
-      var discovery = personalized ? rankEvents(events, state, now, false).filter(function (event) {
-        return matchReasons(event, state).length === 0;
-      }).slice(0, 2) : [];
+      var discovery = grouped.discovery;
+      refs.work.hidden = !personalized;
+      renderCards(refs.workList, grouped.work, 6, false, "work");
+      if (!grouped.work.length) refs.workList.textContent = "暂时没有更多匹配的工作参考，可调整兴趣或浏览案例库。";
+      if (!feed.length) refs.feedList.textContent = "暂时没有更多未读的新变化。";
+      renderCards(refs.readList, ranked.filter(function(e) {return state.read[e.event_id];}), 12, false);
+      renderSetup();
       refs.discovery.hidden = !discovery.length;
       renderCards(refs.discoveryList, discovery, 2, false, "discovery");
       refs.watch.closest("section").hidden = !followed.length;
@@ -432,6 +479,32 @@
         ? ranked.filter(function (event) { return eventTime(event) >= weekAgo; }).length + " 条关注变化"
         : "完成关注后生成你的本周回顾";
     }
+
+    function renderSetup() {
+      doc.getElementById("fmTaskStep").hidden = setupStep !== 1;
+      doc.getElementById("fmFollowStep").hidden = setupStep !== 2;
+      var tasks = doc.getElementById("fmTasks"); tasks.replaceChildren();
+      TASKS.forEach(function(task) {
+        var selected = state.tasks.indexOf(task.id) >= 0;
+        var button = element("button", "fm-follow-chip" + (selected ? " on" : ""), task.label);
+        button.type = "button"; button.dataset.task = task.id; button.setAttribute("aria-pressed", String(selected));
+        button.onclick = function() {state.tasks = selected ? state.tasks.filter(function(id) {return id !== task.id;}) : state.tasks.concat(task.id);saveState();render();doc.querySelector('[data-task="' + task.id + '"]').focus();};
+        tasks.appendChild(button);
+      });
+    }
+    function finishSetup() {setupOpen = false;state.setupDone = true;saveState();render();refs.customize.focus();}
+    doc.getElementById("fmNext").onclick = function() {setupStep = 2;renderSetup();doc.getElementById("fmBack").focus();};
+    doc.getElementById("fmBack").onclick = function() {setupStep = 1;renderSetup();doc.getElementById("fmNext").focus();};
+    doc.getElementById("fmDone").onclick = finishSetup;
+    doc.getElementById("fmSkip").onclick = finishSetup;
+    doc.getElementById("fmReset").onclick = function() {state.tasks=[];state.topics=[];state.vendors=[];state.products=[];state.setupDone=false;setupOpen=true;setupStep=1;saveState();render();};
+    var defaultHome = doc.getElementById("fmDefaultHome"), defaultStatus = doc.getElementById("fmDefaultStatus");
+    try {defaultHome.checked = storage && storage.getItem(DEFAULT_HOME_KEY) === "for-you";} catch (_error) {}
+    if (defaultHome.checked) defaultStatus.textContent = "已设为默认首页，仍可从导航查看热榜。";
+    defaultHome.onchange = function() {
+      try {if (!storage) throw new Error("storage unavailable");storage.setItem(DEFAULT_HOME_KEY, defaultHome.checked ? "for-you" : "all");defaultStatus.textContent = defaultHome.checked ? "下次打开网站首页时进入为你，仍可从导航查看热榜。" : "已恢复默认打开热榜。";}
+      catch (_error) {defaultHome.checked=false;defaultStatus.textContent="浏览器未允许保存设置，请通过导航进入为你。";}
+    };
 
     refs.customize.addEventListener("click", function () { setupOpen = !setupOpen; render(); });
     refs.error.querySelector("button").addEventListener("click", function () { win.location.reload(); });
@@ -460,6 +533,7 @@
 
   return {
     STORAGE_KEY: STORAGE_KEY,
+    TASKS: TASKS, sections: sections, taskReasons: taskReasons,
     normalizeState: normalizeState,
     matchReasons: matchReasons,
     normalizeFeedbackStore: normalizeFeedbackStore,

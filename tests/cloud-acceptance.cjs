@@ -202,6 +202,7 @@ async function main() {
     await require('./for-you-browser.cjs')(context, base, out, width);
     summary.viewports[summary.viewports.length - 1].forYou = 'PASS: setup/skip, task relevance, read, dismiss/undo, default/escape, persistence, asset hash';
     summary.viewports[summary.viewports.length - 1].screenshots += 4;
+    // Actual qualified reading plus a local counterfactual verifies content intent, not just labels.
     summary.viewports[summary.viewports.length - 1].reading = await require("./reading-browser.cjs")(context,base,out,width);
     summary.viewports[summary.viewports.length - 1].screenshots += 2;
     await context.close();

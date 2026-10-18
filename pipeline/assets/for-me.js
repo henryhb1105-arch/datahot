@@ -1,10 +1,10 @@
 (function (root, factory) {
   "use strict";
-  var api = factory(typeof module === "object" && module.exports ? require("./reading-profile.js") : root.DataHotReading);
+  var api = factory(typeof module === "object" && module.exports ? require("./reading-profile.js") : root.DataHotReading, typeof module === "object" && module.exports ? require("./content-affinity.js") : root.DataHotAffinity);
   if (typeof module === "object" && module.exports) module.exports = api;
   if (root) root.DataHotForMe = api;
   if (root && root.document) api.boot(root);
-})(typeof globalThis !== "undefined" ? globalThis : this, function (reading) {
+})(typeof globalThis !== "undefined" ? globalThis : this, function (reading, affinity) {
   "use strict";
 
   var STORAGE_KEY = "dh_for_me_v1";
@@ -30,15 +30,15 @@
     }).map(function (task) { return {kind: "task", value: task.id}; });
   }
   function isRead(event, state) { return Boolean(state.read[event.event_id] || (state.reading && state.reading.enabled && state.reading.entries[event.event_id])); }
-  function inferred(event, state) { return reading ? reading.match(event, state.behavior) : []; }
+  function inferred(event, state) { return affinity ? affinity.match(event, state.affinity) : []; }
   function relevant(event, state) { return matchReasons(event, state).length > 0 || inferred(event, state).length > 0; }
-  function personal(state) { return follows(state).length > 0 || (state.tasks || []).length > 0 || Object.keys(state.behavior || {}).length > 0; }
+  function personal(state) { return follows(state).length > 0 || (state.tasks || []).length > 0 || Object.keys(state.affinity && state.affinity.matches || {}).length > 0; }
   function sections(events, state, now, baseline) {
     var ranked = rankEvents(events, state, now, personal(state));
     var unread = ranked.filter(function (event) { return !isRead(event, state); });
     var cutoff = now - 7 * 86400000;
-    var fresh = unread.filter(function (event) { return eventTime(event) >= cutoff; });
-    var must = fresh.slice(0, 3), used = new Set(must.map(function (event) {return event.event_id;}));
+    var picks = unread.filter(function(event) {return eventTime(event) >= cutoff || inferred(event,state).length;});
+    var must = picks.slice(0, 3), used = new Set(must.map(function (event) {return event.event_id;}));
     var updates = unread.filter(function (event) {
       return !used.has(event.event_id) && (baseline ? isNewSince(event, baseline) : eventTime(event, "first_seen") >= cutoff);
     }).slice(0, 12);
@@ -142,20 +142,13 @@
         signal += positive ? 45 : -100;
         return;
       }
-      var topicOverlap = overlap(event.topics, row.topics);
-      var vendorOverlap = overlap(event.vendors, row.vendors);
-      var sourceMatch = row.source && row.source === primarySource(event);
-      if (positive) {
-        signal += Math.min(14, topicOverlap * 5 + vendorOverlap * 4 + (sourceMatch ? 3 : 0));
-      } else if (row.reason === "irrelevant") {
-        signal -= Math.min(18, topicOverlap * 7 + vendorOverlap * 5 + (sourceMatch ? 3 : 0));
-      }
+      // Generalize feedback through article content, never a shared broad label.
     });
     return Math.max(-100, Math.min(45, signal));
   }
 
   function fitScore(event, state, feedback) {
-    var explicit = Math.min(45, matchReasons(event, state).length * 35);
+    var explicit = Math.min(state.affinity && state.affinity.positive ? 18 : 45, matchReasons(event, state).length * 35);
     return Math.max(0, Math.min(100, 50 + explicit + feedbackSignal(event, feedback)));
   }
 
@@ -167,7 +160,7 @@
     var fit = fitScore(event, state, state.feedback);
     var sourceBonus = Math.min(12, Math.max(0, ((event.items || []).length - 1) * 4));
     var favoriteBonus = state.favorites && state.favorites.indexOf(String(event.event_id || "")) >= 0 ? 10 : 0;
-    return quality * 0.4 + trend * 0.25 + fit + freshness + sourceBonus + favoriteBonus + (reading ? reading.score(event, state.behavior) : 0);
+    return quality * 0.4 + trend * (state.affinity && state.affinity.positive ? 0.1 : 0.25) + fit + freshness + sourceBonus + favoriteBonus + (affinity ? affinity.score(event, state.affinity) : 0);
   }
 
   function rankEvents(events, state, now, requireMatch) {
@@ -331,11 +324,15 @@
       article.dataset.source = primarySource(event);
       var top = element("div", "fm-signal-top");
       var focusLabel = event.focus && event.focus.id !== "other" ? event.focus.label : "";
-      var badge = element("span", "fm-signal-badge", priority ? "今天优先看" : String(focusLabel || event.category_label || "动态"));
+      var badge = element("span", "fm-signal-badge", priority ? "优先推荐" : String(focusLabel || event.category_label || "动态"));
       top.appendChild(badge);
       if (isNewSince(event, baseline)) top.appendChild(element("span", "fm-new", "新"));
       var sourceText = (event.items || []).length > 1 ? (event.items.length + " 个来源") : (primarySource(event) || "DataHot");
       top.appendChild(element("span", "fm-source", sourceText));
+      var published = String(event.published || event.first_seen || "").slice(0,10);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(published)) {
+        var date = element("time", "fm-source", published);date.dateTime=published;top.appendChild(date);
+      }
       article.appendChild(top);
 
       var link = element("a", "fm-signal-title", String(event.zh_title || "未命名变化"));
@@ -345,9 +342,10 @@
       if (event.zh_summary) article.appendChild(element("p", "fm-signal-summary", String(event.zh_summary)));
 
       var reasons = matchReasons(event, state), learned = inferred(event, state)[0];
-      var why = reasons.length
-        ? "与你选择的 " + reasons.map(followLabel).join("、") + " 相关"
-        : learned ? "根据你近期的" + learned.reason + " · " + followLabel(learned) : (context === "discovery" ? "关注范围之外的近期内容，帮助发现新方向" : "公共精选 · 近期重要变化");
+      var why = learned
+        ? "接着你" + (learned.reason === "阅读" ? "读过" : learned.reason === "收藏" ? "收藏" : "认为有用") + "的《" + String(learned.sourceTitle || "文章").slice(0,55) + "》 · 共同讨论：" + learned.value
+        : reasons.length ? "与你选择的 " + reasons.map(followLabel).join("、") + " 相关"
+        : (context === "discovery" ? "关注范围之外的近期内容，帮助发现新方向" : "公共精选 · 近期重要变化");
       var whyNode = element("div", "fm-why");
       whyNode.appendChild(element("span", "fm-why-label", "为你推荐"));
       whyNode.appendChild(element("span", "", why));
@@ -394,17 +392,17 @@
       dismiss.type = "button"; dismiss.dataset.action = "dismiss";
       dismiss.addEventListener("click", function () {
         state.dismissed.push(id); state.dismissed = uniqueStrings(state.dismissed, 200); saveState(); render();
-        refs.notice.hidden = false; refs.notice.querySelector("button").hidden = false; refs.notice.querySelector("span").textContent = "已隐藏这条内容";
+        refs.notice.hidden = false; refs.notice.querySelector("button").hidden = false; refs.notice.querySelector("span").textContent = "已隐藏，并减少内容相近的推荐";
         refs.notice.querySelector("button").onclick = function () {state.dismissed = state.dismissed.filter(function(value) {return value !== id;}); saveState(); render(); refs.notice.hidden = true;};
       });
       actions.appendChild(read); actions.appendChild(save); actions.appendChild(dismiss);
-      if (learned && !reasons.length) {
-        var less = element("button", "fm-action", "减少「" + followLabel(learned) + "」");
+      if (learned) {
+        var less = element("button", "fm-action", "少推相似内容");
         less.type = "button";less.dataset.action = "reduce";
         less.onclick = function() {
           var local = reading.load(storage);local.muted.push(learned.key);
           if (!reading.save(storage, local)) {showNotice("浏览器未允许保存，设置没有改变。");return;}
-          render();showNotice("已减少这类行为推荐", function(){var current=reading.load(storage);current.muted=current.muted.filter(function(key){return key!==learned.key;});reading.save(storage,current);render();});
+          render();showNotice("已减少内容相近的推荐，其他方向不受影响", function(){var current=reading.load(storage);current.muted=current.muted.filter(function(key){return key!==learned.key;});reading.save(storage,current);render();});
         };
         actions.appendChild(less);
       }
@@ -456,7 +454,7 @@
     }
     function render() {
       var followed = follows(state);
-      if (reading) {state.reading = reading.load(storage);state.behavior = reading.profile(events, state, Date.now());}
+      if (reading) {state.reading = reading.load(storage);state.affinity = affinity.profile(events, state, Date.now());}
       var personalized = personal(state);
       var now = Date.now();
       var ranked = rankEvents(events, state, now, personalized);
@@ -474,15 +472,15 @@
       if (reading) {
         doc.getElementById("fmBehaviorEnabled").checked = state.reading.enabled;
         var count = Object.keys(state.reading.entries).length;
-        doc.getElementById("fmBehaviorStatus").textContent = !state.reading.enabled ? "已暂停记录与行为推荐；主动关注仍有效。" : count ? "已在当前浏览器记录 " + count + " 篇有效阅读；近期兴趣逐渐调整推荐。" : "尚无有效阅读记录。认真阅读后逐渐学习，也参考收藏与有用反馈。";
+        doc.getElementById("fmBehaviorStatus").textContent = !state.reading.enabled ? "已暂停记录与行为推荐；主动关注仍有效。" : count ? "已在当前浏览器记录 " + count + " 篇有效阅读；按文章具体内容匹配相近问题，而非只看分类标签。" : "尚无有效阅读记录。认真阅读后按内容学习，也参考收藏与有用反馈；单次点击不计。";
       }
       renderSuggestions();
 
       var grouped = sections(events, state, now, baseline);
       var must = grouped.must;
       var feed = personalized ? grouped.updates : grouped.ranked.filter(function(event) {return !isRead(event,state) && !must.some(function(item) {return item.event_id===event.event_id;});}).slice(0,12);
-      refs.must.querySelector("h2").textContent = personalized ? "今天优先看" : "近期精选";
-      refs.must.querySelector("p").textContent = personalized ? "近 7 天 · 为你挑选" : "先读内容，逐渐了解你";
+      refs.must.querySelector("h2").textContent = personalized ? "为你挑选" : "近期精选";
+      refs.must.querySelector("p").textContent = personalized ? "相关内容优先 · 保留原文日期" : "先读内容，逐渐了解你";
       renderCards(refs.mustList, must, 3, personalized);
       refs.feed.hidden = !feed.length;
       doc.getElementById("fmFeedTitle").textContent = personalized ? "你关注的新变化" : "继续发现";
@@ -594,7 +592,6 @@
         return p && /^[a-z][a-z0-9-]{1,63}$/.test(p.id) && typeof p.name === "string";
       });
       products.forEach(function (p) { productNames[p.id] = p.name; });
-      if (reading) {state.reading=reading.load(storage);state.behavior=reading.profile(events,state,Date.now());if(personal(state)) setupOpen=false;}
       refs.loading.hidden = true; refs.content.hidden = false; render();
       openReadingSettings();
     }).catch(function () {

@@ -35,6 +35,7 @@ module.exports=async function(context,base,out,width){
  assert((await page.evaluate(()=>JSON.parse(localStorage.getItem('dh_reading_v1')).muted.length))>0);
  await page.locator('#fmNotice button').click();
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('dh_reading_v1')).muted.length),0);
+ await page.locator('#fmCustomize').click();
  await page.locator('#reading-settings summary').click();
  await page.locator('#fmBehaviorEnabled').uncheck();
  assert.match(await page.locator('#fmBehaviorStatus').innerText(),/已暂停/);
@@ -42,6 +43,7 @@ module.exports=async function(context,base,out,width){
  await page.locator('#fmClearReading').click();
  assert.equal(await page.evaluate(()=>Object.keys(JSON.parse(localStorage.getItem('dh_reading_v1')).entries).length),0);
  await page.reload({waitUntil:'networkidle'});
+ await page.locator('#fmCustomize').click();
  await page.locator('#reading-settings summary').click();
  assert(!(await page.locator('#fmBehaviorEnabled').isChecked()),'Clear does not re-enable learning');
  await page.screenshot({path:path.join(out,`${width}-reading-paused.png`)});

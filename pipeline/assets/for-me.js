@@ -281,7 +281,8 @@
     };
     var events = [];
     var products = [], productNames = {};
-    var setupOpen = !state.setupDone && !personal(state);
+    var setupOpen = false;
+    var settingsDialog = doc.getElementById("fmSettings");
     var setupStep = 1;
 
     function kindLabel(kind) { return kind === "product" ? "产品" : (kind === "topic" ? "主题" : "厂商"); }
@@ -346,7 +347,7 @@
       var reasons = matchReasons(event, state), learned = inferred(event, state)[0];
       var why = reasons.length
         ? "与你选择的 " + reasons.map(followLabel).join("、") + " 相关"
-        : learned ? "根据你近期的" + learned.reason + " · " + followLabel(learned) : (context === "discovery" ? "关注范围之外的近期内容，帮助发现新方向" : "公共精选 · 设置兴趣后优先显示与你相关的变化");
+        : learned ? "根据你近期的" + learned.reason + " · " + followLabel(learned) : (context === "discovery" ? "关注范围之外的近期内容，帮助发现新方向" : "公共精选 · 近期重要变化");
       var whyNode = element("div", "fm-why");
       whyNode.appendChild(element("span", "fm-why-label", "为你推荐"));
       whyNode.appendChild(element("span", "", why));
@@ -467,7 +468,9 @@
         : "选择工作或关注对象，也可以跳过";
       refs.setup.hidden = !setupOpen;
       refs.customize.setAttribute("aria-expanded", setupOpen ? "true" : "false");
-      refs.customize.textContent = setupOpen ? "收起设置" : "调整兴趣";
+      refs.customize.textContent = "推荐设置";
+      if (setupOpen && !settingsDialog.open) settingsDialog.showModal();
+      if (!setupOpen && settingsDialog.open) settingsDialog.close();
       if (reading) {
         doc.getElementById("fmBehaviorEnabled").checked = state.reading.enabled;
         var count = Object.keys(state.reading.entries).length;
@@ -477,11 +480,13 @@
 
       var grouped = sections(events, state, now, baseline);
       var must = grouped.must;
-      var feed = personalized ? grouped.updates : [];
-      refs.must.querySelector("h2").textContent = personalized ? "今天优先看" : "先看看公共精选";
-      refs.must.querySelector("p").textContent = personalized ? "近 7 天与你相关的未读内容，最多 3 条" : "可跳过设置，先读近期重要变化";
+      var feed = personalized ? grouped.updates : grouped.ranked.filter(function(event) {return !isRead(event,state) && !must.some(function(item) {return item.event_id===event.event_id;});}).slice(0,12);
+      refs.must.querySelector("h2").textContent = personalized ? "今天优先看" : "近期精选";
+      refs.must.querySelector("p").textContent = personalized ? "近 7 天 · 为你挑选" : "先读内容，逐渐了解你";
       renderCards(refs.mustList, must, 3, personalized);
-      refs.feed.hidden = !personalized;
+      refs.feed.hidden = !feed.length;
+      doc.getElementById("fmFeedTitle").textContent = personalized ? "你关注的新变化" : "继续发现";
+      refs.feed.querySelector(".fm-section-head p").hidden = !personalized;
       renderCards(refs.feedList, feed, 12, false);
       refs.empty.hidden = Boolean(must.length);
 
@@ -490,7 +495,9 @@
       renderCards(refs.workList, grouped.work, 6, false, "work");
       if (!grouped.work.length) refs.workList.textContent = "暂时没有更多匹配的工作参考，可调整兴趣或浏览案例库。";
       if (!feed.length) refs.feedList.textContent = "暂时没有更多未读的新变化。";
-      renderCards(refs.readList, ranked.filter(function(e) {return isRead(e, state);}), 12, false);
+      var readEvents=ranked.filter(function(e) {return isRead(e, state);});
+      renderCards(refs.readList, readEvents, 12, false);
+      refs.readList.closest("details").hidden=!readEvents.length;
       renderSetup();
       refs.discovery.hidden = !discovery.length;
       renderCards(refs.discoveryList, discovery, 2, false, "discovery");
@@ -499,7 +506,7 @@
       var weekAgo = now - 7 * 86400000;
       refs.weeklyCount.textContent = personalized
         ? ranked.filter(function (event) { return eventTime(event) >= weekAgo; }).length + " 条关注变化"
-        : "完成关注后生成你的本周回顾";
+        : "本周公共回顾";
     }
 
     function showNotice(message, undo) {
@@ -539,7 +546,8 @@
         tasks.appendChild(button);
       });
     }
-    function finishSetup() {setupOpen = false;state.setupDone = true;saveState();render();refs.customize.focus();}
+    function clearSettingsHash() {if(win.location.hash==="#reading-settings") win.history.replaceState(null,"",win.location.pathname+win.location.search);}
+    function finishSetup() {clearSettingsHash();setupOpen = false;state.setupDone = true;saveState();render();refs.customize.focus();}
     doc.getElementById("fmNext").onclick = function() {setupStep = 2;renderSetup();doc.getElementById("fmBack").focus();};
     doc.getElementById("fmBack").onclick = function() {setupStep = 1;renderSetup();doc.getElementById("fmNext").focus();};
     doc.getElementById("fmDone").onclick = finishSetup;
@@ -553,7 +561,21 @@
       catch (_error) {defaultHome.checked=false;defaultStatus.textContent="浏览器未允许保存设置，请通过导航进入为你。";}
     };
 
-    refs.customize.addEventListener("click", function () { setupOpen = !setupOpen; render(); });
+    refs.customize.addEventListener("click", function () { setupOpen = true; render(); settingsDialog.scrollTop=0; });
+    doc.getElementById("fmCloseSettings").onclick = finishSetup;
+    settingsDialog.addEventListener("cancel", function () {clearSettingsHash();setupOpen=false;});
+    settingsDialog.addEventListener("close", function () {if(settingsDialog.open) return;setupOpen=false;refs.setup.hidden=true;refs.customize.setAttribute("aria-expanded","false");refs.customize.focus();});
+    settingsDialog.addEventListener("click", function(event) {
+      var rect=settingsDialog.getBoundingClientRect();
+      if(event.target===settingsDialog && (event.clientX<rect.left || event.clientX>rect.right || event.clientY<rect.top || event.clientY>rect.bottom)) finishSetup();
+    });
+    function openReadingSettings() {
+      if(win.location.hash!=="#reading-settings") return;
+      setupOpen=true;render();
+      var settings=doc.getElementById("reading-settings");settings.open=true;
+      settings.scrollIntoView({block:"start"});doc.getElementById("fmBehaviorEnabled").focus({preventScroll:true});
+    }
+    win.addEventListener("hashchange",openReadingSettings);
     refs.error.querySelector("button").addEventListener("click", function () { win.location.reload(); });
     win.addEventListener("datahot:feedback", function () {
       state.feedback = normalizeFeedbackStore(loadJson(storage, FEEDBACK_KEY, {}));
@@ -574,7 +596,7 @@
       products.forEach(function (p) { productNames[p.id] = p.name; });
       if (reading) {state.reading=reading.load(storage);state.behavior=reading.profile(events,state,Date.now());if(personal(state)) setupOpen=false;}
       refs.loading.hidden = true; refs.content.hidden = false; render();
-      if (win.location.hash === "#reading-settings") {var settings=doc.getElementById("reading-settings");settings.open=true;settings.scrollIntoView({block:"start"});}
+      openReadingSettings();
     }).catch(function () {
       refs.loading.hidden = true; refs.error.hidden = false;
     });

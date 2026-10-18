@@ -751,8 +751,8 @@ CASE_DETAIL_CSS = """
 
 FOR_ME_CSS = """
 .fm-home-choice{margin:0 0 24px;padding:14px 0;border-block:1px solid var(--line);font-size:13px}
-#reading-settings{scroll-margin-top:250px}
-.fm-home-choice summary{cursor:pointer;min-height:44px;padding:10px 0;scroll-margin-top:240px}
+#reading-settings{scroll-margin-top:72px}
+.fm-home-choice summary{cursor:pointer;min-height:44px;padding:10px 0;scroll-margin-top:72px}
 .fm-home-choice label{display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer}
 .fm-home-choice p{color:var(--sub);margin:4px 0}
 .fm-setup-actions{display:flex;gap:16px;flex-wrap:wrap;margin-top:18px}
@@ -843,6 +843,30 @@ FOR_ME_CSS = """
   .fm-action,.fm-watch-remove{min-height:44px}
   .fm-weekly{padding:16px}
 }
+/* Reading comes first; settings must never occupy the feed's first viewport. */
+.for-me-page .fm-hero{position:static;top:auto;z-index:auto;padding:0;border:0;background:transparent;backdrop-filter:none;align-items:center;gap:12px;margin:0 0 24px}
+.fm-hero h1{font-size:28px;line-height:1.2}
+.fm-subtitle{margin:5px 0 0;font-size:13px;line-height:1.5;color:var(--sub)}
+#fmMust{margin-top:0}
+#fmMust .fm-section-head{display:flex;align-items:center;gap:10px}
+#fmMust .fm-section-head h2{font-size:16px}
+#fmMust .fm-section-head p{text-align:right;font-size:11px}
+.fm-settings{box-sizing:border-box;margin:auto;width:min(640px,calc(100% - 32px));max-height:85dvh;padding:0 24px 24px;border:1px solid var(--line);border-radius:18px;background:var(--bg);color:var(--ink);overscroll-behavior:contain}
+.fm-settings::backdrop{background:rgba(15,23,42,.42)}
+body:has(#fmSettings[open]){overflow:hidden}
+.fm-settings-head{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 0;background:var(--bg);border-bottom:1px solid var(--line)}
+.fm-settings-head h2{font-size:19px;margin:0}
+.fm-settings-intro{font-size:13px;line-height:1.7;color:var(--sub);margin:16px 0}
+.fm-settings .fm-setup{padding:0;border:0;background:none;margin:20px 0}
+.fm-settings .fm-home-choice{margin-bottom:16px}
+.fm-settings-links{display:flex;gap:20px;font-size:13px;padding-top:8px}
+@media(max-width:600px){
+  .for-me-page{padding-top:18px}
+  .for-me-page .fm-hero{margin-bottom:20px}
+  .fm-hero h1{font-size:25px}
+  .fm-settings{width:100%;max-width:none;max-height:90dvh;margin:auto 0 0;border-radius:18px 18px 0 0;padding:0 18px max(22px,env(safe-area-inset-bottom));border-bottom:0}
+}
+
 """
 
 def sidebar(active, gen=None, prefix=""):
@@ -2942,42 +2966,40 @@ def render_for_me_page(css, data_url="data/latest-lite.json"):
 <div id="forMeDataConfig" data-lite-url="{esc(data_url)}" hidden></div>
 <main class="wrap for-me-page">
   <header class="fm-hero">
-    <div>
-      <p class="fm-eyebrow">Your signal radar</p>
-      <h1>为你</h1>
-      <p class="fm-subtitle">从你的工作出发，发现值得读、用得上的变化</p>
-      <div class="research-shortcuts" style="display:flex;gap:18px;flex-wrap:wrap;font-size:12px;margin-top:14px"><a href="products.html">浏览产品雷达 →</a><a href="paths.html">实施参考路径 →</a></div>
-    </div>
-    <button class="fm-customize" id="fmCustomize" type="button" aria-expanded="false" aria-controls="fmSetup">调整兴趣</button>
-    <div class="fm-visit"><span id="fmVisit">正在读取上次访问…</span><strong><span id="fmNewCount">—</span> 条未读变化</strong></div>
+    <div><h1>为你</h1><p class="fm-subtitle">值得读的变化，打开就看</p></div>
+    <button class="fm-customize" id="fmCustomize" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="fmSettings">推荐设置</button>
   </header>
-
-  <section class="fm-setup" id="fmSetup" aria-labelledby="fmSetupTitle">
+  <dialog id="fmSettings" class="fm-settings" aria-labelledby="fmSettingsTitle">
+    <div class="fm-settings-head"><h2 id="fmSettingsTitle">推荐设置</h2><button type="button" class="fm-customize" id="fmCloseSettings" autofocus>完成</button></div>
+    <p class="fm-settings-intro">按需调整，选择即时保存。也可以直接阅读，让推荐逐渐了解你。</p>
+  <section class="fm-setup" id="fmSetup" hidden aria-labelledby="fmSetupTitle">
     <div class="fm-setup-head">
-      <div><h2 id="fmSetupTitle">让内容与你的工作相关</h2><p>两步设置，随时可改，也可以直接跳过</p></div>
+      <div><h2 id="fmSetupTitle">让内容与你的工作相关</h2><p>选择工作和关注对象，帮助推荐更贴近你</p></div>
       <span class="fm-progress" id="fmProgress">选择一个关注对象</span>
     </div>
     <div id="fmTaskStep"><h3>1 · 你正在做什么？</h3><p>可多选，先选当前最重要的工作。</p><div class="fm-suggestions" id="fmTasks"></div><button type="button" class="fm-customize" id="fmNext">下一步：选择关注对象 →</button></div>
     <div id="fmFollowStep" hidden><h3>2 · 你关心哪些产品和主题？</h3><div class="fm-suggestions" id="fmSuggestions" aria-label="可关注的产品、主题与厂商"></div><div class="fm-setup-actions"><button type="button" class="fm-action" id="fmBack">上一步</button><button type="button" class="fm-customize" id="fmDone">查看为你推荐</button></div></div>
-    <div class="fm-setup-actions"><button type="button" class="fm-action" id="fmSkip">跳过，先看内容</button><button type="button" class="fm-action" id="fmReset">重置工作与关注</button></div>
+    <div class="fm-setup-actions"><button type="button" class="fm-action" id="fmSkip">返回阅读</button><button type="button" class="fm-action" id="fmReset">重置工作与关注</button></div>
     <p class="fm-privacy">工作选择、关注、已读和默认首页设置保存在当前浏览器，不需要登录；换设备不会自动同步。</p>
   </section>
 
   <div class="fm-home-choice"><label><input type="checkbox" id="fmDefaultHome"> 将「为你」设为默认首页</label><p id="fmDefaultStatus" role="status">默认打开热榜；勾选后访问网站首页将进入为你。</p></div>
   <details class="fm-home-choice" id="reading-settings"><summary>浏览行为推荐 · 仅保存在当前浏览器</summary><label><input type="checkbox" id="fmBehaviorEnabled" checked> 用浏览行为改善推荐</label><p id="fmBehaviorStatus" role="status">正在读取本地阅读记录…</p><p>前台有效阅读、重访、收藏与反馈帮助发现相关内容；不上传阅读历史。最多保留 200 篇、90 天，旧兴趣逐渐减弱。</p><button type="button" class="fm-action" id="fmClearReading">清除阅读记录</button></details>
+    <nav class="fm-settings-links" aria-label="更多发现"><a href="products.html">产品雷达 →</a><a href="paths.html">实施参考 →</a></nav>
+  </dialog>
   <div id="fmNotice" role="status" hidden><span></span> <button type="button" class="fm-action">撤销</button></div>
   <div class="fm-loading" id="fmLoading" role="status">正在整理与你相关的变化…</div>
   <div class="fm-error" id="fmError" hidden>暂时无法读取最新内容。<br><button type="button">重新加载</button></div>
 
   <div id="fmContent" hidden>
     <section class="fm-section" id="fmMust" aria-labelledby="fmMustTitle">
-      <div class="fm-section-head"><div><h2 id="fmMustTitle">今天优先看</h2><p>与你的关注最相关，最多 3 条</p></div></div>
+      <div class="fm-section-head"><h2 id="fmMustTitle">今天优先看</h2><p>近 7 天 · 最多 3 条</p></div>
       <div class="fm-must-list" id="fmMustList"></div>
     </section>
     <div class="fm-empty" id="fmEmpty" hidden>近期没有更多与你相关的未读重点。可以查看工作参考、调整兴趣，或浏览热榜。</div>
 
     <section class="fm-section" id="fmFeed" aria-labelledby="fmFeedTitle">
-      <div class="fm-section-head"><h2 id="fmFeedTitle">你关注的新变化</h2><p>自上次访问以来收录的相关内容；首次展示近 7 天</p></div>
+      <div class="fm-section-head"><h2 id="fmFeedTitle">你关注的新变化</h2><p><span id="fmVisit">近 7 天</span> · <span id="fmNewCount">—</span> 条未读</p></div>
       <div class="fm-feed-list" id="fmFeedList"></div>
     </section>
 

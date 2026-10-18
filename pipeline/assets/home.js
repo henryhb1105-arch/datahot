@@ -462,6 +462,7 @@
     var topRanks = topRanksFromIds(config.dataset.topIds || "");
     var state = stateFromSearch(win.location.search);
     var payloadPromise = null;
+    var retryMore = false;
     var allEvents = null;
     var restoredSnapshot = false;
     var initialTimeline = root.innerHTML;
@@ -573,6 +574,7 @@
       return payloadPromise;
     }
     function restoreInitialTimeline() {
+      retryMore = false;
       state = { q: "", topic: "all", category: "", editorial: false, page: 1 };
       if (qInput) qInput.value = "";
       if (qClear) qClear.style.display = "none";
@@ -596,6 +598,7 @@
       }
       return fetchEvents().then(function (events) {
         var result = visibleEvents(events, state, pageSize);
+        retryMore = false;
         root.innerHTML = renderTimeline(result.visible, topRanks, state.editorial) || renderNoResults();
         syncTodayLabels();
         count.textContent = String(result.filtered.length);
@@ -620,7 +623,8 @@
           if (more) more.hidden = true;
           persistUrl();
         } else if (more) {
-          more.hidden = false; more.disabled = true; more.textContent = "加载失败，请稍后重试";
+          retryMore = true;
+          more.hidden = false; more.disabled = false; more.textContent = "加载失败，点击重试";
         }
         return null;
       });
@@ -665,7 +669,13 @@
     if (qClear) qClear.addEventListener("click", function () {
       qInput.value = ""; state.q = ""; state.page = 1; refresh(); qInput.focus();
     });
-    if (more) more.addEventListener("click", function () { state.page += 1; refresh(); });
+    if (more) more.addEventListener("click", function () {
+      if (more.disabled) return;
+      if (!retryMore) state.page += 1;
+      more.disabled = true;
+      more.textContent = "正在加载…";
+      refresh();
+    });
     doc.querySelectorAll("[data-home-top]").forEach(function (link) {
       link.addEventListener("click", function (event) {
         if (!isPlainPrimaryClick(event)) return;

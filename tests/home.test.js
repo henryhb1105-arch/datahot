@@ -396,7 +396,7 @@ function failingHomeWindow() {
       querySelectorAll: () => [],
       addEventListener: (name, handler) => { listeners[name] = handler; }
     },
-    loadMore: { hidden: false, disabled: false, textContent: "加载更多（20/3）", addEventListener() {} },
+    loadMore: { hidden: false, disabled: false, textContent: "加载更多（20/3）", addEventListener(name, handler) { listeners.moreClick = handler; } },
     rCount: { textContent: "3" },
     q: { value: "", addEventListener() {}, focus() { this.focused = true; } },
     qClear: { style: {}, addEventListener() {} }
@@ -559,4 +559,22 @@ test("empty search results explain matching and offer the existing reset action"
   assert.match(html,/role="status"/);
   assert.match(html,/多个关键词用空格分隔/);
   assert.match(html,/<button type="button" data-filter-clear>清除搜索与筛选<\/button>/);
+});
+
+ test("unfiltered load-more failure retries the same page and retains existing cards", async () => {
+  const fixture = failingHomeWindow();
+  fixture.win.location.search = "";
+  fixture.win.requestIdleCallback = () => {};
+  home.boot(fixture.win);
+  fixture.listeners.moreClick();
+  await new Promise(setImmediate);
+  assert.equal(fixture.elements.timeline.innerHTML, "STATIC UNFILTERED CONTENT");
+  assert.equal(fixture.elements.loadMore.disabled, false);
+  assert.match(fixture.elements.loadMore.textContent, /点击重试/);
+  fixture.allowFetch();
+  fixture.listeners.moreClick();
+  await new Promise(setImmediate);
+  assert.match(fixture.win.history.url, /page=2/);
+  assert.doesNotMatch(fixture.win.history.url, /page=3/);
+  assert.match(fixture.elements.timeline.innerHTML, /Title 1/);
 });

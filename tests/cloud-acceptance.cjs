@@ -201,6 +201,8 @@ async function main() {
     await require('./for-you-browser.cjs')(context, base, out, width);
     summary.viewports[summary.viewports.length - 1].forYou = 'PASS: setup/skip, task relevance, read, dismiss/undo, default/escape, persistence, asset hash';
     summary.viewports[summary.viewports.length - 1].screenshots += 4;
+    summary.viewports[summary.viewports.length - 1].reading = await require("./reading-browser.cjs")(context,base,out,width);
+    summary.viewports[summary.viewports.length - 1].screenshots += 2;
     await context.close();
   }
   if (production) {

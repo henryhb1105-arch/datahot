@@ -178,6 +178,25 @@ async function main() {
     assert.deepEqual(broken, [], 'Broken same-origin resources');
     assert.deepEqual(analyticsAttempts, [], 'Acceptance attempted analytics despite opt-out');
     summary.viewports.push({width,search_results:forward,follow:{kind:followKind,value:followValue},screenshots:screenshotCount,errors,broken,analyticsAttempts});
+    // Simulate a transient network outage in a fresh page before idle prefetch.
+    const recovery = await context.newPage();
+    let offline = true;
+    await recovery.route('**/data/latest-lite.json*', route => offline ? route.abort() : route.continue());
+    await recovery.goto(base, {waitUntil:'networkidle'});
+    const existingIds = await recovery.locator('#timeline .item').evaluateAll(nodes => nodes.map(n => n.dataset.eventId));
+    const loadMore = recovery.locator('#loadMore');
+    await loadMore.click();
+    await recovery.waitForFunction(() => document.querySelector('#loadMore').textContent.includes('点击重试'));
+    assert.equal(await loadMore.isEnabled(), true, 'Network failure must offer usable retry');
+    assert.deepEqual(await recovery.locator('#timeline .item').evaluateAll(nodes => nodes.map(n => n.dataset.eventId)), existingIds);
+    await recovery.screenshot({path:path.join(out, `${width}-load-retry.png`)});
+    offline = false;
+    await loadMore.click();
+    await recovery.waitForFunction(() => new URL(location.href).searchParams.get('page') === '2');
+    assert.equal(await recovery.locator('#timeline .item').count(), existingIds.length * 2, 'Retry must not skip ahead to page 3');
+    await recovery.screenshot({path:path.join(out, `${width}-load-recovered.png`)});
+    summary.viewports[summary.viewports.length - 1].loadMoreRecovery = 'PASS: retained cards and retried page 2';
+    await recovery.close();
     await context.close();
   }
   if (production) {

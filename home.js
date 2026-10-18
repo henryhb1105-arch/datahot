@@ -444,6 +444,14 @@
   }
 
   function boot(win) {
+    // Explicit index.html links remain the escape hatch to the public feed.
+    try {
+      if (/\/$/.test(win.location.pathname) && !win.location.search && !win.location.hash &&
+          win.localStorage.getItem("dh_default_home_v1") === "for-you") {
+        win.location.replace("for-me.html"); return;
+      }
+    } catch (_error) {}
+
     var doc = win.document;
     syncFreshness(doc);
     initWeeklyTeaser(win);

@@ -1,10 +1,10 @@
 (function (root, factory) {
   "use strict";
-  var api = factory();
+  var api = factory(typeof module === "object" && module.exports ? require("./reading-profile.js") : root.DataHotReading);
   if (typeof module === "object" && module.exports) module.exports = api;
   if (root) root.DataHotForMe = api;
   if (root && root.document) api.boot(root);
-})(typeof globalThis !== "undefined" ? globalThis : this, function () {
+})(typeof globalThis !== "undefined" ? globalThis : this, function (reading) {
   "use strict";
 
   var STORAGE_KEY = "dh_for_me_v1";
@@ -29,10 +29,13 @@
         (task.topics.some(function (topic) { return (event.topics || []).indexOf(topic) >= 0; }) || task.pattern.test(text));
     }).map(function (task) { return {kind: "task", value: task.id}; });
   }
-  function personal(state) { return follows(state).length > 0 || (state.tasks || []).length > 0; }
+  function isRead(event, state) { return Boolean(state.read[event.event_id] || (state.reading && state.reading.enabled && state.reading.entries[event.event_id])); }
+  function inferred(event, state) { return reading ? reading.match(event, state.behavior) : []; }
+  function relevant(event, state) { return matchReasons(event, state).length > 0 || inferred(event, state).length > 0; }
+  function personal(state) { return follows(state).length > 0 || (state.tasks || []).length > 0 || Object.keys(state.behavior || {}).length > 0; }
   function sections(events, state, now, baseline) {
     var ranked = rankEvents(events, state, now, personal(state));
-    var unread = ranked.filter(function (event) { return !state.read[event.event_id]; });
+    var unread = ranked.filter(function (event) { return !isRead(event, state); });
     var cutoff = now - 7 * 86400000;
     var fresh = unread.filter(function (event) { return eventTime(event) >= cutoff; });
     var must = fresh.slice(0, 3), used = new Set(must.map(function (event) {return event.event_id;}));
@@ -45,7 +48,7 @@
     }).slice(0, 6);
     work.forEach(function (event) {used.add(event.event_id);});
     var discovery = personal(state) ? rankEvents(events, state, now, false).filter(function (event) {
-      return !state.read[event.event_id] && !used.has(event.event_id) && !matchReasons(event, state).length && eventTime(event) >= cutoff;
+      return !isRead(event, state) && !used.has(event.event_id) && !relevant(event, state) && eventTime(event) >= cutoff;
     }).slice(0, 2) : [];
     return {must: must, updates: updates, work: work, discovery: discovery, ranked: ranked};
   }
@@ -164,7 +167,7 @@
     var fit = fitScore(event, state, state.feedback);
     var sourceBonus = Math.min(12, Math.max(0, ((event.items || []).length - 1) * 4));
     var favoriteBonus = state.favorites && state.favorites.indexOf(String(event.event_id || "")) >= 0 ? 10 : 0;
-    return quality * 0.4 + trend * 0.25 + fit + freshness + sourceBonus + favoriteBonus;
+    return quality * 0.4 + trend * 0.25 + fit + freshness + sourceBonus + favoriteBonus + (reading ? reading.score(event, state.behavior) : 0);
   }
 
   function rankEvents(events, state, now, requireMatch) {
@@ -172,7 +175,7 @@
     return (Array.isArray(events) ? events : []).filter(function (event) {
       var id = String(event.event_id || "");
       if (!/^[A-Za-z0-9_-]{1,64}$/.test(id) || dismissed.has(id)) return false;
-      return !requireMatch || matchReasons(event, state).length > 0;
+      return !requireMatch || relevant(event, state);
     }).map(function (event) {
       return { event: event, score: scoreEvent(event, state, now), time: eventTime(event) };
     }).sort(function (left, right) {
@@ -180,7 +183,7 @@
       var aFocus = a.focus || {}, bFocus = b.focus || {};
       var aPriority = Number.isInteger(aFocus.priority) && aFocus.priority >= 0 && aFocus.priority <= 5 ? aFocus.priority : 5;
       var bPriority = Number.isInteger(bFocus.priority) && bFocus.priority >= 0 && bFocus.priority <= 5 ? bFocus.priority : 5;
-      if (Boolean(state.read && state.read[a.event_id]) !== Boolean(state.read && state.read[b.event_id])) return state.read[a.event_id] ? 1 : -1;
+      if (isRead(a, state) !== isRead(b, state)) return isRead(a, state) ? 1 : -1;
       if (!personal(state)) {
         if (aPriority !== bPriority) return aPriority - bPriority;
         if (Boolean(aFocus.practical) !== Boolean(bFocus.practical)) return aFocus.practical ? -1 : 1;
@@ -340,10 +343,10 @@
       article.appendChild(link);
       if (event.zh_summary) article.appendChild(element("p", "fm-signal-summary", String(event.zh_summary)));
 
-      var reasons = matchReasons(event, state);
+      var reasons = matchReasons(event, state), learned = inferred(event, state)[0];
       var why = reasons.length
         ? "与你选择的 " + reasons.map(followLabel).join("、") + " 相关"
-        : (context === "discovery" ? "关注范围之外的近期内容，帮助发现新方向" : "公共精选 · 设置兴趣后优先显示与你相关的变化");
+        : learned ? "根据你近期的" + learned.reason + " · " + followLabel(learned) : (context === "discovery" ? "关注范围之外的近期内容，帮助发现新方向" : "公共精选 · 设置兴趣后优先显示与你相关的变化");
       var whyNode = element("div", "fm-why");
       whyNode.appendChild(element("span", "fm-why-label", "为你推荐"));
       whyNode.appendChild(element("span", "", why));
@@ -356,10 +359,13 @@
       }
 
       var actions = element("div", "fm-actions");
-      var read = element("button", "fm-action", state.read[id] ? "已读" : "标记已读");
-      read.type = "button"; read.dataset.action = "read"; read.setAttribute("aria-pressed", state.read[id] ? "true" : "false");
+      var read = element("button", "fm-action", isRead(event, state) ? "已读" : "标记已读");
+      read.type = "button"; read.dataset.action = "read"; read.setAttribute("aria-pressed", isRead(event, state) ? "true" : "false");
       read.addEventListener("click", function () {
-        if (state.read[id]) delete state.read[id]; else state.read[id] = new Date().toISOString();
+        if (isRead(event, state)) {
+          delete state.read[id];
+          if (reading) {var local = reading.load(storage);delete local.entries[id];reading.save(storage, local);}
+        } else state.read[id] = new Date().toISOString();
         saveState(); render();
       });
       var favorite = state.favorites.indexOf(id) >= 0;
@@ -387,10 +393,20 @@
       dismiss.type = "button"; dismiss.dataset.action = "dismiss";
       dismiss.addEventListener("click", function () {
         state.dismissed.push(id); state.dismissed = uniqueStrings(state.dismissed, 200); saveState(); render();
-        refs.notice.hidden = false; refs.notice.querySelector("span").textContent = "已隐藏这条内容";
+        refs.notice.hidden = false; refs.notice.querySelector("button").hidden = false; refs.notice.querySelector("span").textContent = "已隐藏这条内容";
         refs.notice.querySelector("button").onclick = function () {state.dismissed = state.dismissed.filter(function(value) {return value !== id;}); saveState(); render(); refs.notice.hidden = true;};
       });
       actions.appendChild(read); actions.appendChild(save); actions.appendChild(dismiss);
+      if (learned && !reasons.length) {
+        var less = element("button", "fm-action", "减少「" + followLabel(learned) + "」");
+        less.type = "button";less.dataset.action = "reduce";
+        less.onclick = function() {
+          var local = reading.load(storage);local.muted.push(learned.key);
+          if (!reading.save(storage, local)) {showNotice("浏览器未允许保存，设置没有改变。");return;}
+          render();showNotice("已减少这类行为推荐", function(){var current=reading.load(storage);current.muted=current.muted.filter(function(key){return key!==learned.key;});reading.save(storage,current);render();});
+        };
+        actions.appendChild(less);
+      }
       article.appendChild(actions);
       return article;
     }
@@ -439,10 +455,11 @@
     }
     function render() {
       var followed = follows(state);
+      if (reading) {state.reading = reading.load(storage);state.behavior = reading.profile(events, state, Date.now());}
       var personalized = personal(state);
       var now = Date.now();
       var ranked = rankEvents(events, state, now, personalized);
-      var newCount = personalized ? ranked.filter(function (event) { return (baseline ? isNewSince(event, baseline) : eventTime(event, "first_seen") >= now - 7 * 86400000) && !state.read[event.event_id]; }).length : 0;
+      var newCount = personalized ? ranked.filter(function (event) { return (baseline ? isNewSince(event, baseline) : eventTime(event, "first_seen") >= now - 7 * 86400000) && !isRead(event, state); }).length : 0;
       refs.visit.textContent = relativeVisit(baseline);
       refs.newCount.textContent = personalized ? String(newCount) : "—";
       refs.progress.textContent = personalized
@@ -451,6 +468,11 @@
       refs.setup.hidden = !setupOpen;
       refs.customize.setAttribute("aria-expanded", setupOpen ? "true" : "false");
       refs.customize.textContent = setupOpen ? "收起设置" : "调整兴趣";
+      if (reading) {
+        doc.getElementById("fmBehaviorEnabled").checked = state.reading.enabled;
+        var count = Object.keys(state.reading.entries).length;
+        doc.getElementById("fmBehaviorStatus").textContent = !state.reading.enabled ? "已暂停记录与行为推荐；主动关注仍有效。" : count ? "已在当前浏览器记录 " + count + " 篇有效阅读；近期兴趣逐渐调整推荐。" : "尚无有效阅读记录。认真阅读后逐渐学习，也参考收藏与有用反馈。";
+      }
       renderSuggestions();
 
       var grouped = sections(events, state, now, baseline);
@@ -468,7 +490,7 @@
       renderCards(refs.workList, grouped.work, 6, false, "work");
       if (!grouped.work.length) refs.workList.textContent = "暂时没有更多匹配的工作参考，可调整兴趣或浏览案例库。";
       if (!feed.length) refs.feedList.textContent = "暂时没有更多未读的新变化。";
-      renderCards(refs.readList, ranked.filter(function(e) {return state.read[e.event_id];}), 12, false);
+      renderCards(refs.readList, ranked.filter(function(e) {return isRead(e, state);}), 12, false);
       renderSetup();
       refs.discovery.hidden = !discovery.length;
       renderCards(refs.discoveryList, discovery, 2, false, "discovery");
@@ -480,6 +502,31 @@
         : "完成关注后生成你的本周回顾";
     }
 
+    function showNotice(message, undo) {
+      refs.notice.hidden=false;refs.notice.querySelector("span").textContent=message;
+      var button=refs.notice.querySelector("button");button.hidden=!undo;
+      button.onclick=function(){if(undo) undo();refs.notice.hidden=true;};
+    }
+    if (reading) {
+      doc.getElementById("fmBehaviorEnabled").onchange=function(){
+        var local=reading.load(storage);local.enabled=this.checked;
+        if (!reading.save(storage,local)) showNotice("浏览器未允许保存，设置没有改变。");
+        render();
+      };
+      doc.getElementById("fmClearReading").onclick=function(){
+        var local=reading.load(storage);local.entries={};local.muted=[];
+        if (reading.save(storage,local)) {render();showNotice("已清除阅读记录；收藏、反馈和主动关注仍保留。");}
+        else showNotice("浏览器未允许清除，记录没有改变。");
+      };
+      function refreshLocal(){
+        state.feedback=normalizeFeedbackStore(loadJson(storage,FEEDBACK_KEY,{}));
+        state.favorites=win.DataHotFavorites?win.DataHotFavorites.readRecords(storage).map(function(r){return r.event_id;}):uniqueStrings(loadJson(storage,FAVORITES_KEY,[]),500);
+        if(events.length) render();
+      }
+      win.addEventListener("storage",refreshLocal);
+      win.addEventListener("pageshow",refreshLocal);
+      win.addEventListener("focus",refreshLocal);
+    }
     function renderSetup() {
       doc.getElementById("fmTaskStep").hidden = setupStep !== 1;
       doc.getElementById("fmFollowStep").hidden = setupStep !== 2;
@@ -525,7 +572,9 @@
         return p && /^[a-z][a-z0-9-]{1,63}$/.test(p.id) && typeof p.name === "string";
       });
       products.forEach(function (p) { productNames[p.id] = p.name; });
+      if (reading) {state.reading=reading.load(storage);state.behavior=reading.profile(events,state,Date.now());if(personal(state)) setupOpen=false;}
       refs.loading.hidden = true; refs.content.hidden = false; render();
+      if (win.location.hash === "#reading-settings") {var settings=doc.getElementById("reading-settings");settings.open=true;settings.scrollIntoView({block:"start"});}
     }).catch(function () {
       refs.loading.hidden = true; refs.error.hidden = false;
     });
@@ -533,7 +582,7 @@
 
   return {
     STORAGE_KEY: STORAGE_KEY,
-    TASKS: TASKS, sections: sections, taskReasons: taskReasons,
+    TASKS: TASKS, sections: sections, taskReasons: taskReasons, isRead: isRead,
     normalizeState: normalizeState,
     matchReasons: matchReasons,
     normalizeFeedbackStore: normalizeFeedbackStore,

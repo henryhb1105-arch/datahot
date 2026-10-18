@@ -65,13 +65,13 @@ def product_case():
 class ProductCasesPageTests(unittest.TestCase):
     def test_navigation_promotes_cases_and_moves_topics_into_more(self):
         desktop = build_site.sidebar("cases")
-        self.assertLess(desktop.index(">关注</a>"), desktop.index(">案例</a>"))
+        self.assertLess(desktop.index(">为你</a>"), desktop.index(">案例</a>"))
         self.assertLess(desktop.index(">案例</a>"), desktop.index(">周报</a>"))
         self.assertIn('class="mi on" href="cases.html"', desktop)
 
         mobile = build_site.tabbar("cases")
         primary, more = mobile.split("</nav>", 1)
-        for label in ("热榜", "关注", "案例", "收藏", "更多"):
+        for label in ("热榜", "为你", "案例", "收藏", "更多"):
             self.assertIn(f"<span>{label}</span>", primary)
         self.assertNotIn("<span>主题</span>", primary)
         self.assertIn('href="topics.html"', more)

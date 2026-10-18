@@ -749,6 +749,15 @@ CASE_DETAIL_CSS = """
 """
 
 FOR_ME_CSS = """
+.fm-home-choice{margin:0 0 24px;padding:14px 0;border-block:1px solid var(--line);font-size:13px}
+.fm-home-choice label{display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer}
+.fm-home-choice p{color:var(--sub);margin:4px 0}
+.fm-setup-actions{display:flex;gap:16px;flex-wrap:wrap;margin-top:18px}
+#fmTaskStep h3,#fmFollowStep h3{font-size:16px;margin:22px 0 8px}
+#fmNotice{padding:12px;border:1px solid var(--line);margin-bottom:16px}
+.for-me-page [hidden]{display:none!important}
+.for-me-page summary{cursor:pointer;min-height:44px}
+
 .for-me-page{max-width:1040px;padding:34px 20px 72px}
 .fm-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:start;margin-bottom:18px}
 .fm-eyebrow{margin:0 0 8px;color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
@@ -837,7 +846,7 @@ def sidebar(active, gen=None, prefix=""):
     """桌面端左侧菜单栏（≥1200px 显示，窄屏由底部 Tab 承担导航）"""
     menu_active = "home" if active == "hot" else active
     items = [("热榜", "flame", "index.html", "home"),
-             ("关注", "radar", "for-me.html", "for-me"),
+             ("为你", "radar", "for-me.html", "for-me"),
              ("案例", "image", "cases.html", "cases")]
     if weekly_brief_enabled():
         items.append(("周报", "calendar", "weekly.html", "weekly"))
@@ -951,7 +960,7 @@ def weekly_brief_enabled():
 
 def tabbar(active, prefix=""):
     items = [("热榜", ic("flame",20), "index.html", "home"),
-             ("关注", ic("radar",20), "for-me.html", "for-me"),
+             ("为你", ic("radar",20), "for-me.html", "for-me"),
              ("案例", ic("image",20), "cases.html", "cases"),
              ("收藏", ic("star",20), "favorites.html", "favorites")]
     primary = "".join(
@@ -992,6 +1001,7 @@ def tabbar(active, prefix=""):
     var button=event.button==null?0:event.button;
     if(event.defaultPrevented||button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey) return;
     try{{
+      if(window.localStorage.getItem('dh_default_home_v1')==='for-you') return;
       var current=new URL(window.location.href);
       var target=new URL(homeLink.href,current);
       var source=new URL(document.referrer,current);
@@ -2487,7 +2497,7 @@ document.addEventListener('DOMContentLoaded',function(){
     <a class="topic-back" href="../topics.html">← 主题地图</a>
     <h1>{esc(t["name"])}</h1>
     <p class="topic-hero-desc">{esc(t["desc"])}</p>
-    <a class="topic-follow" href="../for-me.html?follow=topic:{quote(t['name'], safe='')}">＋ 关注此主题，在 For Me 查看</a>
+    <a class="topic-follow" href="../for-me.html?follow=topic:{quote(t['name'], safe='')}">＋ 关注此主题，在为你查看</a>
     <div class="topic-counts"><span class="recent">近 7 天新增 {len(recent)}</span><span class="total">累计 {len(topic_events)} · 每 6 小时更新</span></div>
     {parent_html}
   </header>
@@ -2929,57 +2939,63 @@ def render_for_me_page(css, data_url="data/latest-lite.json"):
   <header class="fm-hero">
     <div>
       <p class="fm-eyebrow">Your signal radar</p>
-      <h1>For Me</h1>
-      <p class="fm-subtitle">只看与你相关的重要变化</p>
+      <h1>为你</h1>
+      <p class="fm-subtitle">从你的工作出发，发现值得读、用得上的变化</p>
       <div class="research-shortcuts" style="display:flex;gap:18px;flex-wrap:wrap;font-size:12px;margin-top:14px"><a href="products.html">浏览产品雷达 →</a><a href="paths.html">实施参考路径 →</a></div>
     </div>
-    <button class="fm-customize" id="fmCustomize" type="button" aria-expanded="false" aria-controls="fmSetup">调整关注</button>
+    <button class="fm-customize" id="fmCustomize" type="button" aria-expanded="false" aria-controls="fmSetup">调整兴趣</button>
     <div class="fm-visit"><span id="fmVisit">正在读取上次访问…</span><strong><span id="fmNewCount">—</span> 条未读变化</strong></div>
   </header>
 
   <section class="fm-setup" id="fmSetup" aria-labelledby="fmSetupTitle">
     <div class="fm-setup-head">
-      <div><h2 id="fmSetupTitle">先选择你关心的内容</h2><p>产品、主题和厂商可以混选，关注 1 个即可开始</p></div>
+      <div><h2 id="fmSetupTitle">让内容与你的工作相关</h2><p>两步设置，随时可改，也可以直接跳过</p></div>
       <span class="fm-progress" id="fmProgress">选择一个关注对象</span>
     </div>
-    <div class="fm-suggestions" id="fmSuggestions" aria-label="可关注的产品、主题与厂商"></div>
-    <p class="fm-privacy">关注、已读和反馈只保存在这台设备，不需要登录，也不会上传。</p>
+    <div id="fmTaskStep"><h3>1 · 你正在做什么？</h3><p>可多选，先选当前最重要的工作。</p><div class="fm-suggestions" id="fmTasks"></div><button type="button" class="fm-customize" id="fmNext">下一步：选择关注对象 →</button></div>
+    <div id="fmFollowStep" hidden><h3>2 · 你关心哪些产品和主题？</h3><div class="fm-suggestions" id="fmSuggestions" aria-label="可关注的产品、主题与厂商"></div><div class="fm-setup-actions"><button type="button" class="fm-action" id="fmBack">上一步</button><button type="button" class="fm-customize" id="fmDone">查看为你推荐</button></div></div>
+    <div class="fm-setup-actions"><button type="button" class="fm-action" id="fmSkip">跳过，先看内容</button><button type="button" class="fm-action" id="fmReset">重置工作与关注</button></div>
+    <p class="fm-privacy">工作选择、关注、已读和默认首页设置保存在当前浏览器，不需要登录；换设备不会自动同步。</p>
   </section>
 
+  <div class="fm-home-choice"><label><input type="checkbox" id="fmDefaultHome"> 将「为你」设为默认首页</label><p id="fmDefaultStatus" role="status">默认打开热榜；勾选后访问网站首页将进入为你。</p></div>
+  <div id="fmNotice" role="status" hidden><span></span> <button type="button" class="fm-action">撤销</button></div>
   <div class="fm-loading" id="fmLoading" role="status">正在整理与你相关的变化…</div>
   <div class="fm-error" id="fmError" hidden>暂时无法读取最新内容。<br><button type="button">重新加载</button></div>
 
   <div id="fmContent" hidden>
     <section class="fm-section" id="fmMust" aria-labelledby="fmMustTitle">
-      <div class="fm-section-head"><div><h2 id="fmMustTitle">必须知道</h2><p>与你的关注最相关，最多 3 条</p></div></div>
+      <div class="fm-section-head"><div><h2 id="fmMustTitle">今天优先看</h2><p>与你的关注最相关，最多 3 条</p></div></div>
       <div class="fm-must-list" id="fmMustList"></div>
     </section>
-    <div class="fm-empty" id="fmEmpty" hidden>暂时没有与你关注对象匹配的变化。可以调整关注，或稍后回来看看。</div>
+    <div class="fm-empty" id="fmEmpty" hidden>近期没有更多与你相关的未读重点。可以查看工作参考、调整兴趣，或浏览热榜。</div>
 
     <section class="fm-section" id="fmFeed" aria-labelledby="fmFeedTitle">
-      <div class="fm-section-head"><h2 id="fmFeedTitle">关注动态</h2><p>按内容质量、近期趋势和与你的适合度排序</p></div>
+      <div class="fm-section-head"><h2 id="fmFeedTitle">你关注的新变化</h2><p>自上次访问以来收录的相关内容；首次展示近 7 天</p></div>
       <div class="fm-feed-list" id="fmFeedList"></div>
     </section>
 
+    <section class="fm-section" id="fmWork" aria-labelledby="fmWorkTitle"><div class="fm-section-head"><h2 id="fmWorkTitle">对你的工作有用</h2><p>匹配工作任务的内容与实践参考 · <a href="cases.html">浏览案例库 →</a></p></div><div class="fm-feed-list" id="fmWorkList"></div></section>
     <section class="fm-section" aria-labelledby="fmWatchTitle">
       <div class="fm-section-head"><h2 id="fmWatchTitle">持续关注</h2><p>你的关注对象与当前覆盖</p></div>
       <div class="fm-watch-list" id="fmWatch"></div>
     </section>
 
     <section class="fm-section" id="fmDiscovery" aria-labelledby="fmDiscoveryTitle" hidden>
-      <div class="fm-section-head"><h2 id="fmDiscoveryTitle">可能影响你</h2><p>关注范围外，最多 2 条</p></div>
+      <div class="fm-section-head"><h2 id="fmDiscoveryTitle">顺便看看</h2><p>关注范围外，最多 2 条</p></div>
       <div class="fm-discovery-list" id="fmDiscoveryList"></div>
     </section>
 
+    <details class="fm-section"><summary>已读内容（最近排序最多 12 条）</summary><div class="fm-feed-list" id="fmReadList"></div></details>
     <section class="fm-section" aria-label="本周回顾">
-      <a class="fm-weekly" href="{weekly_href}"><span><b>For Me · 本周回顾</b><span id="fmWeeklyCount">正在整理本周变化</span> · {weekly_label}</span><span class="fm-weekly-arrow" aria-hidden="true">→</span></a>
+      <a class="fm-weekly" href="{weekly_href}"><span><b>为你 · 本周回顾</b><span id="fmWeeklyCount">正在整理本周变化</span> · {weekly_label}</span><span class="fm-weekly-arrow" aria-hidden="true">→</span></a>
     </section>
   </div>
-  <noscript><div class="fm-error">For Me 需要浏览器 JavaScript 来保存本地关注。你仍可继续使用热榜、主题和周报。</div></noscript>
+  <noscript><div class="fm-error">为你页面需要浏览器 JavaScript 来保存本地关注。你仍可继续使用热榜、主题和周报。</div></noscript>
 </main>
 <script defer src="for-me.js?v={hashlib.sha256(FOR_ME_ASSET.read_bytes()).hexdigest()[:12]}"></script>'''
     return page_shell(
-        "For Me · DataHot", "只看与你相关的数据与 AI 重要变化",
+        "为你 · DataHot", "只看与你相关的数据与 AI 重要变化",
         css + FOR_ME_CSS, body, tabbar("for-me"), prefix="", active="for-me",
         indexable=False,
     )
@@ -3188,7 +3204,7 @@ def render_privacy_page(css):
     <p>DataHot 的匿名行为统计默认关闭，只有站点配置了 HTTPS 第一方接收端后才会启用。启用时仅记录页面类型、事件 ID、分类、来源、匿名会话与 30 天轮换的随机设备 ID。</p>
     <p style="margin-top:10px"><b>不会采集：</b>正文内容、完整搜索词、Cookie、姓名/邮箱、API Key、浏览器指纹、精确位置或跨站行为。浏览器的 Global Privacy Control / Do Not Track 会被自动尊重。</p>
     <p style="margin-top:10px"><b>搜索：</b>只记录长度区间（1–3 / 4–8 / 9+）和结果数量，不发送输入文字。</p>
-    <p style="margin-top:10px"><b>For Me、收藏与内容反馈：</b>关注、已读、收藏和文章反馈默认保存在本机，用于立即调整个人排序。匿名统计启用时，文章反馈只会发送事件 ID、“有用/没用”和预设原因，不发送评价文字或正文；关闭匿名统计后不上传。</p>
+    <p style="margin-top:10px"><b>为你、收藏与内容反馈：</b>工作任务、默认首页、关注、已读、收藏和文章反馈默认保存在本机，用于立即调整个人排序。匿名统计启用时，文章反馈只会发送事件 ID、“有用/没用”和预设原因，不发送评价文字或正文；关闭匿名统计后不上传。</p>
   </div>
   <div class="scard">
     <div data-analytics-status style="font-size:13px;color:var(--txt2);margin-bottom:12px">读取状态中…</div>

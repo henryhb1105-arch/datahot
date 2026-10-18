@@ -12,28 +12,28 @@ import build_site  # noqa: E402
 class ForMeBuildTests(unittest.TestCase):
     def test_for_me_is_second_desktop_and_mobile_entry(self):
         sidebar = build_site.sidebar("for-me")
-        self.assertLess(sidebar.index(">热榜</a>"), sidebar.index(">关注</a>"))
-        self.assertLess(sidebar.index(">关注</a>"), sidebar.index(">案例</a>"))
+        self.assertLess(sidebar.index(">热榜</a>"), sidebar.index(">为你</a>"))
+        self.assertLess(sidebar.index(">为你</a>"), sidebar.index(">案例</a>"))
         self.assertLess(sidebar.index(">案例</a>"), sidebar.index(">周报</a>"))
         self.assertIn('class="mi on" href="for-me.html"', sidebar)
 
         primary = build_site.tabbar("for-me").split("</nav>", 1)[0]
         self.assertEqual(primary.count("<a "), 4)
         self.assertEqual(primary.count("<button "), 1)
-        self.assertLess(primary.index("<span>热榜</span>"), primary.index("<span>关注</span>"))
-        self.assertLess(primary.index("<span>关注</span>"), primary.index("<span>案例</span>"))
+        self.assertLess(primary.index("<span>热榜</span>"), primary.index("<span>为你</span>"))
+        self.assertLess(primary.index("<span>为你</span>"), primary.index("<span>案例</span>"))
         self.assertIn('href="for-me.html" class="on"', primary)
 
     def test_page_exposes_non_empty_preview_and_transparent_personalization(self):
         page = build_site.render_for_me_page("", "data/latest-lite.json")
-        self.assertIn("只看与你相关的重要变化", page)
+        self.assertIn("从你的工作出发，发现值得读、用得上的变化", page)
         script = (ROOT / "pipeline" / "assets" / "for-me.js").read_text(encoding="utf-8")
-        self.assertIn("先感受一下", script)
-        self.assertIn("关注 1 个即可开始", page)
+        self.assertIn("先看看公共精选", script)
+        self.assertIn("两步设置", page)
         self.assertIn('href="products.html"', page)
         self.assertIn('href="paths.html"', page)
         self.assertIn("为什么重要", script)
-        self.assertIn("因为你关注了", script)
+        self.assertIn("与你选择的 ", script)
         self.assertRegex(page, r'src="for-me\.js\?v=[a-f0-9]{12}"')
         self.assertIn('data-lite-url="data/latest-lite.json"', page)
         self.assertIn('data-nav-active="for-me"', page)
@@ -42,19 +42,19 @@ class ForMeBuildTests(unittest.TestCase):
         topic = {"name": "Data Agent", "slug": "data-agent", "desc": "desc"}
         page = build_site.render_topic_page(topic, [], "")
         self.assertIn('../for-me.html?follow=topic:Data%20Agent', page)
-        self.assertIn("＋ 关注此主题，在 For Me 查看", page)
+        self.assertIn("＋ 关注此主题，在为你查看", page)
 
     def test_mobile_navigation_uses_five_slots_without_overflow_prone_labels(self):
         self.assertIn("grid-template-columns:repeat(5,minmax(0,1fr))", build_site.SHARED_CSS)
         primary = build_site.tabbar("home").split("</nav>", 1)[0]
-        for label in ("热榜", "关注", "案例", "收藏", "更多"):
+        for label in ("热榜", "为你", "案例", "收藏", "更多"):
             self.assertIn(f"<span>{label}</span>", primary)
         self.assertNotIn("<span>主题</span>", primary)
         self.assertIn('href="topics.html"', build_site.tabbar("home").split("</nav>", 1)[1])
 
     def test_privacy_page_discloses_local_for_me_state(self):
         page = build_site.render_privacy_page("")
-        self.assertIn("For Me、收藏与内容反馈", page)
+        self.assertIn("为你、收藏与内容反馈", page)
         self.assertIn("默认保存在本机", page)
         self.assertIn("关闭匿名统计后不上传", page)
 

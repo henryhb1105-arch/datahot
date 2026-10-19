@@ -7,6 +7,33 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function (reading, affinity) {
   "use strict";
 
+  // Reconstruct the exact object payload; missing sparse values stay absent.
+  function decode(payload) {
+    if (Array.isArray(payload.events)) return payload;
+    if (payload.transport !== "datahot-columns-v1" ||
+        !Number.isSafeInteger(payload.count) || payload.count < 0 || payload.count > 100000 ||
+        !payload.meta || !payload.columns) throw new Error("Invalid lite transport");
+    var events = Array.from({length: payload.count}, function () { return {}; });
+    Object.keys(payload.columns).forEach(function (key) {
+      if (["__proto__", "constructor", "prototype"].indexOf(key) >= 0) throw new Error("Unsafe column");
+      var column = payload.columns[key];
+      if (Array.isArray(column)) {
+        if (column.length !== events.length) throw new Error("Invalid column length");
+        column.forEach(function (value, i) { events[i][key] = value; });
+      } else {
+        if (!column || !Array.isArray(column.rows) || !Array.isArray(column.values) ||
+            column.rows.length !== column.values.length) throw new Error("Invalid sparse column");
+        var previous = -1;
+        column.rows.forEach(function (i, j) {
+          if (!Number.isInteger(i) || i <= previous || i >= events.length) throw new Error("Invalid row");
+          previous = i;
+          events[i][key] = column.values[j];
+        });
+      }
+    });
+    return Object.assign({}, payload.meta, {events: events});
+  }
+
   var STORAGE_KEY = "dh_for_me_v1";
   var SESSION_BASELINE_KEY = "dh_for_me_session_baseline_v1";
   var FAVORITES_KEY = "dh_favs";
@@ -590,6 +617,7 @@
       if (!response.ok) throw new Error("HTTP " + response.status);
       return response.json();
     }).then(function (payload) {
+      payload = decode(payload);
       events = Array.isArray(payload.events) ? payload.events : [];
       products = (Array.isArray(payload.products) ? payload.products : []).filter(function (p) {
         return p && /^[a-z][a-z0-9-]{1,63}$/.test(p.id) && typeof p.name === "string";
@@ -603,6 +631,7 @@
   }
 
   return {
+    decodePayload: decode,
     STORAGE_KEY: STORAGE_KEY,
     TASKS: TASKS, sections: sections, taskReasons: taskReasons, isRead: isRead,
     normalizeState: normalizeState,

@@ -2,407 +2,312 @@
  "schema_version": 1,
  "kind": "weekly_signals",
  "status": "ready",
- "week_id": "2026-W41",
- "period_start": "2026-10-05",
- "period_end": "2026-10-11",
- "generated_at": "2026-10-12T14:02:41.023410+08:00",
+ "week_id": "2026-W42",
+ "period_start": "2026-10-12",
+ "period_end": "2026-10-18",
+ "generated_at": "2026-10-19T12:45:00.838013+08:00",
  "ai_assisted": true,
- "content_fingerprint": "878cd442a2782af8a1706c4fcb0cca539024d3f82f1f8ed22b48fdebf6f88b75",
- "input_hash": "e4fc6c790ef0fedfa983d1f36bc4e9ace6c5d41a9cd3262a809cfe41144c8428",
- "baseline_hash": "921a1a4e0e4538cdb7a7632296628b37a8d724314cbe2f57c41c5a697b651225",
+ "content_fingerprint": "a2cd4f482779a547f6d739842b08edd00b731ec78832b7440994bd3269901c74",
+ "input_hash": "39322baaf9d543432c33cd500ce0c8c67f44c912f0cff0b7b3022a4241cae445",
+ "baseline_hash": "f95807f2af13a5d32b990df5279bc05df45084ed00c28f3ee13752629f4cf4d6",
  "prompt_version": "weekly-signals-v4",
  "model": "deepseek-v4-flash",
  "baseline": {
   "requested_weeks": 4,
   "requested_week_ids": [
+   "2026-W41",
    "2026-W40",
    "2026-W39",
-   "2026-W38",
-   "2026-W37"
+   "2026-W38"
   ],
   "available_weeks": 4,
   "available_week_ids": [
+   "2026-W41",
    "2026-W40",
    "2026-W39",
-   "2026-W38",
-   "2026-W37"
+   "2026-W38"
   ],
   "coverage": "complete"
  },
- "weekly_judgement": "本周相较前四周，最明确的变化是语义层从“讨论价值”转向“自动生成与自动化盘点”：Aloudata 用算子级血缘+大模型批量还原口径，IFCO 用 Delta 写入语义把语义层作业耗时砍60%以上，Snowflake 首次给出无/有语义模型的对照实验。同时多Agent 平台治理进入工程化，幻觉率从15%降到1.5%。",
+ "weekly_judgement": "本周信号集中在两处：一是Data Agent成本归因与治理控制面开始具体化，Snowflake用户组指出单次Prompt费用分散在Cortex推理、Search、AI函数与SQL算力，无单一视图可归因；二是语义层出现跨厂商非人工构建动向，Netflix选用DataJunction，Neo4j在Snowflake上建虚拟图。",
  "signals": [
   {
-   "signal_id": "semantic-layer-auto-authoring",
-   "title": "语义层口径自动盘点成新机制",
-   "change_type": "early_signal",
-   "confidence": "medium",
-   "confidence_reason": "基线四周语义层证据均为人工策展或评测，自动生成口径仅本周出现；但两条证据同属厂商自述，缺独立第三方验证。",
-   "anchor": "Aloudata BIG 解析 SQL 与任务日志建立算子级血缘并做口径裁剪，两业务域约2000个指标自动盘点、校对后准确率超99%，某银行60人月缩到一周；IFCO 在 Databricks 上按增量映射 Delta Lake 写入（聚类列、merge/replace）优化后核心语义层作业日耗时降超60%并停用夜间全量刷新。",
-   "mechanism": "共同机制是把语义层定义从人工逐条编写，改为由血缘/查询日志/写入行为等机器可读痕迹反向推导并生成可核对口径，再由人校对入库。",
-   "baseline_comparison": "W37-W40 的语义层证据集中在人工策展（Unity Catalog Pages）、语义视图规范、Spotter Memory 记忆与基准评测，未有以血缘自动批量还原口径的路径。",
-   "evidence_ids": [
-    "a5e85b0e5b72",
-    "3bab1efbb5de"
-   ],
-   "counter_evidence": "两条均为厂商自述且无第三方复现；IFCO 未给出血缘盘点环节，属性能而非口径生成；Aloudata 的99%与300倍未说明基线口径。"
-  },
-  {
-   "signal_id": "no-semantic-model-agent-failure",
-   "title": "无语义模型下Agent高置信错误的证据",
-   "change_type": "early_signal",
-   "confidence": "medium",
-   "confidence_reason": "本周首次出现可复现对照实验（33%准确率），但为单一供应商博客、单一数据集，且此前四周仅Fivetran做过同类小样本实验。",
-   "anchor": "Claude Sonnet 4.5 驱动的 AI agent 经 JDBC 访问 Snowflake TPC-H（LINEITEM 6000万行、SALES_ORDER 1500万行、CUSTOMER 150万行，X-Small仓库），无语义视图时六题仅对两题、准确率33%；作者强调错误答案的共性而非错误数量。",
-   "mechanism": "机制是同一 agent 在同一数据上仅切换“有无语义模型”，观测准确率与该错误分布的变化，用于暴露企业 AI 数据策略在业务含义层的脆弱点。",
-   "baseline_comparison": "W39 Fivetran 用5种接入方式对比 dbt 项目，Semantic Layer 是唯一让两模型零错的接口，但样本仅4张表、1个问题；本周把对照扩到更大表规模并给出整体准确率。",
-   "evidence_ids": [
-    "480c1590c586"
-   ],
-   "counter_evidence": "单一供应商博客、单次实验、6道题样本量极小；33%不能外推到生产工作负载，且未报告成本与 latency。"
-  },
-  {
-   "signal_id": "multi-agent-platform-governance",
-   "title": "多Agent平台治理把幻觉压到1.5%",
+   "signal_id": "agent-cost-attribution",
+   "title": "Data Agent成本归因从概念走向运维议题",
    "change_type": "early_signal",
    "confidence": "low",
-   "confidence_reason": "仅一条经验型媒体报告，无第二独立证据，且为非具名零售企业自述，未披露评测方法。",
-   "anchor": "某大型零售库存准确率平台的多 Agent LLM 系统：早期约15%回复为幻觉，6个月后降至1.5%；手段包括提示词注册与版本管理、schema 强制、按请求归属 token 成本、自动重试循环、意图校验门、资源服务器默认拒绝授权，以及入口埋点监控幻觉率与团队 token 成本。",
-   "mechanism": "机制是把 LLM 栈当作共享平台基础设施而非应用功能，用版本化提示、schema 强制、意图校验与成本归属等平台级控制点统一约束多个 agent。",
-   "baseline_comparison": "W38 Snowflake AI 成本治理与 W40 用户级配额、W37 Agent Identity 讨论均涉及成本与权限边界，但未给出幻觉率随平台化改造下降的量化结果。",
+   "confidence_reason": "仅Snowflake生态内两三条自述，source_family重合，缺独立第三方或客户实测。",
+   "anchor": "Snowflake荷兰用户组分享：同一Prompt每次运行路径不同，费用分散在Cortex推理、Cortex Search、AI函数与最终SQL仓库算力，无单一视图说明单次交互花了多少、由谁发起；旧的分摊模型失效。",
+   "mechanism": "围绕同一机制：Agent交互的不可预测执行路径导致成本无法按仓库、看板、部门归因，需按每行费用与用户侧限额重新设计成本可观测与分摊。",
+   "baseline_comparison": "W38已有Snowflake AI服务成本解析与AI Credits计量；W40出现按用户配额GA覆盖Cortex Agents。本周把“单次交互无法归因”明说为运维问题，属延续中的具体化。",
    "evidence_ids": [
-    "66638a56112b"
+    "cc2057268302"
    ],
-   "counter_evidence": "单一案例、无具名、无可复现评测口径；1.5% 是否为持续状态、是否以漏报换取低幻觉均未说明。"
+   "counter_evidence": "同周02a5dc500c53只谈治理与屏蔽策略缺口，未给成本归因实测；W40的配额GA是限定用量而非归因，二者不能混为同一机制。"
+  },
+  {
+   "signal_id": "semantic-layer-automation",
+   "title": "语义层构建从人工建模转向工具选择与虚拟化",
+   "change_type": "continuing",
+   "confidence": "medium",
+   "confidence_reason": "两个独立厂商方向一致：Netflix选型DataJunction，Neo4j以虚拟图免复制接入Snowflake；但均为厂商自述，无客户量化对比。",
+   "anchor": "Netflix实验平台评估内部Mando、Airbnb Minerva与开源DataJunction，新增指标原需数周；Neo4j Aura Virtual Graph在Snowflake TPC-H八表上建虚拟图，无需复制数据。",
+   "mechanism": "同一机制：降低语义/图模型构建成本——一侧用现成开源指标框架替换自研，一侧用虚拟化直接在数仓之上建立关系语义，避免复制与重复建模。",
+   "baseline_comparison": "W41 Aloudata口径自动盘点、W38 dbt/Fivetran上下文层已显示语义层构建自动化方向；本周新增Netflix选型与Neo4j虚拟图两个具体路径，属延续而非新增趋势。",
+   "evidence_ids": [
+    "b8c3b1774462",
+    "b337d61cf716"
+   ],
+   "counter_evidence": "两事件机制并不完全同构：DataJunction是指标定义框架选型，Virtual Graph是图查询虚拟化；且b337d61cf716 source_family为snowflake，独立性有限。"
+  },
+  {
+   "signal_id": "agent-governed-base-control-plane",
+   "title": "Agent治理控制面成为平台叙事中心",
+   "change_type": "early_signal",
+   "confidence": "low",
+   "confidence_reason": "主要来自Snowflake单一厂商的多篇自述（峰会、实战笔记、导出治理），source_family相同，不构成独立证据。",
+   "anchor": "Snowflake芝加哥峰会称孤立Agent无法扩展，需单一受治理基础连接数据与上下文、模型、应用、控制平面四层，安全与成本列为首要议题；实战笔记称LLM可执行SQL后masking缺口可能被Agent穿过。",
+   "mechanism": "同一机制：把Agent能力建立在受治理的数据、语义与控制平面上，而非单点Agent产品，治理覆盖理解、保护、监控三循环。",
+   "baseline_comparison": "W39 Databricks Genie Ontology Pages与W41 Unity Catalog治理讨论已有同类方向；本周Snowflake以峰会与实战笔记强化，但仍是单一厂商，未形成跨厂商增强。",
+   "evidence_ids": [
+    "2881d4174344",
+    "02a5dc500c53"
+   ],
+   "counter_evidence": "两篇均出自Snowflake生态，25e3be325f25的导出治理原型为合成数据，缺生产验证；InfoQ研讨会a71432eed0f3指向语义漂移与嵌入漂移，说明治理缺口仍未被解决。"
   }
  ],
  "signals_not_promoted": [
   {
-   "label": "Databricks Genie/Unity Catalog 生态扩张",
-   "reason": "Meta 广告 MCP、Workday 联邦连接器、Replit+Lakebase、Genie One playbook 等均为同一厂商单方宣告，source_family 相同不构成独立证据，且与 W37-W40 已有 Genie One MCP、Pages、Genie Agents 属延续而非新机制。",
+   "label": "语义漂移与嵌入漂移运维风险",
+   "reason": "仅一场InfoQ网络研讨会，属讨论性media_report，无产品或量化实测，且与本周其他治理事件标签相近但机制不同。",
    "evidence_ids": [
-    "549d1d1ddade",
-    "d1b062467e67",
-    "dcacd92fda95",
-    "c3e60124b535"
+    "a71432eed0f3"
    ]
   },
   {
-   "label": "ChatGPT Work 数据插件接入潮",
-   "reason": "ClickHouse、AWS Redshift 此前已在 W37 进入 ChatGPT Work，W41 无新增同机制事件，属延续；仅保留为背景未上升。",
+   "label": "预测性AI函数与SQL原生分析",
+   "reason": "Databricks Predictive AI Functions进入Beta为单厂商发布，未直接改变Data Agent/语义层设计机制。",
    "evidence_ids": [
-    "782132de7db7",
-    "82ae470fd568"
+    "34c58b2b04ad"
    ]
   },
   {
-   "label": "数据 Agent 基准与准确率竞赛",
-   "reason": "W41 未出现新的独立基准结果，W38 Spotter/BIRD 与 W39 OceanBase DAB 已消费，本周缺少增量证据。",
+   "label": "跨云联邦湖仓接入Gemini",
+   "reason": "谷歌云Preview为单厂商自述，跨云catalog federation与既有联邦连接器同类，缺独立客户证据。",
    "evidence_ids": [
-    "40c2caf96019",
-    "d204ffe24b0c"
+    "9297557d1736"
    ]
   },
   {
-   "label": "DuckDB 远程 Parquet 视图目录",
-   "reason": "单一 DuckDB 厂商博客，核心是存储读取分离的用法介绍，未直接改变数据 Agent 或语义层产品设计，也无第二独立证据。",
+   "label": "本体驱动可观测性知识图谱",
+   "reason": "Netflix单篇工程博客，属可观测性而非数据Agent/语义层产品设计，证据不足。",
    "evidence_ids": [
-    "6df9230e2f9b"
+    "ec818542f6dc"
    ]
   }
  ],
- "uncertainty": "缺口有三：语义层自动盘点（Aloudata、IFCO）与无语义模型对照（Snowflake）全部来自厂商自述，缺第三方复现与统一评测；多Agent 治理的1.5%幻觉率无可验证口径；“语义层/上下文层”在 W37-W40 已被大量不同机制反复使用，若下周继续以宽泛标签聚合会误判趋势。",
- "next_week_question": "是否出现独立第三方（学术或客户实测）复现“语义层自动生成”或“无语义模型导致高置信错误”的量化结果，以及是否有多于一家供应商公开语义层作业耗时/成本的同类改造数字？",
+ "uncertainty": "本周高价值信号几乎全部来自厂商自述，且Snowflake相关事件集中在同一source_family，缺少独立客户实测、第三方基准或跨厂商对照，难以判断成本归因与治理控制面是产品能力还是营销叙事。",
+ "next_week_question": "是否出现非Snowflake/Databricks的独立证据（客户实测或第三方基准），能将Agent成本归因或语义层自动化从early_signal升级为跨厂商strengthening？",
  "evidence_index": [
   {
-   "event_id": "a5e85b0e5b72",
-   "title": "语义层能否不靠人一条条建？Aloudata 口径自动盘点",
-   "summary": "Aloudata 官方博客讨论 Data Agent 所需语义层如何构建，指出指标口径盘点中约 90% 的工作量花在找材料、读代码、还原口径和对齐分歧上。Aloudata BIG 通过解析 SQL 与任务日志建立算子级血缘，并做口径裁剪，结合大模型生成可核对的盘点报告。某客户选取两个业务域对约 2000 个指标自动盘点，客户校对后数据比对准确性超过 99%；某银行项目口径盘点效率提升 300 倍，原 60 个人月减少到一周。确认后的口径进入 Aloudata CAN，实现指标管理、执行和消费统一。",
+   "event_id": "cc2057268302",
+   "title": "从Prompt到Query：Snowflake上Agent的真实成本",
+   "summary": "2026年10月1日，Snowflake荷兰用户组在阿姆斯特丹Snowflake办公室举行，Yuki CTO兼联合创始人Amir Peres分享了《From Prompt to Query：理解Snowflake上Agent的真实成本》。同一条Prompt每次运行路径都不同，一次交互的费用会分散在Cortex推理、Cortex Search、AI函数以及最终执行SQL的仓库算力上，而Snowflake目前没有单一视图能说明这次交互花了多少钱、是谁发起的。BI与管道成本可预测，但Agent的问法、难度、提问者是否会自己写SQL都无法预知，旧的“这个看板、这个仓库、这个部门”式分摊模型因此失效。要问Cortex成本，诚实答案必须包含每一行费用：token只是大家常谈的部分，算力才是Agent变贵之处，而仓库、语义层与用户侧限额仍是可干预的杠杆。",
    "category": "platform",
-   "source": "Aloudata 博客",
-   "source_family": "aloudata",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://aloudata.com/blogs/can-semantic-layer-be-built-without-manual-work",
-   "published": "2026-10-08T14:32:46+08:00",
-   "heat": 48,
-   "importance": 84,
-   "vendors": [
-    "Aloudata"
-   ],
-   "topics": [
-    "语义层",
-    "Data Agent"
-   ],
-   "week_id": "2026-W41"
-  },
-  {
-   "event_id": "3bab1efbb5de",
-   "title": "IFCO 在 Databricks 扩展大型 dbt 项目：性能、可见性与调试",
-   "summary": "IFCO 运营着全球最大的可重复使用包装池之一，管理数亿个箱子和托盘，并通过 barcode/RFID/GPS 等追踪信号把数十亿原始事件转化为 KPI。其数据平台团队与 Databricks Forward Deployed Engineering 合作，将转换逻辑保留在 dbt 中，并在 Databricks 上把每个增量设置映射到具体的 Delta Lake 写入行为（聚类列、写入触及范围、merge/replace）。在正确数据粒度上优化后，核心语义层作业每日运行时间减少超过 60%，并停用了昂贵的夜间全量刷新。文章围绕大规模 dbt 项目的性能、可见性与调试展开。",
-   "category": "platform",
-   "source": "Databricks Blog",
-   "source_family": "databricks",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://www.databricks.com/blog/scaling-and-operating-large-dbt-project-databricks-ifcos-data-team-performance-visibility-and-debugging",
-   "published": "2026-10-07T00:00:00+08:00",
-   "heat": 44,
-   "importance": 85,
-   "vendors": [
-    "Databricks",
-    "dbt Labs"
-   ],
-   "topics": [
-    "语义层",
-    "湖仓"
-   ],
-   "week_id": "2026-W41"
-  },
-  {
-   "event_id": "480c1590c586",
-   "title": "自信地犯错：AI分析师在Snowflake上有无语义模型对比",
-   "summary": "文章用一个可复现实验，让运行在Claude Sonnet 4.5上的AI agent扮演分析师，通过JDBC访问Snowflake的TPC-H演示库（LINEITEM 6000万行、SALES_ORDER 1500万行、CUSTOMER 150万行，X-Small仓库）。在“前”场景中，agent只有JDBC连接和数据模型；在“后”场景中，它获得Snowflake语义视图。没有语义模型时，agent六道题只答对两题，准确率33%。作者指出，错误答案的共性更能揭示企业AI数据策略的脆弱点，并强调语义层对AI分析准确性的重要性。",
-   "category": "agent",
    "source": "Snowflake Engineering（Medium）",
    "source_family": "snowflake",
    "source_type": "vendor_claim",
    "source_count": 1,
-   "source_url": "https://medium.com/snowflake/confidently-wrong-i-let-an-ai-analyst-loose-on-snowflake-with-and-without-a-semantic-model-3ac30c6fe10a?source=rss----34b6daafc07---4",
-   "published": "2026-10-05T22:01:06+08:00",
-   "heat": 42,
-   "importance": 85,
+   "source_url": "https://medium.com/snowflake/from-prompt-to-query-real-cost-of-agents-on-snowflake-f4380037d553?source=rss----34b6daafc07---4",
+   "published": "2026-10-14T22:01:06+08:00",
+   "heat": 36,
+   "importance": 62,
    "vendors": [
     "Snowflake"
    ],
    "topics": [
     "Data Agent",
-    "语义层"
+    "平台AI化"
    ],
-   "week_id": "2026-W41"
+   "week_id": "2026-W42"
   },
   {
-   "event_id": "66638a56112b",
-   "title": "生产级LLM的平台工程手册：幻觉率从15%降至1.5%",
-   "summary": "作者分享了在大型零售企业库存准确率平台中运行多Agent LLM系统的经验：早期约15%的Agent回复是幻觉，6个月后降至1.5%，关键不是更换基础模型，而是把LLM栈当作平台基础设施而非应用功能。文章提出共享LLM平台应具备提示词注册与版本管理、schema强制、按请求归属token成本等能力，并通过自动重试循环、意图校验门、资源服务器默认拒绝授权、请求入口埋点监控幻觉率与团队token成本来实现治理。作者强调标准APM工具无法发现语义退化，事后补做成本归因会耗费数周工程时间。",
+   "event_id": "b8c3b1774462",
+   "title": "Netflix 如何用 DataJunction 构建指标语义层",
+   "summary": "Netflix 实验平台在指标定义、发现和信任方面遇到困难，指标、数据集和管道分散且重复。原有系统要求大量业务知识、实验约定和复杂工程实践，新增指标往往需要数周。Netflix 评估了内部 Mando、Airbnb 的 Minerva 和开源 DataJunction，并用 DataJunction 改善数据工作流和洞察获取。",
    "category": "platform",
+   "source": "Netflix Technology Blog",
+   "source_family": "netflixtechnology",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://netflixtechblog.com/datajunction-as-netflixs-answer-to-the-missing-piece-of-the-modern-data-stack-92af926b40a5?source=rss----2615bd06b42e---4",
+   "published": "2026-10-15T03:59:08+08:00",
+   "heat": 38,
+   "importance": 65,
+   "vendors": [
+    "DataJunction",
+    "Airbnb"
+   ],
+   "topics": [
+    "语义层"
+   ],
+   "week_id": "2026-W42"
+  },
+  {
+   "event_id": "b337d61cf716",
+   "title": "Neo4j 在 Snowflake 上创建虚拟图",
+   "summary": "Neo4j 官方博客介绍 Neo4j Aura 的 Virtual Graph 功能，可在 Snowflake 之上创建虚拟图，无需复制数据。文章以 Snowflake 的 TPC-H 示例数据集为例，该数据集含 8 张表，并隐含图结构。设置过程包括创建 Snowflake 服务账号、角色并授权读取示例数据，再配置 RSA 密钥和 Neo4j Aura 虚拟图实例。作者称该方式可缩短实现价值时间并降低 TCO。",
+   "category": "platform",
+   "source": "Snowflake Engineering（Medium）",
+   "source_family": "snowflake",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://medium.com/snowflake/neo4j-virtual-graph-on-snowflake-bee771442fe1?source=rss----34b6daafc07---4",
+   "published": "2026-10-13T22:01:05+08:00",
+   "heat": 38,
+   "importance": 73,
+   "vendors": [
+    "Snowflake",
+    "Neo4j"
+   ],
+   "topics": [
+    "语义层"
+   ],
+   "week_id": "2026-W42"
+  },
+  {
+   "event_id": "2881d4174344",
+   "title": "Snowflake芝加哥峰会：Agent非产品，基础才是关键",
+   "summary": "作者参加10月5日Snowflake World Tour Chicago，主题为“agentic enterprise”。他原本以为又是Agent演示，但实际听到的核心是：孤立Agent无法扩展，企业需要受治理的基础（数据、上下文、模型、控制）。Snowflake提出单一受治理基础连接四层：数据与上下文、模型选择、应用、控制平面。安全和成本控制被列为首要议题。",
+   "category": "platform",
+   "source": "Snowflake Engineering（Medium）",
+   "source_family": "snowflake",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://medium.com/snowflake/snowflake-world-tour-chicago-2026-the-agent-isnt-the-product-the-foundation-is-e2a4cebe27f1?source=rss----34b6daafc07---4",
+   "published": "2026-10-16T01:01:04+08:00",
+   "heat": 44,
+   "importance": 72,
+   "vendors": [
+    "Snowflake"
+   ],
+   "topics": [
+    "Data Agent",
+    "平台AI化"
+   ],
+   "week_id": "2026-W42"
+  },
+  {
+   "event_id": "02a5dc500c53",
+   "title": "Snowflake 中治理数据与 AI Agent 的实战笔记",
+   "summary": "本文是一份在 Snowflake 中治理数据与 AI Agent 的实战指南，作者基于官方文档和自测，称 Horizon Catalog 是治理控制面，并把它描述为存储、计算引擎与中间控制面三层架构。治理被拆成理解、保护、监控三个循环支柱：先发现敏感数据与访问主体，再用 masking、行访问等细粒度策略保护，并持续监控质量、访问与血缘。文章强调 LLM 可代执行 SQL 后，masking 策略的任何缺口都可能被 Agent 穿过，因此还补充了 RBAC、隐私策略、依赖与联系人等基础治理工具。作者提醒许多能力仍为预览版，且通常需要 Enterprise Edition 或更高版本，落地前应查看状态表。",
+   "category": "platform",
+   "source": "Snowflake Engineering（Medium）",
+   "source_family": "snowflake",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://medium.com/snowflake/governing-data-and-ai-agents-in-snowflake-a-data-engineers-field-notes-0662c602b404?source=rss----34b6daafc07---4",
+   "published": "2026-10-15T22:01:02+08:00",
+   "heat": 42,
+   "importance": 68,
+   "vendors": [
+    "Snowflake"
+   ],
+   "topics": [
+    "Data Agent",
+    "平台AI化"
+   ],
+   "week_id": "2026-W42"
+  },
+  {
+   "event_id": "a71432eed0f3",
+   "title": "生产环境AI：语义漂移、嵌入漂移与Agent治理",
+   "summary": "InfoQ网络研讨会邀请ThoughtWorks、隐私与金融AI专家，讨论生产环境Agentic系统的真实运维挑战。ThoughtWorks的Xiong指出LLM管道中语义漂移会使Text-to-SQL将不同业务域的“member”概念混同，导致下游分析出现难以追踪的隐性错误；金融合规场景中嵌入模型后台更新引发嵌入漂移，使误报与漏报激增而基础设施健康检查仍全绿。专家还提到RAG误检索敏感文档、模型记忆导致去匿名化与API密钥泄露、GitSpawn漏洞等风险，并强调持续评估、自动化代码审查与隐私防护。",
+   "category": "agent",
    "source": "InfoQ（AI/数据工程）",
    "source_family": "infoq",
    "source_type": "media_report",
    "source_count": 1,
-   "source_url": "https://www.infoq.com/articles/platform-engineering-playbook-production-llms/?utm_campaign=infoq_content&utm_source=infoq&utm_medium=feed&utm_term=AI%2C+ML+%26+Data+Engineering",
-   "published": "2026-10-05T19:00:00+08:00",
-   "heat": 42,
-   "importance": 85,
+   "source_url": "https://www.infoq.com/news/2026/10/ai-systems-production/?utm_campaign=infoq_content&utm_source=infoq&utm_medium=feed&utm_term=AI%2C+ML+%26+Data+Engineering",
+   "published": "2026-10-16T22:14:00+08:00",
+   "heat": 48,
+   "importance": 72,
+   "vendors": [
+    "ThoughtWorks",
+    "InfoQ"
+   ],
+   "topics": [
+    "Data Agent",
+    "ChatBI"
+   ],
+   "week_id": "2026-W42"
+  },
+  {
+   "event_id": "34c58b2b04ad",
+   "title": "Databricks 预测性 AI 函数进入 Beta",
+   "summary": "Databricks 宣布 Predictive AI Functions 进入 Beta，新增四个 SQL 原生函数并改进 ai_forecast 精度，覆盖预测、驱动因素分析、异常检测、连续值回归和分类。这些函数可在 SQL 中直接调用、在 Genie 中用自然语言提问，或嵌入仪表盘。模型由 Databricks 集中维护，旨在让分析人员和业务用户无需自建和管理基础设施即可获得一致的高级分析结果。博客用 NYC taxi trips 数据集演示了仪表盘、SQL 和 Genie 中的使用方式。",
+   "category": "platform",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.databricks.com/blog/unlock-powerful-insights-and-forecasts-predictive-ai-functions",
+   "published": "2026-10-15T07:30:00+08:00",
+   "heat": 41,
+   "importance": 70,
+   "vendors": [
+    "Databricks"
+   ],
+   "topics": [
+    "平台AI化"
+   ],
+   "week_id": "2026-W42"
+  },
+  {
+   "event_id": "9297557d1736",
+   "title": "谷歌云 Borderless Lakehouse 原生集成 Gemini",
+   "summary": "谷歌云宣布 Borderless Lakehouse 与 Gemini 原生集成，目前处于预览阶段。通过 Lakehouse catalog federation，用户可从 Gemini 直接接入 Databricks Unity Catalog、Snowflake Horizon 等数据源。业务用户能用自然语言查询跨云数据，AI Agent 可基于同一数据做推理并生成代码，且无需移动数据。该方案面向跨多云、SaaS 和本地系统的数据访问与 Agent 构建，强调安全与规模化推理。",
+   "category": "platform",
+   "source": "Google Cloud Data Analytics Blog",
+   "source_family": "googleclouddataanalytics",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://cloud.google.com/blog/products/data-analytics/borderless-lakehouse-integrates-with-gemini",
+   "published": "2026-10-15T08:00:00+08:00",
+   "heat": 40,
+   "importance": 69,
+   "vendors": [
+    "Google",
+    "Google Cloud",
+    "Databricks",
+    "Snowflake",
+    "BigQuery"
+   ],
+   "topics": [
+    "湖仓",
+    "Data Agent"
+   ],
+   "week_id": "2026-W42"
+  },
+  {
+   "event_id": "ec818542f6dc",
+   "title": "Netflix规模下的本体驱动可观测性：构建端到端知识图谱",
+   "summary": "Netflix工程博客介绍其超大规模可观测性实践：2024年11月一场直播支持约6500万并发流，日常基础设施每秒接收超20亿请求和超3800万实时日志事件。面对首页渲染变慢约1.5秒等回归，团队将Metrics、Events、Logs、Traces（MELT）统一为可观测性数据层。文章进一步介绍如何用本体驱动的端到端知识图谱，在复杂系统中定位根因并加快系统理解与更新。",
+   "category": "platform",
+   "source": "Netflix Technology Blog",
+   "source_family": "netflixtechnology",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://netflixtechblog.com/ontology-driven-observability-building-an-end-to-end-knowledge-graph-at-netflix-scale-421392cf5adf?source=rss----2615bd06b42e---4",
+   "published": "2026-10-17T00:01:02+08:00",
+   "heat": 54,
+   "importance": 84,
    "vendors": [],
    "topics": [
-    "Data Agent",
-    "平台AI化"
-   ],
-   "week_id": "2026-W41"
-  },
-  {
-   "event_id": "549d1d1ddade",
-   "title": "Meta广告MCP服务器上线Databricks，接入Genie",
-   "summary": "Databricks Marketplace 现已上架 Meta 的广告 MCP 服务器，企业可将其连接到 Genie，用自然语言同时探索 Meta 广告表现与 Databricks 中受治理的业务数据。该 MCP 服务器暴露 25+ 个覆盖活动生命周期的工具，包括创建活动/广告组、调整预算与出价、定义受众、管理创意与目录、拉取表现数据和诊断信号质量。这延续了双方此前的合作：Meta Conversions API 已登陆 Databricks Marketplace，用于发送第一方转化信号。目标是减少 CSV 导出和自维护 Marketing API 集成，让 churn 分数、LTV、归因和 margin 表等洞察更直接进入广告投放决策。",
-   "category": "platform",
-   "source": "Databricks Blog",
-   "source_family": "databricks",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://www.databricks.com/blog/meta-ads-mcp-databricks",
-   "published": "2026-10-06T20:45:00+08:00",
-   "heat": 35,
-   "importance": 65,
-   "vendors": [
-    "Databricks",
-    "Meta"
-   ],
-   "topics": [
-    "平台AI化",
-    "Data Agent"
-   ],
-   "week_id": "2026-W41"
-  },
-  {
-   "event_id": "d1b062467e67",
-   "title": "Databricks 在 Unity Catalog 推出 Workday 联邦连接器",
-   "summary": "Databricks 宣布 Unity Catalog 的 Workday Data Connect 联邦连接器进入公开 Beta，面向需要将 Workday HR 与财务数据同其他企业数据一起分析的数据平台与分析团队。通过 Lakehouse Federation，团队可直接从 Databricks Data + AI Platform 查询 Workday Data Cloud 中的 HR 和财务数据，而无需维护重复副本。管理员可在 Workday 侧共享表并授权 Integration System User 只读访问，在 Databricks 创建 OAuth 连接与 Unity Catalog 外部目录，再通过表级访问控制治理权限。用户可用 Databricks SQL、AI/BI、notebooks 和 Genie 查询该目录。",
-   "category": "platform",
-   "source": "Databricks Blog",
-   "source_family": "databricks",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://www.databricks.com/blog/announcing-workday-data-connect-federation-unity-catalog",
-   "published": "2026-10-09T07:00:00+08:00",
-   "heat": 41,
-   "importance": 63,
-   "vendors": [
-    "Databricks",
-    "Workday"
-   ],
-   "topics": [
-    "湖仓"
-   ],
-   "week_id": "2026-W41"
-  },
-  {
-   "event_id": "dcacd92fda95",
-   "title": "用Replit和Lakebase在Databricks构建受治理企业应用",
-   "summary": "Databricks 官方博客介绍 Replit 与 Databricks 的集成，帮助企业在受治理环境中完成从开发到部署应用。团队可用 Replit Agent 基于实时 Databricks 数据构建前端，并自动配置 Lakebase Postgres 数据库，再部署为 Databricks Apps。部署后应用继承用户认证、安全访问控制，并与 Unity Catalog 集成，从而减少安全与基础设施审批环节。文章面向业务负责人、数据分析师和开发者，说明如何用自然语言提示构建生产级应用。",
-   "category": "platform",
-   "source": "Databricks Blog",
-   "source_family": "databricks",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://www.databricks.com/blog/how-build-governed-enterprise-apps-databricks-replit-and-lakebase",
-   "published": "2026-10-08T21:00:00+08:00",
-   "heat": 37,
-   "importance": 59,
-   "vendors": [
-    "Databricks",
-    "Replit"
-   ],
-   "topics": [
-    "平台AI化"
-   ],
-   "week_id": "2026-W41"
-  },
-  {
-   "event_id": "c3e60124b535",
-   "title": "StubHub、Figma、Reddit：企业BI新范式（Hex）",
-   "summary": "Hex 博客指出，企业 BI 长期由数据团队构建仪表板、业务用户点击查看，造成仪表板泛滥、自助不足和请求积压。随着 AI 能力提升，业务用户希望用自然语言提问、继续探索并自行构建分析，相关 AI 工作流已在企业中自发出现。StubHub、Reddit、Figma、Ramp 等公司正在重新思考 BI：StubHub 借助 Hex 的 Threads 推动对话式自助分析，让业务用户自主回答问题。企业面临的挑战是在释放 AI 原生工作流的同时，维持信任和统一治理。",
-   "category": "bi",
-   "source": "Hex Blog",
-   "source_family": "hex",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://hex.tech/blog/stubhub-figma-reddit-the-new-model-for-enterprise-bi/",
-   "published": "2026-10-08T08:00:00+08:00",
-   "heat": 32,
-   "importance": 52,
-   "vendors": [
-    "Hex"
-   ],
-   "topics": [
-    "BI变局",
-    "ChatBI"
-   ],
-   "week_id": "2026-W41"
-  },
-  {
-   "event_id": "782132de7db7",
-   "title": "AWS 推出 Redshift 数据分析插件，接入 ChatGPT Work",
-   "summary": "AWS 发布 AWS Data Analytics 插件，接入 ChatGPT Work 中新的 Data agent。员工可以用自然语言提问，分析 Amazon Redshift 数仓与数据湖中受治理的数据，并生成可分享的看板。插件强调沿用企业现有的访问控制，让销售、运营、财务等非 SQL 用户也能自助获取分析结果。AWS 称已有数万客户每天用 Redshift 运行高负载分析任务，并可结合 Apache Iceberg 等开放格式的湖上数据形成完整视图。",
-   "category": "agent",
-   "source": "AWS Big Data Blog",
-   "source_family": "awsbigdata",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://aws.amazon.com/blogs/big-data/every-team-is-a-data-team-bring-amazon-redshift-analytics-to-chatgpt-work/",
-   "published": "2026-09-10T23:14:01+08:00",
-   "heat": 35,
-   "importance": 52,
-   "vendors": [
-    "AWS",
-    "Amazon Redshift",
-    "OpenAI"
-   ],
-   "topics": [
-    "ChatBI",
-    "Data Agent"
-   ],
-   "week_id": "2026-W37"
-  },
-  {
-   "event_id": "82ae470fd568",
-   "title": "ClickHouse 成为 ChatGPT Work 数据代理启动合作伙伴",
-   "summary": "ClickHouse 宣布成为 OpenAI 在 ChatGPT Work 中推出的 Data agent 的启动合作伙伴。其插件整合了 ClickHouse Remote MCP server 与开源 ClickHouse Agent Skills，让 ChatGPT Work 和 Codex 可通过插件目录连接 ClickHouse Cloud。用户用 OAuth 登录后，可探索 schema、查询数据，并基于结果构建交互式仪表板。插件暴露 13 个只读工具，可查看数据库/表、schema、执行 SELECT，并读取服务、备份、ClickPipes 和账单信息。",
-   "category": "agent",
-   "source": "ClickHouse Blog",
-   "source_family": "clickhouse",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://clickhouse.com/blog/chatgpt-data-plugin",
-   "published": "2026-09-10T23:13:26+08:00",
-   "heat": 51,
-   "importance": 88,
-   "vendors": [
-    "ClickHouse"
-   ],
-   "topics": [
-    "Data Agent"
-   ],
-   "week_id": "2026-W37"
-  },
-  {
-   "event_id": "40c2caf96019",
-   "title": "AI分析引擎难题评测：Spotter领跑BIRD",
-   "summary": "该文将 Spotter 与四款竞争性 agentic analytics 引擎放在 BIRD 基准上对比：1,533 道题、11 个数据库、统一评分、每题一次机会。Spotter 总体执行准确率 82.8%，高于前沿 LLM 的 78.4% 和编码 agent 的 72.5%；在挑战级题目中为 70.6%，最低引擎仅 46.8%。作者强调应看准确率斜率而非单一总体准确率，且仅更换更新模型、底层 agent harness 不变，就带来整体 3.4 个百分点提升。文中还引用 BARC 调查估算：万人员工企业约 65 万次数据问题/年，1 个准确率点对应 6,500 个答案对错。",
-   "category": "agent",
-   "source": "ThoughtSpot Blog",
-   "source_family": "thoughtspot",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://www.thoughtspot.com/blog/ai-analyst-accuracy-bird-benchmark",
-   "published": "2026-09-16T08:18:54+08:00",
-   "heat": 46,
-   "importance": 88,
-   "vendors": [
-    "ThoughtSpot",
-    "Spotter"
-   ],
-   "topics": [
-    "Data Agent",
-    "ChatBI"
-   ],
-   "week_id": "2026-W38"
-  },
-  {
-   "event_id": "d204ffe24b0c",
-   "title": "OceanBase Data Agent登顶DAB，准确率90.62%",
-   "summary": "OceanBase 团队提交的 Data Agent 方案在 Data Agent Benchmark（DAB）以 90.62% 准确率位列第一，成为首个突破 90% 的参评方案。该方案基于国产大模型 GLM-5.2 构建，超过多项基于 GPT、Claude Opus、Claude Fable 的方案，内部代号 Scout，能力将融入 OceanBase DataPilot。DAB 由 UC Berkeley EPIC Data Lab 与 Hasura PromptQL 推出，覆盖多领域和多数据库，评估 Data Agent 从理解数据到拿到答案的完整能力。OceanBase 称这验证了数据库向 AI 数据平台演进的方向。",
-   "category": "agent",
-   "source": "雷锋网",
-   "source_family": "雷锋网",
-   "source_type": "other",
-   "source_count": 3,
-   "source_url": "https://www.leiphone.com/category/industrynews/ug9HpmoWVwNMZZTH.html",
-   "published": "2026-09-21T15:20:00+08:00",
-   "heat": 44,
-   "importance": 73,
-   "vendors": [
-    "OceanBase",
-    "Hasura",
-    "MongoDB",
-    "DuckDB"
-   ],
-   "topics": [
-    "Data Agent",
-    "平台AI化"
-   ],
-   "week_id": "2026-W39"
-  },
-  {
-   "event_id": "6df9230e2f9b",
-   "title": "不含数据的 DuckDB 数据库：远程 Parquet 视图目录",
-   "summary": "文章介绍一种用法：DuckDB 数据库文件可以不存数据，只保存指向外部文件的视图定义，例如对象存储上的 Parquet。这样的文件无论描述的数据多大都保持几百 KB，附加后即可看到一组可查询的命名关系。作者引用 Nikolas Goebel 的 “DuckDB doesn't need data”，认为数据库已把数据存储与读取分离，DuckDB 可成为数据云的浏览器。文中以荷兰铁路开放数据集为例，演示安装 httpfs 并创建指向远程数据的视图，构建可分享的目录或语义层。",
-   "category": "platform",
-   "source": "DuckDB Engineering Blog",
-   "source_family": "duckdb",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://duckdb.org/2026/10/07/view-only-mode.html",
-   "published": "2026-10-07T08:00:00+08:00",
-   "heat": 41,
-   "importance": 76,
-   "vendors": [
-    "DuckDB"
-   ],
-   "topics": [
     "语义层",
-    "湖仓"
+    "实时分析"
    ],
-   "week_id": "2026-W41"
+   "week_id": "2026-W42"
   }
  ]
 }

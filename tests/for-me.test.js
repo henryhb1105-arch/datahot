@@ -148,3 +148,18 @@ test("generic engineering design tradeoffs do not imply product design relevance
   assert.deepEqual(forMe.taskReasons(training,state),[]);
   assert.equal(forMe.taskReasons({...training,zh_title:"AI产品设计中的交互与界面"},state).length,1);
 });
+
+test('section ranking equals the public ranking filtered by relevance, with one stable personalization decision', () => {
+  const events = require('./fixtures/reading-intents.json');
+  const affinity = require('../pipeline/assets/content-affinity');
+  const now = Date.parse('2026-10-18T08:00:00Z');
+  for (const options of [{}, {topics:['Data Agent'], tasks:['agent']}, {reading:{enabled:true,entries:{'64843a2454f2':[now],'7175222a4aa1':[now]}}}]) {
+    const state = forMe.normalizeState(options);
+    state.reading = options.reading || {enabled:true,entries:{}};
+    state.affinity = affinity.profile(events,state,now);
+    const personalized = state.topics.length > 0 || Object.keys(state.affinity.matches).length > 0;
+    const expected = forMe.rankEvents(events,state,now,personalized);
+    const grouped = forMe.sections(events,state,now,null);
+    assert.deepEqual(grouped.ranked,expected);
+  }
+});

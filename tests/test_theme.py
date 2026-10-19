@@ -53,5 +53,18 @@ class ThemeTests(unittest.TestCase):
                     self.assertGreaterEqual((hi + .05) / (lo + .05), 4.5)
 
 
+class LandingPageLoadingTests(unittest.TestCase):
+    def test_default_home_decision_precedes_styles_and_external_scripts(self):
+        document = build_site.finalize_html_security(
+            '<html><head><meta charset="UTF-8"><link rel="icon" href="favicon.ico">'
+            '<style>body{color:black}</style></head><body>'
+            '<script defer src="home.js?v=abc"></script></body></html>'
+        )
+        self.assertLess(document.index("dh_default_home_v1"), document.index('<style>'))
+        self.assertLess(document.index("dh_default_home_v1"), document.index('src="home.js'))
+        self.assertLess(document.index('Content-Security-Policy'), document.index('<script>'))
+        self.assertNotIn(build_site.DEFAULT_HOME_REDIRECT, build_site.render_for_me_page(''))
+
+
 if __name__ == '__main__':
     unittest.main()

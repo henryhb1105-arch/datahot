@@ -1125,12 +1125,26 @@ def apply_site_theme(document):
     )
 
 
+DEFAULT_HOME_REDIRECT = r"""<script>
+try {
+  if (/\/$/.test(location.pathname) && !location.search && !location.hash &&
+      localStorage.getItem('dh_default_home_v1') === 'for-you') {
+    location.replace('for-me.html');
+  }
+} catch (_) {}
+</script>"""
+
+
 def optimize_loading(document):
     """Discover deferred scripts and follow data in the head, preserving script order."""
     icon = re.search(r'<link rel="icon" href="((?:\.\./)*)favicon.ico"', document)
     if not icon:
         return document
     prefix = icon.group(1)
+    # Decide the saved landing page before CSS, deferred scripts or body bytes.
+    # Explicit index.html and query/hash links must remain on the public feed.
+    if re.search(r'<script defer src="home\.js\?v=', document):
+        document = document.replace('<meta charset="UTF-8">', '<meta charset="UTF-8">' + DEFAULT_HOME_REDIRECT, 1)
     pattern = r'<script defer src="[^"]+"></script>'
     scripts = re.findall(pattern, document)
     document = re.sub(pattern, '', document)

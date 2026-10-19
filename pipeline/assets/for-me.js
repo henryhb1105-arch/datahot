@@ -34,7 +34,9 @@
   function relevant(event, state) { return matchReasons(event, state).length > 0 || inferred(event, state).length > 0; }
   function personal(state) { return follows(state).length > 0 || (state.tasks || []).length > 0 || Object.keys(state.affinity && state.affinity.matches || {}).length > 0; }
   function sections(events, state, now, baseline) {
-    var ranked = rankEvents(events, state, now, personal(state));
+    var personalized = personal(state);
+    var allRanked = rankEvents(events, state, now, false);
+    var ranked = personalized ? allRanked.filter(function (event) { return relevant(event, state); }) : allRanked;
     var unread = ranked.filter(function (event) { return !isRead(event, state); });
     var cutoff = now - 7 * 86400000;
     var picks = unread.filter(function(event) {return eventTime(event) >= cutoff || inferred(event,state).length;});
@@ -47,7 +49,7 @@
       return !used.has(event.event_id) && ((event.focus || {}).practical || event.shelf === "reference" || taskReasons(event, state).length);
     }).slice(0, 6);
     work.forEach(function (event) {used.add(event.event_id);});
-    var discovery = personal(state) ? rankEvents(events, state, now, false).filter(function (event) {
+    var discovery = personalized ? allRanked.filter(function (event) {
       return !isRead(event, state) && !used.has(event.event_id) && !relevant(event, state) && eventTime(event) >= cutoff;
     }).slice(0, 2) : [];
     return {must: must, updates: updates, work: work, discovery: discovery, ranked: ranked};
@@ -165,6 +167,7 @@
 
   function rankEvents(events, state, now, requireMatch) {
     var dismissed = new Set(state.dismissed || []);
+    var personalized = personal(state);
     return (Array.isArray(events) ? events : []).filter(function (event) {
       var id = String(event.event_id || "");
       if (!/^[A-Za-z0-9_-]{1,64}$/.test(id) || dismissed.has(id)) return false;
@@ -177,7 +180,7 @@
       var aPriority = Number.isInteger(aFocus.priority) && aFocus.priority >= 0 && aFocus.priority <= 5 ? aFocus.priority : 5;
       var bPriority = Number.isInteger(bFocus.priority) && bFocus.priority >= 0 && bFocus.priority <= 5 ? bFocus.priority : 5;
       if (isRead(a, state) !== isRead(b, state)) return isRead(a, state) ? 1 : -1;
-      if (!personal(state)) {
+      if (!personalized) {
         if (aPriority !== bPriority) return aPriority - bPriority;
         if (Boolean(aFocus.practical) !== Boolean(bFocus.practical)) return aFocus.practical ? -1 : 1;
       }
@@ -457,7 +460,8 @@
       if (reading) {state.reading = reading.load(storage);state.affinity = affinity.profile(events, state, Date.now());}
       var personalized = personal(state);
       var now = Date.now();
-      var ranked = rankEvents(events, state, now, personalized);
+      var grouped = sections(events, state, now, baseline);
+      var ranked = grouped.ranked;
       var newCount = personalized ? ranked.filter(function (event) { return (baseline ? isNewSince(event, baseline) : eventTime(event, "first_seen") >= now - 7 * 86400000) && !isRead(event, state); }).length : 0;
       refs.visit.textContent = relativeVisit(baseline);
       refs.newCount.textContent = personalized ? String(newCount) : "—";
@@ -476,7 +480,6 @@
       }
       renderSuggestions();
 
-      var grouped = sections(events, state, now, baseline);
       var must = grouped.must;
       var feed = personalized ? grouped.updates : grouped.ranked.filter(function(event) {return !isRead(event,state) && !must.some(function(item) {return item.event_id===event.event_id;});}).slice(0,12);
       refs.must.querySelector("h2").textContent = personalized ? "为你挑选" : "近期精选";

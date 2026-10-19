@@ -198,6 +198,17 @@ async function main() {
     assert.equal(await recovery.locator('#timeline .item').count(), existingIds.length * 2, 'Retry must not skip ahead to page 3');
     await recovery.screenshot({path:path.join(out, `${width}-load-recovered.png`)});
     summary.viewports[summary.viewports.length - 1].loadMoreRecovery = 'PASS: retained cards and retried page 2';
+    // A malformed packed response must expose the existing retry, not empty recommendations.
+    let corrupt = true;
+    await recovery.route('**/data/latest-lite-columns.json*', route => corrupt
+      ? route.fulfill({contentType:'application/json', body:JSON.stringify({transport:'datahot-columns-v1',count:-1})})
+      : route.continue());
+    await recovery.goto(base + 'for-me.html');
+    await recovery.locator('#fmError').waitFor();
+    corrupt = false;
+    await recovery.locator('#fmError button').click();
+    await recovery.locator('#fmMustList .fm-signal').first().waitFor();
+    summary.viewports[summary.viewports.length - 1].columnarRecovery = 'PASS: invalid transport shows error; reload recovers';
     await recovery.close();
     await require('./for-you-browser.cjs')(context, base, out, width);
     summary.viewports[summary.viewports.length - 1].forYou = 'PASS: setup/skip, task relevance, read, dismiss/undo, default/escape, persistence, asset hash';

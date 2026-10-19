@@ -439,3 +439,18 @@ def find_forbidden_fields(value, *, path="$"):
         for index, child in enumerate(value):
             violations.extend(find_forbidden_fields(child, path=f"{path}[{index}]"))
     return violations
+
+
+def pack_lite_payload(payload):
+    """Lossless column transport; sparse columns preserve absent vs null fields."""
+    events = payload["events"]
+    columns = {}
+    for key in dict.fromkeys(key for event in events for key in event):
+        rows = [i for i, event in enumerate(events) if key in event]
+        values = [events[i][key] for i in rows]
+        columns[key] = values if len(rows) == len(events) else {"rows": rows, "values": values}
+    return {
+        "transport": "datahot-columns-v1",
+        "meta": {key: value for key, value in payload.items() if key != "events"},
+        "count": len(events), "columns": columns,
+    }

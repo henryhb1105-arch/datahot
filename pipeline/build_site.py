@@ -17,7 +17,7 @@ from check_links import check_site_links, format_broken_links
 from feed import build_atom_feed, validate_atom_feed
 from lite_data import (
     DEFAULT_PAGE_SIZE, FIRST_PAGE_SOURCE_CAPS, HOME_WINDOW_DAYS,
-    build_lite_payload, event_timestamp, find_forbidden_fields,
+    build_lite_payload, pack_lite_payload, event_timestamp, find_forbidden_fields,
     is_list_eligible, rank_hot_events, rank_timeline_events,
     select_home_events, select_timeline_events,
 )
@@ -3418,6 +3418,10 @@ def main():
         raise RuntimeError(f"latest-lite.json must be smaller than latest.json ({len(lite_bytes)} >= {full_bytes})")
     lite_path.write_bytes(lite_bytes)
     lite_data_url = "data/latest-lite.json?v=" + hashlib.sha256(lite_bytes).hexdigest()[:12]
+    # Keep the public object payload and all other consumers unchanged.
+    column_bytes = (json.dumps(pack_lite_payload(lite_payload), ensure_ascii=False, separators=(",", ":")) + "\n").encode("utf-8")
+    (SITE / "data" / "latest-lite-columns.json").write_bytes(column_bytes)
+    for_me_data_url = "data/latest-lite-columns.json?v=" + hashlib.sha256(column_bytes).hexdigest()[:12]
     reduction = round((1 - len(lite_bytes) / full_bytes) * 100, 1)
     print(f"[lite] latest.json {full_bytes:,} B → latest-lite.json {len(lite_bytes):,} B（减少 {reduction}%）")
 
@@ -3715,7 +3719,7 @@ document.querySelectorAll('.item,.hot').forEach(el=>{{
     )
     favorite_data_url = lite_data_url if lite_enabled else "data/latest.json"
     (SITE / "favorites.html").write_text(render_favorites_page(css, favorite_data_url), encoding="utf-8")
-    (SITE / "for-me.html").write_text(render_for_me_page(css, lite_data_url), encoding="utf-8")
+    (SITE / "for-me.html").write_text(render_for_me_page(css, for_me_data_url), encoding="utf-8")
     research_paths = write_research_pages(all_events, product_cases, design_studies, css)
     (SITE / "weekly.html").write_text(
         render_weekly_brief_page(

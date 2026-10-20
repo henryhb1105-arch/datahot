@@ -1,16 +1,16 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-10-19T22:28:23.459506+00:00
-- 本轮原始发现：8
-- 未收录文章候选：51
-- 新信源候选：59
+- 生成时间：2026-10-20T21:42:27.949254+00:00
+- 本轮原始发现：10
+- 未收录文章候选：52
+- 新信源候选：61
 - 已收录链接去重：0
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
 
 ## 发现通道
 
 - openai_web_search: skipped · OPENAI_API_KEY 未配置
-- hn_official: ok · 0 条
+- hn_official: ok · 2 条
 - accepted_link_graph: ok · 8 条
 
 ## 优先检查的新信源
@@ -44,9 +44,9 @@
 - [On caring for user data: NeoVim caused Vim undo files to be deleted](https://unsung.aresluna.org/they-had-no-concept-of-a-duty-of-care-to-their-users) · hn
 - [RIP, vector database](https://turbopuffer.com/blog/rip-vector-database) · hn
 - [Banks are now trying to offload the AI data center debt they just underwrote](https://startupfortune.com/banks-are-now-trying-to-offload-the-ai-data-center-debt-they-just-underwrote) · hn
-- [Korea raises data breach fines to 10% of revenue](https://www.koreajoongangdaily.com/business/korea-raises-data-breach-fines-to-10-of-revenue/12869899) · hn
 - [Intel D270 GPU AI Accelerator–Up to 480 GB LPDDR5X](https://www.intel.com/content/www/us/en/products/details/discrete-gpus/data-center-gpu/d-series.html) · hn
 - [Man discovers his parents' coffee machine used 1TB of data in 10 days](https://www.dexerto.com/entertainment/man-discovers-his-parents-coffee-machine-used-1tb-of-data-in-10-days-3416399) · hn
+- [Publish fake stats, get cited in LLMs](https://peec.ai/blog/publish-stats-get-cited-the-tactic-that-put-my-data-all-over-the-web) · hn
 - [Yandex outage: data shows that instead of going dark, malicious bots moved](https://blog.cloudflare.com/yandex-outage) · hn
 - [What Zig felt like, coming from Rust](https://besok.github.io/posts/what-zig-felt-like-coming-from-rust) · hn
 - [Meta Uses A.I. Data Centers to Avoid Billions in Federal Taxes](https://www.nytimes.com/2026/09/30/technology/meta-ai-data-centers-taxes.html) · hn

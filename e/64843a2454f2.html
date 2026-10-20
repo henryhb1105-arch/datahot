@@ -1,17 +1,21 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-T5kUFAu2qcxAf9fXbXz8sgXwsrLTxUJS0WjxqCw+4Yc=' 'sha256-jc0hLj6alcZVYyF2VUKOgzkgVMwW4x52bJsEl6niQIM=' 'sha256-mqOYJHV7w9/gKkeL23vI8w6eXtn48tMMFMQHCOcEgJA='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-4qlIMGVz8pzvFWWllzW2kyxij6YT6TdyWLsxGvmGcHU=' 'sha256-T5kUFAu2qcxAf9fXbXz8sgXwsrLTxUJS0WjxqCw+4Yc=' 'sha256-sI0MZZeppclebHvO7qUI62lUgfQXV4UB6EbygUR+Z4c='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Cortex Agent 评测：既检查答案，也检查工具执行过程 · DataHot</title>
-<meta name="description" content="把问题、参考答案与执行轨迹结合，检查答案正确性和逻辑一致性，并比较不同配置的成本与延迟。">
+<meta name="description" content="文章指出，部署 Snowflake Cortex Agents 若没有评估框架，等于把 credits 花在未被衡量的输出上。Snowflake Cortex 提供原生评估、可观测性、追踪、监控与 AI 应用质量度量，可在数据、语义模型和 Agent 旁直接运行评估。作者建议从观察失败开始，先建 2">
 <link rel="canonical" href="https://datahot.xiahongbin.com/e/64843a2454f2.html">
 <meta property="og:title" content="Cortex Agent 评测：既检查答案，也检查工具执行过程">
-<meta property="og:description" content="把问题、参考答案与执行轨迹结合，检查答案正确性和逻辑一致性，并比较不同配置的成本与延迟。">
+<meta property="og:description" content="文章指出，部署 Snowflake Cortex Agents 若没有评估框架，等于把 credits 花在未被衡量的输出上。Snowflake Cortex 提供原生评估、可观测性、追踪、监控与 AI 应用质量度量，可在数据、语义模型和 Agent 旁直接运行评估。作者建议从观察失败开始，先建 2">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://datahot.xiahongbin.com/e/64843a2454f2.html">
 <meta property="og:site_name" content="DataHot · 数据领域 AI 热榜">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="https://datahot.xiahongbin.com/media/64843a2454f2/1f1aac840d30eb84cf74b633.png">
+<meta property="og:image:alt" content="Cortex Agent 评测：既检查答案，也检查工具执行过程">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://datahot.xiahongbin.com/media/64843a2454f2/1f1aac840d30eb84cf74b633.png">
+<meta name="twitter:image:alt" content="Cortex Agent 评测：既检查答案，也检查工具执行过程">
 <link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
@@ -23,7 +27,7 @@
 
 
 
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"Cortex Agent 评测：既检查答案，也检查工具执行过程","description":"把问题、参考答案与执行轨迹结合，检查答案正确性和逻辑一致性，并比较不同配置的成本与延迟。","datePublished":"2026-03-13T00:00:00+00:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://www.snowflake.com/en/blog/engineering/cortex-agent-evaluations/"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"Cortex Agent 评测：既检查答案，也检查工具执行过程","description":"文章指出，部署 Snowflake Cortex Agents 若没有评估框架，等于把 credits 花在未被衡量的输出上。Snowflake Cortex 提供原生评估、可观测性、追踪、监控与 AI 应用质量度量，可在数据、语义模型和 Agent 旁直接运行评估。作者建议从观察失败开始，先建 2","datePublished":"2026-03-13T00:00:00+00:00","inLanguage":"zh-CN","publisher":{"@type":"Organization","name":"DataHot"},"isBasedOn":"https://www.snowflake.com/en/blog/engineering/cortex-agent-evaluations/","image":"https://datahot.xiahongbin.com/media/64843a2454f2/1f1aac840d30eb84cf74b633.png"}</script>
 <style>
   :root{
     color-scheme: light dark;
@@ -836,20 +840,20 @@ main,.layout>*,.hotlist>*{min-width:0}
   <div class="topbar detail-context">
     <a class="back" href="../index.html" data-smart-back aria-label="返回"><span aria-hidden="true">←</span><span class="back-label">返回</span></a>
     <span class="sharebtns">
-      <button class="sbtn ghost favbtn" type="button" data-fav="64843a2454f2" data-fav-record="{&quot;event_id&quot;:&quot;64843a2454f2&quot;,&quot;title&quot;:&quot;Cortex Agent 评测：既检查答案，也检查工具执行过程&quot;,&quot;summary&quot;:&quot;把问题、参考答案与执行轨迹结合，检查答案正确性和逻辑一致性，并比较不同配置的成本与延迟。&quot;,&quot;source&quot;:&quot;Snowflake&quot;,&quot;category&quot;:&quot;agent&quot;,&quot;topics&quot;:[&quot;Data Agent&quot;],&quot;published&quot;:&quot;2026-03-13T00:00:00+00:00&quot;,&quot;original_url&quot;:&quot;https://www.snowflake.com/en/blog/engineering/cortex-agent-evaluations/&quot;}" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg><span class="sbtn-label">收藏</span></button>
+      <button class="sbtn ghost favbtn" type="button" data-fav="64843a2454f2" data-fav-record="{&quot;event_id&quot;:&quot;64843a2454f2&quot;,&quot;title&quot;:&quot;Cortex Agent 评测：既检查答案，也检查工具执行过程&quot;,&quot;summary&quot;:&quot;文章指出，部署 Snowflake Cortex Agents 若没有评估框架，等于把 credits 花在未被衡量的输出上。Snowflake Cortex 提供原生评估、可观测性、追踪、监控与 AI 应用质量度量，可在数据、语义模型和 Agent 旁直接运行评估。作者建议从观察失败开始，先建 20–50 条评估样本，记录输入、标准答案、期望工具与业务上下文，并评估 Agent 的完整轨迹而非只看最终答案。&quot;,&quot;source&quot;:&quot;Snowflake&quot;,&quot;category&quot;:&quot;agent&quot;,&quot;topics&quot;:[&quot;Data Agent&quot;],&quot;published&quot;:&quot;2026-03-13T00:00:00+00:00&quot;,&quot;original_url&quot;:&quot;https://www.snowflake.com/en/blog/engineering/cortex-agent-evaluations/&quot;}" title="收藏" aria-label="收藏" aria-pressed="false"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"/></svg><span class="sbtn-label">收藏</span></button>
 
       <button class="sbtn ghost" type="button" data-share-action="poster" data-poster-qr-src="../qr/64843a2454f2.png" title="海报" aria-label="海报"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg><span class="sbtn-label">海报</span></button>
       <button class="sbtn" type="button" data-share-action="open" title="分享" aria-label="分享"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span class="sbtn-label">分享</span></button>
     </span>
-    
+    <span class="reading-progress" aria-hidden="true"><span data-reading-progress></span></span>
   </div>
-  <div class="article-layout">
+  <div class="article-layout has-toc">
   <main class="article-content">
   <h1>Cortex Agent 评测：既检查答案，也检查工具执行过程</h1>
   <div class="meta">
     <span class="srcbadge">RSS</span>
     <a class="meta-source-link" href="https://www.snowflake.com/en/blog/engineering/cortex-agent-evaluations/" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Snowflake" aria-label="查看 Snowflake 原文"><span>Snowflake</span><svg width="12" height="12" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
-    <span class="meta-content-mode">编辑导读</span>
+    <span class="meta-content-mode">AI 逐段翻译</span>
     <span class="editorial-pick">编辑精选</span>
     <span title="来源日期">原文 2026-03-13</span>
     <span style="color:var(--sub);font-size:11px" title="加入编辑精选的时间">精选于 2026-09-12 13:30</span>
@@ -859,17 +863,96 @@ main,.layout>*,.hotlist>*{min-width:0}
   
   <details class="article-brief" open>
   <summary>DataHot 速览</summary>
-  <div class="article-brief-body"><p>把问题、参考答案与执行轨迹结合，检查答案正确性和逻辑一致性，并比较不同配置的成本与延迟。</p>
-  <p class="brief-why"><b>为什么值得关注：</b>适合建立数据 Agent 的质量门槛，区分选错工具、执行出错和最终回答错误。</p></div>
+  <div class="article-brief-body"><p>文章指出，部署 Snowflake Cortex Agents 若没有评估框架，等于把 credits 花在未被衡量的输出上。Snowflake Cortex 提供原生评估、可观测性、追踪、监控与 AI 应用质量度量，可在数据、语义模型和 Agent 旁直接运行评估。作者建议从观察失败开始，先建 20–50 条评估样本，记录输入、标准答案、期望工具与业务上下文，并评估 Agent 的完整轨迹而非只看最终答案。</p>
+  <p class="brief-why"><b>为什么值得关注：</b>随着企业把 Agent 接入数据与语义模型，工具调用、SQL 执行和最终答案都可能独立失败，系统化评估与可观测性是上线可靠性的关键。文章给出了可落地的评估数据集与轨迹评估方法，适合正在构建 Data Agent 的团队参考。</p></div>
 </details>
-  
+  <details class="article-toc-mobile"><summary>本文目录 <span>23 节</span></summary><ol><li class="toc-level-4"><a href="#article-section-1" data-toc-link data-toc-target="article-section-1">Agent 评估有何不同</a></li><li class="toc-level-4"><a href="#article-section-2" data-toc-link data-toc-target="article-section-2">第 1 步：构建评估数据集</a></li><li class="toc-level-4"><a href="#article-section-3" data-toc-link data-toc-target="article-section-3">第 2 步：注册评估数据集</a></li><li class="toc-level-4"><a href="#article-section-4" data-toc-link data-toc-target="article-section-4">第 3 步：运行批量评估</a></li><li class="toc-level-4"><a href="#article-section-5" data-toc-link data-toc-target="article-section-5">第 4 步：跟踪状态并获取结果</a></li><li class="toc-level-4"><a href="#article-section-6" data-toc-link data-toc-target="article-section-6">第 5 步：CI/CD 质量门禁（预生产回归防护）</a></li><li class="toc-level-3"><a href="#article-section-7" data-toc-link data-toc-target="article-section-7">Agent 评估的四个层级</a></li><li class="toc-level-4"><a href="#article-section-8" data-toc-link data-toc-target="article-section-8">第 1 层：黄金数据集测试</a></li><li class="toc-level-4"><a href="#article-section-9" data-toc-link data-toc-target="article-section-9">第 2 层：轨迹分析</a></li><li class="toc-level-4"><a href="#article-section-10" data-toc-link data-toc-target="article-section-10">第 3 层：基于指标的评判</a></li><li class="toc-level-4"><a href="#article-section-11" data-toc-link data-toc-target="article-section-11">第 4 层：生产监控</a></li><li class="toc-level-3"><a href="#article-section-12" data-toc-link data-toc-target="article-section-12">关键指标</a></li><li class="toc-level-4"><a href="#article-section-13" data-toc-link data-toc-target="article-section-13">1. 工具选择准确率（最高优先级）</a></li><li class="toc-level-4"><a href="#article-section-14" data-toc-link data-toc-target="article-section-14">2. 答案正确性</a></li><li class="toc-level-4"><a href="#article-section-15" data-toc-link data-toc-target="article-section-15">3. 逻辑一致性</a></li><li class="toc-level-4"><a href="#article-section-16" data-toc-link data-toc-target="article-section-16">4. 工具执行质量</a></li><li class="toc-level-4"><a href="#article-section-17" data-toc-link data-toc-target="article-section-17">5. 效率：成本与延迟</a></li><li class="toc-level-4"><a href="#article-section-18" data-toc-link data-toc-target="article-section-18">6. 治理遵从</a></li><li class="toc-level-3"><a href="#article-section-19" data-toc-link data-toc-target="article-section-19">构建你的第一个评估数据集</a></li><li class="toc-level-3"><a href="#article-section-20" data-toc-link data-toc-target="article-section-20">在 Snowflake 中运行评估</a></li><li class="toc-level-3"><a href="#article-section-21" data-toc-link data-toc-target="article-section-21">检查评估结果</a></li><li class="toc-level-3"><a href="#article-section-22" data-toc-link data-toc-target="article-section-22">实用的评估成熟度模型</a></li><li class="toc-level-3"><a href="#article-section-23" data-toc-link data-toc-target="article-section-23">最终要点</a></li></ol></details>
   <section class="content-section" aria-labelledby="articleBodyTitle">
-  <div class="content-heading"><h2 id="articleBodyTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 阅读提示</h2> <span class="content-origin-badge">编辑导读</span></div>
-  <div class="fulltext"><p>文章发布时工具选择和工具执行评测为 private preview，不能将所有评测能力都写成 GA。</p></div>
-  <div class="content-footer"><div class="disclaimer">编辑整理的阅读提示；完整论述、代码与图表请查看原文。</div><a class="original-footer-link" href="https://www.snowflake.com/en/blog/engineering/cortex-agent-evaluations/" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Snowflake"><span>查看原文</span><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div>
+  <div class="content-heading"><h2 id="articleBodyTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg> 译文</h2> <span class="content-origin-badge">AI 逐段翻译</span></div>
+  <div class="fulltext"><p>如果你在没有评估框架的情况下部署 Snowflake Cortex Agents，本质上就是在为未经验证的输出浪费额度。持续评估成为驱动快速迭代和可靠改进的引擎。</p><p>Snowflake 的 Cortex 平台现在原生提供评估、可观测性、追踪、监控和 AI 应用质量度量能力。组织无需构建单独的评估基础设施，而是可以直接在 Snowflake 内、与数据、语义模型和 Cortex Agents 一起运行评估。</p><p>大多数团队从流程的错误一端开始：</p><ol><li>更改提示词</li><li>更换模型</li><li>添加工具</li><li>希望情况会好转</li></ol><p>拥有 20 多年经验的 ML 工程师 Hamel Husain 建议反过来做：</p><ol><li>观察失败</li><li>收集示例</li><li>构建评估数据集</li><li>衡量质量</li><li>系统化改进</li><li>重新运行评估</li></ol><p>目标不是找到一个完美的模型。</p><p>目标是创建一个能够持续改进的可重复系统。</p><p>对 Snowflake 客户而言，这自然对应为：</p><p>Agent 不是带检索步骤的聊天机器人。它会规划、选择工具、通过 Cortex Analyst 运行 SQL、通过 Cortex Search 进行搜索、调用自定义工具，然后组织答案。其中每一步都可能失败，而最终答案看起来仍然没问题。</p><p>因此，评估一个 agent 意味着评估整个轨迹：<strong>它是否选择了正确的工具、是否正确调用了工具、是否走了高效的路径，并得出了正确的答案？</strong></p><p>Snowflake 通过 Agent Evaluations 和 AI Observability 支持这一点，涵盖质量、成本、延迟、追踪、工具使用和评估指标。</p><h4 class="cb-heading" id="article-section-1" data-article-heading><strong>Agent 评估有何不同</strong></h4><h4 class="cb-heading" id="article-section-2" data-article-heading><strong>第 1 步：构建评估数据集</strong></h4><p>从 20–50 个示例开始。这足以揭示失败模式，又不会让数据集整理本身变成一个大项目。对每个示例，记录：</p><ul><li><strong>输入：</strong>原始用户问题</li><li><strong>基准真值：</strong>预期答案、数据载荷或 SQL 结果</li><li><strong>预期工具：</strong>agent 应调用哪个（些）工具（通过 Cortex Analyst 使用 Semantic View、Cortex Search、存储过程、外部工具）</li><li><strong>业务上下文：</strong>正确回答问题所需的规则、模式或定义</li></ul><p>有意识地覆盖以下类别：</p><ul><li>应路由到 Semantic View 的结构化问题</li><li>应路由到 Cortex Search 的非结构化问题</li><li>需要<strong>同时使用两种</strong>工具的问题</li><li>正确行为是请求澄清的模糊问题</li><li>正确行为是拒绝回答的超出范围或访问受限问题</li></ul><p>你可以从合成的前生产问题或从 AI_OBSERVABILITY_EVENTS 中捕获的真实生产日志获取用例。真实日志通常是更好的来源。</p><pre><code class="language-">-- Create the base table holding your test cases
+
+CREATE OR REPLACE TABLE MARKETING_CAMPAIGNS_DB.AGENTS.EVAL_SOURCE_TABLE (
+    INPUT_QUERY STRING,
+    GROUND_TRUTH_DATA VARIANT
+);
+
+-- Populating synthetic pre-production questions
+
+INSERT INTO MARKETING_CAMPAIGNS_DB.AGENTS.EVAL_SOURCE_TABLE 
+SELECT 
+   &#x27;What was the total revenue for Q3 marketing?&#x27;, 
+   PARSE_JSON(&#x27;{&quot;expected tools&quot;:[&quot;SALES_TOOL&quot;]}&#x27;);</code></pre><h4 class="cb-heading" id="article-section-3" data-article-heading><strong>第 2 步：注册评估数据集</strong></h4><pre><code class="language-">CALL SYSTEM$CREATE_EVALUATION_DATASET(
+    &#x27;Cortex Agent&#x27;,                                             -- Agent type
+    &#x27;MARKETING_CAMPAIGNS_DB.AGENTS.EVAL_SOURCE_TABLE&#x27;,          -- Source table
+    &#x27;MARKETING_CAMPAIGNS_DB.AGENTS.MARKETING_CAMPAIGN_EVALSET&#x27;, -- Dataset name
+    OBJECT_CONSTRUCT(
+        &#x27;query_text&#x27;,     &#x27;INPUT_QUERY&#x27;,
+        &#x27;expected_tools&#x27;, &#x27;GROUND_TRUTH_DATA&#x27;
+    )                                                           -- Column mapping
+);</code></pre><p>该数据集将成为你的回归套件，并可在每次运行中复用。</p><h4 class="cb-heading" id="article-section-4" data-article-heading><strong>第 3 步：运行批量评估</strong></h4><p>评估以无服务器和异步方式运行，由 Snowflake 暂存区中的 .yaml 配置文件驱动。该配置定义 agent、数据集以及要计算的指标。</p><pre><code class="language-">-- Ensure your session matches your Agent context location
+
+USE DATABASE MARKETING_CAMPAIGNS_DB;
+USE SCHEMA AGENTS;
+
+-- Run the evaluation asynchronously
+
+CALL EXECUTE_AI_EVALUATION(
+    &#x27;START&#x27;, 
+    OBJECT_CONSTRUCT(&#x27;run_name&#x27;, &#x27;pre_prod_baseline_run_v1&#x27;), 
+    &#x27;@MARKETING_CAMPAIGNS_DB.AGENTS.CONFIG_STAGE/eval_config.yaml&#x27;
+);</code></pre><h4 class="cb-heading" id="article-section-5" data-article-heading><strong>第 4 步：跟踪状态并获取结果</strong></h4><p>由于评估以无服务器和异步方式运行，请轮询作业状态并直接通过 SQL 提取性能指标：</p><pre><code class="language-">-- Check if execution is running, failed, or completed
+
+CALL EXECUTE_AI_EVALUATION(
+    &#x27;STATUS&#x27;, 
+    OBJECT_CONSTRUCT(&#x27;run_name&#x27;, &#x27;pre_prod_baseline_run_v1&#x27;), 
+    &#x27;@MARKETING_CAMPAIGNS_DB.AGENTS.CONFIG_STAGE/eval_config.yaml&#x27;
+);
+
+-- Pull per-record results and scores
+
+SELECT * 
+FROM TABLE(SNOWFLAKE.LOCAL.GET_AI_EVALUATION_DATA(
+    &#x27;MARKETING_CAMPAIGNS_DB&#x27;, 
+    &#x27;AGENTS&#x27;, 
+    &#x27;MARKETING_AGENT&#x27;, 
+    &#x27;cortex agent&#x27;, 
+    &#x27;pre_prod_baseline_run_v1&#x27;
+));</code></pre><p>结果包括输入、输出、基准真值、指标得分、评估类型、时长，以及每个得分的<strong>解释</strong>。解释通常是最有用的列，因为它告诉你 agent 为何被如此评判。</p><h4 class="cb-heading" id="article-section-6" data-article-heading><strong>第 5 步：CI/CD 质量门禁（预生产回归防护）</strong></h4><p>将指标接入 Snowflake 任务或你的流水线工具，使回归能够阻止发布。对于 agent，门禁应关注<strong>工具行为</strong>，而不仅仅是答案质量。</p><p>如果答案正确率或工具选择低于可接受标准，则中止部署</p><pre><code class="language-">SELECT
+  AVG(IFF(metric_name=&#x27;answer_correctness&#x27;,
+      eval_agg_score, NULL)) AS ac,
+  AVG(IFF(metric_name=&#x27;tool_selection_accuracy&#x27;,
+      eval_agg_score, NULL)) AS tsa
+FROM TABLE(SNOWFLAKE.LOCAL.GET_AI_EVALUATION_DATA(
+    &#x27;MARKETING_CAMPAIGNS_DB&#x27;, &#x27;AGENTS&#x27;, &#x27;MARKETING_AGENT&#x27;,
+    &#x27;CORTEX AGENT&#x27;, &#x27;pre_prod_baseline_run_v1&#x27;
+));</code></pre><p>上述阈值仅供参考。请根据你自己的基线运行结果来设定。在将其接入自动化之前，还要确认你账户中 GET_AI_EVALUATION_DATA 返回的确切指标列名。</p><h3 class="cb-heading" id="article-section-7" data-article-heading><strong>Agent 评估的四个层级</strong></h3><h4 class="cb-heading" id="article-section-8" data-article-heading><strong>第 1 层：黄金数据集测试</strong></h4><p>一组精心整理的问题、预期答案和预期工具路由。每当 agent 指令、语义视图、搜索服务或模型配置发生变化时运行它。例如：</p><figure class="cb-figure"><a class="cb-media-link" href="https://cdn-images-1.medium.com/max/646/1*v5FoQXYHUWY_SF8erEVKKA.png" target="_blank" rel="noopener noreferrer nofollow"><img src="../derived-media/35b31b743a30e8bd1ffc-480.webp" alt="" loading="lazy" decoding="async" width="646" height="190" srcset="../derived-media/35b31b743a30e8bd1ffc-480.webp 480w, ../derived-media/35b31b743a30e8bd1ffc-646.webp 646w" sizes="(max-width:600px) calc(100vw - 14px), (max-width:1199px) calc(100vw - 240px), 840px"></a></figure><p>该数据集将成为你的回归测试套件。</p><p>Snowflake 提供创建和管理评估数据集的功能，这些数据集可在多次评估运行中复用。</p><h4 class="cb-heading" id="article-section-9" data-article-heading><strong>第 2 层：轨迹分析</strong></h4><p>Agent 轨迹揭示规划决策、工具选择、SQL 生成与执行、搜索调用和响应生成。要审查轨迹，而不仅仅是输出。</p><p><strong>健康轨迹：</strong></p><ul><li>✅ 选择了正确的 Semantic View</li><li>✅ 仅在需要非结构化内容时使用 Cortex Search</li><li>✅ 使用了最少的工具调用次数</li><li>✅ 遵守了治理和基于角色的访问控制</li></ul><p><strong>不健康轨迹：</strong></p><ul><li>❌ 一次调用即可时却调用了五个工具</li><li>❌ 查询了错误的数据集或语义视图</li><li>❌ 生成的 SQL 运行成功但回答了另一个问题</li><li>❌ 忽略工具错误并临时编造答案</li></ul><h4 class="cb-heading" id="article-section-10" data-article-heading><strong>第 3 层：基于指标的评判</strong></h4><p>LLM 评判员依据基准真值和标准对 agent 行为评分，并为每个得分返回解释。对于 agent，评判员同时考察答案和执行路径。要问“是否使用了正确的工具、计划是否连贯、结果是否有工具输出支撑？”，而不是“文本是否完全匹配？”</p><h4 class="cb-heading" id="article-section-11" data-article-heading><strong>第 4 层：生产监控</strong></h4><p>你的用户会生成最好的测试用例。AI Observability 让你监控已部署 agent 的请求、轨迹、反馈、成本、延迟和工具使用情况。将失败案例反馈回你的黄金数据集。</p><h3 class="cb-heading" id="article-section-12" data-article-heading><strong>关键指标</strong></h3><h4 class="cb-heading" id="article-section-13" data-article-heading><strong>1. 工具选择准确率</strong><em><strong>（最高优先级）</strong></em></h4><p>agent 是否为任务调用了正确的工具：Semantic View、Cortex Search、存储过程或外部工具？<strong>工具选择错误应导致评估失败，无论答案质量如何</strong>，因为来自错误来源的正确答案只是运气。</p><h4 class="cb-heading" id="article-section-14" data-article-heading><strong>2. 答案正确性</strong></h4><p>最终答案是否与基准真值一致？</p><p>问题：7 月销售额是多少？</p><p>预期：$12.4M</p><p>实际：$12.3M → 根据与基准真值的一致性评分</p><p>对于分析型智能体，要预先定义你的容差。决定 1230 万美元与 1240 万美元之间是算通过、部分得分，还是算失败。</p><h4 class="cb-heading" id="article-section-15" data-article-heading><strong>3. 逻辑一致性</strong></h4><p>智能体在各个步骤之间是否推理连贯？这一点已内置于智能体轨迹中，并会标记不必要的工具调用、低效执行和不连贯的规划。</p><h4 class="cb-heading" id="article-section-16" data-article-heading><strong>4. 工具执行质量</strong></h4><p>工具调用是否成功，并返回了智能体所需的内容？在你的评估设置支持的情况下，检查以下各项：</p><ul><li>可生成有效且正确 SQL 的 Semantic View 查询</li><li>可返回可用结果的搜索调用</li><li>对工具错误和空结果的妥善处理</li></ul><h4 class="cb-heading" id="article-section-17" data-article-heading><strong>5. 效率：成本与延迟</strong></h4><p>一个在 40 秒内通过六次工具调用得到正确答案的智能体，可能不如一个在 6 秒内通过一次工具调用得到答案的智能体。在跟踪质量的同时，还要跟踪工具调用次数、延迟和 token 成本。</p><h4 class="cb-heading" id="article-section-18" data-article-heading><strong>6. 治理遵从</strong></h4><p>智能体是否遵守了调用方的角色和权限，并在应当拒绝时恰当地拒绝？要包含明确的负向测试用例。</p><p><strong>关于检索指标的说明：</strong> 基于事实性和上下文相关性仍然重要，但对于智能体而言，它们仅适用于 Cortex Search 工具步骤。要将它们视为该工具上的子检查项，而不是智能体的主要指标。</p><h3 class="cb-heading" id="article-section-19" data-article-heading><strong>构建你的第一个评估数据集</strong></h3><p>从 <strong>20–50 个示例</strong> 开始。不是 5 个。不是 5,000 个。只要足以揭示有意义的失败模式即可。</p><p>对于 <strong>Snowflake Sales Agent</strong>，你的评估数据集应为每个示例捕获以下核心组成部分：</p><ul><li><strong>输入：</strong> 原始用户提示或问题。</li><li><strong>预期输出：</strong> 理想的 SQL 查询、数据载荷或自然语言响应。</li><li><strong>业务上下文：</strong> 准确回答所需的底层逻辑、数据模式或操作规则。</li></ul><h3 class="cb-heading" id="article-section-20" data-article-heading><strong>在 Snowflake 中运行评估</strong></h3><p>Snowflake 为 Cortex Agents 提供原生评估执行能力。</p><p>示例：</p><pre><code class="language-">CALL EXECUTE_AI_EVALUATION(
+&#x27;START&#x27;,
+OBJECT_CONSTRUCT(
+&#x27;run_name&#x27;,&#x27;sales_agent_eval_01&#x27;
+),
+&#x27;@eval_stage/sales_agent_config.yaml&#x27;
+);</code></pre><p>这会针对已配置的数据集和指标启动一次评估运行。</p><h3 class="cb-heading" id="article-section-21" data-article-heading><strong>检查评估结果</strong></h3><p>Snowflake 会公开详细的评估数据。轨迹级可观测性正是智能体评估回报最大的地方：</p><pre><code class="language-">--Get evaluation details for a run
+
+SELECT *
+FROM TABLE(
+SNOWFLAKE.LOCAL.GET_AI_EVALUATION_DATA(
+&#x27;AI_DB&#x27;,
+&#x27;EVALS&#x27;,
+&#x27;SALES_AGENT&#x27;,
+&#x27;CORTEX AGENT&#x27;,
+&#x27;marketing_agent_eval_01&#x27;
+)
+);
+
+-- Get traces for a specific record
+
+SELECT * FROM TABLE(SNOWFLAKE.LOCAL.GET_AI_RECORD_TRACE(
+  &#x27;AI_DB&#x27;, &#x27;EVALS&#x27;, &#x27;SALES_AGENT&#x27;, &#x27;CORTEX AGENT&#x27;, &#x27;9346efc3-5dd6-4038-9b1a-72ca3d3b768c&#x27;
+));</code></pre><p>结果包括：</p><ul><li>输入</li><li>输出</li><li>真实基准</li><li>指标得分</li><li>评估类型</li><li>持续时间</li><li>评估解释</li></ul><p>这让你可以检查用户请求、智能体推理流程、工具执行、反馈和评估运行。寻找带有负面反馈、工具调用次数异常偏高或延迟较长的问题。那些就是你下一批黄金数据集的候选。</p><h3 class="cb-heading" id="article-section-22" data-article-heading><strong>实用的评估成熟度模型</strong></h3><p>这是 Hamel 所倡导的状态，也是 Snowflake 的评估架构所支持的状态。</p><h3 class="cb-heading" id="article-section-23" data-article-heading><strong>最终要点</strong></h3><p>评估是一项产品开发活动，而不是一项报告工作。对于智能体而言，关键的转变在于 <strong>轨迹就是产品</strong>。将工具选择、执行路径和答案质量一起衡量的团队会进步得更快。只检查最终答案的团队会停滞不前，因为他们看不到智能体为何失败。</p><p>Cortex Agent Evaluations、AI Observability、智能体轨迹、基于评判的指标、评估数据集以及成本与用量可见性共同为你提供一个完整生命周期：<strong>观察、衡量、改进、重复。</strong></p><p><a href="https://medium.com/snowflake/evaluating-snowflake-cortex-agents-measuring-behavior-not-just-answers-89e600c0c894" target="_blank" rel="noopener noreferrer nofollow">评估 Snowflake Cortex Agents：衡量行为，而不仅仅是答案</a> 最初发布于 <a href="https://medium.com/snowflake" target="_blank" rel="noopener noreferrer nofollow">Snowflake Builders Blog: Data Engineers, App Developers, AI, &amp; Data Science</a>（Medium），人们正在那里通过高亮和回应这个故事来继续对话。</p></div>
+  <div class="content-footer"><a class="original-footer-link" href="https://www.snowflake.com/en/blog/engineering/cortex-agent-evaluations/" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Snowflake"><span>查看原文</span><svg width="14" height="14" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div>
 </section>
   <div class="vendors article-tags" aria-label="文章主题"><a class="chip" href="../topics/data-agent.html">Data Agent</a><span class="vtag">Snowflake</span></div>
-
+<section class="source-section" aria-labelledby="supplementSourcesTitle"><div class="source-heading"><h4 id="supplementSourcesTitle">补充来源</h4><span class="source-summary">1 个信源 · 1 篇报道</span></div><div class="source-group"><div class="source-group-head"><b>Snowflake Engineering (Medium)</b></div><a class="source-report" href="https://medium.com/snowflake/evaluating-snowflake-cortex-agents-measuring-behavior-not-just-answers-89e600c0c894?source=rss----34b6daafc07---4" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Snowflake Engineering（Medium）"><span class="source-report-title">Evaluating Snowflake Cortex Agents: Measuring Behavior, Not Just Answers <span aria-hidden="true">↗</span></span><span class="source-report-date">2026-10-20 22:01</span></a></div></section>
   <section class="content-feedback" data-content-feedback data-event-id="64843a2454f2" data-feedback-context="{&quot;topics&quot;:[&quot;Data Agent&quot;],&quot;vendors&quot;:[&quot;Snowflake&quot;],&quot;source&quot;:&quot;Snowflake&quot;}" aria-labelledby="contentFeedbackTitle">
   <div class="content-feedback-main">
     <div><h2 id="contentFeedbackTitle">这篇内容对你有用吗？</h2><p data-feedback-status aria-live="polite">反馈只用于改善内容筛选，不等同于收藏</p></div>
@@ -887,7 +970,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 </section>
   <section class="card related-events" aria-labelledby="relatedEventsTitle"><h4 id="relatedEventsTitle"><svg width="15" height="15" style="vertical-align:-2px" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg> 相关事件</h4><a class="vendor-row" href="../e/bd750fad1df5.html"><span class="n">›</span><span class="related-title">Cortex Agents 平台：版本、租户隔离、预算与工具治理</span><span class="related-meta">AI 数据平台</span></a><a class="vendor-row" href="../e/3ab0ee43451d.html"><span class="n">›</span><span class="related-title">Cortex Agents：从Text-to-SQL到真正干活的助手</span><span class="related-meta">Data Agent</span></a><a class="vendor-row" href="../e/5f9770dfca34.html"><span class="n">›</span><span class="related-title">你的 Coding Agent 有多大价值，取决于它对你的数据了解多少</span><span class="related-meta">Data Agent</span></a></section>
   </main>
-  
+  <aside class="article-toc-rail" aria-label="本文目录"><div class="article-toc-title">本文目录 <span>23 节</span></div><ol><li class="toc-level-4"><a href="#article-section-1" data-toc-link data-toc-target="article-section-1">Agent 评估有何不同</a></li><li class="toc-level-4"><a href="#article-section-2" data-toc-link data-toc-target="article-section-2">第 1 步：构建评估数据集</a></li><li class="toc-level-4"><a href="#article-section-3" data-toc-link data-toc-target="article-section-3">第 2 步：注册评估数据集</a></li><li class="toc-level-4"><a href="#article-section-4" data-toc-link data-toc-target="article-section-4">第 3 步：运行批量评估</a></li><li class="toc-level-4"><a href="#article-section-5" data-toc-link data-toc-target="article-section-5">第 4 步：跟踪状态并获取结果</a></li><li class="toc-level-4"><a href="#article-section-6" data-toc-link data-toc-target="article-section-6">第 5 步：CI/CD 质量门禁（预生产回归防护）</a></li><li class="toc-level-3"><a href="#article-section-7" data-toc-link data-toc-target="article-section-7">Agent 评估的四个层级</a></li><li class="toc-level-4"><a href="#article-section-8" data-toc-link data-toc-target="article-section-8">第 1 层：黄金数据集测试</a></li><li class="toc-level-4"><a href="#article-section-9" data-toc-link data-toc-target="article-section-9">第 2 层：轨迹分析</a></li><li class="toc-level-4"><a href="#article-section-10" data-toc-link data-toc-target="article-section-10">第 3 层：基于指标的评判</a></li><li class="toc-level-4"><a href="#article-section-11" data-toc-link data-toc-target="article-section-11">第 4 层：生产监控</a></li><li class="toc-level-3"><a href="#article-section-12" data-toc-link data-toc-target="article-section-12">关键指标</a></li><li class="toc-level-4"><a href="#article-section-13" data-toc-link data-toc-target="article-section-13">1. 工具选择准确率（最高优先级）</a></li><li class="toc-level-4"><a href="#article-section-14" data-toc-link data-toc-target="article-section-14">2. 答案正确性</a></li><li class="toc-level-4"><a href="#article-section-15" data-toc-link data-toc-target="article-section-15">3. 逻辑一致性</a></li><li class="toc-level-4"><a href="#article-section-16" data-toc-link data-toc-target="article-section-16">4. 工具执行质量</a></li><li class="toc-level-4"><a href="#article-section-17" data-toc-link data-toc-target="article-section-17">5. 效率：成本与延迟</a></li><li class="toc-level-4"><a href="#article-section-18" data-toc-link data-toc-target="article-section-18">6. 治理遵从</a></li><li class="toc-level-3"><a href="#article-section-19" data-toc-link data-toc-target="article-section-19">构建你的第一个评估数据集</a></li><li class="toc-level-3"><a href="#article-section-20" data-toc-link data-toc-target="article-section-20">在 Snowflake 中运行评估</a></li><li class="toc-level-3"><a href="#article-section-21" data-toc-link data-toc-target="article-section-21">检查评估结果</a></li><li class="toc-level-3"><a href="#article-section-22" data-toc-link data-toc-target="article-section-22">实用的评估成熟度模型</a></li><li class="toc-level-3"><a href="#article-section-23" data-toc-link data-toc-target="article-section-23">最终要点</a></li></ol></aside>
   </div>
 </div>
 <footer>DataHot，数据领域AI资讯分享 · <a href="../privacy.html">隐私</a> · <a href="https://github.com/henryhb1105-arch/datahot" target="_blank" rel="noopener noreferrer" style="color:var(--sub);text-decoration:underline">GitHub 开源</a> · <a href="https://bsky.app/profile/datahot.xiahongbin.com" target="_blank" rel="noopener noreferrer" data-analytics="outbound" data-source="Bluesky" style="color:var(--sub);text-decoration:underline">Bluesky</a></footer>
@@ -975,7 +1058,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title":"Cortex Agent 评测：既检查答案，也检查工具执行过程","summary":"把问题、参考答案与执行轨迹结合，检查答案正确性和逻辑一致性，并比较不同配置的成本与延迟。","reason":"适合建立数据 Agent 的质量门槛，区分选错工具、执行出错和最终回答错误。","topic":"Data Agent","heat":36,"source":"Snowflake","date":"2026-03-13","url":"https://datahot.xiahongbin.com/e/64843a2454f2.html","qr":"../qr/64843a2454f2.png"};
+var SH_EV = {"title":"Cortex Agent 评测：既检查答案，也检查工具执行过程","summary":"文章指出，部署 Snowflake Cortex Agents 若没有评估框架，等于把 credits 花在未被衡量的输出上。Snowflake Cortex 提供原生评估、可观测性、追踪、监控与 AI 应用质量度量，可在数据、语义模型和 Agent 旁直接运行评估。作者建议从观察失败开始，先建 20–50 条评估样本，记录输入、标准答案、期望工具与业务上下文，并评估 Agent 的完整轨迹而非只看最终答案。","reason":"随着企业把 Agent 接入数据与语义模型，工具调用、SQL 执行和最终答案都可能独立失败，系统化评估与可观测性是上线可靠性的关键。文章给出了可落地的评估数据集与轨迹评估方法，适合正在构建 Data Agent 的团队参考。","topic":"Data Agent","heat":40,"source":"Snowflake","date":"2026-03-13","url":"https://datahot.xiahongbin.com/e/64843a2454f2.html","qr":"../qr/64843a2454f2.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

@@ -377,7 +377,7 @@
         : reasons.length ? "与你选择的 " + reasons.map(followLabel).join("、") + " 相关"
         : (context === "discovery" ? "关注范围之外的近期内容，帮助发现新方向" : "公共精选 · 近期重要变化");
       var whyNode = element("div", "fm-why");
-      whyNode.appendChild(element("span", "fm-why-label", "为你推荐"));
+      whyNode.appendChild(element("span", "fm-why-label", context === "discovery" ? "发现新方向" : "为你推荐"));
       whyNode.appendChild(element("span", "", why));
       article.appendChild(whyNode);
       if (event.reason) {
@@ -516,10 +516,11 @@
       doc.getElementById("fmFeedTitle").textContent = personalized ? "你关注的新变化" : "继续发现";
       refs.feed.querySelector(".fm-section-head p").hidden = !personalized;
       renderCards(refs.feedList, feed, 12, false);
-      refs.empty.hidden = Boolean(must.length);
+      refs.must.hidden = !must.length;
+      refs.empty.hidden = Boolean(must.length || feed.length || (personalized && grouped.work.length) || grouped.discovery.length);
 
       var discovery = grouped.discovery;
-      refs.work.hidden = !personalized;
+      refs.work.hidden = !personalized || !grouped.work.length;
       renderCards(refs.workList, grouped.work, 6, false, "work");
       if (!grouped.work.length) refs.workList.textContent = "暂时没有更多匹配的工作参考，可调整兴趣或浏览案例库。";
       if (!feed.length) refs.feedList.textContent = "暂时没有更多未读的新变化。";
@@ -527,6 +528,13 @@
       renderCards(refs.readList, readEvents, 12, false);
       refs.readList.closest("details").hidden=!readEvents.length;
       renderSetup();
+      // Keep reading content ahead of preference management, including after all matches are read.
+      refs.work.after(refs.discovery);
+      var continuing = personalized && !must.length && !feed.length && !grouped.work.length;
+      refs.discovery.querySelector("h2").textContent = continuing ? "继续发现" : "顺便看看";
+      refs.discovery.querySelector(".fm-section-head p").textContent = continuing
+        ? "暂时没有更多匹配的未读内容 · 看看关注范围外的新变化"
+        : "关注范围之外的近期内容，最多 2 条";
       refs.discovery.hidden = !discovery.length;
       renderCards(refs.discoveryList, discovery, 2, false, "discovery");
       refs.watch.closest("section").hidden = !followed.length;

@@ -163,3 +163,19 @@ test('section ranking equals the public ranking filtered by relevance, with one 
     assert.deepEqual(grouped.ranked,expected);
   }
 });
+
+test('exhausted follows keep discovery unread, recent and distinct without changing preferences', () => {
+  const now = Date.parse('2026-10-20T00:00:00Z');
+  const matched = event('aaaaaaaaaaaa',{vendors:['Cube'],published:'2026-10-19T00:00:00Z'});
+  const discovery = event('bbbbbbbbbbbb',{vendors:['Other'],published:'2026-10-19T00:00:00Z'});
+  const hidden = {...discovery,event_id:'cccccccccccc'};
+  const old = {...discovery,event_id:'dddddddddddd',published:'2020-01-01T00:00:00Z'};
+  const state = forMe.normalizeState({vendors:['Cube'],read:{[matched.event_id]:'2026-10-20'},dismissed:[hidden.event_id]});
+  const before = JSON.stringify(state);
+  const grouped = forMe.sections([matched,discovery,hidden,old],state,now,null);
+  assert.equal(grouped.must.length + grouped.updates.length + grouped.work.length,0);
+  assert.deepEqual(grouped.discovery,[discovery]);
+  assert.equal(JSON.stringify(state),before);
+  const exhausted = forMe.sections([matched,hidden,old],state,now,null);
+  assert.equal(exhausted.discovery.length,0);
+});

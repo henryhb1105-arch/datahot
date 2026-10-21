@@ -1,8 +1,8 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-10-20T21:42:27.949254+00:00
+- 生成时间：2026-10-21T21:47:48.678850+00:00
 - 本轮原始发现：10
-- 未收录文章候选：52
+- 未收录文章候选：51
 - 新信源候选：61
 - 已收录链接去重：0
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
@@ -20,8 +20,6 @@
 - **www-cdn.anthropic.com** · PROBATION · 2 篇 · accepted_link_graph
 - **www.imf.org** · PROBATION · 1 篇 · accepted_link_graph
 - **cdn.sanity.io** · PROBATION · 1 篇 · accepted_link_graph
-- **besok.github.io** · PROBATION · 1 篇 · hn
-- **datagubbe.se** · PROBATION · 1 篇 · hn
 - **4906807.fs1.hubspotusercontent-na1.net** · PROBATION · 1 篇 · accepted_link_graph
 - **metr.org** · PROBATION · 1 篇 · accepted_link_graph
 - **www.langchain.com** · PROBATION · 1 篇 · accepted_link_graph
@@ -30,6 +28,12 @@
 - **svelte.dev** · PROBATION · 1 篇 · hn
 - **www.1011now.com** · PROBATION · 1 篇 · hn
 - **www.cpr.dk** · PROBATION · 1 篇 · hn
+- **cedardb.com** · PROBATION · 1 篇 · hn
+- **www.dexerto.com** · PROBATION · 1 篇 · hn
+
+## 现有信源健康提醒
+
+- **Visier Blog** · DEGRADED · 连续失败 3 次
 
 ## 优先检查的文章
 
@@ -44,12 +48,12 @@
 - [On caring for user data: NeoVim caused Vim undo files to be deleted](https://unsung.aresluna.org/they-had-no-concept-of-a-duty-of-care-to-their-users) · hn
 - [RIP, vector database](https://turbopuffer.com/blog/rip-vector-database) · hn
 - [Banks are now trying to offload the AI data center debt they just underwrote](https://startupfortune.com/banks-are-now-trying-to-offload-the-ai-data-center-debt-they-just-underwrote) · hn
+- [Publish fake stats, get cited in LLMs](https://peec.ai/blog/publish-stats-get-cited-the-tactic-that-put-my-data-all-over-the-web) · hn
 - [Intel D270 GPU AI Accelerator–Up to 480 GB LPDDR5X](https://www.intel.com/content/www/us/en/products/details/discrete-gpus/data-center-gpu/d-series.html) · hn
 - [Man discovers his parents' coffee machine used 1TB of data in 10 days](https://www.dexerto.com/entertainment/man-discovers-his-parents-coffee-machine-used-1tb-of-data-in-10-days-3416399) · hn
-- [Publish fake stats, get cited in LLMs](https://peec.ai/blog/publish-stats-get-cited-the-tactic-that-put-my-data-all-over-the-web) · hn
 - [Yandex outage: data shows that instead of going dark, malicious bots moved](https://blog.cloudflare.com/yandex-outage) · hn
-- [What Zig felt like, coming from Rust](https://besok.github.io/posts/what-zig-felt-like-coming-from-rust) · hn
 - [Meta Uses A.I. Data Centers to Avoid Billions in Federal Taxes](https://www.nytimes.com/2026/09/30/technology/meta-ai-data-centers-taxes.html) · hn
 - [One Piece of Flock Camera Data Put This Innocent Woman in Jail for 13 Days](https://www.jezebel.com/flock-cameras-data-innocent-woman-arrested-lindsey-isaacs-palm-beach-florida-lawsuit-vehicular-homicide) · hn
-- [The Effect of CRTs on Pixel Art (2024)](https://datagubbe.se/crt) · hn
 - [Yandex Takes a Second Data Center Hit in 48 Hours](https://united24media.com/war-in-ukraine/yandex-takes-a-second-data-center-hit-in-48-hours-now-its-biggest-russian-site-is-damaged-23277) · hn
+- [5x faster Edge Functions: V8 isolates to Firecracker MicroVMs](https://www.netlify.com/blog/edge-functions-firecracker-microvms) · hn
+- [AI needs $6T in annual revenue to justify data centre boom](https://www.thenationalnews.com/future/technology/2026/09/29/ai-industry-needs-to-earn-6-trillion-by-2031-to-justify-data-centres) · hn

@@ -1,6 +1,4071 @@
 {
-  "generated_at": "2026-10-23T01:17:37.853136+08:00",
+  "generated_at": "2026-10-23T05:41:03.425705+08:00",
   "events": [
+    {
+      "event_id": "e58515c8af93",
+      "zh_title": "AI成本管理新经济学：从花费追踪到ROI归因",
+      "zh_summary": "文章讨论企业AI成本管理如何从单纯追踪花费走向衡量投资回报。Databricks的Kevin Stumpf提出，通过会话或请求级打标，可把一次pull request的AI成本归因到具体金额，例如300美元。理想状态是把成本进一步关联到功能和收入/管道等业务结果。Databricks Unity Gateway正尝试提供跨模型、Agent、工具和团队的集中控制点，让成本可见性、归因和ROI衡量更容易落地。",
+      "reason": "AI Agent与模型调用成本正在成为数据平台治理和FinOps的新问题，文章给出了请求级成本归因、集中式AI网关和成本到回报追踪的产品化思路，对建设Agent运营与治理体系的从业者有参考价值。",
+      "full_zh": "衡量 AI 实际交付的价值\n\n哪些平台能同时提供智能体监控与成本追踪，这种可见性又能带你走多远，去衡量真实的投资回报率，而不只是支出？\n\nKevin Stumpf： 衡量成本比把成本与投资回报率关联起来要容易得多，而这正是所有人都想得到答案、却几乎没有人完全解决的问题。会话级或请求级打标签正是让这件事成为可能的关键。如果一个智能体正在处理某个特定的拉取请求，它可以把自己的会话或它生成的特定请求打上该拉取请求的标识符。这种归属信息会回流到成本仪表盘中，于是你就能看到，例如，某个拉取请求的完成成本是 300 美元。这是我们在 Databricks 内部已经在做的事情。\n\n在理想状态下——这也是我们正在构建进 Unity Gateway 产品中的能力——你可以更进一步，把那个拉取请求关联到某个具体功能，再把该功能关联到可衡量的成果，比如它在给定时间段内带来了多少收入或销售管道。这才是圣杯：不只是知道 AI 花了多少成本，而是知道它带来了什么回报。借助 Unity Gateway，我们已经有了一个高度可定制的平台来构建这一能力，并且我们正在投入资源，让这种“成本到回报”的视图开箱即用，而不是需要团队自己搭建。\n\n支出可见性需要集中式系统\n\n对于一家在多个团队中运行多个模型、智能体和工具的公司来说，良好的支出可见性实际上需要什么？它是一个仪表盘问题、一个治理问题，还是一个 FinOps 问题？\n\nKevin Stumpf： 良好的支出可见性要求每一次 AI 交互都流经一个集中式系统。正是这一点让你能够一致地锁定正确的信息，从而在其之上构建可靠的仪表盘和告警。AI 网关为跨模型、智能体、工具和团队的 AI 成本管理提供了一个集中式控制点。Databricks Unity Gateway 旨在为跨模型、智能体、工具和编码智能体的场景提供那个集中式控制点。当 AI 交互流经一个共同的控制点时，组织就能在一个地方观察使用情况、归属成本、执行预算并优化支出。\n\n但仅有集中式系统本身还不够。你还需要一种方式来确保每个人都确实把他们的 AI 流量路由通过它。可见性只有在采用是普遍而非可选的情况下才有效。\n\n平衡成本优化与输出质量\n\n成本控制不能以牺牲质量或可靠性为代价。你如何知道某项优化已经走得太远，开始损害输出了？\n\nKevin Stumpf： 这确实是因用例而异的。你需要一个反馈机制，它可以是主观的，也可以是客观的。主观反馈是轶事性的，是团队里有人告诉你，他们在当前预算内无法完成工作。这种反馈来得快，但很容易被当作一个人的抱怨而不予理会。客观反馈来自自动化评估，它设置起来更难，但可靠得多。\n\n对于一个常见的用例，比如编码智能体，这可能意味着定义一个质量代理指标，比如两周内没有被回滚的已合并拉取请求。在此基础上，你可以做实验：把预算减半，看看那个黄金指标是会变动、保持稳定，甚至有所改善，因为约束有时会激发创造力。在不同团队之间，用不同的预算、模型和运行框架开展并行实验，或者进行为期几周的时间限定对比，就能让你推断出某个给定预算是创造了价值还是在摧毁价值，而不是靠猜测。\n\n端到端追踪的价值\n\n端到端追踪和监控在这里扮演什么角色？一旦你能看到整个智能体工作流中的提示词、工具调用和 token 用量，这解锁了哪些你以前做不到的事情？\n\nKevin Stumpf： 追踪就是收集智能体所做事情的完整“尾气”：它们在思考什么、在调用什么工具、在拉取什么数据、提示词是好是坏。这些原始数据正是你可以用来挖掘洞察的东西，无论是识别滥用、浪费、安全泄露，还是仅仅发现你从未想过要寻找的模式。\n\n这与更广泛的数据行业曾经发生的情况如出一辙。早期，我们只有数据库里干净的结构化数据。后来出现了数据湖，它一度变成了数据沼泽，因为人们把非结构化数据倾倒进去，却没有办法从中提取价值。最终，那些沼泽又变回了可用的数据湖，而如今我们比以往任何时候都更有能力从非结构化和半结构化数据中提取洞察，这在很大程度上是因为 LLM 足够灵活，能够处理这些数据。智能体追踪也属于同一类别。你收集得越多，可获得的洞察就越多，而且比以往任何时候都更容易获得。\n\n扩展到智能体集群\n\n许多企业正在从单一的 AI 应用转向智能体集群。与在一个应用背后运行一个模型相比，这种转变会改变成本方程式吗（新的成本驱动因素？新的盲点？）？\n\nKevin Stumpf： 它与其说是改变了方程式，不如说是把它放大了。智能体集群将成为新的现实，而其中的每一个智能体都会消耗需要被归属、监控和管理的 token。现在正是建立正确的成本可见性和管理基础的时候，要赶在生产环境中智能体数量按预期增长之前。\n\n编码智能体是当今消耗 token 的主导类别，但这将扩展到许多其他类别的智能体，它们全天候执行自主工作，智能体调用其他智能体、后者再调用其他智能体。那些等到这种复杂性到来才去构建集中式 AI 可观测性和成本管理基础设施的组织，将不得不在压力之下构建它，而不是按自己的条件来构建。\n\n如果你必须在进入明年之际让企业 AI 领导者接受一个关于成本管理的思维转变，那会是什么？\n\nKevin Stumpf：我不会等到明年。这件事很紧迫，应该从现在起就以紧迫的态度对待。如果必须把它归结为一个想法，那就是：你无法管理你无法衡量的东西。这适用于原材料，适用于人，也同样适用于 AI。AI 正迅速成为公司现金流量表上最重要的项目之一，它需要被完整地加以监测，以便能够被衡量，进而被管理。它不过是生产你组织商品或服务的系统中的又一种原料，理应得到同样严格的对待。\n\n时钟从现在开始计时跨团队控制使用多种模型和工具的 AI 成本，不是一个靠单一仪表板或一次性模型选择就能解决的问题。它是一种运营纪律：归属粒度足够精细，能够将支出追溯到某个人或某个项目；路由能够实时适应任务所需；护栏能够在失控支出成为头条新闻之前将其拦截；追踪足够详尽，能够将原始使用数据转化为真正的洞察。走在这一问题前面的组织并不是在 AI 上花费最少的组织，而是能够自信地说出他们花了多少钱、究竟得到了什么的组织。\n\n了解更多关于 Unity Gateway 如何在整个 AI 资产中集中管理成本归属、智能路由和支出护栏。",
+      "content_blocks": [
+        {
+          "type": "heading",
+          "id": "b-9ddba78e7107",
+          "children": [
+            {
+              "type": "text",
+              "text": "衡量 AI 实际交付的价值",
+              "marks": [],
+              "id": "t-a6f1c807f29c"
+            }
+          ],
+          "level": 2
+        },
+        {
+          "type": "paragraph",
+          "id": "b-893ed836207e",
+          "children": [
+            {
+              "type": "text",
+              "text": "哪些平台能同时提供智能体监控与成本追踪，这种可见性又能带你走多远，去衡量真实的投资回报率，而不只是支出？",
+              "marks": [
+                "em"
+              ],
+              "id": "t-3f89f4b06a65"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-bcb0db34470b",
+          "children": [
+            {
+              "type": "text",
+              "text": "Kevin Stumpf：",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-05277adb982b"
+            },
+            {
+              "type": "text",
+              "text": " 衡量成本比把成本与投资回报率关联起来要容易得多，而这正是所有人都想得到答案、却几乎没有人完全解决的问题。会话级或请求级打标签正是让这件事成为可能的关键。如果一个智能体正在处理某个特定的拉取请求，它可以把自己的会话或它生成的特定请求打上该拉取请求的标识符。这种归属信息会回流到成本仪表盘中，于是你就能看到，例如，某个拉取请求的完成成本是 300 美元。这是我们在 Databricks 内部已经在做的事情。",
+              "marks": [],
+              "id": "t-db55d37e8de4"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-0685814c34f4",
+          "children": [
+            {
+              "type": "text",
+              "text": "在理想状态下——这也是我们正在构建进 Unity Gateway 产品中的能力——你可以更进一步，把那个拉取请求关联到某个具体功能，再把该功能关联到可衡量的成果，比如它在给定时间段内带来了多少收入或销售管道。这才是圣杯：不只是知道 AI 花了多少成本，而是知道它带来了什么回报。借助",
+              "marks": [],
+              "id": "t-4f3117fdb340"
+            },
+            {
+              "type": "text",
+              "text": " Unity Gateway",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://www.databricks.com/product/artificial-intelligence/unity-gateway"
+                }
+              ],
+              "id": "t-1ad64845d9d3"
+            },
+            {
+              "type": "text",
+              "text": "，我们已经有了一个高度可定制的平台来构建这一能力，并且我们正在投入资源，让这种“成本到回报”的视图开箱即用，而不是需要团队自己搭建。",
+              "marks": [],
+              "id": "t-0257f57e3621"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-8e8c3e45a906",
+          "children": [
+            {
+              "type": "text",
+              "text": "支出可见性需要集中式系统",
+              "marks": [],
+              "id": "t-68d0c621bca7"
+            }
+          ],
+          "level": 2
+        },
+        {
+          "type": "paragraph",
+          "id": "b-fba360d55dac",
+          "children": [
+            {
+              "type": "text",
+              "text": "对于一家在多个团队中运行多个模型、智能体和工具的公司来说，良好的支出可见性实际上需要什么？它是一个仪表盘问题、一个治理问题，还是一个 FinOps 问题？",
+              "marks": [
+                "em"
+              ],
+              "id": "t-3fab2a61688b"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-b59cbdbb131e",
+          "children": [
+            {
+              "type": "text",
+              "text": "Kevin Stumpf：",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-128f462f8770"
+            },
+            {
+              "type": "text",
+              "text": " 良好的支出可见性要求每一次 AI 交互都流经一个集中式系统。正是这一点让你能够一致地锁定正确的信息，从而在其之上构建可靠的仪表盘和告警。AI 网关为跨模型、智能体、工具和团队的 AI 成本管理提供了一个集中式控制点。Databricks Unity Gateway 旨在为跨模型、智能体、工具和编码智能体的场景提供那个集中式控制点。当 AI 交互流经一个共同的控制点时，组织就能在一个地方观察使用情况、归属成本、执行预算并优化支出。",
+              "marks": [],
+              "id": "t-f0da82dc8010"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-f1b4908cec5c",
+          "children": [
+            {
+              "type": "text",
+              "text": "但仅有集中式系统本身还不够。你还需要一种方式来确保每个人都确实把他们的 AI 流量路由通过它。可见性只有在采用是普遍而非可选的情况下才有效。",
+              "marks": [],
+              "id": "t-052c5ed2c928"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-c46703cb9979",
+          "children": [
+            {
+              "type": "text",
+              "text": "平衡成本优化与输出质量",
+              "marks": [],
+              "id": "t-dd38dd6c6aa2"
+            }
+          ],
+          "level": 2
+        },
+        {
+          "type": "paragraph",
+          "id": "b-b831a6d46179",
+          "children": [
+            {
+              "type": "text",
+              "text": "成本控制不能以牺牲质量或可靠性为代价。你如何知道某项优化已经走得太远，开始损害输出了？",
+              "marks": [
+                "em"
+              ],
+              "id": "t-a2acef0ddd9e"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-faf62db0f4dd",
+          "children": [
+            {
+              "type": "text",
+              "text": "Kevin Stumpf：",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-3cd85261563d"
+            },
+            {
+              "type": "text",
+              "text": " 这确实是因用例而异的。你需要一个反馈机制，它可以是主观的，也可以是客观的。主观反馈是轶事性的，是团队里有人告诉你，他们在当前预算内无法完成工作。这种反馈来得快，但很容易被当作一个人的抱怨而不予理会。客观反馈来自自动化评估，它设置起来更难，但可靠得多。",
+              "marks": [],
+              "id": "t-b819c7bde799"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-ecb8b96bf01f",
+          "children": [
+            {
+              "type": "text",
+              "text": "对于一个常见的用例，比如",
+              "marks": [],
+              "id": "t-d805a4d69c11"
+            },
+            {
+              "type": "text",
+              "text": "编码智能体",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://www.databricks.com/blog/benchmarking-coding-agents-databricks-multi-million-line-codebase"
+                }
+              ],
+              "id": "t-91cafd098f02"
+            },
+            {
+              "type": "text",
+              "text": "，这可能意味着定义一个质量代理指标，比如两周内没有被回滚的已合并拉取请求。在此基础上，你可以做实验：把预算减半，看看那个黄金指标是会变动、保持稳定，甚至有所改善，因为约束有时会激发创造力。在不同团队之间，用不同的预算、模型和运行框架开展并行实验，或者进行为期几周的时间限定对比，就能让你推断出某个给定预算是创造了价值还是在摧毁价值，而不是靠猜测。",
+              "marks": [],
+              "id": "t-deb197c77b2d"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-e277366bceb2",
+          "children": [
+            {
+              "type": "text",
+              "text": "端到端追踪的价值",
+              "marks": [],
+              "id": "t-6b5b857af5d1"
+            }
+          ],
+          "level": 2
+        },
+        {
+          "type": "paragraph",
+          "id": "b-46876fb7a202",
+          "children": [
+            {
+              "type": "text",
+              "text": "端到端追踪和监控在这里扮演什么角色？一旦你能看到整个智能体工作流中的提示词、工具调用和 token 用量，这解锁了哪些你以前做不到的事情？",
+              "marks": [
+                "em"
+              ],
+              "id": "t-0a559b685c0b"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-64d3fad7be6b",
+          "children": [
+            {
+              "type": "text",
+              "text": "Kevin Stumpf：",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-88f46fd0ac89"
+            },
+            {
+              "type": "text",
+              "text": " 追踪就是收集智能体所做事情的完整“尾气”：它们在思考什么、在调用什么工具、在拉取什么数据、提示词是好是坏。这些原始数据正是你可以用来挖掘洞察的东西，无论是识别滥用、浪费、安全泄露，还是仅仅发现你从未想过要寻找的模式。",
+              "marks": [],
+              "id": "t-bdc9f5641d0d"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-20f63812b9fe",
+          "children": [
+            {
+              "type": "text",
+              "text": "这与更广泛的数据行业曾经发生的情况如出一辙。早期，我们只有数据库里干净的结构化数据。后来出现了数据湖，它一度变成了数据沼泽，因为人们把非结构化数据倾倒进去，却没有办法从中提取价值。最终，那些沼泽又变回了可用的数据湖，而如今我们比以往任何时候都更有能力从非结构化和半结构化数据中提取洞察，这在很大程度上是因为 LLM 足够灵活，能够处理这些数据。智能体追踪也属于同一类别。你收集得越多，可获得的洞察就越多，而且比以往任何时候都更容易获得。",
+              "marks": [],
+              "id": "t-0e6ca20e1952"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-8370f976e86b",
+          "children": [
+            {
+              "type": "text",
+              "text": "扩展到智能体集群",
+              "marks": [],
+              "id": "t-b17c13cf28cf"
+            }
+          ],
+          "level": 2
+        },
+        {
+          "type": "paragraph",
+          "id": "b-825a185572e7",
+          "children": [
+            {
+              "type": "text",
+              "text": "许多企业正在从单一的 AI 应用转向",
+              "marks": [
+                "em"
+              ],
+              "id": "t-aa2bc50cc75e"
+            },
+            {
+              "type": "text",
+              "text": "智能体集群",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://www.databricks.com/resources/ebook/operationalizing-agent-fleets-scale?itm_source=www&amp%3Bitm_category=product&amp%3Bitm_page=unity-gateway&amp%3Bitm_location=body&amp%3Bitm_component=promo-card-tinted&amp%3Bitm_offer=operationalizing-agent-fleets-scale"
+                }
+              ],
+              "id": "t-20059488d4b4"
+            },
+            {
+              "type": "text",
+              "text": "。与在一个应用背后运行一个模型相比，这种转变会改变成本方程式吗（新的成本驱动因素？新的盲点？）？",
+              "marks": [
+                "em"
+              ],
+              "id": "t-f9953fa2b86f"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-1deb6a833b79",
+          "children": [
+            {
+              "type": "text",
+              "text": "Kevin Stumpf：",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-5f382a7f5f61"
+            },
+            {
+              "type": "text",
+              "text": " 它与其说是改变了方程式，不如说是把它放大了。智能体集群将成为新的现实，而其中的每一个智能体都会消耗需要被归属、监控和管理的 token。现在正是建立正确的成本可见性和管理基础的时候，要赶在生产环境中智能体数量按预期增长之前。",
+              "marks": [],
+              "id": "t-cdae5edb9223"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-9dbc8c309c96",
+          "children": [
+            {
+              "type": "text",
+              "text": "编码智能体是当今消耗 token 的主导类别，但这将扩展到许多其他类别的智能体，它们全天候执行自主工作，智能体调用其他智能体、后者再调用其他智能体。那些等到这种复杂性到来才去构建集中式 AI 可观测性和成本管理基础设施的组织，将不得不在压力之下构建它，而不是按自己的条件来构建。",
+              "marks": [],
+              "id": "t-31dbbe65d128"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-185738085424",
+          "children": [
+            {
+              "type": "text",
+              "text": "如果你必须在进入明年之际让企业 AI 领导者接受一个关于成本管理的思维转变，那会是什么？",
+              "marks": [
+                "em"
+              ],
+              "id": "t-37594e1ee476"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-41c96cf5a25f",
+          "children": [
+            {
+              "type": "text",
+              "text": "Kevin Stumpf：",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-87a700181bf6"
+            },
+            {
+              "type": "text",
+              "text": "我不会等到明年。这件事很紧迫，应该从现在起就以紧迫的态度对待。如果必须把它归结为一个想法，那就是：你无法管理你无法衡量的东西。这适用于原材料，适用于人，也同样适用于 AI。AI 正迅速成为公司现金流量表上最重要的项目之一，它需要被完整地加以监测，以便能够被衡量，进而被管理。它不过是生产你组织商品或服务的系统中的又一种原料，理应得到同样严格的对待。",
+              "marks": [],
+              "id": "t-1aa6df26c473"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-cc445f979df1",
+          "children": [
+            {
+              "type": "text",
+              "text": "时钟从现在开始计时",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-9a364f502372"
+            },
+            {
+              "type": "text",
+              "text": "跨团队控制使用多种模型和工具的 AI 成本，不是一个靠单一仪表板或一次性模型选择就能解决的问题。它是一种运营纪律：归属粒度足够精细，能够将支出追溯到某个人或某个项目；路由能够实时适应任务所需；护栏能够在失控支出成为头条新闻之前将其拦截；追踪足够详尽，能够将原始使用数据转化为真正的洞察。走在这一问题前面的组织并不是在 AI 上花费最少的组织，而是能够自信地说出他们花了多少钱、究竟得到了什么的组织。",
+              "marks": [],
+              "id": "t-8562c5abc6cf"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-196d1a4da221",
+          "children": [
+            {
+              "type": "text",
+              "text": "了解更多关于 ",
+              "marks": [
+                "em"
+              ],
+              "id": "t-f79ac6b86463"
+            },
+            {
+              "type": "text",
+              "text": "Unity Gateway",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://www.databricks.com/product/artificial-intelligence/unity-ai-gateway"
+                }
+              ],
+              "id": "t-58f58dc95b0b"
+            },
+            {
+              "type": "text",
+              "text": " 如何在整个 AI 资产中集中管理成本归属、智能路由和支出护栏。",
+              "marks": [
+                "em"
+              ],
+              "id": "t-b610bc69e982"
+            }
+          ]
+        }
+      ],
+      "content_format": "blocks-v1",
+      "category": "platform",
+      "category_label": "AI 数据平台",
+      "vendors": [
+        "Databricks"
+      ],
+      "heat": 59,
+      "star": false,
+      "importance": 57,
+      "quality_score": 57,
+      "trend_score": 61,
+      "signal": 0,
+      "topics": [
+        "平台AI化"
+      ],
+      "shelf": "news",
+      "pinned": false,
+      "published": "2026-10-23T03:14:24+08:00",
+      "first_seen": "2026-10-23T05:41:03.425705+08:00",
+      "items": [
+        {
+          "id": "e58515c8af93",
+          "source": "Databricks Blog",
+          "link": "https://www.databricks.com/blog/ai-cost-management",
+          "published": "2026-10-23T03:14:24+08:00",
+          "ingested_at": "2026-10-23T05:41:03.425705+08:00",
+          "title": "The new economics of AI cost management"
+        }
+      ],
+      "work_tags": {
+        "taxonomy_version": "work-tags-v1",
+        "product_objects": [
+          "权限与治理",
+          "Agent接口与工具"
+        ],
+        "use_cases": [
+          "生产评估与运营"
+        ],
+        "decision_concerns": [
+          "成本与性能",
+          "用户采用与业务价值"
+        ]
+      },
+      "quality_breakdown": {
+        "originality": 16,
+        "evidence_density": 11,
+        "information_gain": 16,
+        "actionability_depth": 14
+      },
+      "content_parse": {
+        "run_id": "github-39858374625-1",
+        "processor_version": "original-first-v7",
+        "attempted_at": "2026-10-23T05:42:21.602970+08:00",
+        "status": "ready",
+        "source": "Databricks Blog",
+        "strategy": "semantic_container",
+        "blocks": 24,
+        "text_chars": 7426,
+        "figures": 0,
+        "tables": 0,
+        "figures_discovered": 0,
+        "figures_selected": 0,
+        "figures_rejected": 0,
+        "candidate_count": 12,
+        "figures_rejected_author": 0,
+        "figures_rejected_decorative": 0,
+        "figures_rejected_duplicate": 0,
+        "figures_rejected_small": 0,
+        "figures_rejected_limit": 0,
+        "trimmed_tail_blocks": 0,
+        "trimmed_head_blocks": 0,
+        "trimmed_promotional_blocks": 0,
+        "trimmed_embedded_ui_blocks": 0,
+        "embedded_ui_components": 0,
+        "selected_depth": 10,
+        "selected_raw_blocks": 24,
+        "selected_raw_text_chars": 7426,
+        "broad_raw_blocks": 77,
+        "broad_raw_text_chars": 9369,
+        "parent_extra_blocks": 53,
+        "candidate_count_raw": 17,
+        "candidate_duplicates": 5,
+        "candidate_quality_rejected": 7,
+        "duplicate_blocks": 0,
+        "selected_score": 1136.38,
+        "quality_status": "pass",
+        "selected_tag": "div",
+        "focus_ratio": 0.7926,
+        "link_ratio": 0.0075,
+        "duplicate_ratio": 0.0,
+        "selection_evidence": [
+          "prose_density",
+          "integrity_gate",
+          "semantic_container"
+        ],
+        "media": {
+          "figures": 0,
+          "cached": 0,
+          "link_only": 0,
+          "policy_version": "source-cdn-v1"
+        },
+        "content_mode": "translated",
+        "source_language": "other",
+        "translation_status": "complete",
+        "source_content_hash": "f1712d4c6916cf2957d8f159",
+        "translation": {
+          "run_id": "github-39858374625-1",
+          "policy_version": "faithful-translation-retry-v1",
+          "attempted_at": "2026-10-23T05:42:21.603011+08:00",
+          "purpose": "body_translation",
+          "status": "complete"
+        }
+      },
+      "content_mode": "translated",
+      "content_level": "translated",
+      "source_language": "other",
+      "translation_status": "complete",
+      "source_content_hash": "f1712d4c6916cf2957d8f159",
+      "body_chars": 2572
+    },
+    {
+      "event_id": "4b4b4d52d9d7",
+      "zh_title": "电信欺诈分析AI协作助手：实时检测与统一数据底座",
+      "zh_summary": "文章介绍面向欺诈分析师的AI协作助手（Fraud Analyst AI Coworker），聚焦电信欺诈的实时检测。文中引用CFCA 2025调查称电信欺诈损失达418.2亿美元，美国消费者2024年报告损失超125亿美元、同比增长25%，全球数据泄露平均成本达488万美元。作者指出欺诈攻击已到机器速度，而检测仍停留在批处理速度，账户接管和SIM交换在澳大利亚2024年增长240%，约90%无需接触受害者。文章主张用统一、实时、可治理的数据底座解决数据签名未及时识别、系统割裂和批处理延迟三类问题。",
+      "reason": "文章把电信反欺诈拆解为实时数据架构、跨系统打通与治理问题，并提供具体损失数据和攻击趋势，可作为实时风控与分析Agent方案参考。",
+      "full_zh": "背景\n\n根据通信欺诈控制协会2025年的调查，电信欺诈损失已攀升至418.2亿美元1，而更广泛的欺诈经济正在快速增长：仅美国消费者在2024年就报告因欺诈损失超过125亿美元，一年内增长了25%2。数据泄露的成本也在上升；2024年全球数据泄露的平均成本达到创纪录的488万美元3；一旦计入退单、更换成本以及调查欺诈的运营开销，每一美元的欺诈给运营商造成的成本约为3.4倍。\n\n电信账户不再只是一份电话套餐。它是用户众多资产的入口：银行应用通过手机号进行身份验证，密码重置通过它完成，双因素验证码也发送到它上面。因此，当欺诈者通过钓鱼、社会工程或使用旧泄露事件中的凭证攻破账户时，时间窗口非常紧迫。在几分钟内，他们就能执行SIM卡交换、更改账单地址、订购昂贵设备，并转入关联的金融账户——往往在受害者或运营商察觉任何异常之前。与此同时，欺诈团队还在等待昨晚的批处理任务完成。\n\n这种二元对立，欺诈以机器速度运行，而检测却以批处理速度运行，正是制约因素。对于高管团队而言，欺诈不是安全方面的附注。它是收入流失、监管风险、加速的客户流失，以及很少在损失报告中清晰体现的运营税负。每一种主要欺诈类型得逞，都源于以下三个原因之一：\n\n它产生了一种尚未被及时检测到的数据特征它利用了彼此不通信的系统之间的缝隙或者它在批处理的滞后中滋长。\n\n以下是我们认为最重要的重新界定：这三者都是数据架构问题，可以通过统一、实时、受治理的数据基础来解决。\n\n统一、实时、受治理的数据基础\n\n保护业务\n\n根据stockhead的数据，2024年澳大利亚的账户接管和SIM卡交换攻击增加了240%，其中约90%现在是在完全不接触实际受害者的情况下发生的。欺诈者的请求看起来完全合法。国际收入分成欺诈通过伪装成正常流量，每年向高费率号码注入40至70亿美元。SIM盒旁路欺诈（每年约31亿美元）隐藏在看似常规的通话模式中1。\n\n几乎在所有情况下，能够检测这种欺诈的信号已经存在——只是分散在六七个系统（CDR、CRM、计费、设备/SIM、网络、数字渠道日志）中，而这些系统不共享单一的查询界面。通常，复杂的欺诈类型在夜间批处理中处理，而攻击窗口以分钟计；而较简单的欺诈类型（如欺骗）则可以实时捕获。\n\n这种碎片化的人力成本会加剧财务成本。僵化的基于规则的系统让分析师淹没在误报中，因此欺诈团队花费数小时调查无害的账户变更，而机器速度执行的复杂攻击却悄然通过。这是一个令人望而生畏的循环：分析师被警报淹没，真正的威胁未被发现，损失不断累积。\n\n为什么旧架构跟不上\n\n大多数运营商已在欺诈管理系统上投入巨资，这些系统成功拦截了已知、易于理解的攻击模式，且这些系统今天正在节省真金白银。机会不是拆除它们，而是增强它们。但欺诈是一场对抗性博弈，而非静态博弈——模型学会捕获的每一种模式，都是欺诈者正在积极设法绕过的模式，而且他们行动很快。缺口恰恰出现在现有欺诈引擎从未被构建来应对的领域：跨渠道关联、行为建模、设备仿真，以及比规则变更周期更快演变的欺诈模式。这些缺口源于架构，而非努力——而无法以对手速度运转的架构，是已经落后的架构。\n\n任何反欺诈系统的共同点是，它都会经历对抗性漂移，而且会按照欺诈者的时间表发生，而非你的时间表。欺诈者一旦被抓，就会立即改变行为——没有延迟，没有缓冲窗口。这意味着任何已部署模型的召回率会立刻开始下降，有时在24小时内。在这种环境中，过时不是轻微的低效，而是模型能否捕获欺诈与实际上对其视而不见之间的差别。不存在“暂时够用”这回事——检测系统的优劣只取决于其最近一次更新，而监控-调整-重新部署循环的敏捷性不是锦上添花，而是全部关键。\n\n这正是大多数欺诈运营输掉竞争的地方。典型模式：运营（OLTP）系统处理实时交易，而独立的分析（OLAP）系统承载真正的智能：——上下文、历史查询、欺诈模型、数据科学家每天精炼的仪表盘数据。问题在于，实时风险引擎在决策时无法足够快地访问该分析环境。团队随后必须依赖缓慢、昂贵的同步过程——计划批处理任务，将完成的“金”数据（工程特征、模型评分、风险信号）从OLAP仓库复制回运营数据库。\n\n这种复制就是瓶颈，而在对抗性漂移的世界里，瓶颈正是你失败的地方。运营存储始终在基于过时快照运行——而当你的对手正在逐小时主动变异行为时，“过时”会迅速累积。管道很脆弱（上游模式变更就会破坏它），维护成本高昂，最糟糕的是修复缓慢；每停机一小时，你的决策引擎就有一小时在用昨天的智能对抗今天的攻击。让检测变得智能的模型和上下文，最终被搁置在距离决策引擎一跳之遥的地方，而这恰恰是速度最关键的时候。\n\n在其上部署 AI 智能体，它也会继承同样的鸿沟，只是风险更高：要么它在缺乏所需丰富 OLAP 上下文的情况下进行推理——快速但盲目——要么你将敏感的黄金数据复制出来供其访问，以治理换取访问权限。当你的架构追赶上来时，对手早已转移，这两种选择都站不住脚。\n\nDatabricks 如何解决这一问题\n\n解决方案必须针对真正的瓶颈：智能所在之处与决策制定之处之间的跳跃。 Lakebase是我们集成到统一环境中的托管 Postgres 引擎，它彻底消除了传统的 OLTP/OLAP 分离。湖仓中的黄金表持续同步到 Lakebase，使实时评分引擎能够获得亚毫秒级的特征检索——与生成这些特征的同一批分析模型并排运行。决策引擎与它所需的智能之间没有批处理作业阻隔，这意味着没有过时的快照，也没有脆弱的管道等待在下一次架构变更时崩溃。当模型开始漂移时，修复以漂移所要求的速度传播，而不是以下一次计划同步的速度传播。\n\n同时，我们的智能体平台和 Genie让分析师能够分析历史事件、综合运营手册并自动化复杂的调查工作——更快地闭合监控-调优-重新部署的循环，从而使“欺诈者改变行为”与“模型适应”之间的差距从数天缩短到更接近实时。借助 Databricks Apps，团队可以在同一统一架构上快速部署自定义运营工具，而不是每当新的欺诈模式需要新工具时就等待单独的构建周期。\n\n而且，由于它是一个架构而非两个拼接在一起的系统，构建在其上的 AI 智能体不会面临先前在利用丰富上下文进行推理与保持治理之间的权衡。在 Unity Catalog 之下的单一平面管理从原始网络摄取到实时交易决策的治理、血缘和安全——因此速度和管控不再是彼此对立的。合规负责人获得完整的血缘，工程团队获得一个能够真正跟上不会等待的对手的架构。\n\nUnity Catalog\n\n我们构建了什么：解决方案加速器\n\nDatabricks 为电信欺诈构建了一个解决方案加速器，涵盖从原始数据到分析师队列再到高管仪表盘的完整生命周期。\n\n管道。 该解决方案包含一个采用勋章架构（青铜 → 白银 → 黄金）的管道，可大规模生成逼真的交易、设备和网络通话详单数据。\n\n此外，风险引擎会根据不可能旅行、蜂窝/IP 不匹配、快速基站跳变、漫游异常和设备模拟等规则对每笔交易进行评分，这些信号类别与生产环境中捕获 SIM box 和 SIM 交换欺诈的信号相同。分数阈值将交易路由到三种结果之一：自动批准、排队等待分析师审核或自动阻止。\n\n解决方案加速器\n\n欺诈分析师工作台应用 展示了不同的欺诈工作流，基于同一受治理数据构建了三种基于角色的视图：\n\n高管 - 财务损益影响、季度趋势、区域风险分布，以及一个供领导者用自然语言提问的 Genie Space，例如“本季度哪些地区的 SIM 交换案件最多？”，并获得受治理的、有数据支撑的答案——无需分析师或 SQL。管理层 - 工单管道健康状况、30 天 AI 预测、欺诈引擎性能和 SLA 跟踪，使管理者能够主动而非被动地配置分析师能力。分析师 - 一个案件队列和设备/案件详情视图，由工具调用型 AI 调查 Genie 智能体支持，该智能体同时读取案件历史、风险规则和政策，然后建议批准、拒绝或升级——以及一个基于公司欺诈手册训练的知识助手，用于回答升级阈值和文档标准等程序性问题。\n\ngif 2\n\n更大的模式\n\n这里的任何单个组件——风险评分管道、AI 智能体、受治理的目录——都不独特。不同之处在于将所有组件运行在一个平台上，而不是拼接一个欺诈引擎、一个单独的特征存储、一个 BI 工具和一个附加的 AI 层，每个都有自己的治理模型和自己的延迟税。对于电信运营商来说，机会是巨大的。关键在于认识到，为保护业务而构建的基础设施，正是能够将网络数据转化为新收入线的基础设施。\n\n在你的环境中部署解决方案加速器：\n\nGitHub - databricks-industry-solutions/fraud_prevention_in_telco克隆它，部署管道，并在你自己的工作区中搭建分析师工作台——行业特定逻辑位于单个配置文件中，因此同一架构无需更改核心平台即可重新定位到金融科技、保险或电子商务欺诈。如需深入了解，请联系你的 Databricks 客户团队以配置 Lakebase、创建同步表、配置欺诈领域 Genie Space 并构建调查应用。\n\n引用\n\n1 通信欺诈控制协会（CFCA），2025 年全球电信欺诈损失调查 - https://cfca.org。\n\n2 FTC 报告（https://www.ftc.gov/news-events/news/press-releases/2025/03/new-ftc-data-show-big-jump-reported-losses-fraud-125-billion-2024）\n\n3 IBM 报告（https://newsroom.ibm.com/2024-07-30-IBM-Report-Escalating-Data-Breach-Disruption-Pushes-Costs-to-New-Highs）",
+      "content_blocks": [
+        {
+          "type": "paragraph",
+          "id": "b-b46e9d7759ac",
+          "children": [
+            {
+              "type": "text",
+              "text": "背景",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-d213484dce8a"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-1d173b46a944",
+          "children": [
+            {
+              "type": "text",
+              "text": "根据通信欺诈控制协会2025年的调查，电信欺诈损失已攀升至418.2亿美元1，而更广泛的欺诈经济正在快速增长：仅美国消费者在2024年就报告因欺诈损失超过125亿美元，一年内增长了25%2。数据泄露的成本也在上升；2024年全球数据泄露的平均成本达到创纪录的488万美元3；一旦计入退单、更换成本以及调查欺诈的运营开销，每一美元的欺诈给运营商造成的成本约为3.4倍。",
+              "marks": [],
+              "id": "t-79d382c57644"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-4434bc28c84d",
+          "children": [
+            {
+              "type": "text",
+              "text": "电信账户不再只是一份电话套餐。它是用户众多资产的入口：银行应用通过手机号进行身份验证，密码重置通过它完成，双因素验证码也发送到它上面。因此，当欺诈者通过钓鱼、社会工程或使用旧泄露事件中的凭证攻破账户时，时间窗口非常紧迫。在几分钟内，他们就能执行SIM卡交换、更改账单地址、订购昂贵设备，并转入关联的金融账户——往往在受害者或运营商察觉任何异常之前。与此同时，欺诈团队还在等待昨晚的批处理任务完成。",
+              "marks": [],
+              "id": "t-88d8fa245a22"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-19b464f008da",
+          "children": [
+            {
+              "type": "text",
+              "text": "这种二元对立，",
+              "marks": [],
+              "id": "t-8ea7a255babc"
+            },
+            {
+              "type": "text",
+              "text": "欺诈以机器速度运行，而检测却以批处理速度运行，正是制约因素。",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-b5d3ab4bc337"
+            },
+            {
+              "type": "text",
+              "text": "对于高管团队而言，欺诈不是安全方面的附注。它是收入流失、监管风险、加速的客户流失，以及很少在损失报告中清晰体现的运营税负。每一种主要欺诈类型得逞，都源于以下三个原因之一：",
+              "marks": [],
+              "id": "t-0403106f48c9"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "b-ebf01b8928a9",
+          "ordered": true,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "它产生了一种尚未被及时检测到的数据特征",
+                  "marks": [],
+                  "id": "t-453719b5038f"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "它利用了彼此不通信的系统之间的缝隙",
+                  "marks": [],
+                  "id": "t-dc39706bff11"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "或者它在批处理的滞后中滋长。",
+                  "marks": [],
+                  "id": "t-cd6447c5ac40"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-6b36b84f39de",
+          "children": [
+            {
+              "type": "text",
+              "text": "以下是我们认为最重要的重新界定：这三者都是数据架构问题，可以通过统一、实时、受治理的数据基础来解决。",
+              "marks": [],
+              "id": "t-3a04d5aeb7a3"
+            }
+          ]
+        },
+        {
+          "type": "figure",
+          "id": "b-9530b877c0e1",
+          "src": "https://www.databricks.com/sites/default/files/inline-images/gif1.gif",
+          "alt": "统一、实时、受治理的数据基础",
+          "caption": "",
+          "source_url": "https://www.databricks.com/blog/fraud-analyst-ai-coworker-detecting-telecom-fraud-real-time-one-platform",
+          "width": 1854,
+          "height": 1080,
+          "media_status": "link_only",
+          "media_reason": "animated_media"
+        },
+        {
+          "type": "heading",
+          "id": "b-df3789da5193",
+          "children": [
+            {
+              "type": "text",
+              "text": "保护业务",
+              "marks": [],
+              "id": "t-7e2af5712481"
+            }
+          ],
+          "level": 2
+        },
+        {
+          "type": "paragraph",
+          "id": "b-b245ccbe5441",
+          "children": [
+            {
+              "type": "text",
+              "text": "根据stockhead的数据，2024年澳大利亚的账户接管和SIM卡交换攻击增加了240%，其中约90%现在是在完全不接触实际受害者的情况下发生的。欺诈者的请求看起来完全合法。国际收入分成欺诈通过伪装成正常流量，每年向高费率号码注入40至70亿美元。SIM盒旁路欺诈（每年约31亿美元）隐藏在看似常规的通话模式中1。",
+              "marks": [],
+              "id": "t-d02647ae8a6f"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-72fd909be448",
+          "children": [
+            {
+              "type": "text",
+              "text": "几乎在所有情况下，能够检测这种欺诈的信号已经存在——只是分散在六七个系统（CDR、CRM、计费、设备/SIM、网络、数字渠道日志）中，而这些系统不共享单一的查询界面。通常，复杂的欺诈类型在夜间批处理中处理，而攻击窗口以分钟计；而较简单的欺诈类型（如欺骗）则可以实时捕获。",
+              "marks": [],
+              "id": "t-0e6ff321dafa"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-4d71d52e637b",
+          "children": [
+            {
+              "type": "text",
+              "text": "这种碎片化的人力成本会加剧财务成本。僵化的基于规则的系统让分析师淹没在误报中，因此欺诈团队花费数小时调查无害的账户变更，而机器速度执行的复杂攻击却悄然通过。这是一个令人望而生畏的循环：分析师被警报淹没，真正的威胁未被发现，损失不断累积。",
+              "marks": [],
+              "id": "t-46b44d62e1a8"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-3f16060bb860",
+          "children": [
+            {
+              "type": "text",
+              "text": "为什么旧架构跟不上",
+              "marks": [],
+              "id": "t-a5da851c92c6"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-4e0f0aab9b6a",
+          "children": [
+            {
+              "type": "text",
+              "text": "大多数运营商已在欺诈管理系统上投入巨资，这些系统成功拦截了已知、易于理解的攻击模式，且这些系统今天正在节省真金白银。机会不是拆除它们，而是增强它们。但欺诈是一场对抗性博弈，而非静态博弈——模型学会捕获的每一种模式，都是欺诈者正在积极设法绕过的模式，而且他们行动很快。缺口恰恰出现在现有欺诈引擎从未被构建来应对的领域：跨渠道关联、行为建模、设备仿真，以及比规则变更周期更快演变的欺诈模式。这些缺口源于架构，而非努力——而无法以对手速度运转的架构，是已经落后的架构。",
+              "marks": [],
+              "id": "t-baa5e3e060d5"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-c91fad08cb6e",
+          "children": [
+            {
+              "type": "text",
+              "text": "任何反欺诈系统的共同点是，它都会经历对抗性漂移，而且会按照欺诈者的时间表发生，而非你的时间表。欺诈者一旦被抓，就会立即改变行为——没有延迟，没有缓冲窗口。这意味着任何已部署模型的召回率会立刻开始下降，有时在24小时内。在这种环境中，过时不是轻微的低效，而是模型能否捕获欺诈与实际上对其视而不见之间的差别。不存在“暂时够用”这回事——检测系统的优劣只取决于其最近一次更新，而监控-调整-重新部署循环的敏捷性不是锦上添花，而是全部关键。",
+              "marks": [],
+              "id": "t-9714be24dfef"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-f5313b7f5647",
+          "children": [
+            {
+              "type": "text",
+              "text": "这正是大多数欺诈运营输掉竞争的地方。典型模式：运营（OLTP）系统处理实时交易，而独立的分析（OLAP）系统承载真正的智能：——上下文、历史查询、欺诈模型、数据科学家每天精炼的仪表盘数据。问题在于，实时风险引擎在决策时无法足够快地访问该分析环境。团队随后必须依赖缓慢、昂贵的同步过程——计划批处理任务，将完成的“金”数据（工程特征、模型评分、风险信号）从OLAP仓库复制回运营数据库。",
+              "marks": [],
+              "id": "t-51c5e3e7a365"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-29fc179f4425",
+          "children": [
+            {
+              "type": "text",
+              "text": "这种复制就是瓶颈，而在对抗性漂移的世界里，瓶颈正是你失败的地方。运营存储始终在基于过时快照运行——而当你的对手正在逐小时主动变异行为时，“过时”会迅速累积。管道很脆弱（上游模式变更就会破坏它），维护成本高昂，最糟糕的是修复缓慢；每停机一小时，你的决策引擎就有一小时在用昨天的智能对抗今天的攻击。让检测变得智能的模型和上下文，最终被搁置在距离决策引擎一跳之遥的地方，而这恰恰是速度最关键的时候。",
+              "marks": [],
+              "id": "t-09f4c4a50871"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-a40c7f2458c3",
+          "children": [
+            {
+              "type": "text",
+              "text": "在其上部署 AI 智能体，它也会继承同样的鸿沟，只是风险更高：要么它在缺乏所需丰富 OLAP 上下文的情况下进行推理——快速但盲目——要么你将敏感的黄金数据复制出来供其访问，以治理换取访问权限。当你的架构追赶上来时，对手早已转移，这两种选择都站不住脚。",
+              "marks": [],
+              "id": "t-3cb0f02a24f3"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-1e07aac735af",
+          "children": [
+            {
+              "type": "text",
+              "text": "Databricks 如何解决这一问题",
+              "marks": [],
+              "id": "t-c2bf33098ed5"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-5949e31f7860",
+          "children": [
+            {
+              "type": "text",
+              "text": "解决方案必须针对真正的瓶颈：智能所在之处与决策制定之处之间的跳跃。 ",
+              "marks": [],
+              "id": "t-8fe829d3ac1a"
+            },
+            {
+              "type": "text",
+              "text": "Lakebase",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://www.databricks.com/product/lakebase"
+                }
+              ],
+              "id": "t-56c5eed4c2ff"
+            },
+            {
+              "type": "text",
+              "text": "是我们集成到统一环境中的托管 Postgres 引擎，它彻底消除了传统的 OLTP/OLAP 分离。湖仓中的黄金表持续同步到 Lakebase，使实时评分引擎能够获得亚毫秒级的特征检索——与生成这些特征的同一批分析模型并排运行。决策引擎与它所需的智能之间没有批处理作业阻隔，这意味着没有过时的快照，也没有脆弱的管道等待在下一次架构变更时崩溃。当模型开始漂移时，修复以漂移所要求的速度传播，而不是以下一次计划同步的速度传播。",
+              "marks": [],
+              "id": "t-444f8e8bf4e1"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-d0e5959cd193",
+          "children": [
+            {
+              "type": "text",
+              "text": "同时，我们的智能体平台和 ",
+              "marks": [],
+              "id": "t-5723f47a5f62"
+            },
+            {
+              "type": "text",
+              "text": "Genie",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://www.databricks.com/product/genie/one"
+                }
+              ],
+              "id": "t-04e4f2bae1f3"
+            },
+            {
+              "type": "text",
+              "text": "让分析师能够分析历史事件、综合运营手册并自动化复杂的调查工作——更快地闭合监控-调优-重新部署的循环，从而使“欺诈者改变行为”与“模型适应”之间的差距从数天缩短到更接近实时。借助 ",
+              "marks": [],
+              "id": "t-7fc088e2e82b"
+            },
+            {
+              "type": "text",
+              "text": "Databricks Apps",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://www.databricks.com/product/databricks-apps"
+                }
+              ],
+              "id": "t-2afff1c5f992"
+            },
+            {
+              "type": "text",
+              "text": "，团队可以在同一统一架构上快速部署自定义运营工具，而不是每当新的欺诈模式需要新工具时就等待单独的构建周期。",
+              "marks": [],
+              "id": "t-f542c2a92f8c"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-cda4225dcc89",
+          "children": [
+            {
+              "type": "text",
+              "text": "而且，由于它是一个架构而非两个拼接在一起的系统，构建在其上的 AI 智能体不会面临先前在利用丰富上下文进行推理与保持治理之间的权衡。在 ",
+              "marks": [],
+              "id": "t-d9fd1a894c7b"
+            },
+            {
+              "type": "text",
+              "text": "Unity Catalog ",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://www.databricks.com/product/unity-catalog"
+                }
+              ],
+              "id": "t-3b8617ad7795"
+            },
+            {
+              "type": "text",
+              "text": "之下的单一平面管理从原始网络摄取到实时交易决策的治理、血缘和安全——因此速度和管控不再是彼此对立的。合规负责人获得完整的血缘，工程团队获得一个能够真正跟上不会等待的对手的架构。",
+              "marks": [],
+              "id": "t-f42d1fffb606"
+            }
+          ]
+        },
+        {
+          "type": "figure",
+          "id": "b-6baa7eafc540",
+          "src": "https://www.databricks.com/sites/default/files/inline-images/fraud-analyst-ai-coworker-detecting-telecom-fraud-real-time-platform-img-2.png",
+          "alt": "Unity Catalog",
+          "caption": "",
+          "source_url": "https://www.databricks.com/blog/fraud-analyst-ai-coworker-detecting-telecom-fraud-real-time-one-platform",
+          "cached_src": "../media/4b4b4d52d9d7/e2cf46c0f0493369eee7af35.png",
+          "width": 1798,
+          "height": 1034,
+          "mime": "image/png",
+          "size_bytes": 195678,
+          "media_status": "cached"
+        },
+        {
+          "type": "heading",
+          "id": "b-301e27282a5b",
+          "children": [
+            {
+              "type": "text",
+              "text": "我们构建了什么：解决方案加速器",
+              "marks": [],
+              "id": "t-5cba4df05b87"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-b8c25acdd89e",
+          "children": [
+            {
+              "type": "text",
+              "text": "Databricks 为电信欺诈构建了一个解决方案加速器，涵盖从原始数据到分析师队列再到高管仪表盘的完整生命周期。",
+              "marks": [],
+              "id": "t-8e862c78fdae"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-5fec017df491",
+          "children": [
+            {
+              "type": "text",
+              "text": "管道。",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-b33fd5fc7d36"
+            },
+            {
+              "type": "text",
+              "text": " 该解决方案包含一个采用勋章架构（青铜 → 白银 → 黄金）的管道，可大规模生成逼真的交易、设备和网络通话详单数据。",
+              "marks": [],
+              "id": "t-1ffa91239cf5"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-f9b3fb676a09",
+          "children": [
+            {
+              "type": "text",
+              "text": "此外，风险引擎会根据不可能旅行、蜂窝/IP 不匹配、快速基站跳变、漫游异常和设备模拟等规则对每笔交易进行评分，这些信号类别与生产环境中捕获 SIM box 和 SIM 交换欺诈的信号相同。分数阈值将交易路由到三种结果之一：自动批准、排队等待分析师审核或自动阻止。",
+              "marks": [],
+              "id": "t-788e73874eec"
+            }
+          ]
+        },
+        {
+          "type": "figure",
+          "id": "b-96400d3b4558",
+          "src": "https://www.databricks.com/sites/default/files/inline-images/fraud-analyst-ai-coworker-detecting-telecom-fraud-real-time-platform-img-3.png",
+          "alt": "解决方案加速器",
+          "caption": "",
+          "source_url": "https://www.databricks.com/blog/fraud-analyst-ai-coworker-detecting-telecom-fraud-real-time-one-platform",
+          "cached_src": "../media/4b4b4d52d9d7/b8500827d6a2d7ea7b2620a1.png",
+          "width": 1999,
+          "height": 460,
+          "mime": "image/png",
+          "size_bytes": 146423,
+          "media_status": "cached"
+        },
+        {
+          "type": "paragraph",
+          "id": "b-45da744a6702",
+          "children": [
+            {
+              "type": "text",
+              "text": "欺诈分析师工作台应用",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-ff1e02b63966"
+            },
+            {
+              "type": "text",
+              "text": " 展示了不同的欺诈工作流，基于同一受治理数据构建了三种基于角色的视图：",
+              "marks": [],
+              "id": "t-95bfb9c69540"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "b-6bd1142f33a2",
+          "ordered": false,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "高管",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-2dd5377954f8"
+                },
+                {
+                  "type": "text",
+                  "text": " - 财务损益影响、季度趋势、区域风险分布，以及一个供领导者用自然语言提问的 Genie Space，例如“本季度哪些地区的 SIM 交换案件最多？”，并获得受治理的、有数据支撑的答案——无需分析师或 SQL。",
+                  "marks": [],
+                  "id": "t-06ca6cc90de6"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "管理层",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-74bd62cd82a5"
+                },
+                {
+                  "type": "text",
+                  "text": " - 工单管道健康状况、30 天 AI 预测、欺诈引擎性能和 SLA 跟踪，使管理者能够主动而非被动地配置分析师能力。",
+                  "marks": [],
+                  "id": "t-d39379994a21"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "分析师",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-fa3bf1a7d068"
+                },
+                {
+                  "type": "text",
+                  "text": " - 一个案件队列和设备/案件详情视图，由工具调用型 AI 调查 Genie 智能体支持，该智能体同时读取案件历史、风险规则和政策，然后建议批准、拒绝或升级——以及一个基于公司欺诈手册训练的知识助手，用于回答升级阈值和文档标准等程序性问题。",
+                  "marks": [],
+                  "id": "t-cb5ccbca6975"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "figure",
+          "id": "b-b20d649a491c",
+          "src": "https://www.databricks.com/sites/default/files/inline-images/gif2.gif",
+          "alt": "gif 2",
+          "caption": "",
+          "source_url": "https://www.databricks.com/blog/fraud-analyst-ai-coworker-detecting-telecom-fraud-real-time-one-platform",
+          "width": 1236,
+          "height": 720,
+          "media_status": "link_only",
+          "media_reason": "animated_media"
+        },
+        {
+          "type": "heading",
+          "id": "b-7e944a8c60a6",
+          "children": [
+            {
+              "type": "text",
+              "text": "更大的模式",
+              "marks": [],
+              "id": "t-2f573f7c6e0e"
+            }
+          ],
+          "level": 2
+        },
+        {
+          "type": "paragraph",
+          "id": "b-d4f26faf3716",
+          "children": [
+            {
+              "type": "text",
+              "text": "这里的任何单个组件——风险评分管道、AI 智能体、受治理的目录——都不独特。不同之处在于将所有组件运行在一个平台上，而不是拼接一个欺诈引擎、一个单独的特征存储、一个 BI 工具和一个附加的 AI 层，每个都有自己的治理模型和自己的延迟税。对于电信运营商来说，机会是巨大的。关键在于认识到，为保护业务而构建的基础设施，正是能够将网络数据转化为新收入线的基础设施。",
+              "marks": [],
+              "id": "t-c961fc2f6e85"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-0a3a6ad6d182",
+          "children": [
+            {
+              "type": "text",
+              "text": "在你的环境中部署解决方案加速器：",
+              "marks": [],
+              "id": "t-b70356b31ba7"
+            }
+          ],
+          "level": 2
+        },
+        {
+          "type": "list",
+          "id": "b-f070f3a83951",
+          "ordered": false,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "GitHub - databricks-industry-solutions/fraud_prevention_in_telco",
+                  "marks": [
+                    {
+                      "type": "link",
+                      "href": "https://github.com/databricks-industry-solutions/fraud_prevention_in_telco"
+                    }
+                  ],
+                  "id": "t-51ea9d2443c3"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "克隆它，部署管道，并在你自己的工作区中搭建分析师工作台——行业特定逻辑位于单个配置文件中，因此同一架构无需更改核心平台即可重新定位到金融科技、保险或电子商务欺诈。",
+                  "marks": [],
+                  "id": "t-9d9043a423b2"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "如需深入了解，请联系你的 Databricks 客户团队以配置 Lakebase、创建同步表、配置欺诈领域 Genie Space 并构建调查应用。 ",
+                  "marks": [],
+                  "id": "t-1977472df474"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-2be54d2adc1f",
+          "children": [
+            {
+              "type": "text",
+              "text": "引用",
+              "marks": [],
+              "id": "t-be42828271ca"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-c4b67f19a85d",
+          "children": [
+            {
+              "type": "text",
+              "text": "1 通信欺诈控制协会（CFCA），2025 年全球电信欺诈损失调查 - ",
+              "marks": [],
+              "id": "t-a31c858654e7"
+            },
+            {
+              "type": "text",
+              "text": "https://cfca.org",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://cfca.org"
+                }
+              ],
+              "id": "t-a63998e5cd34"
+            },
+            {
+              "type": "text",
+              "text": "。",
+              "marks": [],
+              "id": "t-96f9c781f39d"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-dd5cad123f72",
+          "children": [
+            {
+              "type": "text",
+              "text": "2 FTC 报告（",
+              "marks": [],
+              "id": "t-4f738beb99dc"
+            },
+            {
+              "type": "text",
+              "text": "https://www.ftc.gov/news-events/news/press-releases/2025/03/new-ftc-data-show-big-jump-reported-losses-fraud-125-billion-2024",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://www.ftc.gov/news-events/news/press-releases/2025/03/new-ftc-data-show-big-jump-reported-losses-fraud-125-billion-2024"
+                }
+              ],
+              "id": "t-ab8f6ab3dfdf"
+            },
+            {
+              "type": "text",
+              "text": "）",
+              "marks": [],
+              "id": "t-e1fb7e74a5df"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-4ce5ff658071",
+          "children": [
+            {
+              "type": "text",
+              "text": "3 IBM 报告（",
+              "marks": [],
+              "id": "t-b5ba0b273bf8"
+            },
+            {
+              "type": "text",
+              "text": "https://newsroom.ibm.com/2024-07-30-IBM-Report-Escalating-Data-Breach-Disruption-Pushes-Costs-to-New-Highs",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://newsroom.ibm.com/2024-07-30-IBM-Report-Escalating-Data-Breach-Disruption-Pushes-Costs-to-New-Highs"
+                }
+              ],
+              "id": "t-ef062a5dbfea"
+            },
+            {
+              "type": "text",
+              "text": "）",
+              "marks": [],
+              "id": "t-71aab679bea5"
+            }
+          ]
+        }
+      ],
+      "content_format": "blocks-v1",
+      "category": "agent",
+      "category_label": "Data Agent",
+      "vendors": [
+        "Databricks"
+      ],
+      "heat": 58,
+      "star": false,
+      "importance": 55,
+      "quality_score": 55,
+      "trend_score": 61,
+      "signal": 0,
+      "topics": [
+        "Data Agent",
+        "风险管理"
+      ],
+      "shelf": "evergreen",
+      "pinned": false,
+      "published": "2026-10-23T02:30:00+08:00",
+      "first_seen": "2026-10-23T05:41:03.425705+08:00",
+      "items": [
+        {
+          "id": "4b4b4d52d9d7",
+          "source": "Databricks Blog",
+          "link": "https://www.databricks.com/blog/fraud-analyst-ai-coworker-detecting-telecom-fraud-real-time-one-platform",
+          "published": "2026-10-23T02:30:00+08:00",
+          "ingested_at": "2026-10-23T05:41:03.425705+08:00",
+          "title": "The Fraud Analyst AI Coworker: Detecting Telecom Fraud in Real-Time on One Platform"
+        }
+      ],
+      "work_tags": {
+        "taxonomy_version": "work-tags-v1",
+        "product_objects": [
+          "场景与方案"
+        ],
+        "use_cases": [
+          "生产评估与运营"
+        ],
+        "decision_concerns": [
+          "可靠性与评估",
+          "成本与性能"
+        ]
+      },
+      "quality_breakdown": {
+        "originality": 14,
+        "evidence_density": 18,
+        "information_gain": 13,
+        "actionability_depth": 10
+      },
+      "content_parse": {
+        "run_id": "github-39858374625-1",
+        "processor_version": "original-first-v7",
+        "attempted_at": "2026-10-23T05:42:39.153661+08:00",
+        "status": "ready",
+        "source": "Databricks Blog",
+        "strategy": "semantic_container",
+        "blocks": 38,
+        "text_chars": 11460,
+        "figures": 4,
+        "tables": 0,
+        "figures_discovered": 4,
+        "figures_selected": 4,
+        "figures_rejected": 0,
+        "candidate_count": 10,
+        "figures_rejected_author": 0,
+        "figures_rejected_decorative": 0,
+        "figures_rejected_duplicate": 0,
+        "figures_rejected_small": 0,
+        "figures_rejected_limit": 0,
+        "trimmed_tail_blocks": 0,
+        "trimmed_head_blocks": 0,
+        "trimmed_promotional_blocks": 0,
+        "trimmed_embedded_ui_blocks": 0,
+        "embedded_ui_components": 0,
+        "selected_depth": 9,
+        "selected_raw_blocks": 38,
+        "selected_raw_text_chars": 11460,
+        "broad_raw_blocks": 77,
+        "broad_raw_text_chars": 11577,
+        "parent_extra_blocks": 39,
+        "candidate_count_raw": 20,
+        "candidate_duplicates": 10,
+        "candidate_quality_rejected": 6,
+        "duplicate_blocks": 0,
+        "selected_score": 1177.21,
+        "quality_status": "pass",
+        "selected_tag": "div",
+        "focus_ratio": 0.9899,
+        "link_ratio": 0.0308,
+        "duplicate_ratio": 0.0,
+        "selection_evidence": [
+          "prose_density",
+          "integrity_gate",
+          "semantic_container"
+        ],
+        "media": {
+          "figures": 4,
+          "cached": 2,
+          "link_only": 2,
+          "policy_version": "source-cdn-v1",
+          "reasons": {
+            "animated_media": 2
+          }
+        },
+        "content_mode": "translated",
+        "source_language": "other",
+        "translation_status": "complete",
+        "source_content_hash": "87f7ff16798afdbaa7e28602",
+        "translation": {
+          "run_id": "github-39858374625-1",
+          "policy_version": "faithful-translation-retry-v1",
+          "attempted_at": "2026-10-23T05:42:39.153709+08:00",
+          "purpose": "body_translation",
+          "status": "complete"
+        }
+      },
+      "content_mode": "translated",
+      "content_level": "translated",
+      "source_language": "other",
+      "translation_status": "complete",
+      "source_content_hash": "87f7ff16798afdbaa7e28602",
+      "body_chars": 4048
+    },
+    {
+      "event_id": "3172d33f443d",
+      "zh_title": "Snowflake无人值守Agent：六种失败模式与护栏",
+      "zh_summary": "Snowflake官方博客介绍如何用CoCo automations在Snowflake内调度无人值守的编码Agent，让它自动跟进PR、CI失败和评审评论。作者采用按仓库/PR维护状态表、拆分监控与评审任务、独立watchdog，以及把权限校验放在Agent之外等架构。文章总结六种误导性失败模式，并解释每道护栏的作用。CoCo automations目前处于public preview，功能可能变化。",
+      "reason": "对在数据平台内构建和生产化Agent的团队有参考价值：它讲清了调度、状态、权限隔离、独立看门狗和失败模式，而非只展示功能发布。",
+      "full_zh": "在 Snowflake 中调度一个无人值守的编码 agent 现在只需几个 CLI 标志。让它保持诚实才是真正的工作。下面是我们最终采用的整体架构，以及六种失败模式——正是它们让我们明白了每道护栏为何存在。\n\n注意：CoCo 自动化处于公开预览阶段。 以下内容均描述预览功能，可能会发生变化。\n\n你将了解到：\n\n无需单独的运行器即可运行定时 agent拆分工作并添加独立的看门狗把权限检查放在 agent 之外识别六种误导性失败以及该检查什么\n\n让拉取请求无人值守地持续推进\n\n我们希望 agent 能察觉到某个分支落后于 main、CI 失败、或有评审意见无人回应——而无需有人先打开聊天。\n\n这意味着要调度运行、记住之前的工作，并限制 agent 能改动什么。我们使用 CoCo 自动化，以免维护单独的运行器或容器。搭建过程很直接。搞清楚定时工作是否真的完成了，则要费更多功夫。\n\n整体结构\n\n四个术语，因为后文措辞很重要：\n\n自动化：一次循环的、无人值守的 agent 运行。存储为 AGENT TASK，定时调度，在 Snowflake 管理的沙箱中执行。agent 循环本身不需要仓库。运行手册：提示词。一个 markdown 文件，描述 agent 每次运行应做什么，在创建自动化时随其一同保存。MCP 服务器：agent 如何触达外部世界，包括源代码控制和聊天。显式挂接到自动化上。状态表：一张普通的 Snowflake 表，以仓库和拉取请求为键，保存 agent 在两次运行之间绝不能忘记的一切。\n\nSnowflake 负责运行时，因此我们不需要维护单独的服务器或运行器。自动化以其创建者的身份运行，凭证存储在 Snowflake 密钥对象中，而不是 CI 中。\n\n我们把工作拆分到多个独立的自动化中，而不是一个大自动化，事实证明这比预期更重要：\n\n一个监控器每小时运行一次。它保持打开的拉取请求可合并，在分支落后时将基础分支合并进来，并就任何非例行的维护事务通知作者。一个评审引擎每小时运行一次，消费一个工作队列，发布标准评审，并回应来自人类和机器人的未解决评论。一个看门狗按自己的计划运行，并且可以关闭评审引擎。一个摘要每个工作日早晨运行一次，报告发生了什么。\n\n拆分它们意味着看门狗不是由它所监督的对象实现的，而且嘈杂组件中的故障不会拖垮那个向你报告故障的组件。写下来这听起来显而易见。在构建时却并不明显。\n\n此命令创建监控器。自动化处于公开预览阶段，因此复制之前请对照当前文档检查标志。\n\ncortex automation create \\\n  --name PR_MONITOR \\\n  --connection my_connection \\\n  --schedule \"hourly\" \\\n  --timezone America/New_York \\\n  --workspace MY_DB.MY_SCHEMA.AGENT_WS \\\n  --mcp MY_DB.MY_SCHEMA.MCP_STATE_WRITES \\\n  --mcp MY_DB.MY_SCHEMA.MCP_GITHUB \\\n  --mcp MY_DB.MY_SCHEMA.MCP_JIRA \\\n  --mcp MY_DB.MY_SCHEMA.MCP_NOTIFY \\\n  --prompt-file ./monitor_runbook.md\n\n自动化以创建用户的默认角色和默认次要角色运行，而不是您创建它们时处于活动状态的角色。如果您想要只读上限，请使用受限会话范围设置一个。我们通过一个以 MCP 工具形式暴露的存储过程写入状态，因此 agent 只能以我们定义的方式更改状态。\n\nagent 的记忆不是向量存储，也不是仓库中的文件。它是一张表，每个拉取请求一行，当有异常时你可以查询它。\n\nCREATE OR REPLACE TABLE PR_STATE (\n  REPO VARCHAR NOT NULL,\n  PR_NUMBER NUMBER NOT NULL,\n  HEAD_SHA VARCHAR,\n  CI_SHA VARCHAR,\n  CI_STATE VARCHAR,\n  REVIEW_DIFF_HASH VARCHAR,\n  LAST_CHECKED_AT TIMESTAMP_NTZ,\n  PRIMARY KEY (REPO, PR_NUMBER)\n);\n\n我们跟踪 CI 检查了哪个提交、我们已经评审了哪些更改，以及监控器上次检查该 PR 的时间。\n\n护栏\n\n护栏一：在 agent 之外授权更改agent 提出修复方案；一个确定性的辅助程序检查它是否可以推送这些修复。这些检查位于 agent 循环之外的代码中。每个贡献者被设置为一种模式，从仅评审到自动修复，该模式决定修复是否需要人工批准。\n\n在批准模式下，人类必须回复一个由辅助程序生成的、一次性的令牌，修复才会被推送。辅助程序检查该令牌。agent 的说明不算作批准。\n\n护栏二：给看门狗自己的职责 agent 可能会陷入修复自己修复的循环。我们运行一个独立的看门狗，检查仓库提交历史中的失控循环，并可以禁用评审引擎。\n\n看门狗按自己的计划运行，不依赖引擎对发生情况的描述。如果引擎在循环，我们希望由该引擎之外的某个对象来判断一切是否正常。\n\n护栏三：知道你的测试衡量的是什么我们从影子模式开始：引擎提出修复方案但不推送任何内容。在转向批准令牌之前，我们对这些方案进行了评分。\n\n影子模式测试了修复质量，但无法表明某个修复是否会无休止地触发另一个修复。没有推送，就没有第二轮。批准令牌让我们能够在有人参与的情况下观察真实的推送和随后的 CI 周期。\n\n失败模式\n\n我当时在度假，用手机检查一切，并用 CoCo 试着在雨林徒步 🌲 和游客购物狂欢 🛍️ 之间修复错误。真希望我在亲身体验这些之前就知道它们。\n\n一个并不是超时的超时 工作没有完成，但每次运行都报告成功。我以为可能是运行时间太长并触发了超时。问题出在超时设置本身。该工具最多接受 600 秒，而我配置的值超过了这个数。每次调用都立即失败，甚至在存储过程开始之前就失败了。把设置降到 600 就解决了。然后我在第二个工具中犯了同样的错误，尽管我已经记下了第一个工具的教训。我怎么又这样了？！我计划添加一个测试，在工具发布前拒绝无效的超时。我还没有构建它。与此同时，我愿意相信我不会第三次犯同样的错误。\n\nagent 误诊了失败agent 把失败的调用描述为“查询超时”，这让我去寻找容量问题。该调用实际上在执行之前就被拒绝了。我们需要检查底层错误，而不是依赖 agent 的解释。\n\n毫无意义的成功一次运行可以在什么工作都没做的情况下报告成功。任务完成了；代理的工具全部失败；没有任何报错。我们的报告会在绿灯下连续数周失去踪影。如果你唯一的健康信号是“计划运行是否完成”，那你就没有健康信号。要对输出做出断言：是否有一行数据落地，是否有一条消息发布，产物是否比本次运行更新。\n\n工具的配置会覆盖你的运行手册每个工具都带有自己的计算配置。运行手册中的 USE WAREHOUSE 语句无法保护一个被固定到另一个已饱和仓库的工具。我们的情况正是如此，所有告警都在队列中滞留了四天，而运行手册看起来却完全正确。检查每个工具自身的仓库设置，而不只是运行手册。\n\n命名一个工具并不等同于绑定到它一个引用了服务器的运行手册只能证明作者意图建立绑定。在我们的运行中，describe 命令没有列出已附加的服务器，因此有一个月时间，我们的摘要被绑定到了一个不包含运行手册所调用工具的服务器上。读取实际对象定义。将其与你原本的意图进行差异比对。\n\n而代价最大的一个：长期的误报掩盖了真实的故障我们有一个质量门，其阈值来自其自身历史输出的中位数。它连续十二天每天触发。团队学会了忽略它。在其之下，一个真正的上游中断在期间开始，并在余下的时间里未被察觉，因为本应告知我们的渠道早已充满了我们训练自己去跳过的噪音。\n\n在发布告警阈值之前，用历史数据回放它，并检查它本会触发的频率。\n\n回顾\n\n一个自动化组合了计划提示、附加的 MCP 工具和一个状态表。代理循环本身不需要仓库。拆分工作。看门狗不能是它自己所监视的东西。代理提出建议；确定性代码负责授权。了解你的验证在衡量什么。影子模式测试的是修复质量，而不是循环深度。一次绿色的运行证明不了任何东西。要对输出做出断言。嘈杂的告警比没有告警更糟。\n\n作者：Kat Prince-Sayward，GTM 分析负责人。\n\n你的代理整夜运行了。以下是它做错的地方。最初发表于Snowflake Builders Blog：数据工程师、应用开发者、AI 与数据科学于 Medium，人们通过高亮并回应这个故事在那里继续对话。",
+      "content_blocks": [
+        {
+          "type": "paragraph",
+          "id": "b-eba22bb565ee",
+          "children": [
+            {
+              "type": "text",
+              "text": "在 Snowflake 中调度一个无人值守的编码 agent 现在只需几个 CLI 标志。让它保持诚实才是真正的工作。下面是我们最终采用的整体架构，以及六种失败模式——正是它们让我们明白了每道护栏为何存在。",
+              "marks": [
+                "em"
+              ],
+              "id": "t-13e4e5c69811"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-160e2b4f0d8f",
+          "children": [
+            {
+              "type": "text",
+              "text": "注意：CoCo 自动化处于公开预览阶段。",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-a5a3809bf23d"
+            },
+            {
+              "type": "text",
+              "text": " 以下内容均描述预览功能，可能会发生变化。",
+              "marks": [],
+              "id": "t-d4e86a2c72d7"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-1ec6dfc532a2",
+          "children": [
+            {
+              "type": "text",
+              "text": "你将了解到：",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-59d2b8b00c00"
+            }
+          ],
+          "level": 4
+        },
+        {
+          "type": "list",
+          "id": "b-c2210ea2a909",
+          "ordered": false,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "无需单独的运行器即可运行定时 agent",
+                  "marks": [],
+                  "id": "t-0790418fc08b"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "拆分工作并添加独立的看门狗",
+                  "marks": [],
+                  "id": "t-51080ab11d0f"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "把权限检查放在 agent 之外",
+                  "marks": [],
+                  "id": "t-c9283c37d03c"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "识别六种误导性失败以及该检查什么",
+                  "marks": [],
+                  "id": "t-e45ba1be0d11"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-c142b9908ee9",
+          "children": [
+            {
+              "type": "text",
+              "text": "让拉取请求无人值守地持续推进",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-6c667e648e43"
+            }
+          ],
+          "level": 4
+        },
+        {
+          "type": "paragraph",
+          "id": "b-bd262d7415bb",
+          "children": [
+            {
+              "type": "text",
+              "text": "我们希望 agent 能察觉到某个分支落后于 main、CI 失败、或有评审意见无人回应——而无需有人先打开聊天。",
+              "marks": [],
+              "id": "t-e01094413368"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-714e90a6cbd2",
+          "children": [
+            {
+              "type": "text",
+              "text": "这意味着要调度运行、记住之前的工作，并限制 agent 能改动什么。我们使用 CoCo 自动化，以免维护单独的运行器或容器。搭建过程很直接。搞清楚定时工作是否真的完成了，则要费更多功夫。",
+              "marks": [],
+              "id": "t-a04306d54811"
+            }
+          ]
+        },
+        {
+          "type": "figure",
+          "id": "b-872c2364a4ef",
+          "src": "https://cdn-images-1.medium.com/max/575/1*jQEz-lDI3GAv7M55XR-uyw.png",
+          "alt": "",
+          "caption": "",
+          "source_url": "https://medium.com/snowflake/your-agent-ran-overnight-here-is-what-it-got-wrong-98a8117e466a?source=rss----34b6daafc07---4",
+          "cached_src": "../media/3172d33f443d/5c9d97936c511c23540c6652.png",
+          "width": 575,
+          "height": 369,
+          "mime": "image/png",
+          "size_bytes": 326656,
+          "media_status": "cached"
+        },
+        {
+          "type": "heading",
+          "id": "b-6e966c390845",
+          "children": [
+            {
+              "type": "text",
+              "text": "整体结构",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-ea88f9332c66"
+            }
+          ],
+          "level": 4
+        },
+        {
+          "type": "paragraph",
+          "id": "b-706786317e88",
+          "children": [
+            {
+              "type": "text",
+              "text": "四个术语，因为后文措辞很重要：",
+              "marks": [],
+              "id": "t-e51e8aeb4156"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "b-af6e2ded058e",
+          "ordered": true,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "自动化",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-edbd475ef0a7"
+                },
+                {
+                  "type": "text",
+                  "text": "：一次循环的、无人值守的 agent 运行。存储为 AGENT TASK，定时调度，在 Snowflake 管理的沙箱中执行。agent 循环本身不需要仓库。",
+                  "marks": [],
+                  "id": "t-20a4d10f2cb5"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "运行手册",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-e6018073e43d"
+                },
+                {
+                  "type": "text",
+                  "text": "：提示词。一个 markdown 文件，描述 agent 每次运行应做什么，在创建自动化时随其一同保存。",
+                  "marks": [],
+                  "id": "t-8af613fe5363"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "MCP 服务器",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-f1a05863261f"
+                },
+                {
+                  "type": "text",
+                  "text": "：agent 如何触达外部世界，包括源代码控制和聊天。显式挂接到自动化上。",
+                  "marks": [],
+                  "id": "t-c1bc8f7c0e61"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "状态表",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-3a05f1233c26"
+                },
+                {
+                  "type": "text",
+                  "text": "：一张普通的 Snowflake 表，以仓库和拉取请求为键，保存 agent 在两次运行之间绝不能忘记的一切。",
+                  "marks": [],
+                  "id": "t-de5ee27bc0c7"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-edd264ab4a39",
+          "children": [
+            {
+              "type": "text",
+              "text": "Snowflake 负责运行时，因此我们不需要维护单独的服务器或运行器。自动化以其创建者的身份运行，凭证存储在 Snowflake 密钥对象中，而不是 CI 中。",
+              "marks": [],
+              "id": "t-43f12ea05d0d"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-2e2caa194580",
+          "children": [
+            {
+              "type": "text",
+              "text": "我们把工作拆分到多个独立的自动化中，而不是一个大自动化，事实证明这比预期更重要：",
+              "marks": [],
+              "id": "t-66c22942d57a"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "b-e4d6e33226ab",
+          "ordered": false,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "一个",
+                  "marks": [],
+                  "id": "t-293b9576badf"
+                },
+                {
+                  "type": "text",
+                  "text": "监控器",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-395a9a36f92e"
+                },
+                {
+                  "type": "text",
+                  "text": "每小时运行一次。它保持打开的拉取请求可合并，在分支落后时将基础分支合并进来，并就任何非例行的维护事务通知作者。",
+                  "marks": [],
+                  "id": "t-e726cad967c0"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "一个",
+                  "marks": [],
+                  "id": "t-0a464bfa20df"
+                },
+                {
+                  "type": "text",
+                  "text": "评审引擎",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-9b4b62c7af8c"
+                },
+                {
+                  "type": "text",
+                  "text": "每小时运行一次，消费一个工作队列，发布标准评审，并回应来自人类和机器人的未解决评论。",
+                  "marks": [],
+                  "id": "t-0524f7c661af"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "一个",
+                  "marks": [],
+                  "id": "t-b3582a3a6af7"
+                },
+                {
+                  "type": "text",
+                  "text": "看门狗",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-89c19f7690cf"
+                },
+                {
+                  "type": "text",
+                  "text": "按自己的计划运行，并且可以关闭评审引擎。",
+                  "marks": [],
+                  "id": "t-23b11e0057e7"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "一个",
+                  "marks": [],
+                  "id": "t-a18e3c17c227"
+                },
+                {
+                  "type": "text",
+                  "text": "摘要",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-9c6366a7d6e2"
+                },
+                {
+                  "type": "text",
+                  "text": "每个工作日早晨运行一次，报告发生了什么。",
+                  "marks": [],
+                  "id": "t-339fade67101"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-440f7d103185",
+          "children": [
+            {
+              "type": "text",
+              "text": "拆分它们意味着看门狗不是由它所监督的对象实现的，而且嘈杂组件中的故障不会拖垮那个向你报告故障的组件。写下来这听起来显而易见。在构建时却并不明显。",
+              "marks": [],
+              "id": "t-836bbbf27664"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-d5729b73190b",
+          "children": [
+            {
+              "type": "text",
+              "text": "此命令创建监控器。自动化处于公开预览阶段，因此复制之前请对照当前文档检查标志。",
+              "marks": [],
+              "id": "t-e6311304ad4e"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "id": "b-1d5548d22fed",
+          "text": "cortex automation create \\\n  --name PR_MONITOR \\\n  --connection my_connection \\\n  --schedule \"hourly\" \\\n  --timezone America/New_York \\\n  --workspace MY_DB.MY_SCHEMA.AGENT_WS \\\n  --mcp MY_DB.MY_SCHEMA.MCP_STATE_WRITES \\\n  --mcp MY_DB.MY_SCHEMA.MCP_GITHUB \\\n  --mcp MY_DB.MY_SCHEMA.MCP_JIRA \\\n  --mcp MY_DB.MY_SCHEMA.MCP_NOTIFY \\\n  --prompt-file ./monitor_runbook.md"
+        },
+        {
+          "type": "paragraph",
+          "id": "b-4b7d635cdb75",
+          "children": [
+            {
+              "type": "text",
+              "text": "自动化以创建用户的默认角色和默认次要角色运行，而不是您创建它们时处于活动状态的角色。如果您想要只读上限，请使用受限会话范围设置一个。我们通过一个以 MCP 工具形式暴露的存储过程写入状态，因此 agent 只能以我们定义的方式更改状态。",
+              "marks": [],
+              "id": "t-ac409ae896e6"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-32a5fb155505",
+          "children": [
+            {
+              "type": "text",
+              "text": "agent 的记忆不是向量存储，也不是仓库中的文件。它是一张表，每个拉取请求一行，当有异常时你可以查询它。",
+              "marks": [],
+              "id": "t-0a5e0a96e30d"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "id": "b-440931a6e0af",
+          "text": "CREATE OR REPLACE TABLE PR_STATE (\n  REPO VARCHAR NOT NULL,\n  PR_NUMBER NUMBER NOT NULL,\n  HEAD_SHA VARCHAR,\n  CI_SHA VARCHAR,\n  CI_STATE VARCHAR,\n  REVIEW_DIFF_HASH VARCHAR,\n  LAST_CHECKED_AT TIMESTAMP_NTZ,\n  PRIMARY KEY (REPO, PR_NUMBER)\n);"
+        },
+        {
+          "type": "paragraph",
+          "id": "b-b125f4bfc019",
+          "children": [
+            {
+              "type": "text",
+              "text": "我们跟踪 CI 检查了哪个提交、我们已经评审了哪些更改，以及监控器上次检查该 PR 的时间。",
+              "marks": [],
+              "id": "t-52289b6ee9a3"
+            }
+          ]
+        },
+        {
+          "type": "figure",
+          "id": "b-6b1ac92b2f1f",
+          "src": "https://cdn-images-1.medium.com/max/1024/1*7_h-S1tGG2CurBoboU2ClQ.png",
+          "alt": "",
+          "caption": "",
+          "source_url": "https://medium.com/snowflake/your-agent-ran-overnight-here-is-what-it-got-wrong-98a8117e466a?source=rss----34b6daafc07---4",
+          "cached_src": "../media/3172d33f443d/7d31b35d7bee0431b906ddc5.png",
+          "width": 1024,
+          "height": 504,
+          "mime": "image/png",
+          "size_bytes": 734136,
+          "media_status": "cached"
+        },
+        {
+          "type": "heading",
+          "id": "b-1e199d1ece4f",
+          "children": [
+            {
+              "type": "text",
+              "text": "护栏",
+              "marks": [],
+              "id": "t-a5c8dbd7bd3b"
+            }
+          ],
+          "level": 4
+        },
+        {
+          "type": "paragraph",
+          "id": "b-5a5c0bf02571",
+          "children": [
+            {
+              "type": "text",
+              "text": "护栏一：在 agent 之外授权更改",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-50e880465cc5"
+            },
+            {
+              "type": "text",
+              "text": "agent 提出修复方案；一个确定性的辅助程序检查它是否可以推送这些修复。这些检查位于 agent 循环之外的代码中。每个贡献者被设置为一种模式，从仅评审到自动修复，该模式决定修复是否需要人工批准。",
+              "marks": [],
+              "id": "t-12bd5086227c"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-470d8a5a7716",
+          "children": [
+            {
+              "type": "text",
+              "text": "在批准模式下，人类必须回复一个由辅助程序生成的、一次性的令牌，修复才会被推送。辅助程序检查该令牌。agent 的说明不算作批准。",
+              "marks": [],
+              "id": "t-2b3c1d592c1b"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-a649920637b5",
+          "children": [
+            {
+              "type": "text",
+              "text": "护栏二：给看门狗自己的职责",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-13c22e39b8cf"
+            },
+            {
+              "type": "text",
+              "text": " agent 可能会陷入修复自己修复的循环。我们运行一个独立的看门狗，检查仓库提交历史中的失控循环，并可以禁用评审引擎。",
+              "marks": [],
+              "id": "t-922d22e25ef6"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-28e600b02128",
+          "children": [
+            {
+              "type": "text",
+              "text": "看门狗按自己的计划运行，不依赖引擎对发生情况的描述。如果引擎在循环，我们希望由该引擎之外的某个对象来判断一切是否正常。",
+              "marks": [],
+              "id": "t-445ae306d10a"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-83db7d3acfb8",
+          "children": [
+            {
+              "type": "text",
+              "text": "护栏三：知道你的测试衡量的是什么",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-cd0057bb70a0"
+            },
+            {
+              "type": "text",
+              "text": "我们从影子模式开始：引擎提出修复方案但不推送任何内容。在转向批准令牌之前，我们对这些方案进行了评分。",
+              "marks": [],
+              "id": "t-6e6b9b0e73b6"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-cfe91afc31e9",
+          "children": [
+            {
+              "type": "text",
+              "text": "影子模式测试了修复质量，但无法表明某个修复是否会无休止地触发另一个修复。没有推送，就没有第二轮。批准令牌让我们能够在有人参与的情况下观察真实的推送和随后的 CI 周期。",
+              "marks": [],
+              "id": "t-9910677b13df"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-0edc89317464",
+          "children": [
+            {
+              "type": "text",
+              "text": "失败模式",
+              "marks": [],
+              "id": "t-0de45ad78cdb"
+            }
+          ],
+          "level": 4
+        },
+        {
+          "type": "paragraph",
+          "id": "b-ca7e4d7d1f83",
+          "children": [
+            {
+              "type": "text",
+              "text": "我当时在度假，用手机检查一切，并用 CoCo 试着在雨林徒步 🌲 和游客购物狂欢 🛍️ 之间修复错误。真希望我在亲身体验这些之前就知道它们。",
+              "marks": [],
+              "id": "t-7f4f680be440"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-fe1d199bbe97",
+          "children": [
+            {
+              "type": "text",
+              "text": "一个并不是超时的超时",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-8082ebb1a4f9"
+            },
+            {
+              "type": "text",
+              "text": " 工作没有完成，但每次运行都报告成功。我以为可能是运行时间太长并触发了超时。问题出在超时设置本身。该工具最多接受 600 秒，而我配置的值超过了这个数。每次调用都立即失败，甚至在存储过程开始之前就失败了。把设置降到 600 就解决了。然后我在第二个工具中犯了同样的错误，尽管我已经记下了第一个工具的教训。我怎么又这样了？！我计划添加一个测试，在工具发布前拒绝无效的超时。我还没有构建它。与此同时，我愿意相信我不会第三次犯同样的错误。",
+              "marks": [],
+              "id": "t-f1ce6d044623"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-16708a914d54",
+          "children": [
+            {
+              "type": "text",
+              "text": "agent 误诊了失败",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-12062087486d"
+            },
+            {
+              "type": "text",
+              "text": "agent 把失败的调用描述为“查询超时”，这让我去寻找容量问题。该调用实际上在执行之前就被拒绝了。我们需要检查底层错误，而不是依赖 agent 的解释。",
+              "marks": [],
+              "id": "t-389b7418035c"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-2a2b60adf941",
+          "children": [
+            {
+              "type": "text",
+              "text": "毫无意义的成功",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-6d887c63f665"
+            },
+            {
+              "type": "text",
+              "text": "一次运行可以在什么工作都没做的情况下报告成功。任务完成了；代理的工具全部失败；没有任何报错。我们的报告会在绿灯下连续数周失去踪影。如果你唯一的健康信号是“计划运行是否完成”，那你就没有健康信号。要对",
+              "marks": [],
+              "id": "t-8f43e407a7ca"
+            },
+            {
+              "type": "text",
+              "text": "输出",
+              "marks": [
+                "em"
+              ],
+              "id": "t-a7d950f441b0"
+            },
+            {
+              "type": "text",
+              "text": "做出断言：是否有一行数据落地，是否有一条消息发布，产物是否比本次运行更新。",
+              "marks": [],
+              "id": "t-42f1162b3a6c"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-404278c66cd7",
+          "children": [
+            {
+              "type": "text",
+              "text": "工具的配置会覆盖你的运行手册",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-c2990e5f90fe"
+            },
+            {
+              "type": "text",
+              "text": "每个工具都带有自己的计算配置。运行手册中的 USE WAREHOUSE 语句无法保护一个被固定到另一个已饱和仓库的工具。我们的情况正是如此，所有告警都在队列中滞留了四天，而运行手册看起来却完全正确。检查每个工具自身的仓库设置，而不只是运行手册。",
+              "marks": [],
+              "id": "t-04562453c6fb"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-b44dd921b8e2",
+          "children": [
+            {
+              "type": "text",
+              "text": "命名一个工具并不等同于绑定到它",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-6d22d2cb1197"
+            },
+            {
+              "type": "text",
+              "text": "一个引用了服务器的运行手册只能证明作者意图建立绑定。在我们的运行中，describe 命令没有列出已附加的服务器，因此有一个月时间，我们的摘要被绑定到了一个不包含运行手册所调用工具的服务器上。读取实际对象定义。将其与你原本的意图进行差异比对。",
+              "marks": [],
+              "id": "t-23c62a6968ab"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-02d99a48eed7",
+          "children": [
+            {
+              "type": "text",
+              "text": "而代价最大的一个：长期的误报掩盖了真实的故障",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-e23656742255"
+            },
+            {
+              "type": "text",
+              "text": "我们有一个质量门，其阈值来自其自身历史输出的中位数。它连续十二天每天触发。团队学会了忽略它。在其之下，一个真正的上游中断在期间开始，并在余下的时间里未被察觉，因为本应告知我们的渠道早已充满了我们训练自己去跳过的噪音。",
+              "marks": [],
+              "id": "t-f0c2ffdc9628"
+            }
+          ]
+        },
+        {
+          "type": "figure",
+          "id": "b-70e32dc7253a",
+          "src": "https://cdn-images-1.medium.com/max/1024/1*zdsy-gjvYg-hiEeMV73MQg.png",
+          "alt": "",
+          "caption": "",
+          "source_url": "https://medium.com/snowflake/your-agent-ran-overnight-here-is-what-it-got-wrong-98a8117e466a?source=rss----34b6daafc07---4",
+          "cached_src": "../media/3172d33f443d/816a2f052c3e54ad0afd7d4a.png",
+          "width": 1024,
+          "height": 558,
+          "mime": "image/png",
+          "size_bytes": 834025,
+          "media_status": "cached"
+        },
+        {
+          "type": "paragraph",
+          "id": "b-436abdec97c6",
+          "children": [
+            {
+              "type": "text",
+              "text": "在发布告警阈值之前，用历史数据回放它，并检查它本会触发的频率。",
+              "marks": [],
+              "id": "t-0fedbe164d15"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-6429371d9d02",
+          "children": [
+            {
+              "type": "text",
+              "text": "回顾",
+              "marks": [],
+              "id": "t-d771e0d16e20"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "list",
+          "id": "b-cf53400efb78",
+          "ordered": false,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "一个自动化组合了计划提示、附加的 MCP 工具和一个状态表。代理循环本身不需要仓库。",
+                  "marks": [],
+                  "id": "t-a8d4f06e21d5"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "拆分工作。看门狗不能是它自己所监视的东西。",
+                  "marks": [],
+                  "id": "t-5c532d87941b"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "代理提出建议；确定性代码负责授权。",
+                  "marks": [],
+                  "id": "t-d3e11f6056aa"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "了解你的验证在衡量什么。影子模式测试的是修复质量，而不是循环深度。",
+                  "marks": [],
+                  "id": "t-ffb7afc8637e"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "一次绿色的运行证明不了任何东西。要对输出做出断言。",
+                  "marks": [],
+                  "id": "t-f088664bafd7"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "嘈杂的告警比没有告警更糟。",
+                  "marks": [],
+                  "id": "t-f9310c71f0ed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-ac5d1df262b0",
+          "children": [
+            {
+              "type": "text",
+              "text": "作者：Kat Prince-Sayward，GTM 分析负责人。",
+              "marks": [
+                "em"
+              ],
+              "id": "t-e89c5f154c2d"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-513a28125fd7",
+          "children": [
+            {
+              "type": "text",
+              "text": "你的代理整夜运行了。以下是它做错的地方。",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://medium.com/snowflake/your-agent-ran-overnight-here-is-what-it-got-wrong-98a8117e466a"
+                }
+              ],
+              "id": "t-ec1ae0a3348f"
+            },
+            {
+              "type": "text",
+              "text": "最初发表于",
+              "marks": [],
+              "id": "t-13a36856a29d"
+            },
+            {
+              "type": "text",
+              "text": "Snowflake Builders Blog：数据工程师、应用开发者、AI 与数据科学",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://medium.com/snowflake"
+                }
+              ],
+              "id": "t-40ca96487614"
+            },
+            {
+              "type": "text",
+              "text": "于 Medium，人们通过高亮并回应这个故事在那里继续对话。",
+              "marks": [],
+              "id": "t-5600233dcda6"
+            }
+          ]
+        }
+      ],
+      "content_format": "blocks-v1",
+      "category": "platform",
+      "category_label": "AI 数据平台",
+      "vendors": [
+        "Snowflake"
+      ],
+      "heat": 65,
+      "star": false,
+      "importance": 72,
+      "quality_score": 72,
+      "trend_score": 59,
+      "signal": 0,
+      "topics": [
+        "平台AI化"
+      ],
+      "shelf": "evergreen",
+      "pinned": false,
+      "published": "2026-10-23T01:01:02+08:00",
+      "first_seen": "2026-10-23T05:41:03.425705+08:00",
+      "items": [
+        {
+          "id": "3172d33f443d",
+          "source": "Snowflake Engineering（Medium）",
+          "link": "https://medium.com/snowflake/your-agent-ran-overnight-here-is-what-it-got-wrong-98a8117e466a?source=rss----34b6daafc07---4",
+          "published": "2026-10-23T01:01:02+08:00",
+          "ingested_at": "2026-10-23T05:41:03.425705+08:00",
+          "title": "Your Agent Ran Overnight. Here Is What It Got Wrong."
+        }
+      ],
+      "work_tags": {
+        "taxonomy_version": "work-tags-v1",
+        "product_objects": [
+          "Agent接口与工具",
+          "权限与治理"
+        ],
+        "use_cases": [
+          "Agent构建",
+          "生产评估与运营"
+        ],
+        "decision_concerns": [
+          "权限与安全",
+          "可靠性与评估"
+        ]
+      },
+      "quality_breakdown": {
+        "originality": 21,
+        "evidence_density": 16,
+        "information_gain": 18,
+        "actionability_depth": 17
+      },
+      "content_parse": {
+        "run_id": "github-39858374625-1",
+        "processor_version": "original-first-v7",
+        "attempted_at": "2026-10-23T05:42:56.945651+08:00",
+        "status": "ready",
+        "source": "Snowflake Engineering（Medium）",
+        "strategy": "rss_document_fallback",
+        "blocks": 43,
+        "text_chars": 9040,
+        "figures": 3,
+        "tables": 0,
+        "figures_discovered": 4,
+        "figures_selected": 3,
+        "figures_rejected": 1,
+        "candidate_count": 0,
+        "figures_rejected_author": 0,
+        "figures_rejected_decorative": 0,
+        "figures_rejected_duplicate": 0,
+        "figures_rejected_small": 1,
+        "figures_rejected_limit": 0,
+        "trimmed_tail_blocks": 0,
+        "trimmed_head_blocks": 0,
+        "trimmed_promotional_blocks": 0,
+        "trimmed_embedded_ui_blocks": 0,
+        "embedded_ui_components": 0,
+        "selected_depth": 0,
+        "selected_raw_blocks": 44,
+        "selected_raw_text_chars": 9040,
+        "broad_raw_blocks": 44,
+        "broad_raw_text_chars": 8997,
+        "parent_extra_blocks": 0,
+        "candidate_count_raw": 0,
+        "candidate_duplicates": 0,
+        "candidate_quality_rejected": 0,
+        "duplicate_blocks": 0,
+        "selected_score": 465.26,
+        "quality_status": "pass",
+        "selected_tag": "document",
+        "focus_ratio": 1.0,
+        "link_ratio": 0.014,
+        "duplicate_ratio": 0.0,
+        "selection_evidence": [
+          "prose_density",
+          "integrity_gate"
+        ],
+        "media": {
+          "figures": 3,
+          "cached": 3,
+          "link_only": 0,
+          "policy_version": "source-cdn-v1"
+        },
+        "content_mode": "translated",
+        "source_language": "other",
+        "translation_status": "complete",
+        "source_content_hash": "2dd30597c33353640dc09dce",
+        "translation": {
+          "run_id": "github-39858374625-1",
+          "policy_version": "faithful-translation-retry-v1",
+          "attempted_at": "2026-10-23T05:42:56.945697+08:00",
+          "purpose": "body_translation",
+          "status": "complete"
+        }
+      },
+      "content_mode": "translated",
+      "content_level": "translated",
+      "source_language": "other",
+      "translation_status": "complete",
+      "source_content_hash": "2dd30597c33353640dc09dce",
+      "body_chars": 3644
+    },
+    {
+      "event_id": "649f9721d5e0",
+      "zh_title": "Snowflake RBAC Explorer：看清权限链",
+      "zh_summary": "作者构建了开源工具 Snowflake RBAC Explorer，用于解决 Snowflake 中角色继承链复杂、难以回答“谁能看到某张表”的问题。该工具以 Streamlit in Snowflake 应用形式运行，展示访问路径、撤销权限前受影响用户，并在有人不当授予角色时于 1-2 分钟内告警。它还能用自然语言回答权限问题，并计算 AI agent 所需的具体授权。工具免费开源、完全部署在 Snowflake 账户内，前端使用 React。",
+      "reason": "对数据平台从业者，权限治理和 AI agent 授权是落地时必须解决的工程问题；该文给出一个开源、可部署在 Snowflake 内的可视化排查方案。",
+      "full_zh": "一个更好的 SnowflakeRBAC Explorer\n\n现在是周五下午 4:55。有人问：“谁能看到 payroll 表？”于是你打开 Snowflake：\n\n打开一个工作表，输入 SHOW GRANTS然后再 SHOW GRANTS然后再来一次\n\n一路查了四层角色，直到你都不确定自己到底有没有被问过问题。\n\n与此同时，一个新用户已被悄悄授予 ACCOUNTADMIN，而新的 AI agent 对你自己能用，对你分享给的人却不能用。\n\nSnowflake RBAC Explorer 是我构建的工具，让你的周五在 5 点结束。请继续阅读。\n\nTL;DR： RBAC Explorer 是一个 Streamlit in Snowflake 应用，面向分配访问权限的人。它显示谁能访问什么（以及通过哪条链路），在你撤销之前告诉你谁会受影响，当有人授予了不该授予的角色时在一两分钟内提醒你，用平实的英语回答问题，并准确算出 AI agent 需要哪些授权。它免费、开源，并且完全运行在你的 Snowflake 账户内。额外亮点：它有一个精心打造、响应迅速的前端，用 React 连接而成！\n\n本文的组织方式：\n\n先是问题，然后快速游览。深入介绍 AI assets、Alerts 和 Ask。设置、安全和已知限制在最后。\n\n三个问题，毫无乐趣\n\n“Priya 能读取 SALES 吗？” 听起来是个是非题。实际上却是一场寻宝游戏：她的授权，然后是她的角色们的授权，然后是那些角色们的授权，然后还得快速检查一下途中是否有人记得对数据库和 schema 的 USAGE。再乘上几百个角色，你就有了一个没人要求的爱好。\n\n“如果昨晚有人获得了 ACCOUNTADMIN，我们会知道吗？”最终会知道。ACCOUNT_USAGE 最多可能延迟两个小时，这足够一个“新朋友”把自己安顿下来了。\n\n“为什么 Hana 的 agent 对 Hana 能用，对别人都不行？” 因为一个 agent 是一叠对象，Hana 持有能看到所有这些对象的角色，而其他人需要的授权清单根本没有被写下来。\n\n以前没人画过角色图吗？\n\n有人画过，而且很好。Snowsight 在 Admin > Users & Roles 下有一个，社区还构建了 Grant Report、一个 Streamlit 图表 等等。\n\nRBAC Explorer 站在他们的肩膀上，加入了那些我一直希望有的东西：答案而不只是图片、几分钟内的提醒、平实的英语问题、AI agent 访问，而且无需托管任何东西。\n\n游览\n\nAI assets\n\n帮你免于：猜测一个 agent 需要什么。\n\n一个 agent 依赖的每一项授权、谁已准备好使用它，以及针对任何尚未准备好的人的修复方案。\n\n访问权限的叠叠乐高塔\n\n共享一张表是一个授权加一些 USAGE。共享一个 agent 则是一座高塔：\n\nskill ──> agent ──> semantic view ──> tables\n                └─> custom tool ──> whatever it reads\n                └─> warehouse\n\n三条平台规则让它摇摇欲坠：\n\nAgent 以调用者的默认角色和仓库运行，而不是他们切换到的任何角色（文档）。缺少工具授权不会失败。 默认情况下，agent 只是在没有该工具的情况下作答。答案更差，没有报错，大量令人困惑的 Slack 讨论串。路径很重要。 查询一个语义视图需要对该视图的 SELECT 权限。agent 的 Cortex Analyst 工具会访问底层的表（文档）。\n\n选择一个 agent、语义视图、工具或技能（粘贴一个 SKILL.md，它会解析其中的每个名称），然后选择一个人或团队。应用会检查他们的默认角色、他们的所有角色，以及 MCP 客户端可能使用的每个访问令牌，并给出 Ready、Partly works 或 Blocked，并列出每一项缺失的授权。\n\n修复方案是为每个资产设一个整洁的访问角色：\n\nCREATE ROLE IF NOT EXISTS AR_DEMO_SALES_AGENT;\nGRANT USAGE ON AGENT DEMO_SALES_DB.CORE.DEMO_SALES_AGENT TO ROLE AR_DEMO_SALES_AGENT;\nGRANT SELECT ON SEMANTIC VIEW DEMO_SALES_DB.CORE.DEMO_SALES_SV TO ROLE AR_DEMO_SALES_AGENT;\nGRANT SELECT ON TABLE DEMO_SALES_DB.CORE.ORDERS TO ROLE AR_DEMO_SALES_AGENT;\n-- ... procedure, warehouse, database, schema, CUSTOMERS\nGRANT ROLE AR_DEMO_SALES_AGENT TO ROLE DEMO_SALES_TEAM_ROLE;\n\n复制它，或打开 Apply（默认关闭），它只运行你审核过的内容，拒绝系统和受保护角色，记录一切并提供 Revert。在演示中，它让一位队友从 10 项授权中的 5 项提升到 9 项。第十项是缺少默认仓库，任何授权都无法修复，所以你会得到 ALTER USER 语句。用户也可以通过 SQL 或 Cortex Code 技能请求捆绑包，直接进入应用中的队列。\n\nAlerts\n\n帮你免于：从审计员那里才知道。\n\n规则、日志和一个每分钟检查一次的监视器。\n\n一个不打盹的监视器\n\n两小时的延迟对仪表盘来说没问题，对烟雾探测器来说却很糟糕，所以监视器跳过 ACCOUNT_USAGE，直接询问 Snowflake：\n\nevery minute ──> serverless task ──> CALL CHECK_PROTECTED_ROLES()\n                   live SHOW GRANTS / SHOW USERS / SHOW ROLES\n                   ├─ new violation  ──> ALERT_LOG (OPEN) ──> email / Slack\n                   └─ violation gone ──> ALERT_LOG (RESOLVED)\n\n一条 protected-role 规则规定谁可以持有某个角色（“这两个人、这些父角色，仅此而已”）。父角色检查很重要：把一个角色授予 ACCOUNTADMIN，你就等于把它授予了该角色中的所有用户，一下子多了很多新朋友。自定义提醒能捕获新的持有者、MANAGE GRANTS 等敏感权限、命名可疑的新用户，以及悄悄失去对某物访问权限的 AI agent。\n\n每个提醒都附带链路、授予角色和一个可直接运行的修复方案。确切的用户和语句会在 QUERY_HISTORY 跟上后从中填充。自动撤销是按规则选择启用的，默认关闭。\n\n日志就是一张表，所以你的 SIEM 只需一次查询：\n\nSELECT detected_at, kind, role_name, grantee, reason, granted_by_user, status\nFROM RBAC_EXPLORER_DB.ALERTS.ALERT_LOG ORDER BY detected_at DESC LIMIT 50;\n\nAsk\n\n帮你免于：编写 SQL 来回答一个问题。\n\n一个平实英语助手，位于每个标签页旁边，基于你正在查看的同一份授权数据作答。\n\n用平实英语说： 假设你在 Revoke what-if 中，想知道一次清理是否安全。问 “如果我从 REPORTING 撤销 ANALYST，会破坏什么？” 它会列出失去访问权限的用户及其失去的权限，与你在暂存后该标签页会给出的答案相同。\n\n没有模型会针对你的账户编写 SQL。应用把已经加载的那部分授权数据连同屏幕上的内容一起交给 AI_COMPLETE，因此答案与图一致。Ask 也可以用一句话起草提醒（“如果有新的人获得 ACCOUNTADMIN 就告诉我”），供你在保存前检查。\n\nAsk 需要你所在区域有 Cortex 模型。在依赖它之前，请查看 Cortex AI 区域可用性；应用中的其他一切无需它也能工作。\n\nAsk：一个平实英语问题，从实时授权图作答（演示数据）。\n\n底层实现\n\nRBAC 问题是图问题，每次点击一次查询会慢得让人痛苦。所以应用从 ACCOUNT_USAGE 一次性加载模型（再加上系统角色的实时 SHOW 输出），缓存 30 分钟，并在浏览器中进行图计算。\n\n点击是即时的。UI 是 React，用 esbuild 打包，并通过 st.html 在 Streamlit 的 容器运行时 上渲染。\n\n各部分的配合方式：上面是交互式应用，下面是每分钟运行的监视器。\n\n关于安全的细则\n\n仅限管理员。该应用以其所有者身份运行，所有者拥有 MANAGE GRANTS，因此任何打开它的人都能看到所有 RBAC 元数据。请把它授予访问管理员，而不是全公司。除此之外的最小权限：SECURITY_VIEWER、GOVERNANCE_VIEWER、CORTEX_USER 和任务权限。除非你明确要求，否则不会有任何变化。只有开启 Apply 或自动撤销时，授权才会变动。仅限元数据。它从不读取你的表数据。\n\n试一试\n\n在 ACCOUNTADMIN 上，只需把 Cortex Code 指向仓库 https://github.com/sfc-gh-vshiv/snowflake-rbac-explorer 并让它部署到你的 Snowflake 账户中。\n\nGitHub - sfc-gh-vshiv/a-better-snowflake-rbac-explorer\n\n或者\n\n如果你想真正亲自动手（你需要 Snowflake CLI）：\n\ngit clone https://github.com/sfc-gh-vshiv/snowflake-rbac-explorer.git\ncd snowflake-rbac-explorer\nsnow sql -c <connection> -f setup/setup.sql \\\n  -D admin_user=<YOUR_USER> -D warehouse=<WH> -D alert_email=<you@company.com>\nsnow sql -c <connection> -f setup/alerts.sql -D warehouse=<WH>\nsnow sql -c <connection> -f setup/access.sql -D warehouse=<WH> -D requester_role=<ROLE_THAT_CAN_REQUEST>\nRX_WAREHOUSE=<WH> bash deploy/deploy.sh <connection>\n\n以 RBAC_EXPLORER_ROLE 身份打开 Projects > Streamlit > Role Explorer。setup/demo_seed.sql 提供了一个可触发的告警，setup/demo_access_seed.sql 构建演示代理，setup/uninstall.sql 负责清理（你已应用的任何 AR_* 角色都会保留，因为可能有人正在使用它们）。\n\n在你离开之前\n\n已知限制，以免让你措手不及：\n\n图最多可能滞后两小时。实时检查：监视器和人员检查始终是最新的。未来授权未被建模，而且任何拥有 ACCOUNTADMIN 或 MANAGE GRANTS 的人仍然可以给自己授予更多权限。没有应用能解决这一点；只有组织架构图能做到。MCP 服务器工具尚未被遍历，并且应用的角色需要对代理拥有 MONITOR 才能描述它们。监视器每分钟运行一次，因此在其恢复运行期间会消耗无服务器计算积分。\n\n这是一个示例应用，按原样提供，不包含 Snowflake 官方支持。\n\n安装前请阅读代码及其请求的权限。欢迎提交问题和拉取请求。\n\n现在去享受你的周五 🍻。\n\n“谁有权访问这个？”最初发表于 Snowflake Builders Blog: Data Engineers, App Developers, AI, & Data Science（发布于 Medium），人们正在那里通过高亮并回应这个故事来继续对话。",
+      "content_blocks": [
+        {
+          "type": "heading",
+          "id": "b-90e32cf8f146",
+          "children": [
+            {
+              "type": "text",
+              "text": "一个",
+              "marks": [],
+              "id": "t-3902491dc65e"
+            },
+            {
+              "type": "text",
+              "text": "更好的 Snowflake",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-335c9586caa4"
+            },
+            {
+              "type": "text",
+              "text": "RBAC Explorer",
+              "marks": [],
+              "id": "t-6e7752e5bcd4"
+            }
+          ],
+          "level": 4
+        },
+        {
+          "type": "paragraph",
+          "id": "b-43baf6f428be",
+          "children": [
+            {
+              "type": "text",
+              "text": "现在是周五下午 4:55。有人问：“谁能看到 payroll 表？”于是你打开 Snowflake：",
+              "marks": [],
+              "id": "t-ffbe411f0754"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "b-cfc77d4debd3",
+          "ordered": false,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "打开一个工作表，输入 SHOW GRANTS",
+                  "marks": [],
+                  "id": "t-60e34d3aa0f1"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "然后再 SHOW GRANTS",
+                  "marks": [],
+                  "id": "t-eaeedd6d0286"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "然后再来一次",
+                  "marks": [],
+                  "id": "t-edff6fe28a8b"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-6d1995cd2830",
+          "children": [
+            {
+              "type": "text",
+              "text": "一路查了四层角色，直到你都不确定自己到底有没有被问过问题。",
+              "marks": [],
+              "id": "t-841208639917"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-7b55d146e108",
+          "children": [
+            {
+              "type": "text",
+              "text": "与此同时，一个新用户已被悄悄授予 ACCOUNTADMIN，而新的 AI agent 对你自己能用，对你分享给的人却不能用。",
+              "marks": [],
+              "id": "t-6a8d746779ba"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-daa62f357de7",
+          "children": [
+            {
+              "type": "text",
+              "text": "Snowflake RBAC Explorer",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-a5167e67c041"
+            },
+            {
+              "type": "text",
+              "text": " 是我构建的工具，让你的周五在 5 点结束。请继续阅读。",
+              "marks": [],
+              "id": "t-d7305fdce608"
+            }
+          ]
+        },
+        {
+          "type": "figure",
+          "id": "b-59046508c212",
+          "src": "https://cdn-images-1.medium.com/max/1024/1*JK4Bne7aazlIbcMeqY7c5A.png",
+          "alt": "",
+          "caption": "",
+          "source_url": "https://medium.com/snowflake/who-has-access-to-this-488ab8175785?source=rss----34b6daafc07---4",
+          "cached_src": "../media/649f9721d5e0/479ab913ee3774d69ce17b96.png",
+          "width": 1024,
+          "height": 617,
+          "mime": "image/png",
+          "size_bytes": 324851,
+          "media_status": "cached"
+        },
+        {
+          "type": "paragraph",
+          "id": "b-9371f3e39cab",
+          "children": [
+            {
+              "type": "text",
+              "text": "TL;DR：",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-830695fe2f19"
+            },
+            {
+              "type": "text",
+              "text": " RBAC Explorer 是一个 Streamlit in Snowflake 应用，面向分配访问权限的人。它显示谁能访问什么（以及通过哪条链路），在你撤销之前告诉你谁会受影响，当有人授予了不该授予的角色时在一两分钟内提醒你，用平实的英语回答问题，并准确算出 AI agent 需要哪些授权。它免费、开源，并且完全运行在你的 Snowflake 账户内。额外亮点：它有一个精心打造、响应迅速的前端，用 React 连接而成！",
+              "marks": [],
+              "id": "t-6e193ab031d0"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-0be687480383",
+          "children": [
+            {
+              "type": "text",
+              "text": "本文的组织方式：",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-17fc547e4969"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "b-82db7180400c",
+          "ordered": true,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "先是问题，然后快速游览。",
+                  "marks": [],
+                  "id": "t-60b03951a645"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "深入介绍 AI assets、Alerts 和 Ask。",
+                  "marks": [],
+                  "id": "t-3ec2e4f0f63d"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "设置、安全和已知限制在最后。",
+                  "marks": [],
+                  "id": "t-ae752731a227"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-86204348a82e",
+          "children": [
+            {
+              "type": "text",
+              "text": "三个问题，毫无乐趣",
+              "marks": [],
+              "id": "t-b330d32765ad"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-a3d57ac54b9f",
+          "children": [
+            {
+              "type": "text",
+              "text": "“Priya 能读取 ",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-e76ea2767b79"
+            },
+            {
+              "type": "text",
+              "text": "SALES",
+              "marks": [],
+              "id": "t-50e985612668"
+            },
+            {
+              "type": "text",
+              "text": " 吗？”",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-ce8da643d5f9"
+            },
+            {
+              "type": "text",
+              "text": " 听起来是个是非题。实际上却是一场寻宝游戏：她的授权，然后是她的角色们的授权，然后是",
+              "marks": [],
+              "id": "t-cdaff0f86f26"
+            },
+            {
+              "type": "text",
+              "text": "那些",
+              "marks": [
+                "em"
+              ],
+              "id": "t-1de8169231c1"
+            },
+            {
+              "type": "text",
+              "text": "角色们的授权，然后还得快速检查一下途中是否有人记得对数据库和 schema 的 USAGE。再乘上几百个角色，你就有了一个没人要求的爱好。",
+              "marks": [],
+              "id": "t-9bedcf9243b8"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-090622429990",
+          "children": [
+            {
+              "type": "text",
+              "text": "“如果昨晚有人获得了 ACCOUNTADMIN，我们会知道吗？”",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-18bd213305a1"
+            },
+            {
+              "type": "text",
+              "text": "最终会知道。ACCOUNT_USAGE ",
+              "marks": [],
+              "id": "t-424679f49403"
+            },
+            {
+              "type": "text",
+              "text": "最多可能延迟两个小时",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://docs.snowflake.com/en/sql-reference/account-usage#data-latency"
+                }
+              ],
+              "id": "t-d56943e53245"
+            },
+            {
+              "type": "text",
+              "text": "，这足够一个“新朋友”把自己安顿下来了。",
+              "marks": [],
+              "id": "t-47a3c5990d7e"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-3d91e35b0b72",
+          "children": [
+            {
+              "type": "text",
+              "text": "“为什么 Hana 的 agent 对 Hana 能用，对别人都不行？”",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-5767fd9080d0"
+            },
+            {
+              "type": "text",
+              "text": " 因为一个 agent 是一叠对象，Hana 持有能看到所有这些对象的角色，而其他人需要的授权清单根本没有被写下来。",
+              "marks": [],
+              "id": "t-3147957a17ff"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-912e3a85969c",
+          "children": [
+            {
+              "type": "text",
+              "text": "以前没人画过角色图吗？",
+              "marks": [],
+              "id": "t-9088135fb447"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-87ef5b77567d",
+          "children": [
+            {
+              "type": "text",
+              "text": "有人画过，而且很好。Snowsight 在 ",
+              "marks": [],
+              "id": "t-901db160f595"
+            },
+            {
+              "type": "text",
+              "text": "Admin > Users & Roles",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-63a8cdad1e9d"
+            },
+            {
+              "type": "text",
+              "text": " 下有一个，社区还构建了 ",
+              "marks": [],
+              "id": "t-88c22101d816"
+            },
+            {
+              "type": "text",
+              "text": "Grant Report",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://github.com/Snowflake-Labs/sfgrantreport"
+                }
+              ],
+              "id": "t-8b82ebcb31ad"
+            },
+            {
+              "type": "text",
+              "text": "、",
+              "marks": [],
+              "id": "t-a9c6bbcb652f"
+            },
+            {
+              "type": "text",
+              "text": "一个 Streamlit 图表",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://medium.com/snowflake/hi-streamlit-in-snowflake-lets-visualize-access-control-privileges-3dfe9f2a971a"
+                }
+              ],
+              "id": "t-1d49f441934b"
+            },
+            {
+              "type": "text",
+              "text": " 等等。",
+              "marks": [],
+              "id": "t-8e65879a1183"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-e4c1fbe78ac7",
+          "children": [
+            {
+              "type": "text",
+              "text": "RBAC Explorer 站在他们的肩膀上，加入了那些我一直希望有的东西：答案而不只是图片、几分钟内的提醒、平实的英语问题、AI agent 访问，而且无需托管任何东西。",
+              "marks": [],
+              "id": "t-ce34ff58bf55"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-3582744b3e7a",
+          "children": [
+            {
+              "type": "text",
+              "text": "游览",
+              "marks": [],
+              "id": "t-1acc1ad0976a"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "figure",
+          "id": "b-02f7e430c978",
+          "src": "https://cdn-images-1.medium.com/max/1024/1*CjbEARltWAAhExVUvq0KUw.gif",
+          "alt": "",
+          "caption": "",
+          "source_url": "https://medium.com/snowflake/who-has-access-to-this-488ab8175785?source=rss----34b6daafc07---4",
+          "media_status": "link_only",
+          "media_reason": "file_too_large"
+        },
+        {
+          "type": "figure",
+          "id": "b-7cca4d346419",
+          "src": "https://cdn-images-1.medium.com/max/1024/1*pANm2S5UHr9NjGuk9eKyVw.png",
+          "alt": "",
+          "caption": "",
+          "source_url": "https://medium.com/snowflake/who-has-access-to-this-488ab8175785?source=rss----34b6daafc07---4",
+          "cached_src": "../media/649f9721d5e0/aac7e3e1c8c0d8872da56ecb.png",
+          "width": 1024,
+          "height": 1007,
+          "mime": "image/png",
+          "size_bytes": 328442,
+          "media_status": "cached"
+        },
+        {
+          "type": "heading",
+          "id": "b-a5ebbc5afc29",
+          "children": [
+            {
+              "type": "text",
+              "text": "AI assets",
+              "marks": [],
+              "id": "t-cf8d431fbe36"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-fb1dcb6119a9",
+          "children": [
+            {
+              "type": "text",
+              "text": "帮你免于：",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-5d40f3bf922c"
+            },
+            {
+              "type": "text",
+              "text": "猜测一个 agent 需要什么。",
+              "marks": [],
+              "id": "t-e5463a9cb5f1"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-b1679a2fcdec",
+          "children": [
+            {
+              "type": "text",
+              "text": "一个 agent 依赖的每一项授权、谁已准备好使用它，以及针对任何尚未准备好的人的修复方案。",
+              "marks": [],
+              "id": "t-2505aa96d01c"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-9168b491e53a",
+          "children": [
+            {
+              "type": "text",
+              "text": "访问权限的叠叠乐高塔",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-9e11cb2947e7"
+            }
+          ],
+          "level": 4
+        },
+        {
+          "type": "paragraph",
+          "id": "b-1ffa26efd039",
+          "children": [
+            {
+              "type": "text",
+              "text": "共享一张表是一个授权加一些 USAGE。共享一个 agent 则是一座高塔：",
+              "marks": [],
+              "id": "t-2adec7b6ac90"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "id": "b-a98deaa17976",
+          "text": "skill ──> agent ──> semantic view ──> tables\n                └─> custom tool ──> whatever it reads\n                └─> warehouse"
+        },
+        {
+          "type": "paragraph",
+          "id": "b-2abb54f724d7",
+          "children": [
+            {
+              "type": "text",
+              "text": "三条平台规则让它摇摇欲坠：",
+              "marks": [],
+              "id": "t-a789fe8ceafc"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "b-fb94ba833804",
+          "ordered": true,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Agent 以调用者的默认角色和仓库运行",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-78eb0c39e340"
+                },
+                {
+                  "type": "text",
+                  "text": "，而不是他们切换到的任何角色（",
+                  "marks": [],
+                  "id": "t-57cee5818de1"
+                },
+                {
+                  "type": "text",
+                  "text": "文档",
+                  "marks": [
+                    {
+                      "type": "link",
+                      "href": "https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents-setup#user-requirements"
+                    }
+                  ],
+                  "id": "t-3ba99ae5add5"
+                },
+                {
+                  "type": "text",
+                  "text": "）。",
+                  "marks": [],
+                  "id": "t-d26c84c4546b"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "缺少工具授权不会失败。",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-76021d17b542"
+                },
+                {
+                  "type": "text",
+                  "text": " 默认情况下，agent 只是在没有该工具的情况下作答。答案更差，没有报错，大量令人困惑的 Slack 讨论串。",
+                  "marks": [],
+                  "id": "t-45ee3bfa4c3d"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "路径很重要。",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-0484a5cf113f"
+                },
+                {
+                  "type": "text",
+                  "text": " 查询一个语义视图需要对该视图的 SELECT 权限。agent 的 Cortex Analyst 工具会访问底层的表（",
+                  "marks": [],
+                  "id": "t-55b93b9596ba"
+                },
+                {
+                  "type": "text",
+                  "text": "文档",
+                  "marks": [
+                    {
+                      "type": "link",
+                      "href": "https://docs.snowflake.com/en/user-guide/views-semantic/overview"
+                    }
+                  ],
+                  "id": "t-d21dbc0a8547"
+                },
+                {
+                  "type": "text",
+                  "text": "）。",
+                  "marks": [],
+                  "id": "t-5f9b021d86bb"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-deb4b878639c",
+          "children": [
+            {
+              "type": "text",
+              "text": "选择一个 agent、语义视图、工具或技能（粘贴一个 SKILL.md，它会解析其中的每个名称），然后选择一个人或团队。应用会检查他们的默认角色、他们的所有角色，以及 MCP 客户端可能使用的每个访问令牌，并给出 ",
+              "marks": [],
+              "id": "t-51547b05cd70"
+            },
+            {
+              "type": "text",
+              "text": "Ready",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-3b2510a806c1"
+            },
+            {
+              "type": "text",
+              "text": "、",
+              "marks": [],
+              "id": "t-19cb65c70448"
+            },
+            {
+              "type": "text",
+              "text": "Partly works",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-11f5823d98f6"
+            },
+            {
+              "type": "text",
+              "text": " 或 ",
+              "marks": [],
+              "id": "t-578da512e258"
+            },
+            {
+              "type": "text",
+              "text": "Blocked",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-aad379fa7486"
+            },
+            {
+              "type": "text",
+              "text": "，并列出每一项缺失的授权。",
+              "marks": [],
+              "id": "t-1e3dbce8cc7b"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-a041cbc69f1d",
+          "children": [
+            {
+              "type": "text",
+              "text": "修复方案是为每个资产设一个整洁的访问角色：",
+              "marks": [],
+              "id": "t-ebb4b67d3c4c"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "id": "b-b44bcd18af44",
+          "text": "CREATE ROLE IF NOT EXISTS AR_DEMO_SALES_AGENT;\nGRANT USAGE ON AGENT DEMO_SALES_DB.CORE.DEMO_SALES_AGENT TO ROLE AR_DEMO_SALES_AGENT;\nGRANT SELECT ON SEMANTIC VIEW DEMO_SALES_DB.CORE.DEMO_SALES_SV TO ROLE AR_DEMO_SALES_AGENT;\nGRANT SELECT ON TABLE DEMO_SALES_DB.CORE.ORDERS TO ROLE AR_DEMO_SALES_AGENT;\n-- ... procedure, warehouse, database, schema, CUSTOMERS\nGRANT ROLE AR_DEMO_SALES_AGENT TO ROLE DEMO_SALES_TEAM_ROLE;"
+        },
+        {
+          "type": "paragraph",
+          "id": "b-bef50fc5c8c0",
+          "children": [
+            {
+              "type": "text",
+              "text": "复制它，或打开 ",
+              "marks": [],
+              "id": "t-8e666d71e302"
+            },
+            {
+              "type": "text",
+              "text": "Apply",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-e9fd7daf5be2"
+            },
+            {
+              "type": "text",
+              "text": "（默认关闭），它只运行你审核过的内容，拒绝系统和受保护角色，记录一切并提供 ",
+              "marks": [],
+              "id": "t-bdd6d2e222ca"
+            },
+            {
+              "type": "text",
+              "text": "Revert",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-046b4cb8f036"
+            },
+            {
+              "type": "text",
+              "text": "。在演示中，它让一位队友从 10 项授权中的 5 项提升到 9 项。第十项是缺少默认仓库，任何授权都无法修复，所以你会得到 ALTER USER 语句。用户也可以通过 SQL 或 Cortex Code 技能请求捆绑包，直接进入应用中的队列。",
+              "marks": [],
+              "id": "t-42677b01c9d9"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-6bf3327cb2d0",
+          "children": [
+            {
+              "type": "text",
+              "text": "Alerts",
+              "marks": [],
+              "id": "t-d022d6c2710c"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-fb34655ae99f",
+          "children": [
+            {
+              "type": "text",
+              "text": "帮你免于：",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-96ae24edae97"
+            },
+            {
+              "type": "text",
+              "text": "从审计员那里才知道。",
+              "marks": [],
+              "id": "t-254e6aedf9a3"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-ffe830a37245",
+          "children": [
+            {
+              "type": "text",
+              "text": "规则、日志和一个每分钟检查一次的监视器。",
+              "marks": [],
+              "id": "t-11297cab9687"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-fa52112af8de",
+          "children": [
+            {
+              "type": "text",
+              "text": "一个不打盹的监视器",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-13bdcce69c5b"
+            }
+          ],
+          "level": 4
+        },
+        {
+          "type": "paragraph",
+          "id": "b-78594b48c244",
+          "children": [
+            {
+              "type": "text",
+              "text": "两小时的延迟对仪表盘来说没问题，对烟雾探测器来说却很糟糕，所以监视器跳过 ACCOUNT_USAGE，直接询问 Snowflake：",
+              "marks": [],
+              "id": "t-e2829ff29da7"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "id": "b-31c115ff52f8",
+          "text": "every minute ──> serverless task ──> CALL CHECK_PROTECTED_ROLES()\n                   live SHOW GRANTS / SHOW USERS / SHOW ROLES\n                   ├─ new violation  ──> ALERT_LOG (OPEN) ──> email / Slack\n                   └─ violation gone ──> ALERT_LOG (RESOLVED)"
+        },
+        {
+          "type": "paragraph",
+          "id": "b-f9f0eda988d0",
+          "children": [
+            {
+              "type": "text",
+              "text": "一条 ",
+              "marks": [],
+              "id": "t-a2e25949372a"
+            },
+            {
+              "type": "text",
+              "text": "protected-role",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-6d018d60322c"
+            },
+            {
+              "type": "text",
+              "text": " 规则规定谁可以持有某个角色（“这两个人、这些父角色，仅此而已”）。父角色检查很重要：把一个角色授予 ACCOUNTADMIN，你就等于把它授予了该角色中的所有用户，一下子多了很多新朋友。自定义提醒能捕获新的持有者、MANAGE GRANTS 等敏感权限、命名可疑的新用户，以及悄悄失去对某物访问权限的 AI agent。",
+              "marks": [],
+              "id": "t-38f933b24757"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-55ce680cc6c8",
+          "children": [
+            {
+              "type": "text",
+              "text": "每个提醒都附带链路、授予角色和一个可直接运行的修复方案。确切的用户和语句会在 QUERY_HISTORY 跟上后从中填充。自动撤销是按规则选择启用的，默认关闭。",
+              "marks": [],
+              "id": "t-924e4f09d288"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-9907f9b16b6f",
+          "children": [
+            {
+              "type": "text",
+              "text": "日志就是一张表，所以你的 SIEM 只需一次查询：",
+              "marks": [],
+              "id": "t-ba3715a7f2b3"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "id": "b-37ad8e2300e4",
+          "text": "SELECT detected_at, kind, role_name, grantee, reason, granted_by_user, status\nFROM RBAC_EXPLORER_DB.ALERTS.ALERT_LOG ORDER BY detected_at DESC LIMIT 50;"
+        },
+        {
+          "type": "heading",
+          "id": "b-c8120ecef7fa",
+          "children": [
+            {
+              "type": "text",
+              "text": "Ask",
+              "marks": [],
+              "id": "t-b4770c83ecbb"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-d1db083fd667",
+          "children": [
+            {
+              "type": "text",
+              "text": "帮你免于：",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-c1af3733ad89"
+            },
+            {
+              "type": "text",
+              "text": "编写 SQL 来回答一个问题。",
+              "marks": [],
+              "id": "t-1d48e8ba6c57"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-cbd3ea142d68",
+          "children": [
+            {
+              "type": "text",
+              "text": "一个平实英语助手，位于每个标签页旁边，基于你正在查看的同一份授权数据作答。",
+              "marks": [],
+              "id": "t-691e061f37c4"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-14f20e659ede",
+          "children": [
+            {
+              "type": "text",
+              "text": "用平实英语说： ",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-6c25e373f456"
+            },
+            {
+              "type": "text",
+              "text": "假设你在 Revoke what-if 中，想知道一次清理是否安全。问 ",
+              "marks": [],
+              "id": "t-ca6523a22231"
+            },
+            {
+              "type": "text",
+              "text": "“如果我从 REPORTING 撤销 ANALYST，会破坏什么？”",
+              "marks": [
+                "em"
+              ],
+              "id": "t-5f48546e69a7"
+            },
+            {
+              "type": "text",
+              "text": " 它会列出失去访问权限的用户及其失去的权限，与你在暂存后该标签页会给出的答案相同。",
+              "marks": [],
+              "id": "t-c3620bb6c7f6"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-3cd4bd10322c",
+          "children": [
+            {
+              "type": "text",
+              "text": "没有模型会针对你的账户编写 SQL。应用把已经加载的那部分授权数据连同屏幕上的内容一起交给 AI_COMPLETE，因此答案与图一致。Ask 也可以用一句话起草提醒（“如果有新的人获得 ACCOUNTADMIN 就告诉我”），供你在保存前检查。",
+              "marks": [],
+              "id": "t-f3086446242a"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-0015d8967398",
+          "children": [
+            {
+              "type": "text",
+              "text": "Ask 需要你所在区域有 Cortex 模型。在依赖它之前，请查看 ",
+              "marks": [],
+              "id": "t-5dc4ac5c073a"
+            },
+            {
+              "type": "text",
+              "text": "Cortex AI 区域可用性",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://docs.snowflake.com/en/user-guide/snowflake-cortex/aisql-regional-availability#regional-availability"
+                }
+              ],
+              "id": "t-ee9b5ab3a34a"
+            },
+            {
+              "type": "text",
+              "text": "；应用中的其他一切无需它也能工作。",
+              "marks": [],
+              "id": "t-43d0d0b01eb0"
+            }
+          ]
+        },
+        {
+          "type": "figure",
+          "id": "b-dfb3003dcf61",
+          "src": "https://cdn-images-1.medium.com/max/920/1*nhogiapscAar_q_SJGyQ7w.png",
+          "alt": "",
+          "caption": "Ask：一个平实英语问题，从实时授权图作答（演示数据）。",
+          "source_url": "https://medium.com/snowflake/who-has-access-to-this-488ab8175785?source=rss----34b6daafc07---4",
+          "cached_src": "../media/649f9721d5e0/040abdf3510009025da7e573.png",
+          "width": 920,
+          "height": 1120,
+          "mime": "image/png",
+          "size_bytes": 165652,
+          "media_status": "cached"
+        },
+        {
+          "type": "heading",
+          "id": "b-13a5ed2910ce",
+          "children": [
+            {
+              "type": "text",
+              "text": "底层实现",
+              "marks": [],
+              "id": "t-43ec2061f8f6"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-405e9360c967",
+          "children": [
+            {
+              "type": "text",
+              "text": "RBAC 问题是图问题，每次点击一次查询会慢得让人痛苦。所以应用从 ACCOUNT_USAGE 一次性加载模型（再加上系统角色的实时 SHOW 输出），缓存 30 分钟，并在浏览器中进行图计算。",
+              "marks": [],
+              "id": "t-976ff051f599"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-d1d45f8681d9",
+          "children": [
+            {
+              "type": "text",
+              "text": "点击是即时的",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-79ac3613fed9"
+            },
+            {
+              "type": "text",
+              "text": "。UI 是 React，用 esbuild 打包，并通过 st.html 在 Streamlit 的 ",
+              "marks": [],
+              "id": "t-0010976e8a0b"
+            },
+            {
+              "type": "text",
+              "text": "容器运行时",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://docs.snowflake.com/en/developer-guide/streamlit/app-development/runtime-environments"
+                }
+              ],
+              "id": "t-e5ac95a22c31"
+            },
+            {
+              "type": "text",
+              "text": " 上渲染。",
+              "marks": [],
+              "id": "t-358d4e3a71bd"
+            }
+          ]
+        },
+        {
+          "type": "figure",
+          "id": "b-8ff85c08f855",
+          "src": "https://cdn-images-1.medium.com/max/1024/1*uObsRQlasl5Y3WhGkrOrvQ.png",
+          "alt": "",
+          "caption": "各部分的配合方式：上面是交互式应用，下面是每分钟运行的监视器。",
+          "source_url": "https://medium.com/snowflake/who-has-access-to-this-488ab8175785?source=rss----34b6daafc07---4",
+          "cached_src": "../media/649f9721d5e0/f68f4b56e77bf2b95a3e678b.png",
+          "width": 1024,
+          "height": 478,
+          "mime": "image/png",
+          "size_bytes": 143339,
+          "media_status": "cached"
+        },
+        {
+          "type": "heading",
+          "id": "b-d22f9a610886",
+          "children": [
+            {
+              "type": "text",
+              "text": "关于安全的细则",
+              "marks": [],
+              "id": "t-b29a8e1f3ee9"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "list",
+          "id": "b-96f239a42838",
+          "ordered": false,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "仅限管理员。",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-27dc3a8a5bcf"
+                },
+                {
+                  "type": "text",
+                  "text": "该应用以其所有者身份运行，所有者拥有 MANAGE GRANTS，因此任何打开它的人都能看到所有 RBAC 元数据。请把它授予访问管理员，而不是全公司。",
+                  "marks": [],
+                  "id": "t-9b6a57c2d02e"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "除此之外的最小权限：",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-d421fde4245f"
+                },
+                {
+                  "type": "text",
+                  "text": "SECURITY_VIEWER、GOVERNANCE_VIEWER、CORTEX_USER 和任务权限。",
+                  "marks": [],
+                  "id": "t-3e0f79abc23f"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "除非你明确要求，否则不会有任何变化。",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-a41cc02ae0d8"
+                },
+                {
+                  "type": "text",
+                  "text": "只有开启 Apply 或自动撤销时，授权才会变动。",
+                  "marks": [],
+                  "id": "t-6d901d5b3632"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "仅限元数据。",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-a5fbbf1750d0"
+                },
+                {
+                  "type": "text",
+                  "text": "它从不读取你的表数据。",
+                  "marks": [],
+                  "id": "t-945bda35f8ce"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-0454e12e04be",
+          "children": [
+            {
+              "type": "text",
+              "text": "试一试",
+              "marks": [],
+              "id": "t-81174fea0379"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-6eb0b80e5861",
+          "children": [
+            {
+              "type": "text",
+              "text": "在 ACCOUNTADMIN 上，只需把 ",
+              "marks": [],
+              "id": "t-a8307f0443d8"
+            },
+            {
+              "type": "text",
+              "text": "Cortex Code",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code"
+                }
+              ],
+              "id": "t-cc9da0230ac7"
+            },
+            {
+              "type": "text",
+              "text": " 指向仓库 ",
+              "marks": [],
+              "id": "t-db9fe1a98d9a"
+            },
+            {
+              "type": "text",
+              "text": "https://github.com/sfc-gh-vshiv/snowflake-rbac-explorer",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://github.com/sfc-gh-vshiv/snowflake-rbac-explorer"
+                }
+              ],
+              "id": "t-81220e9b4569"
+            },
+            {
+              "type": "text",
+              "text": " 并让它部署到你的 Snowflake 账户中。",
+              "marks": [],
+              "id": "t-797c3450c44a"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-6061b2a8488b",
+          "children": [
+            {
+              "type": "text",
+              "text": "GitHub - sfc-gh-vshiv/a-better-snowflake-rbac-explorer",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://github.com/sfc-gh-vshiv/snowflake-rbac-explorer"
+                }
+              ],
+              "id": "t-a104ade7c6d8"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-8ba3443f162d",
+          "children": [
+            {
+              "type": "text",
+              "text": "或者",
+              "marks": [],
+              "id": "t-e002a636df94"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-1fa045520041",
+          "children": [
+            {
+              "type": "text",
+              "text": "如果你想真正亲自动手（你需要 ",
+              "marks": [],
+              "id": "t-eb7cbe8dc411"
+            },
+            {
+              "type": "text",
+              "text": "Snowflake CLI",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://docs.snowflake.com/en/developer-guide/snowflake-cli/installation/installation"
+                }
+              ],
+              "id": "t-ca591d13d0fc"
+            },
+            {
+              "type": "text",
+              "text": "）：",
+              "marks": [],
+              "id": "t-8aaffa36160d"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "id": "b-11d075006f51",
+          "text": "git clone https://github.com/sfc-gh-vshiv/snowflake-rbac-explorer.git\ncd snowflake-rbac-explorer\nsnow sql -c <connection> -f setup/setup.sql \\\n  -D admin_user=<YOUR_USER> -D warehouse=<WH> -D alert_email=<you@company.com>\nsnow sql -c <connection> -f setup/alerts.sql -D warehouse=<WH>\nsnow sql -c <connection> -f setup/access.sql -D warehouse=<WH> -D requester_role=<ROLE_THAT_CAN_REQUEST>\nRX_WAREHOUSE=<WH> bash deploy/deploy.sh <connection>"
+        },
+        {
+          "type": "paragraph",
+          "id": "b-dc8188f7b001",
+          "children": [
+            {
+              "type": "text",
+              "text": "以 RBAC_EXPLORER_ROLE 身份打开 ",
+              "marks": [],
+              "id": "t-1a1fa10009ac"
+            },
+            {
+              "type": "text",
+              "text": "Projects > Streamlit > Role Explorer",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-e7054286021a"
+            },
+            {
+              "type": "text",
+              "text": "。setup/demo_seed.sql 提供了一个可触发的告警，setup/demo_access_seed.sql 构建演示代理，setup/uninstall.sql 负责清理（你已应用的任何 AR_* 角色都会保留，因为可能有人正在使用它们）。",
+              "marks": [],
+              "id": "t-14ec46693156"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "id": "b-ede153943062",
+          "children": [
+            {
+              "type": "text",
+              "text": "在你离开之前",
+              "marks": [],
+              "id": "t-17bfd6aad942"
+            }
+          ],
+          "level": 3
+        },
+        {
+          "type": "paragraph",
+          "id": "b-1ec9947936a3",
+          "children": [
+            {
+              "type": "text",
+              "text": "已知限制，以免让你措手不及：",
+              "marks": [],
+              "id": "t-e7a953b43200"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "b-0b3f7bffa919",
+          "ordered": false,
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "图最多可能滞后两小时。",
+                  "marks": [],
+                  "id": "t-b840c71f895b"
+                },
+                {
+                  "type": "text",
+                  "text": "实时检查：",
+                  "marks": [
+                    "strong"
+                  ],
+                  "id": "t-5b465e1964e7"
+                },
+                {
+                  "type": "text",
+                  "text": "监视器和人员检查始终是最新的。",
+                  "marks": [],
+                  "id": "t-5bb640914105"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "未来授权未被建模，而且任何拥有 ACCOUNTADMIN 或 MANAGE GRANTS 的人仍然可以给自己授予更多权限。没有应用能解决这一点；只有组织架构图能做到。",
+                  "marks": [],
+                  "id": "t-4954e52bd3a8"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "MCP 服务器工具尚未被遍历，并且应用的角色需要对代理拥有 MONITOR 才能描述它们。",
+                  "marks": [],
+                  "id": "t-5d1027062e71"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "text": "监视器每分钟运行一次，因此在其恢复运行期间会消耗无服务器计算积分。",
+                  "marks": [],
+                  "id": "t-e6612818f690"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-3728a6132e4f",
+          "children": [
+            {
+              "type": "text",
+              "text": "这是一个示例应用，按原样提供，不包含 Snowflake 官方支持。",
+              "marks": [
+                "strong"
+              ],
+              "id": "t-3635c9b95d70"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-1d2b16ae91fe",
+          "children": [
+            {
+              "type": "text",
+              "text": "安装前请阅读代码及其请求的权限。欢迎提交问题和拉取请求。",
+              "marks": [
+                "em"
+              ],
+              "id": "t-598533c32362"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-99c29542edfe",
+          "children": [
+            {
+              "type": "text",
+              "text": "现在去享受你的周五 ",
+              "marks": [
+                "em"
+              ],
+              "id": "t-f0c4385242fe"
+            },
+            {
+              "type": "text",
+              "text": "🍻",
+              "marks": [],
+              "id": "t-530442c48969"
+            },
+            {
+              "type": "text",
+              "text": "。",
+              "marks": [
+                "em"
+              ],
+              "id": "t-a8dddf68ca49"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "id": "b-89b9eed84838",
+          "children": [
+            {
+              "type": "text",
+              "text": "“谁有权访问这个？”",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://medium.com/snowflake/who-has-access-to-this-488ab8175785"
+                }
+              ],
+              "id": "t-af88e6397019"
+            },
+            {
+              "type": "text",
+              "text": "最初发表于 ",
+              "marks": [],
+              "id": "t-8a16f0e78c93"
+            },
+            {
+              "type": "text",
+              "text": "Snowflake Builders Blog: Data Engineers, App Developers, AI, & Data Science",
+              "marks": [
+                {
+                  "type": "link",
+                  "href": "https://medium.com/snowflake"
+                }
+              ],
+              "id": "t-823972a2de54"
+            },
+            {
+              "type": "text",
+              "text": "（发布于 Medium），人们正在那里通过高亮并回应这个故事来继续对话。",
+              "marks": [],
+              "id": "t-e2918b8d310a"
+            }
+          ]
+        }
+      ],
+      "content_format": "blocks-v1",
+      "category": "platform",
+      "category_label": "AI 数据平台",
+      "vendors": [
+        "Snowflake"
+      ],
+      "heat": 66,
+      "star": true,
+      "importance": 78,
+      "quality_score": 78,
+      "trend_score": 57,
+      "signal": 0,
+      "topics": [],
+      "shelf": "news",
+      "pinned": false,
+      "published": "2026-10-22T22:01:05+08:00",
+      "first_seen": "2026-10-23T05:41:03.425705+08:00",
+      "items": [
+        {
+          "id": "649f9721d5e0",
+          "source": "Snowflake Engineering（Medium）",
+          "link": "https://medium.com/snowflake/who-has-access-to-this-488ab8175785?source=rss----34b6daafc07---4",
+          "published": "2026-10-22T22:01:05+08:00",
+          "ingested_at": "2026-10-23T05:41:03.425705+08:00",
+          "title": "“Who Has Access to This?”"
+        }
+      ],
+      "work_tags": {
+        "taxonomy_version": "work-tags-v1",
+        "product_objects": [
+          "权限与治理"
+        ],
+        "use_cases": [],
+        "decision_concerns": [
+          "权限与安全"
+        ]
+      },
+      "quality_breakdown": {
+        "originality": 24,
+        "evidence_density": 17,
+        "information_gain": 18,
+        "actionability_depth": 19
+      },
+      "content_parse": {
+        "run_id": "github-39858374625-1",
+        "processor_version": "original-first-v7",
+        "attempted_at": "2026-10-23T05:43:15.831704+08:00",
+        "status": "ready",
+        "source": "Snowflake Engineering（Medium）",
+        "strategy": "rss_document_fallback",
+        "blocks": 69,
+        "text_chars": 9368,
+        "figures": 5,
+        "tables": 0,
+        "figures_discovered": 6,
+        "figures_selected": 5,
+        "figures_rejected": 1,
+        "candidate_count": 0,
+        "figures_rejected_author": 0,
+        "figures_rejected_decorative": 0,
+        "figures_rejected_duplicate": 0,
+        "figures_rejected_small": 1,
+        "figures_rejected_limit": 0,
+        "trimmed_tail_blocks": 0,
+        "trimmed_head_blocks": 0,
+        "trimmed_promotional_blocks": 0,
+        "trimmed_embedded_ui_blocks": 0,
+        "embedded_ui_components": 0,
+        "selected_depth": 0,
+        "selected_raw_blocks": 70,
+        "selected_raw_text_chars": 9368,
+        "broad_raw_blocks": 70,
+        "broad_raw_text_chars": 9390,
+        "parent_extra_blocks": 0,
+        "candidate_count_raw": 0,
+        "candidate_duplicates": 0,
+        "candidate_quality_rejected": 0,
+        "duplicate_blocks": 0,
+        "selected_score": 462.37,
+        "quality_status": "pass",
+        "selected_tag": "document",
+        "focus_ratio": 1.0,
+        "link_ratio": 0.0367,
+        "duplicate_ratio": 0.0,
+        "selection_evidence": [
+          "prose_density",
+          "integrity_gate"
+        ],
+        "media": {
+          "figures": 5,
+          "cached": 4,
+          "link_only": 1,
+          "policy_version": "source-cdn-v1",
+          "reasons": {
+            "file_too_large": 1
+          }
+        },
+        "content_mode": "translated",
+        "source_language": "other",
+        "translation_status": "complete",
+        "source_content_hash": "514be0db96cc14d4e2c72abc",
+        "translation": {
+          "run_id": "github-39858374625-1",
+          "policy_version": "faithful-translation-retry-v1",
+          "attempted_at": "2026-10-23T05:43:15.831751+08:00",
+          "purpose": "body_translation",
+          "status": "complete"
+        }
+      },
+      "content_mode": "translated",
+      "content_level": "translated",
+      "source_language": "other",
+      "translation_status": "complete",
+      "source_content_hash": "514be0db96cc14d4e2c72abc",
+      "body_chars": 5257
+    },
     {
       "event_id": "c09b234dbbdd",
       "zh_title": "Apache Iceberg 1.12.0 发布",
@@ -4830,11 +8895,11 @@
       "vendors": [
         "Jellyfish"
       ],
-      "heat": 68,
+      "heat": 66,
       "star": true,
       "importance": 78,
       "quality_score": 78,
-      "trend_score": 61,
+      "trend_score": 57,
       "signal": 0,
       "topics": [
         "组织人才"
@@ -6946,11 +11011,11 @@
       "vendors": [
         "DuckDB"
       ],
-      "heat": 67,
+      "heat": 65,
       "star": true,
       "importance": 79,
       "quality_score": 79,
-      "trend_score": 56,
+      "trend_score": 53,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -7635,11 +11700,11 @@
         "Hex",
         "Meta"
       ],
-      "heat": 52,
+      "heat": 50,
       "star": false,
       "importance": 72,
       "quality_score": 72,
-      "trend_score": 35,
+      "trend_score": 33,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -8871,11 +12936,11 @@
         "OpenAI",
         "PerturbAI"
       ],
-      "heat": 41,
+      "heat": 40,
       "star": false,
       "importance": 45,
       "quality_score": 45,
-      "trend_score": 38,
+      "trend_score": 35,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -9782,11 +13847,11 @@
       "category": "product",
       "category_label": "数据产品",
       "vendors": [],
-      "heat": 65,
+      "heat": 63,
       "star": true,
       "importance": 81,
       "quality_score": 81,
-      "trend_score": 52,
+      "trend_score": 48,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -10775,11 +14840,11 @@
       "category": "agent",
       "category_label": "Data Agent",
       "vendors": [],
-      "heat": 57,
+      "heat": 55,
       "star": false,
       "importance": 72,
       "quality_score": 72,
-      "trend_score": 44,
+      "trend_score": 42,
       "signal": 0,
       "topics": [
         "ChatBI",
@@ -11454,11 +15519,11 @@
         "PingCAP",
         "TiDB"
       ],
-      "heat": 54,
+      "heat": 52,
       "star": false,
       "importance": 66,
       "quality_score": 66,
-      "trend_score": 43,
+      "trend_score": 41,
       "signal": 0,
       "topics": [
         "风险管理"
@@ -12723,11 +16788,11 @@
         "Google Cloud",
         "BigQuery"
       ],
-      "heat": 46,
+      "heat": 45,
       "star": false,
       "importance": 60,
       "quality_score": 60,
-      "trend_score": 35,
+      "trend_score": 33,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -13970,11 +18035,11 @@
         "Langfuse",
         "Cursor"
       ],
-      "heat": 56,
+      "heat": 54,
       "star": false,
       "importance": 66,
       "quality_score": 66,
-      "trend_score": 48,
+      "trend_score": 45,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -14572,11 +18637,11 @@
         "Kafka",
         "Redis"
       ],
-      "heat": 56,
+      "heat": 55,
       "star": false,
       "importance": 69,
       "quality_score": 69,
-      "trend_score": 46,
+      "trend_score": 43,
       "signal": 0,
       "topics": [
         "实时分析"
@@ -18298,11 +22363,11 @@
         "ClickHouse",
         "NVIDIA"
       ],
-      "heat": 59,
+      "heat": 58,
       "star": true,
       "importance": 80,
       "quality_score": 80,
-      "trend_score": 42,
+      "trend_score": 40,
       "signal": 0,
       "topics": [
         "实时分析"
@@ -18992,11 +23057,11 @@
         "Fivetran",
         "dbt Labs"
       ],
-      "heat": 56,
+      "heat": 55,
       "star": false,
       "importance": 67,
       "quality_score": 67,
-      "trend_score": 48,
+      "trend_score": 45,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -21584,11 +25649,11 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 55,
+      "heat": 53,
       "star": false,
       "importance": 63,
       "quality_score": 63,
-      "trend_score": 48,
+      "trend_score": 45,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -22603,11 +26668,11 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 62,
+      "heat": 60,
       "star": true,
       "importance": 85,
       "quality_score": 85,
-      "trend_score": 43,
+      "trend_score": 40,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -24710,11 +28775,11 @@
         "Google Cloud",
         "BigQuery"
       ],
-      "heat": 36,
+      "heat": 35,
       "star": true,
       "importance": 77,
       "quality_score": 77,
-      "trend_score": 2,
+      "trend_score": 1,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -25422,11 +29487,11 @@
       "vendors": [
         "Palantir"
       ],
-      "heat": 58,
+      "heat": 57,
       "star": true,
       "importance": 79,
       "quality_score": 79,
-      "trend_score": 42,
+      "trend_score": 39,
       "signal": 0,
       "topics": [
         "语义层",
@@ -26151,11 +30216,11 @@
         "Databricks",
         "NVIDIA"
       ],
-      "heat": 58,
+      "heat": 57,
       "star": false,
       "importance": 70,
       "quality_score": 70,
-      "trend_score": 49,
+      "trend_score": 46,
       "signal": 0,
       "topics": [
         "平台AI化",
@@ -26931,11 +30996,11 @@
         "Databricks",
         "NVIDIA"
       ],
-      "heat": 44,
+      "heat": 43,
       "star": false,
       "importance": 53,
       "quality_score": 53,
-      "trend_score": 38,
+      "trend_score": 35,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -28955,11 +33020,11 @@
       "vendors": [
         "Metabase"
       ],
-      "heat": 59,
+      "heat": 58,
       "star": true,
       "importance": 89,
       "quality_score": 89,
-      "trend_score": 35,
+      "trend_score": 33,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -29080,11 +33145,11 @@
         "OpenAI",
         "Terminal X"
       ],
-      "heat": 42,
+      "heat": 41,
       "star": false,
       "importance": 59,
       "quality_score": 59,
-      "trend_score": 27,
+      "trend_score": 26,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -32681,11 +36746,11 @@
         "Neon",
         "Snowflake"
       ],
-      "heat": 51,
+      "heat": 50,
       "star": false,
       "importance": 68,
       "quality_score": 68,
-      "trend_score": 38,
+      "trend_score": 35,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -33483,11 +37548,11 @@
       "vendors": [
         "Anthropic"
       ],
-      "heat": 52,
+      "heat": 50,
       "star": false,
       "importance": 69,
       "quality_score": 69,
-      "trend_score": 38,
+      "trend_score": 35,
       "signal": 0,
       "topics": [
         "组织人才"
@@ -35780,11 +39845,11 @@
         "Databricks",
         "Mem0"
       ],
-      "heat": 55,
+      "heat": 54,
       "star": true,
       "importance": 83,
       "quality_score": 83,
-      "trend_score": 32,
+      "trend_score": 30,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -36665,11 +40730,11 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 50,
+      "heat": 49,
       "star": false,
       "importance": 72,
       "quality_score": 72,
-      "trend_score": 32,
+      "trend_score": 30,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -37946,11 +42011,11 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 37,
+      "heat": 36,
       "star": false,
       "importance": 53,
       "quality_score": 53,
-      "trend_score": 24,
+      "trend_score": 23,
       "signal": 0,
       "topics": [
         "平台AI化",
@@ -38641,11 +42706,11 @@
       "vendors": [
         "dbt Labs"
       ],
-      "heat": 42,
+      "heat": 41,
       "star": false,
       "importance": 56,
       "quality_score": 56,
-      "trend_score": 30,
+      "trend_score": 28,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -39921,11 +43986,11 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 52,
+      "heat": 51,
       "star": true,
       "importance": 75,
       "quality_score": 75,
-      "trend_score": 33,
+      "trend_score": 31,
       "signal": 0,
       "topics": [
         "平台AI化",
@@ -40656,11 +44721,11 @@
       "vendors": [
         "ThoughtSpot"
       ],
-      "heat": 35,
+      "heat": 34,
       "star": false,
       "importance": 43,
       "quality_score": 43,
-      "trend_score": 29,
+      "trend_score": 28,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -41546,11 +45611,11 @@
       "vendors": [
         "ClickHouse"
       ],
-      "heat": 50,
+      "heat": 49,
       "star": true,
       "importance": 76,
       "quality_score": 76,
-      "trend_score": 28,
+      "trend_score": 26,
       "signal": 0,
       "topics": [
         "Data Agent"
@@ -42507,11 +46572,11 @@
       "vendors": [
         "Aloudata"
       ],
-      "heat": 34,
+      "heat": 33,
       "star": false,
       "importance": 45,
       "quality_score": 45,
-      "trend_score": 26,
+      "trend_score": 24,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -43447,7 +47512,7 @@
       "star": false,
       "importance": 66,
       "quality_score": 66,
-      "trend_score": 25,
+      "trend_score": 23,
       "signal": 0,
       "topics": [
         "湖仓",
@@ -45244,11 +49309,11 @@
         "Databricks",
         "dbt Labs"
       ],
-      "heat": 43,
+      "heat": 42,
       "star": false,
       "importance": 67,
       "quality_score": 67,
-      "trend_score": 23,
+      "trend_score": 22,
       "signal": 0,
       "topics": [
         "湖仓"
@@ -50992,7 +55057,7 @@
       "vendors": [
         "Hex"
       ],
-      "heat": 29,
+      "heat": 28,
       "star": false,
       "importance": 58,
       "quality_score": 58,
@@ -53429,11 +57494,11 @@
         "Datadog",
         "Eppo"
       ],
-      "heat": 28,
+      "heat": 27,
       "star": false,
       "importance": 36,
       "quality_score": 36,
-      "trend_score": 22,
+      "trend_score": 20,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -54230,11 +58295,11 @@
       "vendors": [
         "Amplitude"
       ],
-      "heat": 36,
+      "heat": 35,
       "star": false,
       "importance": 53,
       "quality_score": 53,
-      "trend_score": 22,
+      "trend_score": 20,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -56512,11 +60577,11 @@
         "Google Cloud",
         "BigQuery"
       ],
-      "heat": 47,
+      "heat": 46,
       "star": true,
       "importance": 83,
       "quality_score": 83,
-      "trend_score": 18,
+      "trend_score": 16,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -58378,11 +62443,11 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 45,
+      "heat": 44,
       "star": false,
       "importance": 70,
       "quality_score": 70,
-      "trend_score": 24,
+      "trend_score": 23,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -59466,11 +63531,11 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 45,
+      "heat": 44,
       "star": false,
       "importance": 70,
       "quality_score": 70,
-      "trend_score": 24,
+      "trend_score": 22,
       "signal": 0,
       "topics": [
         "湖仓"
@@ -59637,7 +63702,7 @@
       "star": false,
       "importance": 42,
       "quality_score": 42,
-      "trend_score": 6,
+      "trend_score": 5,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -60723,11 +64788,11 @@
       "vendors": [
         "Metabase"
       ],
-      "heat": 37,
+      "heat": 36,
       "star": false,
       "importance": 61,
       "quality_score": 61,
-      "trend_score": 18,
+      "trend_score": 16,
       "signal": 0,
       "topics": [
         "语义层",
@@ -63078,11 +67143,11 @@
         "Amazon OpenSearch Service",
         "Amazon Bedrock"
       ],
-      "heat": 48,
+      "heat": 47,
       "star": true,
       "importance": 80,
       "quality_score": 80,
-      "trend_score": 22,
+      "trend_score": 21,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -63765,11 +67830,11 @@
         "Fivetran",
         "IBM"
       ],
-      "heat": 45,
+      "heat": 44,
       "star": false,
       "importance": 70,
       "quality_score": 70,
-      "trend_score": 24,
+      "trend_score": 23,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -65584,7 +69649,7 @@
       "star": false,
       "importance": 59,
       "quality_score": 59,
-      "trend_score": 21,
+      "trend_score": 20,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -66473,11 +70538,11 @@
       "vendors": [
         "ThoughtSpot"
       ],
-      "heat": 29,
+      "heat": 28,
       "star": false,
       "importance": 54,
       "quality_score": 54,
-      "trend_score": 8,
+      "trend_score": 7,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -67213,7 +71278,7 @@
       "star": false,
       "importance": 60,
       "quality_score": 60,
-      "trend_score": 21,
+      "trend_score": 19,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -68235,7 +72300,7 @@
       "star": false,
       "importance": 62,
       "quality_score": 62,
-      "trend_score": 17,
+      "trend_score": 16,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -69460,7 +73525,7 @@
       "star": false,
       "importance": 30,
       "quality_score": 30,
-      "trend_score": 12,
+      "trend_score": 11,
       "signal": 10,
       "topics": [
         "BI变局"
@@ -70432,11 +74497,11 @@
         "Google Cloud",
         "Dremio"
       ],
-      "heat": 60,
+      "heat": 59,
       "star": false,
       "importance": 68,
       "quality_score": 68,
-      "trend_score": 53,
+      "trend_score": 51,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -71032,7 +75097,7 @@
       "star": false,
       "importance": 68,
       "quality_score": 68,
-      "trend_score": 12,
+      "trend_score": 11,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -71455,7 +75520,7 @@
       "star": false,
       "importance": 55,
       "quality_score": 55,
-      "trend_score": 12,
+      "trend_score": 11,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -74235,11 +78300,11 @@
         "DuckDB",
         "Amazon Aurora PostgreSQL"
       ],
-      "heat": 28,
+      "heat": 27,
       "star": false,
       "importance": 50,
       "quality_score": 50,
-      "trend_score": 10,
+      "trend_score": 9,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -76146,7 +80211,7 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 35,
+      "heat": 34,
       "star": false,
       "importance": 67,
       "quality_score": 67,
@@ -79737,7 +83802,7 @@
         "Databricks",
         "Stripe"
       ],
-      "heat": 36,
+      "heat": 35,
       "star": false,
       "importance": 72,
       "quality_score": 72,
@@ -84558,7 +88623,7 @@
       "star": true,
       "importance": 84,
       "quality_score": 84,
-      "trend_score": 8,
+      "trend_score": 7,
       "signal": 0,
       "topics": [
         "实时分析"
@@ -87382,7 +91447,7 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 40,
+      "heat": 39,
       "star": true,
       "importance": 78,
       "quality_score": 78,
@@ -88720,11 +92785,11 @@
         "Snowflake",
         "dbt Labs"
       ],
-      "heat": 46,
+      "heat": 45,
       "star": true,
       "importance": 83,
       "quality_score": 83,
-      "trend_score": 15,
+      "trend_score": 14,
       "signal": 0,
       "topics": [
         "平台AI化",
@@ -90641,11 +94706,11 @@
       "vendors": [
         "DuckDB"
       ],
-      "heat": 50,
+      "heat": 49,
       "star": true,
       "importance": 84,
       "quality_score": 84,
-      "trend_score": 22,
+      "trend_score": 21,
       "signal": 21,
       "topics": [],
       "shelf": "evergreen",
@@ -91156,11 +95221,11 @@
         "ThoughtWorks",
         "InfoQ"
       ],
-      "heat": 37,
+      "heat": 36,
       "star": false,
       "importance": 72,
       "quality_score": 72,
-      "trend_score": 8,
+      "trend_score": 7,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -93175,7 +97240,7 @@
       "star": true,
       "importance": 84,
       "quality_score": 84,
-      "trend_score": 8,
+      "trend_score": 7,
       "signal": 0,
       "topics": [
         "语义层",
@@ -94815,7 +98880,7 @@
       "star": true,
       "importance": 75,
       "quality_score": 75,
-      "trend_score": 6,
+      "trend_score": 5,
       "signal": 0,
       "topics": [],
       "shelf": "news",
@@ -98647,7 +102712,7 @@
         "Databricks",
         "Atlassian"
       ],
-      "heat": 36,
+      "heat": 35,
       "star": false,
       "importance": 72,
       "quality_score": 72,
@@ -107810,7 +111875,7 @@
         "ClickHouse",
         "PostgreSQL"
       ],
-      "heat": 34,
+      "heat": 33,
       "star": false,
       "importance": 68,
       "quality_score": 68,
@@ -109027,7 +113092,7 @@
       "star": true,
       "importance": 87,
       "quality_score": 87,
-      "trend_score": 6,
+      "trend_score": 5,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -110420,7 +114485,7 @@
       "star": false,
       "importance": 72,
       "quality_score": 72,
-      "trend_score": 6,
+      "trend_score": 5,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -114224,7 +118289,7 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 34,
+      "heat": 33,
       "star": false,
       "importance": 68,
       "quality_score": 68,
@@ -116890,7 +120955,7 @@
         "DataJunction",
         "Airbnb"
       ],
-      "heat": 32,
+      "heat": 31,
       "star": false,
       "importance": 65,
       "quality_score": 65,
@@ -121411,7 +125476,7 @@
         "Apache Flink",
         "Netflix"
       ],
-      "heat": 40,
+      "heat": 39,
       "star": true,
       "importance": 83,
       "quality_score": 83,
@@ -125888,7 +129953,7 @@
       "star": false,
       "importance": 68,
       "quality_score": 68,
-      "trend_score": 3,
+      "trend_score": 2,
       "signal": 0,
       "topics": [
         "实时分析"
@@ -129993,7 +134058,7 @@
       "star": true,
       "importance": 93,
       "quality_score": 93,
-      "trend_score": 4,
+      "trend_score": 3,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -130641,11 +134706,11 @@
       "vendors": [
         "PowerBI"
       ],
-      "heat": 29,
+      "heat": 28,
       "star": false,
       "importance": 58,
       "quality_score": 58,
-      "trend_score": 5,
+      "trend_score": 4,
       "signal": 0,
       "topics": [
         "财务经营"
@@ -131837,7 +135902,7 @@
       "star": false,
       "importance": 50,
       "quality_score": 50,
-      "trend_score": 5,
+      "trend_score": 4,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -132782,7 +136847,7 @@
         "有赞",
         "阿里妈妈万相台"
       ],
-      "heat": 31,
+      "heat": 30,
       "star": false,
       "importance": 63,
       "quality_score": 63,
@@ -133899,11 +137964,11 @@
         "亚马逊云科技",
         "OceanBase"
       ],
-      "heat": 30,
+      "heat": 29,
       "star": false,
       "importance": 60,
       "quality_score": 60,
-      "trend_score": 5,
+      "trend_score": 4,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -135589,7 +139654,7 @@
       "star": false,
       "importance": 62,
       "quality_score": 62,
-      "trend_score": 5,
+      "trend_score": 4,
       "signal": 0,
       "topics": [
         "Data Agent",
@@ -137483,7 +141548,7 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 20,
+      "heat": 19,
       "star": false,
       "importance": 40,
       "quality_score": 40,
@@ -138535,7 +142600,7 @@
       "star": false,
       "importance": 52,
       "quality_score": 52,
-      "trend_score": 3,
+      "trend_score": 2,
       "signal": 0,
       "topics": [
         "湖仓"
@@ -144787,11 +148852,11 @@
       "vendors": [
         "Databricks"
       ],
-      "heat": 42,
+      "heat": 41,
       "star": true,
       "importance": 88,
       "quality_score": 88,
-      "trend_score": 4,
+      "trend_score": 3,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -148141,7 +152206,7 @@
       "star": false,
       "importance": 74,
       "quality_score": 74,
-      "trend_score": 4,
+      "trend_score": 3,
       "signal": 0,
       "topics": [
         "实时分析"
@@ -155453,7 +159518,7 @@
       "vendors": [
         "Snowflake"
       ],
-      "heat": 34,
+      "heat": 33,
       "star": false,
       "importance": 71,
       "quality_score": 71,
@@ -159138,7 +163203,7 @@
       "vendors": [
         "ClickHouse"
       ],
-      "heat": 45,
+      "heat": 44,
       "star": true,
       "importance": 96,
       "quality_score": 96,
@@ -180714,7 +184779,7 @@
       "star": true,
       "importance": 77,
       "quality_score": 77,
-      "trend_score": 1,
+      "trend_score": 0,
       "signal": 0,
       "topics": [
         "平台AI化"
@@ -182239,7 +186304,7 @@
       "star": true,
       "importance": 75,
       "quality_score": 75,
-      "trend_score": 1,
+      "trend_score": 0,
       "signal": 0,
       "topics": [],
       "shelf": "evergreen",
@@ -195283,7 +199348,7 @@
         "Power BI",
         "Looker"
       ],
-      "heat": 29,
+      "heat": 28,
       "star": false,
       "importance": 63,
       "quality_score": 63,
@@ -797371,7 +801436,7 @@
         "BigQuery",
         "Google Cloud"
       ],
-      "heat": 63,
+      "heat": 62,
       "star": false,
       "importance": 70,
       "signal": 0,
@@ -797731,7 +801796,7 @@
       "translation_status": "failed",
       "source_content_hash": "3907a79213df9e15b816330c",
       "quality_score": 70,
-      "trend_score": 57
+      "trend_score": 55
     },
     {
       "event_id": "ba8377c644db",
@@ -867937,15 +872002,15 @@
     {
       "event_id": "05b5c328b16d",
       "zh_title": "Databricks谈大规模AI编码成本管理",
-      "zh_summary": "Databricks博客指出，AI编码工具虽能带来数量级效率提升，但成本指数增长不可持续。为兼顾广泛访问与成本可控，他们与Stripe、Coinbase、Uber、Ramp等企业交流，总结出多项成本管理技术，并开源了Omnigent和Unity AI Gateway等关键组件。",
-      "reason": "数据从业者可从头部数据平台的实际经验中，了解AI编码及Agent场景下的成本控制方法，对构建数据Agent和AI数据平台有直接借鉴意义。",
+      "zh_summary": "Databricks 全面采用 AI 编程智能体后，初期放开高价模型和 token 用量，导致成本指数级上升。其通过开发者与模型之间的控制层把单位成本降低最多 90%，并用 PR、交付功能、代码行数等指标衡量产出，整体产出接近翻倍。该控制层最初用于解决内部 AI 账单，后来启发 Unity Gateway。文章强调工程组织需要在开发者与模型之间建立成本与使用治理层。",
+      "reason": "对数据平台与 Agent 落地团队有参考价值：AI 编程智能体按量计费容易失控，文中给出控制层、单位成本下降 90% 和产出近翻倍的一手实践，可借鉴到 Agent 成本治理。",
       "full_zh": "AI编码工具带来了巨大价值：在Databricks，智能体编码显著提升了我们追踪的每一项速度指标，在某些团队中，产出实现了数量级的增长。但几乎所有大规模部署AI工具的公司都遇到了同一堵墙：成本呈指数增长。这条曲线不可持续——如果不加控制，最终将超过收入。支出激增使企业陷入两难境地：一方面，希望最大限度地推进AI转型，将强大工具交到员工手中；另一方面，又不得不面对总成本状况，这可能削弱甚至逆转AI带来的效率提升。\n\n幸运的是，一些最早的大规模采用者已经汇聚出一套解决这一难题的方法，实现了“双重使命”：（a）提供广泛的AI工具访问，摩擦最小化；以及（b）将总成本控制在每个用户大致固定的范围内。本文基于我们在Databricks的经验以及与其他几家数字原生公司（包括Stripe、Coinbase、Uber和Ramp）的交流，概述了经过验证的成本管理技术。下表总结了当前技术及相关节省；数字为方向性指导，基于对开发团队的非正式调查：\n\n其中一些技术可以借助许多公司已使用的软件轻松实现。其他技术则需要新的基础设施，特别是修改最终用户客户端或在模型之间转移流量的技术。在Databricks，我们已开源或免费提供关键基础设施组件：最终用户元框架（Omnigent）和我们的AI网关（Unity AI Gateway）。为完整起见，本文还涵盖了我们咨询的其他公司所使用的软件。\n\n编码模型的“效率前沿”\n\n最大的成本杠杆是随着新模型发布，将编码支出转向更高效的模型。这一点值得讨论，因为“更便宜的模型”这一简单解释实际上隐藏了模型成本与质量之间的微妙关系。\n\n通常，“前沿模型”指的是“最高智能的模型”，而“前沿实验室”主要专注于推进峰值智能。前沿模型现在可以解决数学或网络安全领域的新问题。但当AI大规模部署时，另一种前沿更重要：“效率前沿”。效率前沿由在给定智能水平下价格最优的模型集合定义。大多数日常编码并不需要数学证明或新颖的安全见解，因此总体而言，重要的是满足典型软件工程工作质量标准的模型成本。这个“效率前沿”的推进速度远快于智能前沿，几乎每周都有新模型发布，提供比之前模型更好的每单位价格智能。\n\n成本杠杆#1：转向开源和低成本模型\n\n快速采用更新、更高效的模型是所有技术中带来最大成本收益的。但要获得这些收益，公司首先需要知道哪些模型实际上击败了现有模型。这可能很困难，因为公开基准在指示编码任务的实际性能方面表现不佳。为了评估新模型，许多公司构建了他们认为更能代表其内部开发组合的自动化评估。Databricks最近发布了一个此类基准的示例，其中我们观察到GLM模型具有极具竞争力的性价比。该基准促使我们在内部向开发人员推出GLM。通常，新模型并不推进效率前沿，评估常常产生负面结果：Stripe发现Opus 4.7在质量上并未比Opus 4.6有显著提升，而成本却增加。因此，他们拒绝在内部提供Opus 4.7。Databricks在比较Opus 5.0与4.8时也看到了类似的成本退化。\n\n框架和模型灵活性\n\n由于最大的收益来自切换新模型，采用允许模型灵活性的最终用户工具成为控制成本的关键组成部分。与特定模型配合使用的最常用工具称为框架。专有前沿模型日益与特定框架协同设计，这意味着某些框架与某些模型“配合得更好”。如果公司希望保持模型独立性，大致有两种方法：\n\n要求用户切换框架。一种方法是向开发人员提供一组框架（Claude Code、Codex或Cursor），然后当公司希望将支出转移到低成本模型时，要求他们切换框架。这允许用户在可能的情况下使用他们偏好的框架，但这种方法的缺点是单个开发人员的切换成本可能很高。如果切换成本过高，框架本身就会成为对模型家族的事实锁定，限制了将支出转移到更具竞争力模型的能力。\n\n使用元框架。一种新的且日益流行的方法是使用元框架，它为开发人员提供统一的用户体验，同时将请求分派到底层框架（专有和开源）。这种方法既实现了模型/框架独立性，又降低了开发人员的切换成本。在Databricks，这是利用Omnigent的开发人员的默认模式。我们交谈过的一些公司已经构建了与其开发工具链集成的自定义内部元框架。\n\n成本杠杆#2：动态请求和任务路由\n\n越来越多的研究表明，不是让用户自己选择适合任务的模型，而是自动进行模型和工具选择可能进一步压榨智能体编码工作流的效率。路由方法大致分为三类：\n\n请求级路由：有状态代理位于客户端（如编码工具）和底层基础模型之间。代理尝试将请求路由到能够回答每个推理请求的最低成本模型。对于代理用例，路由还需要考虑服务器端缓存，因为对于大型上下文工作负载，冷缓存命中的成本非常高。新一波产品在路由方面显示出早期有希望的结果。例如：Cursor Router，OpenRouter 的 AutoRouter，Ramps 的 Router 功能 以及 Databricks 在 Unity AI Gateway 中的 Smart Routing 功能。任务级路由（元工具）：客户端进程根据任务的复杂性将用户任务分派到不同的工具。用户任务可能是“将此组件从 X 重命名为 Y”（简单任务）或开放式任务，如“探索减少延迟的设计考虑”（复杂任务）。调度器，通常称为元工具，检查任务需要什么级别的底层模型，然后将整个端到端任务委托给该模型。Omnigent 是支持这种模式的元工具的一个例子。升级/委派模式：单个工具将两个模型配对（一个昂贵的高智能模型和一个廉价的工人模型）。在某些方法中，如Claude 的 Advisor 工具，较便宜的模型负责运行，并在认为任务需要更强大的能力时升级。反向模式也存在：在Cognition 的 Devin Fusion中，高成本模型是主循环，它选择性地将工作外包给较便宜的模型。Databricks 的内部结果表明，我们的 AI Gateway Smart Router 能够持续将平均任务成本降低 30% 以上，同时大致匹配工作集中最昂贵模型的质量。我们采访的其他公司也看到了类似的结果。\n\nimage9.png\n\n成本杠杆 3：为开发者提供可见性、触发器和预算\n\n可能令人惊讶的是，这篇文章并没有以“给用户一个每月预算，就此结束”开始和结束。硬性预算，即在特定花费阈值处完全切断使用，在我们采访的每家公司中通常仅用作最后手段。硬性令牌预算对 AI 支出管理不太有效有两个原因：首先，如果开发人员达到预算上限，切断他们对 AI 工具的进一步访问将对生产力造成严重损害。公司和员工都不希望出现这种结果。其次，至少一些“高支出”用户实际上是那些通过 AI 获得了巨大效率提升并产生大量输出的人。劝阻这些用户是适得其反的。\n\n大多数公司没有采用硬性用户支出上限，而是采用了更细致和渐进的方法，侧重于最终用户的可见性以及随着支出增加而增加的摩擦程度。\n\n大规模管理 AI 编码成本\n\n可见性：我们采访的每家公司都有一种机制，为用户提供关于其持续支出的近乎即时的反馈，许多公司还提供关于如何通过使用更便宜的模型来减少支出的具体提示或见解。重要的是，用户能够看到他们在所有工具上的支出，因为他们可能希望影响他们选择投资回报率最高的工具。Databricks 的开发人员仪表板显示活动支出支出门控：可以要求开发人员在支出水平增加时采取行动或寻求批准。最简单的支出门控形式是自动清除的，并作为支出率超过某个阈值的警告。在 Databricks，我们发现自动清除门控是防止意外或无意识支出的有用机制。可以引入需要明确预算批准（通常通过管理链）的进一步门控。降级：如果开发人员已达到支出门控，可以将其降级到成本较低的模型，而不是完全暂停其令牌访问。由于最低成本模型比前沿智能模型便宜得多，这种技术允许开发人员继续完成工作，而不会产生大量持续支出。暂停：在极限情况下，大多数系统确实保留完全暂停用户所有令牌访问的能力。如上所述，这通常只是临时措施，也是关于如何有效利用 AI 的对话的起点。\n\n成本杠杆 4：减少令牌开销\n\n当用户向 AI 编码代理输入相对简单的请求（例如“请调查并修复此错误。”）时，该代理随后收集大量相关上下文，调用大量工具，搜索代码库，并集成公司提供的技能或系统信息。当昂贵的 LLM 推理发生时，用户的初始语句仅占输入 AI 系统的数据的很小部分，这意味着成本主要由用户未明确包含的上下文驱动。减少上下文膨胀的技术仍然很新，但正在探索几种有希望的方法，例如：\n\n强制更频繁地压缩（压缩）活动上下文。使用“更少啰嗦”（更节省令牌）的工具，或调整现有工具以减少令牌开销。审计流行工具并降低其冗长程度。鼓励开发者将任务分解为更小的独立工作单元，缩小上下文范围。\n\n当上下文变大时，提示缓存也对整体性能起着重要作用。专有和开源 LLM 都有设置，允许你启用提示缓存并调整缓存存储的时间。缓存写入需要花钱，但缓存读取可以大幅降低每次推理的成本。这种权衡取决于公司的具体工作负载，因此手动调整默认缓存设置以提高整体缓存命中率可以对整体成本产生巨大改善。\n\n在Databricks，我们相对简单地调整了测试框架和缓存设置，使得生成的令牌数量和相关成本减少了近50%，而开发者没有观察到质量下降。我们将继续在这一领域探索技术，并认为仍有意义深远的额外优化空间。\n\n通过消除多余的推理调用和减少缓存写入，每个会话的令牌数量大幅减少。\n\nAI网关设计模式\n\n上述技术有许多隐含的技术要求：为了快速利用新模型，公司必须有一个中心位置来管理“模型菜单”，最终用户必须拥有支持模型混合的工具链。为了提供跨多种AI工具的预算可见性，必须存在统一成本可观测性能力。为了管理上下文膨胀，公司需要一种观察典型工具调用输出并强制执行压缩或压缩的方法。这些需求正被一类新的基础设施软件共同解决，最好将其描述为“AI网关”。AI网关是所有以下活动的中心位置：\n\n容量管理和对底层模型（包括专有和开源模型）访问的代理。预算跟踪和执行，包括复杂预算策略，如渐进式摩擦级别和模型降级。最终用户工具的配置管理，以强制模型允许列表、压缩设置和其他本地调解方面。记录编码会话轨迹，用于下游效率分析和基准测试。\n\n在Databricks，我们严重依赖Unity AI网关来提供所有这些能力。\n\n综合应用\n\nAI编码成本的指数级增长并非不可避免，而是一个可解决的工程和治理问题。已经控制住这一问题的公司有一个共同的策略：不懈地追求效率前沿而不是智能前沿，采用保持模型灵活性的工具，智能地将工作路由到最便宜的可用模型，用可见性和渐进式摩擦取代硬性预算，并削减主导实际支出开销的令牌开销。这些技术都不需要牺牲最初使AI采用有价值的生产力收益；它们共同使组织能够在可预测的成本范围内满足广泛、低摩擦访问的双重要求。\n\n一系列新的基础设施抽象正在出现，为公司提供管理成本的工具。在Databricks，我们已将成本管理栈的关键组件作为开源或免费软件产品发布：我们的Unity AI网关用于集中管理，以及Omnigent用于开发者工具。每天都有数千家公司使用这些组件。我们邀请更多公司分享发现并比较技术，因为这个技术领域正在迅速发展。\n\n致谢：感谢Uber（Ty Smith）、Stripe（Aaron Spinks）、Coinbase（Siwei Shen）和Ramp（Veeral Patel）的基础设施领导者对本文的评论和审阅。感谢Thrive Capital对本文早期草稿的反馈。",
       "category": "platform",
       "category_label": "AI 数据平台",
       "vendors": [
         "Databricks"
       ],
-      "heat": 23,
+      "heat": 36,
       "star": false,
       "published": "2026-08-07T19:50:39+08:00",
       "items": [
@@ -867956,6 +872021,14 @@
           "published": "2026-08-07T19:50:39+08:00",
           "title": "Managing AI Coding Costs at Scale",
           "ingested_at": "2026-08-07T19:50:39+08:00"
+        },
+        {
+          "id": "c6b07bee668d",
+          "source": "Databricks Blog",
+          "link": "https://www.databricks.com/blog/ai-bill-coming",
+          "published": "2026-10-23T02:12:49+08:00",
+          "ingested_at": "2026-10-23T05:41:03.425705+08:00",
+          "title": "The AI Bill is coming"
         }
       ],
       "topics": [
@@ -869205,9 +873278,30 @@
       "translation_status": "complete",
       "source_content_hash": "c57e7a05e1a881d198c4f671",
       "body_chars": 4718,
-      "quality_score": 50,
-      "importance": 50,
-      "trend_score": 0
+      "quality_score": 72,
+      "importance": 72,
+      "trend_score": 7,
+      "quality_breakdown": {
+        "originality": 20,
+        "evidence_density": 18,
+        "information_gain": 17,
+        "actionability_depth": 17
+      },
+      "signal": 0,
+      "work_tags": {
+        "taxonomy_version": "work-tags-v1",
+        "product_objects": [
+          "Agent接口与工具",
+          "权限与治理"
+        ],
+        "use_cases": [
+          "生产评估与运营"
+        ],
+        "decision_concerns": [
+          "成本与性能",
+          "用户采用与业务价值"
+        ]
+      }
     },
     {
       "event_id": "9f1a279db0dc",
@@ -888753,28 +892847,17 @@
     }
   ],
   "top": [
+    "649f9721d5e0",
     "cd0934b87b21",
-    "7e3eaf547493",
-    "d65334330e9c"
+    "7e3eaf547493"
   ],
   "sources": [
     {
       "name": "爱分析",
       "ok": true,
-      "new": 2,
-      "fetched": 7,
-      "eligible": 3,
-      "prefiltered": 4,
-      "prefilter_dropped": {
-        "time": 0,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 4,
-        "excluded": 0
-      },
-      "skipped_seen": 1,
-      "limit_reached": false,
-      "schedule_reason": "interval_elapsed",
+      "new": 0,
+      "skipped": true,
+      "skip_reason": "frequency_gate:456m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 12.0,
@@ -888792,7 +892875,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:693m_remaining",
+      "skip_reason": "frequency_gate:429m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -888808,7 +892891,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:693m_remaining",
+      "skip_reason": "frequency_gate:429m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -888824,7 +892907,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:693m_remaining",
+      "skip_reason": "frequency_gate:429m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -888844,7 +892927,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:693m_remaining",
+      "skip_reason": "frequency_gate:429m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -888862,7 +892945,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:693m_remaining",
+      "skip_reason": "frequency_gate:429m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -888882,7 +892965,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:693m_remaining",
+      "skip_reason": "frequency_gate:429m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -888902,7 +892985,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:693m_remaining",
+      "skip_reason": "frequency_gate:429m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -888920,7 +893003,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:692m_remaining",
+      "skip_reason": "frequency_gate:428m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 48.0,
@@ -888939,7 +893022,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:692m_remaining",
+      "skip_reason": "frequency_gate:428m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 48.0,
@@ -888958,7 +893041,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:693m_remaining",
+      "skip_reason": "frequency_gate:429m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -888976,7 +893059,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:693m_remaining",
+      "skip_reason": "frequency_gate:429m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 24.0,
@@ -888996,7 +893079,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:692m_remaining",
+      "skip_reason": "frequency_gate:428m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 48.0,
@@ -889016,7 +893099,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:692m_remaining",
+      "skip_reason": "frequency_gate:428m_remaining",
       "control": {
         "tier": "low_precision",
         "fetch_interval_hours": 48.0,
@@ -889034,8 +893117,19 @@
       "name": "Snowflake Release Notes",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:41m_remaining",
+      "fetched": 4,
+      "eligible": 4,
+      "prefiltered": 0,
+      "prefilter_dropped": {
+        "time": 0,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 4,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "structured_high",
         "fetch_interval_hours": 6.0,
@@ -889050,8 +893144,19 @@
       "name": "Aloudata 博客",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:41m_remaining",
+      "fetched": 96,
+      "eligible": 2,
+      "prefiltered": 94,
+      "prefilter_dropped": {
+        "time": 94,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 2,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -889066,8 +893171,19 @@
       "name": "Aloudata 动态",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:41m_remaining",
+      "fetched": 84,
+      "eligible": 0,
+      "prefiltered": 84,
+      "prefilter_dropped": {
+        "time": 84,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 0,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -889081,9 +893197,20 @@
     {
       "name": "Databricks Blog",
       "ok": true,
-      "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:41m_remaining",
+      "new": 3,
+      "fetched": 10,
+      "eligible": 10,
+      "prefiltered": 0,
+      "prefilter_dropped": {
+        "time": 0,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 7,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -889097,9 +893224,20 @@
     {
       "name": "dbt Blog",
       "ok": true,
-      "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:41m_remaining",
+      "new": 1,
+      "fetched": 20,
+      "eligible": 2,
+      "prefiltered": 18,
+      "prefilter_dropped": {
+        "time": 18,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 1,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -889114,8 +893252,19 @@
       "name": "ThoughtSpot Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:41m_remaining",
+      "fetched": 10,
+      "eligible": 2,
+      "prefiltered": 8,
+      "prefilter_dropped": {
+        "time": 8,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 2,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -889133,8 +893282,19 @@
       "name": "Metabase Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:41m_remaining",
+      "fetched": 10,
+      "eligible": 2,
+      "prefiltered": 8,
+      "prefilter_dropped": {
+        "time": 8,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 2,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -889170,8 +893330,19 @@
       "name": "ClickHouse Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:41m_remaining",
+      "fetched": 20,
+      "eligible": 6,
+      "prefiltered": 14,
+      "prefilter_dropped": {
+        "time": 14,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 6,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -889186,8 +893357,19 @@
       "name": "AWS Big Data Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:41m_remaining",
+      "fetched": 20,
+      "eligible": 1,
+      "prefiltered": 19,
+      "prefilter_dropped": {
+        "time": 19,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 1,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -889202,8 +893384,19 @@
       "name": "Fivetran Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:41m_remaining",
+      "fetched": 20,
+      "eligible": 2,
+      "prefiltered": 18,
+      "prefilter_dropped": {
+        "time": 18,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 2,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -889218,8 +893411,19 @@
       "name": "StarRocks Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:41m_remaining",
+      "fetched": 10,
+      "eligible": 0,
+      "prefiltered": 10,
+      "prefilter_dropped": {
+        "time": 10,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 0,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -889235,7 +893439,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:693m_remaining",
+      "skip_reason": "frequency_gate:429m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -889252,8 +893456,19 @@
       "name": "帆软",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:41m_remaining",
+      "fetched": 10,
+      "eligible": 0,
+      "prefiltered": 10,
+      "prefilter_dropped": {
+        "time": 10,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 0,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -889271,7 +893486,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:693m_remaining",
+      "skip_reason": "frequency_gate:429m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -889287,7 +893502,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:693m_remaining",
+      "skip_reason": "frequency_gate:429m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -889303,7 +893518,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:693m_remaining",
+      "skip_reason": "frequency_gate:429m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -889319,7 +893534,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:693m_remaining",
+      "skip_reason": "frequency_gate:429m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -889333,20 +893548,9 @@
     {
       "name": "InfoQ（AI/数据工程）",
       "ok": true,
-      "new": 8,
-      "fetched": 15,
-      "eligible": 15,
-      "prefiltered": 0,
-      "prefilter_dropped": {
-        "time": 0,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 0,
-        "excluded": 0
-      },
-      "skipped_seen": 0,
-      "limit_reached": true,
-      "schedule_reason": "interval_elapsed",
+      "new": 0,
+      "skipped": true,
+      "skip_reason": "frequency_gate:456m_remaining",
       "control": {
         "tier": "media_targeted",
         "fetch_interval_hours": 12.0,
@@ -889362,7 +893566,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:693m_remaining",
+      "skip_reason": "frequency_gate:429m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -889378,7 +893582,7 @@
       "ok": true,
       "new": 0,
       "skipped": true,
-      "skip_reason": "frequency_gate:693m_remaining",
+      "skip_reason": "frequency_gate:429m_remaining",
       "control": {
         "tier": "media_low",
         "fetch_interval_hours": 24.0,
@@ -889392,20 +893596,9 @@
     {
       "name": "Hacker News（数据关键词）",
       "ok": true,
-      "new": 1,
-      "fetched": 11,
-      "eligible": 1,
-      "prefiltered": 10,
-      "prefilter_dropped": {
-        "time": 10,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 0,
-        "excluded": 0
-      },
-      "skipped_seen": 0,
-      "limit_reached": false,
-      "schedule_reason": "interval_elapsed",
+      "new": 0,
+      "skipped": true,
+      "skip_reason": "frequency_gate:456m_remaining",
       "control": {
         "tier": "community_targeted",
         "fetch_interval_hours": 12.0,
@@ -889419,20 +893612,9 @@
     {
       "name": "Bluesky 数据社区",
       "ok": true,
-      "new": 10,
-      "fetched": 22,
-      "eligible": 22,
-      "prefiltered": 0,
-      "prefilter_dropped": {
-        "time": 0,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 0,
-        "excluded": 0
-      },
-      "skipped_seen": 0,
-      "limit_reached": true,
-      "schedule_reason": "interval_elapsed",
+      "new": 0,
+      "skipped": true,
+      "skip_reason": "frequency_gate:456m_remaining",
       "control": {
         "tier": "community_targeted",
         "fetch_interval_hours": 12.0,
@@ -889446,9 +893628,20 @@
     {
       "name": "Snowflake Engineering（Medium）",
       "ok": true,
-      "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:41m_remaining",
+      "new": 2,
+      "fetched": 10,
+      "eligible": 10,
+      "prefiltered": 0,
+      "prefilter_dropped": {
+        "time": 0,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 8,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -889465,8 +893658,19 @@
       "name": "Microsoft Power BI（Power Platform Blog）",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:41m_remaining",
+      "fetched": 10,
+      "eligible": 0,
+      "prefiltered": 10,
+      "prefilter_dropped": {
+        "time": 10,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 0,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -889482,20 +893686,9 @@
     {
       "name": "Hex Blog",
       "ok": true,
-      "new": 1,
-      "fetched": 417,
-      "eligible": 5,
-      "prefiltered": 412,
-      "prefilter_dropped": {
-        "time": 398,
-        "missing_date": 11,
-        "path": 0,
-        "keyword": 3,
-        "excluded": 0
-      },
-      "skipped_seen": 4,
-      "limit_reached": false,
-      "schedule_reason": "interval_elapsed",
+      "new": 0,
+      "skipped": true,
+      "skip_reason": "frequency_gate:456m_remaining",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -889513,19 +893706,8 @@
       "name": "Amplitude Blog",
       "ok": true,
       "new": 0,
-      "fetched": 2085,
-      "eligible": 2,
-      "prefiltered": 2083,
-      "prefilter_dropped": {
-        "time": 2074,
-        "missing_date": 0,
-        "path": 2,
-        "keyword": 7,
-        "excluded": 0
-      },
-      "skipped_seen": 2,
-      "limit_reached": false,
-      "schedule_reason": "interval_elapsed",
+      "skipped": true,
+      "skip_reason": "frequency_gate:456m_remaining",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -889542,20 +893724,9 @@
     {
       "name": "Netflix Technology Blog",
       "ok": true,
-      "new": 2,
-      "fetched": 10,
-      "eligible": 8,
-      "prefiltered": 2,
-      "prefilter_dropped": {
-        "time": 0,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 2,
-        "excluded": 0
-      },
-      "skipped_seen": 6,
-      "limit_reached": false,
-      "schedule_reason": "interval_elapsed",
+      "new": 0,
+      "skipped": true,
+      "skip_reason": "frequency_gate:456m_remaining",
       "control": {
         "tier": "engineering_targeted",
         "fetch_interval_hours": 12.0,
@@ -889571,20 +893742,9 @@
     {
       "name": "Google Cloud Data Analytics Blog",
       "ok": true,
-      "new": 1,
-      "fetched": 9,
-      "eligible": 9,
-      "prefiltered": 0,
-      "prefilter_dropped": {
-        "time": 0,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 0,
-        "excluded": 0
-      },
-      "skipped_seen": 8,
-      "limit_reached": false,
-      "schedule_reason": "interval_elapsed",
+      "new": 0,
+      "skipped": true,
+      "skip_reason": "frequency_gate:456m_remaining",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -889604,8 +893764,19 @@
       "name": "Google BigQuery Release Notes",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:41m_remaining",
+      "fetched": 20,
+      "eligible": 2,
+      "prefiltered": 18,
+      "prefilter_dropped": {
+        "time": 18,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 0
+      },
+      "skipped_seen": 2,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "structured_high",
         "fetch_interval_hours": 6.0,
@@ -889623,19 +893794,8 @@
       "name": "Google Looker Release Notes",
       "ok": true,
       "new": 0,
-      "fetched": 20,
-      "eligible": 2,
-      "prefiltered": 18,
-      "prefilter_dropped": {
-        "time": 16,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 2,
-        "excluded": 0
-      },
-      "skipped_seen": 2,
-      "limit_reached": false,
-      "schedule_reason": "interval_elapsed",
+      "skipped": true,
+      "skip_reason": "frequency_gate:456m_remaining",
       "control": {
         "tier": "structured_high",
         "fetch_interval_hours": 12.0,
@@ -889653,19 +893813,8 @@
       "name": "Microsoft Fabric Blog",
       "ok": true,
       "new": 0,
-      "fetched": 10,
-      "eligible": 0,
-      "prefiltered": 10,
-      "prefilter_dropped": {
-        "time": 10,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 0,
-        "excluded": 0
-      },
-      "skipped_seen": 0,
-      "limit_reached": false,
-      "schedule_reason": "interval_elapsed",
+      "skipped": true,
+      "skip_reason": "frequency_gate:456m_remaining",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -889684,8 +893833,19 @@
       "name": "DuckDB Engineering Blog",
       "ok": true,
       "new": 0,
-      "skipped": true,
-      "skip_reason": "frequency_gate:41m_remaining",
+      "fetched": 10,
+      "eligible": 4,
+      "prefiltered": 6,
+      "prefilter_dropped": {
+        "time": 5,
+        "missing_date": 0,
+        "path": 0,
+        "keyword": 0,
+        "excluded": 1
+      },
+      "skipped_seen": 4,
+      "limit_reached": false,
+      "schedule_reason": "interval_elapsed",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 6.0,
@@ -889702,20 +893862,9 @@
     {
       "name": "Apache Iceberg Blog",
       "ok": true,
-      "new": 1,
-      "fetched": 17,
-      "eligible": 1,
-      "prefiltered": 16,
-      "prefilter_dropped": {
-        "time": 16,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 0,
-        "excluded": 0
-      },
-      "skipped_seen": 0,
-      "limit_reached": false,
-      "schedule_reason": "interval_elapsed",
+      "new": 0,
+      "skipped": true,
+      "skip_reason": "frequency_gate:456m_remaining",
       "control": {
         "tier": "official_high",
         "fetch_interval_hours": 12.0,
@@ -889732,19 +893881,8 @@
       "name": "TiDB Blog",
       "ok": true,
       "new": 0,
-      "fetched": 10,
-      "eligible": 2,
-      "prefiltered": 8,
-      "prefilter_dropped": {
-        "time": 8,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 0,
-        "excluded": 0
-      },
-      "skipped_seen": 2,
-      "limit_reached": false,
-      "schedule_reason": "interval_elapsed",
+      "skipped": true,
+      "skip_reason": "frequency_gate:456m_remaining",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -889762,19 +893900,8 @@
       "name": "Apache Doris Blog",
       "ok": true,
       "new": 0,
-      "fetched": 20,
-      "eligible": 0,
-      "prefiltered": 20,
-      "prefilter_dropped": {
-        "time": 20,
-        "missing_date": 0,
-        "path": 0,
-        "keyword": 0,
-        "excluded": 0
-      },
-      "skipped_seen": 0,
-      "limit_reached": false,
-      "schedule_reason": "interval_elapsed",
+      "skipped": true,
+      "skip_reason": "frequency_gate:456m_remaining",
       "control": {
         "tier": "official_targeted",
         "fetch_interval_hours": 12.0,
@@ -889791,18 +893918,18 @@
     }
   ],
   "structured_content": {
-    "run_id": "github-39820170455-1",
+    "run_id": "github-39858374625-1",
     "attempted": 6,
     "ready": 6,
-    "figures": 7,
+    "figures": 15,
     "tables": 2,
-    "media_cached": 1,
-    "media_link_only": 6,
-    "candidate_duplicates": 57,
-    "candidate_quality_rejected": 26,
+    "media_cached": 12,
+    "media_link_only": 3,
+    "candidate_duplicates": 32,
+    "candidate_quality_rejected": 27,
     "strategies": {
       "semantic_container": 4,
-      "nested_content": 2
+      "rss_document_fallback": 2
     },
     "quality_statuses": {
       "pass": 6
@@ -889813,60 +893940,39 @@
     "fallbacks": {},
     "by_source": {
       "Databricks Blog": {
-        "attempted": 1,
-        "ready": 1,
-        "figures": 0,
-        "tables": 0,
-        "media_cached": 0
+        "attempted": 4,
+        "ready": 4,
+        "figures": 7,
+        "tables": 2,
+        "media_cached": 5
       },
-      "Google Cloud Data Analytics Blog": {
-        "attempted": 1,
-        "ready": 1,
-        "figures": 5,
-        "tables": 0,
-        "media_cached": 0
-      },
-      "Apache Iceberg Blog": {
-        "attempted": 1,
-        "ready": 1,
-        "figures": 0,
-        "tables": 0,
-        "media_cached": 0
-      },
-      "InfoQ（AI/数据工程）": {
+      "Snowflake Engineering（Medium）": {
         "attempted": 2,
         "ready": 2,
-        "figures": 1,
-        "tables": 2,
-        "media_cached": 0
-      },
-      "Hex Blog": {
-        "attempted": 1,
-        "ready": 1,
-        "figures": 1,
+        "figures": 8,
         "tables": 0,
-        "media_cached": 1
+        "media_cached": 7
       }
     },
     "catalog": {
-      "events": 693,
-      "structured": 646,
-      "renderable": 645,
-      "current_pass": 639,
+      "events": 695,
+      "structured": 648,
+      "renderable": 647,
+      "current_pass": 641,
       "parser_debt": 7,
-      "display_trimmed": 1,
+      "display_trimmed": 2,
       "display_suspect": 0,
       "embedded_ui_trimmed": 0,
       "embedded_ui_blocks": 0,
       "modes": {
-        "translated": 525,
+        "translated": 528,
         "ai_fallback": 17,
-        "original": 121,
+        "original": 120,
         "editorial_excerpt": 17,
         "missing": 13
       },
       "processor_versions": {
-        "original-first-v7": 675,
+        "original-first-v7": 677,
         "missing": 18
       }
     },
@@ -889883,16 +893989,16 @@
       "foreign_limit": 6,
       "eligible": 22,
       "attempted": 12,
-      "ready": 1,
+      "ready": 2,
       "original": 0,
-      "translated": 1,
-      "deferred_foreign": 11,
-      "deferred_budget": 11,
+      "translated": 2,
+      "deferred_foreign": 10,
+      "deferred_budget": 10,
       "stored_original_retries": 12,
       "parser_debt_eligible": 7,
       "skipped": 0,
       "failed": 0,
-      "planned": 1
+      "planned": 2
     },
     "media_refresh": {
       "policy_version": "source-cdn-v1",
@@ -889905,7 +894011,7 @@
     },
     "article_ui_cleanup": {
       "policy_version": "article-chrome-v3",
-      "scanned": 689,
+      "scanned": 691,
       "cleaned_events": 0,
       "removed_blocks": 0
     }

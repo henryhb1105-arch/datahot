@@ -1,4 +1,5 @@
 'use strict';
+const {feedNavigation}=require('./browser-readiness.cjs');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const crypto = require('node:crypto');
@@ -6,9 +7,9 @@ const fs = require('node:fs');
 module.exports = async function(context, base, out, width) {
   const page = await context.newPage(), errors = [];
   page.on('pageerror', e=>errors.push(e.message));
-  await page.goto(base+'for-me.html', {waitUntil:'networkidle'});
+  await feedNavigation(page, () => page.goto(base+'for-me.html', {waitUntil:'domcontentloaded'}));
   await page.evaluate(()=>{localStorage.removeItem('dh_for_me_v1');localStorage.removeItem('dh_default_home_v1');sessionStorage.clear();});
-  await page.reload({waitUntil:'networkidle'});
+  await feedNavigation(page, () => page.reload({waitUntil:'domcontentloaded'}));
   await page.locator('#fmContent').waitFor();
   const asset = new URL(await page.locator('script[src*="for-me.js?"]').getAttribute('src'), base);
   const response = await context.request.get(asset.href);
@@ -28,7 +29,7 @@ module.exports = async function(context, base, out, width) {
   const href=await firstCard.locator('.fm-signal-title').getAttribute('href');
   await firstCard.locator('.fm-signal-title').click();
   await page.waitForURL(new URL(href,base).href);
-  await page.goBack({waitUntil:'networkidle'});
+  await feedNavigation(page, () => page.goBack({waitUntil:'domcontentloaded'}));
   assert(!(await page.locator('#fmSettings').isVisible()), 'Reading and back do not open setup');
   await page.locator('#fmCustomize').click();
   assert(await page.locator('#fmTaskStep').isVisible());
@@ -72,14 +73,14 @@ module.exports = async function(context, base, out, width) {
   await page.waitForURL('**/index.html');
   await page.goto(base+'?q=Snowflake', {waitUntil:'networkidle'});
   assert(new URL(page.url()).searchParams.has('q'), 'Explicit searches must not redirect');
-  await page.goto(base+'for-me.html', {waitUntil:'networkidle'});
+  await feedNavigation(page, () => page.goto(base+'for-me.html', {waitUntil:'domcontentloaded'}));
   await page.locator('#fmCustomize').click();
   await page.locator('#fmDefaultHome').uncheck();
   await page.locator('#fmReset').click();
   await page.locator('[data-task="platform"]').click();
   await page.locator('#fmNext').click();
   await page.locator('#fmDone').click();
-  await page.reload({waitUntil:'networkidle'});
+  await feedNavigation(page, () => page.reload({waitUntil:'domcontentloaded'}));
   assert(!(await page.locator('#fmSetup').isVisible()), 'Returning users skip setup');
   assert.match(await page.locator('#fmMustList .fm-why').first().innerText(), /数据平台选型/);
   assert(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth+1));
@@ -90,7 +91,7 @@ module.exports = async function(context, base, out, width) {
   await page.locator('#fmCustomize').click();
   await page.screenshot({path:path.join(out,`${width}-for-you-setup.png`)});
   await page.keyboard.press('Escape');
-  await page.goto(base+'for-me.html#reading-settings', {waitUntil:'networkidle'});
+  await feedNavigation(page, () => page.goto(base+'for-me.html#reading-settings', {waitUntil:'domcontentloaded'}));
   await page.locator('#fmSettings').waitFor({state:'visible'});
   assert(await page.locator('#fmSettings').isVisible(), 'Privacy deep link opens settings');
   assert(await page.locator('#fmBehaviorEnabled').isVisible());
@@ -99,7 +100,7 @@ module.exports = async function(context, base, out, width) {
   await page.screenshot({path:path.join(out,`${width}-for-you-privacy.png`)});
   await page.locator('#fmCloseSettings').click();
   await page.locator('#fmMustList .fm-signal-title').first().click();
-  await page.goBack({waitUntil:'networkidle'});
+  await feedNavigation(page, () => page.goBack({waitUntil:'domcontentloaded'}));
   assert(!(await page.locator('#fmSettings').isVisible()), 'Consumed privacy hash must not reopen settings on return');
   assert(await page.locator('#fmMustList .fm-signal').first().isVisible());
   assert.deepEqual(errors, []);

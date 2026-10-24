@@ -14,6 +14,7 @@ const out = path.resolve(process.env.DATAHOT_ARTIFACT_DIR || path.join(root, 'ar
 const production = process.env.DATAHOT_TEST_BASE === 'https://datahot.xiahongbin.com/';
 assert(!process.env.DATAHOT_TEST_BASE || production, 'Only the fixed production origin or local mode is allowed');
 if (production) assert.match(process.env.DATAHOT_EXPECTED_SHA || '', /^[a-f0-9]{40}$/, 'Production requires DATAHOT_EXPECTED_SHA');
+const readiness = require('./browser-readiness.cjs');
 const summary = {started_at: new Date().toISOString(), production, checks: [], viewports: []};
 let server, browser;
 
@@ -79,9 +80,15 @@ async function main() {
   summary.event_count = ids.length;
   summary.checks.push('all indexed details exist', 'unique events', 'manifest version/counts where applicable');
   await dataContext.close();
+  if (!production) {
+    const fixture=await browser.newContext();
+    await fixture.route('**/*', route => new URL(route.request().url()).origin === new URL(base).origin ? route.continue() : route.abort());
+    try { summary.readiness=await require('./browser-readiness-browser.cjs')(fixture,base); } finally { await fixture.close(); }
+  }
 
   for (const width of [390, 1440]) {
     const context = await browser.newContext({viewport:{width,height:900}, extraHTTPHeaders:{DNT:'1'}, reducedMotion:'reduce'});
+    context.on('page', readiness.watchPage);
     await context.addInitScript(() => {
       localStorage.setItem('dh_analytics_optout_v1', '1');
       Object.defineProperty(navigator, 'doNotTrack', {get:() => '1'});
@@ -230,7 +237,9 @@ async function main() {
   summary.status = 'PASS';
 }
 
-main().catch(error => {summary.status='FAIL'; summary.error=error.stack; process.exitCode=1;})
+main().catch(async error => {summary.status='FAIL'; summary.error=error.stack; process.exitCode=1;
+    if (browser) { try { summary.diagnostics=await readiness.diagnostics(browser); } catch { summary.diagnostics='unavailable'; } }
+  })
   .finally(async () => {
     if (browser) await browser.close();
     if (server) await new Promise(resolve => server.close(resolve));

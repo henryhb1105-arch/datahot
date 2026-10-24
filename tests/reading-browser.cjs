@@ -1,9 +1,10 @@
 'use strict';
+const {feedNavigation}=require('./browser-readiness.cjs');
 const assert=require('node:assert/strict'),path=require('node:path'),crypto=require('node:crypto');
 module.exports=async function(context,base,out,width){
  const page=await context.newPage(),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
- await page.goto(base+'for-me.html',{waitUntil:'networkidle'});
+ await feedNavigation(page, () => page.goto(base+'for-me.html', {waitUntil:'domcontentloaded'}));
  await page.evaluate(()=>{
   for(const k of ['dh_reading_v1','dh_for_me_v1','dh_favs','dh_favs_v2','dh_content_feedback_v1','dh_default_home_v1'])localStorage.removeItem(k);
   localStorage.setItem('dh_for_me_v1',JSON.stringify({setupDone:true}));sessionStorage.clear();
@@ -25,7 +26,7 @@ module.exports=async function(context,base,out,width){
   readIds.push(e.event_id);if(readIds.length===2)break;
  }
  assert.equal(readIds.length,2);
- await page.goto(base+'for-me.html',{waitUntil:'networkidle'});
+ await feedNavigation(page, () => page.goto(base+'for-me.html', {waitUntil:'domcontentloaded'}));
  assert(!(await page.locator('#fmSetup').isVisible()),'Learned preferences bypass mandatory setup');
  const reasons=await page.locator('#fmMustList .fm-why').allTextContents();
  assert(reasons.some(x=>x.includes('接着你读过')),'Behavior should recommend without selected keywords');
@@ -43,13 +44,13 @@ module.exports=async function(context,base,out,width){
  // Counterfactual history is local to this disposable browser, not production activity.
  const actualHistory=await page.evaluate(()=>localStorage.getItem('dh_reading_v1'));
  await page.evaluate(()=>localStorage.setItem('dh_reading_v1',JSON.stringify({enabled:true,entries:{a5e85b0e5b72:[Date.now()],f2cae75df487:[Date.now()]}})));
- await page.reload({waitUntil:'networkidle'});
+ await feedNavigation(page, () => page.reload({waitUntil:'domcontentloaded'}));
  const metricIds=await page.locator('#fmMustList .fm-signal').evaluateAll(nodes=>nodes.map(n=>n.dataset.eventId));
  assert(metricIds.some(id=>['b8c3b1774462','1040324d5b86','17b3b16903c0'].includes(id)),'Metric definition reading must surface a different concrete need');
  assert(!metricIds.includes('40c2caf96019'));assert.notDeepEqual(metricIds,evaluationIds);
  await page.screenshot({path:path.join(out,`${width}-reading-metrics.png`)});
  await page.evaluate(history=>localStorage.setItem('dh_reading_v1',history),actualHistory);
- await page.reload({waitUntil:'networkidle'});
+ await feedNavigation(page, () => page.reload({waitUntil:'domcontentloaded'}));
  const reduce=page.locator('[data-action="reduce"]').first();await reduce.click();
  assert((await page.evaluate(()=>JSON.parse(localStorage.getItem('dh_reading_v1')).muted.length))>0);
  await page.locator('#fmNotice button').click();
@@ -61,7 +62,7 @@ module.exports=async function(context,base,out,width){
  assert.equal(await page.locator('.fm-why').filter({hasText:'接着你读过'}).count(),0);
  await page.locator('#fmClearReading').click();
  assert.equal(await page.evaluate(()=>Object.keys(JSON.parse(localStorage.getItem('dh_reading_v1')).entries).length),0);
- await page.reload({waitUntil:'networkidle'});
+ await feedNavigation(page, () => page.reload({waitUntil:'domcontentloaded'}));
  await page.locator('#fmCustomize').click();
  await page.locator('#reading-settings summary').click();
  assert(!(await page.locator('#fmBehaviorEnabled').isChecked()),'Clear does not re-enable learning');

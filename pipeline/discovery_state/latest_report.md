@@ -1,9 +1,9 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-10-25T20:58:16.436601+00:00
+- 生成时间：2026-10-26T22:47:21.860570+00:00
 - 本轮原始发现：9
-- 未收录文章候选：55
-- 新信源候选：64
+- 未收录文章候选：56
+- 新信源候选：66
 - 已收录链接去重：0
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
 
@@ -33,10 +33,11 @@
 
 ## 现有信源健康提醒
 
-- **Visier Blog** · DEGRADED · 连续失败 19 次
+- **Visier Blog** · DEGRADED · 连续失败 22 次
 
 ## 优先检查的文章
 
+- [Anthropic S-1](https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm) · hn
 - [3rd Yandex Cloud Data Center Was Hit](https://status.yandex.cloud/en/incidents/2136) · hn
 - [Americans' social activity has steeply declined in the past 30 years](https://www.dataforprogress.org/blog/2026/9/29/americans-social-activity-has-steeply-declined-in-the-past-30-years) · hn
 - [Improper redaction reveals Google Data Center water and electricity usage](https://www.1011now.com/2026/09/30/more-questions-than-answers-about-lincolns-google-data-center-water-electricity-usage) · hn
@@ -56,4 +57,3 @@
 - [Man discovers his parents' coffee machine used 1TB of data in 10 days](https://www.dexerto.com/entertainment/man-discovers-his-parents-coffee-machine-used-1tb-of-data-in-10-days-3416399) · hn
 - [Yandex outage: data shows that instead of going dark, malicious bots moved](https://blog.cloudflare.com/yandex-outage) · hn
 - [Google illegally cut down 250K trees in Finland for data center](https://nypost.com/2026/10/24/business/google-illegally-tore-down-250k-trees-for-finland-data-center-infuriating-locals-report) · hn
-- [Meta Uses A.I. Data Centers to Avoid Billions in Federal Taxes](https://www.nytimes.com/2026/09/30/technology/meta-ai-data-centers-taxes.html) · hn

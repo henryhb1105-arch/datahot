@@ -1,186 +1,19 @@
 {
  "schema_version": 3,
  "kind": "weekly",
- "status": "ready",
- "week_id": "2026-W42",
- "period_start": "2026-10-12",
- "period_end": "2026-10-18",
- "generated_at": "2026-10-19T12:45:00.838013+08:00",
- "mode": "ai",
- "ai_assisted": true,
- "fallback_reason": "",
- "content_fingerprint": "a7899e87f8c4f4bc461dc69ca0962d5c69323a0c670f6d56278931cbf35b7845",
- "input_hash": "39322baaf9d543432c33cd500ce0c8c67f44c912f0cff0b7b3022a4241cae445",
- "baseline_hash": "f95807f2af13a5d32b990df5279bc05df45084ed00c28f3ee13752629f4cf4d6",
+ "status": "pending",
+ "week_id": "2026-W43",
+ "period_start": "2026-10-19",
+ "period_end": "2026-10-25",
+ "generated_at": "2026-10-26T12:53:29.904070+08:00",
+ "mode": "pending",
+ "ai_assisted": false,
+ "fallback_reason": "signals_invalid:model_error:HTTPError:HTTP Error 401: Unauthorized",
+ "input_hash": "628494c67918f48e905d1ca55000a4ee68e8ce7fc4cca133bc216ddd0d6ca8ac",
+ "baseline_hash": "ecbe740529b3ee3eb0556871db696ab02016091a245fcd766bff96f804b8027c",
  "prompt_version": "weekly-personal-v4",
  "signal_prompt_version": "weekly-signals-v4",
  "model": "deepseek-v4-flash",
- "public_signals_fingerprint": "f06c61b9a89751f271f115bd5bfa5f89bf82e0299192be9aa2446c7cba81af98",
- "baseline": {
-  "requested_weeks": 4,
-  "requested_week_ids": [
-   "2026-W41",
-   "2026-W40",
-   "2026-W39",
-   "2026-W38"
-  ],
-  "available_weeks": 4,
-  "available_week_ids": [
-   "2026-W41",
-   "2026-W40",
-   "2026-W39",
-   "2026-W38"
-  ],
-  "coverage": "complete"
- },
- "signals": [
-  {
-   "signal_id": "agent-cost-attribution",
-   "title": "Data Agent成本归因从概念走向运维议题",
-   "change_type": "early_signal",
-   "confidence": "low",
-   "confidence_reason": "仅Snowflake生态内两三条自述，source_family重合，缺独立第三方或客户实测。",
-   "anchor": "Snowflake荷兰用户组分享：同一Prompt每次运行路径不同，费用分散在Cortex推理、Cortex Search、AI函数与最终SQL仓库算力，无单一视图说明单次交互花了多少、由谁发起；旧的分摊模型失效。",
-   "mechanism": "围绕同一机制：Agent交互的不可预测执行路径导致成本无法按仓库、看板、部门归因，需按每行费用与用户侧限额重新设计成本可观测与分摊。",
-   "baseline_comparison": "W38已有Snowflake AI服务成本解析与AI Credits计量；W40出现按用户配额GA覆盖Cortex Agents。本周把“单次交互无法归因”明说为运维问题，属延续中的具体化。",
-   "evidence_ids": [
-    "cc2057268302"
-   ],
-   "counter_evidence": "同周02a5dc500c53只谈治理与屏蔽策略缺口，未给成本归因实测；W40的配额GA是限定用量而非归因，二者不能混为同一机制。"
-  },
-  {
-   "signal_id": "semantic-layer-automation",
-   "title": "语义层构建从人工建模转向工具选择与虚拟化",
-   "change_type": "continuing",
-   "confidence": "medium",
-   "confidence_reason": "两个独立厂商方向一致：Netflix选型DataJunction，Neo4j以虚拟图免复制接入Snowflake；但均为厂商自述，无客户量化对比。",
-   "anchor": "Netflix实验平台评估内部Mando、Airbnb Minerva与开源DataJunction，新增指标原需数周；Neo4j Aura Virtual Graph在Snowflake TPC-H八表上建虚拟图，无需复制数据。",
-   "mechanism": "同一机制：降低语义/图模型构建成本——一侧用现成开源指标框架替换自研，一侧用虚拟化直接在数仓之上建立关系语义，避免复制与重复建模。",
-   "baseline_comparison": "W41 Aloudata口径自动盘点、W38 dbt/Fivetran上下文层已显示语义层构建自动化方向；本周新增Netflix选型与Neo4j虚拟图两个具体路径，属延续而非新增趋势。",
-   "evidence_ids": [
-    "b8c3b1774462",
-    "b337d61cf716"
-   ],
-   "counter_evidence": "两事件机制并不完全同构：DataJunction是指标定义框架选型，Virtual Graph是图查询虚拟化；且b337d61cf716 source_family为snowflake，独立性有限。"
-  },
-  {
-   "signal_id": "agent-governed-base-control-plane",
-   "title": "Agent治理控制面成为平台叙事中心",
-   "change_type": "early_signal",
-   "confidence": "low",
-   "confidence_reason": "主要来自Snowflake单一厂商的多篇自述（峰会、实战笔记、导出治理），source_family相同，不构成独立证据。",
-   "anchor": "Snowflake芝加哥峰会称孤立Agent无法扩展，需单一受治理基础连接数据与上下文、模型、应用、控制平面四层，安全与成本列为首要议题；实战笔记称LLM可执行SQL后masking缺口可能被Agent穿过。",
-   "mechanism": "同一机制：把Agent能力建立在受治理的数据、语义与控制平面上，而非单点Agent产品，治理覆盖理解、保护、监控三循环。",
-   "baseline_comparison": "W39 Databricks Genie Ontology Pages与W41 Unity Catalog治理讨论已有同类方向；本周Snowflake以峰会与实战笔记强化，但仍是单一厂商，未形成跨厂商增强。",
-   "evidence_ids": [
-    "2881d4174344",
-    "02a5dc500c53"
-   ],
-   "counter_evidence": "两篇均出自Snowflake生态，25e3be325f25的导出治理原型为合成数据，缺生产验证；InfoQ研讨会a71432eed0f3指向语义漂移与嵌入漂移，说明治理缺口仍未被解决。"
-  }
- ],
- "title": "Agent成本归因与语义层自动化",
- "bottom_line": "本周两条信号都与Agent和数据语义层的运维机制有关：成本难以按单次交互归因，语义构建改由工具和虚拟化承担。",
- "for_you": [
-  {
-   "signal_id": "agent-cost-attribution",
-   "priority": "继续观察",
-   "insight": "Snowflake用户组指出同一Prompt每次执行路径不同，费用分散在Cortex推理、Search、AI函数与最终SQL算力，没有单一视图能说明单次交互花了多少、由谁发起，旧的分摊模型因此失效。这是早期信号且仅来自同源自述，机制具体但未获独立验证。对你而言，它把Agent成本从计费口径问题变成可观测与限额设计问题。",
-   "why_it_matters": "你做数据Agent时，成本归因决定权限与配额该挂在哪个层面：按仓库、按看板还是按用户。若单次交互无法归因，业务方分摊和成本上限都缺依据，Agent上线后的运营讨论会反复卡在同一处。",
-   "action": "先在自己环境里记录一次Agent请求路径：推理、检索、函数调用、SQL各花多少，能否对上发起人。若对不上，把“每行费用加用户侧限额”列入下一版设计，暂不据此采购或改造。"
-  },
-  {
-   "signal_id": "semantic-layer-automation",
-   "priority": "安排测试",
-   "insight": "Netflix评估内部Mando、Airbnb Minerva与开源DataJunction后选用后者，新增指标原需数周；Neo4j在Snowflake TPC-H八表上建虚拟图，无需复制数据即可查询关系语义。两者机制不完全同构：一侧是现成指标框架替换自研，一侧是虚拟化避免重复建模，但都在降低语义层构建成本。",
-   "why_it_matters": "语义层构建成本直接影响数据Agent能否拿到稳定口径与业务上下文。若工具选型或虚拟化能省去数周建模，Agent接指标和关系的周期会缩短，但也意味着你要判断哪条路径与现有权限模型相容。",
-   "action": "安排一次小范围测试：选一组现有指标，用开源指标框架重定义一遍，比较与现有口径的差异和维护成本；同时确认虚拟图方式下权限是否仍走原有数仓控制。"
-  }
- ],
- "what_not_to_overread": "两条信号都来自厂商或用户组自述，Snowflake相关事件集中在同一source_family，没有独立客户实测或第三方基准。Netflix与Neo4j的事件机制也不同构，不能合并成单一趋势。成本归因与治理控制面是产品能力，还是峰会叙事，目前无法区分。",
- "uncertainty": "本周高价值信号几乎全部来自厂商自述，缺少跨厂商对照和量化实测。成本归因是否已有可落地视图、语义层自动化能否在真实权限体系下运行，都待验证。单次案例不足以支撑对平台能力的判断。",
- "next_week_question": "是否出现非Snowflake的独立证据，能把Agent成本归因或语义层自动化从早期信号升级为可复用的跨厂商做法？",
- "evidence_index": [
-  {
-   "event_id": "cc2057268302",
-   "title": "从Prompt到Query：Snowflake上Agent的真实成本"
-  },
-  {
-   "event_id": "b8c3b1774462",
-   "title": "Netflix 如何用 DataJunction 构建指标语义层"
-  },
-  {
-   "event_id": "b337d61cf716",
-   "title": "Neo4j 在 Snowflake 上创建虚拟图"
-  }
- ],
- "items": [
-  {
-   "event_id": "cc2057268302",
-   "title": "从Prompt到Query：Snowflake上Agent的真实成本",
-   "summary": "2026年10月1日，Snowflake荷兰用户组在阿姆斯特丹Snowflake办公室举行，Yuki CTO兼联合创始人Amir Peres分享了《From Prompt to Query：理解Snowflake上Agent的真实成本》。同一条Prompt每次运行路径都不同，一次交互的费用会分散在Cortex推理、Cortex Search、AI函数以及最终执行SQL的仓库算力上，而Snowflake目前没有单一视图能说明这次交互花了多少钱、是谁发起的。BI与管道成本可预测，但Agent的问法、难度、提问者是否会自己写SQL都无法预知，旧的“这个看板、这个仓库、这个部门”式分摊模型因此失效。要问Cortex成本，诚实答案必须包含每一行费用：token只是大家常谈的部分，算力才是Agent变贵之处，而仓库、语义层与用户侧限额仍是可干预的杠杆。",
-   "category": "platform",
-   "source": "Snowflake Engineering（Medium）",
-   "source_family": "snowflake",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://medium.com/snowflake/from-prompt-to-query-real-cost-of-agents-on-snowflake-f4380037d553?source=rss----34b6daafc07---4",
-   "published": "2026-10-14T22:01:06+08:00",
-   "heat": 36,
-   "importance": 62,
-   "vendors": [
-    "Snowflake"
-   ],
-   "topics": [
-    "Data Agent",
-    "平台AI化"
-   ],
-   "week_id": "2026-W42"
-  },
-  {
-   "event_id": "b8c3b1774462",
-   "title": "Netflix 如何用 DataJunction 构建指标语义层",
-   "summary": "Netflix 实验平台在指标定义、发现和信任方面遇到困难，指标、数据集和管道分散且重复。原有系统要求大量业务知识、实验约定和复杂工程实践，新增指标往往需要数周。Netflix 评估了内部 Mando、Airbnb 的 Minerva 和开源 DataJunction，并用 DataJunction 改善数据工作流和洞察获取。",
-   "category": "platform",
-   "source": "Netflix Technology Blog",
-   "source_family": "netflixtechnology",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://netflixtechblog.com/datajunction-as-netflixs-answer-to-the-missing-piece-of-the-modern-data-stack-92af926b40a5?source=rss----2615bd06b42e---4",
-   "published": "2026-10-15T03:59:08+08:00",
-   "heat": 38,
-   "importance": 65,
-   "vendors": [
-    "DataJunction",
-    "Airbnb"
-   ],
-   "topics": [
-    "语义层"
-   ],
-   "week_id": "2026-W42"
-  },
-  {
-   "event_id": "b337d61cf716",
-   "title": "Neo4j 在 Snowflake 上创建虚拟图",
-   "summary": "Neo4j 官方博客介绍 Neo4j Aura 的 Virtual Graph 功能，可在 Snowflake 之上创建虚拟图，无需复制数据。文章以 Snowflake 的 TPC-H 示例数据集为例，该数据集含 8 张表，并隐含图结构。设置过程包括创建 Snowflake 服务账号、角色并授权读取示例数据，再配置 RSA 密钥和 Neo4j Aura 虚拟图实例。作者称该方式可缩短实现价值时间并降低 TCO。",
-   "category": "platform",
-   "source": "Snowflake Engineering（Medium）",
-   "source_family": "snowflake",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://medium.com/snowflake/neo4j-virtual-graph-on-snowflake-bee771442fe1?source=rss----34b6daafc07---4",
-   "published": "2026-10-13T22:01:05+08:00",
-   "heat": 38,
-   "importance": 73,
-   "vendors": [
-    "Snowflake",
-    "Neo4j"
-   ],
-   "topics": [
-    "语义层"
-   ],
-   "week_id": "2026-W42"
-  }
- ],
- "candidate_count": 60
+ "candidate_count": 56,
+ "generation_attempts": 1
 }

@@ -179,3 +179,12 @@ test('exhausted follows keep discovery unread, recent and distinct without chang
   const exhausted = forMe.sections([matched,hidden,old],state,now,null);
   assert.equal(exhausted.discovery.length,0);
 });
+
+test("server promotion decisions suppress thin announcements while legacy and insufficient-body records stay available", () => {
+  const low = { ...event("low"), promotion_suppressed: true };
+  const legacy = event("legacy");
+  const insufficient = { ...event("partial"), promotion_suppressed: false, information_value: { status: "insufficient_body" } };
+  const state = forMe.normalizeState({});
+  assert.deepEqual(new Set(forMe.rankEvents([low, legacy, insufficient], state, Date.now(), false).map(e => e.event_id)), new Set(["legacy", "partial"]));
+  assert.equal(forMe.rankEvents([{ ...low, promotion_suppressed: false }], state, Date.now(), false).length, 1);
+});

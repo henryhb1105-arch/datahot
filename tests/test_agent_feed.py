@@ -27,6 +27,7 @@ def event(index, *, importance=80, pinned=False, sources=1, first_seen=None):
         "zh_summary": "这是一条经过中文编辑的完整事件摘要。",
         "reason": "它会影响数据产品的能力边界和落地方式。",
         "full_zh": "THIRD_PARTY_BODY_MUST_NOT_APPEAR",
+        "content_parse": {"status": "ready", "quality_status": "pass", "strategy": "article"},
         "content_blocks": [{"type": "paragraph", "text": "forbidden"}],
         "category": "platform",
         "category_label": "AI 数据平台",

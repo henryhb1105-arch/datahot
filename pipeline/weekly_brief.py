@@ -15,6 +15,7 @@ from taxonomy import CATEGORY_LABELS
 from content_focus import content_focus
 
 from lite_data import event_timestamp, is_list_eligible
+from information_value import promotion_review_required
 from weekly_schema import (
     PERSONAL_RESPONSE_SCHEMA, SIGNAL_RESPONSE_SCHEMA, validate_json_schema,
 )
@@ -155,6 +156,7 @@ def select_weekly_events(events, period_start, period_end, limit=MAX_ITEMS):
             or not period_start <= published_at.date() <= period_end
             or not re.fullmatch(r"[0-9a-f]{12}", event_id)
             or not is_list_eligible(event)
+            or promotion_review_required(event)
             or int(event.get("importance") or 0) < MIN_IMPORTANCE
         ):
             continue
@@ -226,6 +228,7 @@ def select_weekly_evidence(
             or not re.fullmatch(r"[0-9a-f]{12}", event_id)
             or event_id in seen_ids
             or not is_list_eligible(event)
+            or promotion_review_required(event)
             or int(event.get("importance") or 0) < MIN_IMPORTANCE
         ):
             continue
@@ -279,6 +282,7 @@ def _stable_items(events, *, week_id=""):
                 _clean_text(value, 80) for value in (event.get("topics") or [])[:8]
                 if _clean_text(value, 80)
             ],
+            "body_review_required": promotion_review_required(event),
             "week_id": str(event.get("week_id") or week_id),
         })
     return rows

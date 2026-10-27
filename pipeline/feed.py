@@ -10,6 +10,7 @@ from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 from taxonomy import category_label
+from information_value import promotion_review_required, suppress_from_lists
 
 
 ATOM = "http://www.w3.org/2005/Atom"
@@ -64,6 +65,8 @@ def build_atom_feed(events, generated_at, *, site_base, limit=50):
         raise ValueError("generated_at must be timezone-aware ISO 8601")
     eligible = []
     for event in events:
+        if suppress_from_lists(event) or promotion_review_required(event):
+            continue
         event_id = str(event.get("event_id") or "")
         published, updated = _entry_times(event)
         if EVENT_ID_RE.fullmatch(event_id) and published is not None:

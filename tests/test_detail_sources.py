@@ -25,6 +25,7 @@ def detail_event(items, *, primary_item_id=None):
         "zh_title": "来源展示测试",
         "zh_summary": "摘要",
         "reason": "",
+        "content_parse": {"status": "ready", "quality_status": "pass", "strategy": "article"},
         "full_zh": "正文",
         "category": "platform",
         "category_label": "AI 数据平台",

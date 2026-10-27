@@ -9,6 +9,7 @@ import re
 from urllib.parse import urlsplit
 
 from lite_data import is_list_eligible
+from information_value import promotion_review_required
 
 
 AGENT_FEED_SCHEMA_VERSION = 1
@@ -54,6 +55,8 @@ def _unique_sources(event):
 
 def recommended_push(event, *, source_count=None):
     """Return the stable server-side importance decision and its reason."""
+    if promotion_review_required(event):
+        return False, "body_unverified"
     source_count = len(_unique_sources(event)) if source_count is None else int(source_count)
     importance = int(event.get("importance") or 0)
     if event.get("pinned"):

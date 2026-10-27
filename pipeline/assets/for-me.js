@@ -197,7 +197,7 @@
     var personalized = personal(state);
     return (Array.isArray(events) ? events : []).filter(function (event) {
       var id = String(event.event_id || "");
-      if (!/^[A-Za-z0-9_-]{1,64}$/.test(id) || dismissed.has(id)) return false;
+      if (!/^[A-Za-z0-9_-]{1,64}$/.test(id) || dismissed.has(id) || event.promotion_suppressed === true) return false;
       return !requireMatch || relevant(event, state);
     }).map(function (event) {
       return { event: event, score: scoreEvent(event, state, now), time: eventTime(event) };
@@ -354,7 +354,7 @@
       article.dataset.source = primarySource(event);
       var top = element("div", "fm-signal-top");
       var focusLabel = event.focus && event.focus.id !== "other" ? event.focus.label : "";
-      var badge = element("span", "fm-signal-badge", priority ? "优先推荐" : String(focusLabel || event.category_label || "动态"));
+      var badge = element("span", "fm-signal-badge", event.body_review_required === true ? "正文待核验" : (priority ? "优先推荐" : String(focusLabel || event.category_label || "动态")));
       top.appendChild(badge);
       if (isNewSince(event, baseline)) top.appendChild(element("span", "fm-new", "新"));
       var sourceText = (event.items || []).length > 1 ? (event.items.length + " 个来源") : (primarySource(event) || "DataHot");
@@ -369,6 +369,7 @@
       link.href = "e/" + encodeURIComponent(id) + ".html";
       link.addEventListener("click", function () { state.read[id] = new Date().toISOString(); saveState(); });
       article.appendChild(link);
+      if (event.body_review_required === true) article.appendChild(element("p", "fm-signal-summary", "正文待核验 · 请先核对原文"));
       if (event.zh_summary) article.appendChild(element("p", "fm-signal-summary", String(event.zh_summary)));
 
       var reasons = matchReasons(event, state), learned = inferred(event, state)[0];
@@ -377,12 +378,12 @@
         : reasons.length ? "与你选择的 " + reasons.map(followLabel).join("、") + " 相关"
         : (context === "discovery" ? "关注范围之外的近期内容，帮助发现新方向" : "公共精选 · 近期重要变化");
       var whyNode = element("div", "fm-why");
-      whyNode.appendChild(element("span", "fm-why-label", context === "discovery" ? "发现新方向" : "为你推荐"));
+      whyNode.appendChild(element("span", "fm-why-label", event.body_review_required === true ? "待核验线索" : (context === "discovery" ? "发现新方向" : "为你推荐")));
       whyNode.appendChild(element("span", "", why));
       article.appendChild(whyNode);
       if (event.reason) {
         var impact = element("p", "fm-impact");
-        impact.appendChild(element("b", "", "为什么重要："));
+        impact.appendChild(element("b", "", event.body_review_required === true ? "原收录理由（待核验）：" : "为什么重要："));
         impact.appendChild(doc.createTextNode(String(event.reason)));
         article.appendChild(impact);
       }

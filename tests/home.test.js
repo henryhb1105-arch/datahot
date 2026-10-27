@@ -578,3 +578,13 @@ test("empty search results explain matching and offer the existing reset action"
   assert.doesNotMatch(fixture.win.history.url, /page=3/);
   assert.match(fixture.elements.timeline.innerHTML, /Title 1/);
 });
+
+test("pending source verification is visible on dynamically rendered timeline cards", () => {
+  const pending = { ...event(99), body_review_required: true };
+  const html = home.renderTimeline([pending]);
+  assert.match(html, /正文待核验/);
+  assert.match(html, /收录理由（正文待核验）/);
+  assert.doesNotMatch(html, /heatnum is-featured/);
+  const normal = home.renderTimeline([{ ...pending, body_review_required: false }]);
+  assert.doesNotMatch(normal, /正文待核验/);
+});

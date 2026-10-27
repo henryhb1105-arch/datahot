@@ -1325,11 +1325,18 @@ def render_card(e, prefix="", top_rank=None):
         status_label = "经典回顾"
     status_class = " is-featured" if status_label and not review_required else ""
     status_text = f"{status_label} {e['heat']}" if status_label else str(e["heat"])
-    n = len(e["items"])
+    # Count distinct displayed sources, not multiple entries from one publisher.
+    seen_sources = {str(e["items"][0].get("source") or "").strip().casefold()}
+    additional_sources = []
+    for item in e["items"][1:]:
+        source = str(item.get("source") or "").strip()
+        if source and source.casefold() not in seen_sources:
+            seen_sources.add(source.casefold())
+            additional_sources.append(source)
     also = ""
-    if n > 1:
-        names = " · ".join(esc(s["source"]) for s in e["items"][1:])
-        also = f'<div class="also">另有 <b>{n-1} 家信源</b>报道：{names}</div>'
+    if additional_sources:
+        names = " · ".join(esc(source) for source in additional_sources)
+        also = f'<div class="also">另有 <b>{len(additional_sources)} 家信源</b>报道：{names}</div>'
     reason = (f'<details class="why" open><summary>{"收录理由（正文待核验）" if review_required else "为什么值得关注"}</summary>'
               f'<p>{esc(clean_reason(e["reason"]))}</p></details>') if e.get("reason") else ""
     tchips = "".join(

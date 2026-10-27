@@ -588,3 +588,15 @@ test("pending source verification is visible on dynamically rendered timeline ca
   const normal = home.renderTimeline([{ ...pending, body_review_required: false }]);
   assert.doesNotMatch(normal, /正文待核验/);
 });
+
+
+test("additional sources count independent displayed publishers once", () => {
+  const item = event(101, "Agent", "Primary");
+  item.items.push({source:" primary "}, {source:"Independent & Co"},
+    {source:"INDEPENDENT & CO"}, {source:""}, {source:"中文信源"});
+  const html = home.renderTimeline([item]);
+  assert.match(html, /2 家信源/);
+  assert.match(html, /Independent &amp; Co · 中文信源/);
+  item.items = Array(41).fill({source:"Primary"});
+  assert.doesNotMatch(home.renderTimeline([item]), /class="also"/);
+});

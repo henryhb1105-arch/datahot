@@ -224,6 +224,7 @@ async function main() {
     summary.viewports[summary.viewports.length - 1].reading = await require("./reading-browser.cjs")(context,base,out,width);
     summary.viewports[summary.viewports.length - 1].screenshots += 2;
     summary.viewports[summary.viewports.length - 1].continuation = await require("./for-you-continuation-browser.cjs")(context,base,out,width);
+    summary.viewports[summary.viewports.length - 1].information_value = await require("./information-value-browser.cjs")(context,base,out,width);
     summary.viewports[summary.viewports.length - 1].screenshots += 1;
     await context.close();
   }

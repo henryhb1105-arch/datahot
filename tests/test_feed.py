@@ -25,6 +25,7 @@ def event(number, *, title=None, summary=None, source_link="https://source.examp
         "zh_title": title if title is not None else f"事件 {number}",
         "zh_summary": summary if summary is not None else f"DataHot 摘要 {number}",
         "full_zh": "THIRD_PARTY_FULLTEXT_MUST_NOT_APPEAR <script>alert(1)</script>",
+        "content_parse": {"status": "ready", "quality_status": "pass", "strategy": "article"},
         "category": "platform",
         "category_label": "AI 数据平台",
         "published": "2026-08-11T08:00:00+08:00",

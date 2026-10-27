@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, timezone
 from urllib.parse import urlsplit
 from products import match_products, product_metadata
 from content_focus import content_focus, focus_sort_key
+from information_value import information_value, promotion_review_required, suppress_from_lists
 
 
 LITE_SCHEMA_VERSION = 1
@@ -76,6 +77,8 @@ def is_list_eligible(event):
     Detail pages remain addressable, but homepage, hot-list and weekly-brief
     surfaces only promote entries that completed the Chinese editorial pass.
     """
+    if suppress_from_lists(event):
+        return False
     title = " ".join(str(event.get("zh_title") or "").split())
     summary = " ".join(str(event.get("zh_summary") or "").split())
     if not title or not summary:
@@ -309,7 +312,7 @@ def rank_hot_events(
     one (issue #82); the source cap alone is enough to prevent a takeover,
     so the displayed order now always matches the shown heat values.
     """
-    eligible = [event for event in events if is_list_eligible(event)]
+    eligible = [event for event in events if is_list_eligible(event) and not promotion_review_required(event)]
     timestamps = [event_timestamp(event) for event in eligible]
     timestamps = [timestamp for timestamp in timestamps if timestamp]
     if reference_time is None:
@@ -373,6 +376,9 @@ def lite_event(event, *, source_badge=None):
         "topics": list(event.get("topics") or []),
         "product_ids": match_products(event),
         "focus": content_focus(event),
+        "information_value": information_value(event),
+        "promotion_suppressed": suppress_from_lists(event),
+        "body_review_required": promotion_review_required(event),
         **({"source_date_label": event["source_date_label"]} if event.get("source_date_label") else {}),
         **({"work_tags": event["work_tags"]} if isinstance(event.get("work_tags"), dict) else {}),
         "heat": int(event.get("heat") or 0),

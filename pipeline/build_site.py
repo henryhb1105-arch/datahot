@@ -15,6 +15,7 @@ from content_blocks import (
 )
 from check_links import check_site_links, format_broken_links
 from feed import build_atom_feed, validate_atom_feed
+from information_value import promotion_review_required, suppress_from_lists
 from lite_data import (
     DEFAULT_PAGE_SIZE, FIRST_PAGE_SOURCE_CAPS, HOME_WINDOW_DAYS,
     build_lite_payload, pack_lite_payload, event_timestamp, find_forbidden_fields,
@@ -1318,17 +1319,18 @@ def favorite_button(e, *, class_name="favbtn", icon_size=15, label=""):
 
 def render_card(e, prefix="", top_rank=None):
     event_id = safe_event_id(e["event_id"])
-    status_label = "编辑精选" if e.get("editorial_pick") else ""
+    review_required = promotion_review_required(e)
+    status_label = "正文待核验" if review_required else ("编辑精选" if e.get("editorial_pick") else "")
     if not status_label and is_classic_review(e):
         status_label = "经典回顾"
-    status_class = " is-featured" if status_label else ""
+    status_class = " is-featured" if status_label and not review_required else ""
     status_text = f"{status_label} {e['heat']}" if status_label else str(e["heat"])
     n = len(e["items"])
     also = ""
     if n > 1:
         names = " · ".join(esc(s["source"]) for s in e["items"][1:])
         also = f'<div class="also">另有 <b>{n-1} 家信源</b>报道：{names}</div>'
-    reason = (f'<details class="why" open><summary>为什么值得关注</summary>'
+    reason = (f'<details class="why" open><summary>{"收录理由（正文待核验）" if review_required else "为什么值得关注"}</summary>'
               f'<p>{esc(clean_reason(e["reason"]))}</p></details>') if e.get("reason") else ""
     tchips = "".join(
         f'<a class="chip" href="{prefix}topics/{TOPIC_SLUG[t]}.html">{esc(t)}</a>'
@@ -1419,7 +1421,7 @@ def related_event_score(event, candidate):
 def select_related_events(event, all_events, limit=3):
     scored = []
     for candidate in all_events:
-        if candidate.get("event_id") == event.get("event_id"):
+        if (suppress_from_lists(candidate) or promotion_review_required(candidate)) or candidate.get("event_id") == event.get("event_id"):
             continue
         score = related_event_score(event, candidate)
         if score is not None:
@@ -2452,7 +2454,7 @@ def render_topic_page(t, events, css, reference_time=None):
 
     recent_cards = "".join(f'''<article class="topic-recent-wrap" data-event-id="{safe_event_id(event["event_id"])}">
   <a class="topic-recent-card" href="../{detail_url(event)}">
-  <span class="topic-recent-meta">{_topic_event_date(event)} · {esc(_topic_event_source(event))}</span>
+  <span class="topic-recent-meta">{_topic_event_date(event)} · {esc(_topic_event_source(event))}{" · 正文待核验" if promotion_review_required(event) else ""}</span>
   <h3>{esc(event["zh_title"])}</h3>
   <p>{esc(event.get("zh_summary", ""))}</p>
 </a>
@@ -2475,7 +2477,7 @@ def render_topic_page(t, events, css, reference_time=None):
     if reading:
         rows = "".join(f'''<a class="crow" href="../{detail_url(event)}">
   <span class="cpin">{"📌" if event.get("pinned") else ""}</span>
-  <span class="ctitle">{esc(event["zh_title"])}</span>
+  <span class="ctitle">{esc(event["zh_title"])}{" · 正文待核验" if promotion_review_required(event) else ""}</span>
   <span class="cmeta">{_topic_event_date(event)}</span>
 </a>''' for event in reading)
         reading_html = f'''
@@ -2489,7 +2491,7 @@ def render_topic_page(t, events, css, reference_time=None):
         extra_class = " is-extra" if index >= TOPIC_UPDATE_PAGE_SIZE else ""
         update_rows.append(f'''<a class="topic-update-row{extra_class}" data-topic-update href="../{detail_url(event)}">
   <time class="topic-update-date">{_topic_event_date(event)}</time>
-  <span class="topic-update-title">{esc(event["zh_title"])}</span>
+  <span class="topic-update-title">{esc(event["zh_title"])}{" · 正文待核验" if promotion_review_required(event) else ""}</span>
   <span class="topic-update-source">{esc(_topic_event_source(event))}</span>
 </a>''')
     visible_count = min(TOPIC_UPDATE_PAGE_SIZE, len(topic_events))

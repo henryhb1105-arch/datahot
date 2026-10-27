@@ -20,6 +20,7 @@ def event(index, *, vendor="Vendor", category="platform", importance=50, heat=45
     event_id = f"{index:012x}"[-12:]
     return {
         "event_id": event_id, "zh_title": f"Event {index}", "zh_summary": "Summary",
+        "content_parse": {"status": "ready", "quality_status": "pass", "strategy": "article"},
         "reason": "Why", "full_zh": "forbidden full body", "content_blocks": [{"type": "p"}],
         "category": category, "category_label": category, "vendors": [vendor], "topics": ["Topic"],
         "heat": heat, "importance": importance, "star": False, "shelf": "news", "pinned": False,

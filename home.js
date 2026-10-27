@@ -345,14 +345,15 @@
     var vendors = (event.vendors || []).map(function (vendor) {
       return '<span class="vtag">' + escapeHtml(vendor) + "</span>";
     }).join("");
-    var reason = event.reason ? '<details class="why" open><summary>为什么值得关注</summary><p>' +
+    var reviewRequired = event.body_review_required === true;
+    var reason = event.reason ? '<details class="why" open><summary>' + (reviewRequired ? "收录理由（正文待核验）" : "为什么值得关注") + '</summary><p>' +
       escapeHtml(cleanReason(event.reason)) + "</p></details>" : "";
     var additionalSources = (event.items || []).slice(1).map(function (item) {
       return escapeHtml(item.source || "");
     }).filter(Boolean);
     var also = additionalSources.length ? '<div class="also">另有 <b>' +
       additionalSources.length + " 家信源</b>报道：" + additionalSources.join(" · ") + "</div>" : "";
-    var status = event.editorial_pick ? "编辑精选" : "";
+    var status = reviewRequired ? "正文待核验" : (event.editorial_pick ? "编辑精选" : "");
     var heat = Number(event.heat || 0);
     var heatLabel = status ? status + " " + heat : String(heat);
     var topRank = topRanks && topRanks[event.event_id];
@@ -380,7 +381,7 @@
       '<p class="sum">' + escapeHtml(event.zh_summary) + "</p>" + reason +
       '<div class="top card-meta"><span class="card-source"><span class="srcbadge">' + escapeHtml(sourceBadge) +
       '</span><span class="card-source-name">' + escapeHtml(source) + '</span><span class="card-time">' +
-      escapeHtml(cardTime(event)) + '</span></span>' + topRankHtml + '<span class="heatnum' + (status ? ' is-featured' : '') +
+      escapeHtml(cardTime(event)) + '</span></span>' + topRankHtml + '<span class="heatnum' + (status && !reviewRequired ? ' is-featured' : '') +
       '" title="热度分">' + flameIcon + ' ' + escapeHtml(heatLabel) + '</span><button class="favbtn" data-fav="' +
       escapeHtml(event.event_id) + '" data-fav-record="' + escapeHtml(JSON.stringify(favoriteRecord)) +
       '" type="button" title="收藏" aria-label="收藏" aria-pressed="false">' + bookmarkIcon + '</button></div>' +

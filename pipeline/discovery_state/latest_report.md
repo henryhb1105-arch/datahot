@@ -1,8 +1,8 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-10-26T22:47:21.860570+00:00
+- 生成时间：2026-10-27T22:20:16.949265+00:00
 - 本轮原始发现：9
-- 未收录文章候选：56
+- 未收录文章候选：53
 - 新信源候选：66
 - 已收录链接去重：0
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
@@ -21,7 +21,6 @@
 - **www.imf.org** · PROBATION · 1 篇 · accepted_link_graph
 - **cdn.sanity.io** · PROBATION · 1 篇 · accepted_link_graph
 - **4906807.fs1.hubspotusercontent-na1.net** · PROBATION · 1 篇 · accepted_link_graph
-- **metr.org** · PROBATION · 1 篇 · accepted_link_graph
 - **www.langchain.com** · PROBATION · 1 篇 · accepted_link_graph
 - **www.netlify.com** · PROBATION · 1 篇 · hn
 - **turbopuffer.com** · PROBATION · 1 篇 · hn
@@ -30,10 +29,11 @@
 - **www.cpr.dk** · PROBATION · 1 篇 · hn
 - **cedardb.com** · PROBATION · 1 篇 · hn
 - **www.dexerto.com** · PROBATION · 1 篇 · hn
+- **cphpost.dk** · PROBATION · 1 篇 · hn
 
 ## 现有信源健康提醒
 
-- **Visier Blog** · DEGRADED · 连续失败 22 次
+- **Visier Blog** · DEGRADED · 连续失败 26 次
 
 ## 优先检查的文章
 
@@ -55,5 +55,5 @@
 - [Google cleared 300 hectares of Finnish forest](https://www.techspot.com/news/114100-google-cleared-300-hectares-finnish-forest-data-center.html) · hn
 - [Intel D270 GPU AI Accelerator–Up to 480 GB LPDDR5X](https://www.intel.com/content/www/us/en/products/details/discrete-gpus/data-center-gpu/d-series.html) · hn
 - [Man discovers his parents' coffee machine used 1TB of data in 10 days](https://www.dexerto.com/entertainment/man-discovers-his-parents-coffee-machine-used-1tb-of-data-in-10-days-3416399) · hn
+- [The EPA Is Quietly Killing Its Web Archive](https://www.motherjones.com/environment/2026/10/epa-online-archive-deletion-zeldin-camp-lejeune-trump-clean-power) · hn
 - [Yandex outage: data shows that instead of going dark, malicious bots moved](https://blog.cloudflare.com/yandex-outage) · hn
-- [Google illegally cut down 250K trees in Finland for data center](https://nypost.com/2026/10/24/business/google-illegally-tore-down-250k-trees-for-finland-data-center-infuriating-locals-report) · hn

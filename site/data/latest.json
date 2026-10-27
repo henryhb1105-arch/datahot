@@ -1,6 +1,1735 @@
 {
- "generated_at": "2026-10-27T13:17:26.446117+08:00",
+ "generated_at": "2026-10-27T20:14:45.071082+08:00",
  "events": [
+  {
+   "event_id": "200f79c90cb7",
+   "zh_title": "Uber Moves Beyond CPU Cores with Performance-Aware Scheduling for Stateful Workloads",
+   "zh_summary": "Uber has introduced Normalized Compute Units (NCUs) to make CPU allocation more consistent across its highly heterogeneous server fleet. By Craig Risi",
+   "reason": "",
+   "full_zh": "Uber has introduced Normalized Compute Units (NCUs) to make CPU allocation more consistent across its highly heterogeneous server fleet. The approach, implemented in Uber's Odin stateful orchestration platform, accounts for differences in processor performance rather than treating every CPU core as equivalent.\n\nOdin manages around 5 million CPU cores across on-premises data centres and public clouds, including multiple generations of x86 hardware and ARM processors. Uber found that single-threaded performance can vary by almost a factor of two between the fastest and slowest cores. Consequently, the same workload can require significantly different numbers of physical CPU cores depending on where it runs.\n\nThe problem creates two competing risks. Allocating resources according to the slowest hardware can waste capacity on faster machines, while allocating according to average usage can leave workloads under-provisioned when they move to slower servers. For stateful workloads, where moving traffic to another machine is often not possible, the latter can become a reliability problem.\n\nUber's solution is to separate the amount of compute performance a workload requires from the physical cores used to provide it.\n\nOdin assigns each server type a performance factor, using an older server generation as a baseline of 100. Newer hardware can have considerably higher values; Uber reports factors approaching 190 for some servers. These factors are initially determined during hardware qualification and then refined using production workload data.\n\nCPU usage is converted into normalized units using these factors. Odin can then determine that a workload requires a particular amount of compute capacity and translate that requirement into a different number of physical cores depending on the server hosting it.\n\nA workload on faster hardware may therefore receive fewer cores, while the same workload on slower hardware receives more. The objective is not to make the number of cores identical, but to make the computational capacity more comparable.\n\nUber also found that performance factors differ between technologies. Its measurements for Kafka, for example, showed substantially different performance between ARM, older on-premises hardware, and newer x86 systems. The company therefore updates factors using production measurements rather than relying exclusively on synthetic benchmarks.\n\nFor stateless services, differences between servers can often be addressed through load balancing. Traffic can be directed towards less-loaded or faster machines.\n\nStateful systems do not have the same flexibility. A request may need to reach the server containing a particular shard or piece of data. Moving the request elsewhere does not solve the underlying resource problem.\n\nIn the post, Uber describes workloads where a leader consumes more than ten times the CPU of its followers. If that leader moves from a fast server to a slower one, its CPU consumption can increase substantially, potentially causing resource pressure even though the workload itself has not changed.\n\nUber has rolled the approach out across approximately 1.4 million CPU cores of automatically scaled Odin workloads. For Kafka, CPU utilisation initially varied by around eight percentage points between server types, with the hottest hardware running at approximately 50% higher utilisation than the coldest.\n\nAfter introducing performance-aware allocation, the difference fell to around three percentage points, with the hottest hardware only about 10% higher than the slowest. Uber also reduced total Kafka CPU allocation by approximately 8%, with much of the reduction occurring on faster hardware where the savings are potentially more valuable.\n\nThe approach differs from the CPU abstraction used by Kubernetes, where CPU requests are expressed as cores or millicores. Kubernetes deliberately treats a CPU unit as an absolute quantity of CPU time, regardless of the size of the underlying machine. That abstraction works well for portable workload definitions, but it does not inherently express the relative performance of different processor generations.\n\nUber's NCU model addresses a somewhat different problem: making the resource itself performance-aware. Rather than primarily deciding how many workloads should fit on a machine or how much CPU a workload should receive, it asks how much computational capacity a CPU allocation actually represents.",
+   "content_blocks": [
+    {
+     "type": "paragraph",
+     "id": "b-aea73c61ddd7",
+     "children": [
+      {
+       "type": "text",
+       "text": "Uber has introduced ",
+       "marks": [],
+       "id": "t-0fd654a76c25"
+      },
+      {
+       "type": "text",
+       "text": "Normalized Compute Units (NCUs)",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.uber.com/us/en/blog/diverse-server-fleet/"
+        }
+       ],
+       "id": "t-9fd4f5527367"
+      },
+      {
+       "type": "text",
+       "text": " to make CPU allocation more consistent across its highly heterogeneous server fleet. The approach, implemented in ",
+       "marks": [],
+       "id": "t-1bdb28ec7317"
+      },
+      {
+       "type": "text",
+       "text": "Uber's Odin stateful orchestration platform",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.uber.com/dk/en/blog/odin-stateful-platform/"
+        }
+       ],
+       "id": "t-c878ce829749"
+      },
+      {
+       "type": "text",
+       "text": ", accounts for differences in processor performance rather than treating every CPU core as equivalent.",
+       "marks": [],
+       "id": "t-b46e4f5d94bd"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-52c0d4a117e9",
+     "children": [
+      {
+       "type": "text",
+       "text": "Odin manages around 5 million CPU cores across on-premises data centres and public clouds, including multiple generations of x86 hardware and ARM processors. Uber found that single-threaded performance can vary by almost a factor of two between the fastest and slowest cores. Consequently, the same workload can require significantly different numbers of physical CPU cores depending on where it runs.",
+       "marks": [],
+       "id": "t-c420759412fb"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-716dd831f68b",
+     "children": [
+      {
+       "type": "text",
+       "text": "The problem creates two competing risks. Allocating resources according to the slowest hardware can waste capacity on faster machines, while allocating according to average usage can leave workloads under-provisioned when they move to slower servers. For stateful workloads, where moving traffic to another machine is often not possible, the latter can become a reliability problem.",
+       "marks": [],
+       "id": "t-057378cc369a"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-8247b0d9ad2c",
+     "children": [
+      {
+       "type": "text",
+       "text": "Uber's solution is to separate the amount of compute performance a workload requires from the physical cores used to provide it.",
+       "marks": [],
+       "id": "t-f1dca2c86d2d"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-7d9d565599d7",
+     "children": [
+      {
+       "type": "text",
+       "text": "Odin assigns each server type a performance factor, using an older server generation as a baseline of 100. Newer hardware can have considerably higher values; Uber reports factors approaching 190 for some servers. These factors are initially determined during hardware qualification and then refined using production workload data.",
+       "marks": [],
+       "id": "t-f2656d73ada2"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-db4685b0f27d",
+     "children": [
+      {
+       "type": "text",
+       "text": "CPU usage is converted into normalized units using these factors. Odin can then determine that a workload requires a particular amount of compute capacity and translate that requirement into a different number of physical cores depending on the server hosting it.",
+       "marks": [],
+       "id": "t-d512ca7a9994"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-d24896cdeeee",
+     "children": [
+      {
+       "type": "text",
+       "text": "A workload on faster hardware may therefore receive fewer cores, while the same workload on slower hardware receives more. The objective is not to make the number of cores identical, but to make the computational capacity more comparable.",
+       "marks": [],
+       "id": "t-8ecdff5c02ba"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-9f8d7caa7f6a",
+     "children": [
+      {
+       "type": "text",
+       "text": "Uber also found that performance factors differ between technologies. Its measurements for Kafka, for example, showed substantially different performance between ARM, older on-premises hardware, and newer x86 systems. The company therefore updates factors using production measurements rather than relying exclusively on synthetic benchmarks.",
+       "marks": [],
+       "id": "t-731de187ae28"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-ff230f193955",
+     "children": [
+      {
+       "type": "text",
+       "text": "For stateless services, differences between servers can often be addressed through load balancing. Traffic can be directed towards less-loaded or faster machines.",
+       "marks": [],
+       "id": "t-0bd7affeb783"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-80c6f180db91",
+     "children": [
+      {
+       "type": "text",
+       "text": "Stateful systems do not have the same flexibility. A request may need to reach the server containing a particular shard or piece of data. Moving the request elsewhere does not solve the underlying resource problem.",
+       "marks": [],
+       "id": "t-b5bce775d450"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-1548efc2c436",
+     "children": [
+      {
+       "type": "text",
+       "text": "In the post, Uber describes workloads where a leader consumes more than ten times the CPU of its followers. If that leader moves from a fast server to a slower one, its CPU consumption can increase substantially, potentially causing resource pressure even though the workload itself has not changed.",
+       "marks": [],
+       "id": "t-8de5f803721b"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-b5d7f5c134a6",
+     "children": [
+      {
+       "type": "text",
+       "text": "Uber has rolled the approach out across approximately 1.4 million CPU cores of automatically scaled Odin workloads. For",
+       "marks": [],
+       "id": "t-a30937748281"
+      },
+      {
+       "type": "text",
+       "text": " Kafka",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://kafka.apache.org/"
+        }
+       ],
+       "id": "t-1f7fd1e9a015"
+      },
+      {
+       "type": "text",
+       "text": ", CPU utilisation initially varied by around eight percentage points between server types, with the hottest hardware running at approximately 50% higher utilisation than the coldest.",
+       "marks": [],
+       "id": "t-e868f6420ba8"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-f0af887dd920",
+     "children": [
+      {
+       "type": "text",
+       "text": "After introducing performance-aware allocation, the difference fell to around three percentage points, with the hottest hardware only about 10% higher than the slowest. Uber also reduced total Kafka CPU allocation by approximately 8%, with much of the reduction occurring on faster hardware where the savings are potentially more valuable.",
+       "marks": [],
+       "id": "t-4e2ac1cf0695"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-c6a0622d996f",
+     "children": [
+      {
+       "type": "text",
+       "text": "The approach differs from the ",
+       "marks": [],
+       "id": "t-5e8b6f5a9b78"
+      },
+      {
+       "type": "text",
+       "text": "CPU abstraction used by Kubernetes",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://kubernetes.io/docs/tasks/configure-pod-container/assign-cpu-resource/"
+        }
+       ],
+       "id": "t-b878ec28af06"
+      },
+      {
+       "type": "text",
+       "text": ", where CPU requests are expressed as cores or millicores. Kubernetes deliberately treats a CPU unit as an absolute quantity of CPU time, regardless of the size of the underlying machine. That abstraction works well for portable workload definitions, but it does not inherently express the relative performance of different processor generations.",
+       "marks": [],
+       "id": "t-7a5d22bbd425"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-f22f61c1d7e0",
+     "children": [
+      {
+       "type": "text",
+       "text": "Uber's NCU model addresses a somewhat different problem: making the resource itself performance-aware. Rather than primarily deciding how many workloads should fit on a machine or how much CPU a workload should receive, it asks how much computational capacity a CPU allocation actually represents.",
+       "marks": [],
+       "id": "t-59fbd685e86e"
+      }
+     ]
+    }
+   ],
+   "content_format": "blocks-v1",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [],
+   "heat": 57,
+   "star": false,
+   "importance": 50,
+   "quality_score": 50,
+   "trend_score": 63,
+   "signal": 0,
+   "topics": [],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-10-27T20:00:00+08:00",
+   "first_seen": "2026-10-27T20:14:45.071082+08:00",
+   "items": [
+    {
+     "id": "85deb4e23e2b",
+     "source": "InfoQ（AI/数据工程）",
+     "link": "https://www.infoq.com/news/2026/10/uber-cpu-stateful-workloads/?utm_campaign=infoq_content&utm_source=infoq&utm_medium=feed&utm_term=AI%2C+ML+%26+Data+Engineering",
+     "published": "2026-10-27T20:00:00+08:00",
+     "ingested_at": "2026-10-27T20:14:45.071082+08:00",
+     "title": "Uber Moves Beyond CPU Cores with Performance-Aware Scheduling for Stateful Workloads"
+    }
+   ],
+   "content_parse": {
+    "run_id": "github-40501603206-1",
+    "processor_version": "original-first-v7",
+    "attempted_at": "2026-10-27T20:15:37.630040+08:00",
+    "status": "ready",
+    "source": "InfoQ（AI/数据工程）",
+    "strategy": "semantic_container",
+    "blocks": 15,
+    "text_chars": 4452,
+    "figures": 0,
+    "tables": 0,
+    "figures_discovered": 0,
+    "figures_selected": 0,
+    "figures_rejected": 0,
+    "candidate_count": 17,
+    "figures_rejected_author": 0,
+    "figures_rejected_decorative": 0,
+    "figures_rejected_duplicate": 0,
+    "figures_rejected_small": 0,
+    "figures_rejected_limit": 0,
+    "trimmed_tail_blocks": 2,
+    "trimmed_head_blocks": 0,
+    "trimmed_promotional_blocks": 0,
+    "trimmed_embedded_ui_blocks": 0,
+    "embedded_ui_components": 0,
+    "selected_depth": 10,
+    "selected_raw_blocks": 17,
+    "selected_raw_text_chars": 4482,
+    "broad_raw_blocks": 44,
+    "broad_raw_text_chars": 6101,
+    "parent_extra_blocks": 27,
+    "candidate_count_raw": 30,
+    "candidate_duplicates": 13,
+    "candidate_quality_rejected": 5,
+    "duplicate_blocks": 0,
+    "selected_score": 1011.24,
+    "quality_status": "pass",
+    "boundary_marker": "About the Author",
+    "selected_tag": "div",
+    "focus_ratio": 0.7346,
+    "link_ratio": 0.0256,
+    "duplicate_ratio": 0.0,
+    "selection_evidence": [
+     "tail_boundary",
+     "prose_density",
+     "integrity_gate",
+     "semantic_container"
+    ],
+    "reason": "HTTPError",
+    "media": {
+     "figures": 0,
+     "cached": 0,
+     "link_only": 0,
+     "policy_version": "source-cdn-v1"
+    },
+    "content_mode": "original",
+    "source_language": "other",
+    "translation_status": "failed",
+    "source_content_hash": "23446f035397d5e544c9f7ad",
+    "translation": {
+     "run_id": "github-40501603206-1",
+     "policy_version": "faithful-translation-retry-v1",
+     "attempted_at": "2026-10-27T20:15:37.630076+08:00",
+     "purpose": "body_translation",
+     "status": "failed",
+     "error": "HTTPError"
+    },
+    "metadata_translation": {
+     "run_id": "github-40501603206-1",
+     "policy_version": "metadata-translation-backfill-v1",
+     "attempted_at": "2026-10-27T20:15:38.428943+08:00",
+     "purpose": "metadata_translation_backfill",
+     "status": "provider_error",
+     "error": "HTTPError"
+    }
+   },
+   "content_mode": "original",
+   "content_level": "original",
+   "source_language": "other",
+   "translation_status": "failed",
+   "source_content_hash": "23446f035397d5e544c9f7ad",
+   "body_chars": 4452
+  },
+  {
+   "event_id": "99e24d9913d7",
+   "zh_title": "Presentation: Serving LLMs at Scale: The Hidden KV Cache Advantage",
+   "zh_summary": "Khawaja Shams shares a distributed systems perspective on scaling LLM inference stacks efficiently. He discusses practical strategies for optimizing GPU utilization, managing KV cache memory cliffs, leveraging tiered storage, reducing tail latency, and implementing disaggregated prefill and decode a",
+   "reason": "",
+   "full_zh": "Transcript\n\nKhawaja Shams: How many of you find yourselves to be experts in inference? My name is Khawaja. I will try to keep this light-hearted, and there will be a little bit of repetition because one of the things I learned as a teacher was sometimes repetition really helps to internalize the concepts. These concepts are interesting, but once they click they make a lot of sense. I started my career building cameras for the Mars rovers. I was at NASA for eight years doing distributed systems. Then I ran DynamoDB at AWS, which is a large-scale NoSQL database. Today I run a startup. I'm a co-founder at a startup called Momento, where we work really hard to make access to data really fast. This works for AI inference stacks as well as the boring cache as well.\n\nPerspective of a Distributed Systems Engineer\n\nI was really happy to see that not everybody here or most people here don't consider themselves an inference expert. I can share with you that as somebody who came from a distributed systems background, I personally found the inference stack to be extremely intimidating. There are these crazy new words like attention heads, KV projections, CUDA kernels, tensors, quantization that made me feel like I need to go back to my linear algebra class. Luckily, in the world of inference, there's a lot of space for distributed systems people to make an impact. The same problems that start to appear when web scale came back in our histories where you had to take care of problems like routing, you had to take care of problems like your tail latency for your data access, how do you think about your caches and so forth. All those problems still exist inside the inference stack.\n\nCurrently, in today's world, one of the most scarce resources is GPUs. You can't produce them fast enough. Even if you could, there aren't enough data centers to go around. While the world is busy producing more GPUs, building more data centers, this is going to be a renaissance for us distributed systems people because we can help improve a very critical metric, which is the utilization. Some of the concepts you'll learn today, they all feed into how do you make the inference stack have higher utilization. If you have better utilization, if you can use the capacity better, then that leads to better availability, it leads to better performance, and it leads to better economics.\n\nTwo Stages of Inference\n\nWhen we talk about inference, this is when I go to ChatGPT and I say, please say hello to me, and it takes like 2 seconds for that thing to happen. There are actually two stages of that prompt being inferred. The first stage is the prefill stage. This is where the prompt actually gets processed. I'll give you a quick example, and I'll try to make these as relevant to the way humans talk to each other as I possibly can to help you internalize all these concepts. Think back to when you were in high school or earlier, you may recall this riddle where people will show up and say, you are driving a bus, and that bus has no passengers. Then at the first stop, you get one person. At the next stop, you get two people. Then at the third stop, it doubles. Then at the fourth stop, a third of the people leave and so forth.\n\nNow imagine if I sat here for the duration of this talk, and I just kept going on and on about that particular riddle, and in the end, all I'm going to ask you is who's driving the bus? The answer is you, but you cannot answer that question until you are done processing all of the input. That is the prefill stage. This is where the input prompt that you have is getting converted into machine code that maps to how the model thinks. The decode side is the actual answer. This is when you're saying the answer being like, I'm driving the bus. That's the decode side. In the inference stack, these two are very separate stages. It'll make more sense a little bit how these stages map to each other. The prefill side is very compute bound. You are just sitting there parsing the words that are coming out, and you're converting them.\n\nIt runs all in parallel, takes up a lot of CPU. The decode side has to reference all of those things, so it has to be very memory bound. You might have heard this metric that the whole world obsesses over, it's time to first token. This is the metric that users care about because it lets you improve the perceived interactivity, like how fast this thing is responding. The first token will not land on your screen until the prefill is completely done. Just like you can't even begin to answer the question about the school bus until I finish the question.\n\nJourney of a Prompt\n\nLet's go through this from the perspective of a prompt. Today, in the magic school bus, you are the prompt. You are going to get entered. The user is going to enter you, and you're going to fly through the packets on the internet. You're going to land on a routing box. That particular prompt has to get tokenized. The programming analog here is when you take your C program and you compile it into assembly, that's what's happening. That's the tokenization phase. It's not one-to-one. A single word may not become a single token. It's roughly one-to-one, but it's not quite that much. Then after the prompt is generated, what the tokens generated, the routing layer is going to actually go and check, have I seen this before? Like, have I heard this riddle before? Or, have I heard parts of this riddle before? You go and you check.\n\nSometimes as I was asking the question, some of you were already thinking the answer is me. Because you've seen this before. You've already compiled this analogy or this riddle. Then the prefill starts to happen. In the prefill stage, if you haven't seen it before, you're generating the machine code. You're generating the 1s and 0s that map back to the way the model pays attention. Then you store that data inside what's called the KV cache. Then once the prefill stage is completely done, you go in the decode loop, which produces one token at a time. Once the response is complete, as each token comes in, it gets streamed back to your screen. The costs here on the prefill side is just compute. On the KV cache side, it's very storage heavy. It's in the gigabytes. On the decode side, it's very memory bandwidth heavy. All the user care about is how quickly they get their tokens.\n\nNow, KV caching, it seems somewhat orthogonal as a user of inference services. If you understand how KV caching works, it'll help you drive your inference stack better, even if you're not running your own inference stack. It'll help you drive your Claude Code sessions better too. KV caching is hard because it takes a lot of storage. GPU memory is extremely limited. KV caches, it's not easy to share them between sessions. We'll get into each of these three. For the purposes of this talk, I learned by doing, and I created a few experiments. These experiments were done on a very modest model. This model is 4 billion parameters. Some of the larger models, like when you're using GPT-5.5, those are trillion parameters model. They go into trillions. Claude Opus 4.8, trillions of parameters. This is a 4 billion parameter model. The experiments were run on a G6 instance type, which is actually readily available inside of AWS, costs a couple of bucks an hour.\n\nYou can go reproduce these. For this very modest 4 billion parameter model, let's compute how big a single token is for your KV cache. That single token, your LLM model has 36 layers. Each layer has 8 KV heads. Each token gets converted, multiplied to embeddings of 128 dimensions. Then you have 1 byte for the key and 1 byte for the vectors that follow. You multiply those numbers together and your hello just got converted to 72 kilobytes. That's a lot of data. One of the experiments that we'll get into in a bit was 20,000 tokens. Just to put things in perspective, your Claude Code sessions are constantly churning 100,000-plus tokens back and forth. 72 kilobytes per token, a 20,000 token prompt is 1.6 gigabyte. That might be ok if you owned that GPU for yourself. In a fleet that your ChatGPT provider or your Claude Code provider behind the scenes is running, that's running on GPUs. The GPUs have RAM from the 2000s in a certain extent. The GPU that I was playing around with, the cheaper one, only has 24 gigs of RAM. The really expensive Blackwell models have 192 gigabytes of RAM. RAM inside of GPU is not very big, so storing gigabytes of data for each user becomes very expensive very quickly.\n\nThen there's a second part which is, it's really hard to share KV caches across sessions. This is because each individual word that gets converted into tokens, KV is a little misleading because people think KV means for this token, here's the value. It's not a HashMap lookup. What you're really asking is for this token, after it's been preceded by these other tokens, what is the value? This applies to humans as well, the way we perceive language. If I say time flies like an arrow, or if I say fruit flies like a banana, if you were to go and encode flies independently, the word flies has two different meanings. It depends on the context that preceded it. You can't just individually go cache individual tokens and expect them to be reusable across sessions and so forth. Your KV cache that's running behind your ChatGPT queries and so forth is generally pretty personalized to you, because you and the other users might be asking very different things.\n\nIn fact, one of my team members just committed a patch to Llama.cpp, which is an inference engine that you can run. One of the things that Llama.cpp was doing was, it was injecting a timestamp before the prompt got sent. That would invalidate the entire KV cache, and the whole prefill had to be done again. You can imagine a simple mistake like, I'm going to insert the timestamp, seems so benign. It means your GPU has to do all of that work again. It doesn't have the reasoning skills of a human where it can say, yes, that's just a timestamp, let me ignore it. No, the prefix does not match, therefore I must compute it.\n\nPrompt Anatomy\n\nLet's take a look at the anatomy of the prompt. There are some parts that are shareable. The first part is the system prompt. If you are running Codex, the system prompt is actually not all that complicated, but it's very long. The system prompts by saying, you are Codex, a coding agent. Then it has all kinds of instructions about what you should and shouldn't do. Like, don't over-explain, don't write comments unless somebody asks for it. I highly recommend, if you can go get access to it, you can see some of the Claude Code prompts on the open internet now after a leak as well. Just read through what the system prompt looks like. It is like you're talking to a child. It's like, important in urgent. Anybody watch The Office from back in the days where Michael Scott had Urgent A, Urgent B, Urgent C? It's like that.\n\nIt's like, there's important, there's super important, and there's caps used. In fact, the Codex prompt, I kid you not, says, no matter what, do not talk about goblins. I can help explain my theory offline about why that token is in there. The system prompt, especially for coding agents and things like that where somebody is using the same thing over and over again, that is very common across your user base. Every Claude Code session is going to start with the same system prompt. That part you can share across users. If a user is online, their prior turns are also, you've seen it recently, you probably still have it. If I were to continue my riddle now and say, what is the maximum speed do you think that vehicle will go? You know the answer without having to think through and reprocess the whole bus story. If I ask, how fast will it fly?\n\nYou will also know the answer because you know it's a bus. It's still in your cache. If the person comes back reasonably quickly, within minutes or hours or whatever, the prefill for their session is likely still there from their prior turns. The new stuff is what they just added. Like, how fast can this vehicle go? Or, will it fly? That's the part that needs to be regenerated if you got a KV hit. If you pay attention to your Claude Code session, you'll notice that your cache hit rate is actually quite high. The reason for that is when Claude Code takes your turns, it's not sending a brand-new prompt every time. It's just appending to the last one. That's why your token consumption goes up the longer your session goes. Then eventually you run into that compaction side because your context just grows and grows and grows, but they keep appending so that your prefixes keep matching.\n\nLearn by Example\n\nLet's go to the experiment. Just to help you internalize some of this, again, modest model, 4 billion parameters. Cheap GPU. We use floating point, FP8 just means floating point 8. It's a float. If you remember floats from your coding schools or your classes. Then we use vLLM. APC just means automatic prefix caching. We did a sweep where we said, run one concurrent session, run two, run three, run four, up to 48 concurrent sessions. The workflow was a mini-agentic coding workflow that we were trying to simulate. It starts with a 10,000-token system prompt that says you're a coding agent. Don't talk about goblins. Then you take 12 turns and each turn you add like 1,067 tokens. Then you just go back and back and back. At the peak, you get 22,800 tokens at turn 12. We wanted to see where does the GPU hit a cliff in performance between 1 to 48 concurrent sessions.\n\nI'll skip to the good part where when we got to 12 sessions, it looked pretty good. The time to first token at p50 was only one second. It was a complex prompt. It's a long riddle. It has to be prefilled and everything. Just to give you, 22,000 tokens is roughly like 10 pages of written text. For a computer to just go parse through that and at p50 give you a second, it's pretty good. At p99, the time to first token was 2.6 seconds. That's with 12 concurrent sessions running and it's doing a little bit of prefill every time, getting a cache hit for the prior turns before. The reason why it does so well is because the KV cache actually still fits, and we did the math and it turns out that it can sit around 13. There's overhead and so forth. Then we added two more.\n\nSame experiment, but we did 14 concurrent sessions. Now you are adding a little bit more load where the data just doesn't fit in memory anymore. Between turns, it's getting lost, so it has to be regenerated. If anybody was around in the 2000s and may remember your Windows PC, remember the word swap space? You can still see it in your MacBook too. Remember when your computer would go into using swap and everything will come to a halt? It's like that. Where the GPU just can't keep it in memory anymore so things start to evict and it has to recompute. The p99 jumps from 2.6 seconds before at 12 concurrent to 38.9 seconds. That's a major noticeable jump. It just comes down to being not able to fit everything in memory. The cliff is actually quite bad because the sessions that get run out of memory, like that end up being evicted from the GPU, they end up doing really badly.\n\nThe lucky sessions, that's why the p50, the 50th percentile ends up still being ok because at 50th percentile, you're still getting some cache hit rates. You're getting lucky and that's why it's raising so gradually. We've all heard of tiered storage and tiered caching. Memory is very expensive because GPUs are very expensive. What about DRAM? As much as the world is saying that DRAM is getting expensive, it's still way cheaper than GPU RAM. VRAM is the GPU RAM. It's like tens of gigs. We saw up to 192 gigs. On these massive boxes with GPUs, you can get terabytes of DRAM. This is just like the RAM on your laptop and so forth. The DRAM, we're living in a world where I can actually say this, RAM is too slow. Like you have terabytes of it, but now you got to copy the data from the RAM to the GPU on every turn.\n\nYou have terabytes of it and it's still going to be cheaper than recomputing it. Then there's NVMe, this is your SSDs, which can have tens of terabytes on a regular EC2-style server that you might have. Not only is it even slower than DRAM, it actually has write endurance problems. One of the things that goes wrong is if you keep writing over and over and over again, you'll just trash the SSD and it'll just stop working. The KV cache, because the data is so large, you are constantly going to be writing and you can exhaust the lifetime of your SSD pretty quickly. The tier below that is you can always just recompute. This is a cache that never has a miss because if you don't have the data, you can regenerate it as well. That's simpler, but it causes you to use more GPUs, and GPUs are scarce. Each tier basically trades latency for capacity.\n\nStorage\n\nNow, let's take a quick detour into, there is local caching that we talked about and then there is remote caching. We started going down this path of how do I make a good remote cache for this environment because GPUs are still expensive. A lot of times people who build cache, including me and my own team, we really like to talk about sub-millisecond latencies or 100 microsecond latencies, but here the latency to first byte is not that important. You're trying to download gigabytes of context about a user. What really matters is your throughput. Within the throughput, what matters is can you saturate the network card that you have because you don't want to leave any bandwidth unused. You want to get the data as quickly as possible because then you're not sitting there having your GPU wait. The G6 instance type that I use for my experiments has a modest 25 gigabit NIC.\n\nWhen I say 25 gigabit NIC is modest, I feel a little guilty saying that. Twenty-five gigabits is a pretty decent network card. Just to put it in context, the instances that have the really expensive GPUs that I hope to be able to afford one day, they cost like 50 bucks an hour. They have terabits per second of bandwidth. A lot of the challenges here become, how do I consume all of that bandwidth? Some of this comes down to, how do I divide my objects into lots of smaller objects of megabytes, which in the world of caching, they're considered large objects, but it's better than downloading a single 1.6 gigabyte object. You can download a bunch of them in parallel. Your goal when building something like this for a remote KV cache is to saturate the NIC. Techniques like smaller chunks does help. The open-source software I work on is called Valkey.\n\nThis is, again, being a distributed systems person, being able to help the inference world a little bit. Anybody heard of Redis? Valkey is a Redis fork backed by Amazon, Google, and so forth. There's been a lot of performance optimizations in that space. One of the optimizations that got made is copy avoidance. Redis, from the very beginning, branded itself as having single-threaded. Because if you're single-threaded, you can move really fast. There's no locks. That works really well when you have tiny 5 kilobyte, 10 kilobyte objects. What happens when you have a 4-megabyte object is that your main thread is busy writing to the kernel buffers to write to the NIC so that the data can go on the network. While it's doing that, it's not actually answering any of their calls. For the KV caching workflow, you're not only downloading, you're also checking, do you have this prefix?\n\nDo you have that prefix? All those calls will get locked behind it. In the latest version of Valkey, one of the interesting things that happened is that there are I/O threads. The I/O threads deal with the network, and the main thread just says, yes, you want that object? Please copy offset by this to this from this address onto the NIC. I/O thread goes and does its thing while the main thread moves on. The reason why I bring this up is that simple optimization makes a big difference on whether you can consume the entire NIC or not. Because until the 4 megabyte is copied from the main thread to the I/O thread or whatever, you can't even start to write the first byte. Then the software layer that's going and downloading each individual object can't actually pass it on and start to stitch it together until it downloads each individual chunk.\n\nThis gets really expensive. Copy avoidance, funny enough, has actually been the most profound optimization that we have done not just on the server side but also on the client side. The inference engines, like if you might have heard of vLLM or SGLang and so forth, often written in Python. Everybody thinks Rust is going to be much faster. I can say that because I'm a big Rust fan too, if I can make fun of people who think Rust will make them go faster. This is a classic example of when Rust will slow you down. Somebody had the bright idea that, yes, this isn't Python, I'm going to write my client in Rust and I'm going to do a native binding. What happens is that that Rust layer now has to download the 4-megabyte object and it can't pass it to the Python layer until the 4-megabyte object is done downloading.\n\nThen it has to copy it over to the Python space which then has to go copy it over to the CUDA space which then has to go copy it over to the GPU. All those copies, they add up. I harp on this example because that is a classic example of your CS skills coming in handy for this very complicated looking inference stack. Minimize copies wherever possible.\n\nWith that out of the way, let's see if we can use DRAM. We'll go back to local caching and see what happens when we add a little bit of DRAM. We notice that the first row is just 8-bit floating point. The p99 cliff happened at 14 connection, and our latency was 38.9 seconds for p99. Then we said, let's just add 16 gigs of local RAM, the DRAM. That actually helped meaningfully. Our p99 at 14 connections actually went down from 38 seconds to a more bearable three and a half seconds. We ran a sweep to see, how much does it help. Actually, it turns out, for this particular workflow, if you add 32 gigabytes of local DRAM, you can push your concurrency cliff from 14 to 28. 8-gig didn't really help much, it went to 14. Really having the 16 was a key tipping point. The impact becomes more and more profound the higher your concurrency gets. It's still pretty bad. You really want the data to be in the GPU whenever possible if you want the fastest possible inference.\n\nSynthesis\n\nAfter harping on why you should really think about how much concurrency you need, I have some bad news. If you are running a multi-tenanted cluster of inference and you have users that will ask short questions, and you have users that will ask long questions, and sometimes you'll have a very spiky mix of them. A new release of Claude Code might completely change the way your traffic looks if you're running an inference service and that gets really tricky. You really can't make any assumptions on being able to admit by concurrency count. In the early days that's what everybody did. It's like they just said, ok, I'm going to run this much concurrency. What happens is somebody shows up with a 100,000 or 200,000 token prompt and it just thrashes everybody away from the GPU VRAM, and that causes problems. What you really have to do is think hard about, for this model that I'm hosting, what is my per token cost?\n\nHow much budget do I have for my KV cache on the GPU? Then, what is my cliff estimate for a particular token size? When you make your admission control decision, when you want to decide, do I add another request to this GPU or not? You really have to be looking at how your KV cache consumption is going, and are you going to cause an eviction the moment that you add this particular request. It's very workflow specific, and this is where the multi-tenancy makes it harder. If you have single-turn questions like, ChatGPT, what's the meaning of life? That's like 1,000 tokens, perhaps. Very hard question but the prefill for that is really fast, I can tell you that. Those are very short single-turn questions. The tiny agentic coding sessions are tens of thousands. Code reviews might be a few thousand and so forth. The key message I want you to take away is that the token consumption really depends on the workflow, and if your fleet is supporting a variety of them, you got to be very mindful of that too.\n\nRouting and Processing\n\nThus far we have covered storage aspect of it, if you're running the inference fleet. Now let's talk about routing choices. There are still web servers involved, all this still happens on HTTP, so more good news for systems people. The request goes to a web server and the web server has to decide which GPU am I going to send this particular request to. If you do a naive thing, back 20, 30 years ago, there was the situation where people came up with sticky sessions. Sticky sessions are beautiful because the likelihood of the user landing on that node that still has their stuff on the cache is higher, so sticky sessions work really well in the web space. Here people still try to do sticky sessions to the GPU, so the web server will try to remember, this particular request for your coding agent session went to this GPU, so let me just go back to that GPU.\n\nBecause the odds of it having the KV cache locally on its SSDs or whatever is meaningfully higher. The problem is that these are extremely spiky workloads. I might take my next turn immediately. I might go for lunch and come back. I might never come back. This creates these like very spiky bursts. If you're trying to just do naive sticky sessions, you can get into situations where a particular GPU becomes really hot. It's like a bank run. Everybody shows up to that particular node and you get essentially a noisy neighbor hotspot issue. Your fleet-wide p99 is going to follow your hottest node. Load imbalance becomes a real problem in this space. The industry is doing a lot of interesting things there. The Mooncake folks are doing proactive KV migration so that if they can say, this node is more likely to get hotspotted, let me copy some stuff over.\n\nNVIDIA's Dynamo is like, how much preference do I want to give it so that I can avoid this hotspot and so forth. It does make a difference. If things do fit in the cache, the KV-aware routing and session affinity does help. I ran a quick experiment with the same thing where I just had one GPU. My output metric was just, I was outputting 110 tokens per second. As soon as I went to two GPUs, my output, it didn't go to 220, it went to 128. Which means I was only 58% efficient. The same thing on two GPUs but saying, I'm going to put each session to the place that it went to before, it did 201 tokens per second. It's not quite double but it became pretty efficient. I tried that with three GPUs, I got to 278 instead of 330, and then with four I was at 324.\n\nThe session awareness does help but with some caveats. One of the core distributed systems principle is, do constant work. If you're trying to do constant work and you also want to try to scale your components independently of each other, with prefill and decode that becomes really hard, running on the same node. A new technique is emerging where people are saying we're going to turn inference into a distributed systems problem where we're going to do the prefill on one node and we're going to do the decode aspect on another node. This is called disaggregation. If you get this right, you can scale these very dynamically. You can improve yourself or you can protect yourself from a situation where a single long prefill thing causes all the other decodes to slow down because the GPUs are busy doing the prefill side.\n\nLet's talk through from a component level how this works. NVIDIA has this framework called Dynamo, which unfortunately is very confusing because I worked on DynamoDB which has nothing to do with NVIDIA's Dynamo. NVIDIA's Dynamo, one of its centerpieces, it's got a routing layer. The routing layer is actually the pinnacle of all of these lifecycles. This is the web server that I referred to earlier. The request lands on the routing layer. The routing layer will go ask a node to say, can you take this prompt and tokenize it? Then it's going to go and see, does anybody have it? Who is the node that is most likely to have the longest part of this prefix available? Then it's going to send that node a prefill request. This is to generate the machine code that a model can understand. When that node has finished generating the prefill tokens, it will store it in a KV cache, and then it transfers metadata back to the router, and says, ok, the prefixes, prefills, these are the chunks that you need and here are the hosts where they're at.\n\nThat gets transferred over to the decode node which then goes and says, everybody, can I have this object? Can I have this object, and so forth? Then it loads it and then it can start the decode process. The nice thing here is that you can focus the nodes to be either completely prefill and be completely decode. When you bring up let's say a vLLM, your node can switch positions. You can say, ok node, I'm going to schedule a bunch of prefill jobs on you, and the next second I can say I'm going to schedule a bunch of decode jobs on you, and it's totally fine with that. This allows the router to actually become quite intelligent and dynamic in the way it's scheduling.\n\nTo make this a little bit more memorable as to why disaggregation is so useful, we're going to do a quick exercise that will hopefully help you remember it. I like to call it the ABCD exercise. I'm going to time you all. I want you to say the numbers 1 through 12 as fast as you can. I'm going to say 1, 2, 3, and then you are going to just say 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12. That's your job. 1, 2, 3, go. Pretty fast. Now I want you to say A through L as fast as you can. L, I think, is the 12th letter. 1, 2, 3, go. Still pretty fast. A little slower than numbers but you remember your ABCs. I want to make it a little bit harder. Now I want you to say A1, B2, C3 and so forth.\n\n1, 2, 3, go. Many of us just gave up halfway through. This is what happens when you're asking the same node to do multiple things at the same time. If you time yourself saying 1 through 12 and A through L and you added that together, I bet you that was less than a quarter of the time it took you to say A1, L12. You can cache it. If you do this enough times, you'll do it really fast. For the first time, you see this becomes a really hard problem. This ability to disaggregate is actually quite useful. You can have special purpose-built hardware for the prefill versus decode. They use different types of things. In fact, there are specific hardware that are now being built that are optimized primarily for the decode stage so that you can prefill elsewhere and then decode really fast. The distributed systems concepts that we talked about try to do bounded work, pinning the roles, balanced by the pressure, and then you can do constant work if you make your KV cache mobile.\n\nLike if you don't say it runs locally on the same host. Some of these things may look like they will slow you down because now you have to do a network call. In isolation, they will make you slower because you have to go fetch it. If you're thinking about multi-tenancy, if you're thinking from a fleet-wide perspective, it improves your throughput and actually improves the latency that your users get because they're not sitting there waiting once in a while for that hotspot to conclude. These things about six months ago were still super controversial, but now it seems like everybody is converging on cache-aware placement remotely, disaggregation of prefill and decode, and then the mobile KV state.\n\nConclusion\n\nI hope that what you took away from this is relevant to you even if you're not running your own inference stack today. Some reminders for you. Every token that you are using becomes state that somebody has to carry. If you feel the temptation because you're really nice and you like to say please, just know that's like an extra 72k that Anthropic has to carry, and you're hurting their margins. The fact that you're saying please probably is why they couldn't become a trillion-dollar company, were only 965. Just if only you didn't say please enough. That's state that everybody has to carry. When you're doing this, if you're familiar with The Office, be like Kevin. Why use more words when few words do trick. Use as few words as you possibly can. When you are inside your Claude Code session, like if you have side quests that you want to do, launch sub-agents or launch a different window and run it so that you're not diluting the context because of the prefix caching.\n\nIf you do this often enough, you will actually start to appreciate that the quality of your output will get better and you'll hit the compaction window a lot less frequently if you took your side quest and ran them as sub-agents so that you're not diluting your prefix cache. As users, long context is powerful, but use it deliberately and carefully. Don't fill it up with all these pleases. As builders, if you are running an inference stack and if you're not today, I suspect you will in the next couple of years because databases in the '90s, were really hard, and if you wanted a hardcore database, you had to go pay this company a lot of money to get a whole rack full of databases, and now people just turn on Postgres. This will get commoditized and you will run your own inference stacks soon enough. It'll become more common.\n\nWhen you're doing that, think hard about what are the underlying scaling dimensions. Then as designers, just remember, when you're designing your system prompt, when you're doing prompt engineering, when you're deciding where to put the user input, just think about locality and think about what can you trim from the prompt without losing the meaning, so that your users can have a better experience even if you're providing the application and not just the inference stack. This is all called mechanical empathy. If you are aware of the system and how it operates underneath, you can drive it a lot better and a lot faster. Design for the state you create.\n\nQuestions and Answers\n\nParticipant 1: The question I have is, first off, I don't actually know, but does the KV caching hit rate affect the price you pay as a customer? Second is, I believe that in the MCP protocol, when you change this list of tools for your server, for example, that causes the prefix of the thing to change. Was that just a giant mistake, would you say?\n\nKhawaja Shams: It's hard to say if that's a giant mistake or not. To answer your first question, Anthropic and even OpenAI, I think they give you like a 90% discount if you have a cache hit rate. That doesn't mean that it's ten times cheaper for them. It's just a convenient number. It's not exactly 90% off, but it's like 0.89 or something. They give you a pretty nice discount if you get a cache hit. In fact, if you use a proxy, you can actually see what your cache hit rate was. Designing for that is good.\n\nTo answer your second question, I'm not sure if messing up the prefix is a mistake or if it's deliberate to make the model perform better because you don't want the model to be distracted by the previous list of tools. Because you might also remove some tools as well. There are little techniques though that come into play, like, for instance, if you ask it for a file that's changed and the original file was already in the prompt, it'll send a git change rather than the entire new file. There's techniques like that that the Claude Code agent is taking into play. It's hard for me to speculate on whether resetting the prefix is a mistake or not. It might have been a deliberate choice.\n\nParticipant 2: I'm just trying to understand, like Redis key value, obviously, one then maps to a value over there. From what I understood from your talk, you are loading all of the context that was previously hit with the previously churns in every time a new query comes in. I'm just trying to understand the separation of the system prompt and then the original context and the new churn, how the actual similarity matching is happening there, and where it decides to include or not include things. Because your data goes to 35 seconds from 3 seconds. You figure if it was semantically matching, it would have a little bit more of a subtle gradient to it because some of it matches and some of it doesn't. It's just binary. It goes from 3 seconds to 38 seconds. Why is it going from 3 seconds to 38 seconds if it's semantically trying to evaluate the key-value store to do the matching?\n\nKhawaja Shams: The name KV cache is quite unfortunate, especially for somebody who works in the caching world, KV means key value. Except it's not a HashMap lookup. It's not a value. The V is like a vector of everything that preceded behind it and embedded into a single floating point. You really need the entire prefix. You need the KV for the first token, the second token, the third token. If you have lost and if you have evicted even like one link in the chain, you have to go recompute the whole thing. The 38-second jump is because it's having to do precomputation. It's like the GPU is actually having to do a lot more computation because it lost some of the data. Today in a cache you can get very clever about simple techniques like LRU, which tend to be pretty good for eviction. For instance, if you evict the first block of a particular prompt or whatever, you may as well just get rid of the rest, because they're likely not going to match. It's not doing a semantic search or anything like that. It's looking for very precise values which end up being like these attention mechanisms that are referencing every token that preceded the particular token for which you're looking up the value.\n\nParticipant 2: That makes sense, but why is it always so binary? Why wouldn't it just be like, it's halfway through, the token got rejected and so then it's 20 seconds instead of 38 seconds. Why is it always 3 seconds to 38 seconds in every example?\n\nKhawaja Shams: Ever have too many browser tabs and like your browser comes to a halt? That still happens today.\n\nParticipant 2: Every moment.\n\nKhawaja Shams: Yes, so it's like that. It's just like it's thrashing and it's losing. It's evicting the data that it now has to go recompute and that's causing pipeline stalls and that's causing delays, because now it's causing you to use up more compute. There are other things that can happen too, like precompute could be very compute heavy. It could cause your GPU to start running hot and run into thermal throttling as well. Having specific hardware for prefill versus decode helps, like not having to run it simultaneously is also super useful.\n\nSee more presentations with transcripts",
+   "content_blocks": [
+    {
+     "type": "heading",
+     "id": "b-85d8cc45fd45",
+     "children": [
+      {
+       "type": "text",
+       "text": "Transcript",
+       "marks": [],
+       "id": "t-4403cb8ae1f2"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-0a48bc63e70f",
+     "children": [
+      {
+       "type": "text",
+       "text": "Khawaja Shams:",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-0c9b278a5300"
+      },
+      {
+       "type": "text",
+       "text": " How many of you find yourselves to be experts in inference? My name is Khawaja. I will try to keep this light-hearted, and there will be a little bit of repetition because one of the things I learned as a teacher was sometimes repetition really helps to internalize the concepts. These concepts are interesting, but once they click they make a lot of sense. I started my career building cameras for the Mars rovers. I was at NASA for eight years doing distributed systems. Then I ran DynamoDB at AWS, which is a large-scale NoSQL database. Today I run a startup. I'm a co-founder at a startup called Momento, where we work really hard to make access to data really fast. This works for AI inference stacks as well as the boring cache as well.",
+       "marks": [],
+       "id": "t-ada648c33c2a"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-7e78c8d2fb79",
+     "children": [
+      {
+       "type": "text",
+       "text": "Perspective of a Distributed Systems Engineer",
+       "marks": [],
+       "id": "t-59b118ea857e"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-cbd1e49e0914",
+     "children": [
+      {
+       "type": "text",
+       "text": "I was really happy to see that not everybody here or most people here don't consider themselves an inference expert. I can share with you that as somebody who came from a distributed systems background, I personally found the inference stack to be extremely intimidating. There are these crazy new words like attention heads, KV projections, CUDA kernels, tensors, quantization that made me feel like I need to go back to my linear algebra class. Luckily, in the world of inference, there's a lot of space for distributed systems people to make an impact. The same problems that start to appear when web scale came back in our histories where you had to take care of problems like routing, you had to take care of problems like your tail latency for your data access, how do you think about your caches and so forth. All those problems still exist inside the inference stack.",
+       "marks": [],
+       "id": "t-aec402d64bef"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-eb1e961622ad",
+     "children": [
+      {
+       "type": "text",
+       "text": "Currently, in today's world, one of the most scarce resources is GPUs. You can't produce them fast enough. Even if you could, there aren't enough data centers to go around. While the world is busy producing more GPUs, building more data centers, this is going to be a renaissance for us distributed systems people because we can help improve a very critical metric, which is the utilization. Some of the concepts you'll learn today, they all feed into how do you make the inference stack have higher utilization. If you have better utilization, if you can use the capacity better, then that leads to better availability, it leads to better performance, and it leads to better economics.",
+       "marks": [],
+       "id": "t-60e5e81bfdff"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-79938e744f63",
+     "children": [
+      {
+       "type": "text",
+       "text": "Two Stages of Inference",
+       "marks": [],
+       "id": "t-f09168739d91"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-66693f184b85",
+     "children": [
+      {
+       "type": "text",
+       "text": "When we talk about inference, this is when I go to ChatGPT and I say, please say hello to me, and it takes like 2 seconds for that thing to happen. There are actually two stages of that prompt being inferred. The first stage is the prefill stage. This is where the prompt actually gets processed. I'll give you a quick example, and I'll try to make these as relevant to the way humans talk to each other as I possibly can to help you internalize all these concepts. Think back to when you were in high school or earlier, you may recall this riddle where people will show up and say, you are driving a bus, and that bus has no passengers. Then at the first stop, you get one person. At the next stop, you get two people. Then at the third stop, it doubles. Then at the fourth stop, a third of the people leave and so forth.",
+       "marks": [],
+       "id": "t-45edc43696e7"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-8ffe7f46ac11",
+     "children": [
+      {
+       "type": "text",
+       "text": "Now imagine if I sat here for the duration of this talk, and I just kept going on and on about that particular riddle, and in the end, all I'm going to ask you is who's driving the bus? The answer is you, but you cannot answer that question until you are done processing all of the input. That is the prefill stage. This is where the input prompt that you have is getting converted into machine code that maps to how the model thinks. The decode side is the actual answer. This is when you're saying the answer being like, I'm driving the bus. That's the decode side. In the inference stack, these two are very separate stages. It'll make more sense a little bit how these stages map to each other. The prefill side is very compute bound. You are just sitting there parsing the words that are coming out, and you're converting them.",
+       "marks": [],
+       "id": "t-7f159af9e467"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-6e387744c6d2",
+     "children": [
+      {
+       "type": "text",
+       "text": "It runs all in parallel, takes up a lot of CPU. The decode side has to reference all of those things, so it has to be very memory bound. You might have heard this metric that the whole world obsesses over, it's time to first token. This is the metric that users care about because it lets you improve the perceived interactivity, like how fast this thing is responding. The first token will not land on your screen until the prefill is completely done. Just like you can't even begin to answer the question about the school bus until I finish the question.",
+       "marks": [],
+       "id": "t-b02224eb2c82"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-e8864651ed8b",
+     "children": [
+      {
+       "type": "text",
+       "text": "Journey of a Prompt",
+       "marks": [],
+       "id": "t-00e87b9cb296"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-63670a31df47",
+     "children": [
+      {
+       "type": "text",
+       "text": "Let's go through this from the perspective of a prompt. Today, in the magic school bus, you are the prompt. You are going to get entered. The user is going to enter you, and you're going to fly through the packets on the internet. You're going to land on a routing box. That particular prompt has to get tokenized. The programming analog here is when you take your C program and you compile it into assembly, that's what's happening. That's the tokenization phase. It's not one-to-one. A single word may not become a single token. It's roughly one-to-one, but it's not quite that much. Then after the prompt is generated, what the tokens generated, the routing layer is going to actually go and check, have I seen this before? Like, have I heard this riddle before? Or, have I heard parts of this riddle before? You go and you check.",
+       "marks": [],
+       "id": "t-9df24e82b784"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-2f700310518c",
+     "children": [
+      {
+       "type": "text",
+       "text": "Sometimes as I was asking the question, some of you were already thinking the answer is me. Because you've seen this before. You've already compiled this analogy or this riddle. Then the prefill starts to happen. In the prefill stage, if you haven't seen it before, you're generating the machine code. You're generating the 1s and 0s that map back to the way the model pays attention. Then you store that data inside what's called the KV cache. Then once the prefill stage is completely done, you go in the decode loop, which produces one token at a time. Once the response is complete, as each token comes in, it gets streamed back to your screen. The costs here on the prefill side is just compute. On the KV cache side, it's very storage heavy. It's in the gigabytes. On the decode side, it's very memory bandwidth heavy. All the user care about is how quickly they get their tokens.",
+       "marks": [],
+       "id": "t-819981ed06f9"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-30c05782f004",
+     "children": [
+      {
+       "type": "text",
+       "text": "Now, KV caching, it seems somewhat orthogonal as a user of inference services. If you understand how KV caching works, it'll help you drive your inference stack better, even if you're not running your own inference stack. It'll help you drive your Claude Code sessions better too. KV caching is hard because it takes a lot of storage. GPU memory is extremely limited. KV caches, it's not easy to share them between sessions. We'll get into each of these three. For the purposes of this talk, I learned by doing, and I created a few experiments. These experiments were done on a very modest model. This model is 4 billion parameters. Some of the larger models, like when you're using GPT-5.5, those are trillion parameters model. They go into trillions. Claude Opus 4.8, trillions of parameters. This is a 4 billion parameter model. The experiments were run on a G6 instance type, which is actually readily available inside of AWS, costs a couple of bucks an hour.",
+       "marks": [],
+       "id": "t-040b63425540"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-e14001cccb8b",
+     "children": [
+      {
+       "type": "text",
+       "text": "You can go reproduce these. For this very modest 4 billion parameter model, let's compute how big a single token is for your KV cache. That single token, your LLM model has 36 layers. Each layer has 8 KV heads. Each token gets converted, multiplied to embeddings of 128 dimensions. Then you have 1 byte for the key and 1 byte for the vectors that follow. You multiply those numbers together and your hello just got converted to 72 kilobytes. That's a lot of data. One of the experiments that we'll get into in a bit was 20,000 tokens. Just to put things in perspective, your Claude Code sessions are constantly churning 100,000-plus tokens back and forth. 72 kilobytes per token, a 20,000 token prompt is 1.6 gigabyte. That might be ok if you owned that GPU for yourself. In a fleet that your ChatGPT provider or your Claude Code provider behind the scenes is running, that's running on GPUs. The GPUs have RAM from the 2000s in a certain extent. The GPU that I was playing around with, the cheaper one, only has 24 gigs of RAM. The really expensive Blackwell models have 192 gigabytes of RAM. RAM inside of GPU is not very big, so storing gigabytes of data for each user becomes very expensive very quickly.",
+       "marks": [],
+       "id": "t-7dc909146cc2"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-1e3e03d1171f",
+     "children": [
+      {
+       "type": "text",
+       "text": "Then there's a second part which is, it's really hard to share KV caches across sessions. This is because each individual word that gets converted into tokens, KV is a little misleading because people think KV means for this token, here's the value. It's not a HashMap lookup. What you're really asking is for this token, after it's been preceded by these other tokens, what is the value? This applies to humans as well, the way we perceive language. If I say time flies like an arrow, or if I say fruit flies like a banana, if you were to go and encode flies independently, the word flies has two different meanings. It depends on the context that preceded it. You can't just individually go cache individual tokens and expect them to be reusable across sessions and so forth. Your KV cache that's running behind your ChatGPT queries and so forth is generally pretty personalized to you, because you and the other users might be asking very different things.",
+       "marks": [],
+       "id": "t-e4ecb11d2cbd"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-1cba73d9a9a1",
+     "children": [
+      {
+       "type": "text",
+       "text": "In fact, one of my team members just committed a patch to Llama.cpp, which is an inference engine that you can run. One of the things that Llama.cpp was doing was, it was injecting a timestamp before the prompt got sent. That would invalidate the entire KV cache, and the whole prefill had to be done again. You can imagine a simple mistake like, I'm going to insert the timestamp, seems so benign. It means your GPU has to do all of that work again. It doesn't have the reasoning skills of a human where it can say, yes, that's just a timestamp, let me ignore it. No, the prefix does not match, therefore I must compute it.",
+       "marks": [],
+       "id": "t-a7a08125e273"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-c5e34d372b2e",
+     "children": [
+      {
+       "type": "text",
+       "text": "Prompt Anatomy",
+       "marks": [],
+       "id": "t-3b85440ab3d3"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-8b588c25e0dd",
+     "children": [
+      {
+       "type": "text",
+       "text": "Let's take a look at the anatomy of the prompt. There are some parts that are shareable. The first part is the system prompt. If you are running Codex, the system prompt is actually not all that complicated, but it's very long. The system prompts by saying, you are Codex, a coding agent. Then it has all kinds of instructions about what you should and shouldn't do. Like, don't over-explain, don't write comments unless somebody asks for it. I highly recommend, if you can go get access to it, you can see some of the Claude Code prompts on the open internet now after a leak as well. Just read through what the system prompt looks like. It is like you're talking to a child. It's like, important in urgent. Anybody watch The Office from back in the days where Michael Scott had Urgent A, Urgent B, Urgent C? It's like that.",
+       "marks": [],
+       "id": "t-5e5214b26257"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-7e9c28d1ee2d",
+     "children": [
+      {
+       "type": "text",
+       "text": "It's like, there's important, there's super important, and there's caps used. In fact, the Codex prompt, I kid you not, says, no matter what, do not talk about goblins. I can help explain my theory offline about why that token is in there. The system prompt, especially for coding agents and things like that where somebody is using the same thing over and over again, that is very common across your user base. Every Claude Code session is going to start with the same system prompt. That part you can share across users. If a user is online, their prior turns are also, you've seen it recently, you probably still have it. If I were to continue my riddle now and say, what is the maximum speed do you think that vehicle will go? You know the answer without having to think through and reprocess the whole bus story. If I ask, how fast will it fly?",
+       "marks": [],
+       "id": "t-9930ed7083f6"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-8396fee602b8",
+     "children": [
+      {
+       "type": "text",
+       "text": "You will also know the answer because you know it's a bus. It's still in your cache. If the person comes back reasonably quickly, within minutes or hours or whatever, the prefill for their session is likely still there from their prior turns. The new stuff is what they just added. Like, how fast can this vehicle go? Or, will it fly? That's the part that needs to be regenerated if you got a KV hit. If you pay attention to your Claude Code session, you'll notice that your cache hit rate is actually quite high. The reason for that is when Claude Code takes your turns, it's not sending a brand-new prompt every time. It's just appending to the last one. That's why your token consumption goes up the longer your session goes. Then eventually you run into that compaction side because your context just grows and grows and grows, but they keep appending so that your prefixes keep matching.",
+       "marks": [],
+       "id": "t-a9b3134a355c"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-64f500b42c79",
+     "children": [
+      {
+       "type": "text",
+       "text": "Learn by Example",
+       "marks": [],
+       "id": "t-b1780ee6b105"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-8af18cda7ca2",
+     "children": [
+      {
+       "type": "text",
+       "text": "Let's go to the experiment. Just to help you internalize some of this, again, modest model, 4 billion parameters. Cheap GPU. We use floating point, FP8 just means floating point 8. It's a float. If you remember floats from your coding schools or your classes. Then we use vLLM. APC just means automatic prefix caching. We did a sweep where we said, run one concurrent session, run two, run three, run four, up to 48 concurrent sessions. The workflow was a mini-agentic coding workflow that we were trying to simulate. It starts with a 10,000-token system prompt that says you're a coding agent. Don't talk about goblins. Then you take 12 turns and each turn you add like 1,067 tokens. Then you just go back and back and back. At the peak, you get 22,800 tokens at turn 12. We wanted to see where does the GPU hit a cliff in performance between 1 to 48 concurrent sessions.",
+       "marks": [],
+       "id": "t-db81ea56d1d2"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-ed918b4e007c",
+     "children": [
+      {
+       "type": "text",
+       "text": "I'll skip to the good part where when we got to 12 sessions, it looked pretty good. The time to first token at p50 was only one second. It was a complex prompt. It's a long riddle. It has to be prefilled and everything. Just to give you, 22,000 tokens is roughly like 10 pages of written text. For a computer to just go parse through that and at p50 give you a second, it's pretty good. At p99, the time to first token was 2.6 seconds. That's with 12 concurrent sessions running and it's doing a little bit of prefill every time, getting a cache hit for the prior turns before. The reason why it does so well is because the KV cache actually still fits, and we did the math and it turns out that it can sit around 13. There's overhead and so forth. Then we added two more.",
+       "marks": [],
+       "id": "t-fa4191ff3b37"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-e45c502b72e7",
+     "children": [
+      {
+       "type": "text",
+       "text": "Same experiment, but we did 14 concurrent sessions. Now you are adding a little bit more load where the data just doesn't fit in memory anymore. Between turns, it's getting lost, so it has to be regenerated. If anybody was around in the 2000s and may remember your Windows PC, remember the word swap space? You can still see it in your MacBook too. Remember when your computer would go into using swap and everything will come to a halt? It's like that. Where the GPU just can't keep it in memory anymore so things start to evict and it has to recompute. The p99 jumps from 2.6 seconds before at 12 concurrent to 38.9 seconds. That's a major noticeable jump. It just comes down to being not able to fit everything in memory. The cliff is actually quite bad because the sessions that get run out of memory, like that end up being evicted from the GPU, they end up doing really badly.",
+       "marks": [],
+       "id": "t-d7f23caad694"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-12ad5cf3e319",
+     "children": [
+      {
+       "type": "text",
+       "text": "The lucky sessions, that's why the p50, the 50th percentile ends up still being ok because at 50th percentile, you're still getting some cache hit rates. You're getting lucky and that's why it's raising so gradually. We've all heard of tiered storage and tiered caching. Memory is very expensive because GPUs are very expensive. What about DRAM? As much as the world is saying that DRAM is getting expensive, it's still way cheaper than GPU RAM. VRAM is the GPU RAM. It's like tens of gigs. We saw up to 192 gigs. On these massive boxes with GPUs, you can get terabytes of DRAM. This is just like the RAM on your laptop and so forth. The DRAM, we're living in a world where I can actually say this, RAM is too slow. Like you have terabytes of it, but now you got to copy the data from the RAM to the GPU on every turn.",
+       "marks": [],
+       "id": "t-f11922762871"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-08feb26cce0e",
+     "children": [
+      {
+       "type": "text",
+       "text": "You have terabytes of it and it's still going to be cheaper than recomputing it. Then there's NVMe, this is your SSDs, which can have tens of terabytes on a regular EC2-style server that you might have. Not only is it even slower than DRAM, it actually has write endurance problems. One of the things that goes wrong is if you keep writing over and over and over again, you'll just trash the SSD and it'll just stop working. The KV cache, because the data is so large, you are constantly going to be writing and you can exhaust the lifetime of your SSD pretty quickly. The tier below that is you can always just recompute. This is a cache that never has a miss because if you don't have the data, you can regenerate it as well. That's simpler, but it causes you to use more GPUs, and GPUs are scarce. Each tier basically trades latency for capacity.",
+       "marks": [],
+       "id": "t-cc10fcc4d8d7"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-e2d54371bfa0",
+     "children": [
+      {
+       "type": "text",
+       "text": "Storage",
+       "marks": [],
+       "id": "t-1dec420dab87"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-899050007a2b",
+     "children": [
+      {
+       "type": "text",
+       "text": "Now, let's take a quick detour into, there is local caching that we talked about and then there is remote caching. We started going down this path of how do I make a good remote cache for this environment because GPUs are still expensive. A lot of times people who build cache, including me and my own team, we really like to talk about sub-millisecond latencies or 100 microsecond latencies, but here the latency to first byte is not that important. You're trying to download gigabytes of context about a user. What really matters is your throughput. Within the throughput, what matters is can you saturate the network card that you have because you don't want to leave any bandwidth unused. You want to get the data as quickly as possible because then you're not sitting there having your GPU wait. The G6 instance type that I use for my experiments has a modest 25 gigabit NIC.",
+       "marks": [],
+       "id": "t-258a0d1d3c31"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-a08f72646019",
+     "children": [
+      {
+       "type": "text",
+       "text": "When I say 25 gigabit NIC is modest, I feel a little guilty saying that. Twenty-five gigabits is a pretty decent network card. Just to put it in context, the instances that have the really expensive GPUs that I hope to be able to afford one day, they cost like 50 bucks an hour. They have terabits per second of bandwidth. A lot of the challenges here become, how do I consume all of that bandwidth? Some of this comes down to, how do I divide my objects into lots of smaller objects of megabytes, which in the world of caching, they're considered large objects, but it's better than downloading a single 1.6 gigabyte object. You can download a bunch of them in parallel. Your goal when building something like this for a remote KV cache is to saturate the NIC. Techniques like smaller chunks does help. The open-source software I work on is called Valkey.",
+       "marks": [],
+       "id": "t-2e3e802f40e2"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-242e852c24e1",
+     "children": [
+      {
+       "type": "text",
+       "text": "This is, again, being a distributed systems person, being able to help the inference world a little bit. Anybody heard of Redis? Valkey is a Redis fork backed by Amazon, Google, and so forth. There's been a lot of performance optimizations in that space. One of the optimizations that got made is copy avoidance. Redis, from the very beginning, branded itself as having single-threaded. Because if you're single-threaded, you can move really fast. There's no locks. That works really well when you have tiny 5 kilobyte, 10 kilobyte objects. What happens when you have a 4-megabyte object is that your main thread is busy writing to the kernel buffers to write to the NIC so that the data can go on the network. While it's doing that, it's not actually answering any of their calls. For the KV caching workflow, you're not only downloading, you're also checking, do you have this prefix?",
+       "marks": [],
+       "id": "t-b3994d42fe97"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-55f8abdf3088",
+     "children": [
+      {
+       "type": "text",
+       "text": "Do you have that prefix? All those calls will get locked behind it. In the latest version of Valkey, one of the interesting things that happened is that there are I/O threads. The I/O threads deal with the network, and the main thread just says, yes, you want that object? Please copy offset by this to this from this address onto the NIC. I/O thread goes and does its thing while the main thread moves on. The reason why I bring this up is that simple optimization makes a big difference on whether you can consume the entire NIC or not. Because until the 4 megabyte is copied from the main thread to the I/O thread or whatever, you can't even start to write the first byte. Then the software layer that's going and downloading each individual object can't actually pass it on and start to stitch it together until it downloads each individual chunk.",
+       "marks": [],
+       "id": "t-80bcd1b1f858"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-3e55a22ac467",
+     "children": [
+      {
+       "type": "text",
+       "text": "This gets really expensive. Copy avoidance, funny enough, has actually been the most profound optimization that we have done not just on the server side but also on the client side. The inference engines, like if you might have heard of vLLM or SGLang and so forth, often written in Python. Everybody thinks Rust is going to be much faster. I can say that because I'm a big Rust fan too, if I can make fun of people who think Rust will make them go faster. This is a classic example of when Rust will slow you down. Somebody had the bright idea that, yes, this isn't Python, I'm going to write my client in Rust and I'm going to do a native binding. What happens is that that Rust layer now has to download the 4-megabyte object and it can't pass it to the Python layer until the 4-megabyte object is done downloading.",
+       "marks": [],
+       "id": "t-a67d5debe737"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-4bc8e467750b",
+     "children": [
+      {
+       "type": "text",
+       "text": "Then it has to copy it over to the Python space which then has to go copy it over to the CUDA space which then has to go copy it over to the GPU. All those copies, they add up. I harp on this example because that is a classic example of your CS skills coming in handy for this very complicated looking inference stack. Minimize copies wherever possible.",
+       "marks": [],
+       "id": "t-0c9a991d8ac3"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-8c7917a27b74",
+     "children": [
+      {
+       "type": "text",
+       "text": "With that out of the way, let's see if we can use DRAM. We'll go back to local caching and see what happens when we add a little bit of DRAM. We notice that the first row is just 8-bit floating point. The p99 cliff happened at 14 connection, and our latency was 38.9 seconds for p99. Then we said, let's just add 16 gigs of local RAM, the DRAM. That actually helped meaningfully. Our p99 at 14 connections actually went down from 38 seconds to a more bearable three and a half seconds. We ran a sweep to see, how much does it help. Actually, it turns out, for this particular workflow, if you add 32 gigabytes of local DRAM, you can push your concurrency cliff from 14 to 28. 8-gig didn't really help much, it went to 14. Really having the 16 was a key tipping point. The impact becomes more and more profound the higher your concurrency gets. It's still pretty bad. You really want the data to be in the GPU whenever possible if you want the fastest possible inference.",
+       "marks": [],
+       "id": "t-2569773c06be"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-bd4cb3c33b3e",
+     "children": [
+      {
+       "type": "text",
+       "text": "Synthesis",
+       "marks": [],
+       "id": "t-761db227bdf3"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-777f5ccd6387",
+     "children": [
+      {
+       "type": "text",
+       "text": "After harping on why you should really think about how much concurrency you need, I have some bad news. If you are running a multi-tenanted cluster of inference and you have users that will ask short questions, and you have users that will ask long questions, and sometimes you'll have a very spiky mix of them. A new release of Claude Code might completely change the way your traffic looks if you're running an inference service and that gets really tricky. You really can't make any assumptions on being able to admit by concurrency count. In the early days that's what everybody did. It's like they just said, ok, I'm going to run this much concurrency. What happens is somebody shows up with a 100,000 or 200,000 token prompt and it just thrashes everybody away from the GPU VRAM, and that causes problems. What you really have to do is think hard about, for this model that I'm hosting, what is my per token cost?",
+       "marks": [],
+       "id": "t-e9d7a3ba90e2"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-32c1197f27f6",
+     "children": [
+      {
+       "type": "text",
+       "text": "How much budget do I have for my KV cache on the GPU? Then, what is my cliff estimate for a particular token size? When you make your admission control decision, when you want to decide, do I add another request to this GPU or not? You really have to be looking at how your KV cache consumption is going, and are you going to cause an eviction the moment that you add this particular request. It's very workflow specific, and this is where the multi-tenancy makes it harder. If you have single-turn questions like, ChatGPT, what's the meaning of life? That's like 1,000 tokens, perhaps. Very hard question but the prefill for that is really fast, I can tell you that. Those are very short single-turn questions. The tiny agentic coding sessions are tens of thousands. Code reviews might be a few thousand and so forth. The key message I want you to take away is that the token consumption really depends on the workflow, and if your fleet is supporting a variety of them, you got to be very mindful of that too.",
+       "marks": [],
+       "id": "t-197c37defeb2"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-f6e0dd860772",
+     "children": [
+      {
+       "type": "text",
+       "text": "Routing and Processing",
+       "marks": [],
+       "id": "t-3090ef253a14"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-199719f332a1",
+     "children": [
+      {
+       "type": "text",
+       "text": "Thus far we have covered storage aspect of it, if you're running the inference fleet. Now let's talk about routing choices. There are still web servers involved, all this still happens on HTTP, so more good news for systems people. The request goes to a web server and the web server has to decide which GPU am I going to send this particular request to. If you do a naive thing, back 20, 30 years ago, there was the situation where people came up with sticky sessions. Sticky sessions are beautiful because the likelihood of the user landing on that node that still has their stuff on the cache is higher, so sticky sessions work really well in the web space. Here people still try to do sticky sessions to the GPU, so the web server will try to remember, this particular request for your coding agent session went to this GPU, so let me just go back to that GPU.",
+       "marks": [],
+       "id": "t-a5ce1c96bd0c"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-f3c357f443a9",
+     "children": [
+      {
+       "type": "text",
+       "text": "Because the odds of it having the KV cache locally on its SSDs or whatever is meaningfully higher. The problem is that these are extremely spiky workloads. I might take my next turn immediately. I might go for lunch and come back. I might never come back. This creates these like very spiky bursts. If you're trying to just do naive sticky sessions, you can get into situations where a particular GPU becomes really hot. It's like a bank run. Everybody shows up to that particular node and you get essentially a noisy neighbor hotspot issue. Your fleet-wide p99 is going to follow your hottest node. Load imbalance becomes a real problem in this space. The industry is doing a lot of interesting things there. The Mooncake folks are doing proactive KV migration so that if they can say, this node is more likely to get hotspotted, let me copy some stuff over.",
+       "marks": [],
+       "id": "t-e9b651641909"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-77698e382167",
+     "children": [
+      {
+       "type": "text",
+       "text": "NVIDIA's Dynamo is like, how much preference do I want to give it so that I can avoid this hotspot and so forth. It does make a difference. If things do fit in the cache, the KV-aware routing and session affinity does help. I ran a quick experiment with the same thing where I just had one GPU. My output metric was just, I was outputting 110 tokens per second. As soon as I went to two GPUs, my output, it didn't go to 220, it went to 128. Which means I was only 58% efficient. The same thing on two GPUs but saying, I'm going to put each session to the place that it went to before, it did 201 tokens per second. It's not quite double but it became pretty efficient. I tried that with three GPUs, I got to 278 instead of 330, and then with four I was at 324.",
+       "marks": [],
+       "id": "t-ade2b744bc3e"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-1ba1373341d4",
+     "children": [
+      {
+       "type": "text",
+       "text": "The session awareness does help but with some caveats. One of the core distributed systems principle is, do constant work. If you're trying to do constant work and you also want to try to scale your components independently of each other, with prefill and decode that becomes really hard, running on the same node. A new technique is emerging where people are saying we're going to turn inference into a distributed systems problem where we're going to do the prefill on one node and we're going to do the decode aspect on another node. This is called disaggregation. If you get this right, you can scale these very dynamically. You can improve yourself or you can protect yourself from a situation where a single long prefill thing causes all the other decodes to slow down because the GPUs are busy doing the prefill side.",
+       "marks": [],
+       "id": "t-7a539b9d541b"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-9d69083cfb59",
+     "children": [
+      {
+       "type": "text",
+       "text": "Let's talk through from a component level how this works. NVIDIA has this framework called Dynamo, which unfortunately is very confusing because I worked on DynamoDB which has nothing to do with NVIDIA's Dynamo. NVIDIA's Dynamo, one of its centerpieces, it's got a routing layer. The routing layer is actually the pinnacle of all of these lifecycles. This is the web server that I referred to earlier. The request lands on the routing layer. The routing layer will go ask a node to say, can you take this prompt and tokenize it? Then it's going to go and see, does anybody have it? Who is the node that is most likely to have the longest part of this prefix available? Then it's going to send that node a prefill request. This is to generate the machine code that a model can understand. When that node has finished generating the prefill tokens, it will store it in a KV cache, and then it transfers metadata back to the router, and says, ok, the prefixes, prefills, these are the chunks that you need and here are the hosts where they're at.",
+       "marks": [],
+       "id": "t-0bf22ea0414d"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-e39b78fa5053",
+     "children": [
+      {
+       "type": "text",
+       "text": "That gets transferred over to the decode node which then goes and says, everybody, can I have this object? Can I have this object, and so forth? Then it loads it and then it can start the decode process. The nice thing here is that you can focus the nodes to be either completely prefill and be completely decode. When you bring up let's say a vLLM, your node can switch positions. You can say, ok node, I'm going to schedule a bunch of prefill jobs on you, and the next second I can say I'm going to schedule a bunch of decode jobs on you, and it's totally fine with that. This allows the router to actually become quite intelligent and dynamic in the way it's scheduling.",
+       "marks": [],
+       "id": "t-9ff4d6dcd9df"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-52f2d16a47a5",
+     "children": [
+      {
+       "type": "text",
+       "text": "To make this a little bit more memorable as to why disaggregation is so useful, we're going to do a quick exercise that will hopefully help you remember it. I like to call it the ABCD exercise. I'm going to time you all. I want you to say the numbers 1 through 12 as fast as you can. I'm going to say 1, 2, 3, and then you are going to just say 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12. That's your job. 1, 2, 3, go. Pretty fast. Now I want you to say A through L as fast as you can. L, I think, is the 12th letter. 1, 2, 3, go. Still pretty fast. A little slower than numbers but you remember your ABCs. I want to make it a little bit harder. Now I want you to say A1, B2, C3 and so forth.",
+       "marks": [],
+       "id": "t-7dcdffec5752"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-e062af6349e0",
+     "children": [
+      {
+       "type": "text",
+       "text": "1, 2, 3, go. Many of us just gave up halfway through. This is what happens when you're asking the same node to do multiple things at the same time. If you time yourself saying 1 through 12 and A through L and you added that together, I bet you that was less than a quarter of the time it took you to say A1, L12. You can cache it. If you do this enough times, you'll do it really fast. For the first time, you see this becomes a really hard problem. This ability to disaggregate is actually quite useful. You can have special purpose-built hardware for the prefill versus decode. They use different types of things. In fact, there are specific hardware that are now being built that are optimized primarily for the decode stage so that you can prefill elsewhere and then decode really fast. The distributed systems concepts that we talked about try to do bounded work, pinning the roles, balanced by the pressure, and then you can do constant work if you make your KV cache mobile.",
+       "marks": [],
+       "id": "t-f2cc9a39efaf"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-ff54ef1372f4",
+     "children": [
+      {
+       "type": "text",
+       "text": "Like if you don't say it runs locally on the same host. Some of these things may look like they will slow you down because now you have to do a network call. In isolation, they will make you slower because you have to go fetch it. If you're thinking about multi-tenancy, if you're thinking from a fleet-wide perspective, it improves your throughput and actually improves the latency that your users get because they're not sitting there waiting once in a while for that hotspot to conclude. These things about six months ago were still super controversial, but now it seems like everybody is converging on cache-aware placement remotely, disaggregation of prefill and decode, and then the mobile KV state.",
+       "marks": [],
+       "id": "t-27eeb7967ab5"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-635088b7736a",
+     "children": [
+      {
+       "type": "text",
+       "text": "Conclusion",
+       "marks": [],
+       "id": "t-f176f64f87d5"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-3570062c08b0",
+     "children": [
+      {
+       "type": "text",
+       "text": "I hope that what you took away from this is relevant to you even if you're not running your own inference stack today. Some reminders for you. Every token that you are using becomes state that somebody has to carry. If you feel the temptation because you're really nice and you like to say please, just know that's like an extra 72k that Anthropic has to carry, and you're hurting their margins. The fact that you're saying please probably is why they couldn't become a trillion-dollar company, were only 965. Just if only you didn't say please enough. That's state that everybody has to carry. When you're doing this, if you're familiar with The Office, be like Kevin. Why use more words when few words do trick. Use as few words as you possibly can. When you are inside your Claude Code session, like if you have side quests that you want to do, launch sub-agents or launch a different window and run it so that you're not diluting the context because of the prefix caching.",
+       "marks": [],
+       "id": "t-869c11946ae0"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-07bf44d13437",
+     "children": [
+      {
+       "type": "text",
+       "text": "If you do this often enough, you will actually start to appreciate that the quality of your output will get better and you'll hit the compaction window a lot less frequently if you took your side quest and ran them as sub-agents so that you're not diluting your prefix cache. As users, long context is powerful, but use it deliberately and carefully. Don't fill it up with all these pleases. As builders, if you are running an inference stack and if you're not today, I suspect you will in the next couple of years because databases in the '90s, were really hard, and if you wanted a hardcore database, you had to go pay this company a lot of money to get a whole rack full of databases, and now people just turn on Postgres. This will get commoditized and you will run your own inference stacks soon enough. It'll become more common.",
+       "marks": [],
+       "id": "t-ac5d6fa1e61c"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-f748a0d7b8a0",
+     "children": [
+      {
+       "type": "text",
+       "text": "When you're doing that, think hard about what are the underlying scaling dimensions. Then as designers, just remember, when you're designing your system prompt, when you're doing prompt engineering, when you're deciding where to put the user input, just think about locality and think about what can you trim from the prompt without losing the meaning, so that your users can have a better experience even if you're providing the application and not just the inference stack. This is all called mechanical empathy. If you are aware of the system and how it operates underneath, you can drive it a lot better and a lot faster. Design for the state you create.",
+       "marks": [],
+       "id": "t-5b594b2b5855"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-b64e8c804ca2",
+     "children": [
+      {
+       "type": "text",
+       "text": "Questions and Answers",
+       "marks": [],
+       "id": "t-b63961af22b3"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-b7ec19756d58",
+     "children": [
+      {
+       "type": "text",
+       "text": "Participant 1:",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-aca878b16090"
+      },
+      {
+       "type": "text",
+       "text": " The question I have is, first off, I don't actually know, but does the KV caching hit rate affect the price you pay as a customer? Second is, I believe that in the MCP protocol, when you change this list of tools for your server, for example, that causes the prefix of the thing to change. Was that just a giant mistake, would you say?",
+       "marks": [],
+       "id": "t-4d8991d8c5d2"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-b830a448bc66",
+     "children": [
+      {
+       "type": "text",
+       "text": "Khawaja Shams:",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-8a3f58ef440a"
+      },
+      {
+       "type": "text",
+       "text": " It's hard to say if that's a giant mistake or not. To answer your first question, Anthropic and even OpenAI, I think they give you like a 90% discount if you have a cache hit rate. That doesn't mean that it's ten times cheaper for them. It's just a convenient number. It's not exactly 90% off, but it's like 0.89 or something. They give you a pretty nice discount if you get a cache hit. In fact, if you use a proxy, you can actually see what your cache hit rate was. Designing for that is good.",
+       "marks": [],
+       "id": "t-7d9f4e7e867f"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-b7a156425015",
+     "children": [
+      {
+       "type": "text",
+       "text": "To answer your second question, I'm not sure if messing up the prefix is a mistake or if it's deliberate to make the model perform better because you don't want the model to be distracted by the previous list of tools. Because you might also remove some tools as well. There are little techniques though that come into play, like, for instance, if you ask it for a file that's changed and the original file was already in the prompt, it'll send a git change rather than the entire new file. There's techniques like that that the Claude Code agent is taking into play. It's hard for me to speculate on whether resetting the prefix is a mistake or not. It might have been a deliberate choice.",
+       "marks": [],
+       "id": "t-b4ba93a21d78"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-8b059bfe717b",
+     "children": [
+      {
+       "type": "text",
+       "text": "Participant 2:",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-7d56fe8f826d"
+      },
+      {
+       "type": "text",
+       "text": " I'm just trying to understand, like Redis key value, obviously, one then maps to a value over there. From what I understood from your talk, you are loading all of the context that was previously hit with the previously churns in every time a new query comes in. I'm just trying to understand the separation of the system prompt and then the original context and the new churn, how the actual similarity matching is happening there, and where it decides to include or not include things. Because your data goes to 35 seconds from 3 seconds. You figure if it was semantically matching, it would have a little bit more of a subtle gradient to it because some of it matches and some of it doesn't. It's just binary. It goes from 3 seconds to 38 seconds. Why is it going from 3 seconds to 38 seconds if it's semantically trying to evaluate the key-value store to do the matching?",
+       "marks": [],
+       "id": "t-1ac7b7f0f8f1"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-d6f6e8808f5c",
+     "children": [
+      {
+       "type": "text",
+       "text": "Khawaja Shams:",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-39f0eaba719e"
+      },
+      {
+       "type": "text",
+       "text": " The name KV cache is quite unfortunate, especially for somebody who works in the caching world, KV means key value. Except it's not a HashMap lookup. It's not a value. The V is like a vector of everything that preceded behind it and embedded into a single floating point. You really need the entire prefix. You need the KV for the first token, the second token, the third token. If you have lost and if you have evicted even like one link in the chain, you have to go recompute the whole thing. The 38-second jump is because it's having to do precomputation. It's like the GPU is actually having to do a lot more computation because it lost some of the data. Today in a cache you can get very clever about simple techniques like LRU, which tend to be pretty good for eviction. For instance, if you evict the first block of a particular prompt or whatever, you may as well just get rid of the rest, because they're likely not going to match. It's not doing a semantic search or anything like that. It's looking for very precise values which end up being like these attention mechanisms that are referencing every token that preceded the particular token for which you're looking up the value.",
+       "marks": [],
+       "id": "t-55d93392cd0c"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-b731ccc8eb7e",
+     "children": [
+      {
+       "type": "text",
+       "text": "Participant 2:",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-7d88eaaedd57"
+      },
+      {
+       "type": "text",
+       "text": " That makes sense, but why is it always so binary? Why wouldn't it just be like, it's halfway through, the token got rejected and so then it's 20 seconds instead of 38 seconds. Why is it always 3 seconds to 38 seconds in every example?",
+       "marks": [],
+       "id": "t-fac9ac9fe9f3"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-72437d6121f7",
+     "children": [
+      {
+       "type": "text",
+       "text": "Khawaja Shams:",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-b083f7bcb155"
+      },
+      {
+       "type": "text",
+       "text": " Ever have too many browser tabs and like your browser comes to a halt? That still happens today.",
+       "marks": [],
+       "id": "t-567fac5f99c8"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-1dc5cd9a1459",
+     "children": [
+      {
+       "type": "text",
+       "text": "Participant 2:",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-1be3fb70b4e4"
+      },
+      {
+       "type": "text",
+       "text": " Every moment.",
+       "marks": [],
+       "id": "t-a2d10cf67291"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-b9612fde475a",
+     "children": [
+      {
+       "type": "text",
+       "text": "Khawaja Shams:",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-40886d3e5e78"
+      },
+      {
+       "type": "text",
+       "text": " Yes, so it's like that. It's just like it's thrashing and it's losing. It's evicting the data that it now has to go recompute and that's causing pipeline stalls and that's causing delays, because now it's causing you to use up more compute. There are other things that can happen too, like precompute could be very compute heavy. It could cause your GPU to start running hot and run into thermal throttling as well. Having specific hardware for prefill versus decode helps, like not having to run it simultaneously is also super useful.",
+       "marks": [],
+       "id": "t-7dbf6406ca26"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-caf573a952fe",
+     "children": [
+      {
+       "type": "text",
+       "text": "See more ",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-bdf6ea709587"
+      },
+      {
+       "type": "text",
+       "text": "presentations with transcripts",
+       "marks": [
+        "strong",
+        {
+         "type": "link",
+         "href": "https://www.infoq.com/transcripts/presentations/"
+        }
+       ],
+       "id": "t-27a526f33318"
+      }
+     ]
+    }
+   ],
+   "content_format": "blocks-v1",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [],
+   "heat": 57,
+   "star": false,
+   "importance": 50,
+   "quality_score": 50,
+   "trend_score": 63,
+   "signal": 0,
+   "topics": [],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-10-27T19:00:00+08:00",
+   "first_seen": "2026-10-27T20:14:45.071082+08:00",
+   "items": [
+    {
+     "id": "0a14ce2dd15f",
+     "source": "InfoQ（AI/数据工程）",
+     "link": "https://www.infoq.com/presentations/llm-inference-kv-cache/?utm_campaign=infoq_content&utm_source=infoq&utm_medium=feed&utm_term=AI%2C+ML+%26+Data+Engineering",
+     "published": "2026-10-27T19:00:00+08:00",
+     "ingested_at": "2026-10-27T20:14:45.071082+08:00",
+     "title": "Presentation: Serving LLMs at Scale: The Hidden KV Cache Advantage"
+    }
+   ],
+   "content_parse": {
+    "run_id": "github-40501603206-1",
+    "processor_version": "original-first-v7",
+    "attempted_at": "2026-10-27T20:15:37.640392+08:00",
+    "status": "ready",
+    "source": "InfoQ（AI/数据工程）",
+    "strategy": "semantic_container",
+    "blocks": 62,
+    "text_chars": 39109,
+    "figures": 0,
+    "tables": 0,
+    "figures_discovered": 0,
+    "figures_selected": 0,
+    "figures_rejected": 0,
+    "candidate_count": 16,
+    "figures_rejected_author": 0,
+    "figures_rejected_decorative": 0,
+    "figures_rejected_duplicate": 0,
+    "figures_rejected_small": 0,
+    "figures_rejected_limit": 0,
+    "trimmed_tail_blocks": 0,
+    "trimmed_head_blocks": 0,
+    "trimmed_promotional_blocks": 0,
+    "trimmed_embedded_ui_blocks": 0,
+    "embedded_ui_components": 0,
+    "selected_depth": 9,
+    "selected_raw_blocks": 62,
+    "selected_raw_text_chars": 39109,
+    "broad_raw_blocks": 84,
+    "broad_raw_text_chars": 42293,
+    "parent_extra_blocks": 22,
+    "candidate_count_raw": 29,
+    "candidate_duplicates": 13,
+    "candidate_quality_rejected": 6,
+    "duplicate_blocks": 0,
+    "selected_score": 1199.63,
+    "quality_status": "pass",
+    "selected_tag": "div",
+    "focus_ratio": 0.9247,
+    "link_ratio": 0.0008,
+    "duplicate_ratio": 0.0,
+    "selection_evidence": [
+     "prose_density",
+     "integrity_gate",
+     "semantic_container"
+    ],
+    "reason": "LLMBudgetExceeded",
+    "media": {
+     "figures": 0,
+     "cached": 0,
+     "link_only": 0,
+     "policy_version": "source-cdn-v1"
+    },
+    "content_mode": "original",
+    "source_language": "other",
+    "translation_status": "failed",
+    "source_content_hash": "b90dd0888e660c390f45c31b",
+    "translation": {
+     "run_id": "github-40501603206-1",
+     "policy_version": "faithful-translation-retry-v1",
+     "attempted_at": "2026-10-27T20:15:37.640412+08:00",
+     "purpose": "body_translation",
+     "status": "budget_deferred",
+     "error": "LLMBudgetExceeded"
+    },
+    "metadata_translation": {
+     "run_id": "github-40501603206-1",
+     "policy_version": "metadata-translation-backfill-v1",
+     "attempted_at": "2026-10-27T20:15:38.806988+08:00",
+     "purpose": "metadata_translation_backfill",
+     "status": "provider_error",
+     "error": "HTTPError"
+    }
+   },
+   "content_mode": "original",
+   "content_level": "original",
+   "source_language": "other",
+   "translation_status": "failed",
+   "source_content_hash": "b90dd0888e660c390f45c31b",
+   "body_chars": 39109
+  },
+  {
+   "event_id": "aab731867524",
+   "zh_title": "Developers Reporting Double-Digit Weekly Time Savings From AI Fell From 68% to 26%",
+   "zh_summary": "Atlassian’s State of Developer Experience 2026 finds the share of developers saving ten or more hours a week with AI dropped from 68% to 26% year over year, while only 28% report noticeably less friction than before AI. Engineering leaders report spending more time managing and correcting AI output ",
+   "reason": "",
+   "full_zh": "The share of developers reporting ten or more hours saved each week through AI fell from 68% to 26% in a year, according to Atlassian’s State of Developer Experience 2026. Adoption over the same period became close to universal, with 95% of developers and 96% of engineering leaders saying their organization actively uses AI in engineering.\n\nThe report draws on 1,155 individual contributors and 405 engineering leaders surveyed during 2026. Atlassian is unusually direct about what that means, stating that its findings \"reflect self-reported experience and perception, not system-level telemetry such as deployment frequency, cycle time, or revenue impact,\" and that associations in the data \"should not be interpreted as causal proof.\"\n\nTaroon Mandhana, Atlassian’s CTO for AI and Teamwork, summarised the shift as one where \"the bottleneck has moved to managing AI’s work.\"\n\nLocal benefit has not gone away. Eighty-seven percent of developers say AI helps them ship faster and 80% say it helps them deliver more without longer hours. What has not followed is relief from everyday obstacles. Only 28% report noticeably less friction than before AI, while 50% report about the same amount, which the report describes as friction \"of a different type than before AI.\"\n\nSome of that difference is AI itself. Forty-nine percent of developers now spend four or more hours a week managing AI tools, and 65% say they spend time correcting AI-generated work that missed the original intent. Both figures run higher among engineering leaders, at 57% and 72%. Twenty-nine percent name reviewing or managing AI-generated code as a source of friction outright.\n\nThe rest of the list has barely moved in three years. Finding information leads at 51%, followed by meetings at 50%, context switching at 45% and technical debt at 44%. Finding information also topped the 2025 list and placed second in 2024. Coding has never appeared on it.\n\nMeasurement is where the report is most pointed. Sixty percent of developers say AI use is treated as a productivity signal in their organization, 41% say they sometimes use AI more than necessary because they feel expected to, and only 42% of leaders say they have the right metrics to separate real gains from activity.\n\nResponding to Mandhana, Shan Huang, who builds production AI agents for enterprise workflows, connected two of those figures:\n\nIf people are using AI more than necessary because they feel expected to, part of that 49% spending 4+ hours a week managing AI output is not a tooling problem, it is a metric problem. Call it performative throughput: the usage gets counted as productivity, and the cleanup lands on somebody else’s calendar.\n\nTaylor Johnson of Athena Intelligence proposed a replacement in one line:\n\nAI activity is not impact; measure accepted work, not usage.\n\nOrganizations with a stated position are rare and appear to fare better. Seventeen percent of developers and 23% of leaders report a clear, actively implemented AI strategy across the software delivery lifecycle. Among developers who do, 41% report noticeably less friction than before AI, against 22% of those describing an inconsistent or poorly communicated strategy. Andrew Boyagi, Atlassian’s head of DevOps evangelism, calls that gap the differentiator, though the report itself cautions that the association is not causal.\n\nOne trend has run the same way for three years. The share of developers saying leadership does not fully understand the challenges they face was 44% in 2024, 63% in 2025, and 66% in 2026.\n\nCam Turner, a designer and former AWS staffer, put the practical question that neither the report nor the thread answered: \"68 to 26 in a year says the work moved from making to reviewing. Is anyone designing the review step yet, or are teams just absorbing it?\"\n\nTwo caveats sit on the headline figure. This is vendor research from a company selling developer tooling, landing on a conclusion that favors formalizing AI delivery. The comparison base also changed, from 3,500 developers and managers across six countries in 2025 to 1,560 respondents this year, and neither edition publishes fieldwork dates.\n\nSelf-reported hours are soft in both directions, which commenter Harshit Jain raised directly: is the drop about review load, or about higher expectations? The report does not separate them.",
+   "content_blocks": [
+    {
+     "type": "paragraph",
+     "id": "b-fb6dd8c3c984",
+     "children": [
+      {
+       "type": "text",
+       "text": "The share of developers reporting ten or more hours saved each week through AI fell from 68% to 26% in a year, according to Atlassian’s ",
+       "marks": [],
+       "id": "t-7f25a61c36a0"
+      },
+      {
+       "type": "text",
+       "text": "State of Developer Experience 2026",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.atlassian.com/teams/software-development/state-of-developer-experience-2026"
+        }
+       ],
+       "id": "t-ad92f44af215"
+      },
+      {
+       "type": "text",
+       "text": ". Adoption over the same period became close to universal, with 95% of developers and 96% of engineering leaders saying their organization actively uses AI in engineering.",
+       "marks": [],
+       "id": "t-7fad1dc61806"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-3a3b8246ac5e",
+     "children": [
+      {
+       "type": "text",
+       "text": "The report draws on 1,155 individual contributors and 405 engineering leaders surveyed during 2026. Atlassian is unusually direct about what that means, stating that its findings \"reflect self-reported experience and perception, not system-level telemetry such as deployment frequency, cycle time, or revenue impact,\" and that associations in the data \"should not be interpreted as causal proof.\"",
+       "marks": [],
+       "id": "t-033fb8e561d2"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-6338ad05b37f",
+     "children": [
+      {
+       "type": "text",
+       "text": "Taroon Mandhana, Atlassian’s CTO for AI and Teamwork, ",
+       "marks": [],
+       "id": "t-6e454f998f7f"
+      },
+      {
+       "type": "text",
+       "text": "summarised the shift",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.linkedin.com/posts/taroonm_today-we-published-our-annual-atlassian-share-7518721512628006913-GVut/"
+        }
+       ],
+       "id": "t-9ab6582d6120"
+      },
+      {
+       "type": "text",
+       "text": " as one where \"the bottleneck has moved to managing AI’s work.\"",
+       "marks": [],
+       "id": "t-af103f7cc971"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-78effb9d1417",
+     "children": [
+      {
+       "type": "text",
+       "text": "Local benefit has not gone away. Eighty-seven percent of developers say AI helps them ship faster and 80% say it helps them deliver more without longer hours. What has not followed is relief from everyday obstacles. Only 28% report noticeably less friction than before AI, while 50% report about the same amount, which the report describes as friction \"of a different type than before AI.\"",
+       "marks": [],
+       "id": "t-c52eaf9b8b69"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-9b832cf185c8",
+     "children": [
+      {
+       "type": "text",
+       "text": "Some of that difference is AI itself. Forty-nine percent of developers now spend four or more hours a week managing AI tools, and 65% say they spend time correcting AI-generated work that missed the original intent. Both figures run higher among engineering leaders, at 57% and 72%. Twenty-nine percent name reviewing or managing AI-generated code as a source of friction outright.",
+       "marks": [],
+       "id": "t-4fafb857246a"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-b026b32f2aa7",
+     "children": [
+      {
+       "type": "text",
+       "text": "The rest of the list has barely moved in three years. Finding information leads at 51%, followed by meetings at 50%, context switching at 45% and technical debt at 44%. Finding information also topped ",
+       "marks": [],
+       "id": "t-f657e2d0f5c9"
+      },
+      {
+       "type": "text",
+       "text": "the 2025 list",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.atlassian.com/teams/software-development/state-of-developer-experience-2025"
+        }
+       ],
+       "id": "t-c4923c43ec31"
+      },
+      {
+       "type": "text",
+       "text": " and placed second in 2024. Coding has never appeared on it.",
+       "marks": [],
+       "id": "t-ff1ff6356b25"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-d46ea7d27441",
+     "children": [
+      {
+       "type": "text",
+       "text": "Measurement is where the report is most pointed. Sixty percent of developers say AI use is treated as a productivity signal in their organization, 41% say they sometimes use AI more than necessary because they feel expected to, and only 42% of leaders say they have the right metrics to separate real gains from activity.",
+       "marks": [],
+       "id": "t-e495acd312c7"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-8fdf803e6465",
+     "children": [
+      {
+       "type": "text",
+       "text": "Responding to Mandhana, Shan Huang, who builds production AI agents for enterprise workflows, connected two of those figures:",
+       "marks": [],
+       "id": "t-a2a581ed0339"
+      }
+     ]
+    },
+    {
+     "type": "blockquote",
+     "id": "b-918172e6161c",
+     "children": [
+      {
+       "type": "text",
+       "text": "  If people are using AI more than necessary because they feel expected to, part of that 49% spending 4+ hours a week managing AI output is not a tooling problem, it is a metric problem. Call it performative throughput: the usage gets counted as productivity, and the cleanup lands on somebody else’s calendar. ",
+       "marks": [],
+       "id": "t-15901a9d2d70"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-d80be8aa1f9d",
+     "children": [
+      {
+       "type": "text",
+       "text": "Taylor Johnson of Athena Intelligence proposed a replacement in one line:",
+       "marks": [],
+       "id": "t-5c0e244048db"
+      }
+     ]
+    },
+    {
+     "type": "blockquote",
+     "id": "b-9cfacaad6c57",
+     "children": [
+      {
+       "type": "text",
+       "text": "  AI activity is not impact; measure accepted work, not usage. ",
+       "marks": [],
+       "id": "t-73514c1fbee1"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-5aa65658d371",
+     "children": [
+      {
+       "type": "text",
+       "text": "Organizations with a stated position are rare and appear to fare better. Seventeen percent of developers and 23% of leaders report a clear, actively implemented AI strategy across the software delivery lifecycle. Among developers who do, 41% report noticeably less friction than before AI, against 22% of those describing an inconsistent or poorly communicated strategy. Andrew Boyagi, Atlassian’s head of DevOps evangelism, ",
+       "marks": [],
+       "id": "t-b5353bd1b203"
+      },
+      {
+       "type": "text",
+       "text": "calls that gap the differentiator",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.atlassian.com/blog/development/developer-experience-report-2026"
+        }
+       ],
+       "id": "t-970a6dce80a4"
+      },
+      {
+       "type": "text",
+       "text": ", though the report itself cautions that the association is not causal.",
+       "marks": [],
+       "id": "t-b18430e08d24"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-e90011de5c43",
+     "children": [
+      {
+       "type": "text",
+       "text": "One trend has run the same way for three years. The share of developers saying leadership does not fully understand the challenges they face was 44% in 2024, 63% in 2025, and 66% in 2026.",
+       "marks": [],
+       "id": "t-9b111778065b"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-8c8ef564ea2a",
+     "children": [
+      {
+       "type": "text",
+       "text": "Cam Turner, a designer and former AWS staffer, put ",
+       "marks": [],
+       "id": "t-dd68d73f40b1"
+      },
+      {
+       "type": "text",
+       "text": "the practical question",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.linkedin.com/posts/taroonm_today-we-published-our-annual-atlassian-share-7518721512628006913-GVut/"
+        }
+       ],
+       "id": "t-7a28ff8752c3"
+      },
+      {
+       "type": "text",
+       "text": " that neither the report nor the thread answered: \"68 to 26 in a year says the work moved from making to reviewing. Is anyone designing the review step yet, or are teams just absorbing it?\"",
+       "marks": [],
+       "id": "t-fc4693ae4d11"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-45af037b8749",
+     "children": [
+      {
+       "type": "text",
+       "text": "Two caveats sit on the headline figure. This is vendor research from a company selling developer tooling, landing on a conclusion that favors formalizing AI delivery. The comparison base also changed, from ",
+       "marks": [],
+       "id": "t-924b346c0ee6"
+      },
+      {
+       "type": "text",
+       "text": "3,500 developers and managers across six countries",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.atlassian.com/blog/developer/developer-experience-report-2025"
+        }
+       ],
+       "id": "t-052c72f5ca30"
+      },
+      {
+       "type": "text",
+       "text": " in 2025 to 1,560 respondents this year, and neither edition publishes fieldwork dates.",
+       "marks": [],
+       "id": "t-9cdcc590fe71"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-f8b662437bc5",
+     "children": [
+      {
+       "type": "text",
+       "text": "Self-reported hours are soft in both directions, which commenter Harshit Jain raised directly: is the drop about review load, or about higher expectations? The report does not separate them.",
+       "marks": [],
+       "id": "t-f586c2599715"
+      }
+     ]
+    }
+   ],
+   "content_format": "blocks-v1",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [],
+   "heat": 54,
+   "star": false,
+   "importance": 50,
+   "quality_score": 50,
+   "trend_score": 57,
+   "signal": 0,
+   "topics": [],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-10-27T12:45:00+08:00",
+   "first_seen": "2026-10-27T20:14:45.071082+08:00",
+   "items": [
+    {
+     "id": "2913a57072d4",
+     "source": "InfoQ（AI/数据工程）",
+     "link": "https://www.infoq.com/news/2026/10/atlassian-devex-2026/?utm_campaign=infoq_content&utm_source=infoq&utm_medium=feed&utm_term=AI%2C+ML+%26+Data+Engineering",
+     "published": "2026-10-27T12:45:00+08:00",
+     "ingested_at": "2026-10-27T20:14:45.071082+08:00",
+     "title": "Developers Reporting Double-Digit Weekly Time Savings From AI Fell From 68% to 26%"
+    }
+   ],
+   "content_parse": {
+    "run_id": "github-40501603206-1",
+    "processor_version": "original-first-v7",
+    "attempted_at": "2026-10-27T20:15:38.053068+08:00",
+    "status": "ready",
+    "source": "InfoQ（AI/数据工程）",
+    "strategy": "semantic_container",
+    "blocks": 16,
+    "text_chars": 4346,
+    "figures": 0,
+    "tables": 0,
+    "figures_discovered": 0,
+    "figures_selected": 0,
+    "figures_rejected": 0,
+    "candidate_count": 17,
+    "figures_rejected_author": 0,
+    "figures_rejected_decorative": 0,
+    "figures_rejected_duplicate": 0,
+    "figures_rejected_small": 0,
+    "figures_rejected_limit": 0,
+    "trimmed_tail_blocks": 2,
+    "trimmed_head_blocks": 0,
+    "trimmed_promotional_blocks": 0,
+    "trimmed_embedded_ui_blocks": 0,
+    "embedded_ui_components": 0,
+    "selected_depth": 10,
+    "selected_raw_blocks": 18,
+    "selected_raw_text_chars": 4383,
+    "broad_raw_blocks": 44,
+    "broad_raw_text_chars": 6163,
+    "parent_extra_blocks": 26,
+    "candidate_count_raw": 30,
+    "candidate_duplicates": 13,
+    "candidate_quality_rejected": 5,
+    "duplicate_blocks": 0,
+    "selected_score": 1007.67,
+    "quality_status": "pass",
+    "boundary_marker": "About the Author",
+    "selected_tag": "div",
+    "focus_ratio": 0.7112,
+    "link_ratio": 0.0396,
+    "duplicate_ratio": 0.0,
+    "selection_evidence": [
+     "tail_boundary",
+     "prose_density",
+     "integrity_gate",
+     "semantic_container"
+    ],
+    "reason": "HTTPError",
+    "media": {
+     "figures": 0,
+     "cached": 0,
+     "link_only": 0,
+     "policy_version": "source-cdn-v1"
+    },
+    "content_mode": "original",
+    "source_language": "other",
+    "translation_status": "failed",
+    "source_content_hash": "a2d5ec836dbda4673c3cc3a4",
+    "translation": {
+     "run_id": "github-40501603206-1",
+     "policy_version": "faithful-translation-retry-v1",
+     "attempted_at": "2026-10-27T20:15:38.053100+08:00",
+     "purpose": "body_translation",
+     "status": "failed",
+     "error": "HTTPError"
+    },
+    "metadata_translation": {
+     "run_id": "github-40501603206-1",
+     "policy_version": "metadata-translation-backfill-v1",
+     "attempted_at": "2026-10-27T20:15:39.223703+08:00",
+     "purpose": "metadata_translation_backfill",
+     "status": "provider_error",
+     "error": "HTTPError"
+    }
+   },
+   "content_mode": "original",
+   "content_level": "original",
+   "source_language": "other",
+   "translation_status": "failed",
+   "source_content_hash": "a2d5ec836dbda4673c3cc3a4",
+   "body_chars": 4346
+  },
   {
    "event_id": "081f46c6c668",
    "zh_title": "10.36 Release Notes: Oct 3, 2026 - Oct 7, 2026 | Snowflake Documentation",
@@ -712,11 +2441,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 58,
+   "heat": 54,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 64,
+   "trend_score": 58,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -734,9 +2463,9 @@
     }
    ],
    "content_parse": {
-    "run_id": "github-40453066781-1",
+    "run_id": "github-40501603206-1",
     "processor_version": "original-first-v7",
-    "attempted_at": "2026-10-27T13:18:00.063817+08:00",
+    "attempted_at": "2026-10-27T20:15:41.249045+08:00",
     "status": "ready",
     "source": "Snowflake Release Notes",
     "strategy": "article",
@@ -790,20 +2519,20 @@
     "source_language": "other",
     "translation_status": "failed",
     "source_content_hash": "ed51334dc549b0c378957f3b",
-    "translation": {
-     "run_id": "github-40453066781-1",
-     "policy_version": "faithful-translation-retry-v1",
-     "attempted_at": "2026-10-27T13:18:00.063866+08:00",
-     "purpose": "body_translation",
-     "status": "failed",
-     "error": "HTTPError"
-    },
     "metadata_translation": {
      "run_id": "github-40453066781-1",
      "policy_version": "metadata-translation-backfill-v1",
      "attempted_at": "2026-10-27T13:18:03.653138+08:00",
      "purpose": "metadata_translation_backfill",
      "status": "provider_error",
+     "error": "HTTPError"
+    },
+    "translation": {
+     "run_id": "github-40501603206-1",
+     "policy_version": "faithful-translation-retry-v1",
+     "attempted_at": "2026-10-27T20:15:41.249073+08:00",
+     "purpose": "body_translation_backfill",
+     "status": "failed",
      "error": "HTTPError"
     }
    },
@@ -2445,11 +4174,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 55,
+   "heat": 52,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 58,
+   "trend_score": 53,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -2773,11 +4502,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 51,
+   "heat": 48,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 51,
+   "trend_score": 46,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -3004,11 +4733,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 51,
+   "heat": 48,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 51,
+   "trend_score": 46,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -3425,11 +5154,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 51,
+   "heat": 48,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 51,
+   "trend_score": 46,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -3660,11 +5389,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 51,
+   "heat": 48,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 51,
+   "trend_score": 46,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -4006,11 +5735,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 51,
+   "heat": 48,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 51,
+   "trend_score": 46,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -4274,11 +6003,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 51,
+   "heat": 48,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 51,
+   "trend_score": 46,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -4509,11 +6238,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 51,
+   "heat": 48,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 51,
+   "trend_score": 46,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -4761,11 +6490,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 51,
+   "heat": 48,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 51,
+   "trend_score": 46,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -5008,11 +6737,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 51,
+   "heat": 48,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 51,
+   "trend_score": 46,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -5243,11 +6972,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 51,
+   "heat": 48,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 51,
+   "trend_score": 46,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -6484,11 +8213,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 53,
+   "heat": 50,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 55,
+   "trend_score": 50,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -7032,11 +8761,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 52,
+   "heat": 49,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 54,
+   "trend_score": 49,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -7816,11 +9545,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 50,
+   "heat": 48,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 51,
+   "trend_score": 46,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -8215,11 +9944,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 54,
+   "heat": 51,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 58,
+   "trend_score": 52,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -8498,11 +10227,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 54,
+   "heat": 51,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 58,
+   "trend_score": 52,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -8721,11 +10450,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 54,
+   "heat": 51,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 58,
+   "trend_score": 52,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -9028,11 +10757,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 54,
+   "heat": 51,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 58,
+   "trend_score": 52,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -9374,11 +11103,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 54,
+   "heat": 51,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 57,
+   "trend_score": 52,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -9626,11 +11355,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 54,
+   "heat": 51,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 57,
+   "trend_score": 52,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -9924,11 +11653,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 54,
+   "heat": 51,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 57,
+   "trend_score": 52,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -10159,11 +11888,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 54,
+   "heat": 51,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 57,
+   "trend_score": 52,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -10411,11 +12140,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 54,
+   "heat": 51,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 57,
+   "trend_score": 52,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -13044,11 +14773,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 52,
+   "heat": 49,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 53,
+   "trend_score": 48,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -13676,11 +15405,11 @@
    "vendors": [
     "ClickHouse"
    ],
-   "heat": 51,
+   "heat": 48,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 52,
+   "trend_score": 47,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -14265,11 +15994,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 54,
+   "heat": 51,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 57,
+   "trend_score": 52,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -14674,11 +16403,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 52,
+   "heat": 49,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 54,
+   "trend_score": 49,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -15185,11 +16914,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 51,
+   "heat": 48,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 52,
+   "trend_score": 47,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -16570,11 +18299,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 49,
+   "heat": 47,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 49,
+   "trend_score": 44,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -16978,11 +18707,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 49,
+   "heat": 47,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 48,
+   "trend_score": 44,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -18367,11 +20096,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 53,
+   "heat": 50,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 55,
+   "trend_score": 50,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -18970,11 +20699,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 51,
+   "heat": 48,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 51,
+   "trend_score": 46,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -20464,7 +22193,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 10,
+   "trend_score": 9,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -21350,11 +23079,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 52,
+   "heat": 49,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 53,
+   "trend_score": 48,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -21851,11 +23580,11 @@
    "vendors": [
     "ThoughtSpot"
    ],
-   "heat": 50,
+   "heat": 48,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 50,
+   "trend_score": 46,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -22419,11 +24148,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 55,
+   "heat": 53,
    "star": false,
    "importance": 68,
    "quality_score": 68,
-   "trend_score": 45,
+   "trend_score": 40,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -22455,9 +24184,9 @@
     "actionability_depth": 14
    },
    "content_parse": {
-    "run_id": "github-40327033115-1",
+    "run_id": "github-40501603206-1",
     "processor_version": "original-first-v7",
-    "attempted_at": "2026-10-26T21:06:48.943734+08:00",
+    "attempted_at": "2026-10-27T20:15:41.661981+08:00",
     "status": "ready",
     "source": "Snowflake Release Notes",
     "strategy": "article",
@@ -22512,9 +24241,9 @@
     "translation_status": "failed",
     "source_content_hash": "889611e1474e1e177ca822b5",
     "translation": {
-     "run_id": "github-40327033115-1",
+     "run_id": "github-40501603206-1",
      "policy_version": "faithful-translation-retry-v1",
-     "attempted_at": "2026-10-26T21:06:48.943768+08:00",
+     "attempted_at": "2026-10-27T20:15:41.662007+08:00",
      "purpose": "body_translation_backfill",
      "status": "failed",
      "error": "HTTPError"
@@ -23490,7 +25219,7 @@
     "PingCAP/TiDB",
     "AWS"
    ],
-   "heat": 32,
+   "heat": 31,
    "star": false,
    "importance": 68,
    "quality_score": 68,
@@ -24027,11 +25756,11 @@
    "vendors": [
     "ThoughtSpot"
    ],
-   "heat": 34,
+   "heat": 33,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 22,
+   "trend_score": 20,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -24667,11 +26396,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 44,
+   "heat": 42,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 38,
+   "trend_score": 35,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -25069,11 +26798,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 43,
+   "heat": 41,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 38,
+   "trend_score": 34,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -26482,7 +28211,7 @@
    "category": "insight",
    "category_label": "AI分析",
    "vendors": [],
-   "heat": 35,
+   "heat": 34,
    "star": true,
    "importance": 76,
    "quality_score": 76,
@@ -26520,9 +28249,9 @@
     "actionability_depth": 14
    },
    "content_parse": {
-    "run_id": "github-40327033115-1",
+    "run_id": "github-40501603206-1",
     "processor_version": "original-first-v7",
-    "attempted_at": "2026-10-26T21:06:50.184875+08:00",
+    "attempted_at": "2026-10-27T20:15:42.369132+08:00",
     "status": "ready",
     "source": "Mercer Insights",
     "strategy": "nested_content",
@@ -26577,9 +28306,9 @@
     "translation_status": "failed",
     "source_content_hash": "f572fe91aa516e4c78b2f229",
     "translation": {
-     "run_id": "github-40327033115-1",
+     "run_id": "github-40501603206-1",
      "policy_version": "faithful-translation-retry-v1",
-     "attempted_at": "2026-10-26T21:06:50.184905+08:00",
+     "attempted_at": "2026-10-27T20:15:42.369160+08:00",
      "purpose": "body_translation_backfill",
      "status": "failed",
      "error": "HTTPError"
@@ -27643,11 +29372,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 37,
+   "heat": 36,
    "star": false,
    "importance": 58,
    "quality_score": 58,
-   "trend_score": 19,
+   "trend_score": 18,
    "signal": 0,
    "topics": [
     "实时分析"
@@ -29567,7 +31296,7 @@
     "NVIDIA",
     "Intel"
    ],
-   "heat": 39,
+   "heat": 38,
    "star": true,
    "importance": 84,
    "quality_score": 84,
@@ -31736,11 +33465,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 37,
+   "heat": 36,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 26,
+   "trend_score": 24,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -32277,11 +34006,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 35,
+   "heat": 34,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 24,
+   "trend_score": 21,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -33887,11 +35616,11 @@
     "Microsoft",
     "Power BI"
    ],
-   "heat": 34,
+   "heat": 33,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 20,
+   "trend_score": 18,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -35182,11 +36911,11 @@
     "Amazon OpenSearch",
     "Amazon S3"
    ],
-   "heat": 41,
+   "heat": 40,
    "star": false,
    "importance": 67,
    "quality_score": 67,
-   "trend_score": 20,
+   "trend_score": 18,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -36226,11 +37955,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 47,
+   "heat": 46,
    "star": true,
    "importance": 81,
    "quality_score": 81,
-   "trend_score": 19,
+   "trend_score": 18,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -42988,11 +44717,11 @@
     "Amazon Athena",
     "AWS Glue"
    ],
-   "heat": 45,
+   "heat": 44,
    "star": true,
    "importance": 77,
    "quality_score": 77,
-   "trend_score": 20,
+   "trend_score": 18,
    "signal": 0,
    "topics": [
     "湖仓"
@@ -44433,11 +46162,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 42,
+   "heat": 41,
    "star": false,
    "importance": 70,
    "quality_score": 70,
-   "trend_score": 19,
+   "trend_score": 18,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -45019,7 +46748,7 @@
    "star": false,
    "importance": 64,
    "quality_score": 64,
-   "trend_score": 5,
+   "trend_score": 4,
    "signal": 0,
    "topics": [
     "实时分析"
@@ -48578,11 +50307,11 @@
     "ClickHouse",
     "Neon"
    ],
-   "heat": 44,
+   "heat": 43,
    "star": true,
    "importance": 76,
    "quality_score": 76,
-   "trend_score": 17,
+   "trend_score": 15,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -49437,7 +51166,7 @@
    "star": false,
    "importance": 41,
    "quality_score": 41,
-   "trend_score": 13,
+   "trend_score": 12,
    "signal": 0,
    "topics": [
     "平台AI化",
@@ -51502,11 +53231,11 @@
    "category": "product",
    "category_label": "数据产品",
    "vendors": [],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 54,
    "quality_score": 54,
-   "trend_score": 15,
+   "trend_score": 14,
    "signal": 0,
    "topics": [
     "财务经营"
@@ -52649,11 +54378,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 38,
+   "heat": 37,
    "star": false,
    "importance": 67,
    "quality_score": 67,
-   "trend_score": 14,
+   "trend_score": 12,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -53209,11 +54938,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 57,
    "quality_score": 57,
-   "trend_score": 14,
+   "trend_score": 12,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -54062,7 +55791,7 @@
    "star": false,
    "importance": 55,
    "quality_score": 55,
-   "trend_score": 14,
+   "trend_score": 12,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -55083,11 +56812,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 40,
+   "heat": 39,
    "star": false,
    "importance": 72,
    "quality_score": 72,
-   "trend_score": 13,
+   "trend_score": 12,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -56715,11 +58444,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 42,
+   "heat": 41,
    "star": true,
    "importance": 78,
    "quality_score": 78,
-   "trend_score": 13,
+   "trend_score": 12,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -61654,11 +63383,11 @@
    "vendors": [
     "Jellyfish"
    ],
-   "heat": 42,
+   "heat": 41,
    "star": true,
    "importance": 78,
    "quality_score": 78,
-   "trend_score": 13,
+   "trend_score": 12,
    "signal": 0,
    "topics": [
     "组织人才"
@@ -63770,11 +65499,11 @@
    "vendors": [
     "DuckDB"
    ],
-   "heat": 42,
+   "heat": 41,
    "star": true,
    "importance": 79,
    "quality_score": 79,
-   "trend_score": 12,
+   "trend_score": 11,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -65695,11 +67424,11 @@
     "OpenAI",
     "PerturbAI"
    ],
-   "heat": 25,
+   "heat": 24,
    "star": false,
    "importance": 45,
    "quality_score": 45,
-   "trend_score": 8,
+   "trend_score": 7,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -66610,7 +68339,7 @@
    "star": true,
    "importance": 81,
    "quality_score": 81,
-   "trend_score": 11,
+   "trend_score": 10,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -67599,11 +69328,11 @@
    "category": "agent",
    "category_label": "Data Agent",
    "vendors": [],
-   "heat": 38,
+   "heat": 37,
    "star": false,
    "importance": 72,
    "quality_score": 72,
-   "trend_score": 9,
+   "trend_score": 8,
    "signal": 0,
    "topics": [
     "ChatBI",
@@ -68278,11 +70007,11 @@
     "PingCAP",
     "TiDB"
    ],
-   "heat": 35,
+   "heat": 34,
    "star": false,
    "importance": 66,
    "quality_score": 66,
-   "trend_score": 9,
+   "trend_score": 8,
    "signal": 0,
    "topics": [
     "风险管理"
@@ -70798,7 +72527,7 @@
    "star": false,
    "importance": 66,
    "quality_score": 66,
-   "trend_score": 10,
+   "trend_score": 9,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -71400,7 +73129,7 @@
    "star": false,
    "importance": 69,
    "quality_score": 69,
-   "trend_score": 10,
+   "trend_score": 9,
    "signal": 0,
    "topics": [
     "实时分析"
@@ -75122,11 +76851,11 @@
     "ClickHouse",
     "NVIDIA"
    ],
-   "heat": 41,
+   "heat": 40,
    "star": true,
    "importance": 80,
    "quality_score": 80,
-   "trend_score": 9,
+   "trend_score": 8,
    "signal": 0,
    "topics": [
     "实时分析"
@@ -75816,11 +77545,11 @@
     "Fivetran",
     "dbt Labs"
    ],
-   "heat": 36,
+   "heat": 35,
    "star": false,
    "importance": 67,
    "quality_score": 67,
-   "trend_score": 10,
+   "trend_score": 9,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -78408,11 +80137,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 34,
+   "heat": 33,
    "star": false,
    "importance": 63,
    "quality_score": 63,
-   "trend_score": 10,
+   "trend_score": 9,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -79431,7 +81160,7 @@
    "star": true,
    "importance": 85,
    "quality_score": 85,
-   "trend_score": 9,
+   "trend_score": 8,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -82250,7 +83979,7 @@
    "star": true,
    "importance": 79,
    "quality_score": 79,
-   "trend_score": 9,
+   "trend_score": 8,
    "signal": 0,
    "topics": [
     "语义层",
@@ -82979,7 +84708,7 @@
    "star": false,
    "importance": 70,
    "quality_score": 70,
-   "trend_score": 16,
+   "trend_score": 15,
    "signal": 0,
    "topics": [
     "平台AI化",
@@ -83759,7 +85488,7 @@
    "star": false,
    "importance": 53,
    "quality_score": 53,
-   "trend_score": 8,
+   "trend_score": 7,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -85904,11 +87633,11 @@
     "OpenAI",
     "Terminal X"
    ],
-   "heat": 30,
+   "heat": 29,
    "star": false,
    "importance": 59,
    "quality_score": 59,
-   "trend_score": 6,
+   "trend_score": 5,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -89509,7 +91238,7 @@
    "star": false,
    "importance": 68,
    "quality_score": 68,
-   "trend_score": 8,
+   "trend_score": 7,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -90311,7 +92040,7 @@
    "star": false,
    "importance": 69,
    "quality_score": 69,
-   "trend_score": 8,
+   "trend_score": 7,
    "signal": 0,
    "topics": [
     "组织人才"
@@ -92608,7 +94337,7 @@
    "star": true,
    "importance": 83,
    "quality_score": 83,
-   "trend_score": 7,
+   "trend_score": 6,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -93493,7 +95222,7 @@
    "star": false,
    "importance": 72,
    "quality_score": 72,
-   "trend_score": 7,
+   "trend_score": 6,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -94770,7 +96499,7 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 27,
+   "heat": 26,
    "star": false,
    "importance": 53,
    "quality_score": 53,
@@ -95465,7 +97194,7 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 29,
+   "heat": 28,
    "star": false,
    "importance": 56,
    "quality_score": 56,
@@ -96745,11 +98474,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 38,
+   "heat": 37,
    "star": true,
    "importance": 75,
    "quality_score": 75,
-   "trend_score": 7,
+   "trend_score": 6,
    "signal": 0,
    "topics": [
     "平台AI化",
@@ -97480,7 +99209,7 @@
    "vendors": [
     "ThoughtSpot"
    ],
-   "heat": 23,
+   "heat": 22,
    "star": false,
    "importance": 43,
    "quality_score": 43,
@@ -98374,7 +100103,7 @@
    "star": true,
    "importance": 76,
    "quality_score": 76,
-   "trend_score": 6,
+   "trend_score": 5,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -100267,7 +101996,7 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 66,
    "quality_score": 66,
@@ -102072,7 +103801,7 @@
    "star": false,
    "importance": 67,
    "quality_score": 67,
-   "trend_score": 5,
+   "trend_score": 4,
    "signal": 0,
    "topics": [
     "湖仓"
@@ -110253,11 +111982,11 @@
     "Datadog",
     "Eppo"
    ],
-   "heat": 19,
+   "heat": 18,
    "star": false,
    "importance": 36,
    "quality_score": 36,
-   "trend_score": 5,
+   "trend_score": 4,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -111058,7 +112787,7 @@
    "star": false,
    "importance": 53,
    "quality_score": 53,
-   "trend_score": 5,
+   "trend_score": 4,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -113340,7 +115069,7 @@
    "star": true,
    "importance": 83,
    "quality_score": 83,
-   "trend_score": 4,
+   "trend_score": 3,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -116457,7 +118186,7 @@
     "Qdrant",
     "Milvus"
    ],
-   "heat": 20,
+   "heat": 19,
    "star": false,
    "importance": 42,
    "quality_score": 42,
@@ -117551,7 +119280,7 @@
    "star": false,
    "importance": 61,
    "quality_score": 61,
-   "trend_score": 4,
+   "trend_score": 3,
    "signal": 0,
    "topics": [
     "语义层",
@@ -119902,11 +121631,11 @@
     "Amazon OpenSearch Service",
     "Amazon Bedrock"
    ],
-   "heat": 39,
+   "heat": 38,
    "star": true,
    "importance": 80,
    "quality_score": 80,
-   "trend_score": 5,
+   "trend_score": 4,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -122408,7 +124137,7 @@
    "star": false,
    "importance": 59,
    "quality_score": 59,
-   "trend_score": 5,
+   "trend_score": 4,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -123301,7 +125030,7 @@
    "star": false,
    "importance": 54,
    "quality_score": 54,
-   "trend_score": 2,
+   "trend_score": 1,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -125078,11 +126807,11 @@
     "Google Cloud",
     "Dremio"
    ],
-   "heat": 47,
+   "heat": 64,
    "star": false,
    "importance": 68,
    "quality_score": 68,
-   "trend_score": 30,
+   "trend_score": 60,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -125090,7 +126819,7 @@
    ],
    "shelf": "news",
    "pinned": false,
-   "published": "2026-10-22T15:00:00+08:00",
+   "published": "2026-10-26T15:00:00+08:00",
    "first_seen": "2026-10-18T12:39:31.633368+08:00",
    "items": [
     {
@@ -125121,6 +126850,13 @@
      "link": "https://docs.cloud.google.com/looker/docs/release-notes#October_22_2026",
      "published": "2026-10-22T15:00:00+08:00",
      "title": "October 22, 2026"
+    },
+    {
+     "id": "fcd6a17d2391",
+     "source": "Google Looker Release Notes",
+     "link": "https://docs.cloud.google.com/looker/docs/release-notes#October_26_2026",
+     "published": "2026-10-26T15:00:00+08:00",
+     "title": "October 26, 2026"
     }
    ],
    "work_tags": {
@@ -130769,7 +132505,7 @@
    "star": false,
    "importance": 72,
    "quality_score": 72,
-   "trend_score": 2,
+   "trend_score": 1,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -131179,7 +132915,7 @@
    "star": false,
    "importance": 72,
    "quality_score": 72,
-   "trend_score": 2,
+   "trend_score": 1,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -132784,7 +134520,7 @@
    "star": true,
    "importance": 84,
    "quality_score": 84,
-   "trend_score": 2,
+   "trend_score": 1,
    "signal": 0,
    "topics": [
     "语义层",
@@ -135087,7 +136823,7 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 34,
+   "heat": 33,
    "star": false,
    "importance": 73,
    "quality_score": 73,
@@ -156112,7 +157848,7 @@
    "star": false,
    "importance": 68,
    "quality_score": 68,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "实时分析"
@@ -161251,7 +162987,7 @@
    "star": false,
    "importance": 52,
    "quality_score": 52,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "湖仓"
@@ -175803,7 +177539,7 @@
    "star": false,
    "importance": 72,
    "quality_score": 72,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -181239,7 +182975,7 @@
    "star": true,
    "importance": 96,
    "quality_score": 96,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -816823,7 +818559,7 @@
     "BigQuery",
     "Google Cloud"
    ],
-   "heat": 67,
+   "heat": 64,
    "star": false,
    "importance": 70,
    "signal": 0,
@@ -817197,7 +818933,7 @@
    "translation_status": "failed",
    "source_content_hash": "3907a79213df9e15b816330c",
    "quality_score": 70,
-   "trend_score": 64
+   "trend_score": 60
   },
   {
    "event_id": "ba8377c644db",
@@ -908256,9 +909992,20 @@
   {
    "name": "爱分析",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:329m_remaining",
+   "new": 4,
+   "fetched": 7,
+   "eligible": 5,
+   "prefiltered": 2,
+   "prefilter_dropped": {
+    "time": 0,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 2,
+    "excluded": 0
+   },
+   "skipped_seen": 1,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 12.0,
@@ -908276,7 +910023,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:468m_remaining",
+   "skip_reason": "frequency_gate:51m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -908292,7 +910039,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:468m_remaining",
+   "skip_reason": "frequency_gate:51m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -908308,7 +910055,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:468m_remaining",
+   "skip_reason": "frequency_gate:51m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -908328,7 +910075,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:468m_remaining",
+   "skip_reason": "frequency_gate:51m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -908346,7 +910093,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:468m_remaining",
+   "skip_reason": "frequency_gate:51m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -908366,7 +910113,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:468m_remaining",
+   "skip_reason": "frequency_gate:51m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -908386,7 +910133,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:468m_remaining",
+   "skip_reason": "frequency_gate:51m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -908402,9 +910149,20 @@
   {
    "name": "SHRM Research",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:377m_remaining",
+   "new": 2,
+   "fetched": 20477,
+   "eligible": 22,
+   "prefiltered": 20455,
+   "prefilter_dropped": {
+    "time": 18801,
+    "missing_date": 0,
+    "path": 1586,
+    "keyword": 68,
+    "excluded": 0
+   },
+   "skipped_seen": 0,
+   "limit_reached": true,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 48.0,
@@ -908421,9 +910179,20 @@
   {
    "name": "Mercer Insights",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:377m_remaining",
+   "new": 2,
+   "fetched": 2333,
+   "eligible": 46,
+   "prefiltered": 2287,
+   "prefilter_dropped": {
+    "time": 1917,
+    "missing_date": 0,
+    "path": 267,
+    "keyword": 97,
+    "excluded": 6
+   },
+   "skipped_seen": 1,
+   "limit_reached": true,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 48.0,
@@ -908442,7 +910211,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:468m_remaining",
+   "skip_reason": "frequency_gate:51m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -908460,7 +910229,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:468m_remaining",
+   "skip_reason": "frequency_gate:51m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -908478,9 +910247,20 @@
   {
    "name": "Microsoft WorkLab",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:377m_remaining",
+   "new": 2,
+   "fetched": 285,
+   "eligible": 31,
+   "prefiltered": 254,
+   "prefilter_dropped": {
+    "time": 152,
+    "missing_date": 4,
+    "path": 15,
+    "keyword": 83,
+    "excluded": 0
+   },
+   "skipped_seen": 3,
+   "limit_reached": true,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 48.0,
@@ -908498,9 +910278,20 @@
   {
    "name": "Lightcast Research",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:377m_remaining",
+   "new": 2,
+   "fetched": 1573,
+   "eligible": 49,
+   "prefiltered": 1524,
+   "prefilter_dropped": {
+    "time": 0,
+    "missing_date": 0,
+    "path": 1466,
+    "keyword": 58,
+    "excluded": 0
+   },
+   "skipped_seen": 10,
+   "limit_reached": true,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 48.0,
@@ -908517,7 +910308,7 @@
   {
    "name": "Snowflake Release Notes",
    "ok": true,
-   "new": 1,
+   "new": 0,
    "fetched": 3,
    "eligible": 3,
    "prefiltered": 0,
@@ -908528,7 +910319,7 @@
     "keyword": 0,
     "excluded": 0
    },
-   "skipped_seen": 2,
+   "skipped_seen": 3,
    "limit_reached": false,
    "schedule_reason": "interval_elapsed",
    "control": {
@@ -908546,16 +910337,16 @@
    "ok": true,
    "new": 0,
    "fetched": 96,
-   "eligible": 2,
-   "prefiltered": 94,
+   "eligible": 0,
+   "prefiltered": 96,
    "prefilter_dropped": {
-    "time": 94,
+    "time": 96,
     "missing_date": 0,
     "path": 0,
     "keyword": 0,
     "excluded": 0
    },
-   "skipped_seen": 2,
+   "skipped_seen": 0,
    "limit_reached": false,
    "schedule_reason": "interval_elapsed",
    "control": {
@@ -908598,7 +910389,7 @@
   {
    "name": "Databricks Blog",
    "ok": true,
-   "new": 1,
+   "new": 0,
    "fetched": 10,
    "eligible": 10,
    "prefiltered": 0,
@@ -908609,7 +910400,7 @@
     "keyword": 0,
     "excluded": 0
    },
-   "skipped_seen": 9,
+   "skipped_seen": 10,
    "limit_reached": false,
    "schedule_reason": "interval_elapsed",
    "control": {
@@ -908625,7 +910416,7 @@
   {
    "name": "dbt Blog",
    "ok": true,
-   "new": 10,
+   "new": 0,
    "fetched": 20,
    "eligible": 20,
    "prefiltered": 0,
@@ -908636,7 +910427,7 @@
     "keyword": 0,
     "excluded": 0
    },
-   "skipped_seen": 10,
+   "skipped_seen": 20,
    "limit_reached": false,
    "schedule_reason": "interval_elapsed",
    "control": {
@@ -908732,16 +910523,16 @@
    "ok": true,
    "new": 0,
    "fetched": 20,
-   "eligible": 6,
-   "prefiltered": 14,
+   "eligible": 5,
+   "prefiltered": 15,
    "prefilter_dropped": {
-    "time": 14,
+    "time": 15,
     "missing_date": 0,
     "path": 0,
     "keyword": 0,
     "excluded": 0
    },
-   "skipped_seen": 6,
+   "skipped_seen": 5,
    "limit_reached": false,
    "schedule_reason": "interval_elapsed",
    "control": {
@@ -908840,7 +910631,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:468m_remaining",
+   "skip_reason": "frequency_gate:51m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -908887,7 +910678,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:468m_remaining",
+   "skip_reason": "frequency_gate:51m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -908903,7 +910694,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:1049m_remaining",
+   "skip_reason": "frequency_gate:632m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -908919,7 +910710,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:468m_remaining",
+   "skip_reason": "frequency_gate:51m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -908935,7 +910726,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:468m_remaining",
+   "skip_reason": "frequency_gate:51m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -908949,9 +910740,20 @@
   {
    "name": "InfoQ（AI/数据工程）",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:329m_remaining",
+   "new": 5,
+   "fetched": 15,
+   "eligible": 15,
+   "prefiltered": 0,
+   "prefilter_dropped": {
+    "time": 0,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 10,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "media_targeted",
     "fetch_interval_hours": 12.0,
@@ -908967,7 +910769,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:468m_remaining",
+   "skip_reason": "frequency_gate:51m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -908983,7 +910785,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:468m_remaining",
+   "skip_reason": "frequency_gate:51m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -908998,8 +910800,19 @@
    "name": "Hacker News（数据关键词）",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:329m_remaining",
+   "fetched": 10,
+   "eligible": 0,
+   "prefiltered": 10,
+   "prefilter_dropped": {
+    "time": 10,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 0,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "community_targeted",
     "fetch_interval_hours": 12.0,
@@ -909013,9 +910826,20 @@
   {
    "name": "Bluesky 数据社区",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:329m_remaining",
+   "new": 9,
+   "fetched": 9,
+   "eligible": 9,
+   "prefiltered": 0,
+   "prefilter_dropped": {
+    "time": 0,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 0,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "community_targeted",
     "fetch_interval_hours": 12.0,
@@ -909088,8 +910912,19 @@
    "name": "Hex Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:329m_remaining",
+   "fetched": 422,
+   "eligible": 6,
+   "prefiltered": 416,
+   "prefilter_dropped": {
+    "time": 398,
+    "missing_date": 11,
+    "path": 0,
+    "keyword": 7,
+    "excluded": 0
+   },
+   "skipped_seen": 6,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -909107,8 +910942,19 @@
    "name": "Amplitude Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:329m_remaining",
+   "fetched": 2086,
+   "eligible": 0,
+   "prefiltered": 2086,
+   "prefilter_dropped": {
+    "time": 2085,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 1,
+    "excluded": 0
+   },
+   "skipped_seen": 0,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -909125,9 +910971,20 @@
   {
    "name": "Netflix Technology Blog",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:329m_remaining",
+   "new": 1,
+   "fetched": 10,
+   "eligible": 6,
+   "prefiltered": 4,
+   "prefilter_dropped": {
+    "time": 0,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 4,
+    "excluded": 0
+   },
+   "skipped_seen": 5,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "engineering_targeted",
     "fetch_interval_hours": 12.0,
@@ -909144,8 +911001,19 @@
    "name": "Google Cloud Data Analytics Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:329m_remaining",
+   "fetched": 8,
+   "eligible": 8,
+   "prefiltered": 0,
+   "prefilter_dropped": {
+    "time": 0,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 8,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -909195,8 +911063,19 @@
    "name": "Google Looker Release Notes",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:329m_remaining",
+   "fetched": 20,
+   "eligible": 3,
+   "prefiltered": 17,
+   "prefilter_dropped": {
+    "time": 15,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 2,
+    "excluded": 0
+   },
+   "skipped_seen": 3,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "structured_high",
     "fetch_interval_hours": 12.0,
@@ -909214,8 +911093,19 @@
    "name": "Microsoft Fabric Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:329m_remaining",
+   "fetched": 10,
+   "eligible": 0,
+   "prefiltered": 10,
+   "prefilter_dropped": {
+    "time": 10,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 0,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -909264,8 +911154,19 @@
    "name": "Apache Iceberg Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:329m_remaining",
+   "fetched": 17,
+   "eligible": 0,
+   "prefiltered": 17,
+   "prefilter_dropped": {
+    "time": 17,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 0,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 12.0,
@@ -909282,8 +911183,19 @@
    "name": "TiDB Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:329m_remaining",
+   "fetched": 10,
+   "eligible": 2,
+   "prefiltered": 8,
+   "prefilter_dropped": {
+    "time": 8,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 2,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -909301,8 +911213,19 @@
    "name": "Apache Doris Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:329m_remaining",
+   "fetched": 20,
+   "eligible": 0,
+   "prefiltered": 20,
+   "prefilter_dropped": {
+    "time": 20,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 0,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -909319,75 +911242,75 @@
   }
  ],
  "structured_content": {
-  "run_id": "github-40453066781-1",
-  "attempted": 12,
-  "ready": 12,
-  "figures": 3,
-  "tables": 1,
+  "run_id": "github-40501603206-1",
+  "attempted": 6,
+  "ready": 6,
+  "figures": 0,
+  "tables": 3,
   "media_cached": 0,
-  "media_link_only": 3,
-  "candidate_duplicates": 133,
-  "candidate_quality_rejected": 55,
+  "media_link_only": 0,
+  "candidate_duplicates": 63,
+  "candidate_quality_rejected": 19,
   "strategies": {
-   "article": 1,
-   "semantic_container": 1,
-   "nested_content": 10
+   "article": 2,
+   "nested_content": 1,
+   "semantic_container": 3
   },
   "quality_statuses": {
-   "pass": 12
+   "pass": 6
   },
   "content_modes": {
-   "original": 12
+   "original": 6
   },
   "fallbacks": {},
   "by_source": {
    "Snowflake Release Notes": {
+    "attempted": 2,
+    "ready": 2,
+    "figures": 0,
+    "tables": 3,
+    "media_cached": 0
+   },
+   "Mercer Insights": {
     "attempted": 1,
     "ready": 1,
     "figures": 0,
-    "tables": 1,
-    "media_cached": 0
-   },
-   "Databricks Blog": {
-    "attempted": 1,
-    "ready": 1,
-    "figures": 3,
     "tables": 0,
     "media_cached": 0
    },
-   "dbt Blog": {
-    "attempted": 10,
-    "ready": 10,
+   "InfoQ（AI/数据工程）": {
+    "attempted": 3,
+    "ready": 3,
     "figures": 0,
     "tables": 0,
     "media_cached": 0
    }
   },
   "catalog": {
-   "events": 723,
-   "structured": 678,
-   "renderable": 677,
-   "current_pass": 671,
+   "events": 725,
+   "structured": 680,
+   "renderable": 679,
+   "current_pass": 673,
    "parser_debt": 7,
    "display_trimmed": 0,
    "display_suspect": 0,
    "embedded_ui_trimmed": 0,
    "embedded_ui_blocks": 0,
    "modes": {
-    "original": 164,
-    "translated": 514,
+    "original": 167,
+    "translated": 513,
     "ai_fallback": 15,
     "editorial_excerpt": 17,
     "missing": 13
    },
    "processor_versions": {
-    "original-first-v7": 706,
+    "original-first-v7": 708,
     "missing": 17
    }
   },
   "metadata_backfill": {
    "limit": 3,
-   "eligible": 42,
+   "eligible": 45,
    "attempted": 3,
    "complete": 0,
    "deferred_budget": 0,
@@ -909396,18 +911319,18 @@
   },
   "backfill": {
    "foreign_limit": 6,
-   "eligible": 64,
+   "eligible": 67,
    "attempted": 12,
-   "ready": 0,
-   "original": 0,
+   "ready": 3,
+   "original": 3,
    "translated": 0,
-   "deferred_foreign": 12,
-   "deferred_budget": 12,
+   "deferred_foreign": 9,
+   "deferred_budget": 9,
    "stored_original_retries": 12,
    "parser_debt_eligible": 7,
    "skipped": 0,
    "failed": 0,
-   "planned": 0
+   "planned": 3
   },
   "media_refresh": {
    "policy_version": "source-cdn-v1",
@@ -909420,7 +911343,7 @@
   },
   "article_ui_cleanup": {
    "policy_version": "article-chrome-v3",
-   "scanned": 711,
+   "scanned": 722,
    "cleaned_events": 0,
    "removed_blocks": 0
   }

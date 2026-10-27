@@ -348,9 +348,15 @@
     var reviewRequired = event.body_review_required === true;
     var reason = event.reason ? '<details class="why" open><summary>' + (reviewRequired ? "收录理由（正文待核验）" : "为什么值得关注") + '</summary><p>' +
       escapeHtml(cleanReason(event.reason)) + "</p></details>" : "";
+    var seenSources = new Set([String(source || "").trim().toLowerCase()]);
     var additionalSources = (event.items || []).slice(1).map(function (item) {
-      return escapeHtml(item.source || "");
-    }).filter(Boolean);
+      return String(item.source || "").trim();
+    }).filter(function (name) {
+      var key = name.toLowerCase();
+      if (!name || seenSources.has(key)) return false;
+      seenSources.add(key);
+      return true;
+    }).map(escapeHtml);
     var also = additionalSources.length ? '<div class="also">另有 <b>' +
       additionalSources.length + " 家信源</b>报道：" + additionalSources.join(" · ") + "</div>" : "";
     var status = reviewRequired ? "正文待核验" : (event.editorial_pick ? "编辑精选" : "");

@@ -349,3 +349,33 @@ a, button, input, summary { -webkit-tap-highlight-color: transparent; }
 .nav-status { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 90; padding: 10px 16px; border-radius: 10px; background: var(--ink); color: var(--bg); font-size: 13px; box-shadow: 0 4px 18px rgba(0,0,0,.12); pointer-events: none; }
 .nav-status[hidden] { display: none; }
 @media(max-width:600px) { .nav-status { bottom: calc(68px + env(safe-area-inset-bottom)); max-width: calc(100% - 32px); white-space: nowrap; } }
+
+/* Phone home: headlines first, without shrinking reading or touch targets. */
+@media(max-width:600px) {
+  .home-page .layout { padding-top: 10px; gap: 16px; }
+  .home-page .today-hot { padding: 8px 14px 4px; margin-bottom: 4px; }
+  .home-page .today-hot-head { padding-bottom: 0; min-height: 44px; }
+  .home-page .today-hot-more { display: inline-flex; align-items: center; min-height: 44px; }
+  .home-page .today-hot-row,
+  .home-page .today-hot-row.is-lead,
+  .home-page .today-hot-row:nth-child(2),
+  .home-page .today-hot-row:nth-child(3) {
+    grid-template-columns: 18px minmax(0,1fr) auto;
+    align-items: center; min-height: 44px; padding: 2px 0; gap: 8px;
+  }
+  .home-page .today-hot-row.is-lead .today-hot-rank { display: inline-flex; }
+  .home-page .today-hot-row .today-hot-title,
+  .home-page .today-hot-row.is-lead .today-hot-title {
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+    overflow: hidden; font-size: 16px; line-height: 1.4; letter-spacing: normal;
+  }
+  .home-page .today-hot-intro { display: none; }
+  .home-page .today-hot-heat { padding-top: 0; }
+  .home-page .weekly-strip { min-height: 44px; margin-bottom: 8px; }
+  .home-page .weekly-strip-link,.home-page .weekly-dismiss { min-height: 44px; }
+  .home-page .timeline-panel { padding-top: 12px; }
+  .home-page .timeline-toolbar { margin-bottom: 6px; }
+  .home-page .home-filters { margin-bottom: 8px; }
+  .home-page #timeline .day-head { padding: 8px 0; }
+  .home-page .item { padding: 14px 0; }
+}

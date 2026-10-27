@@ -12,6 +12,22 @@ import build_site  # noqa: E402
 
 
 class HomeHeaderTests(unittest.TestCase):
+    def test_additional_sources_count_publishers_not_duplicate_entries(self):
+        item = {
+            "event_id": "123456789abc", "zh_title": "标题", "zh_summary": "摘要",
+            "reason": "理由", "category": "platform", "topics": [], "vendors": [],
+            "heat": 59, "published": "2026-08-13T12:00:00+08:00",
+            "first_seen": "2026-08-13T12:00:00+08:00",
+            "items": [{"source": "Primary"}, {"source": " primary "},
+                      {"source": "Independent & Co"}, {"source": "INDEPENDENT & CO"},
+                      {"source": ""}, {"source": "中文信源"}],
+        }
+        card = build_site.render_card(item)
+        self.assertIn("2 家信源", card)
+        self.assertIn("Independent &amp; Co · 中文信源", card)
+        item["items"] = [{"source": "Primary"}] * 41
+        self.assertNotIn('class="also"', build_site.render_card(item))
+
     def test_existing_footer_social_area_promotes_bluesky_without_a_nav_item(self):
         source = (ROOT / "pipeline" / "build_site.py").read_text(encoding="utf-8")
         sidebar = build_site.sidebar("home")

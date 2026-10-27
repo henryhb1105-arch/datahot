@@ -124,6 +124,19 @@ async function main() {
     await page.goto(base, {waitUntil:'networkidle'});
     await page.locator('#timeline .item').first().waitFor();
     await noOverflow();
+    if (width < 600) {
+      const density = await page.evaluate(() => ({
+        firstTitleY: document.querySelector('#timeline .item h3').getBoundingClientRect().top,
+        hotHeight: document.querySelector('.today-hot').getBoundingClientRect().height,
+        rows: [...document.querySelectorAll('.today-hot-row')].map(el => el.getBoundingClientRect().height),
+        headlineSize: parseFloat(getComputedStyle(document.querySelector('.today-hot-title')).fontSize),
+      }));
+      assert(density.firstTitleY < 600, 'Phone timeline must start in the first screen');
+      assert(density.hotHeight < 300, 'Phone hot list must stay compact');
+      assert(density.rows.every(height => height >= 44), 'Hot headline targets remain touchable');
+      assert(density.headlineSize >= 16, 'Density must not rely on tiny headlines');
+      summary.checks.push({phone_density: density});
+    }
     await shot('home');
     const homeScript = await page.locator('script[src*="home.js?"]').getAttribute('src');
     const liteUrl = await page.locator('#homeDataConfig').getAttribute('data-lite-url');

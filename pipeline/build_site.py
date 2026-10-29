@@ -2448,7 +2448,7 @@ def render_topics_map(events, css, reference_time=None):
 
     body = f'''
 <main class="wrap topic-map-page">
-  <div class="section-title"><h1 style="font-size:20px">{ic("map",18)} 主题地图</h1><span>理解长期变化 · 按议题持续追踪</span></div>
+  <div class="section-title"><h1 class="topic-map-title">{ic("map",18)} 主题地图</h1><span>理解长期变化 · 按议题持续追踪</span></div>
   <p class="topic-map-intro">按长期议题理解数据与 AI 的变化，在业务场景中找到与你有关的内容。</p>
   <section class="topic-family" aria-labelledby="techMainlines">
     <div class="topic-family-head"><h2 id="techMainlines">技术主线</h2><p>稳定的长期议题，不按短期热度排名</p></div>

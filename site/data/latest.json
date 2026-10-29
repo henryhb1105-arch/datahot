@@ -1,6 +1,1407 @@
 {
- "generated_at": "2026-10-29T06:39:40.311081+08:00",
+ "generated_at": "2026-10-29T13:55:45.547392+08:00",
  "events": [
+  {
+   "event_id": "7961844fd7eb",
+   "zh_title": "How Procore is powering construction analytics with OpenSharing",
+   "zh_summary": "Connecting an industry built on disconnected dataConstruction runs on data that rarely sits in one place...",
+   "reason": "",
+   "full_zh": "Connecting an industry built on disconnected data\n\nConstruction runs on data that rarely sits in one place. Information is scattered across platforms, regions, and teams, often locked inside the systems of whichever party generated it. When field data isn't connected to the financial system, that disconnect can hide financial risk. When a project manager, a construction executive thousands of miles away, and a superintendent on the jobsite can't see the same view of a project, decisions get made based on stale or partial information.\n\nProcore, a leading global construction management software provider serving tens of thousands of customers across the U.S., Europe, the Middle East, Asia, and Australia, was built to close those gaps — connecting everyone in construction on a single platform. That means three groups in particular: owners (real estate developers and anyone owning and operating the real estate facility or infrastructure themselves), general contractors who manage projects end to end, and specialty contractors like electricians and plumbers who execute the work in the field.\n\nBut connecting data inside Procore is only half the story. Customers also need that data in their own environments, alongside everything else they run the business on (e.g. a general contractor pulling Procore data into Power BI to track workforce and personnel metrics across active jobs, or a customer joining it with their ERP and financial systems to see project execution and cost in one place). That is what Procore Analytics delivers: programmatic access to the connected Procore dataset, pulled into whatever the customer already uses — Power BI, Tableau, Snowflake, BigQuery, their own Databricks workspace, or on-prem SQL Server — for reporting and downstream analysis.\n\nEvolving beyond the first generation of Procore Analytics\n\nThe first generation of Procore Analytics predated OpenSharing entirely. It was built on a SQL Server backend. Data was extracted from Procore’s public APIs and loaded into an Azure database that customers could query.\n\nThe architecture worked, but it had a hard ceiling. Refreshes were limited to a single daily run, and even customers who paid for additional refreshes were capped at a maximum of three per day. For construction projects where conditions change by the hour, that lag was the single biggest limiting factor.\n\nAPI-driven extractions also created cost and reliability problems at scale. Pulling data for tens of thousands of customers through public APIs meant running deep recursive calls, which were expensive, brittle, and prone to timing out or hitting limits.\n\nWhy OpenSharing\n\nBy the time Procore began designing the next generation of Procore Analytics, Databricks was already powering other parts of the Procore platform. That made OpenSharing a natural fit for the customer-facing extract product as well, with several specific advantages over the old API path.\n\nOperational efficiency. Sharing curated files in place removes the cost, brittleness, and timeout risk of running deep recursive API calls for every customer, the same pressure that capped refresh frequency in Procore Analytics 1.0.\n\nScale. Procore now can share hundreds of curated tables to each customer, maintaining partitioned access per customer to manage hundreds of thousands of distinct data shares at scale. Some of those companies are running hundreds or thousands of concurrent projects, and every one of them needs a current view of the work.\n\nReach. Procore's customers run on every major cloud and every IT stack imaginable, from Excel and Power BI to fully built-out Databricks environments. OpenSharing's open protocol meets them all. BI tools like Power BI and Tableau work out of the box, and customers who already run on Databricks get a native Databricks-to-Databricks experience without moving any data. Customers on other warehouses and platforms can consume the same shares using the open OpenSharing client libraries.\n\nReliability and performance. Customers consume curated, governed data that is already cleaned, modeled, and quality-checked, rather than chaining together API calls and stitching the results.\n\nSecurity and governance. Sharing runs through Unity Catalog, so every table is governed centrally and access is enforced per user and per project. A general contractor can share project progress with the owner while keeping its own financials private.\n\nThe implementation\n\nimage1.png\n\nProcore built Procore Analytics 2.0 on a medallion architecture inside Databricks. Raw events from the Procore application database and integration events land in the bronze layer untouched. Silver applies cleaning, validation, and data quality checks, producing the confirmed datasets that everything downstream depends on. Gold is where the data is aggregated, optimized, and modeled for analytics.\n\nBronze, silver, and gold all run across multiple regions so processing happens close to the source data. Gold tables are then pulled from each region into a single primary analytics region, which is where OpenSharing fans the data out to customers.\n\nTwo recipient paths. Customers without Databricks generate an OpenSharing token directly inside the Procore application and connect using the open protocol. Customers who do have Databricks add their workspace identifier to receive shares natively through Databricks-to-Databricks sharing.\n\nAutomated entitlements. A scheduled job watches for new shares and permission changes, reads each user's permissions out of the Procore application, and reconciles the OpenSharing entitlements accordingly. The result is per-user, per-project enforcement with no manual provisioning, so a general contractor can share project progress with the owner while keeping its own financials private, or share trade-partner-scoped data only with that trade partner.\n\nGranularity and incrementality. Procore shares at the schema, view, table, and partition level. Tables have Change Data Feed enabled, so recipients can choose between consuming a full dataset or only what has changed since the last sync, which matters when individual tables hold millions of records.\n\nA common semantic layer. Because the same gold layer powers both Procore's in-app reporting and the customer extract, the schemas and naming conventions line up across products. A customer who sees a value in the Procore UI gets the same value, with the same name, in their extract.\n\nA predictable change cadence. Shipping data to thousands of downstream customer environments means breaking changes have to be telegraphed carefully. A breaking change is anything that can disrupt a customer's downstream pipeline, like renaming a field, changing a column's data type, or restructuring a table. Procore settled on four breaking-change releases per year with six weeks of advance notice, and twelve non-breaking releases per year with three weeks of notice, aligned with the broader organizational release calendar.\n\nA reorganized data team. The old world had two parallel pipelines, one for analytics, one for in-app reporting, each with its own ingestion, modeling, and governance. The new world consolidates that into one path. A single combined pipeline handles ingestion, landing, modeling, and governance, then fans out to data-domain teams aligned to business areas like finance. Each domain team owns its data end to end and works with the relevant application teams on the nuances of each tool, rather than duplicating that knowledge across separate analytics, reporting, and intelligence teams.\n\nMeasurable impact\n\nThe most tangible business outcome is data availability. While Procore Analytics 1.0 took several years to build out its baseline catalog of available tables and fields with OpenSharing, Procore Analytics 2.0 expanded that catalog to hundreds of tables in less than half the time, effectively doubling the surface area of data customers can extract at scale. That matters because Procore is constantly shipping new capabilities, and every new capability produces data customers want to pull into their own environments. A wider catalog means more of that new functionality is available to customers downstream without one-off integration work.\n\nFor end customers, the move to OpenSharing lifted the once-a-day refresh ceiling and reshaped the workday. Customers now schedule refreshes to match the rhythm of their business, and many who pull daily actually pull multiple times per day, on whatever cadence their downstream tools support. A project manager preparing for a major client presentation can take a flurry of last-minute updates from an executive that morning and have the live dashboard reflect them in time for the meeting. In the old model, those nuances had to be explained in the meeting itself.\n\nFor internal product teams, a single shared pipeline means a tool team can build a new feature and have its data extractable for customers almost as soon as it ships, instead of waiting months for a parallel analytics pipeline to catch up. Procore expects every gain in tool data availability to translate directly into new product experiences for customers.\n\nA data foundation for reporting, analytics, and AI\n\nBeyond the immediate wins in refresh frequency, scale, and reach, the data architecture Procore built on Databricks and OpenSharing gives customers a governed, continuously available foundation for enterprise-wide reporting and intelligence. Whether a customer is standardizing reporting across every active job, feeding project data into enterprise BI, or building AI on top of it, the value starts the same way: with data that is clean, modeled, governed, and available across every system that needs it.\n\nThat is exactly what Procore Analytics 2.0 produces. A single, multi-region gold layer that powers Procore's own application experiences, flows into the products customers build on top of their Procore data, and through OpenSharing and Procore's other data pathways, reaches thousands of construction companies on every major cloud. With that foundation in place, enterprise reporting, analytics, and emerging AI use cases all draw on the same trusted, current source of truth, instead of a series of one-off integrations.\n\nThe long-term goal aligns with Procore's mission from day one: to connect everyone in construction on a global platform—giving every team on every project the trusted data they need to build safer, faster, and smarter.\n\n\"OpenSharing has helped us increase data availability, which means that everybody in construction, from the executives to the project managers to the folks in the field, has better visibility on the jobs that they do. It's helping them deliver projects on time, on budget, and safely.\"- Matthew Guptill, Product Manager, Procore Analytics\n\nBuilding a data product your customers consume in their own tools? OpenSharing gives you one open, governed way to deliver live data across every cloud, region, and platform they run on, with no copies to maintain. See how OpenSharing works, then explore the Databricks Marketplace to share and discover live datasets. Explore OpenSharing\n\nPut your data to work. Procore Analytics turns your project data into actionable business intelligence, connecting information across every job and delivering it to the tools your teams already use. See how Procore Analytics helps you make faster, more certain decisions across your portfolio. Explore Procore Analytics",
+   "content_blocks": [
+    {
+     "type": "heading",
+     "id": "b-e790823146b2",
+     "children": [
+      {
+       "type": "text",
+       "text": "Connecting an industry built on disconnected data",
+       "marks": [],
+       "id": "t-66bfe6d3254f"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-532cd3a70622",
+     "children": [
+      {
+       "type": "text",
+       "text": "Construction runs on data that rarely sits in one place. Information is scattered across platforms, regions, and teams, often locked inside the systems of whichever party generated it. When field data isn't connected to the financial system, that disconnect can hide financial risk. When a project manager, a construction executive thousands of miles away, and a superintendent on the jobsite can't see the same view of a project, decisions get made based on stale or partial information.",
+       "marks": [],
+       "id": "t-9f37f35901fe"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-e6a43dd0d896",
+     "children": [
+      {
+       "type": "text",
+       "text": "Procore, a leading global construction management software provider serving tens of thousands of customers across the U.S., Europe, the Middle East, Asia, and Australia, was built to close those gaps — connecting everyone in construction on a single platform. That means three groups in particular: owners (real estate developers and anyone owning and operating the real estate facility or infrastructure themselves), general contractors who manage projects end to end, and specialty contractors like electricians and plumbers who execute the work in the field.",
+       "marks": [],
+       "id": "t-bf79215f68de"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-2de11ad9e5c3",
+     "children": [
+      {
+       "type": "text",
+       "text": "But connecting data inside Procore is only half the story. Customers also need that data in their own environments, alongside everything else they run the business on (e.g. a general contractor pulling Procore data into Power BI to track workforce and personnel metrics across active jobs, or a customer joining it with their ERP and financial systems to see project execution and cost in one place). That is what Procore Analytics delivers: programmatic access to the connected Procore dataset, pulled into whatever the customer already uses — Power BI, Tableau, Snowflake, BigQuery, their own Databricks workspace, or on-prem SQL Server — for reporting and downstream analysis.",
+       "marks": [],
+       "id": "t-f4937fb8b676"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-cb559aab019f",
+     "children": [
+      {
+       "type": "text",
+       "text": "Evolving beyond the first generation of Procore Analytics",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-153fb6e9bc20"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-701defd89c98",
+     "children": [
+      {
+       "type": "text",
+       "text": "The first generation of Procore Analytics predated OpenSharing entirely. It was built on a SQL Server backend. Data was extracted from Procore’s public APIs and loaded into an Azure database that customers could query.",
+       "marks": [],
+       "id": "t-7799b0d42c8c"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-153fc49e15b4",
+     "children": [
+      {
+       "type": "text",
+       "text": "The architecture worked, but it had a hard ceiling. Refreshes were limited to a single daily run, and even customers who paid for additional refreshes were capped at a maximum of three per day. For construction projects where conditions change by the hour, that lag was the single biggest limiting factor.",
+       "marks": [],
+       "id": "t-3d5d5a1d86e2"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-14183972cbcd",
+     "children": [
+      {
+       "type": "text",
+       "text": "API-driven extractions also created cost and reliability problems at scale. Pulling data for tens of thousands of customers through public APIs meant running deep recursive calls, which were expensive, brittle, and prone to timing out or hitting limits.",
+       "marks": [],
+       "id": "t-30dee869db3a"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-aea602aa00b5",
+     "children": [
+      {
+       "type": "text",
+       "text": "Why OpenSharing",
+       "marks": [],
+       "id": "t-53e81a42d436"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-8f7a4c00fcd6",
+     "children": [
+      {
+       "type": "text",
+       "text": "By the time Procore began designing the next generation of Procore Analytics, Databricks was already powering other parts of the Procore platform. That made OpenSharing a natural fit for the customer-facing extract product as well, with several specific advantages over the old API path.",
+       "marks": [],
+       "id": "t-684ee3047188"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-3684c815f145",
+     "children": [
+      {
+       "type": "text",
+       "text": "Operational efficiency. ",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-34cdef112dbb"
+      },
+      {
+       "type": "text",
+       "text": "Sharing curated files in place removes the cost, brittleness, and timeout risk of running deep recursive API calls for every customer, the same pressure that capped refresh frequency in Procore Analytics 1.0.",
+       "marks": [],
+       "id": "t-7580555c969f"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-0d5315db7a96",
+     "children": [
+      {
+       "type": "text",
+       "text": "Scale. ",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-4a3e6326dd63"
+      },
+      {
+       "type": "text",
+       "text": "Procore now can share hundreds of curated tables to each customer, maintaining partitioned access per customer to manage hundreds of thousands of distinct data shares at scale. Some of those companies are running hundreds or thousands of concurrent projects, and every one of them needs a current view of the work.",
+       "marks": [],
+       "id": "t-610af286b014"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-7b852fbda5c4",
+     "children": [
+      {
+       "type": "text",
+       "text": "Reach.",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-fd3762bc0d72"
+      },
+      {
+       "type": "text",
+       "text": " Procore's customers run on every major cloud and every IT stack imaginable, from Excel and Power BI to fully built-out Databricks environments. OpenSharing's open protocol meets them all. BI tools like Power BI and Tableau work out of the box, and customers who already run on Databricks get a native Databricks-to-Databricks experience without moving any data. Customers on other warehouses and platforms can consume the same shares using the open OpenSharing client libraries.",
+       "marks": [],
+       "id": "t-7bff045bf936"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-9c4961216d47",
+     "children": [
+      {
+       "type": "text",
+       "text": "Reliability and performance.",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-bfd1c1e8a66a"
+      },
+      {
+       "type": "text",
+       "text": " Customers consume curated, governed data that is already cleaned, modeled, and quality-checked, rather than chaining together API calls and stitching the results.",
+       "marks": [],
+       "id": "t-be1a961c5065"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-0279a022e068",
+     "children": [
+      {
+       "type": "text",
+       "text": "Security and governance.",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-6dec5ec5ef53"
+      },
+      {
+       "type": "text",
+       "text": " Sharing runs through Unity Catalog, so every table is governed centrally and access is enforced per user and per project. A general contractor can share project progress with the owner while keeping its own financials private.",
+       "marks": [],
+       "id": "t-accf2a208c6b"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-c65d9f172939",
+     "children": [
+      {
+       "type": "text",
+       "text": "The implementation",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-a6f66087dbd8"
+      },
+      {
+       "type": "text",
+       "text": " ",
+       "marks": [],
+       "id": "t-416821b1baa8"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "figure",
+     "id": "b-50b7ae90d585",
+     "src": "https://www.databricks.com/sites/default/files/blog_images/how-procore-is-powering-construction-analytics-with-blog-img-1.png",
+     "alt": "image1.png",
+     "caption": "",
+     "source_url": "https://www.databricks.com/blog/how-procore-powering-construction-analytics-opensharing-0",
+     "width": 1980,
+     "height": 1126,
+     "media_status": "link_only",
+     "media_reason": "cache_total_limit"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-9e8e15f40a3e",
+     "children": [
+      {
+       "type": "text",
+       "text": "Procore built Procore Analytics 2.0 on a ",
+       "marks": [],
+       "id": "t-08596c8b436d"
+      },
+      {
+       "type": "text",
+       "text": "medallion architecture",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.databricks.com/glossary/medallion-architecture"
+        }
+       ],
+       "id": "t-23793f35e872"
+      },
+      {
+       "type": "text",
+       "text": " inside Databricks. Raw events from the Procore application database and integration events land in the bronze layer untouched. Silver applies cleaning, validation, and data quality checks, producing the confirmed datasets that everything downstream depends on. Gold is where the data is aggregated, optimized, and modeled for analytics.",
+       "marks": [],
+       "id": "t-c13a45ff7f42"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-2e82c386c9a9",
+     "children": [
+      {
+       "type": "text",
+       "text": "Bronze, silver, and gold all run across multiple regions so processing happens close to the source data. Gold tables are then pulled from each region into a single primary analytics region, which is where OpenSharing fans the data out to customers.",
+       "marks": [],
+       "id": "t-0113220b786c"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-8d13f799f85a",
+     "children": [
+      {
+       "type": "text",
+       "text": "Two recipient paths.",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-03780ee875ef"
+      },
+      {
+       "type": "text",
+       "text": " Customers without Databricks generate an OpenSharing token directly inside the Procore application and connect using the open protocol. Customers who do have Databricks add their workspace identifier to receive shares natively through Databricks-to-Databricks sharing.",
+       "marks": [],
+       "id": "t-bfafb080a6f7"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-94be8fa225f4",
+     "children": [
+      {
+       "type": "text",
+       "text": "Automated entitlements.",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-9f32fc318893"
+      },
+      {
+       "type": "text",
+       "text": " A scheduled job watches for new shares and permission changes, reads each user's permissions out of the Procore application, and reconciles the OpenSharing entitlements accordingly. The result is per-user, per-project enforcement with no manual provisioning, so a general contractor can share project progress with the owner while keeping its own financials private, or share trade-partner-scoped data only with that trade partner.",
+       "marks": [],
+       "id": "t-0ffaca1392d3"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-3c90b02a07db",
+     "children": [
+      {
+       "type": "text",
+       "text": "Granularity and incrementality.",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-08a67a8df22b"
+      },
+      {
+       "type": "text",
+       "text": " Procore shares at the schema, view, table, and partition level. Tables have Change Data Feed enabled, so recipients can choose between consuming a full dataset or only what has changed since the last sync, which matters when individual tables hold millions of records.",
+       "marks": [],
+       "id": "t-8d429444e150"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-71858ebcbffc",
+     "children": [
+      {
+       "type": "text",
+       "text": "A common semantic layer.",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-6999065504ae"
+      },
+      {
+       "type": "text",
+       "text": " Because the same gold layer powers both Procore's in-app reporting and the customer extract, the schemas and naming conventions line up across products. A customer who sees a value in the Procore UI gets the same value, with the same name, in their extract.",
+       "marks": [],
+       "id": "t-ad8593ad15f9"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-57c87c3aee82",
+     "children": [
+      {
+       "type": "text",
+       "text": "A predictable change cadence.",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-60e3af92ff9f"
+      },
+      {
+       "type": "text",
+       "text": " Shipping data to thousands of downstream customer environments means breaking changes have to be telegraphed carefully. A breaking change is anything that can disrupt a customer's downstream pipeline, like renaming a field, changing a column's data type, or restructuring a table. Procore settled on four breaking-change releases per year with six weeks of advance notice, and twelve non-breaking releases per year with three weeks of notice, aligned with the broader organizational release calendar.",
+       "marks": [],
+       "id": "t-1f49a1efb756"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-8151633d3cc3",
+     "children": [
+      {
+       "type": "text",
+       "text": "A reorganized data team.",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-81958d5fc3a1"
+      },
+      {
+       "type": "text",
+       "text": " The old world had two parallel pipelines, one for analytics, one for in-app reporting, each with its own ingestion, modeling, and governance. The new world consolidates that into one path. A single combined pipeline handles ingestion, landing, modeling, and governance, then fans out to data-domain teams aligned to business areas like finance. Each domain team owns its data end to end and works with the relevant application teams on the nuances of each tool, rather than duplicating that knowledge across separate analytics, reporting, and intelligence teams.",
+       "marks": [],
+       "id": "t-4d4d8b737a26"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-93c179b16adb",
+     "children": [
+      {
+       "type": "text",
+       "text": "Measurable impact",
+       "marks": [],
+       "id": "t-d65fdb2e3422"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-ac065a6c2721",
+     "children": [
+      {
+       "type": "text",
+       "text": "The most tangible business outcome is data availability. While Procore Analytics 1.0 took several years to build out its baseline catalog of available tables and fields with OpenSharing, Procore Analytics 2.0 expanded that catalog to hundreds of tables in less than half the time, effectively doubling the surface area of data customers can extract at scale. That matters because Procore is constantly shipping new capabilities, and every new capability produces data customers want to pull into their own environments. A wider catalog means more of that new functionality is available to customers downstream without one-off integration work.",
+       "marks": [],
+       "id": "t-b8f761005c38"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-73845e907201",
+     "children": [
+      {
+       "type": "text",
+       "text": "For end customers, the move to OpenSharing lifted the once-a-day refresh ceiling and reshaped the workday. Customers now schedule refreshes to match the rhythm of their business, and many who pull daily actually pull multiple times per day, on whatever cadence their downstream tools support. A project manager preparing for a major client presentation can take a flurry of last-minute updates from an executive that morning and have the live dashboard reflect them in time for the meeting. In the old model, those nuances had to be explained in the meeting itself.",
+       "marks": [],
+       "id": "t-c8df76567344"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-2dacd80c5f21",
+     "children": [
+      {
+       "type": "text",
+       "text": "For internal product teams, a single shared pipeline means a tool team can build a new feature and have its data extractable for customers almost as soon as it ships, instead of waiting months for a parallel analytics pipeline to catch up. Procore expects every gain in tool data availability to translate directly into new product experiences for customers.",
+       "marks": [],
+       "id": "t-0ebcc661f796"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-9395cc895c65",
+     "children": [
+      {
+       "type": "text",
+       "text": "A data foundation for reporting, analytics, and AI",
+       "marks": [
+        "strong"
+       ],
+       "id": "t-88bb537af9cc"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-6714983cb174",
+     "children": [
+      {
+       "type": "text",
+       "text": "Beyond the immediate wins in refresh frequency, scale, and reach, the data architecture Procore built on Databricks and OpenSharing gives customers a governed, continuously available foundation for enterprise-wide reporting and intelligence. Whether a customer is standardizing reporting across every active job, feeding project data into enterprise BI, or building AI on top of it, the value starts the same way: with data that is clean, modeled, governed, and available across every system that needs it.",
+       "marks": [],
+       "id": "t-372a54b2dbfe"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-56bac1dc58fb",
+     "children": [
+      {
+       "type": "text",
+       "text": "That is exactly what Procore Analytics 2.0 produces. A single, multi-region gold layer that powers Procore's own application experiences, flows into the products customers build on top of their Procore data, and through OpenSharing and Procore's other data pathways, reaches thousands of construction companies on every major cloud. With that foundation in place, enterprise reporting, analytics, and emerging AI use cases all draw on the same trusted, current source of truth, instead of a series of one-off integrations.",
+       "marks": [],
+       "id": "t-f573f17b25ab"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-e67079e14b26",
+     "children": [
+      {
+       "type": "text",
+       "text": "The long-term goal aligns with Procore's mission from day one: to connect everyone in construction on a global platform—giving every team on every project the trusted data they need to build safer, faster, and smarter.",
+       "marks": [],
+       "id": "t-1f6fa4b51ff7"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-66884f6ef481",
+     "children": [
+      {
+       "type": "text",
+       "text": "\"OpenSharing has helped us increase data availability, which means that everybody in construction, from the executives to the project managers to the folks in the field, has better visibility on the jobs that they do. It's helping them deliver projects on time, on budget, and safely.\"- Matthew Guptill, Product Manager, Procore Analytics",
+       "marks": [],
+       "id": "t-83baec92f6cd"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-9d605575834a",
+     "children": [
+      {
+       "type": "text",
+       "text": "Building a data product your customers consume in their own tools? OpenSharing gives you one open, governed way to deliver live data across every cloud, region, and platform they run on, with no copies to maintain. See how OpenSharing works, then explore the Databricks Marketplace to share and discover live datasets. ",
+       "marks": [],
+       "id": "t-e62979a12516"
+      },
+      {
+       "type": "text",
+       "text": "Explore OpenSharing",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.databricks.com/product/delta-sharing"
+        }
+       ],
+       "id": "t-48e9757ed38a"
+      },
+      {
+       "type": "text",
+       "text": " ",
+       "marks": [],
+       "id": "t-368c741b9876"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-5fdfc014c9db",
+     "children": [
+      {
+       "type": "text",
+       "text": "Put your data to work. Procore Analytics turns your project data into actionable business intelligence, connecting information across every job and delivering it to the tools your teams already use. See how Procore Analytics helps you make faster, more certain decisions across your portfolio. ",
+       "marks": [],
+       "id": "t-b6258bac5ab7"
+      },
+      {
+       "type": "text",
+       "text": "Explore Procore Analytics",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.procore.com/platform/analytics"
+        }
+       ],
+       "id": "t-9e96c078e0d3"
+      },
+      {
+       "type": "text",
+       "text": " ",
+       "marks": [],
+       "id": "t-e74527d35072"
+      }
+     ]
+    }
+   ],
+   "content_format": "blocks-v1",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [
+    "Databricks"
+   ],
+   "heat": 55,
+   "star": false,
+   "importance": 50,
+   "quality_score": 50,
+   "trend_score": 59,
+   "signal": 0,
+   "topics": [],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-10-29T08:29:00+08:00",
+   "first_seen": "2026-10-29T13:55:45.547392+08:00",
+   "items": [
+    {
+     "id": "7961844fd7eb",
+     "source": "Databricks Blog",
+     "link": "https://www.databricks.com/blog/how-procore-powering-construction-analytics-opensharing-0",
+     "published": "2026-10-29T08:29:00+08:00",
+     "ingested_at": "2026-10-29T13:55:45.547392+08:00",
+     "title": "How Procore is powering construction analytics with OpenSharing"
+    }
+   ],
+   "content_parse": {
+    "run_id": "github-40825316154-1",
+    "processor_version": "original-first-v7",
+    "attempted_at": "2026-10-29T13:56:25.519794+08:00",
+    "status": "ready",
+    "source": "Databricks Blog",
+    "strategy": "semantic_container",
+    "blocks": 36,
+    "text_chars": 11455,
+    "figures": 1,
+    "tables": 0,
+    "figures_discovered": 1,
+    "figures_selected": 1,
+    "figures_rejected": 0,
+    "candidate_count": 10,
+    "figures_rejected_author": 0,
+    "figures_rejected_decorative": 0,
+    "figures_rejected_duplicate": 0,
+    "figures_rejected_small": 0,
+    "figures_rejected_limit": 0,
+    "trimmed_tail_blocks": 0,
+    "trimmed_head_blocks": 0,
+    "trimmed_promotional_blocks": 0,
+    "trimmed_embedded_ui_blocks": 0,
+    "embedded_ui_components": 0,
+    "selected_depth": 9,
+    "selected_raw_blocks": 36,
+    "selected_raw_text_chars": 11455,
+    "broad_raw_blocks": 77,
+    "broad_raw_text_chars": 11481,
+    "parent_extra_blocks": 41,
+    "candidate_count_raw": 20,
+    "candidate_duplicates": 10,
+    "candidate_quality_rejected": 6,
+    "duplicate_blocks": 0,
+    "selected_score": 1159.23,
+    "quality_status": "pass",
+    "selected_tag": "div",
+    "focus_ratio": 0.9977,
+    "link_ratio": 0.0058,
+    "duplicate_ratio": 0.0,
+    "selection_evidence": [
+     "prose_density",
+     "integrity_gate",
+     "semantic_container"
+    ],
+    "reason": "HTTPError",
+    "media": {
+     "figures": 1,
+     "cached": 0,
+     "link_only": 1,
+     "policy_version": "source-cdn-v1",
+     "reasons": {
+      "cache_total_limit": 1
+     }
+    },
+    "content_mode": "original",
+    "source_language": "other",
+    "translation_status": "failed",
+    "source_content_hash": "54aa6233a9446114a92a6616",
+    "translation": {
+     "run_id": "github-40825316154-1",
+     "policy_version": "faithful-translation-retry-v1",
+     "attempted_at": "2026-10-29T13:56:25.519852+08:00",
+     "purpose": "body_translation",
+     "status": "failed",
+     "error": "HTTPError"
+    },
+    "metadata_translation": {
+     "run_id": "github-40825316154-1",
+     "policy_version": "metadata-translation-backfill-v1",
+     "attempted_at": "2026-10-29T13:56:27.448377+08:00",
+     "purpose": "metadata_translation_backfill",
+     "status": "provider_error",
+     "error": "HTTPError"
+    }
+   },
+   "content_mode": "original",
+   "content_level": "original",
+   "source_language": "other",
+   "translation_status": "failed",
+   "source_content_hash": "54aa6233a9446114a92a6616",
+   "body_chars": 11455
+  },
+  {
+   "event_id": "847f4d874527",
+   "zh_title": "From one prompt to a governed Dataverse app: the Dataverse plugin lands in Copilot Cowork",
+   "zh_summary": "Building a business app on Dataverse rewards expertise. First you design the tables and wire up the relationships. Then you think about security and load test data. Only after that do you start on the app itself. However, each step lives in a different tool, and each handoff costs time. The Datavers",
+   "reason": "",
+   "full_zh": "Building a business app on Dataverse rewards expertise. First you design the tables and wire up the relationships. Then you think about security and load test data. Only after that do you start on the app itself. However, each step lives in a different tool, and each handoff costs time. The Dataverse plugin for Copilot Cowork brings it all together.\n\nAt PPCC 2026 we shared that the Dataverse plugin is now available in Copilot Cowork. In this post I want to show what that looks like in practice: one prompt, a real Dataverse data model, and a published app. Moreover, governance is built in at every step.\n\nWhat the Dataverse plugin builds from one prompt\n\nIn the demo, I ask Cowork for an event registration app for a community team. Events need a venue, a date, start and end times, and a capacity. Registrations should reuse the contacts we already have in Dataverse. Also, each person can register only once per event. Once an event is full, later sign-ups go onto a waitlist.\n\nThe Dataverse plugin gives Cowork a connection to my environment. It also brings a set of skills for data modelling, records, business logic, security and solutions. With those skills loaded, Cowork plans the work the way a seasoned Dataverse maker would. First, it creates an Event table and an Event Registration table. Next, it adds the relationships in separate, reviewable steps. Most importantly, it links registrations to the existing Contact table instead of inventing another list of people. As a result, the app builds on data the organization already trusts.\n\nCowork then seeds four sample events with registrations. It deliberately fills one event to capacity, so the waitlist logic gets exercised. It also marks every seeded row as sample data, which makes it easy to find and remove later.\n\nDiagram of how the Dataverse plugin works in Copilot Cowork, in five steps: describe the app in plain language, Dataverse skills plan the tables and rules, you approve every change, Cowork builds and checks the app, and the published app stores every record in Dataverse. It's governed throughout: Cowork signs in as you, your security roles apply, existing tables like Contact are reused, and nothing changes without your approval.\n\nGovernance is part of the flow, not an afterthought\n\nAgents that write to a system of record have to earn trust. That is why the Dataverse plugin keeps you in control the whole time.\n\nFirst, the connection signs in as you. Cowork can only see and change what your Dataverse security roles allow. Dataverse checks every request on the server, so the plugin cannot bypass or escalate permissions. Second, every change comes to you first as an approval card. As a result, nothing happens behind your back. Finally, the work happens in your own environment. The tables Cowork creates are ordinary Dataverse tables. They are ready for the security roles, solutions and lifecycle practices your team already uses.\n\nOne detail in the demo shows this well. Before building the app, Cowork noticed that the app builder’s default environment had no Dataverse database. Instead of guessing, it asked me for the right environment. Then it confirmed the tables lived there and created the app next to its data. Because the app and the data sit together, security and governance apply in one place.\n\nFrom data model to published app\n\nWith the data in place, Cowork switches to its native app-building flow. It creates the app, binds it to the two Dataverse tables and applies a theme. Then it writes the data layer and screens. Before publishing, it runs the checks a careful engineer would run: type checking, linting, a full build and a visual review of the layout. When everything passes, Cowork publishes the app.\n\nThe published app runs in Microsoft Copilot Managed Runtime (preview). As a result, it uses Microsoft Entra sign-in and follows your tenant’s governance policies from the moment it is created. Admins can also see, monitor and manage it in the Microsoft 365 admin center.\n\nThe result is a Community Event Registrations app with an Organizer view and a Check-in view. For example, upcoming events show their date, venue and how full they are. Each event lists its registrations, with check-in and cancel actions.\n\nThe rules you described, enforced\n\nTo test it, I add an event: a Pumpkin Carving Showdown with three seats. Next, I register people straight from our Dataverse contacts. One, two, three, and the event is full. When I register a fourth person, they do not get a seat. Instead, they go onto the waitlist automatically, exactly as the original prompt asked.\n\nOpening the Event and Event Registration tables in Power Apps confirms it. In other words, every action in the app was written to Dataverse. There is no separate database and no copy of the data to keep in sync. In addition, the same records are ready for the rest of Power Platform: Power Automate, Copilot Studio agents and reporting.\n\nGet started with the Dataverse plugin\n\nIn Copilot Cowork, open Customize and select the Microsoft Dataverse plugin.\n\nThe Microsoft Dataverse plugin page in Copilot Cowork, showing the Microsoft Dataverse MCP server with a Connect button and the plugin's skills, including dv-overview, dv-metadata and dv-data.\n\nSelect Connect and enter your Dataverse environment URL. The plugin signs in as you.\n\nThe Connect Microsoft Dataverse dialog in Copilot Cowork, with an example Dataverse environment URL entered and a Connect button.\n\nDescribe the app you need in plain language, review each approval card, and let Cowork build.\n\nAn approval card in Copilot Cowork asking to update a Dataverse table by adding an Event lookup to Event Registration, with Cancel and Approve buttons.\n\nA developer environment from the Power Apps Developer Plan is a great place to try it. Building apps in Cowork currently requires enrollment in the Frontier program.\n\nWhat’s next for the Dataverse plugin\n\nCowork is one of a growing number of places where Dataverse is available. Others include GitHub Copilot, Claude, Codex and ChatGPT, Cursor, Gemini CLI, Google Antigravity and n8n. In short, our goal is simple. Wherever you build, Dataverse should be the trusted business-data layer underneath, with the same skills and the same guardrails. Install instructions for each platform are in the Dataverse skills repository on GitHub.\n\nWe would love to hear what you build first. Share your feedback and ideas with us.\n\nLearn more\n\nDataverse documentationWhat is Microsoft Copilot Managed Runtime (preview)Dataverse skills on GitHubCustom APIs in the Dataverse MCP serverDataverse and Work IQ at PPCC 2026\n\nThe post From one prompt to a governed Dataverse app: the Dataverse plugin lands in Copilot Cowork appeared first on Microsoft Power Platform Blog.",
+   "content_blocks": [
+    {
+     "type": "paragraph",
+     "id": "b-223dcdcfce95",
+     "children": [
+      {
+       "type": "text",
+       "text": "Building a business app on Dataverse rewards expertise. First you design the tables and wire up the relationships. Then you think about security and load test data. Only after that do you start on the app itself. However, each step lives in a different tool, and each handoff costs time. The Dataverse plugin for Copilot Cowork brings it all together.",
+       "marks": [],
+       "id": "t-0e614ce0612f"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-19d1ff722b0d",
+     "children": [
+      {
+       "type": "text",
+       "text": "At ",
+       "marks": [],
+       "id": "t-76b9f07e79de"
+      },
+      {
+       "type": "text",
+       "text": "PPCC 2026",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.microsoft.com/en-us/power-platform/blog/2026/10/23/dataverse-and-workiq-ppcc-2026/"
+        }
+       ],
+       "id": "t-2150d3cf710e"
+      },
+      {
+       "type": "text",
+       "text": " we shared that the Dataverse plugin is now available in Copilot Cowork. In this post I want to show what that looks like in practice: one prompt, a real Dataverse data model, and a published app. Moreover, governance is built in at every step.",
+       "marks": [],
+       "id": "t-4349ffa19582"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-acc27a5541c4",
+     "children": [
+      {
+       "type": "text",
+       "text": "What the Dataverse plugin builds from one prompt",
+       "marks": [],
+       "id": "t-2df781d4f6e9"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-8039c858c629",
+     "children": [
+      {
+       "type": "text",
+       "text": "In the demo, I ask Cowork for an event registration app for a community team. Events need a venue, a date, start and end times, and a capacity. Registrations should reuse the contacts we already have in Dataverse. Also, each person can register only once per event. Once an event is full, later sign-ups go onto a waitlist.",
+       "marks": [],
+       "id": "t-afdcc6ff9f4d"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-f32721428833",
+     "children": [
+      {
+       "type": "text",
+       "text": "The Dataverse plugin gives Cowork a connection to my environment. It also brings a set of skills for data modelling, records, business logic, security and solutions. With those skills loaded, Cowork plans the work the way a seasoned Dataverse maker would. First, it creates an Event table and an Event Registration table. Next, it adds the relationships in separate, reviewable steps. Most importantly, it links registrations to the existing Contact table instead of inventing another list of people. As a result, the app builds on data the organization already trusts.",
+       "marks": [],
+       "id": "t-536c9799cb1b"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-57fdb629d425",
+     "children": [
+      {
+       "type": "text",
+       "text": "Cowork then seeds four sample events with registrations. It deliberately fills one event to capacity, so the waitlist logic gets exercised. It also marks every seeded row as sample data, which makes it easy to find and remove later.",
+       "marks": [],
+       "id": "t-90d562fde556"
+      }
+     ]
+    },
+    {
+     "type": "figure",
+     "id": "b-de3df5eac649",
+     "src": "https://www.microsoft.com/en-us/power-platform/blog/wp-content/uploads/2026/10/Blog-Cowork-Diagram-How-it-works.webp",
+     "alt": "Diagram of how the Dataverse plugin works in Copilot Cowork, in five steps: describe the app in plain language, Dataverse skills plan the tables and rules, you approve every change, Cowork builds and checks the app, and the published app stores every record in Dataverse. It's governed throughout: Cowork signs in as you, your security roles apply, existing tables like Contact are reused, and nothing changes without your approval.",
+     "caption": "",
+     "source_url": "https://www.microsoft.com/en-us/power-platform/blog/2026/10/28/dataverse-plugin-copilot-cowork/",
+     "cached_src": "../media/847f4d874527/49eda715c5aeb0a597b0c976.webp",
+     "width": 1600,
+     "height": 760,
+     "mime": "image/webp",
+     "size_bytes": 67886,
+     "media_status": "cached"
+    },
+    {
+     "type": "heading",
+     "id": "b-53e52dd4f228",
+     "children": [
+      {
+       "type": "text",
+       "text": "Governance is part of the flow, not an afterthought",
+       "marks": [],
+       "id": "t-cee7e3e4a24f"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-59259db80d20",
+     "children": [
+      {
+       "type": "text",
+       "text": "Agents that write to a system of record have to earn trust. That is why the Dataverse plugin keeps you in control the whole time.",
+       "marks": [],
+       "id": "t-d68943b0d144"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-1e9436f71a66",
+     "children": [
+      {
+       "type": "text",
+       "text": "First, the connection signs in as you. Cowork can only see and change what your Dataverse security roles allow. Dataverse checks every request on the server, so the plugin cannot bypass or escalate permissions. Second, every change comes to you first as an approval card. As a result, nothing happens behind your back. Finally, the work happens in your own environment. The tables Cowork creates are ordinary Dataverse tables. They are ready for the security roles, solutions and lifecycle practices your team already uses.",
+       "marks": [],
+       "id": "t-cc53b12f96f8"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-979d695a3573",
+     "children": [
+      {
+       "type": "text",
+       "text": "One detail in the demo shows this well. Before building the app, Cowork noticed that the app builder’s default environment had no Dataverse database. Instead of guessing, it asked me for the right environment. Then it confirmed the tables lived there and created the app next to its data. Because the app and the data sit together, security and governance apply in one place.",
+       "marks": [],
+       "id": "t-1fa170460e38"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-fdc2f46cb62c",
+     "children": [
+      {
+       "type": "text",
+       "text": "From data model to published app",
+       "marks": [],
+       "id": "t-48d75a4303a7"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-fa692b5c2add",
+     "children": [
+      {
+       "type": "text",
+       "text": "With the data in place, Cowork switches to its native app-building flow. It creates the app, binds it to the two Dataverse tables and applies a theme. Then it writes the data layer and screens. Before publishing, it runs the checks a careful engineer would run: type checking, linting, a full build and a visual review of the layout. When everything passes, Cowork publishes the app.",
+       "marks": [],
+       "id": "t-9f885cad6e2c"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-4804339ada6d",
+     "children": [
+      {
+       "type": "text",
+       "text": "The published app runs in ",
+       "marks": [],
+       "id": "t-ca7c539864d3"
+      },
+      {
+       "type": "text",
+       "text": "Microsoft Copilot Managed Runtime (preview)",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://learn.microsoft.com/en-us/microsoft-365/managed-apps/?view=o365-worldwide"
+        }
+       ],
+       "id": "t-e1adc3ec4f1b"
+      },
+      {
+       "type": "text",
+       "text": ". As a result, it uses Microsoft Entra sign-in and follows your tenant’s governance policies from the moment it is created. Admins can also see, monitor and manage it in the Microsoft 365 admin center.",
+       "marks": [],
+       "id": "t-88b44588893e"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-fbd4824f2e43",
+     "children": [
+      {
+       "type": "text",
+       "text": "The result is a Community Event Registrations app with an Organizer view and a Check-in view. For example, upcoming events show their date, venue and how full they are. Each event lists its registrations, with check-in and cancel actions.",
+       "marks": [],
+       "id": "t-722ccca9490c"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-0733b385d27a",
+     "children": [
+      {
+       "type": "text",
+       "text": "The rules you described, enforced",
+       "marks": [],
+       "id": "t-95441ba5139a"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-938666209e05",
+     "children": [
+      {
+       "type": "text",
+       "text": "To test it, I add an event: a Pumpkin Carving Showdown with three seats. Next, I register people straight from our Dataverse contacts. One, two, three, and the event is full. When I register a fourth person, they do not get a seat. Instead, they go onto the waitlist automatically, exactly as the original prompt asked.",
+       "marks": [],
+       "id": "t-3d14100c99d9"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-ff379b9e9bbb",
+     "children": [
+      {
+       "type": "text",
+       "text": "Opening the Event and Event Registration tables in Power Apps confirms it. In other words, every action in the app was written to Dataverse. There is no separate database and no copy of the data to keep in sync. In addition, the same records are ready for the rest of Power Platform: Power Automate, Copilot Studio agents and reporting.",
+       "marks": [],
+       "id": "t-c887006b3d6c"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-fd221cd7669c",
+     "children": [
+      {
+       "type": "text",
+       "text": "Get started with the Dataverse plugin",
+       "marks": [],
+       "id": "t-41255c8ae9fc"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "list",
+     "id": "b-0b1fbd3ab7b5",
+     "ordered": true,
+     "items": [
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "In Copilot Cowork, open Customize and select the Microsoft Dataverse plugin.",
+         "marks": [],
+         "id": "t-da608e7f4e8b"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "figure",
+     "id": "b-6b24c843fe2a",
+     "src": "https://www.microsoft.com/en-us/power-platform/blog/wp-content/uploads/2026/10/Cowork-step1-plugin-hd.png",
+     "alt": "The Microsoft Dataverse plugin page in Copilot Cowork, showing the Microsoft Dataverse MCP server with a Connect button and the plugin's skills, including dv-overview, dv-metadata and dv-data.",
+     "caption": "",
+     "source_url": "https://www.microsoft.com/en-us/power-platform/blog/2026/10/28/dataverse-plugin-copilot-cowork/",
+     "media_status": "link_only",
+     "media_reason": "cache_total_limit"
+    },
+    {
+     "type": "list",
+     "id": "b-f3feff56ba1a",
+     "ordered": true,
+     "items": [
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "Select Connect and enter your Dataverse environment URL. The plugin signs in as you.",
+         "marks": [],
+         "id": "t-1b3006f81cdf"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "figure",
+     "id": "b-31e304c3b7b2",
+     "src": "https://www.microsoft.com/en-us/power-platform/blog/wp-content/uploads/2026/10/Cowork-step2-connect-contoso-hd.png",
+     "alt": "The Connect Microsoft Dataverse dialog in Copilot Cowork, with an example Dataverse environment URL entered and a Connect button.",
+     "caption": "",
+     "source_url": "https://www.microsoft.com/en-us/power-platform/blog/2026/10/28/dataverse-plugin-copilot-cowork/",
+     "media_status": "link_only",
+     "media_reason": "cache_total_limit"
+    },
+    {
+     "type": "list",
+     "id": "b-5e7d5c8629c9",
+     "ordered": true,
+     "items": [
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "Describe the app you need in plain language, review each approval card, and let Cowork build.",
+         "marks": [],
+         "id": "t-fcabaf218d81"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "figure",
+     "id": "b-9d99235ca70f",
+     "src": "https://www.microsoft.com/en-us/power-platform/blog/wp-content/uploads/2026/10/Cowork-step3-approval-hd.png",
+     "alt": "An approval card in Copilot Cowork asking to update a Dataverse table by adding an Event lookup to Event Registration, with Cancel and Approve buttons.",
+     "caption": "",
+     "source_url": "https://www.microsoft.com/en-us/power-platform/blog/2026/10/28/dataverse-plugin-copilot-cowork/",
+     "media_status": "link_only",
+     "media_reason": "cache_total_limit"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-38d27836a426",
+     "children": [
+      {
+       "type": "text",
+       "text": "A developer environment from the Power Apps Developer Plan is a great place to try it. Building apps in Cowork currently requires enrollment in the Frontier program.",
+       "marks": [],
+       "id": "t-11c6865352bd"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-514f312b27c0",
+     "children": [
+      {
+       "type": "text",
+       "text": "What’s next for the Dataverse plugin",
+       "marks": [],
+       "id": "t-a84f82562708"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-75b5a1d24229",
+     "children": [
+      {
+       "type": "text",
+       "text": "Cowork is one of a growing number of places where Dataverse is available. Others include GitHub Copilot, Claude, Codex and ChatGPT, Cursor, Gemini CLI, Google Antigravity and n8n. In short, our goal is simple. Wherever you build, Dataverse should be the trusted business-data layer underneath, with the same skills and the same guardrails. Install instructions for each platform are in the ",
+       "marks": [],
+       "id": "t-cf16c3d575ba"
+      },
+      {
+       "type": "text",
+       "text": "Dataverse skills repository on GitHub",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://github.com/microsoft/Dataverse-skills"
+        }
+       ],
+       "id": "t-78504d7e7ad4"
+      },
+      {
+       "type": "text",
+       "text": ".",
+       "marks": [],
+       "id": "t-2c925dc19124"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-e4e650578728",
+     "children": [
+      {
+       "type": "text",
+       "text": "We would love to hear what you build first. ",
+       "marks": [],
+       "id": "t-cf06d21bed98"
+      },
+      {
+       "type": "text",
+       "text": "Share your feedback and ideas with us",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://github.com/microsoft/Dataverse-skills/issues"
+        }
+       ],
+       "id": "t-fd53a2ff66da"
+      },
+      {
+       "type": "text",
+       "text": ".",
+       "marks": [],
+       "id": "t-71cadd309996"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-156dc5e01136",
+     "children": [
+      {
+       "type": "text",
+       "text": "Learn more",
+       "marks": [],
+       "id": "t-4bb877bb79a0"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "list",
+     "id": "b-a6686d54727c",
+     "ordered": false,
+     "items": [
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "Dataverse documentation",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://learn.microsoft.com/en-us/power-apps/maker/data-platform/data-platform-intro"
+          }
+         ],
+         "id": "t-350dc0f6b063"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "What is Microsoft Copilot Managed Runtime (preview)",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://learn.microsoft.com/en-us/microsoft-365/managed-apps/?view=o365-worldwide"
+          }
+         ],
+         "id": "t-ff7e56b3b4bc"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "Dataverse skills on GitHub",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://github.com/microsoft/Dataverse-skills"
+          }
+         ],
+         "id": "t-58c1ac4903c5"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "Custom APIs in the Dataverse MCP server",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.microsoft.com/en-us/power-platform/blog/2026/10/26/custom-apis-just-landed-in-the-dataverse-mcp-server-agents-just-got-smarter/"
+          }
+         ],
+         "id": "t-4a1a36023a10"
+        }
+       ]
+      },
+      {
+       "children": [
+        {
+         "type": "text",
+         "text": "Dataverse and Work IQ at PPCC 2026",
+         "marks": [
+          {
+           "type": "link",
+           "href": "https://www.microsoft.com/en-us/power-platform/blog/2026/10/23/dataverse-and-workiq-ppcc-2026/"
+          }
+         ],
+         "id": "t-5483d2217701"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-ee6fff12b91a",
+     "children": [
+      {
+       "type": "text",
+       "text": "The post ",
+       "marks": [],
+       "id": "t-ffbed31a3ee2"
+      },
+      {
+       "type": "text",
+       "text": "From one prompt to a governed Dataverse app: the Dataverse plugin lands in Copilot Cowork",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.microsoft.com/en-us/power-platform/blog/2026/10/28/dataverse-plugin-copilot-cowork/"
+        }
+       ],
+       "id": "t-4b43d2397df1"
+      },
+      {
+       "type": "text",
+       "text": " appeared first on ",
+       "marks": [],
+       "id": "t-307e7463b887"
+      },
+      {
+       "type": "text",
+       "text": "Microsoft Power Platform Blog",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.microsoft.com/en-us/power-platform/blog"
+        }
+       ],
+       "id": "t-3002b41e42c4"
+      },
+      {
+       "type": "text",
+       "text": ".",
+       "marks": [],
+       "id": "t-f3b564eb17aa"
+      }
+     ]
+    }
+   ],
+   "content_format": "blocks-v1",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [
+    "Microsoft",
+    "Power BI"
+   ],
+   "heat": 53,
+   "star": false,
+   "importance": 50,
+   "quality_score": 50,
+   "trend_score": 56,
+   "signal": 0,
+   "topics": [],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-10-29T04:50:01+08:00",
+   "first_seen": "2026-10-29T13:55:45.547392+08:00",
+   "items": [
+    {
+     "id": "7ea7b6721c7a",
+     "source": "Microsoft Power BI（Power Platform Blog）",
+     "link": "https://www.microsoft.com/en-us/power-platform/blog/2026/10/28/dataverse-plugin-copilot-cowork/",
+     "published": "2026-10-29T04:50:01+08:00",
+     "ingested_at": "2026-10-29T13:55:45.547392+08:00",
+     "title": "From one prompt to a governed Dataverse app: the Dataverse plugin lands in Copilot Cowork"
+    }
+   ],
+   "content_parse": {
+    "run_id": "github-40825316154-1",
+    "processor_version": "original-first-v7",
+    "attempted_at": "2026-10-29T13:56:27.091646+08:00",
+    "status": "ready",
+    "source": "Microsoft Power BI（Power Platform Blog）",
+    "strategy": "rss_document_fallback",
+    "blocks": 32,
+    "text_chars": 6765,
+    "figures": 4,
+    "tables": 0,
+    "figures_discovered": 4,
+    "figures_selected": 4,
+    "figures_rejected": 0,
+    "candidate_count": 0,
+    "figures_rejected_author": 0,
+    "figures_rejected_decorative": 0,
+    "figures_rejected_duplicate": 0,
+    "figures_rejected_small": 0,
+    "figures_rejected_limit": 0,
+    "trimmed_tail_blocks": 0,
+    "trimmed_head_blocks": 0,
+    "trimmed_promotional_blocks": 0,
+    "trimmed_embedded_ui_blocks": 0,
+    "embedded_ui_components": 0,
+    "selected_depth": 0,
+    "selected_raw_blocks": 32,
+    "selected_raw_text_chars": 6765,
+    "broad_raw_blocks": 32,
+    "broad_raw_text_chars": 5852,
+    "parent_extra_blocks": 0,
+    "candidate_count_raw": 0,
+    "candidate_duplicates": 0,
+    "candidate_quality_rejected": 0,
+    "duplicate_blocks": 0,
+    "selected_score": 450.41,
+    "quality_status": "pass",
+    "selected_tag": "document",
+    "focus_ratio": 1.0,
+    "link_ratio": 0.0616,
+    "duplicate_ratio": 0.0,
+    "selection_evidence": [
+     "prose_density",
+     "integrity_gate"
+    ],
+    "reason": "HTTPError",
+    "media": {
+     "figures": 4,
+     "cached": 1,
+     "link_only": 3,
+     "policy_version": "source-cdn-v1",
+     "reasons": {
+      "cache_total_limit": 3
+     }
+    },
+    "content_mode": "original",
+    "source_language": "other",
+    "translation_status": "failed",
+    "source_content_hash": "4cee70970c292906ab94756b",
+    "translation": {
+     "run_id": "github-40825316154-1",
+     "policy_version": "faithful-translation-retry-v1",
+     "attempted_at": "2026-10-29T13:56:27.091696+08:00",
+     "purpose": "body_translation",
+     "status": "failed",
+     "error": "HTTPError"
+    },
+    "metadata_translation": {
+     "run_id": "github-40825316154-1",
+     "policy_version": "metadata-translation-backfill-v1",
+     "attempted_at": "2026-10-29T13:56:27.794981+08:00",
+     "purpose": "metadata_translation_backfill",
+     "status": "provider_error",
+     "error": "HTTPError"
+    }
+   },
+   "content_mode": "original",
+   "content_level": "original",
+   "source_language": "other",
+   "translation_status": "failed",
+   "source_content_hash": "4cee70970c292906ab94756b",
+   "body_chars": 6765
+  },
   {
    "event_id": "58c65d7e720d",
    "zh_title": "BigQuery Python UDF 新增日志可观测能力",
@@ -3286,11 +4687,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 55,
+   "heat": 52,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 59,
+   "trend_score": 54,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -3371,6 +4772,14 @@
      "purpose": "body_translation",
      "status": "budget_deferred",
      "error": "LLMBudgetExceeded"
+    },
+    "metadata_translation": {
+     "run_id": "github-40825316154-1",
+     "policy_version": "metadata-translation-backfill-v1",
+     "attempted_at": "2026-10-29T13:56:28.154621+08:00",
+     "purpose": "metadata_translation_backfill",
+     "status": "provider_error",
+     "error": "HTTPError"
     }
    },
    "content_mode": "original",
@@ -8091,11 +9500,11 @@
    "vendors": [
     "ClickHouse"
    ],
-   "heat": 53,
+   "heat": 50,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 56,
+   "trend_score": 51,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -8462,11 +9871,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 53,
+   "heat": 50,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 56,
+   "trend_score": 50,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -11521,11 +12930,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 57,
+   "heat": 53,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 62,
+   "trend_score": 56,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -12574,11 +13983,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 56,
+   "heat": 52,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 60,
+   "trend_score": 54,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -15031,11 +16440,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 53,
+   "heat": 50,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 56,
+   "trend_score": 51,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -15606,11 +17015,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 62,
+   "heat": 59,
    "star": false,
    "importance": 70,
    "quality_score": 70,
-   "trend_score": 55,
+   "trend_score": 50,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -15642,9 +17051,9 @@
     "actionability_depth": 14
    },
    "content_parse": {
-    "run_id": "github-40691461687-1",
+    "run_id": "github-40825316154-1",
     "processor_version": "original-first-v7",
-    "attempted_at": "2026-10-28T21:02:47.439443+08:00",
+    "attempted_at": "2026-10-29T13:56:32.754629+08:00",
     "status": "ready",
     "source": "Snowflake Release Notes",
     "strategy": "article",
@@ -15699,9 +17108,9 @@
     "translation_status": "failed",
     "source_content_hash": "b5546c50e769830cfae43b3e",
     "translation": {
-     "run_id": "github-40691461687-1",
+     "run_id": "github-40825316154-1",
      "policy_version": "faithful-translation-retry-v1",
-     "attempted_at": "2026-10-28T21:02:47.439478+08:00",
+     "attempted_at": "2026-10-29T13:56:32.754668+08:00",
      "purpose": "body_translation_backfill",
      "status": "failed",
      "error": "HTTPError"
@@ -16283,11 +17692,11 @@
     "Fivetran",
     "IBM"
    ],
-   "heat": 49,
+   "heat": 47,
    "star": false,
    "importance": 70,
    "quality_score": 70,
-   "trend_score": 31,
+   "trend_score": 28,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -16324,9 +17733,9 @@
     "actionability_depth": 14
    },
    "content_parse": {
-    "run_id": "github-40691461687-1",
+    "run_id": "github-40825316154-1",
     "processor_version": "original-first-v7",
-    "attempted_at": "2026-10-28T21:02:41.008044+08:00",
+    "attempted_at": "2026-10-29T13:56:33.263971+08:00",
     "status": "ready",
     "source": "Fivetran Blog",
     "strategy": "semantic_container",
@@ -16381,10 +17790,10 @@
     "translation_status": "failed",
     "source_content_hash": "e8cea7d8c683a5a2637b7b36",
     "translation": {
-     "run_id": "github-40691461687-1",
+     "run_id": "github-40825316154-1",
      "policy_version": "faithful-translation-retry-v1",
-     "attempted_at": "2026-10-28T21:02:41.008081+08:00",
-     "purpose": "body_translation",
+     "attempted_at": "2026-10-29T13:56:33.264008+08:00",
+     "purpose": "body_translation_backfill",
      "status": "failed",
      "error": "HTTPError"
     }
@@ -17756,11 +19165,11 @@
    "vendors": [
     "Metabase"
    ],
-   "heat": 48,
+   "heat": 45,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 46,
+   "trend_score": 41,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -22105,11 +23514,11 @@
    "vendors": [
     "ClickHouse"
    ],
-   "heat": 50,
+   "heat": 47,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 50,
+   "trend_score": 45,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -22439,11 +23848,11 @@
     "Microsoft",
     "Power BI"
    ],
-   "heat": 46,
+   "heat": 44,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 43,
+   "trend_score": 38,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -23757,11 +25166,11 @@
     "Microsoft",
     "Power BI"
    ],
-   "heat": 39,
+   "heat": 37,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 29,
+   "trend_score": 26,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -24004,11 +25413,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 46,
+   "heat": 43,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 42,
+   "trend_score": 38,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -24247,11 +25656,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 46,
+   "heat": 43,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 42,
+   "trend_score": 38,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -24574,11 +25983,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 46,
+   "heat": 43,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 42,
+   "trend_score": 38,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -24910,11 +26319,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 46,
+   "heat": 43,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 42,
+   "trend_score": 38,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -25239,11 +26648,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 46,
+   "heat": 43,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 42,
+   "trend_score": 38,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -25496,11 +26905,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 46,
+   "heat": 43,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 42,
+   "trend_score": 38,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -25828,11 +27237,11 @@
     "Google",
     "Google Cloud"
    ],
-   "heat": 40,
+   "heat": 39,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 32,
+   "trend_score": 29,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -28053,11 +29462,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 46,
+   "heat": 44,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 43,
+   "trend_score": 38,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -29247,11 +30656,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 46,
+   "heat": 43,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 42,
+   "trend_score": 38,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -32140,11 +33549,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 46,
+   "heat": 43,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 42,
+   "trend_score": 38,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -33056,11 +34465,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 43,
+   "heat": 41,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 38,
+   "trend_score": 34,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -33378,11 +34787,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 46,
+   "heat": 44,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 43,
+   "trend_score": 38,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -33589,11 +34998,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 46,
+   "heat": 44,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 43,
+   "trend_score": 38,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -33860,11 +35269,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 46,
+   "heat": 44,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 43,
+   "trend_score": 38,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -34119,11 +35528,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 46,
+   "heat": 44,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 43,
+   "trend_score": 38,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -34462,11 +35871,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 46,
+   "heat": 44,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 42,
+   "trend_score": 38,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -34714,11 +36123,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 46,
+   "heat": 44,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 42,
+   "trend_score": 38,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -35028,11 +36437,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 46,
+   "heat": 44,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 42,
+   "trend_score": 38,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -35299,11 +36708,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 46,
+   "heat": 43,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 42,
+   "trend_score": 38,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -35558,11 +36967,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 46,
+   "heat": 43,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 42,
+   "trend_score": 38,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -35868,11 +37277,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 46,
+   "heat": 43,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 42,
+   "trend_score": 38,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -37235,11 +38644,11 @@
    "vendors": [
     "Metabase"
    ],
-   "heat": 40,
+   "heat": 39,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 32,
+   "trend_score": 29,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -37894,11 +39303,11 @@
    "vendors": [
     "Metabase"
    ],
-   "heat": 40,
+   "heat": 39,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 32,
+   "trend_score": 29,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -39233,11 +40642,11 @@
    "vendors": [
     "ClickHouse"
    ],
-   "heat": 45,
+   "heat": 43,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 41,
+   "trend_score": 37,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -40415,11 +41824,11 @@
    "vendors": [
     "AWS"
    ],
-   "heat": 47,
+   "heat": 44,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 44,
+   "trend_score": 40,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -42262,11 +43671,11 @@
    "vendors": [
     "AWS"
    ],
-   "heat": 47,
+   "heat": 44,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 44,
+   "trend_score": 40,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -43639,11 +45048,11 @@
    "vendors": [
     "Fivetran"
    ],
-   "heat": 46,
+   "heat": 44,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 43,
+   "trend_score": 39,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -44853,11 +46262,11 @@
    "vendors": [
     "Fivetran"
    ],
-   "heat": 46,
+   "heat": 43,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 42,
+   "trend_score": 38,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -47524,11 +48933,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 46,
+   "heat": 44,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 43,
+   "trend_score": 38,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -49098,11 +50507,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 46,
+   "heat": 44,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 43,
+   "trend_score": 38,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -50219,11 +51628,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 44,
+   "heat": 42,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 40,
+   "trend_score": 36,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -50575,11 +51984,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 44,
+   "heat": 42,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 39,
+   "trend_score": 35,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -51532,11 +52941,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 43,
+   "heat": 41,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 38,
+   "trend_score": 34,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -51940,11 +53349,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 42,
+   "heat": 40,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 35,
+   "trend_score": 31,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -52755,11 +54164,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 42,
+   "heat": 40,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 35,
+   "trend_score": 32,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -52777,9 +54186,9 @@
     }
    ],
    "content_parse": {
-    "run_id": "github-40691461687-1",
+    "run_id": "github-40825316154-1",
     "processor_version": "original-first-v7",
-    "attempted_at": "2026-10-28T21:02:47.967481+08:00",
+    "attempted_at": "2026-10-29T13:56:33.689273+08:00",
     "status": "ready",
     "source": "Snowflake Release Notes",
     "strategy": "article",
@@ -52842,9 +54251,9 @@
      "error": "HTTPError"
     },
     "translation": {
-     "run_id": "github-40691461687-1",
+     "run_id": "github-40825316154-1",
      "policy_version": "faithful-translation-retry-v1",
-     "attempted_at": "2026-10-28T21:02:47.967518+08:00",
+     "attempted_at": "2026-10-29T13:56:33.689312+08:00",
      "purpose": "body_translation_backfill",
      "status": "failed",
      "error": "HTTPError"
@@ -54488,11 +55897,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 40,
+   "heat": 38,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 32,
+   "trend_score": 29,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -54816,11 +56225,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 38,
+   "heat": 36,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 28,
+   "trend_score": 25,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -55047,11 +56456,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 38,
+   "heat": 36,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 28,
+   "trend_score": 25,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -55468,11 +56877,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 38,
+   "heat": 36,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 28,
+   "trend_score": 25,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -55703,11 +57112,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 38,
+   "heat": 36,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 28,
+   "trend_score": 25,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -56049,11 +57458,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 38,
+   "heat": 36,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 28,
+   "trend_score": 25,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -56317,11 +57726,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 38,
+   "heat": 36,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 28,
+   "trend_score": 25,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -56552,11 +57961,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 38,
+   "heat": 36,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 28,
+   "trend_score": 25,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -56804,11 +58213,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 38,
+   "heat": 36,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 28,
+   "trend_score": 25,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -57051,11 +58460,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 38,
+   "heat": 36,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 28,
+   "trend_score": 25,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -57286,11 +58695,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 38,
+   "heat": 36,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 28,
+   "trend_score": 25,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -58527,11 +59936,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 39,
+   "heat": 38,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 30,
+   "trend_score": 27,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -59075,11 +60484,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 39,
+   "heat": 37,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 30,
+   "trend_score": 27,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -59859,11 +61268,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 38,
+   "heat": 36,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 28,
+   "trend_score": 25,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -60258,11 +61667,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 40,
+   "heat": 38,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 32,
+   "trend_score": 29,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -60541,11 +61950,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 40,
+   "heat": 38,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 32,
+   "trend_score": 29,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -60764,11 +62173,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 40,
+   "heat": 38,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 32,
+   "trend_score": 29,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -61071,11 +62480,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 40,
+   "heat": 38,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 32,
+   "trend_score": 29,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -61417,11 +62826,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 40,
+   "heat": 38,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 32,
+   "trend_score": 28,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -61669,11 +63078,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 40,
+   "heat": 38,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 32,
+   "trend_score": 28,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -61967,11 +63376,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 40,
+   "heat": 38,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 32,
+   "trend_score": 28,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -62202,11 +63611,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 40,
+   "heat": 38,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 32,
+   "trend_score": 28,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -62454,11 +63863,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 40,
+   "heat": 38,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 31,
+   "trend_score": 28,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -65087,11 +66496,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 39,
+   "heat": 37,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 29,
+   "trend_score": 26,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -65719,11 +67128,11 @@
    "vendors": [
     "ClickHouse"
    ],
-   "heat": 38,
+   "heat": 37,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 29,
+   "trend_score": 26,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -66308,11 +67717,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 40,
+   "heat": 38,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 32,
+   "trend_score": 28,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -66717,11 +68126,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 39,
+   "heat": 37,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 30,
+   "trend_score": 27,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -67228,11 +68637,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 38,
+   "heat": 37,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 28,
+   "trend_score": 26,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -68613,11 +70022,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 37,
+   "heat": 36,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 27,
+   "trend_score": 24,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -69021,11 +70430,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 37,
+   "heat": 36,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 27,
+   "trend_score": 24,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -70410,11 +71819,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 39,
+   "heat": 37,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 30,
+   "trend_score": 27,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -71013,11 +72422,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 38,
+   "heat": 36,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 28,
+   "trend_score": 25,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -72503,11 +73912,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 26,
+   "heat": 25,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 6,
+   "trend_score": 5,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -73393,11 +74802,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 39,
+   "heat": 37,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 29,
+   "trend_score": 26,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -73894,11 +75303,11 @@
    "vendors": [
     "ThoughtSpot"
    ],
-   "heat": 38,
+   "heat": 36,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 28,
+   "trend_score": 25,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -74462,11 +75871,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 44,
+   "heat": 43,
    "star": false,
    "importance": 68,
    "quality_score": 68,
-   "trend_score": 25,
+   "trend_score": 22,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -74498,9 +75907,9 @@
     "actionability_depth": 14
    },
    "content_parse": {
-    "run_id": "github-40691461687-1",
+    "run_id": "github-40825316154-1",
     "processor_version": "original-first-v7",
-    "attempted_at": "2026-10-28T21:02:48.372392+08:00",
+    "attempted_at": "2026-10-29T13:56:34.094659+08:00",
     "status": "ready",
     "source": "Snowflake Release Notes",
     "strategy": "article",
@@ -74555,9 +75964,9 @@
     "translation_status": "failed",
     "source_content_hash": "889611e1474e1e177ca822b5",
     "translation": {
-     "run_id": "github-40691461687-1",
+     "run_id": "github-40825316154-1",
      "policy_version": "faithful-translation-retry-v1",
-     "attempted_at": "2026-10-28T21:02:48.372427+08:00",
+     "attempted_at": "2026-10-29T13:56:34.094696+08:00",
      "purpose": "body_translation_backfill",
      "status": "failed",
      "error": "HTTPError"
@@ -76070,11 +77479,11 @@
    "vendors": [
     "ThoughtSpot"
    ],
-   "heat": 29,
+   "heat": 28,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 12,
+   "trend_score": 11,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -76710,11 +78119,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 34,
+   "heat": 33,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 21,
+   "trend_score": 19,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -77112,11 +78521,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 34,
+   "heat": 33,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 21,
+   "trend_score": 19,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -78563,9 +79972,9 @@
     "actionability_depth": 14
    },
    "content_parse": {
-    "run_id": "github-40555789393-1",
+    "run_id": "github-40825316154-1",
     "processor_version": "original-first-v7",
-    "attempted_at": "2026-10-28T02:09:27.428119+08:00",
+    "attempted_at": "2026-10-29T13:56:35.521192+08:00",
     "status": "ready",
     "source": "Mercer Insights",
     "strategy": "nested_content",
@@ -78620,9 +80029,9 @@
     "translation_status": "failed",
     "source_content_hash": "f572fe91aa516e4c78b2f229",
     "translation": {
-     "run_id": "github-40555789393-1",
+     "run_id": "github-40825316154-1",
      "policy_version": "faithful-translation-retry-v1",
-     "attempted_at": "2026-10-28T02:09:27.428156+08:00",
+     "attempted_at": "2026-10-29T13:56:35.521232+08:00",
      "purpose": "body_translation_backfill",
      "status": "failed",
      "error": "HTTPError"
@@ -79686,11 +81095,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 32,
+   "heat": 31,
    "star": false,
    "importance": 58,
    "quality_score": 58,
-   "trend_score": 11,
+   "trend_score": 10,
    "signal": 0,
    "topics": [
     "实时分析"
@@ -79730,9 +81139,9 @@
     "actionability_depth": 14
    },
    "content_parse": {
-    "run_id": "github-40327033115-1",
+    "run_id": "github-40825316154-1",
     "processor_version": "original-first-v7",
-    "attempted_at": "2026-10-26T21:06:49.631897+08:00",
+    "attempted_at": "2026-10-29T13:56:34.964979+08:00",
     "status": "ready",
     "source": "Databricks Blog",
     "strategy": "semantic_container",
@@ -79787,9 +81196,9 @@
     "translation_status": "failed",
     "source_content_hash": "25b3e877f6ed74615559b23a",
     "translation": {
-     "run_id": "github-40327033115-1",
+     "run_id": "github-40825316154-1",
      "policy_version": "faithful-translation-retry-v1",
-     "attempted_at": "2026-10-26T21:06:49.631937+08:00",
+     "attempted_at": "2026-10-29T13:56:34.965018+08:00",
      "purpose": "body_translation_backfill",
      "status": "failed",
      "error": "HTTPError"
@@ -80654,7 +82063,7 @@
    "star": false,
    "importance": 69,
    "quality_score": 69,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "湖仓",
@@ -83783,7 +85192,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 14,
+   "trend_score": 13,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -84320,11 +85729,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 30,
+   "heat": 29,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 13,
+   "trend_score": 12,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -85930,11 +87339,11 @@
     "Microsoft",
     "Power BI"
    ],
-   "heat": 29,
+   "heat": 28,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 11,
+   "trend_score": 10,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -87229,7 +88638,7 @@
    "star": false,
    "importance": 67,
    "quality_score": 67,
-   "trend_score": 11,
+   "trend_score": 10,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -88273,7 +89682,7 @@
    "star": true,
    "importance": 81,
    "quality_score": 81,
-   "trend_score": 11,
+   "trend_score": 10,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -95031,11 +96440,11 @@
     "Amazon Athena",
     "AWS Glue"
    ],
-   "heat": 41,
+   "heat": 40,
    "star": true,
    "importance": 77,
    "quality_score": 77,
-   "trend_score": 11,
+   "trend_score": 10,
    "signal": 0,
    "topics": [
     "湖仓"
@@ -96480,7 +97889,7 @@
    "star": false,
    "importance": 70,
    "quality_score": 70,
-   "trend_score": 11,
+   "trend_score": 10,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -97062,7 +98471,7 @@
    "star": false,
    "importance": 64,
    "quality_score": 64,
-   "trend_score": 3,
+   "trend_score": 2,
    "signal": 0,
    "topics": [
     "实时分析"
@@ -100625,7 +102034,7 @@
    "star": true,
    "importance": 76,
    "quality_score": 76,
-   "trend_score": 9,
+   "trend_score": 8,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -101480,7 +102889,7 @@
    "star": false,
    "importance": 41,
    "quality_score": 41,
-   "trend_score": 7,
+   "trend_score": 6,
    "signal": 0,
    "topics": [
     "平台AI化",
@@ -103549,7 +104958,7 @@
    "star": false,
    "importance": 54,
    "quality_score": 54,
-   "trend_score": 9,
+   "trend_score": 8,
    "signal": 0,
    "topics": [
     "财务经营"
@@ -105252,11 +106661,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 30,
+   "heat": 29,
    "star": false,
    "importance": 57,
    "quality_score": 57,
-   "trend_score": 8,
+   "trend_score": 7,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -106101,7 +107510,7 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 29,
+   "heat": 28,
    "star": false,
    "importance": 55,
    "quality_score": 55,
@@ -108762,7 +110171,7 @@
    "star": true,
    "importance": 78,
    "quality_score": 78,
-   "trend_score": 7,
+   "trend_score": 6,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -113701,7 +115110,7 @@
    "star": true,
    "importance": 78,
    "quality_score": 78,
-   "trend_score": 7,
+   "trend_score": 6,
    "signal": 0,
    "topics": [
     "组织人才"
@@ -115817,7 +117226,7 @@
    "star": true,
    "importance": 79,
    "quality_score": 79,
-   "trend_score": 7,
+   "trend_score": 6,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -116502,7 +117911,7 @@
     "Hex",
     "Meta"
    ],
-   "heat": 35,
+   "heat": 34,
    "star": false,
    "importance": 72,
    "quality_score": 72,
@@ -117608,11 +119017,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 32,
+   "heat": 31,
    "star": false,
    "importance": 66,
    "quality_score": 66,
-   "trend_score": 4,
+   "trend_score": 3,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -117738,7 +119147,7 @@
     "OpenAI",
     "PerturbAI"
    ],
-   "heat": 23,
+   "heat": 22,
    "star": false,
    "importance": 45,
    "quality_score": 45,
@@ -118649,11 +120058,11 @@
    "category": "product",
    "category_label": "数据产品",
    "vendors": [],
-   "heat": 40,
+   "heat": 39,
    "star": true,
    "importance": 81,
    "quality_score": 81,
-   "trend_score": 6,
+   "trend_score": 5,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -122837,11 +124246,11 @@
     "Langfuse",
     "Cursor"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 66,
    "quality_score": 66,
-   "trend_score": 6,
+   "trend_score": 5,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -127165,11 +128574,11 @@
     "ClickHouse",
     "NVIDIA"
    ],
-   "heat": 39,
+   "heat": 38,
    "star": true,
    "importance": 80,
    "quality_score": 80,
-   "trend_score": 5,
+   "trend_score": 4,
    "signal": 0,
    "topics": [
     "实时分析"
@@ -127863,7 +129272,7 @@
    "star": false,
    "importance": 67,
    "quality_score": 67,
-   "trend_score": 6,
+   "trend_score": 5,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -130455,7 +131864,7 @@
    "star": false,
    "importance": 63,
    "quality_score": 63,
-   "trend_score": 6,
+   "trend_score": 5,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -131474,7 +132883,7 @@
    "star": true,
    "importance": 85,
    "quality_score": 85,
-   "trend_score": 5,
+   "trend_score": 4,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -134293,7 +135702,7 @@
    "star": true,
    "importance": 79,
    "quality_score": 79,
-   "trend_score": 5,
+   "trend_score": 4,
    "signal": 0,
    "topics": [
     "语义层",
@@ -137932,360 +139341,6 @@
    "translation_status": "complete",
    "source_content_hash": "2aa2b8819d65820812890c16",
    "body_chars": 5849
-  },
-  {
-   "event_id": "7b80adca1cfe",
-   "zh_title": "Terminal X Eval Agent与资深投资人判断一致率达88.6%",
-   "zh_summary": "Terminal X 的 Eval Agent 会依据 54 项标准评分来评估输出。该评估在 GPT-6.1 Sol 辅助下，能比基线多捕捉 25% 的基金授权偏离。其判断与资深投资人一致率达到 88.6%。",
-   "reason": "关注 AI Agent 评测与金融分析场景落地的人可参考：它用 54 项 rubric 和资深投资人判断做校准，并量化对基金 mandate 偏离的捕捉提升。",
-   "full_zh": "Terminal X 的 Eval Agent 会依据 54 项标准评分来评估输出。该评估在 GPT-6.1 Sol 辅助下，能比基线多捕捉 25% 的基金授权偏离。其判断与资深投资人一致率达到 88.6%。",
-   "content_blocks": [],
-   "content_format": "",
-   "category": "agent",
-   "category_label": "Data Agent",
-   "vendors": [
-    "OpenAI",
-    "Terminal X"
-   ],
-   "heat": 28,
-   "star": false,
-   "importance": 59,
-   "quality_score": 59,
-   "trend_score": 3,
-   "signal": 0,
-   "topics": [
-    "Data Agent",
-    "风险管理"
-   ],
-   "shelf": "news",
-   "pinned": false,
-   "published": "2026-10-20T15:00:00+08:00",
-   "first_seen": "2026-10-21T12:49:41.310521+08:00",
-   "items": [
-    {
-     "id": "7b80adca1cfe",
-     "source": "OpenAI News",
-     "link": "https://openai.com/index/terminal-x",
-     "published": "2026-10-20T15:00:00+08:00",
-     "ingested_at": "2026-10-21T12:49:41.310521+08:00",
-     "title": "Terminal X matches senior investor judgment 88.6% with GPT-6.1"
-    }
-   ],
-   "work_tags": {
-    "taxonomy_version": "work-tags-v1",
-    "product_objects": [
-     "知识与上下文"
-    ],
-    "use_cases": [
-     "生产评估与运营"
-    ],
-    "decision_concerns": [
-     "可靠性与评估",
-     "准确性与语义一致性"
-    ]
-   },
-   "quality_breakdown": {
-    "originality": 16,
-    "evidence_density": 18,
-    "information_gain": 15,
-    "actionability_depth": 10
-   },
-   "content_mode": "ai_fallback",
-   "content_level": "summary",
-   "source_language": "unknown",
-   "translation_status": "not_applicable",
-   "body_chars": 104,
-   "content_parse": {
-    "run_id": "github-39545717557-1",
-    "processor_version": "original-first-v7",
-    "attempted_at": "2026-10-21T12:51:45.082616+08:00",
-    "status": "skipped",
-    "source": "OpenAI News",
-    "strategy": "fetch_failed",
-    "blocks": 0,
-    "text_chars": 0,
-    "figures": 0,
-    "tables": 0,
-    "figures_discovered": 0,
-    "figures_selected": 0,
-    "figures_rejected": 0,
-    "candidate_count": 0,
-    "figures_rejected_author": 0,
-    "figures_rejected_decorative": 0,
-    "figures_rejected_duplicate": 0,
-    "figures_rejected_small": 0,
-    "figures_rejected_limit": 0,
-    "trimmed_tail_blocks": 0,
-    "trimmed_head_blocks": 0,
-    "trimmed_promotional_blocks": 0,
-    "trimmed_embedded_ui_blocks": 0,
-    "embedded_ui_components": 0,
-    "selected_depth": 0,
-    "selected_raw_blocks": 0,
-    "selected_raw_text_chars": 0,
-    "broad_raw_blocks": 0,
-    "broad_raw_text_chars": 0,
-    "parent_extra_blocks": 0,
-    "candidate_count_raw": 0,
-    "candidate_duplicates": 0,
-    "candidate_quality_rejected": 0,
-    "duplicate_blocks": 0,
-    "quality_status": "unknown",
-    "reason": "no_usable_original"
-   }
-  },
-  {
-   "event_id": "fa2922eb6e68",
-   "zh_title": "Anthropic推出Claude经济指数连接器",
-   "zh_summary": "Anthropic 发布 Anthropic Economic Index connector for Claude，用户可在 claude.ai 连接器目录中约一分钟内启用，无需安装，且适用于任意 Claude 模型和任意对话。它让用户直接用自然语言查询该指数数据，例如哪些职业使用 AI 最多、科罗拉多州用户最常用 Claude 做什么、教师用 Claude 处理哪些任务，以及过去一年自动化任务的变化。回答基于指数数据，并可回溯源数据与局限；文章强调该指数反映的是 Claude 使用模式，而不是整体劳动力市场。",
-   "reason": "它展示了把公开数据集封装为对话式分析入口的产品形态，并强调溯源与局限，对做 Data Agent 和数据产品的人有直接参考价值。",
-   "full_zh": "人们对人工智能与工作有着迫切的疑问：哪些工作会发生变化，哪些任务正在被自动化，以及这对他们自己的领域意味着什么。Anthropic经济指数正是为了用真实数据帮助回答这些问题而存在。今天，我们为Claude推出Anthropic经济指数连接器，让任何人都能直接探索这些数据。\n\nAnthropic经济指数衡量人工智能在经济中的实际使用情况。该指数的数据对研究人员、记者和政策制定者很有用，但我们希望它对任何好奇人工智能如何融入自己领域或日常生活的人也同样易于获取。现在，你可以向Claude提出这样的问题：\n\n“哪些职业使用人工智能最多？”“科罗拉多州的人们最常用Claude做什么？”“教师用Claude完成哪些类型的任务？”“人们用人工智能自动化哪些类型的任务？过去一年这发生了怎样的变化？”\n\n你将得到直接基于该指数数据的答案。\n\n上手大约需要一分钟。在claude.ai中，打开连接器菜单，在目录中找到Anthropic经济指数并启用它——它在任何Claude模型的任何对话中都能使用，而且无需安装任何东西。然后，就像向同事提问一样发问：先问宽泛的问题（“该指数对我的行业是怎么说的？”），再深入具体细节，并让Claude向你展示任何答案背后的底层数据。\n\n一如既往，该指数反映的是Claude使用中的模式，而非整个劳动力市场，并且Claude会在你探索时引导你回到源数据及其局限性。你今天就可以在claude.ai中找到该连接器，完整数据集仍可在我们的网站上免费获取。",
-   "content_blocks": [
-    {
-     "type": "paragraph",
-     "id": "b-f913bb221e93",
-     "children": [
-      {
-       "type": "text",
-       "text": "人们对人工智能与工作有着迫切的疑问：哪些工作会发生变化，哪些任务正在被自动化，以及这对他们自己的领域意味着什么。",
-       "marks": [],
-       "id": "t-4ae6cc4c4f9b"
-      },
-      {
-       "type": "text",
-       "text": "Anthropic经济指数",
-       "marks": [
-        {
-         "type": "link",
-         "href": "https://www.anthropic.com/economic-index"
-        }
-       ],
-       "id": "t-221d5ad0f671"
-      },
-      {
-       "type": "text",
-       "text": "正是为了用真实数据帮助回答这些问题而存在。今天，我们为Claude推出Anthropic经济指数连接器，让任何人都能直接探索这些数据。",
-       "marks": [],
-       "id": "t-df8986fa7a40"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-4a31b347fb4c",
-     "children": [
-      {
-       "type": "text",
-       "text": "Anthropic经济指数衡量人工智能在经济中的实际使用情况。该指数的数据对研究人员、记者和政策制定者很有用，但我们希望它对任何好奇人工智能如何融入自己领域或日常生活的人也同样易于获取。现在，你可以向Claude提出这样的问题：",
-       "marks": [],
-       "id": "t-4db68957e4a1"
-      }
-     ]
-    },
-    {
-     "type": "list",
-     "id": "b-a39bb4548887",
-     "ordered": false,
-     "items": [
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": "“哪些职业使用人工智能最多？”",
-         "marks": [],
-         "id": "t-584eefbd82bb"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": "“科罗拉多州的人们最常用Claude做什么？”",
-         "marks": [],
-         "id": "t-44587a0ea513"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": "“教师用Claude完成哪些类型的任务？”",
-         "marks": [],
-         "id": "t-63ac4b5241af"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": "“人们用人工智能自动化哪些类型的任务？过去一年这发生了怎样的变化？”",
-         "marks": [],
-         "id": "t-34af83ec399d"
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-dc44b161c164",
-     "children": [
-      {
-       "type": "text",
-       "text": "你将得到直接基于该指数数据的答案。",
-       "marks": [],
-       "id": "t-b70c03253417"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-900396653082",
-     "children": [
-      {
-       "type": "text",
-       "text": "上手大约需要一分钟。在claude.ai中，打开连接器菜单，在目录中找到Anthropic经济指数并启用它——它在任何Claude模型的任何对话中都能使用，而且无需安装任何东西。然后，就像向同事提问一样发问：先问宽泛的问题（“该指数对我的行业是怎么说的？”），再深入具体细节，并让Claude向你展示任何答案背后的底层数据。",
-       "marks": [],
-       "id": "t-6ff75e791e17"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-5db4870154c7",
-     "children": [
-      {
-       "type": "text",
-       "text": "一如既往，该指数反映的是Claude使用中的模式，而非整个劳动力市场，并且Claude会在你探索时引导你回到源数据及其局限性。你今天就可以在claude.ai中找到该连接器，完整数据集仍可在我们的网站上免费获取。",
-       "marks": [],
-       "id": "t-ae83e77fa8aa"
-      }
-     ]
-    }
-   ],
-   "content_format": "blocks-v1",
-   "category": "agent",
-   "category_label": "Data Agent",
-   "vendors": [
-    "Anthropic",
-    "Claude"
-   ],
-   "heat": 23,
-   "star": false,
-   "importance": 50,
-   "quality_score": 50,
-   "trend_score": 0,
-   "signal": 0,
-   "topics": [
-    "Data Agent"
-   ],
-   "shelf": "news",
-   "pinned": false,
-   "published": "2026-10-14T12:55:48+08:00",
-   "first_seen": "2026-10-21T12:49:41.310521+08:00",
-   "items": [
-    {
-     "id": "fa2922eb6e68",
-     "source": "Anthropic Economic Index",
-     "link": "https://www.anthropic.com/news/anthropic-economic-index-connector",
-     "published": "2026-10-14T12:55:48+08:00",
-     "ingested_at": "2026-10-21T12:49:41.310521+08:00",
-     "title": "The Anthropic Economic Index connector \\ Anthropic"
-    }
-   ],
-   "work_tags": {
-    "taxonomy_version": "work-tags-v1",
-    "product_objects": [
-     "知识与上下文",
-     "Agent接口与工具"
-    ],
-    "use_cases": [
-     "指标问答",
-     "数据发现与搜索"
-    ],
-    "decision_concerns": [
-     "可靠性与评估"
-    ]
-   },
-   "quality_breakdown": {
-    "originality": 18,
-    "evidence_density": 7,
-    "information_gain": 12,
-    "actionability_depth": 13
-   },
-   "content_parse": {
-    "run_id": "github-39545717557-1",
-    "processor_version": "original-first-v7",
-    "attempted_at": "2026-10-21T12:51:17.396844+08:00",
-    "status": "ready",
-    "source": "Anthropic Economic Index",
-    "strategy": "article",
-    "blocks": 6,
-    "text_chars": 1684,
-    "figures": 0,
-    "tables": 0,
-    "figures_discovered": 0,
-    "figures_selected": 0,
-    "figures_rejected": 0,
-    "candidate_count": 1,
-    "figures_rejected_author": 0,
-    "figures_rejected_decorative": 0,
-    "figures_rejected_duplicate": 0,
-    "figures_rejected_small": 0,
-    "figures_rejected_limit": 0,
-    "trimmed_tail_blocks": 0,
-    "trimmed_head_blocks": 0,
-    "trimmed_promotional_blocks": 0,
-    "trimmed_embedded_ui_blocks": 0,
-    "embedded_ui_components": 0,
-    "selected_depth": 4,
-    "selected_raw_blocks": 6,
-    "selected_raw_text_chars": 1684,
-    "broad_raw_blocks": 6,
-    "broad_raw_text_chars": 1722,
-    "parent_extra_blocks": 0,
-    "candidate_count_raw": 5,
-    "candidate_duplicates": 4,
-    "candidate_quality_rejected": 0,
-    "duplicate_blocks": 0,
-    "selected_score": 773.49,
-    "quality_status": "pass",
-    "selected_tag": "article",
-    "focus_ratio": 0.9779,
-    "link_ratio": 0.0143,
-    "duplicate_ratio": 0.0,
-    "selection_evidence": [
-     "prose_density",
-     "integrity_gate",
-     "article_element"
-    ],
-    "media": {
-     "figures": 0,
-     "cached": 0,
-     "link_only": 0,
-     "policy_version": "source-cdn-v1"
-    },
-    "content_mode": "translated",
-    "source_language": "other",
-    "translation_status": "complete",
-    "source_content_hash": "6dad277a8d8922ad1823531b",
-    "translation": {
-     "run_id": "github-39545717557-1",
-     "policy_version": "faithful-translation-retry-v1",
-     "attempted_at": "2026-10-21T12:51:17.396878+08:00",
-     "purpose": "body_translation",
-     "status": "complete"
-    }
-   },
-   "content_mode": "translated",
-   "content_level": "translated",
-   "source_language": "other",
-   "translation_status": "complete",
-   "source_content_hash": "6dad277a8d8922ad1823531b",
-   "body_chars": 638
   },
   {
    "event_id": "e9c950ed7100",
@@ -144193,7 +145248,7 @@
    "star": true,
    "importance": 83,
    "quality_score": 83,
-   "trend_score": 4,
+   "trend_score": 3,
    "signal": 0,
    "topics": [
     "Data Agent"
@@ -145482,7 +146537,7 @@
    "star": true,
    "importance": 75,
    "quality_score": 75,
-   "trend_score": 4,
+   "trend_score": 3,
    "signal": 0,
    "topics": [
     "平台AI化",
@@ -148003,11 +149058,11 @@
     "Databricks",
     "dbt Labs"
    ],
-   "heat": 32,
+   "heat": 31,
    "star": false,
    "importance": 67,
    "quality_score": 67,
-   "trend_score": 3,
+   "trend_score": 2,
    "signal": 0,
    "topics": [
     "湖仓"
@@ -151796,7 +152851,7 @@
    "star": false,
    "importance": 48,
    "quality_score": 48,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "BI变局"
@@ -153755,7 +154810,7 @@
    "star": false,
    "importance": 58,
    "quality_score": 58,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -155673,7 +156728,7 @@
    "star": false,
    "importance": 55,
    "quality_score": 55,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -157733,7 +158788,7 @@
    "vendors": [
     "Metabase"
    ],
-   "heat": 29,
+   "heat": 28,
    "star": false,
    "importance": 61,
    "quality_score": 61,
@@ -160092,7 +161147,7 @@
    "star": true,
    "importance": 80,
    "quality_score": 80,
-   "trend_score": 3,
+   "trend_score": 2,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -163840,11 +164895,11 @@
     "Google Cloud",
     "Dremio"
    ],
-   "heat": 55,
+   "heat": 53,
    "star": false,
    "importance": 68,
    "quality_score": 68,
-   "trend_score": 44,
+   "trend_score": 41,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -175492,7 +176547,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -181570,7 +182625,7 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 40,
+   "heat": 39,
    "star": true,
    "importance": 87,
    "quality_score": 87,
@@ -187259,7 +188314,7 @@
     "DataJunction",
     "Airbnb"
    ],
-   "heat": 30,
+   "heat": 29,
    "star": false,
    "importance": 65,
    "quality_score": 65,
@@ -198560,7 +199615,7 @@
    "star": false,
    "importance": 58,
    "quality_score": 58,
-   "trend_score": 1,
+   "trend_score": 0,
    "signal": 0,
    "topics": [
     "财务经营"
@@ -855592,7 +856647,7 @@
     "BigQuery",
     "Google Cloud"
    ],
-   "heat": 61,
+   "heat": 59,
    "star": false,
    "importance": 70,
    "signal": 0,
@@ -855973,7 +857028,7 @@
    "translation_status": "failed",
    "source_content_hash": "3907a79213df9e15b816330c",
    "quality_score": 70,
-   "trend_score": 54
+   "trend_score": 50
   },
   {
    "event_id": "ba8377c644db",
@@ -947032,20 +948087,9 @@
   {
    "name": "爱分析",
    "ok": true,
-   "new": 4,
-   "fetched": 7,
-   "eligible": 5,
-   "prefiltered": 2,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 2,
-    "excluded": 0
-   },
-   "skipped_seen": 1,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:283m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 12.0,
@@ -947061,20 +948105,9 @@
   {
    "name": "OpenAI News",
    "ok": true,
-   "new": 5,
-   "fetched": 20,
-   "eligible": 6,
-   "prefiltered": 14,
-   "prefilter_dropped": {
-    "time": 7,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 7,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": true,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1003m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -947089,19 +948122,8 @@
    "name": "Claude 官方博客",
    "ok": true,
    "new": 0,
-   "fetched": 0,
-   "eligible": 0,
-   "prefiltered": 0,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "skipped": true,
+   "skip_reason": "frequency_gate:1003m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -947115,20 +948137,9 @@
   {
    "name": "Anthropic Economic Index",
    "ok": true,
-   "new": 2,
-   "fetched": 12,
-   "eligible": 12,
-   "prefiltered": 0,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 10,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1003m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -947146,20 +948157,9 @@
   {
    "name": "Indeed Hiring Lab",
    "ok": true,
-   "new": 2,
-   "fetched": 10,
-   "eligible": 3,
-   "prefiltered": 7,
-   "prefilter_dropped": {
-    "time": 7,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 1,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1003m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -947175,20 +948175,9 @@
   {
    "name": "Josh Bersin",
    "ok": true,
-   "new": 3,
-   "fetched": 20,
-   "eligible": 3,
-   "prefiltered": 17,
-   "prefilter_dropped": {
-    "time": 16,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 1
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1003m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -947207,19 +948196,8 @@
    "name": "AIHR",
    "ok": true,
    "new": 0,
-   "fetched": 10,
-   "eligible": 0,
-   "prefiltered": 10,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 4,
-    "excluded": 6
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "skipped": true,
+   "skip_reason": "frequency_gate:1003m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -947237,20 +948215,9 @@
   {
    "name": "Handshake Network Trends",
    "ok": true,
-   "new": 2,
-   "fetched": 11,
-   "eligible": 5,
-   "prefiltered": 6,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 6,
-    "excluded": 0
-   },
-   "skipped_seen": 3,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1003m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -947268,7 +948235,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:815m_remaining",
+   "skip_reason": "frequency_gate:378m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 48.0,
@@ -947287,7 +948254,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:815m_remaining",
+   "skip_reason": "frequency_gate:378m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 48.0,
@@ -947304,20 +948271,9 @@
   {
    "name": "ADP Research",
    "ok": true,
-   "new": 2,
-   "fetched": 10,
-   "eligible": 6,
-   "prefiltered": 4,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 4,
-    "excluded": 0
-   },
-   "skipped_seen": 1,
-   "limit_reached": true,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1003m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -947334,19 +948290,8 @@
    "name": "Workday Newsroom",
    "ok": true,
    "new": 0,
-   "fetched": 5,
-   "eligible": 0,
-   "prefiltered": 5,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 5,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "skipped": true,
+   "skip_reason": "frequency_gate:1003m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -947366,7 +948311,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:815m_remaining",
+   "skip_reason": "frequency_gate:378m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 48.0,
@@ -947386,7 +948331,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:815m_remaining",
+   "skip_reason": "frequency_gate:378m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 48.0,
@@ -947616,12 +948561,12 @@
   {
    "name": "ClickHouse Blog",
    "ok": true,
-   "new": 1,
+   "new": 0,
    "fetched": 20,
-   "eligible": 6,
-   "prefiltered": 14,
+   "eligible": 5,
+   "prefiltered": 15,
    "prefilter_dropped": {
-    "time": 14,
+    "time": 15,
     "missing_date": 0,
     "path": 0,
     "keyword": 0,
@@ -947724,20 +948669,9 @@
   {
    "name": "人人都是产品经理",
    "ok": true,
-   "new": 5,
-   "fetched": 15,
-   "eligible": 15,
-   "prefiltered": 0,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": true,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1003m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -947782,20 +948716,9 @@
   {
    "name": "InfoQ 中文",
    "ok": true,
-   "new": 5,
-   "fetched": 20,
-   "eligible": 5,
-   "prefiltered": 15,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 15,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1003m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -947811,7 +948734,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:862m_remaining",
+   "skip_reason": "frequency_gate:425m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -947825,20 +948748,9 @@
   {
    "name": "极客公园",
    "ok": true,
-   "new": 4,
-   "fetched": 20,
-   "eligible": 18,
-   "prefiltered": 2,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 2,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": true,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1003m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -947852,20 +948764,9 @@
   {
    "name": "量子位",
    "ok": true,
-   "new": 2,
-   "fetched": 10,
-   "eligible": 2,
-   "prefiltered": 8,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 8,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1003m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -947879,20 +948780,9 @@
   {
    "name": "InfoQ（AI/数据工程）",
    "ok": true,
-   "new": 2,
-   "fetched": 15,
-   "eligible": 15,
-   "prefiltered": 0,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 13,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:283m_remaining",
    "control": {
     "tier": "media_targeted",
     "fetch_interval_hours": 12.0,
@@ -947906,20 +948796,9 @@
   {
    "name": "TechCrunch AI",
    "ok": true,
-   "new": 3,
-   "fetched": 20,
-   "eligible": 3,
-   "prefiltered": 17,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 17,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1003m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -947933,20 +948812,9 @@
   {
    "name": "The Verge AI",
    "ok": true,
-   "new": 3,
-   "fetched": 10,
-   "eligible": 3,
-   "prefiltered": 7,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 7,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1003m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -947960,20 +948828,9 @@
   {
    "name": "Hacker News（数据关键词）",
    "ok": true,
-   "new": 1,
-   "fetched": 11,
-   "eligible": 1,
-   "prefiltered": 10,
-   "prefilter_dropped": {
-    "time": 10,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:283m_remaining",
    "control": {
     "tier": "community_targeted",
     "fetch_interval_hours": 12.0,
@@ -947987,20 +948844,9 @@
   {
    "name": "Bluesky 数据社区",
    "ok": true,
-   "new": 6,
-   "fetched": 6,
-   "eligible": 6,
-   "prefiltered": 0,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:283m_remaining",
    "control": {
     "tier": "community_targeted",
     "fetch_interval_hours": 12.0,
@@ -948014,7 +948860,7 @@
   {
    "name": "Snowflake Engineering（Medium）",
    "ok": true,
-   "new": 3,
+   "new": 0,
    "fetched": 10,
    "eligible": 10,
    "prefiltered": 0,
@@ -948025,7 +948871,7 @@
     "keyword": 0,
     "excluded": 0
    },
-   "skipped_seen": 7,
+   "skipped_seen": 10,
    "limit_reached": false,
    "schedule_reason": "interval_elapsed",
    "control": {
@@ -948043,12 +948889,12 @@
   {
    "name": "Microsoft Power BI（Power Platform Blog）",
    "ok": true,
-   "new": 1,
+   "new": 2,
    "fetched": 10,
-   "eligible": 4,
-   "prefiltered": 6,
+   "eligible": 5,
+   "prefiltered": 5,
    "prefilter_dropped": {
-    "time": 6,
+    "time": 5,
     "missing_date": 0,
     "path": 0,
     "keyword": 0,
@@ -948073,19 +948919,8 @@
    "name": "Hex Blog",
    "ok": true,
    "new": 0,
-   "fetched": 424,
-   "eligible": 6,
-   "prefiltered": 418,
-   "prefilter_dropped": {
-    "time": 398,
-    "missing_date": 11,
-    "path": 0,
-    "keyword": 9,
-    "excluded": 0
-   },
-   "skipped_seen": 6,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "skipped": true,
+   "skip_reason": "frequency_gate:283m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -948103,19 +948938,8 @@
    "name": "Amplitude Blog",
    "ok": true,
    "new": 0,
-   "fetched": 2086,
-   "eligible": 0,
-   "prefiltered": 2086,
-   "prefilter_dropped": {
-    "time": 2085,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 1,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "skipped": true,
+   "skip_reason": "frequency_gate:283m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -948132,20 +948956,9 @@
   {
    "name": "Netflix Technology Blog",
    "ok": true,
-   "new": 1,
-   "fetched": 10,
-   "eligible": 3,
-   "prefiltered": 7,
-   "prefilter_dropped": {
-    "time": 5,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 2,
-    "excluded": 0
-   },
-   "skipped_seen": 2,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:283m_remaining",
    "control": {
     "tier": "engineering_targeted",
     "fetch_interval_hours": 12.0,
@@ -948161,20 +948974,9 @@
   {
    "name": "Google Cloud Data Analytics Blog",
    "ok": true,
-   "new": 1,
-   "fetched": 8,
-   "eligible": 8,
-   "prefiltered": 0,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 7,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:283m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -948224,19 +949026,8 @@
    "name": "Google Looker Release Notes",
    "ok": true,
    "new": 0,
-   "fetched": 20,
-   "eligible": 3,
-   "prefiltered": 17,
-   "prefilter_dropped": {
-    "time": 14,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 3,
-    "excluded": 0
-   },
-   "skipped_seen": 3,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "skipped": true,
+   "skip_reason": "frequency_gate:283m_remaining",
    "control": {
     "tier": "structured_high",
     "fetch_interval_hours": 12.0,
@@ -948254,19 +949045,8 @@
    "name": "Microsoft Fabric Blog",
    "ok": true,
    "new": 0,
-   "fetched": 10,
-   "eligible": 0,
-   "prefiltered": 10,
-   "prefilter_dropped": {
-    "time": 10,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "skipped": true,
+   "skip_reason": "frequency_gate:283m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -948315,19 +949095,8 @@
    "name": "Apache Iceberg Blog",
    "ok": true,
    "new": 0,
-   "fetched": 17,
-   "eligible": 0,
-   "prefiltered": 17,
-   "prefilter_dropped": {
-    "time": 17,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "skipped": true,
+   "skip_reason": "frequency_gate:283m_remaining",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 12.0,
@@ -948344,19 +949113,8 @@
    "name": "TiDB Blog",
    "ok": true,
    "new": 0,
-   "fetched": 10,
-   "eligible": 2,
-   "prefiltered": 8,
-   "prefilter_dropped": {
-    "time": 8,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 2,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "skipped": true,
+   "skip_reason": "frequency_gate:283m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -948374,19 +949132,8 @@
    "name": "Apache Doris Blog",
    "ok": true,
    "new": 0,
-   "fetched": 20,
-   "eligible": 0,
-   "prefiltered": 20,
-   "prefilter_dropped": {
-    "time": 20,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "skipped": true,
+   "skip_reason": "frequency_gate:283m_remaining",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -948403,109 +949150,110 @@
   }
  ],
  "structured_content": {
-  "run_id": "github-40780939397-1",
-  "attempted": 7,
-  "ready": 7,
-  "figures": 20,
-  "tables": 10,
-  "media_cached": 10,
-  "media_link_only": 10,
-  "candidate_duplicates": 37,
-  "candidate_quality_rejected": 15,
+  "run_id": "github-40825316154-1",
+  "attempted": 8,
+  "ready": 8,
+  "figures": 5,
+  "tables": 4,
+  "media_cached": 1,
+  "media_link_only": 4,
+  "candidate_duplicates": 55,
+  "candidate_quality_rejected": 22,
   "strategies": {
-   "nested_content": 1,
+   "article": 3,
    "semantic_container": 3,
-   "rss_document_fallback": 3
+   "nested_content": 1,
+   "rss_document_fallback": 1
   },
   "quality_statuses": {
-   "pass": 7
+   "pass": 8
   },
   "content_modes": {
-   "original": 7
+   "original": 8
   },
   "fallbacks": {},
   "by_source": {
-   "Google Cloud Data Analytics Blog": {
+   "Snowflake Release Notes": {
+    "attempted": 3,
+    "ready": 3,
+    "figures": 0,
+    "tables": 4,
+    "media_cached": 0
+   },
+   "Fivetran Blog": {
     "attempted": 1,
     "ready": 1,
-    "figures": 1,
-    "tables": 3,
+    "figures": 0,
+    "tables": 0,
+    "media_cached": 0
+   },
+   "Mercer Insights": {
+    "attempted": 1,
+    "ready": 1,
+    "figures": 0,
+    "tables": 0,
     "media_cached": 0
    },
    "Databricks Blog": {
-    "attempted": 1,
-    "ready": 1,
-    "figures": 2,
-    "tables": 0,
-    "media_cached": 2
-   },
-   "ClickHouse Blog": {
-    "attempted": 1,
-    "ready": 1,
+    "attempted": 2,
+    "ready": 2,
     "figures": 1,
-    "tables": 7,
+    "tables": 0,
     "media_cached": 0
    },
-   "InfoQ（AI/数据工程）": {
+   "Microsoft Power BI（Power Platform Blog）": {
     "attempted": 1,
     "ready": 1,
-    "figures": 2,
+    "figures": 4,
     "tables": 0,
-    "media_cached": 0
-   },
-   "Snowflake Engineering（Medium）": {
-    "attempted": 3,
-    "ready": 3,
-    "figures": 14,
-    "tables": 0,
-    "media_cached": 8
+    "media_cached": 1
    }
   },
   "catalog": {
-   "events": 758,
-   "structured": 713,
-   "renderable": 712,
-   "current_pass": 706,
+   "events": 756,
+   "structured": 711,
+   "renderable": 710,
+   "current_pass": 704,
    "parser_debt": 7,
    "display_trimmed": 0,
    "display_suspect": 0,
    "embedded_ui_trimmed": 0,
    "embedded_ui_blocks": 0,
    "modes": {
-    "original": 209,
-    "translated": 504,
+    "original": 210,
+    "translated": 501,
     "ai_fallback": 15,
     "editorial_excerpt": 17,
     "missing": 13
    },
    "processor_versions": {
-    "original-first-v7": 741,
+    "original-first-v7": 739,
     "missing": 17
    }
   },
   "metadata_backfill": {
    "limit": 3,
-   "eligible": 86,
-   "attempted": 0,
+   "eligible": 88,
+   "attempted": 3,
    "complete": 0,
-   "deferred_budget": 1,
+   "deferred_budget": 0,
    "skipped": 0,
-   "failed": 0
+   "failed": 3
   },
   "backfill": {
    "foreign_limit": 6,
-   "eligible": 110,
+   "eligible": 113,
    "attempted": 12,
-   "ready": 0,
-   "original": 0,
+   "ready": 6,
+   "original": 6,
    "translated": 0,
-   "deferred_foreign": 12,
-   "deferred_budget": 12,
+   "deferred_foreign": 6,
+   "deferred_budget": 2,
    "stored_original_retries": 12,
    "parser_debt_eligible": 7,
    "skipped": 0,
    "failed": 0,
-   "planned": 0
+   "planned": 6
   },
   "media_refresh": {
    "policy_version": "source-cdn-v1",
@@ -948518,7 +949266,7 @@
   },
   "article_ui_cleanup": {
    "policy_version": "article-chrome-v3",
-   "scanned": 751,
+   "scanned": 754,
    "cleaned_events": 0,
    "removed_blocks": 0
   }

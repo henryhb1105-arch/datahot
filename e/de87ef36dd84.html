@@ -770,6 +770,9 @@ main,.layout>*,.hotlist>*{min-width:0}
 }
 .content-footer{max-width:700px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin:20px auto 0}
 .disclaimer{flex:1;font-size:12px;color:var(--sub)}
+.article-review-note{margin:18px 0;padding:12px 16px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;font-size:13px;color:var(--txt2)}
+.article-review-note p{margin:5px 0;line-height:1.7}
+.article-review-note a{display:inline-flex;align-items:center;min-height:44px;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
 .original-footer-link{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:7px 12px;border-radius:99px;color:var(--blue);font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap}
 .original-footer-link:focus-visible,.meta-source-link:focus-visible,.article-toc-mobile summary:focus-visible,.article-toc-mobile a:focus-visible,.article-toc-rail a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:1199px){.article-layout.has-toc{display:block}.article-layout.has-toc .article-content{margin:0 auto}.article-toc-rail{display:none}.article-toc-mobile{display:block}}
@@ -859,6 +862,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span title="发布时间">发布 2026-10-02 22:01</span>
     <span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 10-03</span>
   </div>
+  <aside class="article-review-note" aria-label="正文状态"><strong>正文待核验</strong><p>当前收录正文的完整性尚未确认；已有原文或译文仍保留，阅读时请对照来源核实。</p><a href="https://medium.com/snowflake/converting-snowflake-native-tables-to-iceberg-part-1-603fdb0fdcd1?source=rss----34b6daafc07---4" target="_blank" rel="noopener noreferrer" data-analytics="outbound">对照原文 →</a></aside>
   <section class="tts-player" id="ttsPlayer" data-tts-player data-duration="54" hidden aria-label="文章精华朗读">
   <audio data-tts-audio preload="none" src="../audio/2026/10/de87ef36dd84-602cf128a41cb6d7.mp3"></audio>
   <div class="tts-copy"><b>DataHot 主播</b><span data-tts-status>约 1 分钟精华朗读</span></div>
@@ -874,7 +878,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <details class="article-brief" open>
   <summary>DataHot 速览</summary>
   <div class="article-brief-body"><p>本文分两部分，第一部分讨论为何以及如何将 Snowflake 原生表转换为 Iceberg。Snowflake 原生表在性能优化、灾备、复制和治理方面集成最完整，适合纯 Snowflake 负载。但企业环境需要 Spark、Trino、Athena、Databricks、DuckDB 等多引擎读写同一 Iceberg 表，避免 ETL 复制带来延迟和复杂度。Iceberg 生态更复杂、功能仍有差距，通常总拥有成本更高，需要权衡。</p>
-  <p class="brief-why"><b>为什么值得关注：</b>帮助数据平台团队理解 Snowflake 原生表与 Iceberg 的取舍，适合做湖仓开放格式选型与迁移决策。</p></div>
+  <p class="brief-why"><b>原收录理由（待核验）：</b>帮助数据平台团队理解 Snowflake 原生表与 Iceberg 的取舍，适合做湖仓开放格式选型与迁移决策。</p></div>
 </details>
   <details class="article-toc-mobile"><summary>本文目录 <span>17 节</span></summary><ol><li class="toc-level-3"><a href="#article-section-1" data-toc-link data-toc-target="article-section-1">为什么要转换为 Iceberg？</a></li><li class="toc-level-3"><a href="#article-section-2" data-toc-link data-toc-target="article-section-2">转换前评估</a></li><li class="toc-level-4"><a href="#article-section-3" data-toc-link data-toc-target="article-section-3">选择从哪里开始</a></li><li class="toc-level-3"><a href="#article-section-4" data-toc-link data-toc-target="article-section-4">谁将消费你的表？</a></li><li class="toc-level-3"><a href="#article-section-5" data-toc-link data-toc-target="article-section-5">数据类型兼容性</a></li><li class="toc-level-3"><a href="#article-section-6" data-toc-link data-toc-target="article-section-6">默认值和序列</a></li><li class="toc-level-3"><a href="#article-section-7" data-toc-link data-toc-target="article-section-7">TIMESTAMP_TZ</a></li><li class="toc-level-3"><a href="#article-section-8" data-toc-link data-toc-target="article-section-8">排序规则</a></li><li class="toc-level-3"><a href="#article-section-9" data-toc-link data-toc-target="article-section-9">流和变更数据捕获</a></li><li class="toc-level-3"><a href="#article-section-10" data-toc-link data-toc-target="article-section-10">表交换</a></li><li class="toc-level-3"><a href="#article-section-11" data-toc-link data-toc-target="article-section-11">选择你的转换技术</a></li><li class="toc-level-3"><a href="#article-section-12" data-toc-link data-toc-target="article-section-12">Iceberg 版本（V2 与 V3）</a></li><li class="toc-level-3"><a href="#article-section-13" data-toc-link data-toc-target="article-section-13">分区与聚簇</a></li><li class="toc-level-3"><a href="#article-section-14" data-toc-link data-toc-target="article-section-14">存储序列化策略</a></li><li class="toc-level-3"><a href="#article-section-15" data-toc-link data-toc-target="article-section-15">存储：Snowflake 管理 vs 客户管理</a></li><li class="toc-level-3"><a href="#article-section-16" data-toc-link data-toc-target="article-section-16">Iceberg 数据库默认值</a></li><li class="toc-level-3"><a href="#article-section-17" data-toc-link data-toc-target="article-section-17">转换前总结</a></li></ol></details>
   <section class="content-section" aria-labelledby="articleBodyTitle">

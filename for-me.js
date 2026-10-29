@@ -66,7 +66,9 @@
     var ranked = personalized ? allRanked.filter(function (event) { return relevant(event, state); }) : allRanked;
     var unread = ranked.filter(function (event) { return !isRead(event, state); });
     var cutoff = now - 7 * 86400000;
-    var picks = unread.filter(function(event) {return eventTime(event) >= cutoff || inferred(event,state).length;});
+    var picks = unread.filter(function(event) {
+      return event.body_review_required !== true && (eventTime(event) >= cutoff || inferred(event,state).length);
+    });
     var must = picks.slice(0, 3), used = new Set(must.map(function (event) {return event.event_id;}));
     var updates = unread.filter(function (event) {
       return !used.has(event.event_id) && (baseline ? isNewSince(event, baseline) : eventTime(event, "first_seen") >= cutoff);
@@ -224,6 +226,21 @@
     return eventTime(event, "first_seen") > since;
   }
 
+  // Collection time is not publication time: an older reference can be newly added.
+  function readerContext(event, baseline, now) {
+    var published = eventTime(event, "published");
+    var collected = eventTime(event, "first_seen");
+    var recent = published > 0 && published <= now && published >= now - 7 * 86400000;
+    var date = published ? String(event.published).slice(0, 10) : collected ? String(event.first_seen).slice(0, 10) : "";
+    return {
+      badge: isNewSince(event, baseline) ? "新收录" : "",
+      date: date,
+      dateLabel: date ? (published ? "发布 " : "收录 ") + date : "日期未注明",
+      reason: event.body_review_required === true ? "正文完整性待核验 · 建议对照原文阅读"
+        : recent ? "近 7 天发布 · 数据与 AI 领域动态" : "延伸阅读 · 数据工作参考"
+    };
+  }
+
   function buildSuggestions(events, products) {
     var topicCounts = Object.create(null);
     var vendorCounts = Object.create(null);
@@ -356,27 +373,30 @@
       var focusLabel = event.focus && event.focus.id !== "other" ? event.focus.label : "";
       var badge = element("span", "fm-signal-badge", event.body_review_required === true ? "正文待核验" : (priority ? "优先推荐" : String(focusLabel || event.category_label || "动态")));
       top.appendChild(badge);
-      if (isNewSince(event, baseline)) top.appendChild(element("span", "fm-new", "新"));
-      var sourceText = (event.items || []).length > 1 ? (event.items.length + " 个来源") : (primarySource(event) || "DataHot");
-      top.appendChild(element("span", "fm-source", sourceText));
-      var published = String(event.published || event.first_seen || "").slice(0,10);
-      if (/^\d{4}-\d{2}-\d{2}$/.test(published)) {
-        var date = element("time", "fm-source", published);date.dateTime=published;top.appendChild(date);
+      var contextInfo = readerContext(event, baseline, Date.now());
+      if (contextInfo.badge) {
+        var newBadge = element("span", "fm-new", contextInfo.badge);
+        newBadge.title = "上次访问后收录；原文发布日期见右侧";
+        top.appendChild(newBadge);
       }
+      var date = element(contextInfo.date ? "time" : "span", "fm-date", contextInfo.dateLabel);
+      if (contextInfo.date) date.dateTime = contextInfo.date;
+      top.appendChild(date);
       article.appendChild(top);
+      var sourceText = (event.items || []).length > 1 ? (event.items.length + " 个来源") : (primarySource(event) || "DataHot");
+      article.appendChild(element("div", "fm-source", sourceText));
 
       var link = element("a", "fm-signal-title", String(event.zh_title || "未命名变化"));
       link.href = "e/" + encodeURIComponent(id) + ".html";
       link.addEventListener("click", function () { state.read[id] = new Date().toISOString(); saveState(); });
       article.appendChild(link);
-      if (event.body_review_required === true) article.appendChild(element("p", "fm-signal-summary", "正文待核验 · 请先核对原文"));
       if (event.zh_summary) article.appendChild(element("p", "fm-signal-summary", String(event.zh_summary)));
 
       var reasons = matchReasons(event, state), learned = inferred(event, state)[0];
       var why = learned
         ? "接着你" + (learned.reason === "阅读" ? "读过" : learned.reason === "收藏" ? "收藏" : "认为有用") + "的《" + String(learned.sourceTitle || "文章").slice(0,55) + "》 · 共同讨论：" + learned.value
         : reasons.length ? "与你选择的 " + reasons.map(followLabel).join("、") + " 相关"
-        : (context === "discovery" ? "关注范围之外的近期内容，帮助发现新方向" : "公共精选 · 近期重要变化");
+        : (context === "discovery" ? "关注范围之外 · " : "") + contextInfo.reason;
       var whyNode = element("div", "fm-why");
       whyNode.appendChild(element("span", "fm-why-label", event.body_review_required === true ? "待核验线索" : (context === "discovery" ? "发现新方向" : "为你推荐")));
       whyNode.appendChild(element("span", "", why));
@@ -514,7 +534,7 @@
       refs.must.querySelector("p").textContent = personalized ? "相关内容优先 · 保留原文日期" : "先读内容，逐渐了解你";
       renderCards(refs.mustList, must, 3, personalized);
       refs.feed.hidden = !feed.length;
-      doc.getElementById("fmFeedTitle").textContent = personalized ? "你关注的新变化" : "继续发现";
+      doc.getElementById("fmFeedTitle").textContent = personalized ? "你关注的新收录" : "继续发现";
       refs.feed.querySelector(".fm-section-head p").hidden = !personalized;
       renderCards(refs.feedList, feed, 12, false);
       refs.must.hidden = !must.length;
@@ -542,8 +562,8 @@
       renderWatch(ranked);
       var weekAgo = now - 7 * 86400000;
       refs.weeklyCount.textContent = personalized
-        ? ranked.filter(function (event) { return eventTime(event) >= weekAgo; }).length + " 条关注变化"
-        : "本周公共回顾";
+        ? "近 7 天 " + ranked.filter(function (event) { return eventTime(event) >= weekAgo; }).length + " 条关注变化"
+        : "查看最新已发布周报";
     }
 
     function showNotice(message, undo) {
@@ -651,6 +671,7 @@
     scoreEvent: scoreEvent,
     rankEvents: rankEvents,
     isNewSince: isNewSince,
+    readerContext: readerContext,
     buildSuggestions: buildSuggestions,
     boot: boot
   };

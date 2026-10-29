@@ -766,6 +766,9 @@ main,.layout>*,.hotlist>*{min-width:0}
 }
 .content-footer{max-width:700px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin:20px auto 0}
 .disclaimer{flex:1;font-size:12px;color:var(--sub)}
+.article-review-note{margin:18px 0;padding:12px 16px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;font-size:13px;color:var(--txt2)}
+.article-review-note p{margin:5px 0;line-height:1.7}
+.article-review-note a{display:inline-flex;align-items:center;min-height:44px;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
 .original-footer-link{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:7px 12px;border-radius:99px;color:var(--blue);font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap}
 .original-footer-link:focus-visible,.meta-source-link:focus-visible,.article-toc-mobile summary:focus-visible,.article-toc-mobile a:focus-visible,.article-toc-rail a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:1199px){.article-layout.has-toc{display:block}.article-layout.has-toc .article-content{margin:0 auto}.article-toc-rail{display:none}.article-toc-mobile{display:block}}
@@ -855,6 +858,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span title="发布时间">发布 2026-10-02 08:00</span>
     
   </div>
+  <aside class="article-review-note" aria-label="正文状态"><strong>正文待核验</strong><p>当前收录正文的完整性尚未确认；已有原文或译文仍保留，阅读时请对照来源核实。</p><a href="https://duckdb.org/2026/10/02/dimension-tables.html" target="_blank" rel="noopener noreferrer" data-analytics="outbound">对照原文 →</a></aside>
   <section class="tts-player" id="ttsPlayer" data-tts-player data-duration="56" hidden aria-label="文章精华朗读">
   <audio data-tts-audio preload="none" src="../audio/2026/10/fad0d9b82b18-110913f8ce45f075.mp3"></audio>
   <div class="tts-copy"><b>DataHot 主播</b><span data-tts-status>约 1 分钟精华朗读</span></div>
@@ -870,7 +874,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <details class="article-brief" open>
   <summary>DataHot 速览</summary>
   <div class="article-brief-body"><p>DuckDB 官方博客以荷兰铁路 train services 数据集为例，说明分析查询中重复字符串会带来大量哈希与比较开销：该表有 380,959 行，但 station_name 仅 537 个不同值，例如 Amsterdam Centraal 出现 7,591 次。文章建议采用数仓星型模式，把每个不同字符串映射为小整数，仅在最后再查回字符串，从而减少分组聚合时逐行处理完整字符串的成本。原文展示了可直接从 URL 查询 Parquet、建表并 GROUP BY station_name 的示例。</p>
-  <p class="brief-why"><b>为什么值得关注：</b>面向数据从业者，提供 DuckDB 查询优化与维度建模结合的具体实践，有助于降低分析工作负载的字符串聚合成本。</p></div>
+  <p class="brief-why"><b>原收录理由（待核验）：</b>面向数据从业者，提供 DuckDB 查询优化与维度建模结合的具体实践，有助于降低分析工作负载的字符串聚合成本。</p></div>
 </details>
   <details class="article-toc-mobile"><summary>本文目录 <span>15 节</span></summary><ol><li class="toc-level-2"><a href="#article-section-1" data-toc-link data-toc-target="article-section-1">背景</a></li><li class="toc-level-2"><a href="#article-section-2" data-toc-link data-toc-target="article-section-2">为什么按字符串分组代价高昂</a></li><li class="toc-level-2"><a href="#article-section-3" data-toc-link data-toc-target="article-section-3">构建带排序窄键的维度表</a></li><li class="toc-level-3"><a href="#article-section-4" data-toc-link data-toc-target="article-section-4">第 1 步：度量基数</a></li><li class="toc-level-3"><a href="#article-section-5" data-toc-link data-toc-target="article-section-5">第 2 步：构建维度表</a></li><li class="toc-level-3"><a href="#article-section-6" data-toc-link data-toc-target="article-section-6">第 3 步：将键存储在事实表中</a></li><li class="toc-level-2"><a href="#article-section-7" data-toc-link data-toc-target="article-section-7">查询编码后的表</a></li><li class="toc-level-2"><a href="#article-section-8" data-toc-link data-toc-target="article-section-8">衡量效果</a></li><li class="toc-level-2"><a href="#article-section-9" data-toc-link data-toc-target="article-section-9">变体</a></li><li class="toc-level-3"><a href="#article-section-10" data-toc-link data-toc-target="article-section-10">与 ENUM 的比较</a></li><li class="toc-level-3"><a href="#article-section-11" data-toc-link data-toc-target="article-section-11">多个字符串列</a></li><li class="toc-level-3"><a href="#article-section-12" data-toc-link data-toc-target="article-section-12">保持维度表最新</a></li><li class="toc-level-2"><a href="#article-section-13" data-toc-link data-toc-target="article-section-13">窄键不会减少分组数量</a></li><li class="toc-level-2"><a href="#article-section-14" data-toc-link data-toc-target="article-section-14">当该模式没有帮助时</a></li><li class="toc-level-2"><a href="#article-section-15" data-toc-link data-toc-target="article-section-15">结论</a></li></ol></details>
   <section class="content-section" aria-labelledby="articleBodyTitle">

@@ -770,6 +770,9 @@ main,.layout>*,.hotlist>*{min-width:0}
 }
 .content-footer{max-width:700px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin:20px auto 0}
 .disclaimer{flex:1;font-size:12px;color:var(--sub)}
+.article-review-note{margin:18px 0;padding:12px 16px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;font-size:13px;color:var(--txt2)}
+.article-review-note p{margin:5px 0;line-height:1.7}
+.article-review-note a{display:inline-flex;align-items:center;min-height:44px;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
 .original-footer-link{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:7px 12px;border-radius:99px;color:var(--blue);font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap}
 .original-footer-link:focus-visible,.meta-source-link:focus-visible,.article-toc-mobile summary:focus-visible,.article-toc-mobile a:focus-visible,.article-toc-rail a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:1199px){.article-layout.has-toc{display:block}.article-layout.has-toc .article-content{margin:0 auto}.article-toc-rail{display:none}.article-toc-mobile{display:block}}
@@ -858,13 +861,14 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span title="发布时间">发布 2026-08-19 22:01</span>
     <span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 08-22</span>
   </div>
+  <aside class="article-review-note" aria-label="正文状态"><strong>正文待核验</strong><p>当前收录正文的完整性尚未确认；已有原文或译文仍保留，阅读时请对照来源核实。</p><a href="https://medium.com/snowflake/sub-second-on-a-billion-rows-which-snowflake-warehouse-actually-keeps-up-16ea0e73e627?source=rss----34b6daafc07---4" target="_blank" rel="noopener noreferrer" data-analytics="outbound">对照原文 →</a></aside>
 
   <p class="reading-local-note" style="font-size:12px;color:var(--sub);margin:12px 0">有效阅读仅保存在当前浏览器，用于「为你」推荐；<a href="../for-me.html#reading-settings">暂停或清除记录</a>。</p>
   
   <details class="article-brief" open>
   <summary>DataHot 速览</summary>
   <div class="article-brief-body"><p>Manychat 数据工程团队在 Snowflake 上对九种计算配置做了服务端基准测试，从托管 Postgres 到 Interactive Analytics，并用近十亿事件的生产级数据集模拟面向数百万用户的实时看板查询。结果表明，真正决定能否在亚秒级返回的不是仓库规格上调，而是通过聚类键等数据布局实现的分区裁剪（pruning）；同时还暴露出编译、缓存局部性和超大工作集这三个新的性能边界。</p>
-  <p class="brief-why"><b>为什么值得关注：</b>为数据从业者提供了一份完整的 Snowflake 亚秒级查询基准方法和调优思路：在扩容之前先优化数据裁剪，成本与性能收益更直接。</p></div>
+  <p class="brief-why"><b>原收录理由（待核验）：</b>为数据从业者提供了一份完整的 Snowflake 亚秒级查询基准方法和调优思路：在扩容之前先优化数据裁剪，成本与性能收益更直接。</p></div>
 </details>
   <details class="article-toc-mobile"><summary>本文目录 <span>19 节</span></summary><ol><li class="toc-level-3"><a href="#article-section-1" data-toc-link data-toc-target="article-section-1">阵容</a></li><li class="toc-level-3"><a href="#article-section-2" data-toc-link data-toc-target="article-section-2">基准测试设置</a></li><li class="toc-level-4"><a href="#article-section-3" data-toc-link data-toc-target="article-section-3">数据集</a></li><li class="toc-level-4"><a href="#article-section-4" data-toc-link data-toc-target="article-section-4">工作负载层级</a></li><li class="toc-level-4"><a href="#article-section-5" data-toc-link data-toc-target="article-section-5">查询：加性和非加性类</a></li><li class="toc-level-4"><a href="#article-section-6" data-toc-link data-toc-target="article-section-6">日期范围窗口</a></li><li class="toc-level-4"><a href="#article-section-7" data-toc-link data-toc-target="article-section-7">并发</a></li><li class="toc-level-4"><a href="#article-section-8" data-toc-link data-toc-target="article-section-8">两种状态：热和冷</a></li><li class="toc-level-4"><a href="#article-section-9" data-toc-link data-toc-target="article-section-9">我们遵循的其他测量规则</a></li><li class="toc-level-3"><a href="#article-section-10" data-toc-link data-toc-target="article-section-10">数据</a></li><li class="toc-level-4"><a href="#article-section-11" data-toc-link data-toc-target="article-section-11">Q1 — 唯一订阅者数（COUNT DISTINCT，单次扫描）</a></li><li class="toc-level-4"><a href="#article-section-12" data-toc-link data-toc-target="article-section-12">Q2 — 参与率（基于SUM的比率，单次扫描）</a></li><li class="toc-level-4"><a href="#article-section-13" data-toc-link data-toc-target="article-section-13">Q3 — 内容表现（GROUP BY + COUNT DISTINCT）</a></li><li class="toc-level-4"><a href="#article-section-14" data-toc-link data-toc-target="article-section-14">Q4 — 同期对比增量（COUNT DISTINCT，双扫描）</a></li><li class="toc-level-4"><a href="#article-section-15" data-toc-link data-toc-target="article-section-15">为什么交互式胜出：c=1下的内幕</a></li><li class="toc-level-4"><a href="#article-section-16" data-toc-link data-toc-target="article-section-16">并发与故障</a></li><li class="toc-level-4"><a href="#article-section-17" data-toc-link data-toc-target="article-section-17">冷启动：按需与常驻</a></li><li class="toc-level-3"><a href="#article-section-18" data-toc-link data-toc-target="article-section-18">那么选择哪个？</a></li><li class="toc-level-3"><a href="#article-section-19" data-toc-link data-toc-target="article-section-19">结论：先修剪，按尾部调整大小</a></li></ol></details>
   <section class="content-section" aria-labelledby="articleBodyTitle">

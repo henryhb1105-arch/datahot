@@ -770,6 +770,9 @@ main,.layout>*,.hotlist>*{min-width:0}
 }
 .content-footer{max-width:700px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin:20px auto 0}
 .disclaimer{flex:1;font-size:12px;color:var(--sub)}
+.article-review-note{margin:18px 0;padding:12px 16px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;font-size:13px;color:var(--txt2)}
+.article-review-note p{margin:5px 0;line-height:1.7}
+.article-review-note a{display:inline-flex;align-items:center;min-height:44px;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
 .original-footer-link{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:7px 12px;border-radius:99px;color:var(--blue);font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap}
 .original-footer-link:focus-visible,.meta-source-link:focus-visible,.article-toc-mobile summary:focus-visible,.article-toc-mobile a:focus-visible,.article-toc-rail a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:1199px){.article-layout.has-toc{display:block}.article-layout.has-toc .article-content{margin:0 auto}.article-toc-rail{display:none}.article-toc-mobile{display:block}}
@@ -859,6 +862,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span title="发布时间">发布 2026-10-14 03:01</span>
     
   </div>
+  <aside class="article-review-note" aria-label="正文状态"><strong>正文待核验</strong><p>当前收录正文的完整性尚未确认；已有原文或译文仍保留，阅读时请对照来源核实。</p><a href="https://medium.com/snowflake/snowflake-privatelink-connectivity-account-authorization-endpoint-pinning-and-network-policies-1a782a7ef5f5?source=rss----34b6daafc07---4" target="_blank" rel="noopener noreferrer" data-analytics="outbound">对照原文 →</a></aside>
   <section class="tts-player" id="ttsPlayer" data-tts-player data-duration="56" hidden aria-label="文章精华朗读">
   <audio data-tts-audio preload="none" src="../audio/2026/10/07d1a43e95cd-686733f35997982d.mp3"></audio>
   <div class="tts-copy"><b>DataHot 主播</b><span data-tts-status>约 1 分钟精华朗读</span></div>
@@ -874,7 +878,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <details class="article-brief" open>
   <summary>DataHot 速览</summary>
   <div class="article-brief-body"><p>本文聚焦 AWS PrivateLink 入站连接到 Snowflake 服务，指出私有连接实际由多个彼此独立的控制项组成：AWS 账户授权、端点级绑定（pinning）、网络策略白名单以及 Snowflake 认证。文章通过架构图区分流量路径与控制平面，并分两道关卡说明：先授权 AWS 账户，再将 VPCE ID 注册绑定到特定的 Snowflake 账户。文中还回答了几个常见疑问：授权某个 AWS 账户不会自动绑定端点，TLS 连接成功并不代表该端点被允许，AWS PrivateLink 也不提供限制单一消费者账户可创建 VPCE 数量的可配置配额。</p>
-  <p class="brief-why"><b>为什么值得关注：</b>面向数据平台运维与安全从业者，清晰拆解 Snowflake 私有连接的多层控制与常见误判，有助于正确配置与审计网络访问。</p></div>
+  <p class="brief-why"><b>原收录理由（待核验）：</b>面向数据平台运维与安全从业者，清晰拆解 Snowflake 私有连接的多层控制与常见误判，有助于正确配置与审计网络访问。</p></div>
 </details>
   <details class="article-toc-mobile"><summary>本文目录 <span>17 节</span></summary><ol><li class="toc-level-4"><a href="#article-section-1" data-toc-link data-toc-target="article-section-1">阅读架构图</a></li><li class="toc-level-4"><a href="#article-section-2" data-toc-link data-toc-target="article-section-2">流量路径</a></li><li class="toc-level-4"><a href="#article-section-3" data-toc-link data-toc-target="article-section-3">控制平面</a></li><li class="toc-level-3"><a href="#article-section-4" data-toc-link data-toc-target="article-section-4">三种 PrivateLink 控制</a></li><li class="toc-level-4"><a href="#article-section-5" data-toc-link data-toc-target="article-section-5">1. AWS 账户授权</a></li><li class="toc-level-4"><a href="#article-section-6" data-toc-link data-toc-target="article-section-6">2. VPCE 账户绑定</a></li><li class="toc-level-4"><a href="#article-section-7" data-toc-link data-toc-target="article-section-7">3. 网络策略允许列表</a></li><li class="toc-level-3"><a href="#article-section-8" data-toc-link data-toc-target="article-section-8">Snowflake 身份验证与网络可达性</a></li><li class="toc-level-3"><a href="#article-section-9" data-toc-link data-toc-target="article-section-9">常见误解与错误解读</a></li><li class="toc-level-3"><a href="#article-section-10" data-toc-link data-toc-target="article-section-10">常见结果</a></li><li class="toc-level-4"><a href="#article-section-11" data-toc-link data-toc-target="article-section-11">1. 服务端点预配失败</a></li><li class="toc-level-4"><a href="#article-section-12" data-toc-link data-toc-target="article-section-12">2. TLS 成功，但未证明 Snowflake 登录</a></li><li class="toc-level-4"><a href="#article-section-13" data-toc-link data-toc-target="article-section-13">3. 第二个 VPCE 到达同一个 Snowflake 账户</a></li><li class="toc-level-4"><a href="#article-section-14" data-toc-link data-toc-target="article-section-14">4. 错误 390431：失败 : 被固定的私有链接端点阻止</a></li><li class="toc-level-4"><a href="#article-section-15" data-toc-link data-toc-target="article-section-15">5. 错误 390422：INCOMING_REQUEST_BLOCKED</a></li><li class="toc-level-3"><a href="#article-section-16" data-toc-link data-toc-target="article-section-16">结论</a></li><li class="toc-level-3"><a href="#article-section-17" data-toc-link data-toc-target="article-section-17">公开参考资料</a></li></ol></details>
   <section class="content-section" aria-labelledby="articleBodyTitle">

@@ -770,6 +770,9 @@ main,.layout>*,.hotlist>*{min-width:0}
 }
 .content-footer{max-width:700px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin:20px auto 0}
 .disclaimer{flex:1;font-size:12px;color:var(--sub)}
+.article-review-note{margin:18px 0;padding:12px 16px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;font-size:13px;color:var(--txt2)}
+.article-review-note p{margin:5px 0;line-height:1.7}
+.article-review-note a{display:inline-flex;align-items:center;min-height:44px;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
 .original-footer-link{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:7px 12px;border-radius:99px;color:var(--blue);font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap}
 .original-footer-link:focus-visible,.meta-source-link:focus-visible,.article-toc-mobile summary:focus-visible,.article-toc-mobile a:focus-visible,.article-toc-rail a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:1199px){.article-layout.has-toc{display:block}.article-layout.has-toc .article-content{margin:0 auto}.article-toc-rail{display:none}.article-toc-mobile{display:block}}
@@ -858,13 +861,14 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span title="发布时间">发布 2026-09-24 03:01</span>
     <span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 09-26</span>
   </div>
+  <aside class="article-review-note" aria-label="正文状态"><strong>正文待核验</strong><p>当前收录正文的完整性尚未确认；已有原文或译文仍保留，阅读时请对照来源核实。</p><a href="https://medium.com/snowflake/event-driven-glue-catalog-registration-for-snowflake-managed-iceberg-tables-35f3556d3358?source=rss----34b6daafc07---4" target="_blank" rel="noopener noreferrer" data-analytics="outbound">对照原文 →</a></aside>
 
   <p class="reading-local-note" style="font-size:12px;color:var(--sub);margin:12px 0">有效阅读仅保存在当前浏览器，用于「为你」推荐；<a href="../for-me.html#reading-settings">暂停或清除记录</a>。</p>
   
   <details class="article-brief" open>
   <summary>DataHot 速览</summary>
   <div class="article-brief-body"><p>Snowflake在2025_01 BCR版本中为托管的Iceberg表引入新写入路径，会在基础路径后追加8位随机后缀以保证表删除重建时的唯一性，导致Glue crawler抓取到 customers_f0xgvx1a 这类杂乱表名，影响用户写SQL探索数据。Glue本身不提供关闭该后缀或重命名的设置，作者在无法采用新Catalog服务的前提下，改用事件驱动方式将近实时地把表直接注册进Glue Catalog，成本仅每天几美分。文章也提示，已采用Horizon Catalog或其他兼容REST API的Catalog的组织不必自建此方案。</p>
-  <p class="brief-why"><b>为什么值得关注：</b>面向受限于既有AWS技术栈、无法引入新Catalog服务的数据团队，给出绕开Glue crawler随机后缀问题的可落地工程做法。</p></div>
+  <p class="brief-why"><b>原收录理由（待核验）：</b>面向受限于既有AWS技术栈、无法引入新Catalog服务的数据团队，给出绕开Glue crawler随机后缀问题的可落地工程做法。</p></div>
 </details>
   <details class="article-toc-mobile"><summary>本文目录 <span>9 节</span></summary><ol><li class="toc-level-4"><a href="#article-section-1" data-toc-link data-toc-target="article-section-1">在没有 Glue 爬虫的情况下，以近乎实时的方式消除随机后缀问题，每天只需几美分。</a></li><li class="toc-level-3"><a href="#article-section-2" data-toc-link data-toc-target="article-section-2">在构建此方案之前：请考虑 Horizon Catalog</a></li><li class="toc-level-3"><a href="#article-section-3" data-toc-link data-toc-target="article-section-3">解决方案：无需爬虫的事件驱动注册</a></li><li class="toc-level-3"><a href="#article-section-4" data-toc-link data-toc-target="article-section-4">驱动此架构的关键原则：</a></li><li class="toc-level-3"><a href="#article-section-5" data-toc-link data-toc-target="article-section-5">实现</a></li><li class="toc-level-3"><a href="#article-section-6" data-toc-link data-toc-target="article-section-6">已验证的内容</a></li><li class="toc-level-3"><a href="#article-section-7" data-toc-link data-toc-target="article-section-7">成本与性能</a></li><li class="toc-level-3"><a href="#article-section-8" data-toc-link data-toc-target="article-section-8">何时使用哪种方法</a></li><li class="toc-level-3"><a href="#article-section-9" data-toc-link data-toc-target="article-section-9">结论</a></li></ol></details>
   <section class="content-section" aria-labelledby="articleBodyTitle">

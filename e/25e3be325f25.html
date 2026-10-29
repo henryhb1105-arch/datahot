@@ -770,6 +770,9 @@ main,.layout>*,.hotlist>*{min-width:0}
 }
 .content-footer{max-width:700px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin:20px auto 0}
 .disclaimer{flex:1;font-size:12px;color:var(--sub)}
+.article-review-note{margin:18px 0;padding:12px 16px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;font-size:13px;color:var(--txt2)}
+.article-review-note p{margin:5px 0;line-height:1.7}
+.article-review-note a{display:inline-flex;align-items:center;min-height:44px;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
 .original-footer-link{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:7px 12px;border-radius:99px;color:var(--blue);font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap}
 .original-footer-link:focus-visible,.meta-source-link:focus-visible,.article-toc-mobile summary:focus-visible,.article-toc-mobile a:focus-visible,.article-toc-rail a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:1199px){.article-layout.has-toc{display:block}.article-layout.has-toc .article-content{margin:0 auto}.article-toc-rail{display:none}.article-toc-mobile{display:block}}
@@ -859,6 +862,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span title="发布时间">发布 2026-10-17 03:01</span>
     
   </div>
+  <aside class="article-review-note" aria-label="正文状态"><strong>正文待核验</strong><p>当前收录正文的完整性尚未确认；已有原文或译文仍保留，阅读时请对照来源核实。</p><a href="https://medium.com/snowflake/governing-sensitive-data-exports-in-snowflake-data-movement-policies-and-a-custom-guardrail-layer-2582dea6fc62?source=rss----34b6daafc07---4" target="_blank" rel="noopener noreferrer" data-analytics="outbound">对照原文 →</a></aside>
   <section class="tts-player" id="ttsPlayer" data-tts-player data-duration="56" hidden aria-label="文章精华朗读">
   <audio data-tts-audio preload="none" src="../audio/2026/10/25e3be325f25-d35eb4600dd18a47.mp3"></audio>
   <div class="tts-copy"><b>DataHot 主播</b><span data-tts-status>约 1 分钟精华朗读</span></div>
@@ -874,7 +878,7 @@ main,.layout>*,.hotlist>*{min-width:0}
   <details class="article-brief" open>
   <summary>DataHot 速览</summary>
   <div class="article-brief-body"><p>文章介绍在 Snowflake 中治理健康相关数据对外共享的敏感数据导出。方案结合原生 Data Movement Policies（需 Enterprise Edition 或更高）与基于 Snowflake SQL 的自定义导出服务，用于阻止风险字段组合并动态抑制小计数（如 5、10、20 阈值）。两层统一写入审计轨迹，并由 Cortex Agent 用自然语言回答治理问题，同时防止 AI 代理读取受监管数据。原型数据均为合成数据。</p>
-  <p class="brief-why"><b>为什么值得关注：</b>对数据从业者，展示如何用 Snowflake 原生策略加自定义护栏控制敏感数据导出、审计和 AI Agent 访问，适合数据治理落地参考。</p></div>
+  <p class="brief-why"><b>原收录理由（待核验）：</b>对数据从业者，展示如何用 Snowflake 原生策略加自定义护栏控制敏感数据导出、审计和 AI Agent 访问，适合数据治理落地参考。</p></div>
 </details>
   <details class="article-toc-mobile"><summary>本文目录 <span>19 节</span></summary><ol><li class="toc-level-3"><a href="#article-section-1" data-toc-link data-toc-target="article-section-1">引言</a></li><li class="toc-level-3"><a href="#article-section-2" data-toc-link data-toc-target="article-section-2">架构概览</a></li><li class="toc-level-3"><a href="#article-section-3" data-toc-link data-toc-target="article-section-3">第 1 层：原生数据移动策略</a></li><li class="toc-level-4"><a href="#article-section-4" data-toc-link data-toc-target="article-section-4">规则</a></li><li class="toc-level-4"><a href="#article-section-5" data-toc-link data-toc-target="article-section-5">策略</a></li><li class="toc-level-4"><a href="#article-section-6" data-toc-link data-toc-target="article-section-6">标签</a></li><li class="toc-level-4"><a href="#article-section-7" data-toc-link data-toc-target="article-section-7">实践中的强制执行</a></li><li class="toc-level-4"><a href="#article-section-8" data-toc-link data-toc-target="article-section-8">阻止 AI 智能体</a></li><li class="toc-level-3"><a href="#article-section-9" data-toc-link data-toc-target="article-section-9">原生控制止步之处</a></li><li class="toc-level-3"><a href="#article-section-10" data-toc-link data-toc-target="article-section-10">第 2 层：配置驱动的导出护栏</a></li><li class="toc-level-4"><a href="#article-section-11" data-toc-link data-toc-target="article-section-11">配置即数据</a></li><li class="toc-level-4"><a href="#article-section-12" data-toc-link data-toc-target="article-section-12">受治理的导出过程</a></li><li class="toc-level-4"><a href="#article-section-13" data-toc-link data-toc-target="article-section-13">两层叠加</a></li><li class="toc-level-4"><a href="#article-section-14" data-toc-link data-toc-target="article-section-14">用于即席查询的原生小单元格保护</a></li><li class="toc-level-3"><a href="#article-section-15" data-toc-link data-toc-target="article-section-15">统一审计跟踪</a></li><li class="toc-level-3"><a href="#article-section-16" data-toc-link data-toc-target="article-section-16">位于审计跟踪之上的治理助手</a></li><li class="toc-level-3"><a href="#article-section-17" data-toc-link data-toc-target="article-section-17">经验教训</a></li><li class="toc-level-3"><a href="#article-section-18" data-toc-link data-toc-target="article-section-18">结论</a></li><li class="toc-level-4"><a href="#article-section-19" data-toc-link data-toc-target="article-section-19">参考资料</a></li></ol></details>
   <section class="content-section" aria-labelledby="articleBodyTitle">

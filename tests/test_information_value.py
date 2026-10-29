@@ -26,6 +26,24 @@ def event(body, title="产品版本预览", **kwargs):
 
 
 class InformationValueTests(unittest.TestCase):
+    def test_detail_keeps_list_review_status_without_replacing_original_body(self):
+        e = event("原文仍保留：运行SQL并检查结果。", content_mode="translated")
+        e["content_parse"]["quality_status"] = "unknown"
+        e["items"][0]["link"] = "https://example.com/source"
+        before = copy.deepcopy(e)
+        html = render_detail(e, [e], "")
+        self.assertIn('aria-label="正文状态"', html)
+        self.assertIn("正文待核验</strong>", html)
+        self.assertIn("原收录理由（待核验）：", html)
+        self.assertIn("对照原文 →", html)
+        self.assertIn("原文仍保留：运行SQL并检查结果。", html)
+        self.assertEqual(e, before)
+        e["content_parse"]["quality_status"] = "pass"
+        self.assertNotIn('aria-label="正文状态"', render_detail(e, [e], ""))
+        e["content_mode"] = "editorial_excerpt"
+        e["content_parse"] = {}
+        self.assertNotIn('aria-label="正文状态"', render_detail(e, [e], ""))
+
     def test_bilingual_empty_and_marketing_announcements(self):
         bodies = [
             "我们很高兴宣布全新平台。革命性创新将释放数据潜力，赋能企业。敬请期待。",

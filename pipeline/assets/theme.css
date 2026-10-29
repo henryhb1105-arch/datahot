@@ -26,6 +26,9 @@
   --header-bg: rgba(245,244,239,.96);
   --tabbar-bg: rgba(252,252,249,.97);
   --radius: 12px;
+  --mobile-page-left: max(16px,env(safe-area-inset-left));
+  --mobile-page-right: max(16px,env(safe-area-inset-right));
+  --mobile-nav-clearance: calc(68px + env(safe-area-inset-bottom));
   /* Compatibility for product/project surfaces. */
   --border: var(--line);
   --txt: var(--ink);
@@ -348,7 +351,7 @@ a, button, input, summary { -webkit-tap-highlight-color: transparent; }
 .sidebar a.is-pending,.more-sheet a.is-pending { background: var(--accent-soft); color: var(--accent); }
 .nav-status { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 90; padding: 10px 16px; border-radius: 10px; background: var(--ink); color: var(--bg); font-size: 13px; box-shadow: 0 4px 18px rgba(0,0,0,.12); pointer-events: none; }
 .nav-status[hidden] { display: none; }
-@media(max-width:600px) { .nav-status { bottom: calc(68px + env(safe-area-inset-bottom)); max-width: calc(100% - 32px); white-space: nowrap; } }
+@media(max-width:1199px) { .nav-status { bottom: calc(68px + env(safe-area-inset-bottom)); max-width: calc(100% - 32px); } }
 
 /* Phone home: headlines first, without shrinking reading or touch targets. */
 @media(max-width:600px) {
@@ -378,4 +381,90 @@ a, button, input, summary { -webkit-tap-highlight-color: transparent; }
   .home-page .home-filters { margin-bottom: 8px; }
   .home-page #timeline .day-head { padding: 8px 0; }
   .home-page .item { padding: 14px 0; }
+}
+
+/* One control language across discovery, personal feeds and saved reading. */
+.tlsearch,.favorites-search,.cases-search {
+  min-height: 44px; border-radius: 10px; background: var(--card); color: var(--ink);
+  border: 1px solid var(--line); font-size: 14px;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.tlsearch:focus,.favorites-search:focus,.cases-search:focus {
+  border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); outline: 0;
+}
+.tlsearch::placeholder,.favorites-search::placeholder,.cases-search::placeholder {
+  color: var(--sub); opacity: 1;
+}
+.favorites-filter,.cases-filter { border-radius: 8px; }
+.favorites-empty-cta { border-radius: 10px; background: var(--action); color: var(--on-action); }
+.fm-action { min-width: 44px; font-size: 13px; }
+.fm-action[aria-pressed=true] { background: var(--accent-soft); color: var(--accent); }
+.fm-customize:active,.fm-action:active,.cases-filter:active,.favorites-filter:active {
+  background: var(--accent-soft); color: var(--accent);
+}
+
+/* The navigation breakpoint is also the safe-area and floating-control breakpoint.
+   Keep content and controls inside the notch in either orientation. */
+@media(max-width:1199px) {
+  html { scroll-padding-bottom: var(--mobile-nav-clearance); }
+  body { padding-bottom: var(--mobile-nav-clearance); -webkit-text-size-adjust: 100%; }
+  body>.wrap,body>.article {
+    padding-left: var(--mobile-page-left); padding-right: var(--mobile-page-right);
+  }
+  .home-page>.wrap {
+    padding-left: var(--mobile-page-left); padding-right: var(--mobile-page-right);
+  }
+  .tabbar {
+    padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right);
+  }
+  .tabbar .ico { height: 28px; }
+  .tabbar a,.tabbar button { font-size: 12px; }
+  .fav-toast,.case-compare-bar { bottom: var(--mobile-nav-clearance); }
+  .case-compare-bar {
+    left: 50%; width: min(720px,calc(100% - var(--mobile-page-left) - var(--mobile-page-right)));
+  }
+  .back-to-top { right: var(--mobile-page-right); }
+  .more-sheet {
+    max-height: calc(100dvh - env(safe-area-inset-top) - 16px);
+    padding-left: var(--mobile-page-left); padding-right: var(--mobile-page-right);
+    overscroll-behavior: contain;
+  }
+  .more-head { position: sticky; top: -8px; z-index: 1; background: var(--card); padding: 8px 0; }
+  .fm-settings {
+    max-height: calc(100dvh - env(safe-area-inset-top) - 16px);
+    padding-left: var(--mobile-page-left); padding-right: var(--mobile-page-right);
+  }
+  .sh-sheet {
+    max-height: calc(100dvh - env(safe-area-inset-top) - 16px); overflow-y: auto;
+    padding-left: var(--mobile-page-left); padding-right: var(--mobile-page-right);
+    overscroll-behavior: contain;
+  }
+  .topbar.detail-context {
+    margin-left: calc(-1 * var(--mobile-page-left)); margin-right: calc(-1 * var(--mobile-page-right));
+    padding-left: var(--mobile-page-left); padding-right: var(--mobile-page-right);
+  }
+  /* 16px editable text avoids iOS focus zoom without disabling pinch zoom. */
+  :root body input:not([type=checkbox]):not([type=radio]):not([type=range]),
+  :root body select,:root body textarea { font-size: 16px; }
+  .favorites-filter,.cases-filter,.cases-reset,.fm-action,.fm-watch-remove,.project-manager summary {
+    min-height: 44px;
+  }
+  .favbtn { min-width: 44px; min-height: 44px; }
+  .cases-filter-groups {
+    position: fixed; top: auto; bottom: var(--mobile-nav-clearance);
+    left: var(--mobile-page-left); right: var(--mobile-page-right); width: auto;
+    max-height: calc(100dvh - var(--mobile-nav-clearance) - env(safe-area-inset-top) - 24px);
+    overflow-y: auto; overscroll-behavior: contain;
+  }
+}
+@media(max-width:600px) {
+  .for-me-page,.favorites-page,.cases-page,.topic-map-page { padding-top: 20px; }
+  .fm-hero h1,.favorites-title,.cases-head h1,.topic-map-head h1 {
+    font-size: 24px; line-height: 1.35; font-weight: 650; letter-spacing: -.025em;
+  }
+  .project-toolbar select { flex-basis: 100%; }
+  .project-toolbar>button { width: 100%; font-size: 13px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .tlsearch,.favorites-search,.cases-search { transition: none; }
 }

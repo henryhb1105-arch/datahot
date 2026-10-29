@@ -792,10 +792,11 @@ FOR_ME_CSS = """
 .fm-feed-list,.fm-discovery-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .fm-signal{display:flex;min-width:0;flex-direction:column;padding:17px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
 .fm-signal.is-read{opacity:.7}
-.fm-signal-top{display:flex;align-items:center;gap:7px;min-width:0;margin-bottom:11px}
-.fm-signal-badge,.fm-new{display:inline-flex;align-items:center;min-height:21px;padding:2px 7px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-size:10px;font-weight:800}
+.fm-signal-top{display:flex;flex-wrap:wrap;align-items:center;gap:7px;min-width:0;margin-bottom:6px}
+.fm-signal-badge,.fm-new{display:inline-flex;flex-shrink:0;white-space:nowrap;align-items:center;min-height:21px;padding:2px 7px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-size:10px;font-weight:800}
 .fm-new{background:var(--accent);color:#fff}
-.fm-source{min-width:0;margin-left:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub);font-size:10.5px}
+.fm-date{flex-shrink:0;margin-left:auto;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--sub);font-size:11px}
+.fm-source{margin-bottom:9px;overflow-wrap:anywhere;color:var(--sub);font-size:11px;line-height:1.5}
 .fm-signal-title{color:var(--ink);font-size:16px;font-weight:760;line-height:1.5;text-decoration:none}
 .fm-signal-summary{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:3;margin:9px 0 0;color:var(--txt2);font-size:12.5px;line-height:1.7}
 .fm-why{display:flex;align-items:flex-start;gap:7px;margin-top:13px;padding:9px 10px;border-radius:9px;background:var(--soft);color:var(--txt2);font-size:11.5px;line-height:1.55}
@@ -1819,11 +1820,21 @@ def render_detail(e, all_events, css, tts_item=None, product_case=None, site_roo
   <div class="fulltext">{full_paras}</div>
   {footer_html}
 </section>'''
+    review_required = promotion_review_required(e)
+    review_note = (
+        '<aside class="article-review-note" aria-label="正文状态">'
+        '<strong>正文待核验</strong><p>当前收录正文的完整性尚未确认；'
+        '已有原文或译文仍保留，阅读时请对照来源核实。</p>'
+        + (f'<a href="{main_link}" target="_blank" rel="noopener noreferrer" data-analytics="outbound">对照原文 →</a>' if main_url else '')
+        + '</aside>'
+        if review_required else ''
+    )
     brief_reason = clean_reason(e.get("reason", ""))
+    brief_reason_label = "原收录理由（待核验）：" if review_required else "为什么值得关注："
     brief_html = f'''<details class="article-brief" open>
   <summary>DataHot 速览</summary>
   <div class="article-brief-body"><p>{esc(e["zh_summary"])}</p>
-  {f'<p class="brief-why"><b>为什么值得关注：</b>{esc(brief_reason)}</p>' if brief_reason else ''}</div>
+  {f'<p class="brief-why"><b>{brief_reason_label}</b>{esc(brief_reason)}</p>' if brief_reason else ''}</div>
 </details>'''
     topic_html = (
         f'<div class="vendors article-tags" aria-label="文章主题">{vtags}</div>'
@@ -2010,6 +2021,9 @@ def render_detail(e, all_events, css, tts_item=None, product_case=None, site_roo
 }}
 .content-footer{{max-width:700px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px dashed var(--line);padding-top:10px;margin:20px auto 0}}
 .disclaimer{{flex:1;font-size:12px;color:var(--sub)}}
+.article-review-note{{margin:18px 0;padding:12px 16px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;font-size:13px;color:var(--txt2)}}
+.article-review-note p{{margin:5px 0;line-height:1.7}}
+.article-review-note a{{display:inline-flex;align-items:center;min-height:44px;color:var(--accent);text-decoration:underline;text-underline-offset:3px}}
 .original-footer-link{{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:7px 12px;border-radius:99px;color:var(--blue);font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap}}
 .original-footer-link:focus-visible,.meta-source-link:focus-visible,.article-toc-mobile summary:focus-visible,.article-toc-mobile a:focus-visible,.article-toc-rail a:focus-visible{{outline:2px solid var(--accent);outline-offset:2px}}
 @media(max-width:1199px){{.article-layout.has-toc{{display:block}}.article-layout.has-toc .article-content{{margin:0 auto}}.article-toc-rail{{display:none}}.article-toc-mobile{{display:block}}}}
@@ -2041,6 +2055,7 @@ def render_detail(e, all_events, css, tts_item=None, product_case=None, site_roo
     <span title="{'来源日期' if e.get('source_date_label') else '发布时间'}">{esc(e["source_date_label"]) if e.get("source_date_label") else (("发布 " + fmt_date(e["published"])) if e.get("published") else "收录 " + fmt_date(e.get("first_seen")))}</span>
     {f'<span style="color:var(--sub);font-size:11px" title="加入编辑精选的时间">精选于 {fmt_date(e.get("curated_at"))}</span>' if e.get("editorial_pick") and e.get("curated_at") else (f'<span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 {md(e.get("first_seen"))}</span>' if e.get("published") and e.get("first_seen") and e["published"][:10] != e["first_seen"][:10] else "")}
   </div>
+  {review_note}
 {("  " + tts_player) if tts_player else ""}
   <p class="reading-local-note" style="font-size:12px;color:var(--sub);margin:12px 0">有效阅读仅保存在当前浏览器，用于「为你」推荐；<a href="../for-me.html#reading-settings">暂停或清除记录</a>。</p>
   {case_breakdown_html}
@@ -2892,7 +2907,7 @@ def render_sources_page(events, payload, css):
     <a class="source-cta" href="https://github.com/henryhb1105-arch/datahot/issues/new" target="_blank" rel="noopener noreferrer" data-analytics="outbound">推荐新信源</a>
   </section>
 
-  <p class="source-principle">DataHot 优先收录官方发布、工程实践和有明确数据行业价值的内容；本站仅提供摘要与原文链接。</p>
+  <p class="source-principle">DataHot 优先收录官方发布、工程实践和有明确数据行业价值的内容；提供摘要、可用的原文或译文及来源链接，正文状态以文章页说明为准。</p>
 </div>
 '''
     return page_shell("信源 · DataHot", "DataHot 正在监控的公开信源与选源原则", css, body,
@@ -3023,7 +3038,7 @@ def render_for_me_page(css, data_url="data/latest-lite.json"):
     <div class="fm-empty" id="fmEmpty" hidden>近期没有更多与你相关的未读重点。可以查看工作参考、调整兴趣，或浏览热榜。</div>
 
     <section class="fm-section" id="fmFeed" aria-labelledby="fmFeedTitle">
-      <div class="fm-section-head"><h2 id="fmFeedTitle">你关注的新变化</h2><p><span id="fmVisit">近 7 天</span> · <span id="fmNewCount">—</span> 条未读</p></div>
+      <div class="fm-section-head"><h2 id="fmFeedTitle">你关注的新收录</h2><p><span id="fmVisit">近 7 天</span> · <span id="fmNewCount">—</span> 条未读</p></div>
       <div class="fm-feed-list" id="fmFeedList"></div>
     </section>
 
@@ -3039,8 +3054,8 @@ def render_for_me_page(css, data_url="data/latest-lite.json"):
     </section>
 
     <details class="fm-section"><summary>已读内容（最近排序最多 12 条）</summary><div class="fm-feed-list" id="fmReadList"></div></details>
-    <section class="fm-section" aria-label="本周回顾">
-      <a class="fm-weekly" href="{weekly_href}"><span><b>为你 · 本周回顾</b><span id="fmWeeklyCount">正在整理本周变化</span> · {weekly_label}</span><span class="fm-weekly-arrow" aria-hidden="true">→</span></a>
+    <section class="fm-section" aria-label="每周回顾">
+      <a class="fm-weekly" href="{weekly_href}"><span><b>每周回顾</b><span id="fmWeeklyCount">查看最新已发布周报</span> · {weekly_label}</span><span class="fm-weekly-arrow" aria-hidden="true">→</span></a>
     </section>
   </div>
   <noscript><div class="fm-error">为你页面需要浏览器 JavaScript 来保存本地关注。你仍可继续使用热榜、主题和周报。</div></noscript>

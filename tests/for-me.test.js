@@ -4,6 +4,35 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const forMe = require("../pipeline/assets/for-me.js");
 
+test("newly collected references preserve their old publication date without claiming recent news", () => {
+  const now = Date.parse("2026-10-29T12:00:00Z");
+  const old = { published: "2024-12-09T00:00:00Z", first_seen: "2026-10-28T00:00:00Z" };
+  const view = forMe.readerContext(old, "2026-10-27T00:00:00Z", now);
+  assert.equal(view.badge, "新收录");
+  assert.equal(view.dateLabel, "发布 2024-12-09");
+  assert.equal(view.reason, "延伸阅读 · 数据工作参考");
+  assert.equal(forMe.readerContext(old, null, now).badge, "");
+  assert.match(forMe.readerContext({...old, published: "2026-10-28"}, null, now).reason, /近 7 天发布/);
+  assert.doesNotMatch(forMe.readerContext({...old, published: "2026-11-20"}, null, now).reason, /近 7 天/);
+  assert.equal(forMe.readerContext({first_seen: old.first_seen}, null, now).dateLabel, "收录 2026-10-28");
+  assert.equal(forMe.readerContext({published: "bad"}, null, now).dateLabel, "日期未注明");
+  assert.match(forMe.readerContext({...old, body_review_required: true}, null, now).reason, /正文完整性待核验/);
+});
+
+test("recent picks prioritize readable bodies while unverified records stay discoverable", () => {
+  const now = Date.parse("2026-10-29T12:00:00Z");
+  const pending = {...event("aaaaaaaaaaaa", {published:"2026-10-28",firstSeen:"2026-10-28",topics:["Data Agent"],importance:99}), body_review_required:true};
+  const ready = event("bbbbbbbbbbbb", {published:"2026-10-27",firstSeen:"2026-10-27",topics:["Data Agent"],importance:50});
+  for (const prefs of [{}, {topics:["Data Agent"]}]) {
+    const state = forMe.normalizeState(prefs);
+    const result = forMe.sections([pending, ready], state, now, "2026-10-26");
+    assert.deepEqual(result.must.map(e=>e.event_id), [ready.event_id]);
+    assert.ok(result.ranked.some(e=>e.event_id===pending.event_id));
+    assert.ok(result.updates.some(e=>e.event_id===pending.event_id));
+    assert.equal(forMe.sections([pending],state,now,null).must.length,0);
+  }
+});
+
 function event(id, options = {}) {
   return {
     event_id: id,

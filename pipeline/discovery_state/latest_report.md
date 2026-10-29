@@ -1,16 +1,16 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-10-28T22:39:38.070404+00:00
-- 本轮原始发现：7
-- 未收录文章候选：52
-- 新信源候选：66
+- 生成时间：2026-10-29T22:53:59.640914+00:00
+- 本轮原始发现：8
+- 未收录文章候选：50
+- 新信源候选：67
 - 已收录链接去重：0
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
 
 ## 发现通道
 
 - openai_web_search: skipped · OPENAI_API_KEY 未配置
-- hn_official: ok · 0 条
+- hn_official: ok · 1 条
 - accepted_link_graph: ok · 7 条
 
 ## 优先检查的新信源
@@ -33,11 +33,12 @@
 
 ## 现有信源健康提醒
 
-- **Visier Blog** · DEGRADED · 连续失败 29 次
+- **Visier Blog** · DEGRADED · 连续失败 32 次
 
 ## 优先检查的文章
 
 - [Anthropic S-1](https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm) · hn
+- [StackOverflow now gets fewer than 1000 questions a month](https://data.stackexchange.com/stackoverflow/query/1926661) · hn
 - [3rd Yandex Cloud Data Center Was Hit](https://status.yandex.cloud/en/incidents/2136) · hn
 - [Americans' social activity has steeply declined in the past 30 years](https://www.dataforprogress.org/blog/2026/9/29/americans-social-activity-has-steeply-declined-in-the-past-30-years) · hn
 - [Improper redaction reveals Google Data Center water and electricity usage](https://www.1011now.com/2026/09/30/more-questions-than-answers-about-lincolns-google-data-center-water-electricity-usage) · hn
@@ -46,7 +47,6 @@
 - [`123456' password used in Danish CPR data breach](https://cphpost.dk/2026-10-10/news/round-up/123456-password-used-in-massive-danish-cpr-data-breach) · hn
 - [The United Kingdom generates less electricity per person than in the 1970s](https://ourworldindata.org/data-insights/electricity-generation-per-person-in-the-united-kingdom-has-fallen-by-a-third-from-its-early-2000s-peak) · hn
 - [SvelteKit 3](https://svelte.dev/blog/sveltekit-3-is-here) · hn
-- [On caring for user data: NeoVim caused Vim undo files to be deleted](https://unsung.aresluna.org/they-had-no-concept-of-a-duty-of-care-to-their-users) · hn
 - [Twelve years of distributed SQLite](https://philipotoole.com/twelve-years-of-distributed-sqlite) · hn
 - [RIP, vector database](https://turbopuffer.com/blog/rip-vector-database) · hn
 - [Banks are now trying to offload the AI data center debt they just underwrote](https://startupfortune.com/banks-are-now-trying-to-offload-the-ai-data-center-debt-they-just-underwrote) · hn

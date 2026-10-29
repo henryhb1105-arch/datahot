@@ -1,0 +1,122 @@
+{
+  "source_sha": "6e83f17324c6a050873301e1b7038c8ab50e1d25",
+  "note": "Source evidence from the live dataset. BigQuery log body and repeated item dates abbreviated; source identity retained. Other article bodies complete.",
+  "events": [
+    {
+      "event_id": "081f46c6c668",
+      "zh_title": "10.36 Release Notes: Oct 3, 2026 - Oct 7, 2026 | Snowflake Documentation",
+      "zh_summary": "Snowflake 每周版本发布说明",
+      "content_mode": "original",
+      "full_zh": "10.36 Release Notes: Oct 3, 2026 - Oct 7, 2026¶\n\nAttention\n\nThis release has completed. For differences between the in-advance and final versions of these release notes, see Release notes change log.\n\nNative App Framework updates¶\n\nGive users a direct link to an installed Snowflake Native App¶\n\nConsumers can now give business users a direct link that opens a Streamlit app or service endpoint in an installed Snowflake Native App as a standalone web page, without the rest of Snowsight. In the app toolbar, select Share to copy the link. Recipients must be Snowflake users in the consumer account with a role that has access to the app.\n\nOptionally, set the ALLOWED_INTERFACES user property to give users access to Streamlit apps only, or set the LOGIN_IDP_REDIRECT account property to sign users in through your identity provider (IdP).\n\nFor more information, see Give users a direct link to an app.\n\nData governance updates¶\n\nSchema-level data metric functions: exclude transient tables¶\n\nYou can now set EXCLUDE_TABLE_TYPES = ('TRANSIENT') on a schema-level data metric function (DMF) association so Snowflake does not associate the DMF with transient tables in the schema.\n\n'TRANSIENT' matches the table type that SHOW TABLES reports as kind. That includes tables created with CREATE TRANSIENT TABLE and tables created in a transient schema or database. Session temporary tables are not treated as 'TRANSIENT'.\n\nFor more information, see Monitor the data quality of a schema.\n\nNon-bundled behavior changes¶\n\nThe following changes aren’t part of a bundle, and therefore can’t be enabled in advance:\n\nSchema-level data metric functions skip session temporary tables. Snowflake no longer associates a schema-level DMF with session temporary tables (CREATE TEMPORARY TABLE). You don’t need to list 'TEMPORARY' in EXCLUDE_TABLE_TYPES.\n\nFor more information, see Schema-level data metric functions skip session temporary tables (Pending).\n\nRelease notes change log¶\n\nAnnouncementUpdateDateRelease notesInitial publication (preview)Oct 1, 2026Release notesFinal publicationOct 8, 2026Give users a direct link to an installed Snowflake Native AppAdded to Native App Framework updates sectionOct 8, 2026",
+      "content_parse": {
+        "status": "ready",
+        "quality_status": "pass",
+        "strategy": "article",
+        "source": "Snowflake Release Notes"
+      },
+      "items": [
+        {
+          "source": "Snowflake Release Notes",
+          "title": "10.36 Release Notes: Oct 3, 2026 - Oct 7, 2026 | Snowflake Documentation",
+          "link": "https://docs.snowflake.com/en/release-notes/2026/10_36"
+        }
+      ],
+      "category": "platform",
+      "category_label": "AI 数据平台",
+      "importance": 50,
+      "published": null
+    },
+    {
+      "event_id": "113da8bd65f9",
+      "zh_title": "Snowflake PERIOD 数据类型：用原生时间范围查询生效记录",
+      "zh_summary": "Snowflake 发布 10.32 版本说明，覆盖 2026 年 9 月 5 日至 9 月 9 日。该版本包含行为变更捆绑包 2026_07（默认禁用，管理员可启用测试）、2026_06（默认启用，可退出）和 2026_05（普遍启用，管理员不能再开关）。SQL 方面，PERIOD 数据类型正式可用，用于存储锚定的半开时间范围 [begin, end)，并提供 PERIOD_* 函数族。数据治理方面，ALTER TABLE 或 ALTER VIEW … MODIFY DATA METRIC FUNCTION 新增 FILTER 子句，可设置、替换或清除数据指标函数的行过滤条件，空括号 FILTER () 表示清除过滤。",
+      "content_mode": "translated",
+      "full_zh": "使用原生时间范围来查找生效记录、关联历史记录并分配车队运营时长。\n\n一项费率于 4 月 1 日变更。针对 2 月的报告仍应使用旧费率。若使用独立的开始和结束列，每次查询都必须重建该规则，包括结束日期是否计入。\n\nSnowflake 的 PERIOD 数据类型将这些边界存储为一个有类型的值。其 SQL 函数可让你查询某个日期是否落在某个范围内、两个范围是否重叠以及它们共享哪一部分。PERIOD 及其 函数已正式发布。\n\n下面的示例展示了三种应用：生效日期查找、历史关联和车队值勤时长报告。\n\n具有明确边界的时间范围\n\nINTERVAL 描述的是一个时长，例如八小时。PERIOD 标识的是一个具有开始和结束的范围，例如从周日晚上 10 点到周一早上 6 点的一次班次。\n\n需显式声明元素类型：PERIOD(DATE)、PERIOD(TIME) 或时间戳变体，例如 PERIOD(TIMESTAMP_NTZ)。Snowflake 还支持 TIMESTAMP_LTZ 和 TIMESTAMP_TZ 边界，对于时间和时间戳类型，支持从 0 到 9 的亚秒精度。\n\n你可以使用同一时间类型的两个值构造一个 period：\n\nSELECT PERIOD_CONSTRUCT(\n    DATE '2026-01-01', DATE '2026-04-01'\n) AS valid_during;\n\n结果为 [2026–01–01, 2026–04–01)。左方括号包含 1 月 1 日；右圆括号排除 4 月 1 日。每个 PERIOD 都使用这种半开区间约定。连续的范围可以在同一边界相接而不发生重叠。\n\n两个边界都必须是有限的，并且开始必须早于结束。空范围或反向范围均无效。NULL 边界并不意味着“仍然有效”。对于持续存在的记录，请选择适合你应用的、有文档说明的有限结束边界约定。\n\n查找某个业务日期当天生效的版本\n\n参考数据的生效日期往往与其到达日期不同。今天加载的一项费率可能适用于下个月。下周收到的一项更正可能适用于过去的某个日期。\n\n对于生效日期查找，请将每个版本的业务有效期范围与其值一起存储。此示例中，5% 的费率持续到 3 月，6% 的费率从 4 月 1 日开始：\n\nWITH rate_history AS (\n    SELECT 'RATE_A' AS rate_id, 0.05 AS rate,\n           PERIOD(DATE) '[2026-01-01, 2026-04-01)' AS valid_during\n    UNION ALL\n    SELECT 'RATE_A', 0.06,\n           PERIOD(DATE) '[2026-04-01, 2027-01-01)'\n)\nSELECT rate_id, rate\nFROM rate_history\nWHERE PERIOD_CONTAINS(valid_during, DATE '2026-02-15');\n\n该查询返回 RATE_A，值为 0.05。将查找日期改为 4 月 1 日，则返回 0.06。该边界仅属于新版本。\n\n此模式同样适用于按生效日期确定的保费或合同条款。你的摄取逻辑仍需创建并关闭版本。PERIOD 会验证每个范围，但它不会阻止同一业务键的版本发生重叠。\n\n按同一业务日期关联历史记录\n\n合同的状态和逾期余额可能在不同日期发生变化。历史报告需要各自在其报告日期适用的版本。关联它们的最新行会回答一个不同的问题。\n\n假设 contract_status 和 overdue_balances 各有一个类型为 PERIOD(DATE) 的 valid_during 列。以下查询将两个历史记录对齐到 9 月 16 日：\n\nWITH reporting_date AS (\n    SELECT DATE '2026-09-16' AS business_date\n)\nSELECT status_history.contract_id, report.business_date,\n       status_history.status, balance_history.overdue_amount\nFROM reporting_date AS report\nJOIN contract_status AS status_history\n  ON PERIOD_CONTAINS(status_history.valid_during, report.business_date)\nLEFT JOIN overdue_balances AS balance_history\n  ON balance_history.contract_id = status_history.contract_id\n AND PERIOD_CONTAINS(balance_history.valid_during, report.business_date);\n\n对于一份在整个 9 月都标记为 ACTIVE 且逾期余额在 [2026-09-10, 2026-09-20) 为 250 的合同，9 月 16 日的报告返回 ACTIVE 和 250。如果没有余额版本覆盖该日期，左连接会保留该合同，并为未匹配的余额返回 NULL。\n\n每个历史记录对于每个键和日期最多应有一个适用版本。如果你还跟踪信息被记录的时间，请针对所选的记录时间快照筛选两个历史记录。你的管道仍负责捕获该历史。用 PERIOD 谓词替换边界比较可提高可读性；任何性能收益都需要针对具体工作负载进行测试。\n\n跨报告周分配车队值勤时间\n\n一名司机从周日晚上 10 点工作到周一早上 6 点。在以周一为起始的报告周下，两小时属于上一周，六小时属于新的一周。将全部八小时都分配到班次的开始日期会误报两个周的合计值。\n\n将值勤窗口和每个报告周表示为时间戳 period，然后对它们求交集。此查询计算对新一周的贡献：\n\nWITH windows AS (\n    SELECT\n        PERIOD(TIMESTAMP_NTZ)\n          '[2026-09-13 22:00:00, 2026-09-14 06:00:00)' AS duty,\n        PERIOD(TIMESTAMP_NTZ)\n          '[2026-09-14 00:00:00, 2026-09-21 00:00:00)' AS workweek\n), allocation AS (\n    SELECT PERIOD_INTERSECT(duty, workweek) AS segment\n    FROM windows\n)\nSELECT DATEDIFF('second', PERIOD_BEGIN(segment), PERIOD_END(segment))\n           / 3600.0 AS hours_in_workweek\nFROM allocation;\n\n结果为 6。与上一周求交集返回 2，总计保留全部八小时。对于全车队报告，请将值勤记录与它们重叠的每个报告周关联，然后再对分配的小时数求和。\n\n这些合计值可用于加班风险报告和人员配置决策。相同的交集模式可用于衡量车辆的维护窗口有多大一部分落在计划运营窗口内。\n\n该示例假设采用单一、一致的时间戳基准且没有偏移量变化。生产系统需要明确的时区策略和权威值勤记录。仅凭行程遥测无法确定带薪时间或工时合规性；这些规则与范围分配保持分离。这里，DATEDIFF 测量所提取边界之间的秒数。它不是 PERIOD 到 INTERVAL 的转换。\n\n从一个范围查询开始\n\n选择一个现有的生效日期查找或重叠计算，并将其与等效的 PERIOD 表达式进行比较。这也为迁移提供了一个原生目标，用于此前用字符串或拆分边界表示的受支持范围操作。验证共享边界和缺失历史：在迁移到排除式结束边界时，包含式的 BETWEEN 谓词需要特别小心。\n\n请使用 PERIOD 文档 了解支持的类型和限制，并使用 函数参考 查看每种操作的示例。\n\n使用 Snowflake 的 PERIOD 数据类型查询时间范围 最初发布于 Snowflake Builders Blog: Data Engineers, App Developers, AI, & Data Science（发布于 Medium），人们正在通过高亮并回应这个故事来继续对话。",
+      "content_parse": {
+        "status": "ready",
+        "quality_status": "pass",
+        "strategy": "rss_document_fallback",
+        "source": "Snowflake Engineering（Medium）"
+      },
+      "items": [
+        {
+          "source": "Snowflake Engineering（Medium）",
+          "title": "Query Time Ranges With Snowflake’s PERIOD Data Type",
+          "link": "https://medium.com/snowflake/query-time-ranges-with-snowflakes-period-data-type-ce229d2306bd?source=rss----34b6daafc07---4"
+        },
+        {
+          "source": "Snowflake Release Notes",
+          "title": "10.32 Release Notes (with behavior changes): Sep 05, 2026 - Sep 09, 2026 | Snowflake Documentation",
+          "link": "https://docs.snowflake.com/en/release-notes/2026/10_32"
+        }
+      ],
+      "category": "platform",
+      "category_label": "AI 数据平台",
+      "importance": 80,
+      "published": "2026-09-22T22:01:07+08:00"
+    },
+    {
+      "event_id": "fb749e18d61f",
+      "zh_title": "用Snowflake CREATE OR ALTER告别频繁Schema变更部署疲劳",
+      "zh_summary": "Snowflake 10.27版本发布说明宣布CREATE OR ALTER DYNAMIC TABLE正式可用。该命令合并了CREATE DYNAMIC TABLE与ALTER DYNAMIC TABLE功能：若动态表不存在则按定义创建；若已存在则更新为语句定义，并尽可能保持数据不变；若定义一致则无操作。该更新属于数据管道能力。",
+      "content_mode": "translated",
+      "full_zh": "10.27 版本说明：2026年8月2日至2026年8月6日¶\n\n注意\n\n此版本已完成。有关预先版本和最终版本之间差异，请参阅版本说明变更日志。\n\n数据管道更新¶\n\nCREATE OR ALTER DYNAMIC TABLE (正式发布)¶\n\nCREATE OR ALTER DYNAMIC TABLE 现已正式发布。此命令结合了 CREATE DYNAMIC TABLE 和 ALTER DYNAMIC TABLE 的功能。如果动态表不存在，则作为 CREATE 语句运行。如果存在，则将动态表修改为与语句中的定义匹配，在可能的情况下保持数据不变。如果动态表已符合定义，则该语句不执行任何操作。\n\n有关更多信息，请参阅CREATE OR ALTER <对象>和CREATE DYNAMIC TABLE。\n\n版本说明变更日志¶\n\n公告更新日期版本说明初始发布（预览）2026年8月3日CREATE OR ALTER DYNAMIC TABLE（正式发布）添加到数据管道更新2026年8月3日版本说明最终发布2026年8月6日",
+      "content_parse": {
+        "status": "ready",
+        "quality_status": "pass",
+        "strategy": "article",
+        "source": "Snowflake Release Notes"
+      },
+      "items": [
+        {
+          "source": "Snowflake Engineering（Medium）",
+          "title": "Work Smarter not Harder with Snowflake CREATE OR ALTER",
+          "link": "https://medium.com/snowflake/work-smarter-not-harder-with-snowflake-create-or-alter-ccc6b0545618?source=rss----34b6daafc07---4"
+        },
+        {
+          "source": "Snowflake Release Notes",
+          "title": "10.27 Release Notes: Aug 2, 2026 - Aug 6, 2026 | Snowflake Documentation",
+          "link": "https://docs.snowflake.com/en/release-notes/2026/10_27"
+        }
+      ],
+      "category": "platform",
+      "category_label": "AI 数据平台",
+      "importance": 70,
+      "published": "2026-08-27T05:01:01+08:00"
+    },
+    {
+      "event_id": "dfb9071b69e0",
+      "zh_title": "BigQuery支持Gemini 3.1 Flash Lite与3.5 Flash GA模型",
+      "zh_summary": "BigQuery宣布正式支持gemini-3.1-flash-lite和gemini-3.5-flash GA模型，适用于us、eu及global多区域端点。用户可在所有生成式AI函数中使用这些模型。该更新源自BigQuery官方发布说明。",
+      "content_mode": "original",
+      "full_zh": "Java\n\n2.58.0-rc1 (2025-12-17)\n\nFeatures\n\nAdd ability to specify RetryOptions and BigQueryRetryConfig when create job and waitFor (#3398) (1f91ae7)add additional parameters to CsvOptions and ParquetOptions (#3370) (34f16fb)add columnNameCharacterMap to LoadJobConfiguration (#3356) (2f3cbe3)add max staleness to ExternalTableDefinition (#3499) (f1ebd5b)add MetadataCacheMode to ExternalTableDefinition (#3351) (2814dc4)add remaining Statement Types (#3381) (5f39b19)add WRITE_TRUNCATE_DATA as an enum value for write disposition (#3752) (acea61c)bigquery: Add custom ExceptionHandler to BigQueryOptions (#3937) (de0914d)bigquery: Add OpenTelemetry Samples (#3899) (e3d9ed9)bigquery: Add OpenTelemetry support to BQ rpcs (#3860) (e2d23c1)bigquery: Add otel metrics to request headers (#3900) (4071e4c)bigquery: Add support for custom timezones and timestamps (#3859) (e5467c9)bigquery: Add support for reservation field in jobs. (#3768) (3e97f7c)bigquery: Implement getArray in BigQueryResultImpl (#3693) (e2a3f2c)bigquery: Integrate Otel in client lib (#3747) (6e3e07a)bigquery: Integrate Otel into retries, jobs, and more (#3842) (4b28c47)bigquery: job creation mode GA (#3804) (a21cde8)bigquery: Sup",
+      "content_parse": {
+        "status": "ready",
+        "quality_status": "pass",
+        "strategy": "nested_content",
+        "source": "Google BigQuery Release Notes"
+      },
+      "items": [
+        {
+          "source": "Google BigQuery Release Notes",
+          "title": "August 10, 2026",
+          "link": "https://docs.cloud.google.com/bigquery/docs/release-notes#August_10_2026"
+        },
+        {
+          "source": "Google BigQuery Release Notes",
+          "title": "August 11, 2026",
+          "link": "https://docs.cloud.google.com/bigquery/docs/release-notes#August_11_2026"
+        },
+        {
+          "source": "Google BigQuery Release Notes",
+          "title": "August 12, 2026",
+          "link": "https://docs.cloud.google.com/bigquery/docs/release-notes#August_12_2026"
+        }
+      ],
+      "category": "platform",
+      "category_label": "AI 数据平台",
+      "importance": 70,
+      "published": "2026-10-27T15:00:00+08:00"
+    }
+  ]
+}

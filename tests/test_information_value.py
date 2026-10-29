@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "pipeline"))
-from information_value import information_value, promotion_review_required, suppress_from_lists
+from information_value import information_value, is_release_note, promotion_review_required, suppress_from_lists
 from lite_data import is_list_eligible, lite_event, select_timeline_events
 from agent_feed import build_agent_feed, recommended_push
 from feed import build_atom_feed
@@ -168,7 +168,98 @@ class InformationValueTests(unittest.TestCase):
         for e in fixtures:
             with self.subTest(id=e["event_id"]):
                 self.assertEqual(information_value(e)["status"], expected.get(e["event_id"], "substantive"))
-                self.assertEqual(suppress_from_lists(e), expected.get(e["event_id"]) == "low_information")
+                self.assertEqual(suppress_from_lists(e), expected.get(e["event_id"]) == "low_information"
+                                 or e["event_id"] in {"445685a78953", "056b832755fa", "7b6deb18642c"})
+
+
+class ReleaseNoteTests(unittest.TestCase):
+    def release(self):
+        e = event("Now supports JSON input. The bundle is disabled by default.")
+        e["items"] = [{"source": "Example Release Notes", "title": "October 09, 2026",
+                       "link": "https://example.com/docs/release-notes#October_09_2026"}]
+        return e
+
+    def test_format_exclusion_is_independent_of_scores_and_body_quality(self):
+        e = self.release()
+        e.update(importance=99, star=True, editorial_pick=True)
+        self.assertEqual(information_value(e)["status"], "substantive")
+        self.assertTrue(is_release_note(e))
+        self.assertFalse(is_list_eligible(e))
+        e["content_parse"] = {"status": "failed"}
+        self.assertTrue(suppress_from_lists(e))
+        self.assertTrue(promotion_review_required(e))
+        self.assertEqual(information_value(e)["status"], "insufficient_body")
+
+    def test_log_sources_paths_and_bilingual_document_headings(self):
+        for item in [
+            {"source": "某产品更新日志"}, {"source": "Example Changelog"},
+            {"link": "https://example.com/docs/release_notes/2026/2.1"},
+            {"link": "https://example.com/docs/changelog.html"},
+            {"title": "10.37 Release Notes (with behavior changes): Oct 08, 2026"},
+            {"title": "10.27 版本说明：2026年8月2日至2026年8月6日"},
+        ]:
+            with self.subTest(item=item):
+                e = event("现在支持JSON格式。")
+                e["items"] = [item]
+                self.assertTrue(suppress_from_lists(e))
+
+    def test_mentions_and_general_release_articles_are_not_excluded(self):
+        for title, link in [
+            ("How to read release notes", "https://example.com/blog/how-to-read-release-notes"),
+            ("Release notes are not a substitute for tutorials", "https://example.com/blog/writing"),
+            ("DuckDB 2.0 release: query optimizer internals", "https://example.com/releases/2.0"),
+            ("New storage design", "https://example.com/blog/design?ref=/release-notes/"),
+        ]:
+            e = event("现在支持JSON格式。技术解读引用版本说明作为参考。", title=title)
+            e["items"] = [{"source": "Engineering Blog", "title": title, "link": link}]
+            self.assertFalse(suppress_from_lists(e), title)
+
+    def test_selected_document_provenance_wins_over_related_release_source(self):
+        e = self.release()
+        e["items"].insert(0, {"source": "Engineering Blog", "title": "Query design tutorial",
+                             "link": "https://example.com/blog/tutorial"})
+        e["content_parse"]["source"] = "Engineering Blog"
+        self.assertFalse(suppress_from_lists(e))
+        e["content_parse"]["source"] = "Example Release Notes"
+        self.assertTrue(suppress_from_lists(e))
+        del e["content_parse"]["source"]
+        self.assertFalse(suppress_from_lists(e))
+        e["full_zh"] = "10.27 版本说明：2026年8月2日\n\n现在支持JSON格式。"
+        self.assertTrue(suppress_from_lists(e))
+
+    def test_metadata_edits_reclassify_and_editorial_notes_remain_available(self):
+        e = self.release()
+        self.assertTrue(suppress_from_lists(e))
+        e["items"] = [{"source": "Engineering Blog", "title": "Query design tutorial"}]
+        self.assertFalse(suppress_from_lists(e))
+        e = self.release()
+        e["content_mode"] = "editorial_excerpt"
+        self.assertFalse(suppress_from_lists(e))
+
+    def test_surfaces_exclude_logs_without_destroying_saved_detail_or_body(self):
+        e = self.release()
+        before = copy.deepcopy(e)
+        self.assertEqual(select_timeline_events([e]), [])
+        self.assertEqual(rank_hot_events([e], reference_time=e["published"]), [])
+        self.assertEqual(build_agent_feed([e], e["published"], site_base="https://datahot.xiahongbin.com")["events"], [])
+        self.assertEqual(select_weekly_evidence([e], "2026-10-26", "2026-11-01"), [])
+        atom = build_atom_feed([e], e["published"], site_base="https://datahot.xiahongbin.com")
+        self.assertEqual(ET.fromstring(atom).findall("{http://www.w3.org/2005/Atom}entry"), [])
+        self.assertTrue(lite_event(e)["promotion_suppressed"])
+        origin = event("真实正文", title="相邻文章")
+        origin["event_id"] = "origin"
+        self.assertEqual(select_related_events(origin, [e]), [])
+        self.assertIn("Now supports JSON input", render_detail(e, [e], ""))
+        self.assertEqual(e, before)
+        with patch.dict(os.environ, {"LOW_INFORMATION_FILTER_ENABLED": "false"}):
+            self.assertTrue(is_list_eligible(e))
+
+    def test_live_mixed_sources_preserve_period_tutorial_but_remove_selected_log(self):
+        fixtures = json.loads((ROOT / "tests/fixtures/release_notes.json").read_text())["events"]
+        for e in fixtures:
+            with self.subTest(id=e["event_id"]):
+                self.assertEqual(is_release_note(e), e["event_id"] != "113da8bd65f9")
+                self.assertEqual(is_list_eligible(e), e["event_id"] == "113da8bd65f9")
 
 
 if __name__ == "__main__":

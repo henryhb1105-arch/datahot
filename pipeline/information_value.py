@@ -1,4 +1,4 @@
-"""Conservative, body-based promotion policy; never delete source material.
+"""Conservative promotion policy; never delete source material.
 
 Unknown evidence stays visible. A failed/partial extraction is a separate status,
 not a quality verdict. This deliberately does not use LLM summaries or scores as
@@ -7,8 +7,55 @@ proof of substance, since they can make a thin announcement sound useful.
 import os
 import re
 from functools import lru_cache
+from urllib.parse import unquote, urlsplit
 
-POLICY_VERSION = "information-value-v2"
+POLICY_VERSION = "information-value-v3"
+
+# Document format is independent of quality. A changelog can contain accurate
+# technical facts while still being outside the reader's discovery feed.
+_RELEASE_SOURCE = re.compile(
+    r"(?:\brelease[\s_-]*notes?|\bchange[\s_-]*logs?|发布说明|版本说明|更新日志|变更日志)\s*$", re.I
+)
+_RELEASE_PATH = re.compile(r"/(?:release[-_]?notes?|change[-_]?logs?)(?:[/.]|$)", re.I)
+_RELEASE_HEADING = re.compile(
+    r"^(?:(?:[\w .+-]{0,40}\s)?v?\d+(?:[._]\d+)+(?:[-\w.]*)?\s*)?"
+    r"(?:release[\s_-]+notes?\b|change[\s_-]*logs?\b|版本说明|发布说明|更新日志|变更日志)"
+    r"(?=\s*(?:$|[¶:：(|（\-–—]|\d))", re.I
+)
+
+
+def _release_note_item(item):
+    if _RELEASE_SOURCE.search(str(item.get("source") or "")):
+        return True
+    try:
+        path = unquote(urlsplit(str(item.get("link") or item.get("url") or "")).path)
+    except ValueError:
+        path = ""
+    return bool(_RELEASE_PATH.search(path) or _RELEASE_HEADING.search(str(item.get("title") or "").strip()))
+
+
+def is_release_note(event):
+    """Identify the selected document, not every source cited by a merged event.
+
+    Explicitly edited reading notes remain an editorial exception. A standalone
+    engineering article is not hidden just because another item cites a log.
+    """
+    if event.get("content_mode") == "editorial_excerpt":
+        return False
+    source = str((event.get("content_parse") or {}).get("source") or "")
+    if _RELEASE_SOURCE.search(source):
+        return True
+    items = event.get("items") or []
+    selected = [item for item in items if source and item.get("source") == source]
+    if selected:
+        return all(_release_note_item(item) for item in selected)
+    if items and all(_release_note_item(item) for item in items):
+        return True
+    body = str(event.get("full_zh") or event.get("article_text") or "").strip()
+    heading = body.splitlines()[0] if body else ""
+    return bool(_RELEASE_HEADING.search(heading) or (
+        not items and _RELEASE_HEADING.search(str(event.get("zh_title") or event.get("title") or ""))
+    ))
 
 
 def _has(pattern, text):
@@ -121,4 +168,6 @@ def promotion_review_required(event):
 
 
 def suppress_from_lists(event):
-    return policy_enabled() and information_value(event)["status"] == "low_information"
+    return policy_enabled() and (
+        is_release_note(event) or information_value(event)["status"] == "low_information"
+    )

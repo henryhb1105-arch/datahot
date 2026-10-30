@@ -39,14 +39,22 @@ module.exports=async function(context,base,out,width){
  assert(!evaluationIds.includes('b8c3b1774462'),'A broad semantic-layer label must not replace the reading intent');
  assert((await page.locator('#fmMustList .fm-signal').first().boundingBox()).y<200);
  assert(await page.locator('#fmMustList time').count()>0,'Older references retain visible publication dates');
- for(const id of evaluationIds){const e=data.events.find(e=>e.event_id===id);assert.equal(await page.locator(`#fmMustList [data-event-id="${id}"] time`).innerText(),String(e.published||e.first_seen).slice(0,10),'Keep source calendar date across time zones');}
+ for(const id of evaluationIds){
+  const e=data.events.find(e=>e.event_id===id);
+  const date=String(e.published||e.first_seen).slice(0,10);
+  const time=page.locator(`#fmMustList [data-event-id="${id}"] time`);
+  assert.equal(await time.getAttribute('datetime'),date,'Keep source calendar date across time zones');
+  assert.equal(await time.innerText(),(e.published?'发布 ':'收录 ')+date,'Distinguish publication from collection date');
+ }
  await page.screenshot({path:path.join(out,`${width}-reading-recommendations.png`)});
  // Counterfactual history is local to this disposable browser, not production activity.
  const actualHistory=await page.evaluate(()=>localStorage.getItem('dh_reading_v1'));
  await page.evaluate(()=>localStorage.setItem('dh_reading_v1',JSON.stringify({enabled:true,entries:{a5e85b0e5b72:[Date.now()],f2cae75df487:[Date.now()]}})));
  await feedNavigation(page, () => page.reload({waitUntil:'domcontentloaded'}));
  const metricIds=await page.locator('#fmMustList .fm-signal').evaluateAll(nodes=>nodes.map(n=>n.dataset.eventId));
- assert(metricIds.some(id=>['b8c3b1774462','1040324d5b86','17b3b16903c0'].includes(id)),'Metric definition reading must surface a different concrete need');
+ const metricReasons=await page.locator('#fmMustList .fm-why').allTextContents();
+ assert(metricReasons.some(text=>text.includes('共同讨论：指标口径与定义')),'Metric definition reading must surface its concrete intent');
+ assert(metricIds.every(id=>!data.events.find(e=>e.event_id===id)?.body_review_required),'Unverified references must not enter priority recommendations');
  assert(!metricIds.includes('40c2caf96019'));assert.notDeepEqual(metricIds,evaluationIds);
  await page.screenshot({path:path.join(out,`${width}-reading-metrics.png`)});
  await page.evaluate(history=>localStorage.setItem('dh_reading_v1',history),actualHistory);

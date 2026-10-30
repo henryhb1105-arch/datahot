@@ -318,8 +318,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 .today-hot-row+.today-hot-row{border-top:1px solid var(--soft)}
 .today-hot-rank{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:5px;background:var(--soft);color:var(--sub);font-size:10px;font-weight:800;font-variant-numeric:tabular-nums}
 .today-hot-row.is-lead .today-hot-rank{background:var(--accent);color:#fff}
-.today-hot-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;font-weight:650}
-.today-hot-row.is-lead .today-hot-title{font-weight:750}
+.today-hot-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .today-hot-heat{display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;color:var(--accent);font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 .top-rank{flex:0 0 auto;border-radius:5px;padding:2px 6px;background:var(--accent);color:#fff;font-size:10px;font-weight:800;line-height:1.3;white-space:nowrap}
 .vendor-card-head{justify-content:space-between}
@@ -340,7 +339,6 @@ main,.layout>*,.hotlist>*{min-width:0}
   .today-hot-more{font-size:11px}
   .today-hot-row{grid-template-columns:20px minmax(0,1fr) auto;gap:7px;min-height:34px;padding:0 10px}
   .today-hot-rank{width:18px;height:18px;font-size:9.5px}
-  .today-hot-title{font-size:12px}
   .today-hot-heat{font-size:10.5px}
   .top-rank{padding:2px 5px;font-size:9.5px}
 }
@@ -797,7 +795,6 @@ FOR_ME_CSS = """
 .fm-new{background:var(--accent);color:#fff}
 .fm-date{flex-shrink:0;margin-left:auto;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--sub);font-size:11px}
 .fm-source{margin-bottom:9px;overflow-wrap:anywhere;color:var(--sub);font-size:11px;line-height:1.5}
-.fm-signal-title{color:var(--ink);font-size:16px;font-weight:760;line-height:1.5;text-decoration:none}
 .fm-signal-summary{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:3;margin:9px 0 0;color:var(--txt2);font-size:12.5px;line-height:1.7}
 .fm-why{display:flex;align-items:flex-start;gap:7px;margin-top:13px;padding:9px 10px;border-radius:9px;background:var(--soft);color:var(--txt2);font-size:11.5px;line-height:1.55}
 .fm-why-label{flex:0 0 auto;color:var(--accent);font-size:10px;font-weight:850}

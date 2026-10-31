@@ -44,7 +44,7 @@ module.exports = async function(context, base, out, width) {
 
   // Small deterministic response tests reference-only and genuinely exhausted states.
   // It stays inside this disposable browser; production data is never changed.
-  const reference = {...data.events[0],event_id:'aaaaaaaaaaaa',vendors:['Cube'],topics:[],published:'2020-01-01T00:00:00Z',first_seen:'2020-01-01T00:00:00Z',shelf:'reference',focus:{practical:true}};
+  const reference = {promotion_suppressed:false,body_review_required:false,zh_title:'Synthetic durable reference',zh_summary:'Local browser reference-only fixture',reason:'Reference-only discovery acceptance',event_id:'aaaaaaaaaaaa',vendors:['Cube'],topics:[],published:'2020-01-01T00:00:00Z',first_seen:'2020-01-01T00:00:00Z',shelf:'reference',focus:{practical:true}};
   await page.route('**/data/latest-lite-columns.json*', route => route.fulfill({contentType:'application/json',body:JSON.stringify({events:[reference],products:[]})}));
   await setState({vendors:['Cube']});
   assert(await page.locator('#fmWork').isVisible());

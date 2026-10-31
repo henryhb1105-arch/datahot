@@ -1,6 +1,1027 @@
 {
- "generated_at": "2026-10-31T13:49:12.358256+08:00",
+ "generated_at": "2026-10-31T20:37:04.645937+08:00",
  "events": [
+  {
+   "event_id": "8c9218905134",
+   "zh_title": "Hex 用 DataBench 评测 Meta Muse Wonder",
+   "zh_summary": "Hex 用 DataBench 对 Meta 新发布的 Muse Wonder 模型进行评测，结果略高于 GPT-5.6 Sol 档位，但 token 效率较低，且测试时扩展表现不稳定；Hex 也表示评测框架尚未完全针对 Meta 模型优化。Hex 关注其“Active Focus”训练方向，因为它会尝试不同方法、处理阻塞点、在关键行动前确认，适合模糊而复杂的数据分析任务。文章用“昨日成功退款数”场景说明，当数据管道尚未同步时，理想的分析 Agent 应先说明约 1 小时后重跑，而不是强行给出结果。",
+   "reason": "为数据从业者提供 agentic analytics 模型的横向评测信号，并讨论分析 Agent 何时应停下、澄清和确认行动边界。",
+   "full_zh": "Meta recently released the Muse Wonder family of models, described as a “Frontier Model for Personal and Professional agents”. We ran Muse Wonder through DataBench, a frontier benchmark for agentic analytics, and benched it at slightly above GPT-5.6 Sol tier— although it is less token efficient, and displays inconsistent test-time-scaling.*\n\n* Our harness is not fully optimized for Meta's models and we believe some (not all) of this inconsistency is harness friction, we will update results as we improve.\n\nWhy were we interested in Muse Wonder over the myriad new models releasing all the time? My ears perked up specifically because of one very interesting note in their launch post about “Active Focus”:\n\nActive Focus describes how Muse Wonder continues working toward a challenging goal: trying alternative approaches, working through blockers, and adapting to new information. Along the way, it asks for clarification when needed and checks in before taking important actions.\n\nThis training angle matters a lot for the kinds of tasks we’re interested in at Hex— nuanced, challenging, vague data analysis where the best stopping point is not always obvious.\n\nIn past posts about DataBench, I’ve pointed out how when strict rules are applied in this domain, you see surprising results from models. For example, Claude Fable 5 is still unequivocally the “best” model at data analytics from a technical standpoint: in our runs it repeatedly solved puzzles explicitly designed to be impossible, bending and warping the reality of our data workspace to achieve things we did not expect could be done. Neat!\n\nBut this supergenius behavior is not actually ideal in an analytical partner for most people, and it’s penalized in DataBench judging. If you ask “how many refunds did we process successfully yesterday”, and the data isn’t synced to the warehouse yet, the optimal answer is 30 seconds of work and then: “Sorry, the pipeline hasn’t run yet for today, looks like it’ll run in about 1hr— try again then!”\n\nWhat the smartest models tend to give instead is, after 15 minutes, something like “I used a stored credential to log into the bank's reporting portal, pulled yesterday's settlement file, and reconciled it against refund confirmations people posted in #firehose-support.” Maybe it’s right, but maybe it’s not, and either way if you’d just waited an hour (45 minutes, now!) it would be simple and verified.\n\nSo carefully tuning “Active Focus” and the right level of persistence is of extreme behavioral interest to us, though I suspect it is going to be a very tricky thing to optimally dial in, based on early Muse Wonder results.\n\nMuse on DataBench\n\nDataBench puts agents to work on 100 analytical tasks in Shorelane Commerce, a deliberately messy business with a warehouse, semantic models, and accumulated organizational context.\n\nMuse Wonder performs at the middle of the pack, slightly ahead of the GPT-5.6 family and below the GPT-6 family. That’s pretty notable: every other model we’ve tested from outside OpenAI and Anthropic (including some unreported Google runs) max out around 15-20% and Muse Wonder’s best score is 45%.\n\nIt is definitely on the expensive side: at matched effort it costs roughly twice what GPT-6 Astra does. (NB: our harness is not optimized for Muse / the Meta API. In this early eval we saw clear signs of friction that almost certainly make Muse more expensive here than it needs to be. We will update if we make improvements here)\n\nLike several other models, it doesn’t scale cleanly with effort; at higher effort levels it tends to add claims that its own analysis doesn’t support. Its best score comes at xhigh (45%) and its worst at max (34%).\n\nWorking through blockers\n\nMuse’s best answers show the persistence Meta describes training for. Here’s Muse at low effort on one of the hardest tasks in the benchmark:\n\nIt hits a wall, tries three ways around it, and then reframes the question: it treats Q2 as when the fix ships and ranks 2024’s failures instead. GPT-6 Astra, on the same task, opens with “I wouldn’t commit Billing’s one fix yet.” and is generally unhelpful. Other models get this task right in only 8 of 106 runs; Muse gets it right at every effort setting from low through xhigh.\n\nIt adapts to new information well, too. One task asks: “How are the spring 2024 price cuts on Technology products working out? We need to decide what to do for 2025.” The catch: during the spring those products were labeled \"Workplace Technology,\" so filtering on the exact category name finds almost nothing. Muse’s running notes show it revising the plan as the evidence comes in, which (surprisingly) some models struggle to do well:\n\nSemantic models warn the order-line category label is non-authoritative and current product category isn't historical — so I'm hunting for the effective-dated category history before measuring anything .... ... List prices didn't actually fall in spring 2024 — the June 1 history change is only a category rename back to \"Technology\". So the cuts, if any, must be in realized order-line prices. Checking those next, on a same-product basis to avoid mix effects ... ... The spring 2024 Technology price cuts don't show up in the catalog — there were none to evaluate. That's the finding the 2025 decision should start from.\n\nLike the billing case, Muse Wonder gets this one right at every effort setting except max; more on that below.\n\nThe first sentence\n\nComparing Muse Wonder trajectories to other models, I realized that when Muse loses points, it’s often because of differences in first sentence of the final reply! The analysis is actually almost always pretty sound, but the model starts its responses by claiming something more than the data really supports.\n\nOne task asks how many current customers Marketing can contact for a reactivation email. The warehouse has email addresses but no consent or opt-out data, so the right answer is some version of \"the data can't actually tell you that, but here's the theoretical ceiling...”\n\nGPT-6 Sol correctly begins its reply with \"I can't establish how many customers Marketing could contact…\" and Opus 5.5 with \"I can't give you that number from the data we have…\" But here’s Muse at xhigh:\n\nMuse spots the missing consent data early, and its funnel is much the same as Opus’s. But its answer begins with “10,494 current customers can be contacted” and only sometimes adds a caveat in its final paragraph.\n\nThis seems like a nitpicky finding, but it matters more as busy, tokenmaxxing users skim agent outputs and run with their boldest claims. DataBench grades an answer by the takeaway a reasonable reader would act on, so a caveat at the bottom isn’t enough to salvage a wrong headline.\n\nThe GPT-6 models get this task perfectly right in 43 of 45 runs; Muse misses it at every effort setting. Only at max does it finally lead with the limit (“There isn't a defensible single \"can contact for reactivation\" count in the data”), and that run still misses on other details.\n\nAcross the benchmark, Muse’s first “caveat”, which is often a critical pillar of a response in the messy DataBench environment, typically lands about three-quarters of the way through its final answer, well after a flawed headline has been boldly delivered. Much like Claude Fable 5 it’s great at analysis, and when it misses, it’s usually by saying too much rather than by leaving something out.\n\nMore effort, more claims\n\nThis issue is exacerbated by effort scaling. More effort often makes Muse Wonder’s answers longer, not more correct. On a budget-reporting task, recorded campaign spend stops in November but the report runs to January 15. At low and medium effort, Muse notices and carefully calls the cutoff \"non-binding,\" something other models manage in only 8 of 106 runs.\n\nBut from high effort up, it fills the empty weeks with zeros instead, the same mistake GPT-6 Sol makes.\n\nMax is where this shows most. Max loses 21 tasks that xhigh got right (while picking up 10 that xhigh missed), mostly by doing the same work as xhigh and then adding a claim that work doesn’t support. On an invoice task, xhigh correctly reports paid shares of 92.5% (USD), 92.4% (CAD) and 90.7% (GBP). Max computes the same totals, then writes \"~92–93% of billed value within each currency,\" right next to GBP figures that work out to 90.7%.\n\nAgain this is finicky and nitpicky, but still clearly wrong.\n\nChecking in\n\nWhich brings us back to Active Focus, and \"checks in before taking important actions.\" At max effort, Muse sometimes does exactly that, which unfortunately causes some noise in our eval (this is our fault and we’ll update!).\n\nOn the price-cut task at max effort, it spots the renamed category and then stops: \"Checking in before I build the final 2025 recommendation — here's what the data actually shows so far…\" Four max answers open this way (none at lower settings), and DataBench, which is designed as a single-shot eval, counts these as unfinished.\n\nFrom a colleague, that check-in could be welcome! I’m not totally certain about the ideal agent behavior here— it still seems a little unnecessary in this exact task. But ultimately this check-in behavior being penalized is an unfortunate limitation of our current eval, and I’m looking forward to seeing how Muse does in a setup where it can be appropriately re-prompted.\n\nPutting everything together, Muse Wonder is the first new entrant we’ve tested that actually challenges the top two labs. Most of the places it fails are not due to bad analysis, but due to poorly claimed results or unnecessary further work.\n\nSteadier effort scaling and improved response clarity could make the Muse Wonder family quite competitive for data work. We’re very excited to keep digging into this and partnering with the Meta team!",
+   "content_blocks": [
+    {
+     "type": "paragraph",
+     "id": "b-f03f8285fe14",
+     "children": [
+      {
+       "type": "text",
+       "text": "Meta recently released the Muse Wonder family of models, described as a “Frontier Model for Personal and Professional agents”. We ran Muse Wonder through ",
+       "marks": [],
+       "id": "t-97d3abfb2e63"
+      },
+      {
+       "type": "text",
+       "text": "DataBench",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://hex.tech/databench/"
+        }
+       ],
+       "id": "t-bafd975071de"
+      },
+      {
+       "type": "text",
+       "text": ", a frontier benchmark for agentic analytics, and benched it at slightly above GPT-5.6 Sol tier— although it is less token efficient, and displays inconsistent test-time-scaling.*",
+       "marks": [],
+       "id": "t-093937e50357"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-4451c32a3ff8",
+     "children": [
+      {
+       "type": "text",
+       "text": "* Our harness is not fully optimized for Meta's models and we believe some (not all) of this inconsistency is harness friction, we will update results as we improve.",
+       "marks": [
+        "em"
+       ],
+       "id": "t-f0a6ae3fe5e4"
+      }
+     ]
+    },
+    {
+     "type": "figure",
+     "id": "b-679363fa584e",
+     "src": "https://hex.tech/_next/image/?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2Fe92memrj%2Fproduction%2F296428503e94d30561998cf293d63f09419dcdfe-3600x1890.png&w=3840&q=75",
+     "alt": "",
+     "caption": "",
+     "source_url": "https://hex.tech/blog/muse-wonder-databench/",
+     "cached_src": "../media/8c9218905134/6fe772854a5a042e0af083dd.webp",
+     "width": 2400,
+     "height": 1260,
+     "mime": "image/webp",
+     "size_bytes": 78600,
+     "media_status": "cached"
+    },
+    {
+     "type": "paragraph",
+     "id": "b-9a0f864367a3",
+     "children": [
+      {
+       "type": "text",
+       "text": "Why were we interested in Muse Wonder over the myriad new models releasing all the time? My ears perked up specifically because of one very interesting note in their ",
+       "marks": [],
+       "id": "t-614e3e6f9b49"
+      },
+      {
+       "type": "text",
+       "text": "launch post ",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://research.meta.ai/blog/muse-wonder"
+        }
+       ],
+       "id": "t-215dff3de141"
+      },
+      {
+       "type": "text",
+       "text": "about “Active Focus”:",
+       "marks": [],
+       "id": "t-073fc5285fb3"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-16674ce54015",
+     "children": [
+      {
+       "type": "text",
+       "text": "Active Focus describes how Muse Wonder continues working toward a challenging goal: trying alternative approaches, working through blockers, and adapting to new information. Along the way, it asks for clarification when needed and checks in before taking important actions.",
+       "marks": [],
+       "id": "t-c747fce58d2b"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-8f82222c6bd5",
+     "children": [
+      {
+       "type": "text",
+       "text": "This training angle matters a lot for the kinds of tasks we’re interested in at Hex— nuanced, challenging, vague data analysis where the best stopping point is not always obvious.",
+       "marks": [],
+       "id": "t-ef9bece5e950"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-3ecc0aa098d4",
+     "children": [
+      {
+       "type": "text",
+       "text": "In past posts about DataBench, I’ve pointed out how when strict rules are applied in this domain, you see surprising results from models. For example, Claude Fable 5 is still unequivocally the “best” model at data analytics from a technical standpoint: in our runs it repeatedly solved puzzles explicitly designed to be impossible, bending and warping the reality of our data workspace to achieve things we did not expect could be done. Neat!",
+       "marks": [],
+       "id": "t-0bbec70e8046"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-9b6282775a56",
+     "children": [
+      {
+       "type": "text",
+       "text": "But this supergenius behavior is not actually ideal in an analytical partner for most people, and it’s penalized in DataBench judging. If you ask “how many refunds did we process successfully yesterday”, and the data isn’t synced to the warehouse yet, the optimal answer is 30 seconds of work and then: “Sorry, the pipeline hasn’t run yet for today, looks like it’ll run in about 1hr— try again then!”",
+       "marks": [],
+       "id": "t-41d8afa82578"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-9c0500d87c3b",
+     "children": [
+      {
+       "type": "text",
+       "text": "What the smartest models tend to give instead is, after 15 minutes, something like “I used a stored credential to log into the bank's reporting portal, pulled yesterday's settlement file, and reconciled it against refund confirmations people posted in #firehose-support.” Maybe it’s right, but maybe it’s not, and either way if you’d just waited an hour (45 minutes, now!) it would be simple and verified.",
+       "marks": [],
+       "id": "t-298a9c5011fa"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-b8f4345617bb",
+     "children": [
+      {
+       "type": "text",
+       "text": "So carefully tuning “Active Focus” and the right level of persistence is of extreme behavioral interest to us, though I suspect it is going to be a very tricky thing to optimally dial in, based on early Muse Wonder results.",
+       "marks": [],
+       "id": "t-d40062e0f8fe"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-436f0a438633",
+     "children": [
+      {
+       "type": "text",
+       "text": "Muse on DataBench",
+       "marks": [],
+       "id": "t-cdc42fa63073"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-b6b753b841fc",
+     "children": [
+      {
+       "type": "text",
+       "text": "DataBench puts agents to work on 100 analytical tasks in Shorelane Commerce, ",
+       "marks": [],
+       "id": "t-38d74e878881"
+      },
+      {
+       "type": "text",
+       "text": "a deliberately messy business",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://hex.tech/blog/evaluate-data-agents/"
+        }
+       ],
+       "id": "t-317340133cc6"
+      },
+      {
+       "type": "text",
+       "text": " with a warehouse, semantic models, and accumulated organizational context.",
+       "marks": [],
+       "id": "t-e1b33e1e0a60"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-92781702f211",
+     "children": [
+      {
+       "type": "text",
+       "text": "Muse Wonder performs at the middle of the pack, slightly ahead of the GPT-5.6 family and below the GPT-6 family. That’s pretty notable: every other model we’ve tested from outside OpenAI and Anthropic (including some unreported Google runs) max out around 15-20% and Muse Wonder’s best score is 45%.",
+       "marks": [],
+       "id": "t-05f378e8839e"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-974018d17260",
+     "children": [
+      {
+       "type": "text",
+       "text": "It is definitely on the expensive side: at matched effort it costs roughly twice what GPT-6 Astra does. (NB: our harness is not optimized for Muse / the Meta API. In this early eval we saw clear signs of friction that almost certainly make Muse more expensive here than it needs to be. We will update if we make improvements here)",
+       "marks": [],
+       "id": "t-750a9a16429a"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-ca4537897459",
+     "children": [
+      {
+       "type": "text",
+       "text": "Like several other models, it doesn’t scale cleanly with effort; at higher effort levels it tends to add claims that its own analysis doesn’t support. Its best score comes at xhigh (45%) and its worst at max (34%).",
+       "marks": [],
+       "id": "t-a3d772914126"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-2dfdbfaa568b",
+     "children": [
+      {
+       "type": "text",
+       "text": "Working through blockers",
+       "marks": [],
+       "id": "t-b7a3d7e0621f"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-9eebf9af6f4f",
+     "children": [
+      {
+       "type": "text",
+       "text": "Muse’s best answers show the persistence Meta describes training for. Here’s Muse at low effort on one of the hardest tasks in the benchmark:",
+       "marks": [],
+       "id": "t-4babf3f27c44"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-214f4358d378",
+     "children": [
+      {
+       "type": "text",
+       "text": "It hits a wall, tries three ways around it, and then reframes the question: it treats Q2 as when the fix ships and ranks 2024’s failures instead. GPT-6 Astra, on the same task, opens with “I wouldn’t commit Billing’s one fix yet.” and is generally unhelpful. Other models get this task right in only 8 of 106 runs; Muse gets it right at every effort setting from low through xhigh.",
+       "marks": [],
+       "id": "t-533d8e9e1543"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-bdf95c89a532",
+     "children": [
+      {
+       "type": "text",
+       "text": "It adapts to new information well, too. One task asks: “How are the spring 2024 price cuts on Technology products working out? We need to decide what to do for 2025.” The catch: during the spring those products were labeled \"Workplace Technology,\" so filtering on the exact category name finds almost nothing. Muse’s running notes show it revising the plan as the evidence comes in, which (surprisingly) some models struggle to do well:",
+       "marks": [],
+       "id": "t-e414db12e7ed"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-fc8922d0167e",
+     "children": [
+      {
+       "type": "text",
+       "text": "Semantic models warn the order-line category label is non-authoritative and current product category isn't historical — so I'm hunting for the effective-dated category history before measuring anything .... ... List prices didn't actually fall in spring 2024 — the June 1 history change is only a category rename back to \"Technology\". So the cuts, if any, must be in realized order-line prices. Checking those next, on a same-product basis to avoid mix effects ... ... The spring 2024 Technology price cuts don't show up in the catalog — there were none to evaluate. That's the finding the 2025 decision should start from.",
+       "marks": [],
+       "id": "t-c49dfd8820b7"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-2aea65fbba20",
+     "children": [
+      {
+       "type": "text",
+       "text": "Like the billing case, Muse Wonder gets this one right at every effort setting except max; more on that below.",
+       "marks": [],
+       "id": "t-4075a55fc1ae"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-ad60be287b9f",
+     "children": [
+      {
+       "type": "text",
+       "text": "The first sentence",
+       "marks": [],
+       "id": "t-d8f8b1354304"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-c802c4c36a94",
+     "children": [
+      {
+       "type": "text",
+       "text": "Comparing Muse Wonder trajectories to other models, I realized that when Muse loses points, it’s often because of differences in first sentence of the final reply! The analysis is actually almost always pretty sound, but the model starts its responses by claiming something more than the data really supports. ",
+       "marks": [],
+       "id": "t-6199282f40eb"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-f7032e1127fa",
+     "children": [
+      {
+       "type": "text",
+       "text": "One task asks how many current customers Marketing can contact for a reactivation email. The warehouse has email addresses but no consent or opt-out data, so the right answer is some version of \"the data can't actually tell you that, but here's the theoretical ceiling...”",
+       "marks": [],
+       "id": "t-9090b2aa40f8"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-4c7c325be3ec",
+     "children": [
+      {
+       "type": "text",
+       "text": "GPT-6 Sol correctly begins its reply with \"I can't establish how many customers Marketing could contact…\" and Opus 5.5 with \"I can't give you that number from the data we have…\" But here’s Muse at xhigh:",
+       "marks": [],
+       "id": "t-6c6cbf8ac055"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-1b774ab3adaf",
+     "children": [
+      {
+       "type": "text",
+       "text": "Muse spots the missing consent data early, and its funnel is much the same as Opus’s. But its answer begins with “10,494 current customers can be contacted” and only sometimes adds a caveat in its final paragraph. ",
+       "marks": [],
+       "id": "t-524eb42e8278"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-17acc14d884f",
+     "children": [
+      {
+       "type": "text",
+       "text": "This seems like a nitpicky finding, but it matters more as busy, tokenmaxxing users skim agent outputs and run with their boldest claims. DataBench grades an answer by the takeaway a reasonable reader would act on, so a caveat at the bottom isn’t enough to salvage a wrong headline.",
+       "marks": [],
+       "id": "t-9a3ec30b106e"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-757126505af3",
+     "children": [
+      {
+       "type": "text",
+       "text": "The GPT-6 models get this task perfectly right in 43 of 45 runs; Muse misses it at every effort setting. Only at max does it finally lead with the limit (“There isn't a defensible single \"can contact for reactivation\" count in the data”), and that run still misses on other details.",
+       "marks": [],
+       "id": "t-22106c097542"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-45fe86a069e8",
+     "children": [
+      {
+       "type": "text",
+       "text": "Across the benchmark, Muse’s first “caveat”, which is often a critical pillar of a response in the messy DataBench environment, typically lands about three-quarters of the way through its final answer, well after a flawed headline has been boldly delivered. Much like Claude Fable 5 it’s great at analysis, and when it misses, it’s usually by saying too much rather than by leaving something out.",
+       "marks": [],
+       "id": "t-9f337c9cc28f"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-8869ca2a8917",
+     "children": [
+      {
+       "type": "text",
+       "text": "More effort, more claims",
+       "marks": [],
+       "id": "t-ec2bd20b90c0"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-610735a55300",
+     "children": [
+      {
+       "type": "text",
+       "text": "This issue is exacerbated by effort scaling. More effort often makes Muse Wonder’s answers longer, not more correct. On a budget-reporting task, recorded campaign spend stops in November but the report runs to January 15. At low and medium effort, Muse notices and carefully calls the cutoff \"non-binding,\" something other models manage in only 8 of 106 runs.",
+       "marks": [],
+       "id": "t-42d8ef6e757e"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-f93fff9d7198",
+     "children": [
+      {
+       "type": "text",
+       "text": "But from high effort up, it fills the empty weeks with zeros instead, the same mistake GPT-6 Sol makes.",
+       "marks": [],
+       "id": "t-8732e0135ad5"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-5cd67064bc23",
+     "children": [
+      {
+       "type": "text",
+       "text": "Max is where this shows most. Max loses 21 tasks that xhigh got right (while picking up 10 that xhigh missed), mostly by doing the same work as xhigh and then adding a claim that work doesn’t support. On an invoice task, xhigh correctly reports paid shares of 92.5% (USD), 92.4% (CAD) and 90.7% (GBP). Max computes the same totals, then writes \"~92–93% of billed value ",
+       "marks": [],
+       "id": "t-74be6ac33bf9"
+      },
+      {
+       "type": "text",
+       "text": "within",
+       "marks": [
+        "em"
+       ],
+       "id": "t-9a611fd9b4b7"
+      },
+      {
+       "type": "text",
+       "text": " each currency,\" right next to GBP figures that work out to 90.7%. ",
+       "marks": [],
+       "id": "t-456889e7c501"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-ed9ae49eabaf",
+     "children": [
+      {
+       "type": "text",
+       "text": "Again this is finicky and nitpicky, but still clearly wrong.",
+       "marks": [],
+       "id": "t-d855159167cd"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "id": "b-fa02f06196b3",
+     "children": [
+      {
+       "type": "text",
+       "text": "Checking in",
+       "marks": [],
+       "id": "t-9c96ce6f721b"
+      }
+     ],
+     "level": 2
+    },
+    {
+     "type": "paragraph",
+     "id": "b-f5a84790e5ca",
+     "children": [
+      {
+       "type": "text",
+       "text": "Which brings us back to Active Focus, and \"checks in before taking important actions.\" At max effort, Muse sometimes does exactly that, which unfortunately causes some noise in our eval (this is our fault and we’ll update!).",
+       "marks": [],
+       "id": "t-90bec51e0aaa"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-702d90c00f22",
+     "children": [
+      {
+       "type": "text",
+       "text": "On the price-cut task at max effort, it spots the renamed category and then stops: \"Checking in before I build the final 2025 recommendation — here's what the data actually shows so far…\" Four max answers open this way (none at lower settings), and DataBench, which is designed as a single-shot eval, counts these as unfinished.",
+       "marks": [],
+       "id": "t-17539ae96290"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-5f7667b4e60e",
+     "children": [
+      {
+       "type": "text",
+       "text": "From a colleague, that check-in could be welcome! I’m not totally certain about the ideal agent behavior here— it still seems a little unnecessary in this exact task. But ultimately this check-in behavior being penalized is an unfortunate limitation of our current eval, and I’m looking forward to seeing how Muse does in a setup where it can be appropriately re-prompted.",
+       "marks": [],
+       "id": "t-7665b7d65d8b"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-633de6eea9b8",
+     "children": [
+      {
+       "type": "text",
+       "text": "Putting everything together, Muse Wonder is the first new entrant we’ve tested that actually challenges the top two labs. Most of the places it fails are not due to bad analysis, but due to poorly claimed results or unnecessary further work. ",
+       "marks": [],
+       "id": "t-077ed1f807de"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-060f6b702417",
+     "children": [
+      {
+       "type": "text",
+       "text": "Steadier effort scaling and improved response clarity could make the Muse Wonder family quite competitive for data work. We’re very excited to keep digging into this and partnering with the Meta team!",
+       "marks": [],
+       "id": "t-63c12906d39c"
+      }
+     ]
+    }
+   ],
+   "content_format": "blocks-v1",
+   "category": "agent",
+   "category_label": "Data Agent",
+   "vendors": [
+    "Hex",
+    "Meta"
+   ],
+   "heat": 33,
+   "star": false,
+   "importance": 72,
+   "quality_score": 72,
+   "trend_score": 2,
+   "signal": 0,
+   "topics": [
+    "Data Agent"
+   ],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-10-21T08:00:00+08:00",
+   "first_seen": "2026-10-31T20:37:04.645937+08:00",
+   "items": [
+    {
+     "id": "4719ea5b1a73",
+     "source": "Hex Blog",
+     "link": "https://hex.tech/blog/muse-wonder-databench/",
+     "published": "2026-10-21T08:00:00+08:00",
+     "ingested_at": "2026-10-31T20:37:04.645937+08:00",
+     "title": "Meta joins the pack | Hex"
+    }
+   ],
+   "work_tags": {
+    "taxonomy_version": "work-tags-v1",
+    "product_objects": [],
+    "use_cases": [
+     "指标问答",
+     "生产评估与运营"
+    ],
+    "decision_concerns": [
+     "准确性与语义一致性",
+     "可靠性与评估"
+    ]
+   },
+   "quality_breakdown": {
+    "originality": 22,
+    "evidence_density": 16,
+    "information_gain": 18,
+    "actionability_depth": 16
+   },
+   "content_parse": {
+    "run_id": "github-41201140505-1",
+    "processor_version": "original-first-v7",
+    "attempted_at": "2026-10-31T20:38:02.313271+08:00",
+    "status": "ready",
+    "source": "Hex Blog",
+    "strategy": "nested_content",
+    "blocks": 40,
+    "text_chars": 9798,
+    "figures": 1,
+    "tables": 0,
+    "figures_discovered": 6,
+    "figures_selected": 1,
+    "figures_rejected": 5,
+    "candidate_count": 8,
+    "figures_rejected_author": 0,
+    "figures_rejected_decorative": 0,
+    "figures_rejected_duplicate": 5,
+    "figures_rejected_small": 0,
+    "figures_rejected_limit": 0,
+    "trimmed_tail_blocks": 0,
+    "trimmed_head_blocks": 0,
+    "trimmed_promotional_blocks": 0,
+    "trimmed_embedded_ui_blocks": 0,
+    "embedded_ui_components": 0,
+    "selected_depth": 11,
+    "selected_raw_blocks": 45,
+    "selected_raw_text_chars": 9798,
+    "broad_raw_blocks": 56,
+    "broad_raw_text_chars": 10500,
+    "parent_extra_blocks": 11,
+    "candidate_count_raw": 16,
+    "candidate_duplicates": 8,
+    "candidate_quality_rejected": 3,
+    "duplicate_blocks": 0,
+    "selected_score": 1077.55,
+    "quality_status": "pass",
+    "selected_tag": "div",
+    "focus_ratio": 0.9331,
+    "link_ratio": 0.0051,
+    "duplicate_ratio": 0.0,
+    "selection_evidence": [
+     "prose_density",
+     "integrity_gate",
+     "nested_focus"
+    ],
+    "reason": "HTTPError",
+    "media": {
+     "figures": 1,
+     "cached": 1,
+     "link_only": 0,
+     "policy_version": "source-cdn-v1"
+    },
+    "content_mode": "original",
+    "source_language": "other",
+    "translation_status": "failed",
+    "source_content_hash": "4c0759129e456910c96554d4",
+    "translation": {
+     "run_id": "github-41201140505-1",
+     "policy_version": "faithful-translation-retry-v1",
+     "attempted_at": "2026-10-31T20:38:02.313307+08:00",
+     "purpose": "body_translation_backfill",
+     "status": "failed",
+     "error": "HTTPError"
+    }
+   },
+   "content_mode": "original",
+   "content_level": "original",
+   "source_language": "other",
+   "translation_status": "failed",
+   "source_content_hash": "4c0759129e456910c96554d4",
+   "body_chars": 9798
+  },
+  {
+   "event_id": "2c1ffc90ca5c",
+   "zh_title": "Google Discloses PageBreak AI Security Agent That Found 500+ XSS Bugs",
+   "zh_summary": "According to a paper published by Google, its AI-powered security agent has uncovered more than 500 XSS vulnerabilities across its web applications since entering full operation in January. PageBreak uses Gemini models to autonomously investigate potential vulnerabilities, but reports them only afte",
+   "reason": "",
+   "full_zh": "According to a paper published by Google, its AI-powered security agent has uncovered more than 500 XSS vulnerabilities across its web applications since entering full operation in January. Google PageBreak uses Gemini models to autonomously investigate potential vulnerabilities, but reports them only after deterministic validators successfully reproduce the exploit against a running application, resulting in a near-zero false-positive rate.\n\nWith PageBreak, every vulnerability hypothesis is tested against a running environment with a real exploit, such as executing JavaScript for XSS, writing to a world-readable location for path traversal, or triggering outbound DNS for RCE. Michał Bentkowski, information security engineer at Google, explains:\n\nEarly on in the development of PageBreak, we made a conscious decision to prioritize deterministic validation. Rather than simply hypothesizing bugs based on code patterns, the system closes the loop by verifying potential flaws against running environments. This approach results in a near-zero false positive rate, ensuring that we avoid overloading product teams with unverified vulnerability reports.\n\nGoogle also retains non-deterministic findings internally to seed deeper future scans, identify gaps in its validation capabilities, and guide the development of new validators. These unverified candidates are not sent to product teams, keeping their attention focused on high-confidence vulnerabilities. Bentkowski writes:\n\nWhile deterministic validation is our gold standard, we are aware that our validators are currently lacking in capabilities to cover all vulnerability types or complex scenarios. This comes with the risk of false negatives that might have otherwise been caught by non-deterministic validators.\n\nIn the separate article, \"Google’s PageBreak Project – Real-World Findings,\" on Google Bug Hunters, Bentkowski describes three technical cases found by PageBreak: an XSS vulnerability, a cache-poisoning issue caused by a service misconfiguration, and a path-traversal vulnerability. On LinkedIn, Lukas Weichselbaum, senior staff information security engineer at Google, stresses the importance of reducing false positives:\n\nA lot of AI-generated bug reports sound convincing but turn out to be wrong, and the teams that get them waste time checking each one. In PageBreak, the model can suggest whatever it likes, but a finding only counts once a validator confirms it with a real payload. The validators are plain code written by security engineers, not by the model and live outside the agent loop.\n\nBentkowski says PageBreak benefits from Google's engineering environment, particularly Google’s monorepo end-to-end code visibility, security signals that connect live HTTP traffic to source code, and existing scanning infrastructure that provides authenticated access to its web applications.\n\nWith the longer-term goal of reducing product-team involvement to validating AI-generated fixes, Google is integrating PageBreak with other agentic security initiatives such as CodeMender to automatically generate fixes for the vulnerabilities it discovers.\n\nNo independent validation of the 500+ vulnerabilities has been provided.",
+   "content_blocks": [
+    {
+     "type": "paragraph",
+     "id": "b-f0111a895b8f",
+     "children": [
+      {
+       "type": "text",
+       "text": "According to a paper published by Google, its AI-powered security agent has ",
+       "marks": [],
+       "id": "t-9ab7b5bed9a3"
+      },
+      {
+       "type": "text",
+       "text": "uncovered more than 500 XSS vulnerabilities",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://blog.google/security/agentic-hacks-real-proofs-inside-googles-pagebreak-project/"
+        }
+       ],
+       "id": "t-1919af2834b8"
+      },
+      {
+       "type": "text",
+       "text": " across its web applications since entering full operation in January. Google PageBreak uses Gemini models to autonomously investigate potential vulnerabilities, but reports them only after deterministic validators successfully reproduce the exploit against a running application, resulting in a near-zero false-positive rate.",
+       "marks": [],
+       "id": "t-9aa43999f3b3"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-1bcdac9b18cc",
+     "children": [
+      {
+       "type": "text",
+       "text": "With PageBreak, every vulnerability hypothesis is tested against a running environment with a real exploit, such as executing JavaScript for XSS, writing to a world-readable location for path traversal, or triggering outbound DNS for RCE. ",
+       "marks": [],
+       "id": "t-a4876364232f"
+      },
+      {
+       "type": "text",
+       "text": "Michał Bentkowski",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.linkedin.com/in/micha%C5%82-bentkowski-5870a8166/"
+        }
+       ],
+       "id": "t-e76dcfb7e5c6"
+      },
+      {
+       "type": "text",
+       "text": ", information security engineer at Google, explains:",
+       "marks": [],
+       "id": "t-91d39ce2548e"
+      }
+     ]
+    },
+    {
+     "type": "blockquote",
+     "id": "b-86697b7584dc",
+     "children": [
+      {
+       "type": "text",
+       "text": "  Early on in the development of PageBreak, we made a conscious decision to prioritize deterministic validation. Rather than simply hypothesizing bugs based on code patterns, the system closes the loop by verifying potential flaws against running environments. This approach results in a near-zero false positive rate, ensuring that we avoid overloading product teams with unverified vulnerability reports. ",
+       "marks": [],
+       "id": "t-45fafe087cca"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-c66dc710d3cb",
+     "children": [
+      {
+       "type": "text",
+       "text": "Google also retains non-deterministic findings internally to seed deeper future scans, identify gaps in its validation capabilities, and guide the development of new validators. These unverified candidates are not sent to product teams, keeping their attention focused on high-confidence vulnerabilities. Bentkowski writes:",
+       "marks": [],
+       "id": "t-8f7abb493f5b"
+      }
+     ]
+    },
+    {
+     "type": "blockquote",
+     "id": "b-0c1617285fd0",
+     "children": [
+      {
+       "type": "text",
+       "text": "  While deterministic validation is our gold standard, we are aware that our validators are currently lacking in capabilities to cover all vulnerability types or complex scenarios. This comes with the risk of false negatives that might have otherwise been caught by non-deterministic validators. ",
+       "marks": [],
+       "id": "t-b451aebcc08c"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-5f2b7b7b7569",
+     "children": [
+      {
+       "type": "text",
+       "text": "In the separate article, \"",
+       "marks": [],
+       "id": "t-8d8e507724c8"
+      },
+      {
+       "type": "text",
+       "text": "Google’s PageBreak Project – Real-World Findings",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://bughunters.google.com/blog/pagebreak-real-world-findings"
+        }
+       ],
+       "id": "t-aa930c9c97eb"
+      },
+      {
+       "type": "text",
+       "text": ",\" on Google Bug Hunters, Bentkowski describes three technical cases found by PageBreak: an XSS vulnerability, a cache-poisoning issue caused by a service misconfiguration, and a path-traversal vulnerability. On LinkedIn, Lukas Weichselbaum, senior staff information security engineer at Google, stresses the ",
+       "marks": [],
+       "id": "t-a5c8e07af1cd"
+      },
+      {
+       "type": "text",
+       "text": "importance of reducing false positives",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://www.linkedin.com/posts/lweichselbaum_today-we-published-two-blogposts-about-pagebreak-activity-7508885765939007490-4ddj"
+        }
+       ],
+       "id": "t-ca8535023e86"
+      },
+      {
+       "type": "text",
+       "text": ":",
+       "marks": [],
+       "id": "t-5b1cf4e3e61d"
+      }
+     ]
+    },
+    {
+     "type": "blockquote",
+     "id": "b-2a5a695a8a3e",
+     "children": [
+      {
+       "type": "text",
+       "text": "  A lot of AI-generated bug reports sound convincing but turn out to be wrong, and the teams that get them waste time checking each one. In PageBreak, the model can suggest whatever it likes, but a finding only counts once a validator confirms it with a real payload. The validators are plain code written by security engineers, not by the model and live outside the agent loop. ",
+       "marks": [],
+       "id": "t-a174a2a7c570"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-525a4a8b4298",
+     "children": [
+      {
+       "type": "text",
+       "text": "Bentkowski says PageBreak benefits from Google's engineering environment, particularly ",
+       "marks": [],
+       "id": "t-b3bdc3140d3d"
+      },
+      {
+       "type": "text",
+       "text": "Google’s monorepo",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://research.google/pubs/why-google-stores-billions-of-lines-of-code-in-a-single-repository/"
+        }
+       ],
+       "id": "t-fac0522ed231"
+      },
+      {
+       "type": "text",
+       "text": " end-to-end code visibility, security signals that connect live HTTP traffic to source code, and existing scanning infrastructure that provides authenticated access to its web applications.",
+       "marks": [],
+       "id": "t-e0e03700f63d"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-1bc5756ed6cd",
+     "children": [
+      {
+       "type": "text",
+       "text": "With the longer-term goal of reducing product-team involvement to validating AI-generated fixes, Google is integrating PageBreak with other agentic security initiatives such as ",
+       "marks": [],
+       "id": "t-ba32cce0aece"
+      },
+      {
+       "type": "text",
+       "text": "CodeMender",
+       "marks": [
+        {
+         "type": "link",
+         "href": "https://cloud.google.com/blog/products/identity-security/find-and-fix-software-vulnerabilities-with-codemender"
+        }
+       ],
+       "id": "t-c038c2044b7b"
+      },
+      {
+       "type": "text",
+       "text": " to automatically generate fixes for the vulnerabilities it discovers.",
+       "marks": [],
+       "id": "t-87f3e19bda76"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "id": "b-d36e14d65c7c",
+     "children": [
+      {
+       "type": "text",
+       "text": "No independent validation of the 500+ vulnerabilities has been provided.",
+       "marks": [],
+       "id": "t-7a4ecfdd60d0"
+      }
+     ]
+    }
+   ],
+   "content_format": "blocks-v1",
+   "category": "platform",
+   "category_label": "AI 数据平台",
+   "vendors": [],
+   "heat": 54,
+   "star": false,
+   "importance": 50,
+   "quality_score": 50,
+   "trend_score": 58,
+   "signal": 0,
+   "topics": [],
+   "shelf": "news",
+   "pinned": false,
+   "published": "2026-10-31T14:20:00+08:00",
+   "first_seen": "2026-10-31T20:37:04.645937+08:00",
+   "items": [
+    {
+     "id": "6a138c5d9432",
+     "source": "InfoQ（AI/数据工程）",
+     "link": "https://www.infoq.com/news/2026/10/google-pagebreak-security-agent/?utm_campaign=infoq_content&utm_source=infoq&utm_medium=feed&utm_term=AI%2C+ML+%26+Data+Engineering",
+     "published": "2026-10-31T14:20:00+08:00",
+     "ingested_at": "2026-10-31T20:37:04.645937+08:00",
+     "title": "Google Discloses PageBreak AI Security Agent That Found 500+ XSS Bugs"
+    }
+   ],
+   "content_parse": {
+    "run_id": "github-41201140505-1",
+    "processor_version": "original-first-v7",
+    "attempted_at": "2026-10-31T20:37:52.984876+08:00",
+    "status": "ready",
+    "source": "InfoQ（AI/数据工程）",
+    "strategy": "semantic_container",
+    "blocks": 10,
+    "text_chars": 3211,
+    "figures": 0,
+    "tables": 0,
+    "figures_discovered": 0,
+    "figures_selected": 0,
+    "figures_rejected": 0,
+    "candidate_count": 17,
+    "figures_rejected_author": 0,
+    "figures_rejected_decorative": 0,
+    "figures_rejected_duplicate": 0,
+    "figures_rejected_small": 0,
+    "figures_rejected_limit": 0,
+    "trimmed_tail_blocks": 2,
+    "trimmed_head_blocks": 0,
+    "trimmed_promotional_blocks": 0,
+    "trimmed_embedded_ui_blocks": 0,
+    "embedded_ui_components": 0,
+    "selected_depth": 10,
+    "selected_raw_blocks": 12,
+    "selected_raw_text_chars": 3243,
+    "broad_raw_blocks": 41,
+    "broad_raw_text_chars": 4868,
+    "parent_extra_blocks": 29,
+    "candidate_count_raw": 30,
+    "candidate_duplicates": 13,
+    "candidate_quality_rejected": 5,
+    "duplicate_blocks": 0,
+    "selected_score": 881.72,
+    "quality_status": "pass",
+    "boundary_marker": "About the Author",
+    "selected_tag": "div",
+    "focus_ratio": 0.6662,
+    "link_ratio": 0.0539,
+    "duplicate_ratio": 0.0,
+    "selection_evidence": [
+     "tail_boundary",
+     "prose_density",
+     "integrity_gate",
+     "semantic_container"
+    ],
+    "reason": "HTTPError",
+    "media": {
+     "figures": 0,
+     "cached": 0,
+     "link_only": 0,
+     "policy_version": "source-cdn-v1"
+    },
+    "content_mode": "original",
+    "source_language": "other",
+    "translation_status": "failed",
+    "source_content_hash": "9d61f9b432c2d2dc56566b5b",
+    "translation": {
+     "run_id": "github-41201140505-1",
+     "policy_version": "faithful-translation-retry-v1",
+     "attempted_at": "2026-10-31T20:37:52.984924+08:00",
+     "purpose": "body_translation",
+     "status": "failed",
+     "error": "HTTPError"
+    },
+    "metadata_translation": {
+     "run_id": "github-41201140505-1",
+     "policy_version": "metadata-translation-backfill-v1",
+     "attempted_at": "2026-10-31T20:37:54.729085+08:00",
+     "purpose": "metadata_translation_backfill",
+     "status": "provider_error",
+     "error": "HTTPError"
+    }
+   },
+   "content_mode": "original",
+   "content_level": "original",
+   "source_language": "other",
+   "translation_status": "failed",
+   "source_content_hash": "9d61f9b432c2d2dc56566b5b",
+   "body_chars": 3211
+  },
   {
    "event_id": "4f892d8d6ca4",
    "zh_title": "10.40 Release Notes (Preview) | Snowflake Documentation",
@@ -476,11 +1497,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 54,
+   "heat": 51,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 57,
+   "trend_score": 52,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -563,9 +1584,9 @@
      "error": "LLMBudgetExceeded"
     },
     "metadata_translation": {
-     "run_id": "github-41173439656-1",
+     "run_id": "github-41201140505-1",
      "policy_version": "metadata-translation-backfill-v1",
-     "attempted_at": "2026-10-31T13:50:05.265742+08:00",
+     "attempted_at": "2026-10-31T20:37:55.154546+08:00",
      "purpose": "metadata_translation_backfill",
      "status": "provider_error",
      "error": "HTTPError"
@@ -1079,11 +2100,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 53,
+   "heat": 50,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 56,
+   "trend_score": 51,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -1166,9 +2187,9 @@
      "error": "LLMBudgetExceeded"
     },
     "metadata_translation": {
-     "run_id": "github-41173439656-1",
+     "run_id": "github-41201140505-1",
      "policy_version": "metadata-translation-backfill-v1",
-     "attempted_at": "2026-10-31T13:50:05.587477+08:00",
+     "attempted_at": "2026-10-31T20:37:55.483210+08:00",
      "purpose": "metadata_translation_backfill",
      "status": "provider_error",
      "error": "HTTPError"
@@ -2468,11 +3489,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 53,
+   "heat": 50,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 55,
+   "trend_score": 50,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -3585,11 +4606,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 53,
+   "heat": 50,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 55,
+   "trend_score": 50,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -5334,11 +6355,11 @@
    "vendors": [
     "AWS"
    ],
-   "heat": 52,
+   "heat": 49,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 53,
+   "trend_score": 48,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -5784,11 +6805,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 50,
+   "heat": 48,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 50,
+   "trend_score": 46,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -6244,11 +7265,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 50,
+   "heat": 47,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 49,
+   "trend_score": 45,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -6999,11 +8020,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 49,
+   "heat": 47,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 48,
+   "trend_score": 44,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -8994,11 +10015,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 48,
+   "heat": 46,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 47,
+   "trend_score": 43,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -12389,11 +13410,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 48,
+   "heat": 46,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 47,
+   "trend_score": 43,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -14190,11 +15211,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 52,
+   "heat": 49,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 53,
+   "trend_score": 48,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -14697,11 +15718,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 50,
+   "heat": 48,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 51,
+   "trend_score": 46,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -16091,7 +17112,7 @@
     "Google",
     "Google Cloud"
    ],
-   "heat": 24,
+   "heat": 23,
    "star": false,
    "importance": 50,
    "quality_score": 50,
@@ -18938,11 +19959,11 @@
     "PingCAP",
     "TiDB"
    ],
-   "heat": 53,
+   "heat": 50,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 55,
+   "trend_score": 50,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -19648,11 +20669,11 @@
    "vendors": [
     "ThoughtSpot"
    ],
-   "heat": 51,
+   "heat": 48,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 51,
+   "trend_score": 46,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -20733,11 +21754,11 @@
    "vendors": [
     "ThoughtSpot"
    ],
-   "heat": 43,
+   "heat": 41,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 38,
+   "trend_score": 34,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -21194,11 +22215,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 43,
+   "heat": 41,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 36,
+   "trend_score": 33,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -22744,11 +23765,11 @@
     "Microsoft",
     "Power BI"
    ],
-   "heat": 43,
+   "heat": 41,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 37,
+   "trend_score": 34,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -23600,11 +24621,11 @@
     "Google",
     "Google Cloud"
    ],
-   "heat": 39,
+   "heat": 37,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 29,
+   "trend_score": 27,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -24238,11 +25259,11 @@
     "Google",
     "Google Cloud"
    ],
-   "heat": 39,
+   "heat": 37,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 29,
+   "trend_score": 27,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -25384,11 +26405,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 45,
+   "heat": 43,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 40,
+   "trend_score": 37,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -27034,11 +28055,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 42,
+   "heat": 41,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 36,
+   "trend_score": 33,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -30508,11 +31529,11 @@
    "vendors": [
     "AWS"
    ],
-   "heat": 43,
+   "heat": 42,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 38,
+   "trend_score": 35,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -30997,11 +32018,11 @@
    "vendors": [
     "Fivetran"
    ],
-   "heat": 43,
+   "heat": 41,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 38,
+   "trend_score": 34,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -32185,11 +33206,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 44,
+   "heat": 42,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 40,
+   "trend_score": 36,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -33269,11 +34290,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 44,
+   "heat": 42,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 38,
+   "trend_score": 35,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -33623,11 +34644,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 43,
+   "heat": 41,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 38,
+   "trend_score": 34,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -34059,11 +35080,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 42,
+   "heat": 40,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 36,
+   "trend_score": 32,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -36817,11 +37838,11 @@
    "vendors": [
     "ClickHouse"
    ],
-   "heat": 42,
+   "heat": 40,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 35,
+   "trend_score": 32,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -37343,11 +38364,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 42,
+   "heat": 40,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 35,
+   "trend_score": 31,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -37973,11 +38994,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 41,
+   "heat": 40,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 34,
+   "trend_score": 31,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -38471,11 +39492,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 41,
+   "heat": 39,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 34,
+   "trend_score": 31,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -38880,11 +39901,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 40,
+   "heat": 39,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 32,
+   "trend_score": 29,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -41006,11 +42027,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 39,
+   "heat": 37,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 30,
+   "trend_score": 27,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -41839,11 +42860,11 @@
    "vendors": [
     "DuckDB"
    ],
-   "heat": 39,
+   "heat": 37,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 29,
+   "trend_score": 27,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -42535,11 +43556,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 39,
+   "heat": 37,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 29,
+   "trend_score": 27,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -43229,11 +44250,11 @@
     "Microsoft",
     "Power BI"
    ],
-   "heat": 38,
+   "heat": 36,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 28,
+   "trend_score": 25,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -46618,11 +47639,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 37,
+   "heat": 36,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 27,
+   "trend_score": 24,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -51431,11 +52452,11 @@
    "vendors": [
     "ClickHouse"
    ],
-   "heat": 36,
+   "heat": 35,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 25,
+   "trend_score": 23,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -51802,11 +52823,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 36,
+   "heat": 35,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 25,
+   "trend_score": 23,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -54861,11 +55882,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 38,
+   "heat": 36,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 28,
+   "trend_score": 25,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -55914,11 +56935,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 37,
+   "heat": 36,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 27,
+   "trend_score": 25,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -58371,11 +59392,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 36,
+   "heat": 35,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 25,
+   "trend_score": 23,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -58946,11 +59967,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 45,
+   "heat": 44,
    "star": false,
    "importance": 70,
    "quality_score": 70,
-   "trend_score": 25,
+   "trend_score": 23,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -59627,7 +60648,7 @@
    "star": false,
    "importance": 70,
    "quality_score": 70,
-   "trend_score": 14,
+   "trend_score": 13,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -59664,9 +60685,9 @@
     "actionability_depth": 14
    },
    "content_parse": {
-    "run_id": "github-41173439656-1",
+    "run_id": "github-41201140505-1",
     "processor_version": "original-first-v7",
-    "attempted_at": "2026-10-31T13:50:11.487998+08:00",
+    "attempted_at": "2026-10-31T20:38:01.140313+08:00",
     "status": "ready",
     "source": "Fivetran Blog",
     "strategy": "semantic_container",
@@ -59721,9 +60742,9 @@
     "translation_status": "failed",
     "source_content_hash": "e8cea7d8c683a5a2637b7b36",
     "translation": {
-     "run_id": "github-41173439656-1",
+     "run_id": "github-41201140505-1",
      "policy_version": "faithful-translation-retry-v1",
-     "attempted_at": "2026-10-31T13:50:11.488042+08:00",
+     "attempted_at": "2026-10-31T20:38:01.140350+08:00",
      "purpose": "body_translation_backfill",
      "status": "failed",
      "error": "HTTPError"
@@ -61096,11 +62117,11 @@
    "vendors": [
     "Metabase"
    ],
-   "heat": 34,
+   "heat": 33,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 21,
+   "trend_score": 19,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -65445,11 +66466,11 @@
    "vendors": [
     "ClickHouse"
    ],
-   "heat": 35,
+   "heat": 34,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 23,
+   "trend_score": 20,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -65779,11 +66800,11 @@
     "Microsoft",
     "Power BI"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -67097,11 +68118,11 @@
     "Microsoft",
     "Power BI"
    ],
-   "heat": 30,
+   "heat": 29,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 13,
+   "trend_score": 12,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -67344,11 +68365,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -67587,11 +68608,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -67914,11 +68935,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -68250,11 +69271,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -68579,11 +69600,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -68836,11 +69857,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -69168,11 +70189,11 @@
     "Google",
     "Google Cloud"
    ],
-   "heat": 31,
+   "heat": 30,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 15,
+   "trend_score": 13,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -71393,11 +72414,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -72587,11 +73608,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -75480,11 +76501,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -76396,11 +77417,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 32,
+   "heat": 31,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 17,
+   "trend_score": 16,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -76718,11 +77739,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -76929,11 +77950,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -77200,11 +78221,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -77459,11 +78480,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -77802,11 +78823,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -78054,11 +79075,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -78368,11 +79389,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -78639,11 +79660,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -78898,11 +79919,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -79208,11 +80229,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -80575,11 +81596,11 @@
    "vendors": [
     "Metabase"
    ],
-   "heat": 31,
+   "heat": 30,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 15,
+   "trend_score": 13,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -81234,11 +82255,11 @@
    "vendors": [
     "Metabase"
    ],
-   "heat": 31,
+   "heat": 30,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 15,
+   "trend_score": 13,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -82573,11 +83594,11 @@
    "vendors": [
     "ClickHouse"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -83755,11 +84776,11 @@
    "vendors": [
     "AWS"
    ],
-   "heat": 34,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 20,
+   "trend_score": 18,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -85602,11 +86623,11 @@
    "vendors": [
     "AWS"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 20,
+   "trend_score": 18,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -86979,11 +88000,11 @@
    "vendors": [
     "Fivetran"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 20,
+   "trend_score": 18,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -88193,11 +89214,11 @@
    "vendors": [
     "Fivetran"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -90864,11 +91885,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -92438,11 +93459,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 33,
+   "heat": 32,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 19,
+   "trend_score": 17,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -93559,11 +94580,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 32,
+   "heat": 31,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 18,
+   "trend_score": 16,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -93915,11 +94936,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 32,
+   "heat": 31,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 17,
+   "trend_score": 16,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -94872,11 +95893,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 32,
+   "heat": 31,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 17,
+   "trend_score": 16,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -95280,11 +96301,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 31,
+   "heat": 30,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 16,
+   "trend_score": 14,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -96095,11 +97116,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 31,
+   "heat": 30,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 16,
+   "trend_score": 14,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -97832,7 +98853,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 14,
+   "trend_score": 13,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -98160,7 +99181,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 13,
+   "trend_score": 11,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -98391,7 +99412,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 13,
+   "trend_score": 11,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -98812,7 +99833,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 13,
+   "trend_score": 11,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -99047,7 +100068,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 13,
+   "trend_score": 11,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -99393,7 +100414,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 13,
+   "trend_score": 11,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -99661,7 +100682,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 13,
+   "trend_score": 11,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -99896,7 +100917,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 13,
+   "trend_score": 11,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -100148,7 +101169,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 13,
+   "trend_score": 11,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -100395,7 +101416,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 13,
+   "trend_score": 11,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -100630,7 +101651,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 13,
+   "trend_score": 11,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -101867,11 +102888,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 30,
+   "heat": 29,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 14,
+   "trend_score": 12,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -102415,11 +103436,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 30,
+   "heat": 29,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 13,
+   "trend_score": 12,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -103203,7 +104224,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 13,
+   "trend_score": 11,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -103602,7 +104623,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 14,
+   "trend_score": 13,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -103885,7 +104906,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 14,
+   "trend_score": 13,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -104108,7 +105129,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 14,
+   "trend_score": 13,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -104415,7 +105436,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 14,
+   "trend_score": 13,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -104761,7 +105782,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 14,
+   "trend_score": 13,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -105013,7 +106034,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 14,
+   "trend_score": 13,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -105311,7 +106332,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 14,
+   "trend_score": 13,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -105546,7 +106567,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 14,
+   "trend_score": 13,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -105798,7 +106819,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 14,
+   "trend_score": 13,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -108427,11 +109448,11 @@
    "vendors": [
     "dbt Labs"
    ],
-   "heat": 30,
+   "heat": 29,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 13,
+   "trend_score": 12,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -109059,11 +110080,11 @@
    "vendors": [
     "ClickHouse"
    ],
-   "heat": 30,
+   "heat": 29,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 13,
+   "trend_score": 12,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -109652,7 +110673,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 14,
+   "trend_score": 13,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -110057,11 +111078,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 30,
+   "heat": 29,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 13,
+   "trend_score": 12,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -110568,11 +111589,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 30,
+   "heat": 29,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 13,
+   "trend_score": 12,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -111957,7 +112978,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 12,
+   "trend_score": 11,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -112361,11 +113382,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 29,
+   "heat": 28,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 12,
+   "trend_score": 11,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -113750,11 +114771,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 30,
+   "heat": 29,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 14,
+   "trend_score": 12,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -114357,7 +115378,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 13,
+   "trend_score": 11,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -115847,7 +116868,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 3,
+   "trend_score": 2,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -116733,11 +117754,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 30,
+   "heat": 29,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 13,
+   "trend_score": 12,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -117238,7 +118259,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 12,
+   "trend_score": 11,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -117802,11 +118823,11 @@
    "vendors": [
     "Snowflake"
    ],
-   "heat": 37,
+   "heat": 36,
    "star": false,
    "importance": 68,
    "quality_score": 68,
-   "trend_score": 11,
+   "trend_score": 10,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -120050,7 +121071,7 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 28,
+   "heat": 27,
    "star": false,
    "importance": 50,
    "quality_score": 50,
@@ -120452,11 +121473,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 28,
+   "heat": 27,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 9,
+   "trend_score": 8,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -121903,9 +122924,9 @@
     "actionability_depth": 14
    },
    "content_parse": {
-    "run_id": "github-41173439656-1",
+    "run_id": "github-41201140505-1",
     "processor_version": "original-first-v7",
-    "attempted_at": "2026-10-31T13:50:12.432508+08:00",
+    "attempted_at": "2026-10-31T20:38:02.866344+08:00",
     "status": "ready",
     "source": "Mercer Insights",
     "strategy": "nested_content",
@@ -121960,9 +122981,9 @@
     "translation_status": "failed",
     "source_content_hash": "f572fe91aa516e4c78b2f229",
     "translation": {
-     "run_id": "github-41173439656-1",
+     "run_id": "github-41201140505-1",
      "policy_version": "faithful-translation-retry-v1",
-     "attempted_at": "2026-10-31T13:50:12.432547+08:00",
+     "attempted_at": "2026-10-31T20:38:02.866380+08:00",
      "purpose": "body_translation_backfill",
      "status": "failed",
      "error": "HTTPError"
@@ -123026,11 +124047,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 29,
+   "heat": 28,
    "star": false,
    "importance": 58,
    "quality_score": 58,
-   "trend_score": 5,
+   "trend_score": 4,
    "signal": 0,
    "topics": [
     "实时分析"
@@ -123070,9 +124091,9 @@
     "actionability_depth": 14
    },
    "content_parse": {
-    "run_id": "github-41058877549-1",
+    "run_id": "github-41201140505-1",
     "processor_version": "original-first-v7",
-    "attempted_at": "2026-10-30T21:02:42.139592+08:00",
+    "attempted_at": "2026-10-31T20:38:01.843926+08:00",
     "status": "ready",
     "source": "Databricks Blog",
     "strategy": "semantic_container",
@@ -123127,9 +124148,9 @@
     "translation_status": "failed",
     "source_content_hash": "25b3e877f6ed74615559b23a",
     "translation": {
-     "run_id": "github-41058877549-1",
+     "run_id": "github-41201140505-1",
      "policy_version": "faithful-translation-retry-v1",
-     "attempted_at": "2026-10-30T21:02:42.139626+08:00",
+     "attempted_at": "2026-10-31T20:38:01.843964+08:00",
      "purpose": "body_translation_backfill",
      "status": "failed",
      "error": "HTTPError"
@@ -127123,7 +128144,7 @@
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 7,
+   "trend_score": 6,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -127660,11 +128681,11 @@
    "category": "platform",
    "category_label": "AI 数据平台",
    "vendors": [],
-   "heat": 26,
+   "heat": 25,
    "star": false,
    "importance": 50,
    "quality_score": 50,
-   "trend_score": 6,
+   "trend_score": 5,
    "signal": 0,
    "topics": [],
    "shelf": "news",
@@ -131613,7 +132634,7 @@
    "star": true,
    "importance": 81,
    "quality_score": 81,
-   "trend_score": 5,
+   "trend_score": 4,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -138375,7 +139396,7 @@
    "star": true,
    "importance": 77,
    "quality_score": 77,
-   "trend_score": 5,
+   "trend_score": 4,
    "signal": 0,
    "topics": [
     "湖仓"
@@ -139820,7 +140841,7 @@
    "star": false,
    "importance": 70,
    "quality_score": 70,
-   "trend_score": 5,
+   "trend_score": 4,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -139929,3331 +140950,6 @@
    "translation_status": "complete",
    "source_content_hash": "342cffb5e25f78357aa021cb",
    "body_chars": 8020
-  },
-  {
-   "event_id": "4df5b19ad33e",
-   "zh_title": "Benchling与Snowflake推出双向数据共享，加速生命科学研发",
-   "zh_summary": "Benchling 发布 Direct Data Share，在 Benchling 与客户的 Snowflake 账户之间提供原生双向持续数据同步。该方案试图替代客户自建的定制 ETL 管道和批处理导出，提供零代码开通、预建模可查询表、近实时数据 freshness 与细粒度治理。同步后的数据可用于 BI 工具、AI Agent 或下游分析，同时 Snowflake 中的外部富化数据也可回传至 Benchling。",
-   "reason": "该产品直接解决生命科学研发数据在实验系统与 Snowflake 之间的集成、时效和治理问题，对关注数据集成治理与实时分析的数据从业者有参考价值。",
-   "full_zh": "生命科学研发会产生海量高价值数据，但这些数据往往被困在脆弱的 ETL 管道、过时的批量导出和单向集成之后。Benchling 构建了 Direct Data Share 来改变这一现状：在 Benchling 与客户的 Snowflake 账户之间实现原生的双向持续数据同步，让湿实验室和干实验室的科学家能够在各自偏好的环境中，借助适当的企业上下文协作处理数据。\n\nBenchling 着手解决的问题\n\nBenchling 客户此前一直在构建和维护自定义管道，以便将 Benchling 数据导入 Snowflake。这种方式维护负担重、适应速度慢，而且由于通常按批处理计划运行，导致下游系统滞后数小时甚至数天。实验数据存放在 Benchling 中，而围绕它的丰富外部上下文存放在 Snowflake 中，两者之间没有简单的方式可以打通。\n\n与此同时，AI 提高了科学家对数据的期望。他们希望自行探索数据、将其与模型结合，并跨多年实验进行学习，而不必等待系统建设完成。\n\nDirect Data Share 的功能\n\nDirect Data Share 彻底消除了工程负担：\n\n零代码设置。 直接从 Benchling 管理设置中激活双向数据共享，无需管道，无需自定义开发。预置架构、可查询的表。 Benchling 数据以结构化表的形式落入 Snowflake，可直接供 BI 工具、AI 智能体或计算团队进行下游分析使用。近乎实时的数据新鲜度。 无需等待夜间批处理作业，Benchling 中的变更会持续流入你的数据湖。细粒度治理。 管理员可控制谁可以发起同步和管理连接，从而确保合规和安全要求不受影响。双向。 同样重要的是，Benchling 可以从你的 Snowflake 实例安全地读回数据，使外部丰富数据能够为 Benchling 内部的工作提供信息。\n\n“在生命科学领域，从设计-制造-测试-分析循环中每缩短一周，都会累积成更快的里程碑和更低的单候选药物成本。Benchling 与 Snowflake 之间的双向 Direct Data Share 消除了湿实验室检测数据采集与计算决策之间的滞后——让团队能够基于实时实验数据训练模型，并将预测性洞察直接推回科学家的 Benchling 工作区，且无需维护任何管道。” — Deven Atnoor，Snowflake 生命科学领域 CTO\n\n将智能体引入循环\n\n真正的突破在于，一旦智能体能够访问这些数据，它所能做的事情就不仅限于查询信息，而是能够实际完成科学家原本需要手工完成的分析工作。\n\n以一个常见的研发场景为例：一位计算生物学家想要对整个多次运行活动中的发酵数据拟合生长曲线。如今，这通常意味着将数据导出到 notebook 并逐个运行手动进行曲线拟合，这一过程可能需要数小时到数天，实际上在所有人等待分析结果时中断了设计-制造-测试-分析（DMTA）循环。\n\n借助 Direct Data Share，可以用自然语言要求 Benchling 智能体完成这项工作，整个工作流在 Benchling 内一步完成。在此演示中，我们的智能体被要求通过 Snowflake 连接拉取时间序列发酵数据，并对其拟合 Gompertz 生长曲线。\n\n在底层，它：\n\n直接从 Snowflake 表拉取了约 30 万行数据，涵盖 200 次发酵运行，使用 Direct Data Share 将其作为原生 Benchling 数据集引入。启动了自有的本地 Python 环境，并编写了清理数据、为每次运行分离生长阶段所需的代码。按要求对每次运行的时间序列拟合了 Gompertz 模型。返回了 185 次成功拟合运行的完整结果。\n\n过去需要在平台之外耗费多天的绕行工作，变成了一个自然语言请求，科学分析在完整数据集上运行。\n\n打通流程与分析之间的闭环\n\nDirect Data Share 将实验数据、外部上下文和分析保持在一起并持续同步，使 DMTA 循环始终在一个系统内运行。结果会到达做出下一步决策的地方。\n\n对与 Snowflake 配合使用的 Direct Data Share 感兴趣？\n\n请联系你的 Benchling 客户团队，了解更多入门信息。\n\nDirect Data Share 由 Benchling 工程师构建：Ramkumar Sugavanam、Eden Grown-Haeberli、Sean Kim、Paul Kohan、Maya Nyayapati\n\nBenchling 与 Snowflake：以 AI 速度实现生命科学研发的双向数据共享 最初发布于 Snowflake Builders Blog：数据工程师、应用开发者、AI 与数据科学（Medium），人们正在那里通过高亮和回应这个故事来继续对话。",
-   "content_blocks": [
-    {
-     "type": "figure",
-     "id": "b-36e5c7661e59",
-     "src": "https://cdn-images-1.medium.com/max/1024/1*dEpff3yeN5kDIleciaJ1Iw.png",
-     "alt": "",
-     "caption": "",
-     "source_url": "https://medium.com/snowflake/benchling-and-snowflake-bi-directional-data-sharing-at-the-speed-of-ai-for-life-sciences-r-d-8c9f1ddb6e3f?source=rss----34b6daafc07---4",
-     "cached_src": "../media/4df5b19ad33e/a81480b2d78d0f0b6ce07c47.png",
-     "width": 1024,
-     "height": 576,
-     "mime": "image/png",
-     "size_bytes": 264999,
-     "media_status": "cached"
-    },
-    {
-     "type": "paragraph",
-     "id": "b-617b5e061a21",
-     "children": [
-      {
-       "type": "text",
-       "text": "生命科学研发会产生海量高价值数据，但这些数据往往被困在脆弱的 ETL 管道、过时的批量导出和单向集成之后。Benchling 构建了 ",
-       "marks": [],
-       "id": "t-d2226cc630d1"
-      },
-      {
-       "type": "text",
-       "text": "Direct Data Share",
-       "marks": [
-        "strong"
-       ],
-       "id": "t-e2408e4c769a"
-      },
-      {
-       "type": "text",
-       "text": " 来改变这一现状：在 Benchling 与客户的 Snowflake 账户之间实现原生的双向持续数据同步，让湿实验室和干实验室的科学家能够在各自偏好的环境中，借助适当的企业上下文协作处理数据。",
-       "marks": [],
-       "id": "t-44a690dea994"
-      }
-     ]
-    },
-    {
-     "type": "heading",
-     "id": "b-ba3e03851b62",
-     "children": [
-      {
-       "type": "text",
-       "text": "Benchling 着手解决的问题",
-       "marks": [
-        "strong"
-       ],
-       "id": "t-4d2abf1e4465"
-      }
-     ],
-     "level": 4
-    },
-    {
-     "type": "paragraph",
-     "id": "b-6816b373ee5f",
-     "children": [
-      {
-       "type": "text",
-       "text": "Benchling 客户此前一直在构建和维护自定义管道，以便将 Benchling 数据导入 Snowflake。这种方式维护负担重、适应速度慢，而且由于通常按批处理计划运行，导致下游系统滞后数小时甚至数天。实验数据存放在 Benchling 中，而围绕它的丰富外部上下文存放在 Snowflake 中，两者之间没有简单的方式可以打通。",
-       "marks": [],
-       "id": "t-82241efe76eb"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-4b29710fc249",
-     "children": [
-      {
-       "type": "text",
-       "text": "与此同时，AI 提高了科学家对数据的期望。他们希望自行探索数据、将其与模型结合，并跨多年实验进行学习，而不必等待系统建设完成。",
-       "marks": [],
-       "id": "t-d1f965c6a6ce"
-      }
-     ]
-    },
-    {
-     "type": "heading",
-     "id": "b-c19344a0a12e",
-     "children": [
-      {
-       "type": "text",
-       "text": "Direct Data Share 的功能",
-       "marks": [
-        "strong"
-       ],
-       "id": "t-66a557d60885"
-      }
-     ],
-     "level": 4
-    },
-    {
-     "type": "paragraph",
-     "id": "b-b7b58f8add07",
-     "children": [
-      {
-       "type": "text",
-       "text": "Direct Data Share 彻底消除了工程负担：",
-       "marks": [],
-       "id": "t-d6d1a73d9467"
-      }
-     ]
-    },
-    {
-     "type": "list",
-     "id": "b-3ed8ae3a8647",
-     "ordered": false,
-     "items": [
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": "零代码设置。",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-9ce3d08c54d9"
-        },
-        {
-         "type": "text",
-         "text": " 直接从 Benchling 管理设置中激活双向数据共享，无需管道，无需自定义开发。",
-         "marks": [],
-         "id": "t-b3de19edbd15"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": "预置架构、可查询的表。",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-00003d7073bf"
-        },
-        {
-         "type": "text",
-         "text": " Benchling 数据以结构化表的形式落入 Snowflake，可直接供 BI 工具、AI 智能体或计算团队进行下游分析使用。",
-         "marks": [],
-         "id": "t-d028879b134c"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": "近乎实时的数据新鲜度。",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-ebd80e85abb0"
-        },
-        {
-         "type": "text",
-         "text": " 无需等待夜间批处理作业，Benchling 中的变更会持续流入你的数据湖。",
-         "marks": [],
-         "id": "t-9e905651e4c3"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": "细粒度治理。",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-e7f5172167b8"
-        },
-        {
-         "type": "text",
-         "text": " 管理员可控制谁可以发起同步和管理连接，从而确保合规和安全要求不受影响。",
-         "marks": [],
-         "id": "t-1ddd8604a161"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": "双向。",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-6d712b83fcb1"
-        },
-        {
-         "type": "text",
-         "text": " 同样重要的是，Benchling 可以从你的 Snowflake 实例安全地读回数据，使外部丰富数据能够为 Benchling 内部的工作提供信息。",
-         "marks": [],
-         "id": "t-e15997656f49"
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-c69436251269",
-     "children": [
-      {
-       "type": "text",
-       "text": "“在生命科学领域，从设计-制造-测试-分析循环中每缩短一周，都会累积成更快的里程碑和更低的单候选药物成本。Benchling 与 Snowflake 之间的双向 Direct Data Share 消除了湿实验室检测数据采集与计算决策之间的滞后——让团队能够基于实时实验数据训练模型，并将预测性洞察直接推回科学家的 Benchling 工作区，且无需维护任何管道。”",
-       "marks": [
-        "em"
-       ],
-       "id": "t-f1fd0c4d1e3e"
-      },
-      {
-       "type": "text",
-       "text": " — Deven Atnoor，Snowflake 生命科学领域 CTO",
-       "marks": [],
-       "id": "t-29950c9f08e9"
-      }
-     ]
-    },
-    {
-     "type": "heading",
-     "id": "b-718b743e6ed9",
-     "children": [
-      {
-       "type": "text",
-       "text": "将智能体引入循环",
-       "marks": [
-        "strong"
-       ],
-       "id": "t-227db1e9ff4c"
-      }
-     ],
-     "level": 4
-    },
-    {
-     "type": "paragraph",
-     "id": "b-020d2fc33b83",
-     "children": [
-      {
-       "type": "text",
-       "text": "真正的突破在于，一旦智能体能够访问这些数据，它所能做的事情就不仅限于查询信息，而是能够实际完成科学家原本需要手工完成的分析工作。",
-       "marks": [],
-       "id": "t-e5ceb8e31868"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-c0a6504b6cb8",
-     "children": [
-      {
-       "type": "text",
-       "text": "以一个常见的研发场景为例：一位计算生物学家想要对整个多次运行活动中的发酵数据拟合生长曲线。如今，这通常意味着将数据导出到 notebook 并逐个运行手动进行曲线拟合，这一过程可能需要数小时到数天，实际上在所有人等待分析结果时中断了设计-制造-测试-分析（DMTA）循环。",
-       "marks": [],
-       "id": "t-cb48900a67d9"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-174cb928f4ba",
-     "children": [
-      {
-       "type": "text",
-       "text": "借助 Direct Data Share，可以用自然语言要求 Benchling 智能体完成这项工作，整个工作流在 Benchling 内一步完成。在此演示中，我们的智能体被要求通过 Snowflake 连接拉取时间序列发酵数据，并对其拟合 Gompertz 生长曲线。",
-       "marks": [],
-       "id": "t-549ea4f11292"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-2b3567d1f57c",
-     "children": [
-      {
-       "type": "text",
-       "text": "在底层，它：",
-       "marks": [],
-       "id": "t-9f1f68292fe1"
-      }
-     ]
-    },
-    {
-     "type": "list",
-     "id": "b-223a1ac3c8c7",
-     "ordered": false,
-     "items": [
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": "直接从 Snowflake 表拉取了约 30 万行数据，涵盖 200 次发酵运行，使用 Direct Data Share 将其作为原生 Benchling 数据集引入。",
-         "marks": [],
-         "id": "t-f6730ee55a3f"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": "启动了自有的本地 Python 环境，并编写了清理数据、为每次运行分离生长阶段所需的代码。",
-         "marks": [],
-         "id": "t-2ebf18a5c64d"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": "按要求对每次运行的时间序列拟合了 Gompertz 模型。",
-         "marks": [],
-         "id": "t-50d912bd564c"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": "返回了 185 次成功拟合运行的完整结果。",
-         "marks": [],
-         "id": "t-60a38df262dd"
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-b7ccc024c088",
-     "children": [
-      {
-       "type": "text",
-       "text": "过去需要在平台之外耗费多天的绕行工作，变成了一个自然语言请求，科学分析在完整数据集上运行。",
-       "marks": [],
-       "id": "t-f4cbfed86d7d"
-      }
-     ]
-    },
-    {
-     "type": "heading",
-     "id": "b-a32d6993701c",
-     "children": [
-      {
-       "type": "text",
-       "text": "打通流程与分析之间的闭环",
-       "marks": [
-        "strong"
-       ],
-       "id": "t-24f7c14466c5"
-      }
-     ],
-     "level": 4
-    },
-    {
-     "type": "paragraph",
-     "id": "b-2e1f616ec6fd",
-     "children": [
-      {
-       "type": "text",
-       "text": "Direct Data Share 将实验数据、外部上下文和分析保持在一起并持续同步，使 DMTA 循环始终在一个系统内运行。结果会到达做出下一步决策的地方。",
-       "marks": [],
-       "id": "t-87a669869a86"
-      }
-     ]
-    },
-    {
-     "type": "heading",
-     "id": "b-b0c92da4965e",
-     "children": [
-      {
-       "type": "text",
-       "text": "对与 Snowflake 配合使用的 Direct Data Share 感兴趣？",
-       "marks": [
-        "strong"
-       ],
-       "id": "t-c20d12e9d2ec"
-      }
-     ],
-     "level": 4
-    },
-    {
-     "type": "paragraph",
-     "id": "b-7702309065f8",
-     "children": [
-      {
-       "type": "text",
-       "text": "请联系你的 Benchling 客户团队，了解更多入门信息。",
-       "marks": [],
-       "id": "t-4acd0b9ee467"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-f554f51c37c8",
-     "children": [
-      {
-       "type": "text",
-       "text": "Direct Data Share 由 Benchling 工程师构建：Ramkumar Sugavanam、Eden Grown-Haeberli、Sean Kim、Paul Kohan、Maya Nyayapati",
-       "marks": [
-        "em"
-       ],
-       "id": "t-2b742557c1a2"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-b91921023e41",
-     "children": [
-      {
-       "type": "text",
-       "text": "Benchling 与 Snowflake：以 AI 速度实现生命科学研发的双向数据共享",
-       "marks": [
-        {
-         "type": "link",
-         "href": "https://medium.com/snowflake/benchling-and-snowflake-bi-directional-data-sharing-at-the-speed-of-ai-for-life-sciences-r-d-8c9f1ddb6e3f"
-        }
-       ],
-       "id": "t-de8bfa43fe3b"
-      },
-      {
-       "type": "text",
-       "text": " 最初发布于 ",
-       "marks": [],
-       "id": "t-bf08def87e70"
-      },
-      {
-       "type": "text",
-       "text": "Snowflake Builders Blog：数据工程师、应用开发者、AI 与数据科学",
-       "marks": [
-        {
-         "type": "link",
-         "href": "https://medium.com/snowflake"
-        }
-       ],
-       "id": "t-72b5b86a8c9e"
-      },
-      {
-       "type": "text",
-       "text": "（Medium），人们正在那里通过高亮和回应这个故事来继续对话。",
-       "marks": [],
-       "id": "t-72eb5feee95e"
-      }
-     ]
-    }
-   ],
-   "content_format": "blocks-v1",
-   "category": "platform",
-   "category_label": "AI 数据平台",
-   "vendors": [
-    "Snowflake",
-    "Benchling"
-   ],
-   "heat": 29,
-   "star": false,
-   "importance": 64,
-   "quality_score": 64,
-   "trend_score": 1,
-   "signal": 0,
-   "topics": [
-    "实时分析"
-   ],
-   "shelf": "news",
-   "pinned": false,
-   "published": "2026-10-20T01:01:03+08:00",
-   "first_seen": "2026-10-23T19:45:18.266609+08:00",
-   "items": [
-    {
-     "id": "4df5b19ad33e",
-     "source": "Snowflake Engineering（Medium）",
-     "link": "https://medium.com/snowflake/benchling-and-snowflake-bi-directional-data-sharing-at-the-speed-of-ai-for-life-sciences-r-d-8c9f1ddb6e3f?source=rss----34b6daafc07---4",
-     "published": "2026-10-20T01:01:03+08:00",
-     "ingested_at": "2026-10-23T19:45:18.266609+08:00",
-     "title": "Benchling and Snowflake: Bi-Directional Data Sharing at the Speed of AI for Life Sciences R&D"
-    }
-   ],
-   "work_tags": {
-    "taxonomy_version": "work-tags-v1",
-    "product_objects": [
-     "数据资产",
-     "权限与治理"
-    ],
-    "use_cases": [
-     "数据接入",
-     "自助分析"
-    ],
-    "decision_concerns": [
-     "权限与安全",
-     "可维护性与复用"
-    ]
-   },
-   "quality_breakdown": {
-    "originality": 20,
-    "evidence_density": 14,
-    "information_gain": 16,
-    "actionability_depth": 14
-   },
-   "content_parse": {
-    "run_id": "github-39947363241-1",
-    "processor_version": "original-first-v7",
-    "attempted_at": "2026-10-23T19:46:47.223040+08:00",
-    "status": "ready",
-    "source": "Snowflake Engineering（Medium）",
-    "strategy": "rss_document_fallback",
-    "blocks": 22,
-    "text_chars": 4749,
-    "figures": 1,
-    "tables": 0,
-    "figures_discovered": 2,
-    "figures_selected": 1,
-    "figures_rejected": 1,
-    "candidate_count": 0,
-    "figures_rejected_author": 0,
-    "figures_rejected_decorative": 0,
-    "figures_rejected_duplicate": 0,
-    "figures_rejected_small": 1,
-    "figures_rejected_limit": 0,
-    "trimmed_tail_blocks": 0,
-    "trimmed_head_blocks": 0,
-    "trimmed_promotional_blocks": 0,
-    "trimmed_embedded_ui_blocks": 0,
-    "embedded_ui_components": 0,
-    "selected_depth": 0,
-    "selected_raw_blocks": 23,
-    "selected_raw_text_chars": 4749,
-    "broad_raw_blocks": 23,
-    "broad_raw_text_chars": 4815,
-    "parent_extra_blocks": 0,
-    "candidate_count_raw": 0,
-    "candidate_duplicates": 0,
-    "candidate_quality_rejected": 0,
-    "duplicate_blocks": 0,
-    "selected_score": 423.02,
-    "quality_status": "pass",
-    "selected_tag": "document",
-    "focus_ratio": 1.0,
-    "link_ratio": 0.0354,
-    "duplicate_ratio": 0.0,
-    "selection_evidence": [
-     "prose_density",
-     "integrity_gate"
-    ],
-    "media": {
-     "figures": 1,
-     "cached": 1,
-     "link_only": 0,
-     "policy_version": "source-cdn-v1"
-    },
-    "content_mode": "translated",
-    "source_language": "other",
-    "translation_status": "complete",
-    "source_content_hash": "62d0f6af86c944a80559515e",
-    "translation": {
-     "run_id": "github-39947363241-1",
-     "policy_version": "faithful-translation-retry-v1",
-     "attempted_at": "2026-10-23T19:46:47.223087+08:00",
-     "purpose": "body_translation",
-     "status": "complete"
-    }
-   },
-   "content_mode": "translated",
-   "content_level": "translated",
-   "source_language": "other",
-   "translation_status": "complete",
-   "source_content_hash": "62d0f6af86c944a80559515e",
-   "body_chars": 2002
-  },
-  {
-   "event_id": "a3e7ad4243b7",
-   "zh_title": "BigQuery生成式AI函数上线Token成本管理",
-   "zh_summary": "Google Cloud 宣布 BigQuery 生成式 AI 函数的按 Token 成本管理正式 GA，可通过 IAM 配额系统设置每日额度。配额覆盖 AI.GENERATE、AI.IF、AI.CLASSIFY、AI.SCORE、AI.AGG 等 LLM 生成类函数，不覆盖嵌入类函数。它提供项目级和每用户级输入/输出 Token 配额，默认值分别为 2000 亿、1500 亿、200 亿和 150 亿。博客还给出成本管理概览、实践示例和入门资源，帮助团队在预算内扩展大规模 SQL 分类与评分场景。",
-   "reason": "BigQuery 将 LLM 函数内嵌 SQL，Token 消耗会随数据规模快速放大；这篇文章给出官方配额机制和默认阈值，是数据平台团队控制 AI 查询成本、治理 SQL 内 AI 工作负载的重要参考。",
-   "full_zh": "BigQuery 中的生成式 AI 函数（AI.GENERATE、AI.IF、AI.CLASSIFY、AI.SCORE等）将大语言模型（LLM）直接引入你的 SQL，因此单条查询就能对数百万张支持工单进行分类，或对每条产品评论进行情感评分。然而，由于这些函数按 token 计费，在超大规模数据集上扩展使用时，主动管理预算就显得尤为重要。\n\n我们最近宣布了基于 token 的成本管理功能对 BigQuery 生成式 AI 函数正式可用（GA）：每日配额让管理员能够对 AI token 消耗设置自助式护栏，使团队既能创新又能控制在预算之内。在本文中，我们概述 BigQuery 生成式 AI 函数的成本管理，介绍几个实用示例，并分享帮助你入门的资源。让我们开始吧。\n\n用于管理成本的配额\n\n四个每日配额通过 Google Cloud 身份和访问管理（IAM）配额系统进行管理，可在项目层级和每用户层级提供控制。每用户限制适用于项目内的每个用户，而非整个组织。\n\n配额名称  指标  范围  默认值  每天 AI 输入 token 数  LLM 使用的输入 token  每天，每项目  2000 亿  每用户每天 AI 输入 token 数  LLM 使用的输入 token  每天，每项目，每用户  1500 亿  每天 AI 输出 token 数  LLM 使用的输出和思考 token  每天，每项目，每项目  200 亿  每用户每天 AI 输出 token 数  LLM 使用的输出和思考 token  每天，每项目，每用户  150 亿\n\n关键细节：\n\n配额是全局的。 用量按所有区域汇总，因此成本不会在你未关注的区域悄然累积。 输出配额包含“思考”token。 推理 token 会计入你的输出配额，正如它们会计入你的 Gemini 平台账单一样。\n\n涵盖哪些函数？\n\n这些配额适用于以下执行 LLM 支持的生成的 BigQuery 函数：\n\nAI.GENERATE  AI.GENERATE_TABLE  AI.GENERATE_TEXT （及其别名 ML.GENERATE_TEXT）  AI.CLASSIFY  AI.IF  AI.SCORE  AI.AGG\n\n不涵盖的内容： 嵌入函数，例如 AI.GENERATE_EMBEDDING（也可作为 ML.GENERATE_EMBEDDING 使用）和 AI.EMBED 不受这些配额限制，因为它们运行在不同的、成本低得多的模型上。\n\n管理你的配额\n\n管理员可以在工作负载变化时直接在 Google Cloud 控制台 中查看和调整配额，无需提交支持案例。\n\n导航至 IAM 和管理 → 配额和系统限制。 按服务筛选并选择 BigQuery API。 按 名称 列排序，将四个 AI 配额置于顶部。\n\nhttps://storage.googleapis.com/gweb-cloudblog-publish/images/1_dxxy8WS.max-2000x2000.png\n\n在 IAM 和管理 → 配额和系统限制中定位生成式 AI token 配额。\n\n4. 找到该配额，例如 每天 AI 输入 token 数。\n\n5. 打开三点菜单并选择 编辑配额。\n\n从这里开始：\n\n要收紧成本控制， 降低配额。这会立即生效，无需审批。 要支持更高的用量， 从同一页面申请增加。许多请求会自动批准；较大的增加可能需要经过快速审核。\n\nhttps://storage.googleapis.com/gweb-cloudblog-publish/images/2_7NmvWbT.max-2000x2000.png\n\n在 IAM 和管理 → 配额和系统限制中编辑生成式 AI token 配额。\n\n你需要拥有正确的权限。 你需要具备以下之一：Owner、Editor、Quota Administrator （roles/servicemanagement.quotaAdmin）或 Service Usage Admin（roles/serviceusage.serviceUsageAdmin）。\n\n更喜欢自动化？ 你还可以通过 以编程方式管理这些配额，使用 Cloud Quotas API、gcloud CLI 和 Terraform 跨项目应用一致的护栏。\n\n监控用量\n\n除了设置限制之外，配额和系统限制页面还会显示你的历史 token 消耗量，以便你快速发现异常峰值并合理地设定预算规模。利用这些趋势查看新的生成式 AI 工作负载和数据管道如何影响你的整体 token 用量。\n\nhttps://storage.googleapis.com/gweb-cloudblog-publish/images/3_sSNHw57.max-2000x2000.png\n\nIAM 和管理 → 配额和系统限制中某个生成式 AI token 配额的每日项目级 token 用量。\n\nhttps://storage.googleapis.com/gweb-cloudblog-publish/images/4_iYgfR4l.max-2000x2000.png\n\n更长期的用量图表，可选择 7 天、14 天、30 天和自定义范围。\n\n有关分步操作说明，请参阅 BigQuery 文档中关于使用 token 配额控制成本的内容。\n\ntoken 配额与账单支出上限\n\ntoken 配额并不是 Google Cloud 中唯一的成本护栏。\n\ntoken 配额（本功能）是预防性的，且专用于 AI。BigQuery 在查询执行期间跟踪 token 用量，并在接近限制时停止工作，且按项目和按用户分别设置限制。 Cloud Billing 支出上限在项目和服务层级以美元为单位运作，并可在达到阈值时自动阻止使用。它们是一种宽泛的财务兜底措施，而非精确的用量控制，并且由于执行并非即时，会产生一些超额费用。\n\n将 token 配额作为 AI 支出的第一道防线，将支出上限作为项目级的安全网。\n\n执行机制如何工作\n\n配额通过停止工作来执行，而不是让查询运行超出你的限制。仅当查询所需的某个配额已经耗尽时，该查询才会在事前被拒绝，并返回 QuotaExceeded 错误。否则，查询会启动；如果某个配额在查询中途耗尽，BigQuery 会停止发送新的 LLM 调用：\n\n支持 max_error_ratio 的函数（例如 AI.IF）如果未处理的行保持在该比例以内，则返回部分结果，否则失败。 通用函数（例如 AI.GENERATE）仍会成功。被跳过的行没有生成值，其 status 字段会包含配额超限错误。\n\n详情请参阅文档中的 配额执行行为。\n\n估算输入数据规模：AI.COUNT_TOKENS\n\n要选择配额值，了解你的工作负载向模型发送多少文本会很有帮助。AI.COUNT_TOKENS 函数可以帮助你实现这一点。\n\nAI.COUNT_TOKENS返回模型的分词器为文本字符串生成的 token 数量，而不会发起计费的生成调用。在一列上运行它以测量你的输入数据：\n\n加载中……\n\n该计数是输入 token 的下限。它不包括输出或思考 token、每个 AI 函数在输入周围添加的指令，也不包括图像等非文本输入。用它来：\n\n评估工作负载的输入侧，在你启动它之前。 合理设定你的配额，并结合一次小规模样本运行来测量实际输入和输出用量。 将 token 换算成美元，使用已发布的Gemini 平台定价（适用于你的模型）。\n\n从 token 到预算：一个完整示例\n\n假设你希望将某个项目的每日 AI 支出控制在100 美元左右，使用的是Gemini 3.1 Flash-Lite模型。按今天已发布的定价（BigQuery 以批处理方式处理，可享受 50% 折扣）：\n\n输入 token：每 100 万个 token 0.125 美元 输出 token（响应 + 推理）：每 100 万个 token 0.75 美元\n\n如果一次小规模样本运行显示平均输入与输出 token 之比为 100:1，你可以据此解出每日预算：\n\n加载中……\n\n解得大约7.54 亿输入 token以及754 万输出 token每天。将每日 AI 输入 token 数和每日 AI 输出 token 数设为这些值，即可让项目保持在每天约 100 美元。如果某个项目使用不同价格的模型，请按模型分别设定预算，或混合计算费率。\n\n管理 AI 成本的最佳实践\n\n从按用户配额开始。它们可以防止某个用户或失控的实验耗尽项目预算。 在扩缩之前先测量。使用AI.COUNT_TOKENS来估算你的输入规模，然后在设定限制之前，在使用量图表中检查一次小规模样本运行。 留意输出侧。输出 token 成本更高。在函数接受max_output_tokens的地方，设置它来限制生成长度。 监控并迭代。随着实际用量和预算变化调整限制。\n\n开始使用\n\n基于 token 的成本管理现已可用。要开始：\n\n打开IAM 与管理 → 配额与系统限制（在 Google Cloud 控制台中），并按BigQuery API进行筛选。查看四类与 AI 相关的 token 配额，并设置符合你预算的限制。使用AI.COUNT_TOKENS来估算你的输入数据规模。\n\n完整详情请参阅关于控制生成式 AI 成本的文档。\n\n有了基于 token 的防护措施，你的团队便可在 BigQuery 中使用生成式 AI，并获得组织所需的成本可预测性。\n\n发布于\n\n数据分析AI 与机器学习BigQuery",
-   "content_blocks": [
-    {
-     "type": "paragraph",
-     "id": "b-5d10df1e4e07",
-     "children": [
-      {
-       "type": "text",
-       "text": "BigQuery 中的",
-       "marks": [],
-       "id": "t-753e370f7c75"
-      },
-      {
-       "type": "text",
-       "text": "生成式 AI 函数",
-       "marks": [
-        {
-         "type": "link",
-         "href": "https://docs.cloud.google.com/bigquery/docs/generative-ai-overview"
-        }
-       ],
-       "id": "t-3d1f101b250f"
-      },
-      {
-       "type": "text",
-       "text": "（",
-       "marks": [],
-       "id": "t-059756068d41"
-      },
-      {
-       "type": "text",
-       "text": "AI.GENERATE",
-       "marks": [
-        "code"
-       ],
-       "id": "t-3e94f099a36e"
-      },
-      {
-       "type": "text",
-       "text": "、",
-       "marks": [],
-       "id": "t-034832f24fb5"
-      },
-      {
-       "type": "text",
-       "text": "AI.IF",
-       "marks": [
-        "code"
-       ],
-       "id": "t-531d6a9d7425"
-      },
-      {
-       "type": "text",
-       "text": "、",
-       "marks": [],
-       "id": "t-d0657d50cabc"
-      },
-      {
-       "type": "text",
-       "text": "AI.CLASSIFY",
-       "marks": [
-        "code"
-       ],
-       "id": "t-693ce1c1f137"
-      },
-      {
-       "type": "text",
-       "text": "、",
-       "marks": [],
-       "id": "t-a8fb1c24deda"
-      },
-      {
-       "type": "text",
-       "text": "AI.SCORE",
-       "marks": [
-        "code"
-       ],
-       "id": "t-dfa5e585abe8"
-      },
-      {
-       "type": "text",
-       "text": "等）将大语言模型（LLM）直接引入你的 SQL，因此单条查询就能对数百万张支持工单进行分类，或对每条产品评论进行情感评分。然而，由于这些函数按 token 计费，在超大规模数据集上扩展使用时，主动管理预算就显得尤为重要。",
-       "marks": [],
-       "id": "t-11496d474f3b"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-a344c163c580",
-     "children": [
-      {
-       "type": "text",
-       "text": "我们最近宣布了",
-       "marks": [],
-       "id": "t-14bb0fc2d757"
-      },
-      {
-       "type": "text",
-       "text": "基于 token 的",
-       "marks": [
-        "strong"
-       ],
-       "id": "t-cccb8aba3b55"
-      },
-      {
-       "type": "text",
-       "text": "成本管理",
-       "marks": [
-        {
-         "type": "link",
-         "href": "https://docs.cloud.google.com/bigquery/docs/control-genai-costs"
-        },
-        "strong"
-       ],
-       "id": "t-fb7798ed3425"
-      },
-      {
-       "type": "text",
-       "text": "功能对 BigQuery 生成式 AI 函数正式可用（GA）",
-       "marks": [
-        "strong"
-       ],
-       "id": "t-f17a1f101ef7"
-      },
-      {
-       "type": "text",
-       "text": "：每日配额让管理员能够对 AI token 消耗设置自助式护栏，使团队既能创新又能控制在预算之内。在本文中，我们概述 BigQuery 生成式 AI 函数的成本管理，介绍几个实用示例，并分享帮助你入门的资源。让我们开始吧。",
-       "marks": [],
-       "id": "t-d4c9017175be"
-      }
-     ]
-    },
-    {
-     "type": "heading",
-     "id": "b-e933d9045e03",
-     "children": [
-      {
-       "type": "text",
-       "text": "用于管理成本的配额",
-       "marks": [],
-       "id": "t-6e473f34f4f9"
-      }
-     ],
-     "level": 3
-    },
-    {
-     "type": "paragraph",
-     "id": "b-d3182ffb3031",
-     "children": [
-      {
-       "type": "text",
-       "text": "四个每日配额通过 Google Cloud 身份和访问管理（IAM）配额系统进行管理，可在",
-       "marks": [],
-       "id": "t-66ec5f742531"
-      },
-      {
-       "type": "text",
-       "text": "项目",
-       "marks": [
-        "strong"
-       ],
-       "id": "t-b8cfc9f8c3e0"
-      },
-      {
-       "type": "text",
-       "text": "层级和",
-       "marks": [],
-       "id": "t-e3521ceb8202"
-      },
-      {
-       "type": "text",
-       "text": "每用户",
-       "marks": [
-        "strong"
-       ],
-       "id": "t-514388ec152d"
-      },
-      {
-       "type": "text",
-       "text": "层级提供控制。每用户限制适用于项目内的每个用户，而非整个组织。",
-       "marks": [],
-       "id": "t-499551b420c6"
-      }
-     ]
-    },
-    {
-     "type": "table",
-     "id": "b-a1ba636fb16b",
-     "rows": [
-      {
-       "cells": [
-        {
-         "header": true,
-         "children": [
-          {
-           "type": "text",
-           "text": " ",
-           "marks": [],
-           "id": "t-62b868c11cb2"
-          },
-          {
-           "type": "text",
-           "text": "配额名称",
-           "marks": [
-            "strong"
-           ],
-           "id": "t-b5569a6e1fe0"
-          },
-          {
-           "type": "text",
-           "text": " ",
-           "marks": [],
-           "id": "t-bb5a53be8322"
-          }
-         ]
-        },
-        {
-         "header": true,
-         "children": [
-          {
-           "type": "text",
-           "text": " ",
-           "marks": [],
-           "id": "t-ea929b2abb09"
-          },
-          {
-           "type": "text",
-           "text": "指标",
-           "marks": [
-            "strong"
-           ],
-           "id": "t-9e060e1392ba"
-          },
-          {
-           "type": "text",
-           "text": " ",
-           "marks": [],
-           "id": "t-0ca85641ab4b"
-          }
-         ]
-        },
-        {
-         "header": true,
-         "children": [
-          {
-           "type": "text",
-           "text": " ",
-           "marks": [],
-           "id": "t-c39e40b2272e"
-          },
-          {
-           "type": "text",
-           "text": "范围",
-           "marks": [
-            "strong"
-           ],
-           "id": "t-5ce43655690e"
-          },
-          {
-           "type": "text",
-           "text": " ",
-           "marks": [],
-           "id": "t-cc160523974a"
-          }
-         ]
-        },
-        {
-         "header": true,
-         "children": [
-          {
-           "type": "text",
-           "text": " ",
-           "marks": [],
-           "id": "t-29995d63b83f"
-          },
-          {
-           "type": "text",
-           "text": "默认值",
-           "marks": [
-            "strong"
-           ],
-           "id": "t-6a2fb9f38488"
-          },
-          {
-           "type": "text",
-           "text": " ",
-           "marks": [],
-           "id": "t-610cdbbdab1e"
-          }
-         ]
-        }
-       ]
-      },
-      {
-       "cells": [
-        {
-         "header": false,
-         "children": [
-          {
-           "type": "text",
-           "text": " ",
-           "marks": [],
-           "id": "t-ca98cc9638a3"
-          },
-          {
-           "type": "text",
-           "text": "每天 AI 输入 token 数",
-           "marks": [
-            "strong"
-           ],
-           "id": "t-25a80a083e7d"
-          },
-          {
-           "type": "text",
-           "text": " ",
-           "marks": [],
-           "id": "t-71a63a0882ce"
-          }
-         ]
-        },
-        {
-         "header": false,
-         "children": [
-          {
-           "type": "text",
-           "text": " LLM 使用的输入 token ",
-           "marks": [],
-           "id": "t-7193a3df20e2"
-          }
-         ]
-        },
-        {
-         "header": false,
-         "children": [
-          {
-           "type": "text",
-           "text": " 每天，每项目 ",
-           "marks": [],
-           "id": "t-56bf45c6f84c"
-          }
-         ]
-        },
-        {
-         "header": false,
-         "children": [
-          {
-           "type": "text",
-           "text": " 2000 亿 ",
-           "marks": [],
-           "id": "t-75b03e13f2ef"
-          }
-         ]
-        }
-       ]
-      },
-      {
-       "cells": [
-        {
-         "header": false,
-         "children": [
-          {
-           "type": "text",
-           "text": " ",
-           "marks": [],
-           "id": "t-1edf1803fa54"
-          },
-          {
-           "type": "text",
-           "text": "每用户每天 AI 输入 token 数",
-           "marks": [
-            "strong"
-           ],
-           "id": "t-1cbd3003a2c4"
-          },
-          {
-           "type": "text",
-           "text": " ",
-           "marks": [],
-           "id": "t-de75c2dd2a0c"
-          }
-         ]
-        },
-        {
-         "header": false,
-         "children": [
-          {
-           "type": "text",
-           "text": " LLM 使用的输入 token ",
-           "marks": [],
-           "id": "t-45e0e7b7cb6e"
-          }
-         ]
-        },
-        {
-         "header": false,
-         "children": [
-          {
-           "type": "text",
-           "text": " 每天，每项目，每用户 ",
-           "marks": [],
-           "id": "t-af2b8ea5fd33"
-          }
-         ]
-        },
-        {
-         "header": false,
-         "children": [
-          {
-           "type": "text",
-           "text": " 1500 亿 ",
-           "marks": [],
-           "id": "t-c0070b6dc5af"
-          }
-         ]
-        }
-       ]
-      },
-      {
-       "cells": [
-        {
-         "header": false,
-         "children": [
-          {
-           "type": "text",
-           "text": " ",
-           "marks": [],
-           "id": "t-dbb59bbdcd61"
-          },
-          {
-           "type": "text",
-           "text": "每天 AI 输出 token 数",
-           "marks": [
-            "strong"
-           ],
-           "id": "t-76ef1fc23994"
-          },
-          {
-           "type": "text",
-           "text": " ",
-           "marks": [],
-           "id": "t-8c0545fbaa6c"
-          }
-         ]
-        },
-        {
-         "header": false,
-         "children": [
-          {
-           "type": "text",
-           "text": " LLM 使用的输出和思考 token ",
-           "marks": [],
-           "id": "t-311d19f5d5f2"
-          }
-         ]
-        },
-        {
-         "header": false,
-         "children": [
-          {
-           "type": "text",
-           "text": " 每天，每项目，每项目 ",
-           "marks": [],
-           "id": "t-be9c3a3470f2"
-          }
-         ]
-        },
-        {
-         "header": false,
-         "children": [
-          {
-           "type": "text",
-           "text": " 200 亿 ",
-           "marks": [],
-           "id": "t-01249a44145c"
-          }
-         ]
-        }
-       ]
-      },
-      {
-       "cells": [
-        {
-         "header": false,
-         "children": [
-          {
-           "type": "text",
-           "text": " ",
-           "marks": [],
-           "id": "t-b2758ccd9f38"
-          },
-          {
-           "type": "text",
-           "text": "每用户每天 AI 输出 token 数",
-           "marks": [
-            "strong"
-           ],
-           "id": "t-596293fa5bbf"
-          },
-          {
-           "type": "text",
-           "text": " ",
-           "marks": [],
-           "id": "t-7ee921366fe1"
-          }
-         ]
-        },
-        {
-         "header": false,
-         "children": [
-          {
-           "type": "text",
-           "text": " LLM 使用的输出和思考 token ",
-           "marks": [],
-           "id": "t-a015d2ff6b0a"
-          }
-         ]
-        },
-        {
-         "header": false,
-         "children": [
-          {
-           "type": "text",
-           "text": " 每天，每项目，每用户 ",
-           "marks": [],
-           "id": "t-de9faa99bb9a"
-          }
-         ]
-        },
-        {
-         "header": false,
-         "children": [
-          {
-           "type": "text",
-           "text": " 150 亿 ",
-           "marks": [],
-           "id": "t-1801973479cc"
-          }
-         ]
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-e7404c1a9177",
-     "children": [
-      {
-       "type": "text",
-       "text": "关键细节：",
-       "marks": [],
-       "id": "t-c6e8ac674983"
-      }
-     ]
-    },
-    {
-     "type": "list",
-     "id": "b-3c4c54f73f05",
-     "ordered": false,
-     "items": [
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-fccc81926c6c"
-        },
-        {
-         "type": "text",
-         "text": "配额是全局的。",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-658ac04d362b"
-        },
-        {
-         "type": "text",
-         "text": " 用量按所有区域汇总，因此成本不会在你未关注的区域悄然累积。",
-         "marks": [],
-         "id": "t-69fc4c350a85"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-e413aca088c6"
-        },
-        {
-         "type": "text",
-         "text": "输出配额包含“思考”token。",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-00472519ebbb"
-        },
-        {
-         "type": "text",
-         "text": " 推理 token 会计入你的输出配额，正如它们会计入你的 Gemini 平台账单一样。",
-         "marks": [],
-         "id": "t-658cb3c666b2"
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "type": "heading",
-     "id": "b-e219cdf38a94",
-     "children": [
-      {
-       "type": "text",
-       "text": "涵盖哪些函数？",
-       "marks": [],
-       "id": "t-9e1a4c0ed5ae"
-      }
-     ],
-     "level": 3
-    },
-    {
-     "type": "paragraph",
-     "id": "b-b27b4d316433",
-     "children": [
-      {
-       "type": "text",
-       "text": "这些配额适用于以下执行 LLM 支持的生成的 BigQuery 函数：",
-       "marks": [],
-       "id": "t-af690d65493b"
-      }
-     ]
-    },
-    {
-     "type": "list",
-     "id": "b-d5c380f7a511",
-     "ordered": false,
-     "items": [
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-fe84890f87e2"
-        },
-        {
-         "type": "text",
-         "text": "AI.GENERATE",
-         "marks": [
-          {
-           "type": "link",
-           "href": "https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/bigqueryml-syntax-ai-generate"
-          },
-          "code"
-         ],
-         "id": "t-02bc66b6c764"
-        },
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-89e371bbfcc0"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-0944dc6cd853"
-        },
-        {
-         "type": "text",
-         "text": "AI.GENERATE_TABLE",
-         "marks": [
-          {
-           "type": "link",
-           "href": "https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/bigqueryml-syntax-generate-table"
-          },
-          "code"
-         ],
-         "id": "t-97d23f525420"
-        },
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-0358dbb132bb"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-020c663d924a"
-        },
-        {
-         "type": "text",
-         "text": "AI.GENERATE_TEXT",
-         "marks": [
-          {
-           "type": "link",
-           "href": "https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/bigqueryml-syntax-ai-generate-text"
-          },
-          "code"
-         ],
-         "id": "t-4023f24c727a"
-        },
-        {
-         "type": "text",
-         "text": " （及其别名 ",
-         "marks": [],
-         "id": "t-5bb6e1b85b5d"
-        },
-        {
-         "type": "text",
-         "text": "ML.GENERATE_TEXT",
-         "marks": [
-          {
-           "type": "link",
-           "href": "https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/bigqueryml-syntax-generate-text"
-          },
-          "code"
-         ],
-         "id": "t-63b979fa1bf3"
-        },
-        {
-         "type": "text",
-         "text": "） ",
-         "marks": [],
-         "id": "t-5e53f5628ae6"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-8d0de56e232e"
-        },
-        {
-         "type": "text",
-         "text": "AI.CLASSIFY",
-         "marks": [
-          {
-           "type": "link",
-           "href": "https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/bigqueryml-syntax-ai-classify"
-          },
-          "code"
-         ],
-         "id": "t-6661896c0329"
-        },
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-bb7cb34dd9ea"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-04d85000c39a"
-        },
-        {
-         "type": "text",
-         "text": "AI.IF",
-         "marks": [
-          {
-           "type": "link",
-           "href": "https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/bigqueryml-syntax-ai-if"
-          },
-          "code"
-         ],
-         "id": "t-cf721867f313"
-        },
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-fb06a9cf1fd6"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-8910b0ac03ca"
-        },
-        {
-         "type": "text",
-         "text": "AI.SCORE",
-         "marks": [
-          {
-           "type": "link",
-           "href": "https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/bigqueryml-syntax-ai-score"
-          },
-          "code"
-         ],
-         "id": "t-886edfb34e7d"
-        },
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-00cd5254f81d"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-6eea0390caf6"
-        },
-        {
-         "type": "text",
-         "text": "AI.AGG",
-         "marks": [
-          {
-           "type": "link",
-           "href": "https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/bigqueryml-syntax-ai-agg"
-          },
-          "code"
-         ],
-         "id": "t-896199241885"
-        },
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-76a54f69733a"
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-bc16474c2b01",
-     "children": [
-      {
-       "type": "text",
-       "text": "不涵盖的内容：",
-       "marks": [
-        "strong"
-       ],
-       "id": "t-62626ede1615"
-      },
-      {
-       "type": "text",
-       "text": " 嵌入函数，例如 ",
-       "marks": [],
-       "id": "t-8e57f62fbb5a"
-      },
-      {
-       "type": "text",
-       "text": "AI.GENERATE_EMBEDDING",
-       "marks": [
-        {
-         "type": "link",
-         "href": "https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/bigqueryml-syntax-generate-text"
-        },
-        "code"
-       ],
-       "id": "t-e8e6fd4ff403"
-      },
-      {
-       "type": "text",
-       "text": "（也可作为 ",
-       "marks": [],
-       "id": "t-827aafca73a4"
-      },
-      {
-       "type": "text",
-       "text": "ML.GENERATE_EMBEDDING",
-       "marks": [
-        {
-         "type": "link",
-         "href": "https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/bigqueryml-syntax-generate-embedding"
-        },
-        "code"
-       ],
-       "id": "t-2ce0c3013ede"
-      },
-      {
-       "type": "text",
-       "text": " 使用）和 ",
-       "marks": [],
-       "id": "t-7b92e96dcea3"
-      },
-      {
-       "type": "text",
-       "text": "AI.EMBED",
-       "marks": [
-        {
-         "type": "link",
-         "href": "https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/bigqueryml-syntax-ai-embed"
-        },
-        "code"
-       ],
-       "id": "t-f74174517b8d"
-      },
-      {
-       "type": "text",
-       "text": " 不受这些配额限制，因为它们运行在不同的、成本低得多的模型上。",
-       "marks": [],
-       "id": "t-9a18c8f6e01b"
-      }
-     ]
-    },
-    {
-     "type": "heading",
-     "id": "b-1ad1a893bdf8",
-     "children": [
-      {
-       "type": "text",
-       "text": "管理你的配额",
-       "marks": [],
-       "id": "t-bf860e0b7510"
-      }
-     ],
-     "level": 3
-    },
-    {
-     "type": "paragraph",
-     "id": "b-d1641a01f241",
-     "children": [
-      {
-       "type": "text",
-       "text": "管理员可以在工作负载变化时直接在 ",
-       "marks": [],
-       "id": "t-cc3816b6c70b"
-      },
-      {
-       "type": "text",
-       "text": "Google Cloud 控制台",
-       "marks": [
-        {
-         "type": "link",
-         "href": "https://docs.cloud.google.com/bigquery/docs/control-genai-costs"
-        }
-       ],
-       "id": "t-468944b417f2"
-      },
-      {
-       "type": "text",
-       "text": " 中查看和调整配额，无需提交支持案例。",
-       "marks": [],
-       "id": "t-dd6485712d94"
-      }
-     ]
-    },
-    {
-     "type": "list",
-     "id": "b-d9171522cad1",
-     "ordered": true,
-     "items": [
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " 导航至 ",
-         "marks": [],
-         "id": "t-0f215bd0ff57"
-        },
-        {
-         "type": "text",
-         "text": "IAM 和管理 → ",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-36c7f64ac47a"
-        },
-        {
-         "type": "text",
-         "text": "配额和系统限制",
-         "marks": [
-          {
-           "type": "link",
-           "href": "https://console.cloud.google.com/iam-admin/quotas/list"
-          },
-          "strong"
-         ],
-         "id": "t-05a63204a81d"
-        },
-        {
-         "type": "text",
-         "text": "。",
-         "marks": [],
-         "id": "t-dc670a8e7465"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " 按服务筛选并选择 ",
-         "marks": [],
-         "id": "t-27c136cd5fe0"
-        },
-        {
-         "type": "text",
-         "text": "BigQuery API",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-e90069e192b7"
-        },
-        {
-         "type": "text",
-         "text": "。",
-         "marks": [],
-         "id": "t-0203d6f0e388"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " 按 ",
-         "marks": [],
-         "id": "t-2ad921441160"
-        },
-        {
-         "type": "text",
-         "text": "名称",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-478206e5d136"
-        },
-        {
-         "type": "text",
-         "text": " 列排序，将四个 AI 配额置于顶部。",
-         "marks": [],
-         "id": "t-b98b5d46c676"
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "type": "figure",
-     "id": "b-73a2ad7cfc02",
-     "src": "https://storage.googleapis.com/gweb-cloudblog-publish/images/1_dxxy8WS.max-2000x2000.png",
-     "alt": "https://storage.googleapis.com/gweb-cloudblog-publish/images/1_dxxy8WS.max-2000x2000.png",
-     "caption": "",
-     "source_url": "https://cloud.google.com/blog/products/data-analytics/using-bigquerys-generative-ai-cost-management-features",
-     "media_status": "link_only",
-     "media_reason": "cross_site_host"
-    },
-    {
-     "type": "paragraph",
-     "id": "b-2cda48649e8f",
-     "children": [
-      {
-       "type": "text",
-       "text": "在 IAM 和管理 → 配额和系统限制中定位生成式 AI token 配额。",
-       "marks": [],
-       "id": "t-1ff8166db7af"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-e8984b7eaa91",
-     "children": [
-      {
-       "type": "text",
-       "text": "4. 找到该配额，例如 ",
-       "marks": [],
-       "id": "t-eb100be290fa"
-      },
-      {
-       "type": "text",
-       "text": "每天 AI 输入 token 数",
-       "marks": [
-        "strong"
-       ],
-       "id": "t-5f6f347549da"
-      },
-      {
-       "type": "text",
-       "text": "。",
-       "marks": [],
-       "id": "t-33eeeb5af442"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-1f5164092002",
-     "children": [
-      {
-       "type": "text",
-       "text": "5. 打开三点菜单并选择 ",
-       "marks": [],
-       "id": "t-360ddf9dc853"
-      },
-      {
-       "type": "text",
-       "text": "编辑配额",
-       "marks": [
-        "strong"
-       ],
-       "id": "t-dd71f244f5d3"
-      },
-      {
-       "type": "text",
-       "text": "。",
-       "marks": [],
-       "id": "t-6f18740e8136"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-0bc188c638ee",
-     "children": [
-      {
-       "type": "text",
-       "text": "从这里开始：",
-       "marks": [],
-       "id": "t-46a1ffe3fc44"
-      }
-     ]
-    },
-    {
-     "type": "list",
-     "id": "b-36d8d69375e3",
-     "ordered": false,
-     "items": [
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-b0334a70e70d"
-        },
-        {
-         "type": "text",
-         "text": "要收紧成本控制，",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-02f3fb143766"
-        },
-        {
-         "type": "text",
-         "text": " 降低配额。这会立即生效，无需审批。",
-         "marks": [],
-         "id": "t-7480122b6195"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-8aa35cd45286"
-        },
-        {
-         "type": "text",
-         "text": "要支持更高的用量，",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-7c2fc0e17726"
-        },
-        {
-         "type": "text",
-         "text": " 从同一页面申请增加。许多请求会自动批准；较大的增加可能需要经过快速审核。",
-         "marks": [],
-         "id": "t-cb8a0202abb6"
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "type": "figure",
-     "id": "b-4fb9b7f836d9",
-     "src": "https://storage.googleapis.com/gweb-cloudblog-publish/images/2_7NmvWbT.max-2000x2000.png",
-     "alt": "https://storage.googleapis.com/gweb-cloudblog-publish/images/2_7NmvWbT.max-2000x2000.png",
-     "caption": "",
-     "source_url": "https://cloud.google.com/blog/products/data-analytics/using-bigquerys-generative-ai-cost-management-features",
-     "media_status": "link_only",
-     "media_reason": "cross_site_host"
-    },
-    {
-     "type": "paragraph",
-     "id": "b-7d39feccf0d2",
-     "children": [
-      {
-       "type": "text",
-       "text": "在 IAM 和管理 → 配额和系统限制中编辑生成式 AI token 配额。",
-       "marks": [],
-       "id": "t-7987c4d12cc5"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-540d89f89362",
-     "children": [
-      {
-       "type": "text",
-       "text": "你需要拥有正确的权限。",
-       "marks": [
-        "strong"
-       ],
-       "id": "t-77ad74383a60"
-      },
-      {
-       "type": "text",
-       "text": " 你需要具备以下之一：",
-       "marks": [],
-       "id": "t-0239a2b443e7"
-      },
-      {
-       "type": "text",
-       "text": "Owner",
-       "marks": [
-        "strong"
-       ],
-       "id": "t-30251dbdf1a2"
-      },
-      {
-       "type": "text",
-       "text": "、",
-       "marks": [],
-       "id": "t-8798b5c22e01"
-      },
-      {
-       "type": "text",
-       "text": "Editor、",
-       "marks": [
-        "strong"
-       ],
-       "id": "t-1da2259323ce"
-      },
-      {
-       "type": "text",
-       "text": "Quota Administrator",
-       "marks": [
-        {
-         "type": "link",
-         "href": "https://docs.cloud.google.com/iam/docs/roles-permissions/servicemanagement#servicemanagement.quotaAdmin"
-        },
-        "strong"
-       ],
-       "id": "t-937b4fa71665"
-      },
-      {
-       "type": "text",
-       "text": " ",
-       "marks": [
-        {
-         "type": "link",
-         "href": "https://docs.cloud.google.com/iam/docs/roles-permissions/servicemanagement#servicemanagement.quotaAdmin"
-        }
-       ],
-       "id": "t-37cb8adae7ea"
-      },
-      {
-       "type": "text",
-       "text": "（",
-       "marks": [],
-       "id": "t-970c06a57f05"
-      },
-      {
-       "type": "text",
-       "text": "roles/servicemanagement.quotaAdmin",
-       "marks": [
-        "code"
-       ],
-       "id": "t-0f16abfb5608"
-      },
-      {
-       "type": "text",
-       "text": "）或 ",
-       "marks": [],
-       "id": "t-3d6f128dfd28"
-      },
-      {
-       "type": "text",
-       "text": "Service Usage Admin",
-       "marks": [
-        {
-         "type": "link",
-         "href": "https://docs.cloud.google.com/iam/docs/roles-permissions/serviceusage#serviceusage.serviceUsageAdmin"
-        },
-        "strong"
-       ],
-       "id": "t-c80a024e3824"
-      },
-      {
-       "type": "text",
-       "text": "（",
-       "marks": [],
-       "id": "t-1531b4666a03"
-      },
-      {
-       "type": "text",
-       "text": "roles/serviceusage.serviceUsageAdmin",
-       "marks": [
-        "code"
-       ],
-       "id": "t-0bb0f177f258"
-      },
-      {
-       "type": "text",
-       "text": "）。",
-       "marks": [],
-       "id": "t-4a9518dc3013"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-6b85c6332d38",
-     "children": [
-      {
-       "type": "text",
-       "text": "更喜欢自动化？",
-       "marks": [
-        "strong"
-       ],
-       "id": "t-2368729a2471"
-      },
-      {
-       "type": "text",
-       "text": " 你还可以通过 ",
-       "marks": [],
-       "id": "t-d496625fdf8d"
-      },
-      {
-       "type": "text",
-       "text": "以编程方式管理这些配额",
-       "marks": [
-        {
-         "type": "link",
-         "href": "https://medium.com/google-cloud/bigquery-ai-cost-guardrails-how-to-set-daily-token-limits-programmatically-02d7a35f843a"
-        }
-       ],
-       "id": "t-045d3c668e37"
-      },
-      {
-       "type": "text",
-       "text": "，使用 ",
-       "marks": [],
-       "id": "t-2a9fe7915863"
-      },
-      {
-       "type": "text",
-       "text": "Cloud Quotas API",
-       "marks": [
-        {
-         "type": "link",
-         "href": "https://docs.cloud.google.com/docs/quotas"
-        }
-       ],
-       "id": "t-c0e3f01744e7"
-      },
-      {
-       "type": "text",
-       "text": "、",
-       "marks": [],
-       "id": "t-d8e1c82e1391"
-      },
-      {
-       "type": "text",
-       "text": "gcloud",
-       "marks": [
-        "code"
-       ],
-       "id": "t-7ac3a0abf1d2"
-      },
-      {
-       "type": "text",
-       "text": " CLI 和 Terraform 跨项目应用一致的护栏。",
-       "marks": [],
-       "id": "t-25dda46241b6"
-      }
-     ]
-    },
-    {
-     "type": "heading",
-     "id": "b-8345a38fc811",
-     "children": [
-      {
-       "type": "text",
-       "text": "监控用量",
-       "marks": [],
-       "id": "t-c172b903b3f0"
-      }
-     ],
-     "level": 3
-    },
-    {
-     "type": "paragraph",
-     "id": "b-7082ce52c72a",
-     "children": [
-      {
-       "type": "text",
-       "text": "除了设置限制之外，",
-       "marks": [],
-       "id": "t-028645c6c7e8"
-      },
-      {
-       "type": "text",
-       "text": "配额和系统限制",
-       "marks": [
-        {
-         "type": "link",
-         "href": "https://console.cloud.google.com/iam-admin/quotas/list"
-        },
-        "strong"
-       ],
-       "id": "t-068eff62e7af"
-      },
-      {
-       "type": "text",
-       "text": "页面还会显示你的历史 token 消耗量，以便你快速发现异常峰值并合理地设定预算规模。利用这些趋势查看新的生成式 AI 工作负载和数据管道如何影响你的整体 token 用量。",
-       "marks": [],
-       "id": "t-b1c37bdc0dc7"
-      }
-     ]
-    },
-    {
-     "type": "figure",
-     "id": "b-3882c5bee7b8",
-     "src": "https://storage.googleapis.com/gweb-cloudblog-publish/images/3_sSNHw57.max-2000x2000.png",
-     "alt": "https://storage.googleapis.com/gweb-cloudblog-publish/images/3_sSNHw57.max-2000x2000.png",
-     "caption": "",
-     "source_url": "https://cloud.google.com/blog/products/data-analytics/using-bigquerys-generative-ai-cost-management-features",
-     "media_status": "link_only",
-     "media_reason": "cross_site_host"
-    },
-    {
-     "type": "paragraph",
-     "id": "b-5419e16a9bbb",
-     "children": [
-      {
-       "type": "text",
-       "text": "IAM 和管理 → 配额和系统限制中某个生成式 AI token 配额的每日项目级 token 用量。",
-       "marks": [],
-       "id": "t-252c71377905"
-      }
-     ]
-    },
-    {
-     "type": "figure",
-     "id": "b-453a2969ab55",
-     "src": "https://storage.googleapis.com/gweb-cloudblog-publish/images/4_iYgfR4l.max-2000x2000.png",
-     "alt": "https://storage.googleapis.com/gweb-cloudblog-publish/images/4_iYgfR4l.max-2000x2000.png",
-     "caption": "",
-     "source_url": "https://cloud.google.com/blog/products/data-analytics/using-bigquerys-generative-ai-cost-management-features",
-     "media_status": "link_only",
-     "media_reason": "cross_site_host"
-    },
-    {
-     "type": "paragraph",
-     "id": "b-302dc92868b8",
-     "children": [
-      {
-       "type": "text",
-       "text": "更长期的用量图表，可选择 7 天、14 天、30 天和自定义范围。",
-       "marks": [],
-       "id": "t-163f53ee8fe6"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-ab2bfe65841e",
-     "children": [
-      {
-       "type": "text",
-       "text": "有关分步操作说明，请参阅 BigQuery 文档中关于",
-       "marks": [],
-       "id": "t-7be048ba74a7"
-      },
-      {
-       "type": "text",
-       "text": "使用 token 配额控制成本",
-       "marks": [
-        {
-         "type": "link",
-         "href": "https://docs.cloud.google.com/bigquery/docs/control-genai-costs"
-        }
-       ],
-       "id": "t-2cf805b09801"
-      },
-      {
-       "type": "text",
-       "text": "的内容。",
-       "marks": [],
-       "id": "t-bec7da4463db"
-      }
-     ]
-    },
-    {
-     "type": "heading",
-     "id": "b-5fb1126b45c8",
-     "children": [
-      {
-       "type": "text",
-       "text": "token 配额与账单支出上限",
-       "marks": [],
-       "id": "t-78f4f0f1bab8"
-      }
-     ],
-     "level": 3
-    },
-    {
-     "type": "paragraph",
-     "id": "b-8a1e85bd2d9b",
-     "children": [
-      {
-       "type": "text",
-       "text": "token 配额并不是 Google Cloud 中唯一的成本护栏。",
-       "marks": [],
-       "id": "t-b260c33f511d"
-      }
-     ]
-    },
-    {
-     "type": "list",
-     "id": "b-a6a84ab1383f",
-     "ordered": false,
-     "items": [
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-48a91cfa8e69"
-        },
-        {
-         "type": "text",
-         "text": "token 配额（本功能）",
-         "marks": [
-          {
-           "type": "link",
-           "href": "https://docs.cloud.google.com/bigquery/docs/control-genai-costs"
-          },
-          "strong"
-         ],
-         "id": "t-ebc1f36e936e"
-        },
-        {
-         "type": "text",
-         "text": "是预防性的，且专用于 AI。BigQuery 在查询执行期间跟踪 token 用量，并在接近限制时停止工作，且按项目和按用户分别设置限制。",
-         "marks": [],
-         "id": "t-24c1fbb00c0e"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-aba854bc9513"
-        },
-        {
-         "type": "text",
-         "text": "Cloud Billing ",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-851ecf01b5d0"
-        },
-        {
-         "type": "text",
-         "text": "支出上限",
-         "marks": [
-          {
-           "type": "link",
-           "href": "https://docs.cloud.google.com/billing/docs/how-to/budgets-spend-caps#eligible-services"
-          },
-          "strong"
-         ],
-         "id": "t-101e527265c5"
-        },
-        {
-         "type": "text",
-         "text": "在项目和服务层级以美元为单位运作，并可在达到阈值时自动阻止使用。它们是一种宽泛的财务兜底措施，而非精确的用量控制，并且由于执行并非即时，会产生一些超额费用。",
-         "marks": [],
-         "id": "t-b2ece5ad37ab"
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-bd571f83558c",
-     "children": [
-      {
-       "type": "text",
-       "text": "将 token 配额作为 AI 支出的第一道防线，将支出上限作为项目级的安全网。",
-       "marks": [],
-       "id": "t-1dc5b4bcef22"
-      }
-     ]
-    },
-    {
-     "type": "heading",
-     "id": "b-da38bd3daa2c",
-     "children": [
-      {
-       "type": "text",
-       "text": "执行机制如何工作",
-       "marks": [],
-       "id": "t-c2e6b467c927"
-      }
-     ],
-     "level": 3
-    },
-    {
-     "type": "paragraph",
-     "id": "b-7859ae86038a",
-     "children": [
-      {
-       "type": "text",
-       "text": "配额通过停止工作来执行，而不是让查询运行超出你的限制。仅当查询所需的某个配额已经耗尽时，该查询才会在事前被拒绝，并返回 ",
-       "marks": [],
-       "id": "t-02d1670b0664"
-      },
-      {
-       "type": "text",
-       "text": "QuotaExceeded",
-       "marks": [
-        "code"
-       ],
-       "id": "t-2054b2319547"
-      },
-      {
-       "type": "text",
-       "text": " 错误。否则，查询会启动；如果某个配额在查询中途耗尽，BigQuery 会停止发送新的 LLM 调用：",
-       "marks": [],
-       "id": "t-9f839fb8d44d"
-      }
-     ]
-    },
-    {
-     "type": "list",
-     "id": "b-4543ce6c2097",
-     "ordered": false,
-     "items": [
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-3cd32223637f"
-        },
-        {
-         "type": "text",
-         "text": "支持 ",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-e65a69a47dd7"
-        },
-        {
-         "type": "text",
-         "text": "max_error_ratio",
-         "marks": [
-          "code",
-          "strong"
-         ],
-         "id": "t-2ab0dee84466"
-        },
-        {
-         "type": "text",
-         "text": " 的函数（例如 ",
-         "marks": [],
-         "id": "t-3971e32fbf9a"
-        },
-        {
-         "type": "text",
-         "text": "AI.IF",
-         "marks": [
-          "code"
-         ],
-         "id": "t-c1d18db16201"
-        },
-        {
-         "type": "text",
-         "text": "）如果未处理的行保持在该比例以内，则返回部分结果，否则失败。",
-         "marks": [],
-         "id": "t-e88007172921"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-7d3e9bce14c3"
-        },
-        {
-         "type": "text",
-         "text": "通用函数",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-9d7508639d73"
-        },
-        {
-         "type": "text",
-         "text": "（例如 ",
-         "marks": [],
-         "id": "t-9bc66c315225"
-        },
-        {
-         "type": "text",
-         "text": "AI.GENERATE",
-         "marks": [
-          "code"
-         ],
-         "id": "t-15c7da6d369b"
-        },
-        {
-         "type": "text",
-         "text": "）仍会成功。被跳过的行没有生成值，其 ",
-         "marks": [],
-         "id": "t-77313a88a131"
-        },
-        {
-         "type": "text",
-         "text": "status",
-         "marks": [
-          "code"
-         ],
-         "id": "t-cb51b25865c8"
-        },
-        {
-         "type": "text",
-         "text": " 字段会包含配额超限错误。",
-         "marks": [],
-         "id": "t-e4accadc1218"
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-8740e55880d0",
-     "children": [
-      {
-       "type": "text",
-       "text": "详情请参阅文档中的 ",
-       "marks": [],
-       "id": "t-d9b9fcb43f92"
-      },
-      {
-       "type": "text",
-       "text": "配额执行行为",
-       "marks": [
-        {
-         "type": "link",
-         "href": "https://docs.cloud.google.com/bigquery/docs/control-genai-costs#quota_enforcement_behavior"
-        }
-       ],
-       "id": "t-dbd474272f0b"
-      },
-      {
-       "type": "text",
-       "text": "。",
-       "marks": [],
-       "id": "t-acb04e894705"
-      }
-     ]
-    },
-    {
-     "type": "heading",
-     "id": "b-1b3056578b55",
-     "children": [
-      {
-       "type": "text",
-       "text": "估算输入数据规模：",
-       "marks": [],
-       "id": "t-c88a31b5de3e"
-      },
-      {
-       "type": "text",
-       "text": "AI.COUNT_TOKENS",
-       "marks": [
-        "code"
-       ],
-       "id": "t-67eaa33dad39"
-      }
-     ],
-     "level": 3
-    },
-    {
-     "type": "paragraph",
-     "id": "b-5e5ec2595a96",
-     "children": [
-      {
-       "type": "text",
-       "text": "要选择配额值，了解你的工作负载向模型发送多少文本会很有帮助。",
-       "marks": [],
-       "id": "t-80afc98b35be"
-      },
-      {
-       "type": "text",
-       "text": "AI.COUNT_TOKENS",
-       "marks": [
-        {
-         "type": "link",
-         "href": "https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/bigqueryml-syntax-ai-count-tokens"
-        },
-        "code"
-       ],
-       "id": "t-73e17240b06c"
-      },
-      {
-       "type": "text",
-       "text": " 函数可以帮助你实现这一点。",
-       "marks": [],
-       "id": "t-04cbff6be65b"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-1a581abb25c2",
-     "children": [
-      {
-       "type": "text",
-       "text": "AI.COUNT_TOKENS",
-       "marks": [
-        "code"
-       ],
-       "id": "t-b46ec32cfc87"
-      },
-      {
-       "type": "text",
-       "text": "返回模型的分词器为文本字符串生成的 token 数量，而不会发起计费的生成调用。在一列上运行它以测量你的输入数据：",
-       "marks": [],
-       "id": "t-71d91991c894"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-56c52c85d29c",
-     "children": [
-      {
-       "type": "text",
-       "text": "加载中……",
-       "marks": [],
-       "id": "t-ebf346cf5f84"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-2c170b5663c5",
-     "children": [
-      {
-       "type": "text",
-       "text": "该计数是输入 token 的下限。它不包括输出或思考 token、每个 AI 函数在输入周围添加的指令，也不包括图像等非文本输入。用它来：",
-       "marks": [],
-       "id": "t-de6746aa37a8"
-      }
-     ]
-    },
-    {
-     "type": "list",
-     "id": "b-7f637dd6f60d",
-     "ordered": false,
-     "items": [
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-49a8a4fc6585"
-        },
-        {
-         "type": "text",
-         "text": "评估工作负载的输入侧",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-6eb8075c4797"
-        },
-        {
-         "type": "text",
-         "text": "，在你启动它之前。",
-         "marks": [],
-         "id": "t-ff67e0598901"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-221264e6f035"
-        },
-        {
-         "type": "text",
-         "text": "合理设定你的配额",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-327a25da70be"
-        },
-        {
-         "type": "text",
-         "text": "，并结合一次小规模样本运行来测量实际输入和输出用量。",
-         "marks": [],
-         "id": "t-f95cd083802a"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-e6d4c3462eb8"
-        },
-        {
-         "type": "text",
-         "text": "将 token 换算成美元",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-b0ef12783d95"
-        },
-        {
-         "type": "text",
-         "text": "，使用已发布的",
-         "marks": [],
-         "id": "t-1a66a9475b41"
-        },
-        {
-         "type": "text",
-         "text": "Gemini 平台定价",
-         "marks": [
-          {
-           "type": "link",
-           "href": "https://cloud.google.com/vertex-ai/generative-ai/pricing"
-          }
-         ],
-         "id": "t-72456609b1c4"
-        },
-        {
-         "type": "text",
-         "text": "（适用于你的模型）。",
-         "marks": [],
-         "id": "t-95f2b4c9fc30"
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "type": "heading",
-     "id": "b-7b6a890df9c0",
-     "children": [
-      {
-       "type": "text",
-       "text": "从 token 到预算：一个完整示例",
-       "marks": [],
-       "id": "t-ded93e1537f0"
-      }
-     ],
-     "level": 3
-    },
-    {
-     "type": "paragraph",
-     "id": "b-e0e644e4eab8",
-     "children": [
-      {
-       "type": "text",
-       "text": "假设你希望将某个项目的每日 AI 支出控制在",
-       "marks": [],
-       "id": "t-375f1442aca1"
-      },
-      {
-       "type": "text",
-       "text": "100 美元",
-       "marks": [
-        "strong"
-       ],
-       "id": "t-47781838eaaf"
-      },
-      {
-       "type": "text",
-       "text": "左右，使用的是",
-       "marks": [],
-       "id": "t-74a5347f8d8b"
-      },
-      {
-       "type": "text",
-       "text": "Gemini 3.1 Flash-Lite",
-       "marks": [
-        {
-         "type": "link",
-         "href": "https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-1-flash-lite"
-        }
-       ],
-       "id": "t-b78f14658b15"
-      },
-      {
-       "type": "text",
-       "text": "模型。按今天已发布的定价（BigQuery 以批处理方式处理，可享受 50% 折扣）：",
-       "marks": [],
-       "id": "t-f380dadf2c49"
-      }
-     ]
-    },
-    {
-     "type": "list",
-     "id": "b-ab0b91196504",
-     "ordered": false,
-     "items": [
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-35a83773a30a"
-        },
-        {
-         "type": "text",
-         "text": "输入 token：",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-ca5d3035feec"
-        },
-        {
-         "type": "text",
-         "text": "每 100 万个 token 0.125 美元",
-         "marks": [],
-         "id": "t-fcbe802cfdfa"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-88214057a5ec"
-        },
-        {
-         "type": "text",
-         "text": "输出 token（响应 + 推理）：",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-4fe779ac444c"
-        },
-        {
-         "type": "text",
-         "text": "每 100 万个 token 0.75 美元",
-         "marks": [],
-         "id": "t-b8910ee30b67"
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-d3c8e54fdccc",
-     "children": [
-      {
-       "type": "text",
-       "text": "如果一次小规模样本运行显示平均",
-       "marks": [],
-       "id": "t-72b5aef05e62"
-      },
-      {
-       "type": "text",
-       "text": "输入与输出 token 之比为 100:1",
-       "marks": [
-        "strong"
-       ],
-       "id": "t-04237a85c112"
-      },
-      {
-       "type": "text",
-       "text": "，你可以据此解出每日预算：",
-       "marks": [],
-       "id": "t-433d212b7d48"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-56c52c85d29c-2",
-     "children": [
-      {
-       "type": "text",
-       "text": "加载中……",
-       "marks": [],
-       "id": "t-6dc366afab20"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-93f953f1b856",
-     "children": [
-      {
-       "type": "text",
-       "text": "解得大约",
-       "marks": [],
-       "id": "t-dec1553453ae"
-      },
-      {
-       "type": "text",
-       "text": "7.54 亿输入 token",
-       "marks": [
-        "strong"
-       ],
-       "id": "t-ae8ee8ca93b9"
-      },
-      {
-       "type": "text",
-       "text": "以及",
-       "marks": [],
-       "id": "t-856df2ed736d"
-      },
-      {
-       "type": "text",
-       "text": "754 万输出 token",
-       "marks": [
-        "strong"
-       ],
-       "id": "t-6342e709118d"
-      },
-      {
-       "type": "text",
-       "text": "每天。将",
-       "marks": [],
-       "id": "t-e0853bc6124b"
-      },
-      {
-       "type": "text",
-       "text": "每日 AI 输入 token 数",
-       "marks": [
-        "strong"
-       ],
-       "id": "t-9e2e2aad1f4d"
-      },
-      {
-       "type": "text",
-       "text": "和",
-       "marks": [],
-       "id": "t-c1635dfbd81b"
-      },
-      {
-       "type": "text",
-       "text": "每日 AI 输出 token 数",
-       "marks": [
-        "strong"
-       ],
-       "id": "t-9227343c1410"
-      },
-      {
-       "type": "text",
-       "text": "设为这些值，即可让项目保持在每天约 100 美元。如果某个项目使用不同价格的模型，请按模型分别设定预算，或混合计算费率。",
-       "marks": [],
-       "id": "t-ad36c1ae21e3"
-      }
-     ]
-    },
-    {
-     "type": "heading",
-     "id": "b-8fb458e9266e",
-     "children": [
-      {
-       "type": "text",
-       "text": "管理 AI 成本的最佳实践",
-       "marks": [],
-       "id": "t-dbb5b0306f54"
-      }
-     ],
-     "level": 3
-    },
-    {
-     "type": "list",
-     "id": "b-077da78f3f7e",
-     "ordered": false,
-     "items": [
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-45cc65b1739b"
-        },
-        {
-         "type": "text",
-         "text": "从按用户配额开始。",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-0fce035cb7c3"
-        },
-        {
-         "type": "text",
-         "text": "它们可以防止某个用户或失控的实验耗尽项目预算。",
-         "marks": [],
-         "id": "t-0b26e589aba7"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-1776b07f4319"
-        },
-        {
-         "type": "text",
-         "text": "在扩缩之前先测量。",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-ed7ee343f67d"
-        },
-        {
-         "type": "text",
-         "text": "使用",
-         "marks": [],
-         "id": "t-656b0cefbaed"
-        },
-        {
-         "type": "text",
-         "text": "AI.COUNT_TOKENS",
-         "marks": [
-          "code"
-         ],
-         "id": "t-c2c302b7f098"
-        },
-        {
-         "type": "text",
-         "text": "来估算你的输入规模，然后在设定限制之前，在使用量图表中检查一次小规模样本运行。",
-         "marks": [],
-         "id": "t-6e8fad23891e"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-84b7f3b38ee1"
-        },
-        {
-         "type": "text",
-         "text": "留意输出侧。",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-784a2b96a20f"
-        },
-        {
-         "type": "text",
-         "text": "输出 token 成本更高。在函数接受",
-         "marks": [],
-         "id": "t-6b532f0651e0"
-        },
-        {
-         "type": "text",
-         "text": "max_output_tokens",
-         "marks": [
-          "code"
-         ],
-         "id": "t-d835a088e7ab"
-        },
-        {
-         "type": "text",
-         "text": "的地方，设置它来限制生成长度。",
-         "marks": [],
-         "id": "t-3b4353f6356d"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-f558fc8fbb0c"
-        },
-        {
-         "type": "text",
-         "text": "监控并迭代。",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-87316bd43d24"
-        },
-        {
-         "type": "text",
-         "text": "随着实际用量和预算变化调整限制。",
-         "marks": [],
-         "id": "t-7b288dda1603"
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "type": "heading",
-     "id": "b-798c2ab0e953",
-     "children": [
-      {
-       "type": "text",
-       "text": "开始使用",
-       "marks": [],
-       "id": "t-431c3867475a"
-      }
-     ],
-     "level": 3
-    },
-    {
-     "type": "paragraph",
-     "id": "b-fd777d6835a6",
-     "children": [
-      {
-       "type": "text",
-       "text": "基于 token 的成本管理现已可用。要开始：",
-       "marks": [],
-       "id": "t-abf91545dbab"
-      }
-     ]
-    },
-    {
-     "type": "list",
-     "id": "b-d53c329f5322",
-     "ordered": true,
-     "items": [
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": "打开",
-         "marks": [],
-         "id": "t-d87a269ec54b"
-        },
-        {
-         "type": "text",
-         "text": "IAM 与管理 → ",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-ad4670f29c77"
-        },
-        {
-         "type": "text",
-         "text": "配额与系统限制",
-         "marks": [
-          {
-           "type": "link",
-           "href": "https://console.cloud.google.com/iam-admin/quotas/list"
-          },
-          "strong"
-         ],
-         "id": "t-04482096d38f"
-        },
-        {
-         "type": "text",
-         "text": "（在 Google Cloud 控制台中），并按",
-         "marks": [],
-         "id": "t-2d06249c9dc9"
-        },
-        {
-         "type": "text",
-         "text": "BigQuery API",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-dfd7242b50a1"
-        },
-        {
-         "type": "text",
-         "text": "进行筛选。",
-         "marks": [],
-         "id": "t-ec1f2ab33100"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": "查看四类",
-         "marks": [],
-         "id": "t-decd2b0551ff"
-        },
-        {
-         "type": "text",
-         "text": "与 AI 相关的",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-d40b48af7f6e"
-        },
-        {
-         "type": "text",
-         "text": " ",
-         "marks": [],
-         "id": "t-11eefebb79ff"
-        },
-        {
-         "type": "text",
-         "text": "token 配额",
-         "marks": [
-          "strong"
-         ],
-         "id": "t-a8a4fd0e9b86"
-        },
-        {
-         "type": "text",
-         "text": "，并设置符合你预算的限制。",
-         "marks": [],
-         "id": "t-e5e25d810a0d"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": "使用",
-         "marks": [],
-         "id": "t-eddee97fe225"
-        },
-        {
-         "type": "text",
-         "text": "AI.COUNT_TOKENS",
-         "marks": [
-          {
-           "type": "link",
-           "href": "https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/bigqueryml-syntax-ai-count-tokens"
-          },
-          "code"
-         ],
-         "id": "t-4441231982f7"
-        },
-        {
-         "type": "text",
-         "text": "来估算你的输入数据规模。",
-         "marks": [],
-         "id": "t-5ec7ba2f02b3"
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-9bbb03d29b92",
-     "children": [
-      {
-       "type": "text",
-       "text": "完整详情请参阅关于",
-       "marks": [],
-       "id": "t-195a78719a33"
-      },
-      {
-       "type": "text",
-       "text": "控制生成式 AI 成本",
-       "marks": [
-        {
-         "type": "link",
-         "href": "https://docs.cloud.google.com/bigquery/docs/control-genai-costs"
-        }
-       ],
-       "id": "t-bfbe886c4eeb"
-      },
-      {
-       "type": "text",
-       "text": "的文档。",
-       "marks": [],
-       "id": "t-c393173d6541"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-a732b27b87be",
-     "children": [
-      {
-       "type": "text",
-       "text": "有了基于 token 的防护措施，你的团队便可在 BigQuery 中使用生成式 AI，并获得组织所需的成本可预测性。",
-       "marks": [],
-       "id": "t-11bebbd03199"
-      }
-     ]
-    },
-    {
-     "type": "paragraph",
-     "id": "b-a82801e670ba",
-     "children": [
-      {
-       "type": "text",
-       "text": "发布于",
-       "marks": [],
-       "id": "t-4aa468a9029a"
-      }
-     ]
-    },
-    {
-     "type": "list",
-     "id": "b-0c39db012ad9",
-     "ordered": false,
-     "items": [
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": "数据分析",
-         "marks": [
-          {
-           "type": "link",
-           "href": "https://cloud.google.com/blog/products/data-analytics"
-          }
-         ],
-         "id": "t-3e337cb51a80"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": "AI 与机器学习",
-         "marks": [
-          {
-           "type": "link",
-           "href": "https://cloud.google.com/blog/products/ai-machine-learning"
-          }
-         ],
-         "id": "t-7a1458fd5d44"
-        }
-       ]
-      },
-      {
-       "children": [
-        {
-         "type": "text",
-         "text": "BigQuery",
-         "marks": [
-          {
-           "type": "link",
-           "href": "https://cloud.google.com/blog/products/bigquery"
-          }
-         ],
-         "id": "t-ba8d436f6330"
-        }
-       ]
-      }
-     ]
-    }
-   ],
-   "content_format": "blocks-v1",
-   "category": "platform",
-   "category_label": "AI 数据平台",
-   "vendors": [
-    "Google",
-    "Google Cloud",
-    "BigQuery"
-   ],
-   "heat": 37,
-   "star": true,
-   "importance": 82,
-   "quality_score": 82,
-   "trend_score": 0,
-   "signal": 0,
-   "topics": [
-    "平台AI化"
-   ],
-   "shelf": "news",
-   "pinned": false,
-   "published": "2026-10-14T08:00:00+08:00",
-   "first_seen": "2026-10-23T19:45:18.266609+08:00",
-   "items": [
-    {
-     "id": "a3e7ad4243b7",
-     "source": "Google Cloud Data Analytics Blog",
-     "link": "https://cloud.google.com/blog/products/data-analytics/using-bigquerys-generative-ai-cost-management-features",
-     "published": "2026-10-14T08:00:00+08:00",
-     "ingested_at": "2026-10-23T19:45:18.266609+08:00",
-     "title": "Using BigQuery’s generative AI cost management features | Google Cloud Blog"
-    }
-   ],
-   "work_tags": {
-    "taxonomy_version": "work-tags-v1",
-    "product_objects": [
-     "权限与治理"
-    ],
-    "use_cases": [],
-    "decision_concerns": [
-     "成本与性能",
-     "权限与安全"
-    ]
-   },
-   "quality_breakdown": {
-    "originality": 20,
-    "evidence_density": 23,
-    "information_gain": 20,
-    "actionability_depth": 19
-   },
-   "content_parse": {
-    "run_id": "github-39947363241-1",
-    "processor_version": "original-first-v7",
-    "attempted_at": "2026-10-23T19:47:07.371912+08:00",
-    "status": "ready",
-    "source": "Google Cloud Data Analytics Blog",
-    "strategy": "nested_content",
-    "blocks": 60,
-    "text_chars": 8469,
-    "figures": 4,
-    "tables": 1,
-    "figures_discovered": 4,
-    "figures_selected": 4,
-    "figures_rejected": 0,
-    "candidate_count": 12,
-    "figures_rejected_author": 0,
-    "figures_rejected_decorative": 0,
-    "figures_rejected_duplicate": 0,
-    "figures_rejected_small": 0,
-    "figures_rejected_limit": 0,
-    "trimmed_tail_blocks": 0,
-    "trimmed_head_blocks": 0,
-    "trimmed_promotional_blocks": 0,
-    "trimmed_embedded_ui_blocks": 0,
-    "embedded_ui_components": 0,
-    "selected_depth": 10,
-    "selected_raw_blocks": 60,
-    "selected_raw_text_chars": 8469,
-    "broad_raw_blocks": 87,
-    "broad_raw_text_chars": 9282,
-    "parent_extra_blocks": 27,
-    "candidate_count_raw": 25,
-    "candidate_duplicates": 13,
-    "candidate_quality_rejected": 2,
-    "duplicate_blocks": 1,
-    "selected_score": 1045.26,
-    "quality_status": "pass",
-    "selected_tag": "div",
-    "focus_ratio": 0.9124,
-    "link_ratio": 0.0724,
-    "duplicate_ratio": 0.0167,
-    "selection_evidence": [
-     "prose_density",
-     "integrity_gate",
-     "nested_focus"
-    ],
-    "media": {
-     "figures": 4,
-     "cached": 0,
-     "link_only": 4,
-     "policy_version": "source-cdn-v1",
-     "reasons": {
-      "cross_site_host": 4
-     }
-    },
-    "content_mode": "translated",
-    "source_language": "other",
-    "translation_status": "complete",
-    "source_content_hash": "71ee19b35136d1ee0485164d",
-    "translation": {
-     "run_id": "github-39947363241-1",
-     "policy_version": "faithful-translation-retry-v1",
-     "attempted_at": "2026-10-23T19:47:07.371955+08:00",
-     "purpose": "body_translation",
-     "status": "complete"
-    }
-   },
-   "content_mode": "translated",
-   "content_level": "translated",
-   "source_language": "other",
-   "translation_status": "complete",
-   "source_content_hash": "71ee19b35136d1ee0485164d",
-   "body_chars": 3982
   },
   {
    "event_id": "8d12400fee4a",
@@ -143961,7 +141657,7 @@
     "ClickHouse",
     "Neon"
    ],
-   "heat": 37,
+   "heat": 36,
    "star": true,
    "importance": 76,
    "quality_score": 76,
@@ -146025,7 +143721,7 @@
    "star": false,
    "importance": 54,
    "quality_score": 54,
-   "trend_score": 4,
+   "trend_score": 3,
    "signal": 0,
    "topics": [
     "财务经营"
@@ -146860,7 +144556,7 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 27,
+   "heat": 26,
    "star": false,
    "importance": 55,
    "quality_score": 55,
@@ -151467,11 +149163,11 @@
    "vendors": [
     "Databricks"
    ],
-   "heat": 31,
+   "heat": 30,
    "star": false,
    "importance": 66,
    "quality_score": 66,
-   "trend_score": 2,
+   "trend_score": 1,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -152512,7 +150208,7 @@
    "star": true,
    "importance": 81,
    "quality_score": 81,
-   "trend_score": 3,
+   "trend_score": 2,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -154744,7 +152440,7 @@
    "star": false,
    "importance": 66,
    "quality_score": 66,
-   "trend_score": 3,
+   "trend_score": 2,
    "signal": 0,
    "topics": [],
    "shelf": "evergreen",
@@ -156038,7 +153734,7 @@
     "Fivetran",
     "dbt Labs"
    ],
-   "heat": 32,
+   "heat": 31,
    "star": false,
    "importance": 67,
    "quality_score": 67,
@@ -167832,7 +165528,7 @@
    "star": false,
    "importance": 43,
    "quality_score": 43,
-   "trend_score": 2,
+   "trend_score": 1,
    "signal": 0,
    "topics": [
     "平台AI化"
@@ -185455,11 +183151,11 @@
     "Google Cloud",
     "Dremio"
    ],
-   "heat": 58,
+   "heat": 57,
    "star": false,
    "importance": 68,
    "quality_score": 68,
-   "trend_score": 51,
+   "trend_score": 48,
    "signal": 0,
    "topics": [
     "Data Agent",
@@ -877214,7 +874910,7 @@
     "BigQuery",
     "Google Cloud"
    ],
-   "heat": 67,
+   "heat": 64,
    "star": false,
    "importance": 70,
    "signal": 0,
@@ -877602,7 +875298,7 @@
    "translation_status": "failed",
    "source_content_hash": "3907a79213df9e15b816330c",
    "quality_score": 70,
-   "trend_score": 64
+   "trend_score": 60
   },
   {
    "event_id": "ba8377c644db",
@@ -968659,9 +966355,20 @@
   {
    "name": "爱分析",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:279m_remaining",
+   "new": 4,
+   "fetched": 7,
+   "eligible": 5,
+   "prefiltered": 2,
+   "prefilter_dropped": {
+    "time": 0,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 2,
+    "excluded": 0
+   },
+   "skipped_seen": 1,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 12.0,
@@ -968677,20 +966384,9 @@
   {
    "name": "OpenAI News",
    "ok": true,
-   "new": 4,
-   "fetched": 20,
-   "eligible": 4,
-   "prefiltered": 16,
-   "prefilter_dropped": {
-    "time": 10,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 6,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1032m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -968705,19 +966401,8 @@
    "name": "Claude 官方博客",
    "ok": true,
    "new": 0,
-   "fetched": 0,
-   "eligible": 0,
-   "prefiltered": 0,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "skipped": true,
+   "skip_reason": "frequency_gate:1032m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -968731,20 +966416,9 @@
   {
    "name": "Anthropic Economic Index",
    "ok": true,
-   "new": 2,
-   "fetched": 12,
-   "eligible": 12,
-   "prefiltered": 0,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 10,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1032m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -968762,20 +966436,9 @@
   {
    "name": "Indeed Hiring Lab",
    "ok": true,
-   "new": 3,
-   "fetched": 10,
-   "eligible": 3,
-   "prefiltered": 7,
-   "prefilter_dropped": {
-    "time": 7,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1032m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -968791,20 +966454,9 @@
   {
    "name": "Josh Bersin",
    "ok": true,
-   "new": 3,
-   "fetched": 20,
-   "eligible": 4,
-   "prefiltered": 16,
-   "prefilter_dropped": {
-    "time": 15,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 0,
-    "excluded": 1
-   },
-   "skipped_seen": 0,
-   "limit_reached": true,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1032m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -968823,19 +966475,8 @@
    "name": "AIHR",
    "ok": true,
    "new": 0,
-   "fetched": 10,
-   "eligible": 0,
-   "prefiltered": 10,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 2,
-    "excluded": 8
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "skipped": true,
+   "skip_reason": "frequency_gate:1032m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -968853,20 +966494,9 @@
   {
    "name": "Handshake Network Trends",
    "ok": true,
-   "new": 2,
-   "fetched": 11,
-   "eligible": 5,
-   "prefiltered": 6,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 6,
-    "excluded": 0
-   },
-   "skipped_seen": 3,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1032m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -968884,7 +966514,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:435m_remaining",
+   "skip_reason": "frequency_gate:27m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 48.0,
@@ -968903,7 +966533,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:435m_remaining",
+   "skip_reason": "frequency_gate:27m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 48.0,
@@ -968920,20 +966550,9 @@
   {
    "name": "ADP Research",
    "ok": true,
-   "new": 2,
-   "fetched": 10,
-   "eligible": 6,
-   "prefiltered": 4,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 4,
-    "excluded": 0
-   },
-   "skipped_seen": 1,
-   "limit_reached": true,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1032m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -968950,19 +966569,8 @@
    "name": "Workday Newsroom",
    "ok": true,
    "new": 0,
-   "fetched": 5,
-   "eligible": 0,
-   "prefiltered": 5,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 5,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "skipped": true,
+   "skip_reason": "frequency_gate:1032m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 24.0,
@@ -968982,7 +966590,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:435m_remaining",
+   "skip_reason": "frequency_gate:27m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 48.0,
@@ -969002,7 +966610,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:435m_remaining",
+   "skip_reason": "frequency_gate:27m_remaining",
    "control": {
     "tier": "low_precision",
     "fetch_interval_hours": 48.0,
@@ -969340,20 +966948,9 @@
   {
    "name": "人人都是产品经理",
    "ok": true,
-   "new": 5,
-   "fetched": 15,
-   "eligible": 13,
-   "prefiltered": 2,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 2,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": true,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1032m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -969398,20 +966995,9 @@
   {
    "name": "InfoQ 中文",
    "ok": true,
-   "new": 4,
-   "fetched": 20,
-   "eligible": 4,
-   "prefiltered": 16,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 16,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1032m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -969427,7 +967013,7 @@
    "ok": true,
    "new": 0,
    "skipped": true,
-   "skip_reason": "frequency_gate:999m_remaining",
+   "skip_reason": "frequency_gate:591m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -969441,20 +967027,9 @@
   {
    "name": "极客公园",
    "ok": true,
-   "new": 4,
-   "fetched": 20,
-   "eligible": 18,
-   "prefiltered": 2,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 2,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": true,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1032m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -969468,20 +967043,9 @@
   {
    "name": "量子位",
    "ok": true,
-   "new": 2,
-   "fetched": 10,
-   "eligible": 2,
-   "prefiltered": 8,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 8,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1032m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -969495,9 +967059,20 @@
   {
    "name": "InfoQ（AI/数据工程）",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:279m_remaining",
+   "new": 1,
+   "fetched": 15,
+   "eligible": 15,
+   "prefiltered": 0,
+   "prefilter_dropped": {
+    "time": 0,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 14,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "media_targeted",
     "fetch_interval_hours": 12.0,
@@ -969511,20 +967086,9 @@
   {
    "name": "TechCrunch AI",
    "ok": true,
-   "new": 4,
-   "fetched": 20,
-   "eligible": 6,
-   "prefiltered": 14,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 14,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": true,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1032m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -969538,20 +967102,9 @@
   {
    "name": "The Verge AI",
    "ok": true,
-   "new": 3,
-   "fetched": 10,
-   "eligible": 3,
-   "prefiltered": 7,
-   "prefilter_dropped": {
-    "time": 0,
-    "missing_date": 0,
-    "path": 0,
-    "keyword": 7,
-    "excluded": 0
-   },
-   "skipped_seen": 0,
-   "limit_reached": false,
-   "schedule_reason": "interval_elapsed",
+   "new": 0,
+   "skipped": true,
+   "skip_reason": "frequency_gate:1032m_remaining",
    "control": {
     "tier": "media_low",
     "fetch_interval_hours": 24.0,
@@ -969565,9 +967118,20 @@
   {
    "name": "Hacker News（数据关键词）",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:279m_remaining",
+   "new": 1,
+   "fetched": 11,
+   "eligible": 1,
+   "prefiltered": 10,
+   "prefilter_dropped": {
+    "time": 10,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 0,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "community_targeted",
     "fetch_interval_hours": 12.0,
@@ -969581,9 +967145,20 @@
   {
    "name": "Bluesky 数据社区",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:279m_remaining",
+   "new": 9,
+   "fetched": 9,
+   "eligible": 9,
+   "prefiltered": 0,
+   "prefilter_dropped": {
+    "time": 0,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 0,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "community_targeted",
     "fetch_interval_hours": 12.0,
@@ -969628,16 +967203,16 @@
    "ok": true,
    "new": 0,
    "fetched": 10,
-   "eligible": 4,
-   "prefiltered": 6,
+   "eligible": 3,
+   "prefiltered": 7,
    "prefilter_dropped": {
-    "time": 6,
+    "time": 7,
     "missing_date": 0,
     "path": 0,
     "keyword": 0,
     "excluded": 0
    },
-   "skipped_seen": 4,
+   "skipped_seen": 3,
    "limit_reached": false,
    "schedule_reason": "interval_elapsed",
    "control": {
@@ -969655,9 +967230,20 @@
   {
    "name": "Hex Blog",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:279m_remaining",
+   "new": 1,
+   "fetched": 425,
+   "eligible": 2,
+   "prefiltered": 423,
+   "prefilter_dropped": {
+    "time": 404,
+    "missing_date": 11,
+    "path": 0,
+    "keyword": 8,
+    "excluded": 0
+   },
+   "skipped_seen": 1,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -969675,8 +967261,19 @@
    "name": "Amplitude Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:279m_remaining",
+   "fetched": 2086,
+   "eligible": 1,
+   "prefiltered": 2085,
+   "prefilter_dropped": {
+    "time": 2084,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 1,
+    "excluded": 0
+   },
+   "skipped_seen": 1,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -969693,9 +967290,20 @@
   {
    "name": "Netflix Technology Blog",
    "ok": true,
-   "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:279m_remaining",
+   "new": 1,
+   "fetched": 10,
+   "eligible": 2,
+   "prefiltered": 8,
+   "prefilter_dropped": {
+    "time": 6,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 2,
+    "excluded": 0
+   },
+   "skipped_seen": 1,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "engineering_targeted",
     "fetch_interval_hours": 12.0,
@@ -969712,8 +967320,19 @@
    "name": "Google Cloud Data Analytics Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:279m_remaining",
+   "fetched": 9,
+   "eligible": 9,
+   "prefiltered": 0,
+   "prefilter_dropped": {
+    "time": 0,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 9,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -969763,8 +967382,19 @@
    "name": "Google Looker Release Notes",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:279m_remaining",
+   "fetched": 20,
+   "eligible": 4,
+   "prefiltered": 16,
+   "prefilter_dropped": {
+    "time": 13,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 3,
+    "excluded": 0
+   },
+   "skipped_seen": 4,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "structured_high",
     "fetch_interval_hours": 12.0,
@@ -969782,8 +967412,19 @@
    "name": "Microsoft Fabric Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:279m_remaining",
+   "fetched": 10,
+   "eligible": 0,
+   "prefiltered": 10,
+   "prefilter_dropped": {
+    "time": 10,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 0,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -969832,8 +967473,19 @@
    "name": "Apache Iceberg Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:279m_remaining",
+   "fetched": 17,
+   "eligible": 0,
+   "prefiltered": 17,
+   "prefilter_dropped": {
+    "time": 17,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 0,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_high",
     "fetch_interval_hours": 12.0,
@@ -969850,8 +967502,19 @@
    "name": "TiDB Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:279m_remaining",
+   "fetched": 10,
+   "eligible": 1,
+   "prefiltered": 9,
+   "prefilter_dropped": {
+    "time": 9,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 1,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -969869,8 +967532,19 @@
    "name": "Apache Doris Blog",
    "ok": true,
    "new": 0,
-   "skipped": true,
-   "skip_reason": "frequency_gate:279m_remaining",
+   "fetched": 20,
+   "eligible": 0,
+   "prefiltered": 20,
+   "prefilter_dropped": {
+    "time": 20,
+    "missing_date": 0,
+    "path": 0,
+    "keyword": 0,
+    "excluded": 0
+   },
+   "skipped_seen": 0,
+   "limit_reached": false,
+   "schedule_reason": "interval_elapsed",
    "control": {
     "tier": "official_targeted",
     "fetch_interval_hours": 12.0,
@@ -969887,24 +967561,24 @@
   }
  ],
  "structured_content": {
-  "run_id": "github-41173439656-1",
-  "attempted": 2,
-  "ready": 2,
-  "figures": 0,
+  "run_id": "github-41201140505-1",
+  "attempted": 5,
+  "ready": 5,
+  "figures": 1,
   "tables": 0,
-  "media_cached": 0,
+  "media_cached": 1,
   "media_link_only": 0,
-  "candidate_duplicates": 14,
-  "candidate_quality_rejected": 7,
+  "candidate_duplicates": 45,
+  "candidate_quality_rejected": 21,
   "strategies": {
-   "semantic_container": 1,
-   "nested_content": 1
+   "semantic_container": 3,
+   "nested_content": 2
   },
   "quality_statuses": {
-   "pass": 2
+   "pass": 5
   },
   "content_modes": {
-   "original": 2
+   "original": 5
   },
   "fallbacks": {},
   "by_source": {
@@ -969916,6 +967590,27 @@
     "media_cached": 0
    },
    "Mercer Insights": {
+    "attempted": 1,
+    "ready": 1,
+    "figures": 0,
+    "tables": 0,
+    "media_cached": 0
+   },
+   "Databricks Blog": {
+    "attempted": 1,
+    "ready": 1,
+    "figures": 0,
+    "tables": 0,
+    "media_cached": 0
+   },
+   "Hex Blog": {
+    "attempted": 1,
+    "ready": 1,
+    "figures": 1,
+    "tables": 0,
+    "media_cached": 1
+   },
+   "InfoQ（AI/数据工程）": {
     "attempted": 1,
     "ready": 1,
     "figures": 0,
@@ -969934,8 +967629,8 @@
    "embedded_ui_trimmed": 0,
    "embedded_ui_blocks": 0,
    "modes": {
-    "original": 245,
-    "translated": 490,
+    "original": 246,
+    "translated": 489,
     "ai_fallback": 14,
     "editorial_excerpt": 17,
     "missing": 13
@@ -969947,7 +967642,7 @@
   },
   "metadata_backfill": {
    "limit": 3,
-   "eligible": 123,
+   "eligible": 124,
    "attempted": 3,
    "complete": 0,
    "deferred_budget": 0,
@@ -969956,18 +967651,18 @@
   },
   "backfill": {
    "foreign_limit": 6,
-   "eligible": 148,
+   "eligible": 150,
    "attempted": 12,
-   "ready": 2,
-   "original": 2,
+   "ready": 4,
+   "original": 4,
    "translated": 0,
-   "deferred_foreign": 10,
-   "deferred_budget": 10,
+   "deferred_foreign": 8,
+   "deferred_budget": 8,
    "stored_original_retries": 12,
    "parser_debt_eligible": 7,
    "skipped": 0,
    "failed": 0,
-   "planned": 2
+   "planned": 4
   },
   "media_refresh": {
    "policy_version": "source-cdn-v1",
@@ -969980,7 +967675,7 @@
   },
   "article_ui_cleanup": {
    "policy_version": "article-chrome-v3",
-   "scanned": 779,
+   "scanned": 777,
    "cleaned_events": 0,
    "removed_blocks": 0
   }

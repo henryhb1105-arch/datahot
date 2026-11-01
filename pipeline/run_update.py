@@ -14,6 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 from llm_usage import LLMBudgetExceeded, LLMUsageTracker
 from candidate_cache import CandidateCache, candidate_content_hash
 from cluster_cache import ClusterDecisionCache, cluster_pair_key
+from content_metadata import repair_content_metadata
 from content_blocks import (
     apply_translations, blocks_plain_text,
     parse_html_blocks_with_report, sanitize_blocks, translation_nodes,
@@ -2893,6 +2894,7 @@ def main():
     ]
     events.sort(key=lambda e: (e.get("first_seen") or e["published"] or ""), reverse=True)
 
+    repair_content_metadata(events)
     payload = {
         "generated_at": now.astimezone(TZ).isoformat(),
         "events": events, "top": top, "sources": source_status,

@@ -16,6 +16,7 @@ from content_blocks import (
 from check_links import check_site_links, format_broken_links
 from feed import build_atom_feed, validate_atom_feed
 from information_value import promotion_review_required, suppress_from_lists
+from content_metadata import repair_content_metadata
 from lite_data import (
     DEFAULT_PAGE_SIZE, FIRST_PAGE_SOURCE_CAPS, HOME_WINDOW_DAYS,
     build_lite_payload, pack_lite_payload, event_timestamp, find_forbidden_fields,
@@ -3387,6 +3388,10 @@ def main():
     shutil.copyfile(TTS_ASSET, SITE / "tts-player.js")
     payload = json.load(open(SITE / "data" / "latest.json"))
     all_events = payload["events"]
+    if repair_content_metadata(all_events):
+        # Keep raw/lite feeds, social metadata and detail pages consistent.
+        with open(SITE / "data" / "latest.json", "w", encoding="utf-8") as output:
+            json.dump(payload, output, ensure_ascii=False, indent=1)
     normalize_category_labels(all_events)
     for event in all_events:
         safe_event_id(event.get("event_id"))

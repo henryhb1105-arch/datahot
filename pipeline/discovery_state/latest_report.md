@@ -1,8 +1,8 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-10-31T21:40:34.813536+00:00
-- 本轮原始发现：9
-- 未收录文章候选：49
+- 生成时间：2026-11-01T22:11:45.959690+00:00
+- 本轮原始发现：7
+- 未收录文章候选：46
 - 新信源候选：70
 - 已收录链接去重：0
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
@@ -10,7 +10,7 @@
 ## 发现通道
 
 - openai_web_search: skipped · OPENAI_API_KEY 未配置
-- hn_official: ok · 2 条
+- hn_official: ok · 0 条
 - accepted_link_graph: ok · 7 条
 
 ## 优先检查的新信源
@@ -22,7 +22,6 @@
 - **cdn.sanity.io** · PROBATION · 1 篇 · accepted_link_graph
 - **4906807.fs1.hubspotusercontent-na1.net** · PROBATION · 1 篇 · accepted_link_graph
 - **www.langchain.com** · PROBATION · 1 篇 · accepted_link_graph
-- **www.netlify.com** · PROBATION · 1 篇 · hn
 - **turbopuffer.com** · PROBATION · 1 篇 · hn
 - **svelte.dev** · PROBATION · 1 篇 · hn
 - **www.1011now.com** · PROBATION · 1 篇 · hn
@@ -30,10 +29,11 @@
 - **cedardb.com** · PROBATION · 1 篇 · hn
 - **www.dexerto.com** · PROBATION · 1 篇 · hn
 - **cphpost.dk** · PROBATION · 1 篇 · hn
+- **status.yandex.cloud** · PROBATION · 1 篇 · hn
 
 ## 现有信源健康提醒
 
-- **Visier Blog** · DEGRADED · 连续失败 38 次
+- **Visier Blog** · DEGRADED · 连续失败 41 次
 
 ## 优先检查的文章
 

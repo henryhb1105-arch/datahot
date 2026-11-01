@@ -419,6 +419,14 @@ a, button, input, summary { -webkit-tap-highlight-color: transparent; }
   .tabbar {
     padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right);
   }
+  /* Explicit top-edge geometry avoids stale fixed-bottom placement after unfold.
+     Translate by the actual bar height, including the current safe-area padding. */
+  .tabbar.viewport-anchored {
+    top: var(--nav-viewport-bottom); bottom: auto;
+    left: var(--nav-viewport-left); right: auto;
+    width: var(--nav-viewport-width); box-sizing: border-box;
+    transform: translateY(-100%);
+  }
   .tabbar .ico { height: 28px; }
   .tabbar a,.tabbar button { font-size: 12px; }
   .fav-toast,.case-compare-bar { bottom: var(--mobile-nav-clearance); }

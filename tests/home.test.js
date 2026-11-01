@@ -669,3 +669,53 @@ test("empty search reports zero matches without losing the active conditions", a
   assert.equal(fixture.elements.filterTools.hidden, false);
   assert.match(fixture.elements.timeline.innerHTML, /没有匹配的事件/);
 });
+
+function navigationViewportFixture() {
+  const handlers = {}, viewportHandlers = {}, styles = {}, classes = new Set();
+  const frames = new Map(), timers = new Map(); let sequence = 0;
+  const bar = { style: {setProperty:(key,value)=>styles[key]=value}, classList:{add:key=>classes.add(key),remove:key=>classes.delete(key)}};
+  const viewport = {width:390,height:844,offsetTop:0,offsetLeft:0,scale:1,addEventListener:(name,fn)=>viewportHandlers[name]=fn};
+  const win = {document:{querySelector:()=>bar},visualViewport:viewport,innerHeight:844,
+    addEventListener:(name,fn)=>handlers[name]=fn,
+    requestAnimationFrame:fn=>{frames.set(++sequence,fn);return sequence;},
+    setTimeout:fn=>{timers.set(++sequence,fn);return sequence;},clearTimeout:id=>timers.delete(id)};
+  const flush = () => {const pending=[...frames.values()];frames.clear();pending.forEach(fn=>fn());};
+  return {win,viewport,styles,classes,handlers,viewportHandlers,frames,timers,flush};
+}
+
+test('bottom navigation follows unfold and refold when layout viewport remains stale', () => {
+  const f=navigationViewportFixture(); nav.syncViewport(f.win);
+  assert.equal(f.styles['--nav-viewport-bottom'],'844px');
+  Object.assign(f.viewport,{width:768,height:1024}); f.viewportHandlers.resize(); f.flush();
+  assert.equal(f.win.innerHeight,844); // Host has not updated its layout viewport.
+  assert.equal(f.styles['--nav-viewport-bottom'],'1024px');
+  assert.equal(f.styles['--nav-viewport-width'],'768px');
+  Object.assign(f.viewport,{width:390,height:844}); f.viewportHandlers.resize(); f.flush();
+  assert.equal(f.styles['--nav-viewport-bottom'],'844px');
+  assert.equal(f.styles['--nav-viewport-width'],'390px');
+});
+
+test('bottom navigation recovers after keyboard close, panning and delayed rotation metrics', () => {
+  const f=navigationViewportFixture(); nav.syncViewport(f.win);
+  Object.assign(f.viewport,{height:480,offsetTop:40});f.viewportHandlers.resize();f.flush();
+  assert.equal(f.styles['--nav-viewport-bottom'],'520px');
+  Object.assign(f.viewport,{height:844,offsetTop:0});f.viewportHandlers.scroll();f.flush();
+  assert.equal(f.styles['--nav-viewport-bottom'],'844px');
+  f.handlers.orientationchange();f.flush();
+  Object.assign(f.viewport,{width:844,height:390,offsetLeft:12});
+  [...f.timers.values()].forEach(fn=>fn());f.flush();
+  assert.equal(f.styles['--nav-viewport-bottom'],'390px');
+  assert.equal(f.styles['--nav-viewport-left'],'12px');
+  assert.equal(f.styles['--nav-viewport-width'],'844px');
+  f.handlers.pageshow();f.flush();assert.ok(f.classes.has('viewport-anchored'));
+});
+
+test('viewport anchoring coalesces events and leaves pinch zoom and unsupported browsers native', () => {
+  const f=navigationViewportFixture();nav.syncViewport(f.win);
+  for(let i=0;i<20;i++)f.viewportHandlers.scroll();
+  assert.equal(f.frames.size,1);f.flush();
+  f.viewport.scale=2;f.viewportHandlers.resize();f.flush();assert.equal(f.classes.size,0);
+  f.viewport.scale=1;f.viewportHandlers.resize();f.flush();assert.equal(f.classes.size,1);
+  f.viewport.height=0;f.viewportHandlers.resize();f.flush();assert.equal(f.classes.size,0);
+  assert.doesNotThrow(()=>nav.syncViewport({document:{},visualViewport:null}));
+});

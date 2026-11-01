@@ -1,0 +1,606 @@
+{
+  "event_id": "113da8bd65f9",
+  "zh_title": "Snowflake PERIOD 数据类型：用原生时间范围查询生效记录",
+  "zh_summary": "Snowflake 发布 10.32 版本说明，覆盖 2026 年 9 月 5 日至 9 月 9 日。该版本包含行为变更捆绑包 2026_07（默认禁用，管理员可启用测试）、2026_06（默认启用，可退出）和 2026_05（普遍启用，管理员不能再开关）。SQL 方面，PERIOD 数据类型正式可用，用于存储锚定的半开时间范围 [begin, end)，并提供 PERIOD_* 函数族。数据治理方面，ALTER TABLE 或 ALTER VIEW … MODIFY DATA METRIC FUNCTION 新增 FILTER 子句，可设置、替换或清除数据指标函数的行过滤条件，空括号 FILTER () 表示清除过滤。",
+  "reason": "这是 Snowflake 官方版本说明，涉及新数据类型与数据指标函数治理能力，使用 Snowflake 的数据平台和数仓从业者需关注行为变更状态并评估兼容性。",
+  "full_zh": "使用原生时间范围来查找生效记录、关联历史记录并分配车队运营时长。\n\n一项费率于 4 月 1 日变更。针对 2 月的报告仍应使用旧费率。若使用独立的开始和结束列，每次查询都必须重建该规则，包括结束日期是否计入。\n\nSnowflake 的 PERIOD 数据类型将这些边界存储为一个有类型的值。其 SQL 函数可让你查询某个日期是否落在某个范围内、两个范围是否重叠以及它们共享哪一部分。PERIOD 及其 函数已正式发布。\n\n下面的示例展示了三种应用：生效日期查找、历史关联和车队值勤时长报告。\n\n具有明确边界的时间范围\n\nINTERVAL 描述的是一个时长，例如八小时。PERIOD 标识的是一个具有开始和结束的范围，例如从周日晚上 10 点到周一早上 6 点的一次班次。\n\n需显式声明元素类型：PERIOD(DATE)、PERIOD(TIME) 或时间戳变体，例如 PERIOD(TIMESTAMP_NTZ)。Snowflake 还支持 TIMESTAMP_LTZ 和 TIMESTAMP_TZ 边界，对于时间和时间戳类型，支持从 0 到 9 的亚秒精度。\n\n你可以使用同一时间类型的两个值构造一个 period：\n\nSELECT PERIOD_CONSTRUCT(\n    DATE '2026-01-01', DATE '2026-04-01'\n) AS valid_during;\n\n结果为 [2026–01–01, 2026–04–01)。左方括号包含 1 月 1 日；右圆括号排除 4 月 1 日。每个 PERIOD 都使用这种半开区间约定。连续的范围可以在同一边界相接而不发生重叠。\n\n两个边界都必须是有限的，并且开始必须早于结束。空范围或反向范围均无效。NULL 边界并不意味着“仍然有效”。对于持续存在的记录，请选择适合你应用的、有文档说明的有限结束边界约定。\n\n查找某个业务日期当天生效的版本\n\n参考数据的生效日期往往与其到达日期不同。今天加载的一项费率可能适用于下个月。下周收到的一项更正可能适用于过去的某个日期。\n\n对于生效日期查找，请将每个版本的业务有效期范围与其值一起存储。此示例中，5% 的费率持续到 3 月，6% 的费率从 4 月 1 日开始：\n\nWITH rate_history AS (\n    SELECT 'RATE_A' AS rate_id, 0.05 AS rate,\n           PERIOD(DATE) '[2026-01-01, 2026-04-01)' AS valid_during\n    UNION ALL\n    SELECT 'RATE_A', 0.06,\n           PERIOD(DATE) '[2026-04-01, 2027-01-01)'\n)\nSELECT rate_id, rate\nFROM rate_history\nWHERE PERIOD_CONTAINS(valid_during, DATE '2026-02-15');\n\n该查询返回 RATE_A，值为 0.05。将查找日期改为 4 月 1 日，则返回 0.06。该边界仅属于新版本。\n\n此模式同样适用于按生效日期确定的保费或合同条款。你的摄取逻辑仍需创建并关闭版本。PERIOD 会验证每个范围，但它不会阻止同一业务键的版本发生重叠。\n\n按同一业务日期关联历史记录\n\n合同的状态和逾期余额可能在不同日期发生变化。历史报告需要各自在其报告日期适用的版本。关联它们的最新行会回答一个不同的问题。\n\n假设 contract_status 和 overdue_balances 各有一个类型为 PERIOD(DATE) 的 valid_during 列。以下查询将两个历史记录对齐到 9 月 16 日：\n\nWITH reporting_date AS (\n    SELECT DATE '2026-09-16' AS business_date\n)\nSELECT status_history.contract_id, report.business_date,\n       status_history.status, balance_history.overdue_amount\nFROM reporting_date AS report\nJOIN contract_status AS status_history\n  ON PERIOD_CONTAINS(status_history.valid_during, report.business_date)\nLEFT JOIN overdue_balances AS balance_history\n  ON balance_history.contract_id = status_history.contract_id\n AND PERIOD_CONTAINS(balance_history.valid_during, report.business_date);\n\n对于一份在整个 9 月都标记为 ACTIVE 且逾期余额在 [2026-09-10, 2026-09-20) 为 250 的合同，9 月 16 日的报告返回 ACTIVE 和 250。如果没有余额版本覆盖该日期，左连接会保留该合同，并为未匹配的余额返回 NULL。\n\n每个历史记录对于每个键和日期最多应有一个适用版本。如果你还跟踪信息被记录的时间，请针对所选的记录时间快照筛选两个历史记录。你的管道仍负责捕获该历史。用 PERIOD 谓词替换边界比较可提高可读性；任何性能收益都需要针对具体工作负载进行测试。\n\n跨报告周分配车队值勤时间\n\n一名司机从周日晚上 10 点工作到周一早上 6 点。在以周一为起始的报告周下，两小时属于上一周，六小时属于新的一周。将全部八小时都分配到班次的开始日期会误报两个周的合计值。\n\n将值勤窗口和每个报告周表示为时间戳 period，然后对它们求交集。此查询计算对新一周的贡献：\n\nWITH windows AS (\n    SELECT\n        PERIOD(TIMESTAMP_NTZ)\n          '[2026-09-13 22:00:00, 2026-09-14 06:00:00)' AS duty,\n        PERIOD(TIMESTAMP_NTZ)\n          '[2026-09-14 00:00:00, 2026-09-21 00:00:00)' AS workweek\n), allocation AS (\n    SELECT PERIOD_INTERSECT(duty, workweek) AS segment\n    FROM windows\n)\nSELECT DATEDIFF('second', PERIOD_BEGIN(segment), PERIOD_END(segment))\n           / 3600.0 AS hours_in_workweek\nFROM allocation;\n\n结果为 6。与上一周求交集返回 2，总计保留全部八小时。对于全车队报告，请将值勤记录与它们重叠的每个报告周关联，然后再对分配的小时数求和。\n\n这些合计值可用于加班风险报告和人员配置决策。相同的交集模式可用于衡量车辆的维护窗口有多大一部分落在计划运营窗口内。\n\n该示例假设采用单一、一致的时间戳基准且没有偏移量变化。生产系统需要明确的时区策略和权威值勤记录。仅凭行程遥测无法确定带薪时间或工时合规性；这些规则与范围分配保持分离。这里，DATEDIFF 测量所提取边界之间的秒数。它不是 PERIOD 到 INTERVAL 的转换。\n\n从一个范围查询开始\n\n选择一个现有的生效日期查找或重叠计算，并将其与等效的 PERIOD 表达式进行比较。这也为迁移提供了一个原生目标，用于此前用字符串或拆分边界表示的受支持范围操作。验证共享边界和缺失历史：在迁移到排除式结束边界时，包含式的 BETWEEN 谓词需要特别小心。\n\n请使用 PERIOD 文档 了解支持的类型和限制，并使用 函数参考 查看每种操作的示例。\n\n使用 Snowflake 的 PERIOD 数据类型查询时间范围 最初发布于 Snowflake Builders Blog: Data Engineers, App Developers, AI, & Data Science（发布于 Medium），人们正在通过高亮并回应这个故事来继续对话。",
+  "content_blocks": [
+    {
+      "type": "figure",
+      "id": "b-d285cf80b4a4",
+      "src": "https://cdn-images-1.medium.com/max/1024/1*h3InrxTRgz9ueaZIvNJLeQ.png",
+      "alt": "",
+      "caption": "",
+      "source_url": "https://medium.com/snowflake/query-time-ranges-with-snowflakes-period-data-type-ce229d2306bd?source=rss----34b6daafc07---4",
+      "cached_src": "../media/113da8bd65f9/721b7de2254e458b6a6fb6d7.png",
+      "width": 1024,
+      "height": 576,
+      "mime": "image/png",
+      "size_bytes": 544907,
+      "media_status": "cached"
+    },
+    {
+      "type": "paragraph",
+      "id": "b-26afe241f0e9",
+      "children": [
+        {
+          "type": "text",
+          "text": "使用原生时间范围来查找生效记录、关联历史记录并分配车队运营时长。",
+          "marks": [
+            "em"
+          ],
+          "id": "t-43b2c3934d04"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "id": "b-5517ea971285",
+      "children": [
+        {
+          "type": "text",
+          "text": "一项费率于 4 月 1 日变更。针对 2 月的报告仍应使用旧费率。若使用独立的开始和结束列，每次查询都必须重建该规则，包括结束日期是否计入。",
+          "marks": [],
+          "id": "t-c6a896342da5"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "id": "b-bf71e8d1bec7",
+      "children": [
+        {
+          "type": "text",
+          "text": "Snowflake 的 PERIOD 数据类型将这些边界存储为一个有类型的值。其 SQL 函数可让你查询某个日期是否落在某个范围内、两个范围是否重叠以及它们共享哪一部分。",
+          "marks": [],
+          "id": "t-63d96b9b2eda"
+        },
+        {
+          "type": "text",
+          "text": "PERIOD",
+          "marks": [
+            {
+              "type": "link",
+              "href": "https://docs.snowflake.com/en/sql-reference/data-types-period"
+            }
+          ],
+          "id": "t-5a78a4b2d7e9"
+        },
+        {
+          "type": "text",
+          "text": " 及其 ",
+          "marks": [],
+          "id": "t-4e59e9d1aefa"
+        },
+        {
+          "type": "text",
+          "text": "函数",
+          "marks": [
+            {
+              "type": "link",
+              "href": "https://docs.snowflake.com/en/sql-reference/functions-period"
+            }
+          ],
+          "id": "t-08d61e604158"
+        },
+        {
+          "type": "text",
+          "text": "已正式发布。",
+          "marks": [],
+          "id": "t-19e134ef378b"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "id": "b-0ef7b0992cef",
+      "children": [
+        {
+          "type": "text",
+          "text": "下面的示例展示了三种应用：生效日期查找、历史关联和车队值勤时长报告。",
+          "marks": [],
+          "id": "t-47d61b31462e"
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "id": "b-7030cc34ee9c",
+      "children": [
+        {
+          "type": "text",
+          "text": "具有明确边界的时间范围",
+          "marks": [
+            "strong"
+          ],
+          "id": "t-f76aa50a9c85"
+        }
+      ],
+      "level": 4
+    },
+    {
+      "type": "paragraph",
+      "id": "b-e72e95b770d4",
+      "children": [
+        {
+          "type": "text",
+          "text": "INTERVAL 描述的是一个时长，例如八小时。PERIOD 标识的是一个具有开始和结束的范围，例如从周日晚上 10 点到周一早上 6 点的一次班次。",
+          "marks": [],
+          "id": "t-9666e8fb758f"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "id": "b-c26ac08b1d94",
+      "children": [
+        {
+          "type": "text",
+          "text": "需显式声明元素类型：PERIOD(DATE)、PERIOD(TIME) 或时间戳变体，例如 PERIOD(TIMESTAMP_NTZ)。Snowflake 还支持 TIMESTAMP_LTZ 和 TIMESTAMP_TZ 边界，对于时间和时间戳类型，支持从 0 到 9 的亚秒精度。",
+          "marks": [],
+          "id": "t-2fadcf54e5cc"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "id": "b-781d5dc33ca1",
+      "children": [
+        {
+          "type": "text",
+          "text": "你可以使用同一时间类型的两个值构造一个 period：",
+          "marks": [],
+          "id": "t-75b6c4c09d68"
+        }
+      ]
+    },
+    {
+      "type": "code",
+      "id": "b-c1c55ad7a4d6",
+      "text": "SELECT PERIOD_CONSTRUCT(\n    DATE '2026-01-01', DATE '2026-04-01'\n) AS valid_during;"
+    },
+    {
+      "type": "paragraph",
+      "id": "b-e99172fa8079",
+      "children": [
+        {
+          "type": "text",
+          "text": "结果为 [2026–01–01, 2026–04–01)。左方括号包含 1 月 1 日；右圆括号排除 4 月 1 日。每个 PERIOD 都使用这种半开区间约定。连续的范围可以在同一边界相接而不发生重叠。",
+          "marks": [],
+          "id": "t-f5e8cb4ce5b3"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "id": "b-54d6d0076f17",
+      "children": [
+        {
+          "type": "text",
+          "text": "两个边界都必须是有限的，并且开始必须早于结束。空范围或反向范围均无效。NULL 边界并不意味着“仍然有效”。对于持续存在的记录，请选择适合你应用的、有文档说明的有限结束边界约定。",
+          "marks": [],
+          "id": "t-4d106eb28be6"
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "id": "b-a57d0cae437f",
+      "children": [
+        {
+          "type": "text",
+          "text": "查找某个业务日期当天生效的版本",
+          "marks": [
+            "strong"
+          ],
+          "id": "t-a96ff83aab68"
+        }
+      ],
+      "level": 4
+    },
+    {
+      "type": "paragraph",
+      "id": "b-9c5ba2c8f272",
+      "children": [
+        {
+          "type": "text",
+          "text": "参考数据的生效日期往往与其到达日期不同。今天加载的一项费率可能适用于下个月。下周收到的一项更正可能适用于过去的某个日期。",
+          "marks": [],
+          "id": "t-38d4dd558831"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "id": "b-ce232c961feb",
+      "children": [
+        {
+          "type": "text",
+          "text": "对于生效日期查找，请将每个版本的业务有效期范围与其值一起存储。此示例中，5% 的费率持续到 3 月，6% 的费率从 4 月 1 日开始：",
+          "marks": [],
+          "id": "t-5e0f5e5cb2cc"
+        }
+      ]
+    },
+    {
+      "type": "code",
+      "id": "b-f3e813a7c6dc",
+      "text": "WITH rate_history AS (\n    SELECT 'RATE_A' AS rate_id, 0.05 AS rate,\n           PERIOD(DATE) '[2026-01-01, 2026-04-01)' AS valid_during\n    UNION ALL\n    SELECT 'RATE_A', 0.06,\n           PERIOD(DATE) '[2026-04-01, 2027-01-01)'\n)\nSELECT rate_id, rate\nFROM rate_history\nWHERE PERIOD_CONTAINS(valid_during, DATE '2026-02-15');"
+    },
+    {
+      "type": "paragraph",
+      "id": "b-b304dff47901",
+      "children": [
+        {
+          "type": "text",
+          "text": "该查询返回 RATE_A，值为 0.05。将查找日期改为 4 月 1 日，则返回 0.06。该边界仅属于新版本。",
+          "marks": [],
+          "id": "t-e95dadfacec7"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "id": "b-cbe2ab54554a",
+      "children": [
+        {
+          "type": "text",
+          "text": "此模式同样适用于按生效日期确定的保费或合同条款。你的摄取逻辑仍需创建并关闭版本。PERIOD 会验证每个范围，但它不会阻止同一业务键的版本发生重叠。",
+          "marks": [],
+          "id": "t-1a40d0167ed2"
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "id": "b-e174b0d6bd18",
+      "children": [
+        {
+          "type": "text",
+          "text": "按同一业务日期关联历史记录",
+          "marks": [
+            "strong"
+          ],
+          "id": "t-afc80e010bf3"
+        }
+      ],
+      "level": 4
+    },
+    {
+      "type": "paragraph",
+      "id": "b-7323abdb5126",
+      "children": [
+        {
+          "type": "text",
+          "text": "合同的状态和逾期余额可能在不同日期发生变化。历史报告需要各自在其报告日期适用的版本。关联它们的最新行会回答一个不同的问题。",
+          "marks": [],
+          "id": "t-23dfff602fc3"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "id": "b-82857ad73ff4",
+      "children": [
+        {
+          "type": "text",
+          "text": "假设 contract_status 和 overdue_balances 各有一个类型为 PERIOD(DATE) 的 valid_during 列。以下查询将两个历史记录对齐到 9 月 16 日：",
+          "marks": [],
+          "id": "t-6aaa0cb5625f"
+        }
+      ]
+    },
+    {
+      "type": "code",
+      "id": "b-eb184f550608",
+      "text": "WITH reporting_date AS (\n    SELECT DATE '2026-09-16' AS business_date\n)\nSELECT status_history.contract_id, report.business_date,\n       status_history.status, balance_history.overdue_amount\nFROM reporting_date AS report\nJOIN contract_status AS status_history\n  ON PERIOD_CONTAINS(status_history.valid_during, report.business_date)\nLEFT JOIN overdue_balances AS balance_history\n  ON balance_history.contract_id = status_history.contract_id\n AND PERIOD_CONTAINS(balance_history.valid_during, report.business_date);"
+    },
+    {
+      "type": "paragraph",
+      "id": "b-5a12f92ab5b9",
+      "children": [
+        {
+          "type": "text",
+          "text": "对于一份在整个 9 月都标记为 ACTIVE 且逾期余额在 [2026-09-10, 2026-09-20) 为 250 的合同，9 月 16 日的报告返回 ACTIVE 和 250。如果没有余额版本覆盖该日期，左连接会保留该合同，并为未匹配的余额返回 NULL。",
+          "marks": [],
+          "id": "t-d563f9c433a4"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "id": "b-caca924c7475",
+      "children": [
+        {
+          "type": "text",
+          "text": "每个历史记录对于每个键和日期最多应有一个适用版本。如果你还跟踪信息被记录的时间，请针对所选的记录时间快照筛选两个历史记录。你的管道仍负责捕获该历史。用 PERIOD 谓词替换边界比较可提高可读性；任何性能收益都需要针对具体工作负载进行测试。",
+          "marks": [],
+          "id": "t-c7f1facfe5b5"
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "id": "b-fa5e1e9c8890",
+      "children": [
+        {
+          "type": "text",
+          "text": "跨报告周分配车队值勤时间",
+          "marks": [
+            "strong"
+          ],
+          "id": "t-2425ae89da43"
+        }
+      ],
+      "level": 4
+    },
+    {
+      "type": "paragraph",
+      "id": "b-fb8af70b9420",
+      "children": [
+        {
+          "type": "text",
+          "text": "一名司机从周日晚上 10 点工作到周一早上 6 点。在以周一为起始的报告周下，两小时属于上一周，六小时属于新的一周。将全部八小时都分配到班次的开始日期会误报两个周的合计值。",
+          "marks": [],
+          "id": "t-d87ba0a04ad8"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "id": "b-16cd2ac0e661",
+      "children": [
+        {
+          "type": "text",
+          "text": "将值勤窗口和每个报告周表示为时间戳 period，然后对它们求交集。此查询计算对新一周的贡献：",
+          "marks": [],
+          "id": "t-4630a23fd866"
+        }
+      ]
+    },
+    {
+      "type": "code",
+      "id": "b-f2e9c4def683",
+      "text": "WITH windows AS (\n    SELECT\n        PERIOD(TIMESTAMP_NTZ)\n          '[2026-09-13 22:00:00, 2026-09-14 06:00:00)' AS duty,\n        PERIOD(TIMESTAMP_NTZ)\n          '[2026-09-14 00:00:00, 2026-09-21 00:00:00)' AS workweek\n), allocation AS (\n    SELECT PERIOD_INTERSECT(duty, workweek) AS segment\n    FROM windows\n)\nSELECT DATEDIFF('second', PERIOD_BEGIN(segment), PERIOD_END(segment))\n           / 3600.0 AS hours_in_workweek\nFROM allocation;"
+    },
+    {
+      "type": "paragraph",
+      "id": "b-ed6b2bc7a547",
+      "children": [
+        {
+          "type": "text",
+          "text": "结果为 6。与上一周求交集返回 2，总计保留全部八小时。对于全车队报告，请将值勤记录与它们重叠的每个报告周关联，然后再对分配的小时数求和。",
+          "marks": [],
+          "id": "t-86274f6e9efb"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "id": "b-feb51446b6cf",
+      "children": [
+        {
+          "type": "text",
+          "text": "这些合计值可用于加班风险报告和人员配置决策。相同的交集模式可用于衡量车辆的维护窗口有多大一部分落在计划运营窗口内。",
+          "marks": [],
+          "id": "t-45f54d302c03"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "id": "b-c995db9f717b",
+      "children": [
+        {
+          "type": "text",
+          "text": "该示例假设采用单一、一致的时间戳基准且没有偏移量变化。生产系统需要明确的时区策略和权威值勤记录。仅凭行程遥测无法确定带薪时间或工时合规性；这些规则与范围分配保持分离。这里，DATEDIFF 测量所提取边界之间的秒数。它不是 PERIOD 到 INTERVAL 的转换。",
+          "marks": [],
+          "id": "t-79e3cdcc3e2a"
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "id": "b-e6569d28e675",
+      "children": [
+        {
+          "type": "text",
+          "text": "从一个范围查询开始",
+          "marks": [
+            "strong"
+          ],
+          "id": "t-de90c374f66a"
+        }
+      ],
+      "level": 4
+    },
+    {
+      "type": "paragraph",
+      "id": "b-ed94b77a6930",
+      "children": [
+        {
+          "type": "text",
+          "text": "选择一个现有的生效日期查找或重叠计算，并将其与等效的 PERIOD 表达式进行比较。这也为迁移提供了一个原生目标，用于此前用字符串或拆分边界表示的受支持范围操作。验证共享边界和缺失历史：在迁移到排除式结束边界时，包含式的 BETWEEN 谓词需要特别小心。",
+          "marks": [],
+          "id": "t-b1e24e58d0a5"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "id": "b-9ce3a93ca270",
+      "children": [
+        {
+          "type": "text",
+          "text": "请使用 ",
+          "marks": [],
+          "id": "t-43250d1481be"
+        },
+        {
+          "type": "text",
+          "text": "PERIOD 文档",
+          "marks": [
+            {
+              "type": "link",
+              "href": "https://docs.snowflake.com/en/sql-reference/data-types-period"
+            }
+          ],
+          "id": "t-b0dcac96202a"
+        },
+        {
+          "type": "text",
+          "text": " 了解支持的类型和限制，并使用 ",
+          "marks": [],
+          "id": "t-014db8c08abb"
+        },
+        {
+          "type": "text",
+          "text": "函数参考",
+          "marks": [
+            {
+              "type": "link",
+              "href": "https://docs.snowflake.com/en/sql-reference/functions-period"
+            }
+          ],
+          "id": "t-8099d9104d1f"
+        },
+        {
+          "type": "text",
+          "text": " 查看每种操作的示例。",
+          "marks": [],
+          "id": "t-eaeb13e52036"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "id": "b-9cc204686a04",
+      "children": [
+        {
+          "type": "text",
+          "text": "使用 Snowflake 的 PERIOD 数据类型查询时间范围",
+          "marks": [
+            {
+              "type": "link",
+              "href": "https://medium.com/snowflake/query-time-ranges-with-snowflakes-period-data-type-ce229d2306bd"
+            }
+          ],
+          "id": "t-3ab88d3da5d1"
+        },
+        {
+          "type": "text",
+          "text": " 最初发布于 ",
+          "marks": [],
+          "id": "t-15a26bd2302c"
+        },
+        {
+          "type": "text",
+          "text": "Snowflake Builders Blog: Data Engineers, App Developers, AI, & Data Science",
+          "marks": [
+            {
+              "type": "link",
+              "href": "https://medium.com/snowflake"
+            }
+          ],
+          "id": "t-a9be5ebab024"
+        },
+        {
+          "type": "text",
+          "text": "（发布于 Medium），人们正在通过高亮并回应这个故事来继续对话。",
+          "marks": [],
+          "id": "t-d30eb5f0f3ab"
+        }
+      ]
+    }
+  ],
+  "source_content_hash": "121e1c58182f7f199d2831cb",
+  "items": [
+    {
+      "id": "113da8bd65f9",
+      "source": "Snowflake Engineering（Medium）",
+      "link": "https://medium.com/snowflake/query-time-ranges-with-snowflakes-period-data-type-ce229d2306bd?source=rss----34b6daafc07---4",
+      "published": "2026-09-22T22:01:07+08:00",
+      "ingested_at": "2026-09-26T22:27:28.257662+08:00",
+      "title": "Query Time Ranges With Snowflake’s PERIOD Data Type"
+    },
+    {
+      "id": "009c95673c3b",
+      "source": "Snowflake Release Notes",
+      "link": "https://docs.snowflake.com/en/release-notes/2026/10_32",
+      "published": null,
+      "ingested_at": "2026-10-05T13:44:15.423806+08:00",
+      "title": "10.32 Release Notes (with behavior changes): Sep 05, 2026 - Sep 09, 2026 | Snowflake Documentation"
+    }
+  ],
+  "content_mode": "translated",
+  "content_parse": {
+    "run_id": "github-36381644461-1",
+    "processor_version": "original-first-v7",
+    "attempted_at": "2026-09-28T13:29:15.060110+08:00",
+    "status": "ready",
+    "source": "Snowflake Engineering（Medium）",
+    "strategy": "rss_document_fallback",
+    "blocks": 35,
+    "text_chars": 6968,
+    "figures": 1,
+    "tables": 0,
+    "figures_discovered": 2,
+    "figures_selected": 1,
+    "figures_rejected": 1,
+    "candidate_count": 0,
+    "figures_rejected_author": 0,
+    "figures_rejected_decorative": 0,
+    "figures_rejected_duplicate": 0,
+    "figures_rejected_small": 1,
+    "figures_rejected_limit": 0,
+    "trimmed_tail_blocks": 0,
+    "trimmed_head_blocks": 0,
+    "trimmed_promotional_blocks": 0,
+    "trimmed_embedded_ui_blocks": 0,
+    "embedded_ui_components": 0,
+    "selected_depth": 0,
+    "selected_raw_blocks": 36,
+    "selected_raw_text_chars": 6968,
+    "broad_raw_blocks": 36,
+    "broad_raw_text_chars": 6914,
+    "parent_extra_blocks": 0,
+    "candidate_count_raw": 0,
+    "candidate_duplicates": 0,
+    "candidate_quality_rejected": 0,
+    "duplicate_blocks": 0,
+    "selected_score": 427.67,
+    "quality_status": "pass",
+    "selected_tag": "document",
+    "focus_ratio": 1.0,
+    "link_ratio": 0.0257,
+    "duplicate_ratio": 0.0,
+    "selection_evidence": [
+      "prose_density",
+      "integrity_gate"
+    ],
+    "media": {
+      "figures": 1,
+      "cached": 1,
+      "link_only": 0,
+      "policy_version": "source-cdn-v1"
+    },
+    "content_mode": "translated",
+    "source_language": "other",
+    "translation_status": "complete",
+    "source_content_hash": "121e1c58182f7f199d2831cb",
+    "metadata_translation": {
+      "run_id": "github-36381644461-1",
+      "policy_version": "metadata-translation-backfill-v1",
+      "attempted_at": "2026-09-28T13:28:42.473852+08:00",
+      "purpose": "metadata_translation_backfill",
+      "status": "complete"
+    },
+    "translation": {
+      "run_id": "github-36381644461-1",
+      "policy_version": "faithful-translation-retry-v1",
+      "attempted_at": "2026-09-28T13:29:15.060148+08:00",
+      "purpose": "body_translation_backfill",
+      "status": "complete"
+    }
+  }
+}

@@ -398,8 +398,12 @@ function failingHomeWindow() {
     },
     loadMore: { hidden: false, disabled: false, textContent: "加载更多（20/3）", addEventListener(name, handler) { listeners.moreClick = handler; } },
     rCount: { textContent: "3" },
-    q: { value: "", addEventListener() {}, focus() { this.focused = true; } },
-    qClear: { style: {}, addEventListener() {} }
+    rCountLabel: { textContent: "条资讯" },
+    filterTools: { hidden: true },
+    filterSelection: { textContent: "" },
+    filterReset: { addEventListener(_name, handler) { listeners.reset = handler; } },
+    q: { value: "", addEventListener(_name, handler) { listeners.input = handler; }, focus() { this.focused = true; } },
+    qClear: { style: {}, addEventListener(_name, handler) { listeners.clear = handler; } }
   };
   let rejectFetch = true;
   const win = {
@@ -496,8 +500,6 @@ test("More shows the hidden active filter, closes with Escape or selection and r
   const doc = {getElementById:id=>id==="filterMore"?more:caption,addEventListener:(name,fn)=>listeners[name]=fn};
   home.initFilterDisclosure(doc);
   home.syncFilterDisclosure(doc);
-  assert.equal(caption.hidden,false);
-  assert.equal(caption.textContent,"当前筛选：语义层");
   assert.match(label,/语义层/);
   listeners.keydown({key:"Escape"});
   assert.equal(more.open,false);
@@ -511,7 +513,7 @@ test("More shows the hidden active filter, closes with Escape or selection and r
   assert.equal(more.open,false);
   assert.equal(focused,2);
   selected=[];home.syncFilterDisclosure(doc);
-  assert.equal(caption.hidden,true);
+  assert.equal(label,"更多主题");
 });
 
 // Shared navigation feedback regression coverage.
@@ -599,4 +601,71 @@ test("additional sources count independent displayed publishers once", () => {
   assert.match(html, /Independent &amp; Co · 中文信源/);
   item.items = Array(41).fill({source:"Primary"});
   assert.doesNotMatch(home.renderTimeline([item]), /class="also"/);
+});
+
+
+test("search feedback distinguishes loading, failure, success and reset", async () => {
+  const fixture = failingHomeWindow();
+  fixture.win.location.search = "?q=Title&topic=Data+Agent";
+  home.boot(fixture.win);
+  assert.equal(fixture.elements.rCountLabel.textContent, "正在查找");
+  assert.equal(fixture.elements.rCount.textContent, "—");
+  assert.equal(fixture.elements.filterTools.hidden, false);
+  assert.equal(fixture.elements.filterSelection.textContent, "搜索：“Title” · Agent");
+  assert.equal(fixture.elements.qClear.style.display, "");
+  await new Promise(setImmediate);
+  assert.equal(fixture.elements.rCountLabel.textContent, "加载失败");
+  fixture.allowFetch();
+  fixture.listeners.click({ target: { closest: selector => selector === "[data-filter-retry]" ? {} : null } });
+  await new Promise(setImmediate);
+  assert.equal(fixture.elements.rCount.textContent, "1");
+  assert.equal(fixture.elements.rCountLabel.textContent, "条匹配");
+  fixture.listeners.clear();
+  await new Promise(setImmediate);
+  assert.equal(fixture.win.history.url, "/datahot/index.html?topic=Data+Agent");
+  assert.equal(fixture.elements.filterSelection.textContent, "Agent");
+  fixture.listeners.reset();
+  assert.equal(fixture.win.history.url, "/datahot/index.html");
+  assert.equal(fixture.elements.filterTools.hidden, true);
+  assert.equal(fixture.elements.rCountLabel.textContent, "条资讯");
+  assert.equal(fixture.elements.rCount.textContent, "3");
+});
+
+test("reset survives late search success or failure and cancels pending input", async () => {
+  for (const fail of [false, true]) {
+    const fixture = failingHomeWindow();
+    let settle;
+    fixture.win.fetch = () => new Promise((resolve, reject) => {
+      settle = () => fail ? reject(new Error("offline")) : resolve({ok:true,json:async()=>({events:[],home_event_ids:[]})});
+    });
+    const timers = new Map();
+    fixture.win.setTimeout = handler => {timers.set(1,handler);return 1;};
+    fixture.win.clearTimeout = id => timers.delete(id);
+    home.boot(fixture.win);
+    fixture.elements.q.value = "new query";
+    fixture.listeners.input();
+    assert.equal(timers.size, 1);
+    fixture.listeners.reset();
+    assert.equal(timers.size, 0);
+    settle();
+    await new Promise(setImmediate);
+    assert.equal(fixture.elements.timeline.innerHTML, "STATIC UNFILTERED CONTENT");
+    assert.equal(fixture.elements.rCount.textContent, "3");
+    assert.equal(fixture.elements.rCountLabel.textContent, "条资讯");
+    assert.equal(fixture.elements.filterTools.hidden, true);
+    assert.equal(fixture.win.history.url, "/datahot/index.html");
+  }
+});
+
+test("empty search reports zero matches without losing the active conditions", async () => {
+  const fixture = failingHomeWindow();
+  fixture.win.location.search = "?q=missing&category=platform";
+  fixture.allowFetch();
+  home.boot(fixture.win);
+  await new Promise(setImmediate);
+  assert.equal(fixture.elements.rCount.textContent, "0");
+  assert.equal(fixture.elements.rCountLabel.textContent, "条匹配");
+  assert.equal(fixture.elements.filterSelection.textContent, "搜索：“missing” · 数据平台");
+  assert.equal(fixture.elements.filterTools.hidden, false);
+  assert.match(fixture.elements.timeline.innerHTML, /没有匹配的事件/);
 });

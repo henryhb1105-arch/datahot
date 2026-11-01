@@ -71,7 +71,7 @@ class HomeHeaderTests(unittest.TestCase):
         source = (ROOT / "pipeline" / "build_site.py").read_text(encoding="utf-8")
         self.assertNotIn("不限时间 · 每批 {DEFAULT_PAGE_SIZE} 条", source)
         self.assertIn('data-category="insight">AI分析</button>', source)
-        self.assertIn('placeholder="搜索"', source)
+        self.assertIn('placeholder="搜索标题、关键词…"', source)
         chips = build_site.render_home_filter_chips([])
         self.assertIn('data-topic="all">全部</button>', chips)
         self.assertIn('data-editorial="true">编辑精选</button>', chips)
@@ -290,33 +290,19 @@ class HomeHeaderTests(unittest.TestCase):
         self.assertEqual(hot.count('class="today-hot-row'), 3)
         self.assertNotIn("热点标题 4", hot)
 
-    def test_mobile_timeline_toolbar_stays_on_one_compact_line(self):
+    def test_timeline_search_has_named_result_status_and_clear_action(self):
         toolbar = build_site.render_timeline_toolbar(126)
-        css = build_site.load_css()
-        self.assertIn('class="section-title timeline-toolbar"', toolbar)
-        self.assertNotIn('class="timeline-meta"', toolbar)
-        self.assertIn('class="timeline-searchbox"', toolbar)
-        self.assertIn('class="timeline-count"', toolbar)
-        self.assertIn('placeholder="搜索"', toolbar)
-        self.assertNotIn("不限时间", toolbar)
-        self.assertNotIn('style="align-items:center"', toolbar)
-        self.assertIn(
-            ".timeline-toolbar h2,.timeline-toolbar .timeline-count{white-space:nowrap}",
-            css,
-        )
-        self.assertIn(
-            ".timeline-toolbar{align-items:center;flex-wrap:nowrap}",
-            css,
-        )
-        self.assertIn(".timeline-searchbox{width:min(120px,34vw)}", css)
-        self.assertIn(
-            ".timeline-searchbox .tlsearch,.timeline-searchbox .tlsearch:focus{width:100%}",
-            css,
-        )
-        self.assertIn(
-            ".timeline-searchbox .tlsearch{margin-left:0;min-width:0;flex:1 1 0}",
-            css,
-        )
+        self.assertIn('aria-label="搜索时间轴"', toolbar)
+        self.assertIn('aria-controls="timeline"', toolbar)
+        self.assertIn('type="search"', toolbar)
+        self.assertIn('enterkeyhint="search"', toolbar)
+        self.assertIn('role="status" aria-live="polite" aria-atomic="true"', toolbar)
+        self.assertIn('<span id="rCount">126</span>', toolbar)
+        self.assertIn('<span id="rCountLabel">条资讯</span>', toolbar)
+        self.assertIn('aria-label="清除搜索"', toolbar)
+        filters = build_site.render_home_filter_chips([])
+        self.assertIn('id="filterTools" hidden', filters)
+        self.assertIn('aria-label="清除搜索和筛选"', filters)
 
     def test_mobile_timeline_has_sticky_dates_and_accessible_back_to_top(self):
         css = build_site.load_css()

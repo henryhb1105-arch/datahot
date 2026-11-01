@@ -172,7 +172,10 @@ def render_home_filter_chips(timeline_events):
       </div>
     </details>
   </div>
-  <p class="filter-selection" id="filterSelection" hidden aria-live="polite"></p>
+  <div class="timeline-result-tools" id="filterTools" hidden>
+    <p class="filter-selection" id="filterSelection"></p>
+    <button id="filterReset" class="timeline-reset" type="button" aria-label="清除搜索和筛选">重置</button>
+  </div>
 </div>'''
 
 def src_badge(source_name):
@@ -908,14 +911,15 @@ def render_home_brand_update(gen):
 
 
 def render_timeline_toolbar(total_count):
-    """首页时间轴工具栏：标题、搜索与数量在窄屏保持单行。"""
+    """Keep the search query readable and identify the result count explicitly."""
     return f'''<div class="section-title timeline-toolbar">
   <h2 id="timelineTitle">{ic("calendar",18)} <span data-timeline-title>时间轴</span></h2>
+  <span class="timeline-count" role="status" aria-live="polite" aria-atomic="true"><span id="rCount">{total_count}</span> <span id="rCountLabel">条资讯</span></span>
   <div class="timeline-searchbox">
-    <input id="q" class="tlsearch" placeholder="搜索" aria-label="搜索时间轴" title="搜索范围：全部在站时间轴的标题、摘要与标签；多个关键词用空格分隔，不限词序">
+    <span class="timeline-search-icon" aria-hidden="true">{ic("search",18)}</span>
+    <input id="q" class="tlsearch" type="search" enterkeyhint="search" autocomplete="off" placeholder="搜索标题、关键词…" aria-label="搜索时间轴" aria-controls="timeline" title="搜索范围：全部在站时间轴的标题、摘要与标签；多个关键词用空格分隔，不限词序">
     <button id="qClear" class="timeline-clear" type="button" style="display:none" aria-label="清除搜索" title="清除搜索">✕</button>
   </div>
-  <span class="timeline-count">（<span id="rCount">{total_count}</span>）</span>
 </div>'''
 
 

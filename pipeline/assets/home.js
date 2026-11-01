@@ -423,11 +423,6 @@
     var labels = Array.from(more.querySelectorAll(".fchip.on")).map(function (chip) { return chip.textContent.trim(); });
     more.classList.toggle("has-selection", labels.length > 0);
     more.querySelector("summary").setAttribute("aria-label", "更多主题" + (labels.length ? "，已选：" + labels.join("、") : ""));
-    var caption = doc.getElementById("filterSelection");
-    if (caption) {
-      caption.hidden = !labels.length;
-      caption.textContent = labels.length ? "当前筛选：" + labels.join(" · ") : "";
-    }
   }
 
   function initFilterDisclosure(doc) {
@@ -468,6 +463,10 @@
     var root = doc.getElementById("timeline");
     var more = doc.getElementById("loadMore");
     var count = doc.getElementById("rCount");
+    var countLabel = doc.getElementById("rCountLabel");
+    var filterTools = doc.getElementById("filterTools");
+    var filterCaption = doc.getElementById("filterSelection");
+    var filterReset = doc.getElementById("filterReset");
     var qInput = doc.getElementById("q");
     var qClear = doc.getElementById("qClear");
     var timelineTitle = doc.querySelector && doc.querySelector("[data-timeline-title]");
@@ -478,6 +477,7 @@
     var state = stateFromSearch(win.location.search);
     var payloadPromise = null;
     var retryMore = false;
+    var renderVersion = 0;
     var allEvents = null;
     var restoredSnapshot = false;
     var initialTimeline = root.innerHTML;
@@ -584,18 +584,38 @@
       if (!payloadPromise) {
         payloadPromise = win.fetch(config.dataset.liteUrl, { cache: "default", credentials: "omit" })
           .then(function (response) { if (!response.ok) throw new Error("lite payload " + response.status); return response.json(); })
-          .then(function (payload) { allEvents = orderedEvents(payload); return allEvents; });
+          .then(function (payload) { allEvents = orderedEvents(payload); return allEvents; })
+          .catch(function (error) { payloadPromise = null; throw error; });
       }
       return payloadPromise;
     }
+    function syncSearchControls(resultCount, phase) {
+      var active = hasActiveFilter(state);
+      if (qClear) qClear.style.display = qInput && qInput.value ? "" : "none";
+      if (filterTools) filterTools.hidden = !active;
+      if (filterCaption) {
+        var labels = [];
+        if (state.q) labels.push("搜索：“" + state.q + "”");
+        if (state.editorial) labels.push("编辑精选");
+        if (state.category) labels.push({agent:"Agent",platform:"数据平台",bi:"分析应用",product:"产品动态",insight:"AI分析"}[state.category]);
+        if (state.topic !== "all") labels.push(state.topic === "Data Agent" ? "Agent" : state.topic);
+        filterCaption.textContent = labels.join(" · ");
+      }
+      if (count) count.textContent = phase ? "—" : String(resultCount);
+      if (countLabel) countLabel.textContent = phase === "loading" ? "正在查找" :
+        (phase === "error" ? "加载失败" : (active ? "条匹配" : "条资讯"));
+    }
     function restoreInitialTimeline() {
+      renderVersion += 1;
+      if (timer) win.clearTimeout(timer);
+
       retryMore = false;
       state = { q: "", topic: "all", category: "", editorial: false, page: 1 };
       if (qInput) qInput.value = "";
       if (qClear) qClear.style.display = "none";
       root.innerHTML = initialTimeline;
       syncTodayLabels();
-      if (count) count.textContent = String(total);
+      syncSearchControls(total);
       if (more) {
         more.disabled = false;
         more.hidden = initialMoreHidden;
@@ -606,18 +626,20 @@
       if (typeof win.dhInitFav === "function") win.dhInitFav();
     }
     function refresh() {
+      var requestVersion = ++renderVersion;
       var filteredRequest = hasActiveFilter(state);
+      syncSearchControls(count ? count.textContent : total, !allEvents && filteredRequest ? "loading" : "");
       if (!allEvents && filteredRequest) {
         root.innerHTML = '<div class="scard" role="status" style="color:var(--sub)">正在加载筛选结果…</div>';
         if (more) more.hidden = true;
       }
       return fetchEvents().then(function (events) {
+        if (requestVersion !== renderVersion) return null;
         var result = visibleEvents(events, state, pageSize);
         retryMore = false;
         root.innerHTML = renderTimeline(result.visible, topRanks, state.editorial) || renderNoResults();
         syncTodayLabels();
-        count.textContent = String(result.filtered.length);
-        if (qClear) qClear.style.display = state.q ? "" : "none";
+        syncSearchControls(result.filtered.length);
         if (more) {
           more.disabled = false;
           more.hidden = result.visible.length >= result.filtered.length;
@@ -630,11 +652,12 @@
         persistUrl();
         return result;
       }).catch(function () {
+        if (requestVersion !== renderVersion) return null;
         payloadPromise = null;
         allEvents = null;
         if (hasActiveFilter(state)) {
           root.innerHTML = renderLoadFailure();
-          if (count) count.textContent = "—";
+          syncSearchControls(0, "error");
           if (more) more.hidden = true;
           persistUrl();
         } else if (more) {
@@ -647,6 +670,7 @@
 
     if (count) count.textContent = String(total);
     if (qInput) qInput.value = state.q;
+    syncSearchControls(total);
     function syncChips() {
       doc.querySelectorAll(".home-filters .fchip").forEach(function (chip) {
         var isAll = chip.dataset.topic === "all";
@@ -679,9 +703,15 @@
     var timer = null;
     if (qInput) qInput.addEventListener("input", function () {
       if (timer) win.clearTimeout(timer);
+      if (qClear) qClear.style.display = qInput.value ? "" : "none";
       timer = win.setTimeout(function () { state.q = qInput.value.trim(); state.page = 1; refresh(); }, 160);
     });
+    if (filterReset) filterReset.addEventListener("click", function () {
+      restoreInitialTimeline();
+      if (qInput) qInput.focus();
+    });
     if (qClear) qClear.addEventListener("click", function () {
+      if (timer) win.clearTimeout(timer);
       qInput.value = ""; state.q = ""; state.page = 1; refresh(); qInput.focus();
     });
     if (more) more.addEventListener("click", function () {

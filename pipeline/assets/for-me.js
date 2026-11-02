@@ -67,7 +67,9 @@
     var unread = ranked.filter(function (event) { return !isRead(event, state); });
     var cutoff = now - 7 * 86400000;
     var picks = unread.filter(function(event) {
-      return event.body_review_required !== true && (eventTime(event) >= cutoff || inferred(event,state).length);
+      return event.body_review_required !== true &&
+        String(event.zh_summary || "").trim().length > 0 &&
+        (eventTime(event) >= cutoff || inferred(event,state).length);
     });
     var must = picks.slice(0, 3), used = new Set(must.map(function (event) {return event.event_id;}));
     var updates = unread.filter(function (event) {

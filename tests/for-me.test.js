@@ -33,6 +33,27 @@ test("recent picks prioritize readable bodies while unverified records stay disc
   }
 });
 
+test("first-screen picks require an introduction without removing incomplete articles from ranking", () => {
+  const now = Date.parse("2026-11-02T01:00:00Z");
+  const ready = event("bbbbbbbbbbbb", {published:"2026-11-01", topics:["Data Agent"]});
+  for (const field of ["zh_summary"]) {
+    for (const value of [undefined, "", " \n\t "]) {
+      const incomplete = {...ready, event_id:"aaaaaaaaaaaa", importance:99, [field]:value};
+      for (const prefs of [{}, {topics:["Data Agent"]}]) {
+        const state = forMe.normalizeState(prefs);
+        const result = forMe.sections([incomplete, ready], state, now, null);
+        assert.deepEqual(result.must.map(e=>e.event_id), [ready.event_id]);
+        assert.ok(result.ranked.some(e=>e.event_id===incomplete.event_id));
+        assert.equal(incomplete[field],value);
+        state.affinity = {matches:{[incomplete.event_id]:{score:100,value:"具体工作",sourceId:ready.event_id}}};
+        assert.equal(forMe.sections([incomplete],state,now,null).must.length,0);
+      }
+    }
+  }
+  const noEditorialReason = {...ready,reason:""};
+  assert.equal(forMe.sections([noEditorialReason],forMe.normalizeState({}),now,null).must.length,1);
+});
+
 function event(id, options = {}) {
   return {
     event_id: id,

@@ -99,10 +99,21 @@ module.exports = async function(context, base, out, width) {
   assert(control.y > 0 && control.y < 850, 'Deep-linked privacy control is within viewport');
   await page.screenshot({path:path.join(out,`${width}-for-you-privacy.png`)});
   await page.locator('#fmCloseSettings').click();
-  await page.locator('#fmMustList .fm-signal-title').first().click();
+  const lastPick = page.locator('#fmMustList .fm-signal').first();
+  const readId = await lastPick.getAttribute('data-event-id');
+  await lastPick.locator('.fm-signal-title').click();
   await feedNavigation(page, () => page.goBack({waitUntil:'domcontentloaded'}));
   assert(!(await page.locator('#fmSettings').isVisible()), 'Consumed privacy hash must not reopen settings on return');
-  assert(await page.locator('#fmMustList .fm-signal').first().isVisible());
+  assert.equal(await page.locator(`#fmMustList [data-event-id="${readId}"]`).count(), 0, 'Read article leaves unread picks');
+  // Reading the last eligible pick may exhaust this section as live data ages.
+  // Verify the reading destination instead of requiring another first-screen pick.
+  const remaining = page.locator('#fmMustList .fm-signal:visible, #fmFeedList .fm-signal:visible, #fmWorkList .fm-signal:visible, #fmDiscoveryList .fm-signal:visible');
+  assert(await remaining.count() > 0 || await page.locator('#fmEmpty').isVisible(), 'Return shows remaining content or an explicit empty state');
+  const history = page.locator('details:has(#fmReadList)');
+  assert(await history.isVisible(), 'Read history remains accessible');
+  if (await history.getAttribute('open') === null) await history.locator('summary').click();
+  assert(await page.locator(`#fmReadList [data-event-id="${readId}"]`).isVisible(), 'Opened article remains in read history');
+  await page.screenshot({path:path.join(out,`${width}-for-you-return.png`)});
   assert.deepEqual(errors, []);
   await page.close();
 };

@@ -227,7 +227,12 @@ async function main() {
     await recovery.locator('#fmError').waitFor();
     corrupt = false;
     await recovery.locator('#fmError button').click();
-    await recovery.locator('#fmMustList .fm-signal').first().waitFor();
+    await readiness.waitForFeed(recovery);
+    // Recovery retains reader preferences; recent unread picks may be exhausted.
+    // Require actual visible articles, not membership in one optional section.
+    await recovery.locator('#fmContent .fm-signal:visible').first().waitFor();
+    assert(!(await recovery.locator('#fmError').isVisible()), 'Successful retry clears the transport error');
+    await recovery.screenshot({path:path.join(out, `${width}-columnar-recovered.png`)});
     summary.viewports[summary.viewports.length - 1].columnarRecovery = 'PASS: invalid transport shows error; reload recovers';
     await recovery.close();
     await require('./for-you-browser.cjs')(context, base, out, width);

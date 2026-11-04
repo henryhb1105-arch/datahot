@@ -82,9 +82,11 @@ module.exports = async function(context, base, out, width) {
   await page.locator('#fmDone').click();
   await feedNavigation(page, () => page.reload({waitUntil:'domcontentloaded'}));
   assert(!(await page.locator('#fmSetup').isVisible()), 'Returning users skip setup');
-  assert.match(await page.locator('#fmMustList .fm-why').first().innerText(), /数据平台选型/);
+  // Recent picks can age out; relevant work references remain valid recommendations.
+  const primary = page.locator('#fmMustList .fm-signal:visible, #fmFeedList .fm-signal:visible, #fmWorkList .fm-signal:visible');
+  assert.match(await primary.first().locator('.fm-why').innerText(), /数据平台选型/);
   assert(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth+1));
-  const returning = await page.locator('#fmMustList .fm-signal').first().boundingBox();
+  const returning = await primary.first().boundingBox();
   assert(returning.y < 200, 'Returning readers also start with articles');
   fs.writeFileSync(path.join(out,`${width}-for-you-layout.json`), JSON.stringify({width,first_article:initial,first_reason:reason,returning_article:returning,header_position:'static'},null,2));
   await page.screenshot({path:path.join(out,`${width}-for-you.png`)});
@@ -99,12 +101,12 @@ module.exports = async function(context, base, out, width) {
   assert(control.y > 0 && control.y < 850, 'Deep-linked privacy control is within viewport');
   await page.screenshot({path:path.join(out,`${width}-for-you-privacy.png`)});
   await page.locator('#fmCloseSettings').click();
-  const lastPick = page.locator('#fmMustList .fm-signal').first();
+  const lastPick = primary.first();
   const readId = await lastPick.getAttribute('data-event-id');
   await lastPick.locator('.fm-signal-title').click();
   await feedNavigation(page, () => page.goBack({waitUntil:'domcontentloaded'}));
   assert(!(await page.locator('#fmSettings').isVisible()), 'Consumed privacy hash must not reopen settings on return');
-  assert.equal(await page.locator(`#fmMustList [data-event-id="${readId}"]`).count(), 0, 'Read article leaves unread picks');
+  assert.equal(await page.locator(`#fmMustList [data-event-id="${readId}"], #fmFeedList [data-event-id="${readId}"], #fmWorkList [data-event-id="${readId}"]`).count(), 0, 'Read article leaves unread recommendations');
   // Reading the last eligible pick may exhaust this section as live data ages.
   // Verify the reading destination instead of requiring another first-screen pick.
   const remaining = page.locator('#fmMustList .fm-signal:visible, #fmFeedList .fm-signal:visible, #fmWorkList .fm-signal:visible, #fmDiscoveryList .fm-signal:visible');

@@ -1,9 +1,9 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-11-03T23:32:58.407314+00:00
+- 生成时间：2026-11-04T19:54:59.541367+00:00
 - 本轮原始发现：9
-- 未收录文章候选：46
-- 新信源候选：73
+- 未收录文章候选：45
+- 新信源候选：74
 - 已收录链接去重：0
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
 
@@ -24,16 +24,16 @@
 - **www.langchain.com** · PROBATION · 1 篇 · accepted_link_graph
 - **www.1011now.com** · PROBATION · 1 篇 · hn
 - **www.cpr.dk** · PROBATION · 1 篇 · hn
-- **cedardb.com** · PROBATION · 1 篇 · hn
 - **www.dexerto.com** · PROBATION · 1 篇 · hn
 - **cphpost.dk** · PROBATION · 1 篇 · hn
 - **status.yandex.cloud** · PROBATION · 1 篇 · hn
 - **www.intel.com** · PROBATION · 1 篇 · hn
 - **ourworldindata.org** · PROBATION · 1 篇 · hn
+- **startupfortune.com** · PROBATION · 1 篇 · hn
 
 ## 现有信源健康提醒
 
-- **Visier Blog** · DEGRADED · 连续失败 46 次
+- **Visier Blog** · DEGRADED · 连续失败 48 次
 
 ## 优先检查的文章
 
@@ -49,6 +49,7 @@
 - [Twelve years of distributed SQLite](https://philipotoole.com/twelve-years-of-distributed-sqlite) · hn
 - [Banks are now trying to offload the AI data center debt they just underwrote](https://startupfortune.com/banks-are-now-trying-to-offload-the-ai-data-center-debt-they-just-underwrote) · hn
 - [Now Google says it might use your Gmail and Google Photos data to target ads](https://www.theverge.com/tech/1017600/google-personal-intelligence-privacy-policy-ads-update) · hn
+- [The Internals of PostgreSQL](https://www.interdb.jp/pg/index.html) · hn
 - [Publish fake stats, get cited in LLMs](https://peec.ai/blog/publish-stats-get-cited-the-tactic-that-put-my-data-all-over-the-web) · hn
 - [Show HN: Wikihack – HackerTube, but for Wikipedia articles mentioned on HN](https://wikihack.netlify.app/) · hn
 - [Google cleared 300 hectares of Finnish forest](https://www.techspot.com/news/114100-google-cleared-300-hectares-finnish-forest-data-center.html) · hn
@@ -56,4 +57,3 @@
 - [Man discovers his parents' coffee machine used 1TB of data in 10 days](https://www.dexerto.com/entertainment/man-discovers-his-parents-coffee-machine-used-1tb-of-data-in-10-days-3416399) · hn
 - [The EPA Is Quietly Killing Its Web Archive](https://www.motherjones.com/environment/2026/10/epa-online-archive-deletion-zeldin-camp-lejeune-trump-clean-power) · hn
 - [Yandex outage: data shows that instead of going dark, malicious bots moved](https://blog.cloudflare.com/yandex-outage) · hn
-- [Google illegally cut down 250K trees in Finland for data center](https://nypost.com/2026/10/24/business/google-illegally-tore-down-250k-trees-for-finland-data-center-infuriating-locals-report) · hn

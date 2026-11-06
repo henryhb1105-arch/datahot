@@ -1,7 +1,7 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-11-05T20:02:32.015663+00:00
-- 本轮原始发现：8
+- 生成时间：2026-11-06T19:32:34.158580+00:00
+- 本轮原始发现：6
 - 未收录文章候选：40
 - 新信源候选：74
 - 已收录链接去重：0
@@ -10,7 +10,7 @@
 ## 发现通道
 
 - openai_web_search: skipped · OPENAI_API_KEY 未配置
-- hn_official: ok · 2 条
+- hn_official: ok · 0 条
 - accepted_link_graph: ok · 6 条
 
 ## 优先检查的新信源
@@ -33,7 +33,7 @@
 
 ## 现有信源健康提醒
 
-- **Visier Blog** · DEGRADED · 连续失败 50 次
+- **Visier Blog** · DEGRADED · 连续失败 52 次
 
 ## 优先检查的文章
 

@@ -1,5 +1,6 @@
 'use strict';
 const {feedNavigation}=require('./browser-readiness.cjs');
+const {PRIMARY_CARDS,UNREAD_CARDS,assertPriorityState}=require('./for-you-assertions.cjs');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const crypto = require('node:crypto');
@@ -7,6 +8,7 @@ const fs = require('node:fs');
 module.exports = async function(context, base, out, width) {
   const page = await context.newPage(), errors = [];
   page.on('pageerror', e=>errors.push(e.message));
+  const data = await (await context.request.get(base+'data/latest-lite.json')).json();
   await feedNavigation(page, () => page.goto(base+'for-me.html', {waitUntil:'domcontentloaded'}));
   await page.evaluate(()=>{localStorage.removeItem('dh_for_me_v1');localStorage.removeItem('dh_default_home_v1');sessionStorage.clear();});
   await feedNavigation(page, () => page.reload({waitUntil:'domcontentloaded'}));
@@ -16,9 +18,11 @@ module.exports = async function(context, base, out, width) {
   assert(response.ok());
   assert.equal(crypto.createHash('sha256').update(await response.body()).digest('hex').slice(0,12), asset.searchParams.get('v'), 'Personalization asset hash');
   assert(!(await page.locator('#fmSettings').isVisible()), 'First visit starts with articles, not setup');
-  const firstCard = page.locator('#fmMustList .fm-signal').first();
+  const initialEligibility = await assertPriorityState(page, data.events);
+  const firstCard = page.locator(UNREAD_CARDS).first();
   await firstCard.waitFor();
-  assert((await page.locator('#fmFeedList .fm-signal').count()) > 0, 'New visitors can continue reading beyond three picks');
+  assert.equal(await page.locator('#fmFeedList .fm-signal').count(), initialEligibility.feed,
+    'Available continuation articles remain accessible, even without priority picks');
   assert(!(await page.locator('#fmReadList').isVisible()), 'Empty read-history does not occupy the feed');
   const initial = await firstCard.boundingBox();
   assert(initial.y < 200, `First article starts at ${initial.y}px`);
@@ -52,17 +56,21 @@ module.exports = async function(context, base, out, width) {
   assert(await page.locator('#fmFollowStep').isVisible());
   await page.locator('#fmDone').click();
   assert(await page.locator('#fmWork').isVisible());
-  const first = page.locator('#fmMustList .fm-signal').first();
+  const agentEligibility = await assertPriorityState(page, data.events);
+  const first = page.locator(PRIMARY_CARDS).first();
   await first.waitFor();
   const id = await first.getAttribute('data-event-id');
   assert.match(await first.locator('.fm-why').innerText(), /搭建 Data Agent/);
   await first.locator('[data-action="read"]').click();
-  assert.equal(await page.locator(`#fmMustList [data-event-id="${id}"]`).count(), 0);
-  const dismiss = page.locator('#fmMustList .fm-signal').first();
+  assert(!(await page.locator(UNREAD_CARDS).evaluateAll((nodes,id)=>nodes.some(node=>node.dataset.eventId===id),id)), 'Read item leaves every unread section');
+  await assertPriorityState(page, data.events);
+  const dismiss = page.locator(PRIMARY_CARDS).first();
   const dismissId = await dismiss.getAttribute('data-event-id');
   await dismiss.locator('[data-action="dismiss"]').click();
+  assert(!(await page.locator(UNREAD_CARDS).evaluateAll((nodes,id)=>nodes.some(node=>node.dataset.eventId===id),dismissId)), 'Dismissed item leaves every unread section');
   await page.locator('#fmNotice button').click();
-  assert.equal(await page.locator(`#fmMustList [data-event-id="${dismissId}"]`).count(), 1);
+  assert(await page.locator(UNREAD_CARDS).evaluateAll((nodes,id)=>nodes.some(node=>node.dataset.eventId===id),dismissId), 'Undo restores the dismissed item');
+  await assertPriorityState(page, data.events);
   await page.locator('#fmCustomize').click();
   await page.locator('#fmDefaultHome').check();
   await page.locator('#fmCloseSettings').click();
@@ -83,12 +91,13 @@ module.exports = async function(context, base, out, width) {
   await feedNavigation(page, () => page.reload({waitUntil:'domcontentloaded'}));
   assert(!(await page.locator('#fmSetup').isVisible()), 'Returning users skip setup');
   // Recent picks can age out; relevant work references remain valid recommendations.
-  const primary = page.locator('#fmMustList .fm-signal:visible, #fmFeedList .fm-signal:visible, #fmWorkList .fm-signal:visible');
+  const platformEligibility = await assertPriorityState(page, data.events);
+  const primary = page.locator(PRIMARY_CARDS);
   assert.match(await primary.first().locator('.fm-why').innerText(), /数据平台选型/);
   assert(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth+1));
   const returning = await primary.first().boundingBox();
   assert(returning.y < 200, 'Returning readers also start with articles');
-  fs.writeFileSync(path.join(out,`${width}-for-you-layout.json`), JSON.stringify({width,first_article:initial,first_reason:reason,returning_article:returning,header_position:'static'},null,2));
+  fs.writeFileSync(path.join(out,`${width}-for-you-layout.json`), JSON.stringify({width,first_article:initial,first_reason:reason,returning_article:returning,header_position:'static',priority:{initial:initialEligibility,agent:agentEligibility,platform:platformEligibility}},null,2));
   await page.screenshot({path:path.join(out,`${width}-for-you.png`)});
   await page.locator('#fmCustomize').click();
   await page.screenshot({path:path.join(out,`${width}-for-you-setup.png`)});
@@ -109,7 +118,8 @@ module.exports = async function(context, base, out, width) {
   assert.equal(await page.locator(`#fmMustList [data-event-id="${readId}"], #fmFeedList [data-event-id="${readId}"], #fmWorkList [data-event-id="${readId}"]`).count(), 0, 'Read article leaves unread recommendations');
   // Reading the last eligible pick may exhaust this section as live data ages.
   // Verify the reading destination instead of requiring another first-screen pick.
-  const remaining = page.locator('#fmMustList .fm-signal:visible, #fmFeedList .fm-signal:visible, #fmWorkList .fm-signal:visible, #fmDiscoveryList .fm-signal:visible');
+  await assertPriorityState(page, data.events);
+  const remaining = page.locator(UNREAD_CARDS);
   assert(await remaining.count() > 0 || await page.locator('#fmEmpty').isVisible(), 'Return shows remaining content or an explicit empty state');
   const history = page.locator('details:has(#fmReadList)');
   assert(await history.isVisible(), 'Read history remains accessible');

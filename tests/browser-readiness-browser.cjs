@@ -1,6 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict');
 const {waitForFeed,watchPage}=require('./browser-readiness.cjs');
+const {UNREAD_CARDS,assertPriorityState}=require('./for-you-assertions.cjs');
 module.exports=async function(context,base) {
   const page=await context.newPage();watchPage(page);
   try {
@@ -15,11 +16,13 @@ module.exports=async function(context,base) {
     });
     await page.goto(base+'for-me.html',{waitUntil:'networkidle'});
     await page.waitForFunction(()=>typeof window.__releaseTestData==='function');
-    assert(!(await page.locator('#fmMustList .fm-signal').first().isVisible()),'Old immediate assertion fails while parsing is pending');
+    assert(!(await page.locator(UNREAD_CARDS).first().isVisible()),'Old immediate assertion fails while parsing is pending');
     const ready=waitForFeed(page);
     await page.evaluate(()=>window.__releaseTestData());
     await ready;
-    assert(await page.locator('#fmMustList .fm-signal').first().isVisible(),'Original card requirement still enforced');
+    assert(await page.locator(UNREAD_CARDS).first().isVisible(),'Available unread cards must render after parsing finishes');
+    const data=await (await context.request.get(base+'data/latest-lite.json')).json();
+    await assertPriorityState(page,data.events);
     await page.setContent('<div id="fmLoading">Loading</div><div id="fmContent" hidden></div><div id="fmError" hidden></div>');
     await assert.rejects(waitForFeed(page,200),/Timeout/,'Permanent loading must still fail');
     await page.setContent('<div id="fmContent" hidden></div><div id="fmError">Failed</div>');

@@ -82,6 +82,10 @@ async function main() {
   const lite = await (await get('data/latest-lite.json')).json();
   const fullEvents = new Map(latest.events.map(event => [event.event_id, event]));
   const timelineIds = new Set(lite.home_event_ids);
+  const completeReason = lite.events.find(event => event.enrichment_status === 'complete'
+    && timelineIds.has(event.event_id) && !event.promotion_suppressed
+    && String(event.reason || '').trim() && String(event.zh_title || '').trim());
+  assert(completeReason, 'Need a searchable completed article with a recommendation to test disclosure');
   const pendingOriginals = lite.events.filter(event => event.enrichment_status === 'pending'
     && timelineIds.has(event.event_id) && !event.promotion_suppressed);
   const hasOriginalBody = event => {
@@ -161,16 +165,32 @@ async function main() {
       const digest = crypto.createHash('sha256').update(await response.body()).digest('hex').slice(0,12);
       assert.equal(digest, url.searchParams.get('v'), 'Versioned asset bytes do not match URL: ' + url.pathname);
     }
-    const reason = page.locator('#timeline .item .why').first();
-    await reason.scrollIntoViewIfNeeded();
-    assert(await reason.isVisible(), 'Reason must be expanded by default');
-    await shot('timeline');
     const input = page.locator('#q');
     async function search(query) {
       await input.fill(query);
       await page.waitForFunction(q => new URL(location.href).searchParams.get('q') === q, query);
       return Number(await page.locator('#rCount').innerText());
     }
+    // The newest page can correctly consist entirely of pending originals.
+    // Test recommendation disclosure on an eligible completed article instead.
+    assert(await search(completeReason.zh_title) > 0, 'Completed recommendation fixture must be searchable');
+    assert.match(completeReason.event_id, /^[A-Za-z0-9_-]{1,64}$/);
+    const reason = page.locator('#timeline .item[data-event-id="' + completeReason.event_id + '"] .why');
+    await reason.waitFor({state:'visible'});
+    await reason.scrollIntoViewIfNeeded();
+    assert(await reason.evaluate(el => el.open), 'Reason must be expanded by default');
+    assert(await reason.locator('p').isVisible(), 'Expanded recommendation text must be readable');
+    const reasonUrl = page.url();
+    await reason.locator('summary').click();
+    assert(!(await reason.evaluate(el => el.open)), 'Recommendation disclosure must close');
+    assert(!(await reason.locator('p').isVisible()), 'Closed recommendation text must be hidden');
+    assert.equal(page.url(), reasonUrl, 'Toggling a recommendation must not navigate the card');
+    await reason.locator('summary').click();
+    assert(await reason.evaluate(el => el.open), 'Recommendation disclosure must reopen');
+    assert(await reason.locator('p').isVisible());
+    assert.equal(page.url(), reasonUrl, 'Reopening a recommendation must not navigate the card');
+    await noOverflow();
+    await shot('timeline');
     const forward = await search('Snowflake Cortex');
     const reversed = await search('Cortex Snowflake');
     const normalized = await search('Ｓｎｏｗｆｌａｋｅ　Ｃｏｒｔｅｘ');
@@ -261,7 +281,7 @@ async function main() {
     assert.deepEqual(errors, [], 'Browser exceptions');
     assert.deepEqual(broken, [], 'Broken same-origin resources');
     assert.deepEqual(analyticsAttempts, [], 'Acceptance attempted analytics despite opt-out');
-    summary.viewports.push({width,search_results:forward,pending_original:pendingOriginalCheck,
+    summary.viewports.push({width,search_results:forward,completed_reason:completeReason.event_id,pending_original:pendingOriginalCheck,
       follow:{kind:followKind,value:followValue},screenshots:screenshotCount,errors,broken,analyticsAttempts});
     // Simulate a transient network outage in a fresh page before idle prefetch.
     const recovery = await context.newPage();

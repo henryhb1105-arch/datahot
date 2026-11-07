@@ -238,3 +238,16 @@ test("server promotion decisions suppress thin announcements while legacy and in
   assert.deepEqual(new Set(forMe.rankEvents([low, legacy, insufficient], state, Date.now(), false).map(e => e.event_id)), new Set(["legacy", "partial"]));
   assert.equal(forMe.rankEvents([{ ...low, promotion_suppressed: false }], state, Date.now(), false).length, 1);
 });
+
+test('platform selection requires data context alongside generic selection terms', () => {
+  const state = forMe.normalizeState({tasks:['platform']});
+  const security = {...event('1e5d7bc25ab3', {title:'AWS Ships Continuum for Code Vulnerabilities'}), topics:[], category:'platform', zh_summary:'The service proves exploitability in a sandbox. Published pricing charges per finding and per line of code.'};
+  assert.deepEqual(forMe.taskReasons(security,state), [], 'Broad category and pricing are insufficient');
+  assert.deepEqual(forMe.rankEvents([security],state,Date.now(),true), []);
+  assert.equal(forMe.rankEvents([security],state,Date.now(),false).length,1, 'Keep the article discoverable');
+  for (const title of ['数据库性能比较','湖仓迁移成本','BigQuery pricing changes','SQL engine benchmark','data warehouse pricing']) {
+    assert.equal(forMe.taskReasons({...security,zh_title:title},state).length,1,title);
+  }
+  assert.deepEqual(forMe.taskReasons({...security,zh_title:'手机性能与迁移',zh_summary:'软件兼容成本'},state),[]);
+  assert.equal(forMe.taskReasons({...security,topics:['湖仓']},state).length,1,'Explicit data topic still works');
+});

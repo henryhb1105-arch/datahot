@@ -49,11 +49,13 @@
     {id: "design", label: "研究 AI 产品设计", topics: ["ChatBI", "BI变局"], pattern: /交互|产品设计|界面|用户体验|体验设计|dashboard|copilot/i}
   ];
   var DEFAULT_HOME_KEY = "dh_default_home_v1";
+  // Selection terms such as pricing also occur in unrelated software announcements.
+  var PLATFORM_CONTEXT = /数据平台|数据库|数仓|湖仓|数据仓库|数据湖|数据管道|查询引擎|实时分析|\b(?:data\s+(?:platform|warehouse|lake|pipeline|analytics)|databases?|lakehouse|SQL|ETL|ELT|Snowflake|Databricks|BigQuery|Redshift|ClickHouse|DuckDB|PostgreSQL|MySQL|dbt|Trino|Doris|StarRocks)\b/i;
   function taskReasons(event, state) {
     var text = [event.zh_title, event.zh_summary].join(" ");
     return TASKS.filter(function (task) {
       return (state.tasks || []).indexOf(task.id) >= 0 &&
-        (task.topics.some(function (topic) { return (event.topics || []).indexOf(topic) >= 0; }) || task.pattern.test(text));
+        (task.topics.some(function (topic) { return (event.topics || []).indexOf(topic) >= 0; }) || (task.pattern.test(text) && (task.id !== "platform" || PLATFORM_CONTEXT.test(text))));
     }).map(function (task) { return {kind: "task", value: task.id}; });
   }
   function isRead(event, state) { return Boolean(state.read[event.event_id] || (state.reading && state.reading.enabled && state.reading.entries[event.event_id])); }

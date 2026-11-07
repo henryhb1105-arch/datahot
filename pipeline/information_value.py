@@ -168,6 +168,8 @@ def promotion_review_required(event):
 
 
 def suppress_from_lists(event):
+    if event.get("enrichment_status") == "rejected":
+        return True
     return policy_enabled() and (
         is_release_note(event) or information_value(event)["status"] == "low_information"
     )

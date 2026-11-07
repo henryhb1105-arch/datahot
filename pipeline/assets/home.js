@@ -345,8 +345,9 @@
     var vendors = (event.vendors || []).map(function (vendor) {
       return '<span class="vtag">' + escapeHtml(vendor) + "</span>";
     }).join("");
+    var pending = event.enrichment_status === "pending";
     var reviewRequired = event.body_review_required === true;
-    var reason = event.reason ? '<details class="why" open><summary>' + (reviewRequired ? "收录理由（正文待核验）" : "为什么值得关注") + '</summary><p>' +
+    var reason = event.reason && !pending ? '<details class="why" open><summary>' + (reviewRequired ? "收录理由（正文待核验）" : "为什么值得关注") + '</summary><p>' +
       escapeHtml(cleanReason(event.reason)) + "</p></details>" : "";
     var seenSources = new Set([String(source || "").trim().toLowerCase()]);
     var additionalSources = (event.items || []).slice(1).map(function (item) {
@@ -359,11 +360,12 @@
     }).map(escapeHtml);
     var also = additionalSources.length ? '<div class="also">另有 <b>' +
       additionalSources.length + " 家信源</b>报道：" + additionalSources.join(" · ") + "</div>" : "";
-    var status = reviewRequired ? "正文待核验" : (event.editorial_pick ? "编辑精选" : "");
+    var status = pending ? "原文待处理" : (reviewRequired ? "正文待核验" : (event.editorial_pick ? "编辑精选" : ""));
     var heat = Number(event.heat || 0);
-    var heatLabel = status ? status + " " + heat : String(heat);
+    var heatLabel = pending ? status : (status ? status + " " + heat : String(heat));
+    var statusTitle = pending ? "中文标题、摘要和推荐理由待处理" : "热度分";
     var topRank = topRanks && topRanks[event.event_id];
-    var topRankHtml = topRank ? '<span class="top-rank" aria-label="热点第 ' + topRank +
+    var topRankHtml = topRank && !pending ? '<span class="top-rank" aria-label="热点第 ' + topRank +
       ' 名">TOP ' + topRank + "</span>" : "";
     var flameIcon = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22c4.4 0 8-3.5 8-7.8 0-3.9-2.9-6-4.6-9.1C14.9 3.6 13.4 2.4 12 2c-.4 2.9-1.9 4.4-3.4 6C6.6 9.6 4 11.6 4 15.1 4 19 7.6 22 12 22z"></path></svg>';
     var bookmarkIcon = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-4.5L5 21V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17z"></path></svg>';
@@ -380,15 +382,15 @@
     };
     return '<div class="item" data-cat="' + escapeHtml(event.category) + '" data-topics="' +
       escapeHtml((event.topics || []).join("|")) + '" data-editorial="' +
-      (event.editorial_pick ? "true" : "false") + '" data-link="' + url +
+      (event.editorial_pick && !pending ? "true" : "false") + '" data-link="' + url +
       '" data-analytics-list="1" data-event-id="' + escapeHtml(event.event_id) +
       '" data-category="' + escapeHtml(event.category) + '" data-source="' + escapeHtml(source) + '">' +
       '<h3><a href="' + url + '">' + escapeHtml(event.zh_title) + "</a></h3>" +
       '<p class="sum">' + escapeHtml(event.zh_summary) + "</p>" + reason +
       '<div class="top card-meta"><span class="card-source"><span class="srcbadge">' + escapeHtml(sourceBadge) +
       '</span><span class="card-source-name">' + escapeHtml(source) + '</span><span class="card-time">' +
-      escapeHtml(cardTime(event)) + '</span></span>' + topRankHtml + '<span class="heatnum' + (status && !reviewRequired ? ' is-featured' : '') +
-      '" title="热度分">' + flameIcon + ' ' + escapeHtml(heatLabel) + '</span><button class="favbtn" data-fav="' +
+      escapeHtml(cardTime(event)) + '</span></span>' + topRankHtml + '<span class="heatnum' + (status && !reviewRequired && !pending ? ' is-featured' : '') +
+      '" title="' + statusTitle + '">' + (pending ? '' : flameIcon + ' ') + escapeHtml(heatLabel) + '</span><button class="favbtn" data-fav="' +
       escapeHtml(event.event_id) + '" data-fav-record="' + escapeHtml(JSON.stringify(favoriteRecord)) +
       '" type="button" title="收藏" aria-label="收藏" aria-pressed="false">' + bookmarkIcon + '</button></div>' +
       ((topics || vendors) ? '<div class="vendors">' + topics + vendors + "</div>" : "") + also + "</div>";

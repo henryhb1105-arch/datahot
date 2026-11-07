@@ -251,3 +251,13 @@ test('platform selection requires data context alongside generic selection terms
   assert.deepEqual(forMe.taskReasons({...security,zh_title:'手机性能与迁移',zh_summary:'软件兼容成本'},state),[]);
   assert.equal(forMe.taskReasons({...security,topics:['湖仓']},state).length,1,'Explicit data topic still works');
 });
+
+test("pending originals stay labeled discovery items and rejected records disappear", () => {
+  const now = Date.parse("2026-11-07T12:00:00Z");
+  const pending = {...event("aaaaaaaaaaaa", {published:"2026-11-06", firstSeen:"2026-11-06"}), enrichment_status:"pending"};
+  const rejected = {...pending, event_id:"bbbbbbbbbbbb", enrichment_status:"rejected"};
+  const result = forMe.sections([pending,rejected], forMe.normalizeState({}), now, "2026-11-05");
+  assert.equal(result.must.length,0);
+  assert.deepEqual(result.ranked.map(e=>e.event_id),[pending.event_id]);
+  assert.match(forMe.readerContext(pending,null,now).reason,/原文待处理/);
+});

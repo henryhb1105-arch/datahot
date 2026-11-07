@@ -79,6 +79,19 @@ async function main() {
   }));
   summary.event_count = ids.length;
   summary.checks.push('all indexed details exist', 'unique events', 'manifest version/counts where applicable');
+  const lite = await (await get('data/latest-lite.json')).json();
+  const fullEvents = new Map(latest.events.map(event => [event.event_id, event]));
+  const timelineIds = new Set(lite.home_event_ids);
+  const pendingOriginals = lite.events.filter(event => event.enrichment_status === 'pending'
+    && timelineIds.has(event.event_id) && !event.promotion_suppressed);
+  const hasOriginalBody = event => {
+    const full = fullEvents.get(event.event_id);
+    return Boolean(full && (String(full.full_zh || '').trim() || (full.content_blocks || []).length));
+  };
+  // Prefer the reported OpenSharing example, but stay useful when that article is processed.
+  const pendingOriginal = pendingOriginals.find(event => /OpenSharing/i.test(event.zh_title) && hasOriginalBody(event))
+    || pendingOriginals.find(hasOriginalBody) || pendingOriginals[0];
+  if (!pendingOriginal) summary.checks.push('Pending-original browser checks not exercised: current timeline has no eligible pending records');
   await dataContext.close();
   if (!production) {
     const fixture=await browser.newContext();
@@ -165,6 +178,55 @@ async function main() {
     assert.equal(reversed, forward, 'Word-order regression');
     assert.equal(normalized, forward, 'NFKC regression');
     await shot('search');
+    let pendingOriginalCheck = null;
+    if (pendingOriginal) {
+      assert.match(pendingOriginal.event_id, /^[A-Za-z0-9_-]{1,64}$/);
+      const query = /OpenSharing/i.test(pendingOriginal.zh_title) ? 'OpenSharing' : pendingOriginal.zh_title;
+      assert(await search(query) > 0, 'Pending originals must be searchable');
+      const pendingCard = page.locator('#timeline .item[data-event-id="' + pendingOriginal.event_id + '"]');
+      await pendingCard.waitFor({state:'visible'});
+      assert.equal((await pendingCard.locator('.heatnum').innerText()).trim(), '原文待处理', 'Pending card must not claim a heat score');
+      assert.equal(await pendingCard.locator('.heatnum svg, .is-featured, .top-rank, .why').count(), 0,
+        'Pending card must not imply editorial recommendation, heat or ranking');
+      assert.equal((await pendingCard.locator('h3').innerText()).trim(), pendingOriginal.zh_title.trim(), 'Keep the source title');
+      assert.equal((await pendingCard.locator('.sum').innerText()).trim(), pendingOriginal.zh_summary.trim(), 'Keep the source summary');
+      await pendingCard.scrollIntoViewIfNeeded();
+      await noOverflow();
+      await shot('pending-original-search');
+      const searchUrl = page.url();
+      const searchIds = await page.locator('#timeline .item').evaluateAll(nodes => nodes.map(node => node.dataset.eventId));
+      await pendingCard.locator('h3 a').click();
+      await page.waitForURL(new URL('e/' + pendingOriginal.event_id + '.html', base).href);
+      const notice = page.locator('.article-pending-note');
+      await notice.waitFor({state:'visible'});
+      assert.match(await notice.innerText(), /原文待处理/);
+      assert.match(await notice.innerText(), /中文标题、摘要和推荐理由仍待 AI 处理/);
+      assert.equal(await page.locator('.article-brief .brief-why, .meta .editorial-pick').count(), 0);
+      const source = page.locator('.meta-source-link');
+      assert.equal(await source.getAttribute('href'), pendingOriginal.original_url, 'Original source link must remain usable');
+      assert.equal(await source.getAttribute('target'), '_blank');
+      assert.match(await source.getAttribute('rel'), /noopener/);
+      let bodyChars = 0;
+      if (hasOriginalBody(pendingOriginal)) {
+        await page.locator('.fulltext').waitFor({state:'visible'});
+        bodyChars = (await page.locator('.fulltext').innerText()).trim().length;
+        assert(bodyChars > 0, 'Available original body must remain readable');
+      }
+      await noOverflow();
+      await shot('pending-original-detail');
+      await page.goBack({waitUntil:'domcontentloaded'});
+      await page.waitForURL(searchUrl);
+      await pendingCard.waitFor({state:'visible'});
+      assert.equal(await input.inputValue(), query, 'Browser Back must retain the pending search');
+      assert.deepEqual(await page.locator('#timeline .item').evaluateAll(nodes => nodes.map(node => node.dataset.eventId)), searchIds,
+        'Browser Back must restore the filtered cards');
+      assert.equal((await pendingCard.locator('.heatnum').innerText()).trim(), '原文待处理');
+      await pendingCard.scrollIntoViewIfNeeded();
+      await noOverflow();
+      await shot('pending-original-back');
+      pendingOriginalCheck = {event_id:pendingOriginal.event_id, query, source_link:pendingOriginal.original_url,
+        body_chars:bodyChars, back:'PASS: search and pending card restored'};
+    }
     assert.equal(await search('no-such-datahot-cloud-acceptance-result'), 0);
     await page.locator('[data-filter-clear]').click();
     await page.waitForFunction(() => !new URL(location.href).searchParams.has('q') && document.querySelectorAll('#timeline .item').length > 0);
@@ -199,7 +261,8 @@ async function main() {
     assert.deepEqual(errors, [], 'Browser exceptions');
     assert.deepEqual(broken, [], 'Broken same-origin resources');
     assert.deepEqual(analyticsAttempts, [], 'Acceptance attempted analytics despite opt-out');
-    summary.viewports.push({width,search_results:forward,follow:{kind:followKind,value:followValue},screenshots:screenshotCount,errors,broken,analyticsAttempts});
+    summary.viewports.push({width,search_results:forward,pending_original:pendingOriginalCheck,
+      follow:{kind:followKind,value:followValue},screenshots:screenshotCount,errors,broken,analyticsAttempts});
     // Simulate a transient network outage in a fresh page before idle prefetch.
     const recovery = await context.newPage();
     let offline = true;

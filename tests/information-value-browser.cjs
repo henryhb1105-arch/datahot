@@ -10,7 +10,7 @@ module.exports = async function(context, base, out, width) {
   const low = payload.events.filter(e => e.promotion_suppressed === true);
   const home = new Set(payload.home_event_ids);
   for (const event of low) assert(!home.has(event.event_id), 'Suppressed announcement in timeline');
-  const pending = payload.events.find(e => e.body_review_required && home.has(e.event_id));
+  const pending = payload.events.find(e => e.body_review_required && e.enrichment_status !== 'pending' && home.has(e.event_id));
   assert(pending, 'Candidate should expose the body-verification state');
   const page = await context.newPage();
   try {

@@ -9,6 +9,7 @@ import re
 from urllib.parse import urlsplit
 
 from lite_data import is_list_eligible
+from pending_original import is_pending_original
 from information_value import promotion_review_required
 
 
@@ -108,7 +109,7 @@ def build_agent_feed(
     window = timedelta(days=max(0, float(window_days)))
     selected = []
     for event in events:
-        if not is_list_eligible(event):
+        if not is_list_eligible(event) or is_pending_original(event):
             continue
         discovered = _discovered_timestamp(event)
         if discovered is None:

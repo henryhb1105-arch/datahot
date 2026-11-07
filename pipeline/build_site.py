@@ -16,6 +16,7 @@ from content_blocks import (
 from check_links import check_site_links, format_broken_links
 from feed import build_atom_feed, validate_atom_feed
 from information_value import promotion_review_required, suppress_from_lists
+from pending_original import is_pending_original
 from content_metadata import repair_content_metadata
 from lite_data import (
     DEFAULT_PAGE_SIZE, FIRST_PAGE_SOURCE_CAPS, HOME_WINDOW_DAYS,
@@ -1322,12 +1323,15 @@ def favorite_button(e, *, class_name="favbtn", icon_size=15, label=""):
 
 def render_card(e, prefix="", top_rank=None):
     event_id = safe_event_id(e["event_id"])
+    pending = is_pending_original(e)
     review_required = promotion_review_required(e)
-    status_label = "正文待核验" if review_required else ("编辑精选" if e.get("editorial_pick") else "")
+    status_label = "原文待处理" if pending else ("正文待核验" if review_required else ("编辑精选" if e.get("editorial_pick") else ""))
     if not status_label and is_classic_review(e):
         status_label = "经典回顾"
-    status_class = " is-featured" if status_label and not review_required else ""
-    status_text = f"{status_label} {e['heat']}" if status_label else str(e["heat"])
+    status_class = " is-featured" if status_label and not review_required and not pending else ""
+    status_text = status_label if pending else (f"{status_label} {e['heat']}" if status_label else str(e["heat"]))
+    status_title = "中文标题、摘要和推荐理由待处理" if pending else f"热度分：{HEAT_FORMULA}"
+    status_icon = "" if pending else ic("flame", 13) + " "
     # Count distinct displayed sources, not multiple entries from one publisher.
     seen_sources = {str(e["items"][0].get("source") or "").strip().casefold()}
     additional_sources = []
@@ -1341,7 +1345,7 @@ def render_card(e, prefix="", top_rank=None):
         names = " · ".join(esc(source) for source in additional_sources)
         also = f'<div class="also">另有 <b>{len(additional_sources)} 家信源</b>报道：{names}</div>'
     reason = (f'<details class="why" open><summary>{"收录理由（正文待核验）" if review_required else "为什么值得关注"}</summary>'
-              f'<p>{esc(clean_reason(e["reason"]))}</p></details>') if e.get("reason") else ""
+              f'<p>{esc(clean_reason(e["reason"]))}</p></details>') if e.get("reason") and not pending else ""
     tchips = "".join(
         f'<a class="chip" href="{prefix}topics/{TOPIC_SLUG[t]}.html">{esc(t)}</a>'
         for t in e.get("topics", []) if t in TOPIC_SLUG)
@@ -1350,15 +1354,15 @@ def render_card(e, prefix="", top_rank=None):
     url = prefix + detail_url(e)
     rank_html = (
         f'<span class="top-rank" aria-label="热点第 {int(top_rank)} 名">TOP {int(top_rank)}</span>'
-        if top_rank else ""
+        if top_rank and not pending else ""
     )
-    return f'''<div class="item" data-cat="{esc(e["category"])}" data-topics="{esc("|".join(e.get("topics", [])))}" data-editorial="{str(bool(e.get("editorial_pick"))).lower()}" data-link="{url}" data-analytics-list="1" data-event-id="{event_id}" data-category="{esc(e["category"])}" data-source="{esc(e["items"][0]["source"])}">
+    return f'''<div class="item" data-cat="{esc(e["category"])}" data-topics="{esc("|".join(e.get("topics", [])))}" data-editorial="{str(bool(e.get("editorial_pick")) and not pending).lower()}" data-link="{url}" data-analytics-list="1" data-event-id="{event_id}" data-category="{esc(e["category"])}" data-source="{esc(e["items"][0]["source"])}">
       <h3><a href="{url}">{esc(e["zh_title"])}</a></h3>
       <p class="sum">{esc(e["zh_summary"])}</p>
       {reason}
       <div class="top card-meta"><span class="card-source"><span class="srcbadge">{src_badge(e["items"][0]["source"])}</span><span class="card-source-name">{esc(src_display(e["items"][0]["source"]))}</span><span class="card-time">{card_time(e)}</span></span>
       {rank_html}
-      <span class="heatnum{status_class}" title="热度分：{HEAT_FORMULA}">{ic("flame",13)} {esc(status_text)}</span>
+      <span class="heatnum{status_class}" title="{esc(status_title)}">{status_icon}{esc(status_text)}</span>
       {favorite_button(e)}</div>
       {vbox}{also}
     </div>'''
@@ -1431,7 +1435,10 @@ def related_event_score(event, candidate):
 def select_related_events(event, all_events, limit=3):
     scored = []
     for candidate in all_events:
-        if (suppress_from_lists(candidate) or promotion_review_required(candidate)) or candidate.get("event_id") == event.get("event_id"):
+        if (candidate.get("enrichment_status") == "rejected"
+                or is_pending_original(candidate) or suppress_from_lists(candidate)
+                or promotion_review_required(candidate)
+                or candidate.get("event_id") == event.get("event_id")):
             continue
         score = related_event_score(event, candidate)
         if score is not None:
@@ -1660,7 +1667,8 @@ def render_product_case_breakdown(product_case):
 
 def render_detail(e, all_events, css, tts_item=None, product_case=None, site_root=None):
     event_id = safe_event_id(e["event_id"])
-    tts_button, tts_player, tts_script = render_tts_ui(tts_item)
+    pending = is_pending_original(e)
+    tts_button, tts_player, tts_script = render_tts_ui(None if pending else tts_item)
     related = select_related_events(e, all_events)
     rel_html = "".join(
         f'<a class="vendor-row" href="../{detail_url(x)}">'
@@ -1831,13 +1839,23 @@ def render_detail(e, all_events, css, tts_item=None, product_case=None, site_roo
         + '</aside>'
         if review_required else ''
     )
-    brief_reason = clean_reason(e.get("reason", ""))
+    pending_note = (
+        '<aside class="article-review-note article-pending-note" aria-label="AI 处理状态">'
+        '<strong>原文待处理</strong><p>中文标题、摘要和推荐理由仍待 AI 处理；'
+        '当前保留来源标题、摘要和可用原文。</p>'
+        + (f'<a href="{main_link}" target="_blank" rel="noopener noreferrer" data-analytics="outbound">查看原文 →</a>' if main_url else '')
+        + '</aside>'
+        if pending else ''
+    )
+    brief_reason = "" if pending else clean_reason(e.get("reason", ""))
     brief_reason_label = "原收录理由（待核验）：" if review_required else "为什么值得关注："
     brief_html = f'''<details class="article-brief" open>
-  <summary>DataHot 速览</summary>
+  <summary>{"来源摘要" if pending else "DataHot 速览"}</summary>
   <div class="article-brief-body"><p>{esc(e["zh_summary"])}</p>
   {f'<p class="brief-why"><b>{brief_reason_label}</b>{esc(brief_reason)}</p>' if brief_reason else ''}</div>
 </details>'''
+    if pending and not e.get("zh_summary"):
+        brief_html = ""
     topic_html = (
         f'<div class="vendors article-tags" aria-label="文章主题">{vtags}</div>'
         if vtags else ""
@@ -1862,6 +1880,11 @@ def render_detail(e, all_events, css, tts_item=None, product_case=None, site_roo
     }
     if not e.get("published"):
         jsonld_payload.pop("datePublished")
+    if pending:
+        if e.get("source_language"):
+            jsonld_payload["inLanguage"] = e["source_language"]
+        else:
+            jsonld_payload.pop("inLanguage")
     if main_url:
         jsonld_payload["isBasedOn"] = main_url
     if social_image:
@@ -2053,10 +2076,11 @@ def render_detail(e, all_events, css, tts_item=None, product_case=None, site_roo
     <span class="srcbadge">{src_badge(main_src_name)}</span>
     {main_source_meta}
     <span class="meta-content-mode">{esc(meta_mode_label)}</span>
-    {'<span class="editorial-pick">编辑精选</span>' if e.get("editorial_pick") else ''}
+    {'<span class="editorial-pick">编辑精选</span>' if e.get("editorial_pick") and not pending else ''}
     <span title="{'来源日期' if e.get('source_date_label') else '发布时间'}">{esc(e["source_date_label"]) if e.get("source_date_label") else (("发布 " + fmt_date(e["published"])) if e.get("published") else "收录 " + fmt_date(e.get("first_seen")))}</span>
-    {f'<span style="color:var(--sub);font-size:11px" title="加入编辑精选的时间">精选于 {fmt_date(e.get("curated_at"))}</span>' if e.get("editorial_pick") and e.get("curated_at") else (f'<span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 {md(e.get("first_seen"))}</span>' if e.get("published") and e.get("first_seen") and e["published"][:10] != e["first_seen"][:10] else "")}
+    {f'<span style="color:var(--sub);font-size:11px" title="加入编辑精选的时间">精选于 {fmt_date(e.get("curated_at"))}</span>' if e.get("editorial_pick") and e.get("curated_at") and not pending else (f'<span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 {md(e.get("first_seen"))}</span>' if e.get("published") and e.get("first_seen") and e["published"][:10] != e["first_seen"][:10] else "")}
   </div>
+  {pending_note}
   {review_note}
 {("  " + tts_player) if tts_player else ""}
   <p class="reading-local-note" style="font-size:12px;color:var(--sub);margin:12px 0">有效阅读仅保存在当前浏览器，用于「为你」推荐；<a href="../for-me.html#reading-settings">暂停或清除记录</a>。</p>
@@ -2086,10 +2110,12 @@ def render_detail(e, all_events, css, tts_item=None, product_case=None, site_roo
 
 def share_ui(e, page_url):
     """详情页分享组件：Action Sheet（复制链接/海报/系统分享）+ Canvas 海报生成。普通字符串，非 f-string"""
+    pending = is_pending_original(e)
     ev_json = json_for_html({
         "title": e["zh_title"], "summary": e.get("zh_summary", ""),
-        "reason": e.get("reason", ""), "topic": (e.get("topics") or [""])[0],
-        "heat": e["heat"], "source": src_display(detail_primary_item(e)["source"]),
+        "reason": "" if pending else e.get("reason", ""), "topic": (e.get("topics") or [""])[0],
+        "heat": None if pending else e["heat"], "source": src_display(detail_primary_item(e)["source"]),
+        "status": "原文待处理" if pending else "",
         "date": (e.get("published") or e.get("first_seen") or "")[:10], "url": page_url,
         "qr": f'../qr/{safe_event_id(e["event_id"])}.png',
     })
@@ -2286,7 +2312,7 @@ function posterLayout(x,W,P,qrImg){
     y=ry+boxH+30;
   }
   x.fillStyle=P.meta;x.font='400 26px -apple-system,sans-serif';
-  x.fillText('热度 '+SH_EV.heat+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);
+  x.fillText((SH_EV.status||('热度 '+SH_EV.heat))+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);
   y=y+4+56;
   // 分隔线 + 二维码区（紧跟内容，不再锚底）
   x.strokeStyle=P.dash;x.setLineDash([8,8]);x.lineWidth=2;
@@ -2395,6 +2421,12 @@ def _topic_event_source(event):
     return src_display(items[0].get("source", "")) if items else ""
 
 
+def _topic_event_status(event):
+    if is_pending_original(event):
+        return " · 原文待处理"
+    return " · 正文待核验" if promotion_review_required(event) else ""
+
+
 def render_topics_map(events, css, reference_time=None):
     """主题地图页：稳定呈现技术主线，业务场景作为第二层导航。"""
     reference_time = _topic_reference_time(events, reference_time)
@@ -2478,7 +2510,7 @@ def render_topic_page(t, events, css, reference_time=None):
 
     recent_cards = "".join(f'''<article class="topic-recent-wrap" data-event-id="{safe_event_id(event["event_id"])}">
   <a class="topic-recent-card" href="../{detail_url(event)}">
-  <span class="topic-recent-meta">{_topic_event_date(event)} · {esc(_topic_event_source(event))}{" · 正文待核验" if promotion_review_required(event) else ""}</span>
+  <span class="topic-recent-meta">{_topic_event_date(event)} · {esc(_topic_event_source(event))}{_topic_event_status(event)}</span>
   <h3>{esc(event["zh_title"])}</h3>
   <p>{esc(event.get("zh_summary", ""))}</p>
 </a>
@@ -2490,7 +2522,7 @@ def render_topic_page(t, events, css, reference_time=None):
     )
 
     reading = sorted(
-        (event for event in topic_events if event.get("shelf") == "evergreen"),
+        (event for event in topic_events if event.get("shelf") == "evergreen" and not is_pending_original(event)),
         key=lambda event: (
             not event.get("pinned"),
             -int(event.get("importance", 50) or 50),
@@ -2501,7 +2533,7 @@ def render_topic_page(t, events, css, reference_time=None):
     if reading:
         rows = "".join(f'''<a class="crow" href="../{detail_url(event)}">
   <span class="cpin">{"📌" if event.get("pinned") else ""}</span>
-  <span class="ctitle">{esc(event["zh_title"])}{" · 正文待核验" if promotion_review_required(event) else ""}</span>
+  <span class="ctitle">{esc(event["zh_title"])}{_topic_event_status(event)}</span>
   <span class="cmeta">{_topic_event_date(event)}</span>
 </a>''' for event in reading)
         reading_html = f'''
@@ -2515,7 +2547,7 @@ def render_topic_page(t, events, css, reference_time=None):
         extra_class = " is-extra" if index >= TOPIC_UPDATE_PAGE_SIZE else ""
         update_rows.append(f'''<a class="topic-update-row{extra_class}" data-topic-update href="../{detail_url(event)}">
   <time class="topic-update-date">{_topic_event_date(event)}</time>
-  <span class="topic-update-title">{esc(event["zh_title"])}{" · 正文待核验" if promotion_review_required(event) else ""}</span>
+  <span class="topic-update-title">{esc(event["zh_title"])}{_topic_event_status(event)}</span>
   <span class="topic-update-source">{esc(_topic_event_source(event))}</span>
 </a>''')
     visible_count = min(TOPIC_UPDATE_PAGE_SIZE, len(topic_events))

@@ -6,6 +6,7 @@ DataHot 更新管道 V1.1
 用法：python3 run_update.py
 LLM 配置：环境变量 LLM_API_KEY/LLM_BASE_URL/LLM_MODEL 优先，其次 pipeline/config.json
 """
+import copy
 import json, os, re, sys, html, socket, hashlib, urllib.request, urllib.error, urllib.parse
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
@@ -14,6 +15,7 @@ from concurrent.futures import ThreadPoolExecutor
 from llm_usage import LLMBudgetExceeded, LLMUsageTracker
 from candidate_cache import CandidateCache, candidate_content_hash
 from cluster_cache import ClusterDecisionCache, cluster_pair_key
+from pending_original import is_pending_original
 from content_metadata import repair_content_metadata
 from content_blocks import (
     apply_translations, blocks_plain_text,
@@ -666,8 +668,9 @@ def _candidate_cache_context(it, model):
 
 def _cached_enrichment(it, cached):
     enrichment = cached.get("enrichment") or {}
+    it["enrichment_status"] = "complete"
     for key in (
-        "zh_title", "zh_summary", "reason", "category", "category_label",
+        "enrichment_status", "zh_title", "zh_summary", "reason", "category", "category_label",
         "vendors", "topics", "work_tags", "shelf", "importance", "quality_score",
         "quality_breakdown", "trend_score", "heat",
     ):
@@ -691,7 +694,7 @@ def _cacheable_enrichment(it):
     return {
         key: it[key]
         for key in (
-            "zh_title", "zh_summary", "reason", "category", "category_label",
+            "enrichment_status", "zh_title", "zh_summary", "reason", "category", "category_label",
             "vendors", "topics", "work_tags", "shelf", "importance", "quality_score",
             "quality_breakdown", "trend_score", "heat",
         )
@@ -792,11 +795,14 @@ def llm_enrich(items, cfg, *, generate_fulltext=True):
     items = meaningful
     if not (key and base and model):
         safe = [item for item in items if not requires_editorial_review(item)]
+        for item in safe:
+            item["enrichment_status"] = "pending"
         dropped = len(items) - len(safe)
         print(f"[llm] 未配置 LLM，跳过 AI 加工；低精度候选关闭 {dropped} 条")
         return safe
 
     def enrich_one(it):
+        it = copy.deepcopy(it)  # Failed partial processing must not leak an AI verdict.
         content = f"标题：{it['title']}\n摘要：{it['summary'][:800]}"
         if it.get("article_text"):
             content += f"\n原文：{it['article_text'][:2200]}"
@@ -807,6 +813,11 @@ def llm_enrich(items, cfg, *, generate_fulltext=True):
         )
         if out.get("relevant") is False:
             return None
+        if not (isinstance(out.get("zh_title"), str) and out["zh_title"].strip()
+                and isinstance(out.get("zh_summary"), str) and out["zh_summary"].strip()
+                and _contains_han(out["zh_title"] + out["zh_summary"])):
+            raise ValueError("enrichment_missing_chinese_metadata")
+        it["enrichment_status"] = "complete"
         it["zh_title"] = out.get("zh_title") or it["title"]
         it["zh_summary"] = out.get("zh_summary") or it["summary"][:300]
         it["reason"] = out.get("reason", "")
@@ -875,6 +886,7 @@ def llm_enrich(items, cfg, *, generate_fulltext=True):
                 print(f"[llm] 加工失败（{action}）: {e} | {it['title'][:40]}")
                 it["_enrich_error"] = type(e).__name__
                 if not fail_closed:
+                    it["enrichment_status"] = "pending"
                     kept.append(it)
                 CANDIDATE_CACHE.remember(
                     **context, status="error", error_type=type(e).__name__,
@@ -1583,9 +1595,12 @@ def backfill_event_metadata(events, cfg, *, now=None, limit=None, lookback_days=
     cooldown_cutoff = now_utc - timedelta(hours=6)
     eligible = []
     for event in events:
-        if not event.get("items") or _event_time(event) < now_utc - timedelta(days=lookback_days):
+        pending = is_pending_original(event)
+        if event.get("enrichment_status") == "rejected":
             continue
-        if _contains_han(event.get("zh_title")) and _contains_han(event.get("zh_summary")):
+        if not event.get("items") or (not pending and _event_time(event) < now_utc - timedelta(days=lookback_days)):
+            continue
+        if not pending and _contains_han(event.get("zh_title")) and _contains_han(event.get("zh_summary")):
             continue
         previous = _metadata_translation_record(event)
         attempted_at = parse_date(previous.get("attempted_at"))
@@ -1599,10 +1614,12 @@ def backfill_event_metadata(events, cfg, *, now=None, limit=None, lookback_days=
             if attempted_at.astimezone(timezone.utc) >= cooldown_cutoff:
                 continue
         eligible.append(event)
-    eligible.sort(key=_event_time, reverse=True)
+    # Fair bounded retries: unseen/least recently attempted records first.
+    eligible.sort(key=lambda e: (str(_metadata_translation_record(e).get("attempted_at") or ""), -_event_time(e).timestamp()))
     summary["eligible"] = len(eligible)
 
-    for event in eligible[:limit]:
+    for original_event in eligible[:limit]:
+        event = copy.deepcopy(original_event)
         primary = event["items"][0]
         original_title = primary.get("title") or event.get("zh_title") or ""
         original_summary = event.get("zh_summary") or ""
@@ -1625,10 +1642,15 @@ def backfill_event_metadata(events, cfg, *, now=None, limit=None, lookback_days=
                 source=primary.get("source", ""), item_id=event.get("event_id", ""),
                 strict_object=True,
             )
+            if is_pending_original(event) and out.get("relevant") is False:
+                original_event["enrichment_status"] = "rejected"
+                summary["skipped"] += 1
+                continue
             zh_title = str(out.get("zh_title") or "").strip()
             zh_summary = str(out.get("zh_summary") or "").strip()
             if not (_contains_han(zh_title) and _contains_han(zh_summary)):
                 raise ValueError("metadata_translation_missing_chinese")
+            event["enrichment_status"] = "complete"
             event["zh_title"] = zh_title
             event["zh_summary"] = zh_summary
             event["reason"] = str(out.get("reason") or event.get("reason") or "").strip()
@@ -1664,6 +1686,8 @@ def backfill_event_metadata(events, cfg, *, now=None, limit=None, lookback_days=
             record = dict(event.get("content_parse") or {})
             record["metadata_translation"] = nested
             event["content_parse"] = record
+            original_event.clear()
+            original_event.update(event)
             summary["complete"] += 1
             print(f"[metadata-backfill] {event.get('event_id')} | {zh_title[:40]}")
         except LLMBudgetExceeded:
@@ -1671,6 +1695,7 @@ def backfill_event_metadata(events, cfg, *, now=None, limit=None, lookback_days=
             summary["deferred_budget"] += 1
             break
         except Exception as exc:
+            event = original_event
             record = dict(event.get("content_parse") or {})
             record["metadata_translation"] = {
                 "run_id": LLM_USAGE.run_id,
@@ -2219,6 +2244,11 @@ def cluster_events(new_items, events, cfg, *, late_merge=True):
         for i in range(len(events)):
             for j in range(i + 1, len(events)):
                 a, b = events[i], events[j]
+                # Never merge unreviewed/rejected state into a different editorial verdict.
+                if (is_pending_original(a) or is_pending_original(b)
+                        or a.get("enrichment_status") == "rejected"
+                        or b.get("enrichment_status") == "rejected"):
+                    continue
                 if max_sim(event_titles(a), event_titles(b)) > 0.3:
                     if llm_same_event([(ev_desc(a), ev_desc(b))], cfg)[0]:
                         for sub in b["items"]:
@@ -2271,7 +2301,7 @@ def make_event(it):
         event["quality_breakdown"] = it["quality_breakdown"]
     for key in (
         "content_mode", "content_level", "source_language", "translation_status",
-        "source_content_hash", "content_parse", "body_chars",
+        "source_content_hash", "content_parse", "body_chars", "enrichment_status",
     ):
         if key in it:
             event[key] = it[key]
@@ -2296,6 +2326,8 @@ def recalc_event_heat(e, reference_time=None):
     e["star"] = quality >= 75
 
 def merge_into(e, it):
+    event_pending = is_pending_original(e)
+    item_pending = it.get("enrichment_status") == "pending"
     e["items"].append({"id": it["id"], "source": it["source"], "link": it["link"],
                        "published": it["published"], "ingested_at": it.get("ingested_at"), "title": it["title"]})
     if it["published"] and (not e["published"] or it["published"] < e["published"]):
@@ -2304,14 +2336,20 @@ def merge_into(e, it):
     if fs_new and (not e.get("first_seen") or fs_new < e["first_seen"]):
         e["first_seen"] = fs_new
     event_quality = int(e.get("quality_score", e.get("importance", 50)) or 50)
-    item_quality = int(it.get("quality_score", it.get("importance", 50)) or 50)
+    item_quality = event_quality if item_pending else int(it.get("quality_score", it.get("importance", 50)) or 50)
     if item_quality > event_quality and it.get("quality_breakdown"):
         e["quality_breakdown"] = it["quality_breakdown"]
     e["quality_score"] = max(event_quality, item_quality)
     e["importance"] = e["quality_score"]
     e["signal"] = max(e.get("signal", 0), it.get("signal", 0))
     recalc_event_heat(e)
-    if len(it.get("zh_summary", "")) > len(e.get("zh_summary", "")):
+    if event_pending and not item_pending and it.get("enrichment_status") == "complete":
+        for field in ("zh_title", "zh_summary", "reason", "category", "category_label",
+                      "quality_score", "importance", "quality_breakdown", "enrichment_status"):
+            if field in it:
+                e[field] = copy.deepcopy(it[field])
+        recalc_event_heat(e)
+    elif not item_pending and len(it.get("zh_summary", "")) > len(e.get("zh_summary", "")):
         e["zh_summary"], e["reason"] = it["zh_summary"], it.get("reason", e["reason"])
     if (
         it.get("content_mode") in {"original", "translated"}
@@ -2509,6 +2547,10 @@ def main():
         else:  # 旧版 items 结构迁移
             for i in old.get("items", []):
                 events.append(make_event(i))
+    # Persist legacy failure evidence before body retries can change parse status.
+    for event in events:
+        if is_pending_original(event):
+            event["enrichment_status"] = "pending"
     article_ui_cleanup_summary = normalize_catalog_article_ui(events)
     if article_ui_cleanup_summary["cleaned_events"]:
         print(
@@ -2714,13 +2756,13 @@ def main():
                         )
                 continue
             enrichment = _cacheable_enrichment(enriched)
-            if model and enriched.get("_enrich_error"):
+            if model and (enriched.get("_enrich_error") or enriched.get("enrichment_status") == "pending"):
                 for sibling in group:
                     if sibling is primary:
                         continue
                     CANDIDATE_CACHE.remember(
                         **_candidate_cache_context(sibling, model), status="error",
-                        error_type=enriched["_enrich_error"],
+                        error_type=enriched.get("_enrich_error", "unavailable"),
                     )
             elif model:
                 for sibling in group:

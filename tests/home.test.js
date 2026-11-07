@@ -591,6 +591,42 @@ test("pending source verification is visible on dynamically rendered timeline ca
   assert.doesNotMatch(normal, /正文待核验/);
 });
 
+test("pending originals show raw copy and an explicit status instead of ranking or recommendations", () => {
+  const pending = {
+    ...event(99), enrichment_status: "pending", body_review_required: true, editorial_pick: true,
+    zh_title: 'Raw <title> & "news"', zh_summary: 'Raw <script>alert("x")</script> summary',
+    heat: 97, reason: "STALE_RECOMMENDATION"
+  };
+  const ranks = { [pending.event_id]: 1 };
+  const html = home.renderTimeline([pending], ranks);
+  assert.match(html, />原文待处理<\/span>/);
+  assert.match(html, /title="中文标题、摘要和推荐理由待处理"/);
+  assert.match(html, /Raw &lt;title&gt; &amp; &quot;news&quot;/);
+  assert.match(html, /Raw &lt;script&gt;alert\(&quot;x&quot;\)&lt;\/script&gt; summary/);
+  assert.match(html, new RegExp('href="e/' + pending.event_id + '\\.html"'));
+  assert.match(html, /data-editorial="false"/);
+  assert.doesNotMatch(html, /STALE_RECOMMENDATION|class="why"|is-featured|class="top-rank"/);
+  assert.doesNotMatch(html, /热度分|97|<script>/);
+
+  const normal = home.renderTimeline([
+    { ...pending, enrichment_status: "complete", body_review_required: false }
+  ], ranks);
+  assert.doesNotMatch(normal, /原文待处理/);
+  assert.match(normal, /class="heatnum is-featured"/);
+  assert.match(normal, /编辑精选 97/);
+  assert.match(normal, /STALE_RECOMMENDATION/);
+  assert.match(normal, /class="top-rank"/);
+});
+
+test("pending originals without a source summary do not invent a fallback summary or score", () => {
+  const pending = { ...event(99), enrichment_status: "pending", zh_summary: "", reason: "" };
+  delete pending.heat;
+  const html = home.renderTimeline([pending]);
+  assert.match(html, /<p class="sum"><\/p>/);
+  assert.match(html, />原文待处理<\/span>/);
+  assert.doesNotMatch(html, /热度分|class="why"/);
+});
+
 
 test("additional sources count independent displayed publishers once", () => {
   const item = event(101, "Agent", "Primary");

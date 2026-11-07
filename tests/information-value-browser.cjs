@@ -10,7 +10,7 @@ module.exports = async function(context, base, out, width) {
   const low = payload.events.filter(e => e.promotion_suppressed === true);
   const home = new Set(payload.home_event_ids);
   for (const event of low) assert(!home.has(event.event_id), 'Suppressed announcement in timeline');
-  const pending = payload.events.find(e => e.body_review_required && home.has(e.event_id));
+  const pending = payload.events.find(e => e.body_review_required && e.enrichment_status !== 'pending' && home.has(e.event_id));
   assert(pending, 'Candidate should expose the body-verification state');
   const page = await context.newPage();
   try {
@@ -32,11 +32,12 @@ module.exports = async function(context, base, out, width) {
       return DataHotForMe.rankEvents(data.events, DataHotForMe.normalizeState({}), Date.now(), false).map(e => e.event_id);
     });
     for (const event of low) assert(!ranked.includes(event.event_id), 'For Me bypassed suppression');
-    const pendingIds = new Set(payload.events.filter(e => e.body_review_required).map(e => e.event_id));
+    const pendingById = new Map(payload.events.filter(e => e.body_review_required || e.enrichment_status === 'pending').map(e => [e.event_id,e]));
     const visible = await page.locator('.fm-signal').all();
     for (const row of visible) {
-      if (pendingIds.has(await row.getAttribute('data-event-id'))) {
-        assert.match(await row.innerText(), /正文待核验/);
+      const pendingEvent = pendingById.get(await row.getAttribute('data-event-id'));
+      if (pendingEvent) {
+        assert.match(await row.innerText(), pendingEvent.enrichment_status === 'pending' ? /原文待处理/ : /正文待核验/);
         assert.doesNotMatch(await row.locator('.fm-signal-badge').innerText(), /优先推荐/);
       }
     }

@@ -1,5 +1,6 @@
 'use strict';
 const {feedNavigation}=require('./browser-readiness.cjs');
+const {assertPriorityState}=require('./for-you-assertions.cjs');
 const assert=require('node:assert/strict'),path=require('node:path'),crypto=require('node:crypto');
 module.exports=async function(context,base,out,width){
  const page=await context.newPage(),errors=[];
@@ -28,6 +29,7 @@ module.exports=async function(context,base,out,width){
  assert.equal(readIds.length,2);
  await feedNavigation(page, () => page.goto(base+'for-me.html', {waitUntil:'domcontentloaded'}));
  assert(!(await page.locator('#fmSetup').isVisible()),'Learned preferences bypass mandatory setup');
+ await assertPriorityState(page,data.events);
  const reasons=await page.locator('#fmMustList .fm-why').allTextContents();
  assert(reasons.some(x=>x.includes('接着你读过')),'Behavior should recommend without selected keywords');
  for(const id of readIds) assert.equal(await page.locator(`#fmMustList [data-event-id="${id}"]`).count(),0);
@@ -51,6 +53,7 @@ module.exports=async function(context,base,out,width){
  const actualHistory=await page.evaluate(()=>localStorage.getItem('dh_reading_v1'));
  await page.evaluate(()=>localStorage.setItem('dh_reading_v1',JSON.stringify({enabled:true,entries:{a5e85b0e5b72:[Date.now()],f2cae75df487:[Date.now()]}})));
  await feedNavigation(page, () => page.reload({waitUntil:'domcontentloaded'}));
+ await assertPriorityState(page,data.events);
  const metricIds=await page.locator('#fmMustList .fm-signal').evaluateAll(nodes=>nodes.map(n=>n.dataset.eventId));
  const metricReasons=await page.locator('#fmMustList .fm-why').allTextContents();
  assert(metricReasons.some(text=>text.includes('共同讨论：指标口径与定义')),'Metric definition reading must surface its concrete intent');

@@ -1,6 +1,7 @@
 'use strict';
 const assert = require('node:assert/strict');
 const path = require('node:path');
+const {assertPriorityState}=require('./for-you-assertions.cjs');
 module.exports = async function(context, base, out, width) {
   const page = await context.newPage(), errors = [];
   page.on('pageerror', error => errors.push(error.message));
@@ -18,6 +19,7 @@ module.exports = async function(context, base, out, width) {
     await page.locator('#fmContent').waitFor();
   }
   await setState({vendors:['Cube'],read:Object.fromEntries(readIds.map(id => [id,new Date().toISOString()]))});
+  await assertPriorityState(page, data.events);
   assert.equal(await page.locator('#fmDiscoveryTitle').textContent(), '继续发现');
   assert(!(await page.locator('#fmMust').isVisible()));
   assert(!(await page.locator('#fmEmpty').isVisible()));
@@ -41,20 +43,24 @@ module.exports = async function(context, base, out, width) {
   assert.deepEqual(saved.vendors,['Cube']);
   for (const readId of readIds) assert(saved.read[readId], 'Original reading history retained');
   assert(saved.read[id]);
+  await assertPriorityState(page, data.events);
 
   // Small deterministic response tests reference-only and genuinely exhausted states.
   // It stays inside this disposable browser; production data is never changed.
-  const reference = {promotion_suppressed:false,body_review_required:false,zh_title:'Synthetic durable reference',zh_summary:'Local browser reference-only fixture',reason:'Reference-only discovery acceptance',event_id:'aaaaaaaaaaaa',vendors:['Cube'],topics:[],published:'2020-01-01T00:00:00Z',first_seen:'2020-01-01T00:00:00Z',shelf:'reference',focus:{practical:true}};
+  const reference = {enrichment_status:'complete',promotion_suppressed:false,body_review_required:false,zh_title:'Synthetic durable reference',zh_summary:'Local browser reference-only fixture',reason:'Reference-only discovery acceptance',event_id:'aaaaaaaaaaaa',vendors:['Cube'],topics:[],published:'2020-01-01T00:00:00Z',first_seen:'2020-01-01T00:00:00Z',shelf:'reference',focus:{practical:true}};
   await page.route('**/data/latest-lite-columns.json*', route => route.fulfill({contentType:'application/json',body:JSON.stringify({events:[reference],products:[]})}));
   await setState({vendors:['Cube']});
+  await assertPriorityState(page, [reference]);
   assert(await page.locator('#fmWork').isVisible());
   assert(!(await page.locator('#fmEmpty').isVisible()));
   assert((await page.locator('#fmWork .fm-signal').first().boundingBox()).y < 220);
   await page.locator('#fmWork [data-action="read"]').click();
+  await assertPriorityState(page, [reference]);
   assert(await page.locator('#fmEmpty').isVisible(), 'Show honest empty state when nothing remains');
   assert.equal(await page.locator('.fm-signal:visible').count(),0);
   await page.unroute('**/data/latest-lite-columns.json*');
   await setState({vendors:['No matching vendor in this index']});
+  await assertPriorityState(page, data.events);
   assert.equal(await page.locator('#fmDiscoveryTitle').textContent(),'继续发现');
   assert(!(await page.locator('#fmDiscovery .fm-section-head p').textContent()).includes('已读完'), 'No match must not imply reading completion');
   assert.deepEqual(errors,[]);

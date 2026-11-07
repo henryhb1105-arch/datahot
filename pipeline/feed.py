@@ -10,6 +10,7 @@ from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 from taxonomy import category_label
+from pending_original import is_pending_original
 from information_value import promotion_review_required, suppress_from_lists
 
 
@@ -65,7 +66,7 @@ def build_atom_feed(events, generated_at, *, site_base, limit=50):
         raise ValueError("generated_at must be timezone-aware ISO 8601")
     eligible = []
     for event in events:
-        if suppress_from_lists(event) or promotion_review_required(event):
+        if suppress_from_lists(event) or promotion_review_required(event) or is_pending_original(event):
             continue
         event_id = str(event.get("event_id") or "")
         published, updated = _entry_times(event)

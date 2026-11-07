@@ -7,6 +7,7 @@ import re
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlsplit
+from pending_original import is_pending_original
 from products import match_products, product_metadata
 from content_focus import content_focus, focus_sort_key
 from information_value import information_value, promotion_review_required, suppress_from_lists
@@ -72,18 +73,21 @@ def event_timestamp(event):
 
 
 def is_list_eligible(event):
-    """Fail closed for unfinished or untranslated items on public lists.
+    """Allow trusted pending originals in discovery, with no editorial promotion.
 
-    Detail pages remain addressable, but homepage, hot-list and weekly-brief
-    surfaces only promote entries that completed the Chinese editorial pass.
+    Unreviewed community candidates still fail closed. Pending originals keep
+    quality/source gates and are excluded separately from hot and weekly picks.
     """
-    if suppress_from_lists(event):
+    if event.get("enrichment_status") == "rejected" or suppress_from_lists(event):
         return False
     title = " ".join(str(event.get("zh_title") or "").split())
     summary = " ".join(str(event.get("zh_summary") or "").split())
     if not title or not summary:
         return False
-    if not HAN_RE.search(f"{title} {summary}"):
+    pending = is_pending_original(event)
+    if event.get("enrichment_status") == "pending" and not pending:
+        return False
+    if not pending and not HAN_RE.search(f"{title} {summary}"):
         return False
     if str(event.get("category") or "") not in LIST_CATEGORIES:
         return False
@@ -99,6 +103,8 @@ def is_list_eligible(event):
         # Older retained events predate importance scoring. Keep them public
         # until they receive an explicit editorial score.
         importance = 50
+    if pending:
+        return bool(_primary_source(event) and _primary_original_url(event) and event_timestamp(event))
     editorial_signal = bool(
         str(event.get("reason") or "").strip()
         or event.get("topics") or event.get("vendors") or event.get("pinned")
@@ -312,7 +318,7 @@ def rank_hot_events(
     one (issue #82); the source cap alone is enough to prevent a takeover,
     so the displayed order now always matches the shown heat values.
     """
-    eligible = [event for event in events if is_list_eligible(event) and not promotion_review_required(event)]
+    eligible = [event for event in events if is_list_eligible(event) and not promotion_review_required(event) and not is_pending_original(event)]
     timestamps = [event_timestamp(event) for event in eligible]
     timestamps = [timestamp for timestamp in timestamps if timestamp]
     if reference_time is None:
@@ -377,8 +383,11 @@ def lite_event(event, *, source_badge=None):
         "product_ids": match_products(event),
         "focus": content_focus(event),
         "information_value": information_value(event),
-        "promotion_suppressed": suppress_from_lists(event),
+        "promotion_suppressed": suppress_from_lists(event) or (
+            (event.get("enrichment_status") == "pending" or is_pending_original(event)) and not is_list_eligible(event)
+        ),
         "body_review_required": promotion_review_required(event),
+        "enrichment_status": "pending" if is_pending_original(event) else event.get("enrichment_status", "complete"),
         **({"source_date_label": event["source_date_label"]} if event.get("source_date_label") else {}),
         **({"work_tags": event["work_tags"]} if isinstance(event.get("work_tags"), dict) else {}),
         "heat": int(event.get("heat") or 0),

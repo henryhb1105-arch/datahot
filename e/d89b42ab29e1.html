@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-8GsJ5nLscwD9m9ShS8r7NY8Yg7HXaycGWaj7EsmfH7U=' 'sha256-T5kUFAu2qcxAf9fXbXz8sgXwsrLTxUJS0WjxqCw+4Yc=' 'sha256-bP1Fg38522BgwGRoOg+gYL1nZcyN6wVRtwJbdIuRzCY='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-T5kUFAu2qcxAf9fXbXz8sgXwsrLTxUJS0WjxqCw+4Yc=' 'sha256-Xa+bsUoYtRKsL8lt3UYJCqfXVKuoz5xm19z2m9laXJc=' 'sha256-bP1Fg38522BgwGRoOg+gYL1nZcyN6wVRtwJbdIuRzCY='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>一文搞懂预测模型：建模思路、分类与应用 · DataHot</title>
@@ -856,6 +856,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 08-28</span>
   </div>
   
+  
 
   <p class="reading-local-note" style="font-size:12px;color:var(--sub);margin:12px 0">有效阅读仅保存在当前浏览器，用于「为你」推荐；<a href="../for-me.html#reading-settings">暂停或清除记录</a>。</p>
   
@@ -977,7 +978,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title":"一文搞懂预测模型：建模思路、分类与应用","summary":"本文以销售数据预测为例，讲解预测模型的两类基本思路：因果关系建模和时间序列建模。在只有一行历史数据的情况下，作者演示了如何用Excel识别趋势与季节性，并通过回归分析构造预测公式，还介绍了模型扩展、R平方与MSE等评估方法。文章强调预测的本质是模拟历史走势，数据越丰富预测越准，若数据缺失则更适合做测试而非预测。","reason":"面向数据分析师的数据建模方法论，覆盖从思路选择到Excel落地和模型评估的完整链路，对日常预测分析有实操参考价值。","topic":"数据人","heat":23,"source":"人人都是产品经理","date":"2026-08-27","url":"https://datahot.xiahongbin.com/e/d89b42ab29e1.html","qr":"../qr/d89b42ab29e1.png"};
+var SH_EV = {"title":"一文搞懂预测模型：建模思路、分类与应用","summary":"本文以销售数据预测为例，讲解预测模型的两类基本思路：因果关系建模和时间序列建模。在只有一行历史数据的情况下，作者演示了如何用Excel识别趋势与季节性，并通过回归分析构造预测公式，还介绍了模型扩展、R平方与MSE等评估方法。文章强调预测的本质是模拟历史走势，数据越丰富预测越准，若数据缺失则更适合做测试而非预测。","reason":"面向数据分析师的数据建模方法论，覆盖从思路选择到Excel落地和模型评估的完整链路，对日常预测分析有实操参考价值。","topic":"数据人","heat":23,"source":"人人都是产品经理","status":"","date":"2026-08-27","url":"https://datahot.xiahongbin.com/e/d89b42ab29e1.html","qr":"../qr/d89b42ab29e1.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');
@@ -1097,7 +1098,7 @@ function posterLayout(x,W,P,qrImg){
     y=ry+boxH+30;
   }
   x.fillStyle=P.meta;x.font='400 26px -apple-system,sans-serif';
-  x.fillText('热度 '+SH_EV.heat+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);
+  x.fillText((SH_EV.status||('热度 '+SH_EV.heat))+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);
   y=y+4+56;
   // 分隔线 + 二维码区（紧跟内容，不再锚底）
   x.strokeStyle=P.dash;x.setLineDash([8,8]);x.lineWidth=2;

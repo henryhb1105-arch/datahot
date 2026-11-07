@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-FQ1vu+GGMM9jfa26E7VwvcIYbAD0Jl/kh9sBppgWlBw=' 'sha256-Q1aUo3TPgXviOqfQyZWasyuG3CTzCJ+Rn+8UxzKpVto=' 'sha256-T5kUFAu2qcxAf9fXbXz8sgXwsrLTxUJS0WjxqCw+4Yc='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-Q1aUo3TPgXviOqfQyZWasyuG3CTzCJ+Rn+8UxzKpVto=' 'sha256-T5kUFAu2qcxAf9fXbXz8sgXwsrLTxUJS0WjxqCw+4Yc=' 'sha256-Xhg4tP+1KrHd3bVDyF5OaRoKQ3u2PZxmzV/F+H+mx58='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Anthropic Claude Code团队详解Agent循环工程入门 · DataHot</title>
@@ -856,6 +856,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 08-11</span>
   </div>
   
+  
 
   <p class="reading-local-note" style="font-size:12px;color:var(--sub);margin:12px 0">有效阅读仅保存在当前浏览器，用于「为你」推荐；<a href="../for-me.html#reading-settings">暂停或清除记录</a>。</p>
   
@@ -988,7 +989,7 @@ If any step fails, fix the issue and rerun from step 1 — do not hand back part
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title":"Anthropic Claude Code团队详解Agent循环工程入门","summary":"Claude Code团队在官方博客中定义了agentic循环的概念，即智能体重复工作周期直至满足停止条件，并依据触发方式、停止条件、所用Claude Code原语和适用任务类型，将循环分为基于turn、目标驱动、基于时间和主动式等几类。文章提供了从turn-based循环逐步过渡到更复杂循环的实践指南，并讨论了在管理token消耗的同时保证代码质量的策略。作者强调并非所有任务都需要复杂循环，建议从最简单的方案开始，有选择地使用这些模式。","reason":"Agent循环设计是构建高效Data Agent的关键工程实践，来自Claude Code团队的官方定义与选型指南对数据领域的智能体开发有直接参考价值。","topic":"Data Agent","heat":34,"source":"Claude 官方博客","date":"2026-06-30","url":"https://datahot.xiahongbin.com/e/679beacaaad9.html","qr":"../qr/679beacaaad9.png"};
+var SH_EV = {"title":"Anthropic Claude Code团队详解Agent循环工程入门","summary":"Claude Code团队在官方博客中定义了agentic循环的概念，即智能体重复工作周期直至满足停止条件，并依据触发方式、停止条件、所用Claude Code原语和适用任务类型，将循环分为基于turn、目标驱动、基于时间和主动式等几类。文章提供了从turn-based循环逐步过渡到更复杂循环的实践指南，并讨论了在管理token消耗的同时保证代码质量的策略。作者强调并非所有任务都需要复杂循环，建议从最简单的方案开始，有选择地使用这些模式。","reason":"Agent循环设计是构建高效Data Agent的关键工程实践，来自Claude Code团队的官方定义与选型指南对数据领域的智能体开发有直接参考价值。","topic":"Data Agent","heat":34,"source":"Claude 官方博客","status":"","date":"2026-06-30","url":"https://datahot.xiahongbin.com/e/679beacaaad9.html","qr":"../qr/679beacaaad9.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');
@@ -1108,7 +1109,7 @@ function posterLayout(x,W,P,qrImg){
     y=ry+boxH+30;
   }
   x.fillStyle=P.meta;x.font='400 26px -apple-system,sans-serif';
-  x.fillText('热度 '+SH_EV.heat+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);
+  x.fillText((SH_EV.status||('热度 '+SH_EV.heat))+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);
   y=y+4+56;
   // 分隔线 + 二维码区（紧跟内容，不再锚底）
   x.strokeStyle=P.dash;x.setLineDash([8,8]);x.lineWidth=2;

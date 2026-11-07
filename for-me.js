@@ -69,7 +69,7 @@
     var unread = ranked.filter(function (event) { return !isRead(event, state); });
     var cutoff = now - 7 * 86400000;
     var picks = unread.filter(function(event) {
-      return event.body_review_required !== true &&
+      return event.enrichment_status !== "pending" && event.body_review_required !== true &&
         String(event.zh_summary || "").trim().length > 0 &&
         (eventTime(event) >= cutoff || inferred(event,state).length);
     });
@@ -203,7 +203,7 @@
     var personalized = personal(state);
     return (Array.isArray(events) ? events : []).filter(function (event) {
       var id = String(event.event_id || "");
-      if (!/^[A-Za-z0-9_-]{1,64}$/.test(id) || dismissed.has(id) || event.promotion_suppressed === true) return false;
+      if (!/^[A-Za-z0-9_-]{1,64}$/.test(id) || dismissed.has(id) || event.promotion_suppressed === true || event.enrichment_status === "rejected") return false;
       return !requireMatch || relevant(event, state);
     }).map(function (event) {
       return { event: event, score: scoreEvent(event, state, now), time: eventTime(event) };
@@ -240,7 +240,7 @@
       badge: isNewSince(event, baseline) ? "新收录" : "",
       date: date,
       dateLabel: date ? (published ? "发布 " : "收录 ") + date : "日期未注明",
-      reason: event.body_review_required === true ? "正文完整性待核验 · 建议对照原文阅读"
+      reason: event.enrichment_status === "pending" ? "原文待处理 · 中文摘要与推荐理由尚未生成" : event.body_review_required === true ? "正文完整性待核验 · 建议对照原文阅读"
         : recent ? "近 7 天发布 · 数据与 AI 领域动态" : "延伸阅读 · 数据工作参考"
     };
   }
@@ -375,7 +375,7 @@
       article.dataset.source = primarySource(event);
       var top = element("div", "fm-signal-top");
       var focusLabel = event.focus && event.focus.id !== "other" ? event.focus.label : "";
-      var badge = element("span", "fm-signal-badge", event.body_review_required === true ? "正文待核验" : (priority ? "优先推荐" : String(focusLabel || event.category_label || "动态")));
+      var badge = element("span", "fm-signal-badge", event.enrichment_status === "pending" ? "原文待处理" : event.body_review_required === true ? "正文待核验" : (priority ? "优先推荐" : String(focusLabel || event.category_label || "动态")));
       top.appendChild(badge);
       var contextInfo = readerContext(event, baseline, Date.now());
       if (contextInfo.badge) {
@@ -402,7 +402,7 @@
         : reasons.length ? "与你选择的 " + reasons.map(followLabel).join("、") + " 相关"
         : (context === "discovery" ? "关注范围之外 · " : "") + contextInfo.reason;
       var whyNode = element("div", "fm-why");
-      whyNode.appendChild(element("span", "fm-why-label", event.body_review_required === true ? "待核验线索" : (context === "discovery" ? "发现新方向" : "为你推荐")));
+      whyNode.appendChild(element("span", "fm-why-label", event.enrichment_status === "pending" ? "原文待处理" : event.body_review_required === true ? "待核验线索" : (context === "discovery" ? "发现新方向" : "为你推荐")));
       whyNode.appendChild(element("span", "", why));
       article.appendChild(whyNode);
       if (event.reason) {

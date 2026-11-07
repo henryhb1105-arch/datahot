@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-T5kUFAu2qcxAf9fXbXz8sgXwsrLTxUJS0WjxqCw+4Yc=' 'sha256-aZGORdef6jtlC1cKY/y2yhtzP5hzbxtegXvPo5DDBos=' 'sha256-nlwN/2VNBiH25tW82DtgqdQXrGIyF/0uScQQduHvKxw='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-T5kUFAu2qcxAf9fXbXz8sgXwsrLTxUJS0WjxqCw+4Yc=' 'sha256-nbchQhHDZeaJh5uvXRZ7zakGDDp9yi9Iod9/Ab2vlEA=' 'sha256-nlwN/2VNBiH25tW82DtgqdQXrGIyF/0uScQQduHvKxw='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>从dbt Core v1迁移到Snowflake上的dbt v2实践指南 · DataHot</title>
@@ -855,6 +855,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span title="发布时间">发布 2026-09-24 22:01</span>
     <span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 09-26</span>
   </div>
+  
   <aside class="article-review-note" aria-label="正文状态"><strong>正文待核验</strong><p>当前收录正文的完整性尚未确认；已有原文或译文仍保留，阅读时请对照来源核实。</p><a href="https://medium.com/snowflake/from-dbt-core-v1-to-dbt-v2-on-snowflake-a-practical-migration-guide-4eb137573a1f?source=rss----34b6daafc07---4" target="_blank" rel="noopener noreferrer" data-analytics="outbound">对照原文 →</a></aside>
 
   <p class="reading-local-note" style="font-size:12px;color:var(--sub);margin:12px 0">有效阅读仅保存在当前浏览器，用于「为你」推荐；<a href="../for-me.html#reading-settings">暂停或清除记录</a>。</p>
@@ -983,7 +984,7 @@ GET_PRESIGNED_URL(&#x27;@my_stage&#x27;, &#x27;path/to/file.csv&#x27;, 3600)</co
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title":"从dbt Core v1迁移到Snowflake上的dbt v2实践指南","summary":"dbt v2于2026年9月16日正式GA，将代号Fusion的引擎产品化。本文给出一套Snowflake存量dbt项目的迁移路径：先升级到dbt v1.12并处理废弃项与包兼容性，再运行dbt parse --use-v2-parser，随后切换到v2并编译测试。作者指出真正关键的不是引擎本身，而是迁移前的准备工作，并提醒切换后静态分析可能暴露v1未标记的仓库专属SQL，需区分解析器限制与实际的Snowflake运行时问题。","reason":"面向数据工程团队的一手迁移实践，给出可逐步执行的命令与验证顺序，并点出v1到v2架构变化与静态分析的边界，对正在做dbt升级的团队有直接参考价值。","topic":"","heat":31,"source":"Snowflake Engineering (Medium)","date":"2026-09-24","url":"https://datahot.xiahongbin.com/e/e8e737d1c54c.html","qr":"../qr/e8e737d1c54c.png"};
+var SH_EV = {"title":"从dbt Core v1迁移到Snowflake上的dbt v2实践指南","summary":"dbt v2于2026年9月16日正式GA，将代号Fusion的引擎产品化。本文给出一套Snowflake存量dbt项目的迁移路径：先升级到dbt v1.12并处理废弃项与包兼容性，再运行dbt parse --use-v2-parser，随后切换到v2并编译测试。作者指出真正关键的不是引擎本身，而是迁移前的准备工作，并提醒切换后静态分析可能暴露v1未标记的仓库专属SQL，需区分解析器限制与实际的Snowflake运行时问题。","reason":"面向数据工程团队的一手迁移实践，给出可逐步执行的命令与验证顺序，并点出v1到v2架构变化与静态分析的边界，对正在做dbt升级的团队有直接参考价值。","topic":"","heat":31,"source":"Snowflake Engineering (Medium)","status":"","date":"2026-09-24","url":"https://datahot.xiahongbin.com/e/e8e737d1c54c.html","qr":"../qr/e8e737d1c54c.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');
@@ -1103,7 +1104,7 @@ function posterLayout(x,W,P,qrImg){
     y=ry+boxH+30;
   }
   x.fillStyle=P.meta;x.font='400 26px -apple-system,sans-serif';
-  x.fillText('热度 '+SH_EV.heat+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);
+  x.fillText((SH_EV.status||('热度 '+SH_EV.heat))+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);
   y=y+4+56;
   // 分隔线 + 二维码区（紧跟内容，不再锚底）
   x.strokeStyle=P.dash;x.setLineDash([8,8]);x.lineWidth=2;

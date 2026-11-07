@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-7WZqnhX80T6ildqqztgagKWutGgjPoyx0Ua515COyMM=' 'sha256-8xVRViez8WJDa/qDQilli0FUC2m45EirjrjUR0U1SAA=' 'sha256-T5kUFAu2qcxAf9fXbXz8sgXwsrLTxUJS0WjxqCw+4Yc='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-8xVRViez8WJDa/qDQilli0FUC2m45EirjrjUR0U1SAA=' 'sha256-T5kUFAu2qcxAf9fXbXz8sgXwsrLTxUJS0WjxqCw+4Yc=' 'sha256-vbY+C+/zMzRZAkM+9yXmuczJYuoUHxMjbUsXa5K8tMQ='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>AI编程Agent的文件层:持久化工作区如何挺过重置 · DataHot</title>
@@ -851,6 +851,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span title="发布时间">发布 2026-09-14 22:57</span>
     <span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 09-19</span>
   </div>
+  
   <aside class="article-review-note" aria-label="正文状态"><strong>正文待核验</strong><p>当前收录正文的完整性尚未确认；已有原文或译文仍保留，阅读时请对照来源核实。</p><a href="https://www.pingcap.com/blog/ai-coding-agent-files/" target="_blank" rel="noopener noreferrer" data-analytics="outbound">对照原文 →</a></aside>
 
   <p class="reading-local-note" style="font-size:12px;color:var(--sub);margin:12px 0">有效阅读仅保存在当前浏览器，用于「为你」推荐；<a href="../for-me.html#reading-settings">暂停或清除记录</a>。</p>
@@ -973,7 +974,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title":"AI编程Agent的文件层:持久化工作区如何挺过重置","summary":"文章指出AI编程Agent的文件不只是最终diff,还包括克隆的仓库、依赖清单、构建与测试输出、日志、补丁和草稿笔记。临时沙箱把文件层与计算绑定,超时或崩溃会无提示地抹掉数小时工作。持久化文件系统把存储与沙箱生命周期解耦,让新的运行时重开同一工作区。但任何持久化模型都无法恢复运行中的进程、打开的socket或内存状态,只有落盘内容存活;持久元数据、权限与工作流状态仍需数据库承载。","reason":"对构建Data Agent与Agent基础设施的团队有直接参考价值:它讲清了Agent工作区持久化的机制边界——文件能解决连续性,但状态与权限仍需数据库,是落地时的关键设计取舍。","topic":"Data Agent","heat":33,"source":"TiDB Blog","date":"2026-09-14","url":"https://datahot.xiahongbin.com/e/c98d04acd1bf.html","qr":"../qr/c98d04acd1bf.png"};
+var SH_EV = {"title":"AI编程Agent的文件层:持久化工作区如何挺过重置","summary":"文章指出AI编程Agent的文件不只是最终diff,还包括克隆的仓库、依赖清单、构建与测试输出、日志、补丁和草稿笔记。临时沙箱把文件层与计算绑定,超时或崩溃会无提示地抹掉数小时工作。持久化文件系统把存储与沙箱生命周期解耦,让新的运行时重开同一工作区。但任何持久化模型都无法恢复运行中的进程、打开的socket或内存状态,只有落盘内容存活;持久元数据、权限与工作流状态仍需数据库承载。","reason":"对构建Data Agent与Agent基础设施的团队有直接参考价值:它讲清了Agent工作区持久化的机制边界——文件能解决连续性,但状态与权限仍需数据库,是落地时的关键设计取舍。","topic":"Data Agent","heat":33,"source":"TiDB Blog","status":"","date":"2026-09-14","url":"https://datahot.xiahongbin.com/e/c98d04acd1bf.html","qr":"../qr/c98d04acd1bf.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');
@@ -1093,7 +1094,7 @@ function posterLayout(x,W,P,qrImg){
     y=ry+boxH+30;
   }
   x.fillStyle=P.meta;x.font='400 26px -apple-system,sans-serif';
-  x.fillText('热度 '+SH_EV.heat+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);
+  x.fillText((SH_EV.status||('热度 '+SH_EV.heat))+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);
   y=y+4+56;
   // 分隔线 + 二维码区（紧跟内容，不再锚底）
   x.strokeStyle=P.dash;x.setLineDash([8,8]);x.lineWidth=2;

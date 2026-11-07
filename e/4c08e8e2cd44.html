@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-JXP3zpoFSW60ahyhfASl5U+9dXt3dxJJ85GF+XqoGsY=' 'sha256-T5kUFAu2qcxAf9fXbXz8sgXwsrLTxUJS0WjxqCw+4Yc=' 'sha256-ZkDSvfs0M8FXZ1ELsKdG13RNzv48KFVcMEfI9KBdFzk='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-JXP3zpoFSW60ahyhfASl5U+9dXt3dxJJ85GF+XqoGsY=' 'sha256-T5kUFAu2qcxAf9fXbXz8sgXwsrLTxUJS0WjxqCw+4Yc=' 'sha256-oCizbaGKrT1r/n0+A/RDd195MxWxmHceoReYw4ywPoo='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>AI Runtime上的快速容错PyTorch训练 · DataHot</title>
@@ -856,6 +856,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     
   </div>
   
+  
 
   <p class="reading-local-note" style="font-size:12px;color:var(--sub);margin:12px 0">有效阅读仅保存在当前浏览器，用于「为你」推荐；<a href="../for-me.html#reading-settings">暂停或清除记录</a>。</p>
   
@@ -977,7 +978,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title":"AI Runtime上的快速容错PyTorch训练","summary":"本文探讨了在大规模分布式训练中如何通过分布式检查点（DCP）和异步保存来提升有效吞吐（goodput）。作者指出，随着GPU数量增加，故障成为常态，而数据管道和检查点机制是恢复的关键。通过采用DCP并行写入分片和async_save异步保存，可以显著减少检查点时间，例如在32×H100上训练20B参数的FSDP模型时，检查点时间从522秒降至9秒。频繁检查点可缩短恢复时间，如每30分钟检查点一次时，有效吞吐从64%提升至91%。文章还强调了自动恢复的重要性，并提供了配套的性能和弹性指南。","reason":"本文提供了关于分布式训练中检查点优化和有效吞吐提升的深度技术实践，对使用PyTorch和AI Runtime的数据工程师和ML工程师有直接参考价值。","topic":"平台AI化","heat":43,"source":"Databricks Blog","date":"2026-08-28","url":"https://datahot.xiahongbin.com/e/4c08e8e2cd44.html","qr":"../qr/4c08e8e2cd44.png"};
+var SH_EV = {"title":"AI Runtime上的快速容错PyTorch训练","summary":"本文探讨了在大规模分布式训练中如何通过分布式检查点（DCP）和异步保存来提升有效吞吐（goodput）。作者指出，随着GPU数量增加，故障成为常态，而数据管道和检查点机制是恢复的关键。通过采用DCP并行写入分片和async_save异步保存，可以显著减少检查点时间，例如在32×H100上训练20B参数的FSDP模型时，检查点时间从522秒降至9秒。频繁检查点可缩短恢复时间，如每30分钟检查点一次时，有效吞吐从64%提升至91%。文章还强调了自动恢复的重要性，并提供了配套的性能和弹性指南。","reason":"本文提供了关于分布式训练中检查点优化和有效吞吐提升的深度技术实践，对使用PyTorch和AI Runtime的数据工程师和ML工程师有直接参考价值。","topic":"平台AI化","heat":43,"source":"Databricks Blog","status":"","date":"2026-08-28","url":"https://datahot.xiahongbin.com/e/4c08e8e2cd44.html","qr":"../qr/4c08e8e2cd44.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');
@@ -1097,7 +1098,7 @@ function posterLayout(x,W,P,qrImg){
     y=ry+boxH+30;
   }
   x.fillStyle=P.meta;x.font='400 26px -apple-system,sans-serif';
-  x.fillText('热度 '+SH_EV.heat+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);
+  x.fillText((SH_EV.status||('热度 '+SH_EV.heat))+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);
   y=y+4+56;
   // 分隔线 + 二维码区（紧跟内容，不再锚底）
   x.strokeStyle=P.dash;x.setLineDash([8,8]);x.lineWidth=2;

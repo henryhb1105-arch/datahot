@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-OWSlag4j53Y767GACSDvdYP1Vs8siDq52NY6RdDUe5k=' 'sha256-T5kUFAu2qcxAf9fXbXz8sgXwsrLTxUJS0WjxqCw+4Yc=' 'sha256-lOd8hry5MchmWf9ZGDOpjNFWaEVmzBVO/HZI61OZENI='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-OWSlag4j53Y767GACSDvdYP1Vs8siDq52NY6RdDUe5k=' 'sha256-T5kUFAu2qcxAf9fXbXz8sgXwsrLTxUJS0WjxqCw+4Yc=' 'sha256-sqoPW+4hHVD9bc9kmnixeBNZ1PRVeR0NJTThC0rYF88='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>在Snowflake上实现真正的数据层治理 · DataHot</title>
@@ -855,6 +855,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span title="发布时间">发布 2026-09-05 03:01</span>
     
   </div>
+  
   <aside class="article-review-note" aria-label="正文状态"><strong>正文待核验</strong><p>当前收录正文的完整性尚未确认；已有原文或译文仍保留，阅读时请对照来源核实。</p><a href="https://medium.com/snowflake/implementing-true-data-layer-governance-on-snowflake-3473b84d3f48?source=rss----34b6daafc07---4" target="_blank" rel="noopener noreferrer" data-analytics="outbound">对照原文 →</a></aside>
 
   <p class="reading-local-note" style="font-size:12px;color:var(--sub);margin:12px 0">有效阅读仅保存在当前浏览器，用于「为你」推荐；<a href="../for-me.html#reading-settings">暂停或清除记录</a>。</p>
@@ -1083,7 +1084,7 @@ export async function GET() {
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title":"在Snowflake上实现真正的数据层治理","summary":"本文介绍应用通过服务账号查询Snowflake时，容易形成与应用层并行的第二套权限模型。作者提出使用继承的调用者授权（inherited caller grants），在Streamlit和React/Next.js应用（基于SPCS）中启用调用者权限，让用户现有的Snowflake行级访问策略和脱敏策略自动生效。数据团队只需在数据层定义一次治理模型，即可覆盖所有外部应用，避免额外创建角色和重复授权。","reason":"展示了如何将应用层权限收敛回数据层统一治理，对使用Snowflake构建数据应用或BI前端的团队有直接借鉴价值。","topic":"","heat":38,"source":"Snowflake Engineering (Medium)","date":"2026-09-05","url":"https://datahot.xiahongbin.com/e/b61e19f27b42.html","qr":"../qr/b61e19f27b42.png"};
+var SH_EV = {"title":"在Snowflake上实现真正的数据层治理","summary":"本文介绍应用通过服务账号查询Snowflake时，容易形成与应用层并行的第二套权限模型。作者提出使用继承的调用者授权（inherited caller grants），在Streamlit和React/Next.js应用（基于SPCS）中启用调用者权限，让用户现有的Snowflake行级访问策略和脱敏策略自动生效。数据团队只需在数据层定义一次治理模型，即可覆盖所有外部应用，避免额外创建角色和重复授权。","reason":"展示了如何将应用层权限收敛回数据层统一治理，对使用Snowflake构建数据应用或BI前端的团队有直接借鉴价值。","topic":"","heat":38,"source":"Snowflake Engineering (Medium)","status":"","date":"2026-09-05","url":"https://datahot.xiahongbin.com/e/b61e19f27b42.html","qr":"../qr/b61e19f27b42.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');
@@ -1203,7 +1204,7 @@ function posterLayout(x,W,P,qrImg){
     y=ry+boxH+30;
   }
   x.fillStyle=P.meta;x.font='400 26px -apple-system,sans-serif';
-  x.fillText('热度 '+SH_EV.heat+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);
+  x.fillText((SH_EV.status||('热度 '+SH_EV.heat))+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);
   y=y+4+56;
   // 分隔线 + 二维码区（紧跟内容，不再锚底）
   x.strokeStyle=P.dash;x.setLineDash([8,8]);x.lineWidth=2;

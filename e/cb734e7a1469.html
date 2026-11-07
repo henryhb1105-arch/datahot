@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-T5kUFAu2qcxAf9fXbXz8sgXwsrLTxUJS0WjxqCw+4Yc=' 'sha256-agqeYPsGWTzEnMonJq1EGkfaFNI/WCFBRfzNVeBAtTY=' 'sha256-jeqzFGGI/6xkxvxVQPa5J7sh62lx1Ytw57QyXjwF62c='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-T5kUFAu2qcxAf9fXbXz8sgXwsrLTxUJS0WjxqCw+4Yc=' 'sha256-agqeYPsGWTzEnMonJq1EGkfaFNI/WCFBRfzNVeBAtTY=' 'sha256-pOra3BL4z48sstFgLVhYEdzwu3p7j23ycu+IBwoFbt0='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>用Blame图在OpenSearch上追踪多Agent级联决策失败 · DataHot</title>
@@ -856,6 +856,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     
   </div>
   
+  
 
   <p class="reading-local-note" style="font-size:12px;color:var(--sub);margin:12px 0">有效阅读仅保存在当前浏览器，用于「为你」推荐；<a href="../for-me.html#reading-settings">暂停或清除记录</a>。</p>
   
@@ -978,7 +979,7 @@ streamlit run src/app.py --server.address localhost</code></pre><p>它在您的�
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title":"用Blame图在OpenSearch上追踪多Agent级联决策失败","summary":"AWS方案架构师构建了一个五Agent股票研究流水线，每个Agent依次工作并最终输出BUY、SELL或HOLD决策。当决策错误时，日志虽完整但无法定位是哪个Agent导致。他们使用Amazon OpenSearch Service存储图谱数据，结合Amazon Bedrock生成嵌入和推理，构建blame graph来追溯失败源头，并展示了三种常见生产故障模式。","reason":"多Agent系统调试是数据Agent落地中的关键难题，该文提供了基于图存储和LLM的根因定位思路，对构建可靠的数据Agent流水线有直接参考价值。","topic":"Data Agent","heat":32,"source":"AWS Big Data Blog","date":"2026-08-14","url":"https://datahot.xiahongbin.com/e/cb734e7a1469.html","qr":"../qr/cb734e7a1469.png"};
+var SH_EV = {"title":"用Blame图在OpenSearch上追踪多Agent级联决策失败","summary":"AWS方案架构师构建了一个五Agent股票研究流水线，每个Agent依次工作并最终输出BUY、SELL或HOLD决策。当决策错误时，日志虽完整但无法定位是哪个Agent导致。他们使用Amazon OpenSearch Service存储图谱数据，结合Amazon Bedrock生成嵌入和推理，构建blame graph来追溯失败源头，并展示了三种常见生产故障模式。","reason":"多Agent系统调试是数据Agent落地中的关键难题，该文提供了基于图存储和LLM的根因定位思路，对构建可靠的数据Agent流水线有直接参考价值。","topic":"Data Agent","heat":32,"source":"AWS Big Data Blog","status":"","date":"2026-08-14","url":"https://datahot.xiahongbin.com/e/cb734e7a1469.html","qr":"../qr/cb734e7a1469.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');
@@ -1098,7 +1099,7 @@ function posterLayout(x,W,P,qrImg){
     y=ry+boxH+30;
   }
   x.fillStyle=P.meta;x.font='400 26px -apple-system,sans-serif';
-  x.fillText('热度 '+SH_EV.heat+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);
+  x.fillText((SH_EV.status||('热度 '+SH_EV.heat))+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);
   y=y+4+56;
   // 分隔线 + 二维码区（紧跟内容，不再锚底）
   x.strokeStyle=P.dash;x.setLineDash([8,8]);x.lineWidth=2;

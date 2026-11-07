@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-R52Q+XwuPo+mBZppxLAHDhHrLO9ZSVhtr1AbU0bdfb0=' 'sha256-T5kUFAu2qcxAf9fXbXz8sgXwsrLTxUJS0WjxqCw+4Yc=' 'sha256-xwgFP5QMe4HoUT/ADm7hj7IfDnvJ/YLzdDjYHHCfvt8='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-CCH8qwH0JfYMw38P2EWNbAvDOLCLFQwh/VyVKb+lbbk=' 'sha256-R52Q+XwuPo+mBZppxLAHDhHrLO9ZSVhtr1AbU0bdfb0=' 'sha256-T5kUFAu2qcxAf9fXbXz8sgXwsrLTxUJS0WjxqCw+4Yc='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Spotify为数据湖构建外部索引实现低延迟点查询 · DataHot</title>
@@ -852,6 +852,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 08-13</span>
   </div>
   
+  
 
   <p class="reading-local-note" style="font-size:12px;color:var(--sub);margin:12px 0">有效阅读仅保存在当前浏览器，用于「为你」推荐；<a href="../for-me.html#reading-settings">暂停或清除记录</a>。</p>
   
@@ -973,7 +974,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title":"Spotify为数据湖构建外部索引实现低延迟点查询","summary":"Spotify推出随机访问Parquet（RAP）存储架构，通过外部索引层将查找键直接映射到Parquet文件中的行位置，从而在数据湖上实现低延迟点查询，无需将数据复制到运营数据库。该方案支持在线服务和AI应用从同一数据集读取单个记录，同时继续用于分析、机器学习和在线服务。Spotify表示，其数据湖中存储着EB级数据，而Bigtable中存储PB级在线数据，大规模复制成本高昂。","reason":"该架构展示了如何在保持数据湖统一存储的同时满足在线点查询性能，对湖仓架构设计有参考价值。","topic":"湖仓","heat":32,"source":"InfoQ (AI/数据工程)","date":"2026-08-12","url":"https://datahot.xiahongbin.com/e/16d70a9b5e86.html","qr":"../qr/16d70a9b5e86.png"};
+var SH_EV = {"title":"Spotify为数据湖构建外部索引实现低延迟点查询","summary":"Spotify推出随机访问Parquet（RAP）存储架构，通过外部索引层将查找键直接映射到Parquet文件中的行位置，从而在数据湖上实现低延迟点查询，无需将数据复制到运营数据库。该方案支持在线服务和AI应用从同一数据集读取单个记录，同时继续用于分析、机器学习和在线服务。Spotify表示，其数据湖中存储着EB级数据，而Bigtable中存储PB级在线数据，大规模复制成本高昂。","reason":"该架构展示了如何在保持数据湖统一存储的同时满足在线点查询性能，对湖仓架构设计有参考价值。","topic":"湖仓","heat":32,"source":"InfoQ (AI/数据工程)","status":"","date":"2026-08-12","url":"https://datahot.xiahongbin.com/e/16d70a9b5e86.html","qr":"../qr/16d70a9b5e86.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');
@@ -1093,7 +1094,7 @@ function posterLayout(x,W,P,qrImg){
     y=ry+boxH+30;
   }
   x.fillStyle=P.meta;x.font='400 26px -apple-system,sans-serif';
-  x.fillText('热度 '+SH_EV.heat+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);
+  x.fillText((SH_EV.status||('热度 '+SH_EV.heat))+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);
   y=y+4+56;
   // 分隔线 + 二维码区（紧跟内容，不再锚底）
   x.strokeStyle=P.dash;x.setLineDash([8,8]);x.lineWidth=2;

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-LYq85UVLW0TUfAb9eXK046eFvIFtogiNwLJE87O0xjA=' 'sha256-T5kUFAu2qcxAf9fXbXz8sgXwsrLTxUJS0WjxqCw+4Yc=' 'sha256-x/sR2Lz88qwF7d6XsfNHnW92OXNrU+/7z2HmAnlMzOo='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-LYq85UVLW0TUfAb9eXK046eFvIFtogiNwLJE87O0xjA=' 'sha256-T5kUFAu2qcxAf9fXbXz8sgXwsrLTxUJS0WjxqCw+4Yc=' 'sha256-yHaI7hPsbQZTgnfy1oXcAl/tiUiwP8qBedyncz+KDU8='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>对象存储+WAL：面向智能体时代的Lakebase Postgres · DataHot</title>
@@ -856,6 +856,7 @@ main,.layout>*,.hotlist>*{min-width:0}
     <span style="color:var(--sub);font-size:11px" title="DataHot 收录此内容的时间">收录于 08-28</span>
   </div>
   
+  
 
   <p class="reading-local-note" style="font-size:12px;color:var(--sub);margin:12px 0">有效阅读仅保存在当前浏览器，用于「为你」推荐；<a href="../for-me.html#reading-settings">暂停或清除记录</a>。</p>
   
@@ -977,7 +978,7 @@ main,.layout>*,.hotlist>*{min-width:0}
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title":"对象存储+WAL：面向智能体时代的Lakebase Postgres","summary":"文章介绍 Lakebase Postgres 在分离存储架构下的计算侧缓存改进。数据存放在 S3 等对象存储时，缓存分为分布式存储层和 Postgres 计算层，前者物化页面以支持高写入吞吐和读取，后者用 DRAM 服务高频访问页面。标准 Postgres 的 shared buffers 与 OS page cache 存在双重缓冲：例如 4GB RAM 中 1GB 分配给 shared buffers 时，为缓存 1GB 数据可能占用 2GB 内存。文章还说明已向客户交付的改进，并披露近期计划。","reason":"数据平台与数据库从业者可了解 Lakebase Postgres 在分离存储下的缓存架构、双重缓冲问题及优化方向，涉及性能与成本等关键权衡。","topic":"湖仓","heat":45,"source":"Databricks Blog","date":"2026-08-27","url":"https://datahot.xiahongbin.com/e/e3de08c4636a.html","qr":"../qr/e3de08c4636a.png"};
+var SH_EV = {"title":"对象存储+WAL：面向智能体时代的Lakebase Postgres","summary":"文章介绍 Lakebase Postgres 在分离存储架构下的计算侧缓存改进。数据存放在 S3 等对象存储时，缓存分为分布式存储层和 Postgres 计算层，前者物化页面以支持高写入吞吐和读取，后者用 DRAM 服务高频访问页面。标准 Postgres 的 shared buffers 与 OS page cache 存在双重缓冲：例如 4GB RAM 中 1GB 分配给 shared buffers 时，为缓存 1GB 数据可能占用 2GB 内存。文章还说明已向客户交付的改进，并披露近期计划。","reason":"数据平台与数据库从业者可了解 Lakebase Postgres 在分离存储下的缓存架构、双重缓冲问题及优化方向，涉及性能与成本等关键权衡。","topic":"湖仓","heat":45,"source":"Databricks Blog","status":"","date":"2026-08-27","url":"https://datahot.xiahongbin.com/e/e3de08c4636a.html","qr":"../qr/e3de08c4636a.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');
@@ -1097,7 +1098,7 @@ function posterLayout(x,W,P,qrImg){
     y=ry+boxH+30;
   }
   x.fillStyle=P.meta;x.font='400 26px -apple-system,sans-serif';
-  x.fillText('热度 '+SH_EV.heat+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);
+  x.fillText((SH_EV.status||('热度 '+SH_EV.heat))+' · '+SH_EV.source+' · '+SH_EV.date,64,y+4);
   y=y+4+56;
   // 分隔线 + 二维码区（紧跟内容，不再锚底）
   x.strokeStyle=P.dash;x.setLineDash([8,8]);x.lineWidth=2;

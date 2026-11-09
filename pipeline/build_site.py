@@ -3402,6 +3402,12 @@ def write_bluesky_handle_verification(site_root=SITE):
     return path
 
 
+def build_subscription_feed(events, generated_at):
+    """Retain dated reviewed entries independently of the homepage hot window."""
+    qualified = [event for event in events if is_list_eligible(event)]
+    return build_atom_feed(qualified, generated_at, site_base=SITE_BASE)
+
+
 def main():
     SITE.mkdir(parents=True, exist_ok=True)
     remove_retired_public_pages()
@@ -3515,7 +3521,7 @@ def main():
     # ── Atom 1.0 Feed：只包含 DataHot 摘要与稳定站内详情链接 ──
     feed_path = SITE / "feed.xml"
     if feed_enabled():
-        feed_payload = build_atom_feed(hot_window_events, payload["generated_at"], site_base=SITE_BASE)
+        feed_payload = build_subscription_feed(all_events, payload["generated_at"])
         feed_errors = validate_atom_feed(feed_payload, site_base=SITE_BASE, site_root=SITE)
         if feed_errors:
             raise RuntimeError(f"invalid Atom feed: {', '.join(feed_errors)}")

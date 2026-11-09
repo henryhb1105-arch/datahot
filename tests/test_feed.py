@@ -119,6 +119,36 @@ class AtomFeedTests(unittest.TestCase):
         )
 
 
+class SubscriptionWindowTests(unittest.TestCase):
+    def test_only_recent_pending_keeps_older_reviewed_entries_with_real_dates(self):
+        old = event(1)
+        old['reason'] = '数据库选型参考'
+        pending = event(2)
+        pending.update(enrichment_status='pending', reason='',
+                       published='2026-11-09T08:00:00+08:00',
+                       first_seen='2026-11-09T09:00:00+08:00')
+        pending['items'][0]['source'] = 'Databricks Blog'
+        pending['items'][0]['link'] = 'https://www.databricks.com/blog/test'
+        rejected = event(3)
+        rejected.update(enrichment_status='rejected', reason='不可推广')
+        payload = build_site.build_subscription_feed(
+            [pending, rejected, old], '2026-11-09T10:00:00+08:00')
+        entries = ET.fromstring(payload).findall('atom:entry', NS)
+        self.assertEqual(len(entries), 1)
+        self.assertEqual(entries[0].findtext('atom:id', namespaces=NS),
+                         f'{SITE_BASE}/e/000000000001.html')
+        self.assertEqual(entries[0].findtext('atom:published', namespaces=NS),
+                         '2026-08-11T00:00:00Z')
+        self.assertEqual(validate_atom_feed(payload, site_base=SITE_BASE), [])
+
+    def test_no_qualified_inventory_still_fails_validation(self):
+        rejected = event(3)
+        rejected['enrichment_status'] = 'rejected'
+        payload = build_site.build_subscription_feed(
+            [rejected], '2026-11-09T10:00:00+08:00')
+        self.assertIn('no_entries', validate_atom_feed(payload, site_base=SITE_BASE))
+
+
 class FeedDiscoveryTests(unittest.TestCase):
     def test_root_nested_and_detail_pages_include_autodiscovery(self):
         marker = 'type="application/atom+xml"'

@@ -1,8 +1,8 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-11-07T22:00:19.560253+00:00
-- 本轮原始发现：7
-- 未收录文章候选：41
+- 生成时间：2026-11-09T06:36:06.697058+00:00
+- 本轮原始发现：6
+- 未收录文章候选：39
 - 新信源候选：75
 - 已收录链接去重：0
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
@@ -10,7 +10,7 @@
 ## 发现通道
 
 - openai_web_search: skipped · OPENAI_API_KEY 未配置
-- hn_official: ok · 1 条
+- hn_official: ok · 0 条
 - accepted_link_graph: ok · 6 条
 
 ## 优先检查的新信源
@@ -22,7 +22,6 @@
 - **cdn.sanity.io** · PROBATION · 1 篇 · accepted_link_graph
 - **4906807.fs1.hubspotusercontent-na1.net** · PROBATION · 1 篇 · accepted_link_graph
 - **www.langchain.com** · PROBATION · 1 篇 · accepted_link_graph
-- **www.dexerto.com** · PROBATION · 1 篇 · hn
 - **cphpost.dk** · PROBATION · 1 篇 · hn
 - **status.yandex.cloud** · PROBATION · 1 篇 · hn
 - **www.intel.com** · PROBATION · 1 篇 · hn
@@ -30,10 +29,11 @@
 - **startupfortune.com** · PROBATION · 1 篇 · hn
 - **blog.cloudflare.com** · PROBATION · 1 篇 · hn
 - **www.dataforprogress.org** · PROBATION · 1 篇 · hn
+- **developer.nvidia.com** · PROBATION · 1 篇 · accepted_link_graph
 
 ## 现有信源健康提醒
 
-- **Visier Blog** · DEGRADED · 连续失败 55 次
+- **Visier Blog** · DEGRADED · 连续失败 57 次
 
 ## 优先检查的文章
 
@@ -53,7 +53,7 @@
 - [Show HN: Wikihack – HackerTube, but for Wikipedia articles mentioned on HN](https://wikihack.netlify.app/) · hn
 - [Google cleared 300 hectares of Finnish forest](https://www.techspot.com/news/114100-google-cleared-300-hectares-finnish-forest-data-center.html) · hn
 - [Intel D270 GPU AI Accelerator–Up to 480 GB LPDDR5X](https://www.intel.com/content/www/us/en/products/details/discrete-gpus/data-center-gpu/d-series.html) · hn
-- [Man discovers his parents' coffee machine used 1TB of data in 10 days](https://www.dexerto.com/entertainment/man-discovers-his-parents-coffee-machine-used-1tb-of-data-in-10-days-3416399) · hn
 - [The EPA Is Quietly Killing Its Web Archive](https://www.motherjones.com/environment/2026/10/epa-online-archive-deletion-zeldin-camp-lejeune-trump-clean-power) · hn
 - [Yandex outage: data shows that instead of going dark, malicious bots moved](https://blog.cloudflare.com/yandex-outage) · hn
 - [Google illegally cut down 250K trees in Finland for data center](https://nypost.com/2026/10/24/business/google-illegally-tore-down-250k-trees-for-finland-data-center-infuriating-locals-report) · hn
+- [Yandex Takes a Second Data Center Hit in 48 Hours](https://united24media.com/war-in-ukraine/yandex-takes-a-second-data-center-hit-in-48-hours-now-its-biggest-russian-site-is-damaged-23277) · hn

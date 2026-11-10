@@ -1,16 +1,16 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-11-09T06:36:06.697058+00:00
-- 本轮原始发现：6
+- 生成时间：2026-11-10T07:25:42.662607+00:00
+- 本轮原始发现：7
 - 未收录文章候选：39
-- 新信源候选：75
+- 新信源候选：76
 - 已收录链接去重：0
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
 
 ## 发现通道
 
 - openai_web_search: skipped · OPENAI_API_KEY 未配置
-- hn_official: ok · 0 条
+- hn_official: ok · 1 条
 - accepted_link_graph: ok · 6 条
 
 ## 优先检查的新信源
@@ -33,7 +33,7 @@
 
 ## 现有信源健康提醒
 
-- **Visier Blog** · DEGRADED · 连续失败 57 次
+- **Visier Blog** · DEGRADED · 连续失败 59 次
 
 ## 优先检查的文章
 
@@ -56,4 +56,4 @@
 - [The EPA Is Quietly Killing Its Web Archive](https://www.motherjones.com/environment/2026/10/epa-online-archive-deletion-zeldin-camp-lejeune-trump-clean-power) · hn
 - [Yandex outage: data shows that instead of going dark, malicious bots moved](https://blog.cloudflare.com/yandex-outage) · hn
 - [Google illegally cut down 250K trees in Finland for data center](https://nypost.com/2026/10/24/business/google-illegally-tore-down-250k-trees-for-finland-data-center-infuriating-locals-report) · hn
-- [Yandex Takes a Second Data Center Hit in 48 Hours](https://united24media.com/war-in-ukraine/yandex-takes-a-second-data-center-hit-in-48-hours-now-its-biggest-russian-site-is-damaged-23277) · hn
+- [The Folders Programming Language](https://danieltemkin.com/esolangs/folders) · hn

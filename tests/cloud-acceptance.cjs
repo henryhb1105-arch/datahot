@@ -144,14 +144,21 @@ async function main() {
     if (width < 600) {
       const density = await page.evaluate(() => ({
         firstTitleY: document.querySelector('#timeline .item h3').getBoundingClientRect().top,
-        hotHeight: document.querySelector('.today-hot').getBoundingClientRect().height,
+        hotPresent: !!document.querySelector('.today-hot'),
+        hotHeight: document.querySelector('.today-hot')?.getBoundingClientRect().height || 0,
         rows: [...document.querySelectorAll('.today-hot-row')].map(el => el.getBoundingClientRect().height),
-        headlineSize: parseFloat(getComputedStyle(document.querySelector('.today-hot-title')).fontSize),
+        headlineSize: document.querySelector('.today-hot-title') ? parseFloat(getComputedStyle(document.querySelector('.today-hot-title')).fontSize) : null,
       }));
       assert(density.firstTitleY < 600, 'Phone timeline must start in the first screen');
       assert(density.hotHeight < 300, 'Phone hot list must stay compact');
       assert(density.rows.every(height => height >= 44), 'Hot headline targets remain touchable');
-      assert(density.headlineSize >= 16, 'Density must not rely on tiny headlines');
+      if (density.hotPresent) {
+        assert(density.rows.length > 0, 'Present hot list must contain headlines');
+        assert(density.headlineSize >= 16, 'Density must not rely on tiny headlines');
+      } else {
+        assert.deepEqual(latest.top, [], 'Absent hot list must match empty published hot IDs');
+        assert.equal(density.rows.length, 0);
+      }
       summary.checks.push({phone_density: density});
     }
     await shot('home');

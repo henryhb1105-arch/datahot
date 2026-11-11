@@ -1,6 +1,6 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-11-10T07:25:42.662607+00:00
+- 生成时间：2026-11-11T06:25:58.940398+00:00
 - 本轮原始发现：7
 - 未收录文章候选：39
 - 新信源候选：76
@@ -22,7 +22,6 @@
 - **cdn.sanity.io** · PROBATION · 1 篇 · accepted_link_graph
 - **4906807.fs1.hubspotusercontent-na1.net** · PROBATION · 1 篇 · accepted_link_graph
 - **www.langchain.com** · PROBATION · 1 篇 · accepted_link_graph
-- **cphpost.dk** · PROBATION · 1 篇 · hn
 - **status.yandex.cloud** · PROBATION · 1 篇 · hn
 - **www.intel.com** · PROBATION · 1 篇 · hn
 - **ourworldindata.org** · PROBATION · 1 篇 · hn
@@ -30,10 +29,11 @@
 - **blog.cloudflare.com** · PROBATION · 1 篇 · hn
 - **www.dataforprogress.org** · PROBATION · 1 篇 · hn
 - **developer.nvidia.com** · PROBATION · 1 篇 · accepted_link_graph
+- **peec.ai** · PROBATION · 1 篇 · hn
 
 ## 现有信源健康提醒
 
-- **Visier Blog** · DEGRADED · 连续失败 59 次
+- **Visier Blog** · DEGRADED · 连续失败 61 次
 
 ## 优先检查的文章
 
@@ -42,7 +42,6 @@
 - [3rd Yandex Cloud Data Center Was Hit](https://status.yandex.cloud/en/incidents/2136) · hn
 - [Americans' social activity has steeply declined in the past 30 years](https://www.dataforprogress.org/blog/2026/9/29/americans-social-activity-has-steeply-declined-in-the-past-30-years) · hn
 - [Google told to halt work on datacentres in Finland over environmental concerns](https://www.theguardian.com/technology/2026/oct/06/google-datacentres-finland-temporary-halt-environmental-impact-assessment) · hn
-- [`123456' password used in Danish CPR data breach](https://cphpost.dk/2026-10-10/news/round-up/123456-password-used-in-massive-danish-cpr-data-breach) · hn
 - [The United Kingdom generates less electricity per person than in the 1970s](https://ourworldindata.org/data-insights/electricity-generation-per-person-in-the-united-kingdom-has-fallen-by-a-third-from-its-early-2000s-peak) · hn
 - [Twelve years of distributed SQLite](https://philipotoole.com/twelve-years-of-distributed-sqlite) · hn
 - [Banks are now trying to offload the AI data center debt they just underwrote](https://startupfortune.com/banks-are-now-trying-to-offload-the-ai-data-center-debt-they-just-underwrote) · hn
@@ -57,3 +56,4 @@
 - [Yandex outage: data shows that instead of going dark, malicious bots moved](https://blog.cloudflare.com/yandex-outage) · hn
 - [Google illegally cut down 250K trees in Finland for data center](https://nypost.com/2026/10/24/business/google-illegally-tore-down-250k-trees-for-finland-data-center-infuriating-locals-report) · hn
 - [The Folders Programming Language](https://danieltemkin.com/esolangs/folders) · hn
+- [Postgres 19 delayed after AI reviewers find more bugs than humans can fix](https://www.theregister.com/databases/2026/10/16/postgres-19-delayed-after-ai-reviewers-find-more-bugs-than-humans-can-fix/5303471) · hn

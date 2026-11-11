@@ -809,6 +809,7 @@ def llm_enrich(items, cfg, *, generate_fulltext=True):
         note = "\n（注：该条目来自数据领域厂商官方博客，默认相关，除非明显是招聘/活动/公关软文）" if it.get("vendor_default") else ""
         out = llm_chat(
             base, key, model, ENRICH_RULES + "\n\n" + content + note,
+            max_tokens=1800, strict_object=True,
             purpose="enrich", source=it.get("source", ""), item_id=it.get("id", ""),
         )
         if out.get("relevant") is False:
@@ -923,6 +924,7 @@ def llm_same_event(pairs, cfg):
                 "注意：月度汇总/盘点类文章与其中提到的单项功能发布不算同一事件，除非该功能就是这篇文章的主题。"
                 '只输出JSON {"same": true或false}。\n\n'
                 f"【A】{p[0][:400]}\n【B】{p[1][:400]}",
+                max_tokens=256, strict_object=True,
                 purpose="cluster", source="event-cluster", item_id=pair_id)
             same = out.get("same") is True
             CLUSTER_CACHE.remember(pair_key, CLUSTER_RULE_VERSION, same)
@@ -1575,6 +1577,28 @@ def _metadata_translation_record(event):
     return nested if isinstance(nested, dict) else {}
 
 
+def translation_retry_events(events):
+    """Keep old untranslated inventory untouched while retrying newly ingested work."""
+    since = os.getenv("CONTENT_TRANSLATION_SINCE", "").strip()
+    if not since:
+        return events
+    cutoff = parse_date(since)
+    if cutoff is None:
+        raise ValueError("Invalid CONTENT_TRANSLATION_SINCE; refusing unbounded backfill")
+    if cutoff.tzinfo is None:
+        cutoff = cutoff.replace(tzinfo=timezone.utc)
+    selected = []
+    for event in events:
+        seen = parse_date(event.get("first_seen"))
+        if seen is None:
+            continue
+        if seen.tzinfo is None:
+            seen = seen.replace(tzinfo=timezone.utc)
+        if seen >= cutoff:
+            selected.append(event)
+    return selected
+
+
 def backfill_event_metadata(events, cfg, *, now=None, limit=None, lookback_days=30):
     """Repair recent non-Chinese list metadata without replacing or deleting events."""
     now = now or datetime.now(timezone.utc)
@@ -1761,6 +1785,8 @@ def backfill_structured_content(
         )
         parser_debt = not processor_current and bool(event.get("content_blocks"))
         within_window = _event_time(event) >= now_utc - timedelta(days=lookback_days)
+        if os.getenv("CONTENT_TRANSLATION_SINCE", "").strip():
+            within_window = within_window or bool(translation_retry_events([event]))
         evergreen_debt = event.get("shelf") == "evergreen" and parser_debt
         if not within_window and not evergreen_debt:
             continue
@@ -2808,9 +2834,10 @@ def main():
             f"降级 {body_state['fallback']} 个"
         )
 
-    metadata_backfill_summary = backfill_event_metadata(events, cfg, now=now)
+    retry_events = translation_retry_events(events)
+    metadata_backfill_summary = backfill_event_metadata(retry_events, cfg, now=now)
     backfill_summary = backfill_structured_content(
-        events, cfg, now=now, feed_content_by_url=feed_content_by_url,
+        retry_events, cfg, now=now, feed_content_by_url=feed_content_by_url,
         source_configs=source_configs,
     )
     media_refresh_summary = refresh_media_cache(events, source_configs)

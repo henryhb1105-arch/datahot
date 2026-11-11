@@ -70,6 +70,10 @@ GitHub Actions 每 6 小时自动运行（UTC 0/6/12/18 第 17 分），数据�
 
 ### 信源调度与预筛
 
+Actions Variable `CONTENT_TRANSLATION_SINCE` 可设为 ISO 8601 时间，只重试该时间之后首次收录的文章；旧库存保留原文，不补译标题、摘要和正文。
+以 `first_seen` 而非原文发布日期判定新增，新增文章仍可在后续轮次重试失败的翻译；留空恢复原有回填范围。
+手动更新的 `force_source_fetch` 选项可立即检查新文章，不必等待信源抓取间隔；仍遵守既有筛选、预算和发布校验。
+
 `pipeline/sources.json` 支持为每个信源独立配置 `fetch_interval_hours`、`max_candidates_per_run`、`lookback_days`、`require_published`、`path_include/path_exclude` 和 `include_keywords/exclude_keywords`。删除这些可选字段即回退到每 6 小时、单轮 20 条、7 天窗口、无关键词限制的默认行为。手动补数时可临时设置 `FORCE_SOURCE_FETCH=true` 绕过分频，不会改写信源配置。
 
 每轮的调度原因、预筛数、候选数、采用率、模型调用数和 Token 会写入 `site/data/sources_status.json`。连续三轮有候选但零采用时只记录降频建议，不会自动停用或删除信源。

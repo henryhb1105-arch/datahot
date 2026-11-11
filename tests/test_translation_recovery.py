@@ -15,6 +15,7 @@ class RecoveryTests(unittest.TestCase):
         self.runtime = SimpleNamespace(
             TZ=timezone.utc,
             LLM_USAGE=SimpleNamespace(can_call=Mock(return_value=True),
+                                     budget_status=Mock(return_value={"available_tokens": 160000}),
                                      snapshot=Mock(return_value={"failures": 0})),
             is_pending_original=lambda e: e.get("enrichment_status") == "pending",
             backfill_event_metadata=Mock(return_value={"complete": 8}),
@@ -47,6 +48,16 @@ class RecoveryTests(unittest.TestCase):
         self.runtime.backfill_event_metadata.assert_not_called()
         self.runtime.backfill_structured_content.assert_not_called()
         self.assertEqual(result["events"], self.payload["events"])
+
+    def test_metadata_backlog_leaves_budget_for_body_translation(self):
+        self.runtime.LLM_USAGE.budget_status.side_effect = [
+            {"available_tokens": 160000},
+            {"available_tokens": 160000},
+            {"available_tokens": 70000},
+        ]
+        self.run_recovery()
+        self.assertEqual(self.runtime.backfill_event_metadata.call_count, 1)
+        self.assertEqual(self.runtime.backfill_structured_content.call_count, 19)
 
     def test_provider_failure_stops_remaining_work(self):
         self.runtime.backfill_event_metadata.return_value = {"failed": 1}

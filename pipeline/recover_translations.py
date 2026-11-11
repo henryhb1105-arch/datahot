@@ -17,11 +17,16 @@ def recover(payload, runtime, cfg, *, now=None, source_configs=None):
         raise ValueError("Duplicate event IDs in recovery baseline")
     report = {"metadata": [], "bodies": []}
     failed = False
+    available = runtime.LLM_USAGE.budget_status().get("available_tokens")
+    body_reserve = available // 2 if available is not None else 0
     # Each article is attempted at most once per phase. Existing functions retain
     # their cooldown, source quality, Chinese validation and token reservations.
     candidates = [e for e in events if runtime.is_pending_original(e)]
     for start in range(0, len(candidates), 8):
         if not runtime.LLM_USAGE.can_call(1):
+            break
+        remaining = runtime.LLM_USAGE.budget_status().get("available_tokens")
+        if remaining is not None and remaining <= body_reserve:
             break
         summary = runtime.backfill_event_metadata(
             candidates[start:start + 8], cfg, now=now, limit=8,

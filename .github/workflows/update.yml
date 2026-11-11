@@ -17,6 +17,11 @@ on:
     - cron: "17 0,6,12,18 * * *"
   workflow_dispatch:
     inputs:
+      recover_translations:
+        description: "仅恢复已收录原文的中文加工，跳过采集和周报，保留现有 Token 预算"
+        required: false
+        default: false
+        type: boolean
       backfill_event_ids:
         description: "可选：只重抓指定正文事件 ID，多个用逗号分隔"
         required: false
@@ -69,6 +74,7 @@ jobs:
         env:
           PUBLISH_REVIEWED_ONLY: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[publish-reviewed]') }}
           REFRESH_WEEKLY_ONLY: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[refresh-weekly]') }}
+          RECOVER_TRANSLATIONS: ${{ github.event_name == 'workflow_dispatch' && inputs.recover_translations }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           LLM_BASE_URL: "https://api.deepseek.com"
           LLM_MODEL: "deepseek-v4-flash"
@@ -114,7 +120,9 @@ jobs:
           BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
           BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
         run: |
-          if [ "$PUBLISH_REVIEWED_ONLY" = "true" ]; then
+          if [ "$RECOVER_TRANSLATIONS" = "true" ]; then
+            python3 -u pipeline/recover_translations.py
+          elif [ "$PUBLISH_REVIEWED_ONLY" = "true" ]; then
             echo "发布已审核内容：复用已入库数据，跳过采集和付费 AI 加工"
             python3 pipeline/import_manual_batch.py --registered
             if [ "$REFRESH_WEEKLY_ONLY" = "true" ]; then

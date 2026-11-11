@@ -70,6 +70,12 @@ GitHub Actions 每 6 小时自动运行（UTC 0/6/12/18 第 17 分），数据�
 
 ### 信源调度与预筛
 
+密钥恢复后的积压补译可手动运行 `update.yml` 并勾选 `recover_translations`。
+该模式只处理已收录待加工元数据和保留的外文原文，不采集新信源、不生成周报；
+复用现有翻译质量校验、单轮/每日 Token 上限、防缩水和统一发布流程。
+每篇每阶段每轮最多尝试一次，失败或预算不足保留原文；积压超出预算时需下一轮继续。
+默认定时任务行为不变。撤销该模式可回退对应代码提交，数据仍保留在 Git 历史中。
+
 `pipeline/sources.json` 支持为每个信源独立配置 `fetch_interval_hours`、`max_candidates_per_run`、`lookback_days`、`require_published`、`path_include/path_exclude` 和 `include_keywords/exclude_keywords`。删除这些可选字段即回退到每 6 小时、单轮 20 条、7 天窗口、无关键词限制的默认行为。手动补数时可临时设置 `FORCE_SOURCE_FETCH=true` 绕过分频，不会改写信源配置。
 
 每轮的调度原因、预筛数、候选数、采用率、模型调用数和 Token 会写入 `site/data/sources_status.json`。连续三轮有候选但零采用时只记录降频建议，不会自动停用或删除信源。

@@ -57,6 +57,9 @@ def recover(payload, runtime, cfg, *, now=None, source_configs=None):
             break
     if [e["event_id"] for e in events] != ids:
         raise RuntimeError("Recovery changed event identity or ordering")
+    usage = runtime.LLM_USAGE.snapshot()
+    if usage.get("calls") and usage["failures"] == usage["calls"]:
+        raise RuntimeError("All recovery model calls failed; refusing to publish a false recovery")
     runtime.repair_content_metadata(events)
     for event in events:
         runtime.recalc_event_heat(event, reference_time=now)

@@ -75,6 +75,13 @@ class RecoveryTests(unittest.TestCase):
         self.run_recovery()
         self.runtime.backfill_structured_content.assert_not_called()
 
+    def test_all_failed_calls_cannot_publish_a_false_recovery(self):
+        self.runtime.backfill_event_metadata.return_value = {"failed": 1}
+        self.runtime.LLM_USAGE.snapshot.return_value = {"calls": 1, "failures": 1}
+        with self.assertRaisesRegex(RuntimeError, "All recovery model calls failed"):
+            self.run_recovery()
+        self.assertEqual(self.payload["events"][0]["full_zh"], "Retained original")
+
     def test_no_retranslation_of_chinese_completed_or_editorial(self):
         events = self.payload["events"][:5]
         events[0]["source_language"] = "zh"

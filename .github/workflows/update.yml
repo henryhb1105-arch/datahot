@@ -40,6 +40,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          # A queued schedule/manual run must not rebuild an obsolete data snapshot.
+          ref: main
           fetch-depth: 0
 
       - name: 密钥泄露扫描（拦截含 API Key 的提交）

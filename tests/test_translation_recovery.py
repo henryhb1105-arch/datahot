@@ -60,6 +60,13 @@ class RecoveryTests(unittest.TestCase):
         self.run_recovery()
         self.assertEqual(self.runtime.backfill_structured_content.call_count, 1)
 
+    def test_oversized_article_does_not_starve_smaller_articles(self):
+        self.runtime.backfill_structured_content.side_effect = [
+            {"deferred_budget": 1}, {"translated": 1},
+        ]
+        self.run_recovery({"events": self.payload["events"][:2]})
+        self.assertEqual(self.runtime.backfill_structured_content.call_count, 2)
+
     def test_successful_changes_are_preserved_without_mutating_baseline(self):
         def translate(events, *args, **kwargs):
             for event in events:

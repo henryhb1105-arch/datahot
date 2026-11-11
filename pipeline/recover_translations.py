@@ -50,7 +50,7 @@ def recover(payload, runtime, cfg, *, now=None, source_configs=None):
         )
         report["bodies"].append(summary)
         print("[recovery-body]", event["event_id"], json.dumps(summary), flush=True)
-        if summary.get("failed") or summary.get("deferred_budget"):
+        if summary.get("failed"):
             break
         # generate_event_body catches provider errors and keeps the original.
         if runtime.LLM_USAGE.snapshot()["failures"]:

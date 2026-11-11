@@ -809,6 +809,7 @@ def llm_enrich(items, cfg, *, generate_fulltext=True):
         note = "\n（注：该条目来自数据领域厂商官方博客，默认相关，除非明显是招聘/活动/公关软文）" if it.get("vendor_default") else ""
         out = llm_chat(
             base, key, model, ENRICH_RULES + "\n\n" + content + note,
+            max_tokens=1800, strict_object=True,
             purpose="enrich", source=it.get("source", ""), item_id=it.get("id", ""),
         )
         if out.get("relevant") is False:
@@ -923,6 +924,7 @@ def llm_same_event(pairs, cfg):
                 "注意：月度汇总/盘点类文章与其中提到的单项功能发布不算同一事件，除非该功能就是这篇文章的主题。"
                 '只输出JSON {"same": true或false}。\n\n'
                 f"【A】{p[0][:400]}\n【B】{p[1][:400]}",
+                max_tokens=256, strict_object=True,
                 purpose="cluster", source="event-cluster", item_id=pair_id)
             same = out.get("same") is True
             CLUSTER_CACHE.remember(pair_key, CLUSTER_RULE_VERSION, same)

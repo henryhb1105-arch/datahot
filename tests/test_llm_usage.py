@@ -206,6 +206,40 @@ class LLMCallInstrumentationTests(unittest.TestCase):
         self.assertEqual(call["total_tokens"], 0)
         self.assertGreater(call["accounted_tokens"], 0)
 
+    def test_enrichment_and_cluster_use_bounded_non_thinking_json(self):
+        captured = []
+        responses = [
+            {"relevant": True, "zh_title": "数据平台更新", "zh_summary": "新增数据分析功能"},
+            {"same": True},
+        ]
+
+        def fake_urlopen(request, timeout):
+            captured.append(json.loads(request.data))
+            return FakeResponse({
+                "choices": [{"message": {"content": json.dumps(responses.pop(0))}}],
+                "usage": {"prompt_tokens": 20, "completion_tokens": 5, "total_tokens": 25},
+            })
+
+        from candidate_cache import CandidateCache
+        from cluster_cache import ClusterDecisionCache
+        with patch.object(run_update, "CANDIDATE_CACHE", CandidateCache(Path(self.tmp.name) / "c.json")), \
+             patch.object(run_update, "CLUSTER_CACHE", ClusterDecisionCache(Path(self.tmp.name) / "p.json")), \
+             patch.object(run_update.urllib.request, "urlopen", side_effect=fake_urlopen):
+            result = run_update.llm_enrich([{
+                "id": "test", "title": "Data platform update", "summary": "New analytics",
+                "link": "https://example.com/update", "source": "Feed A",
+            }], ("key", "https://api.deepseek.com", "deepseek-v4-flash"), generate_fulltext=False)
+            same = run_update.llm_same_event(
+                [("Platform announcement", "Same platform announcement")],
+                ("key", "https://api.deepseek.com", "deepseek-v4-flash"),
+            )
+        self.assertEqual(result[0]["enrichment_status"], "complete")
+        self.assertEqual(same, [True])
+        self.assertEqual([p["max_tokens"] for p in captured], [1800, 256])
+        for payload in captured:
+            self.assertEqual(payload["thinking"], {"type": "disabled"})
+            self.assertEqual(payload["response_format"], {"type": "json_object"})
+
 
 if __name__ == "__main__":
     unittest.main()

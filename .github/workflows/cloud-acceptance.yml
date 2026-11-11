@@ -47,6 +47,13 @@ jobs:
           # Install the lockfile-matched browser without redundant apt downloads.
           # The full browser suite below still requires a successful real launch.
           npm exec --prefix ops/cloud-acceptance -- playwright install chromium
+          curl --fail --location --retry 3 --max-time 120 \
+            https://raw.githubusercontent.com/notofonts/noto-cjk/165c01b46ea533872e002e0785ff17e44f6d97d8/Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Regular.otf \
+            -o "$RUNNER_TEMP/NotoSansCJKsc-Regular.otf"
+          echo "2c76254f6fc379fddfce0a7e84fb5385bb135d3e399294f6eeb6680d0365b74b  $RUNNER_TEMP/NotoSansCJKsc-Regular.otf" | sha256sum --check
+          sudo install -D -m 644 "$RUNNER_TEMP/NotoSansCJKsc-Regular.otf" /usr/local/share/fonts/datahot/NotoSansCJKsc-Regular.otf
+          fc-cache -f
+          test "$(fc-match -f '%{family}' ':lang=zh')" = 'Noto Sans CJK SC'
       - name: 回归测试
         run: |
           python -m unittest discover -s tests

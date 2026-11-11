@@ -43,6 +43,15 @@ jobs:
         run: |
           python -m pip install --require-hashes -r requirements.txt
           npm ci --prefix ops/cloud-acceptance --ignore-scripts
+          # Some hosted runners cannot resolve the Azure Ubuntu mirror.
+          # Keep the official signed repository, using its primary hostname.
+          if ! timeout 10 getent hosts azure.archive.ubuntu.com; then
+            for mirrors in /etc/apt/apt-mirrors.txt /etc/apt/apt-mirrors-security.txt; do
+              if [ -f "$mirrors" ]; then
+                sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/g' "$mirrors"
+              fi
+            done
+          fi
           npm exec --prefix ops/cloud-acceptance -- playwright install --with-deps chromium
       - name: 回归测试
         run: |

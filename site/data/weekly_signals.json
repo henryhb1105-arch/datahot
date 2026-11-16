@@ -5,11 +5,11 @@
  "week_id": "2026-W46",
  "period_start": "2026-11-09",
  "period_end": "2026-11-15",
- "generated_at": "2026-11-16T14:35:38.536124+08:00",
+ "generated_at": "2026-11-17T06:12:13.862256+08:00",
  "ai_assisted": true,
- "content_fingerprint": "996a72dac5ff00a3520b8d68994a4e0d678c24c1e08ab9502b474eeabad523d7",
+ "content_fingerprint": "4656df7ca9edd68bb1864f8c882a0cfa5efb75dfc732b5727a54fd5346222573",
  "input_hash": "7d98c3226ff2197958dd4952d5d6064479482de743d05d258ed375556a99ecb5",
- "baseline_hash": "d95ed17dc9cda3798beedd6a7a8b66b16c2bd3b9e70fbd40012d6abf07e9449c",
+ "baseline_hash": "94f62b05433fac0c9747d2cb481f91cddb3984047938c4d6e9758547d7c5449e",
  "prompt_version": "weekly-signals-v4",
  "model": "deepseek-v4-flash",
  "baseline": {
@@ -29,95 +29,91 @@
   ],
   "coverage": "complete"
  },
- "weekly_judgement": "本周真正的新变化是Data Agent开始把“业务定义层”作为独立组件对外产品化：Genie Ontology同时支撑基准、Slack入口、自主同事与OpenAI插件，语义层从BI选型话题变成Agent运行前提。可观测性与成本治理也首次以独立管道出现，但多为单厂商口径。",
+ "weekly_judgement": "本周相较前四周最实质的变化，是“数据Agent的准确率与成本”从泛泛宣传变为可比的工程证据：Databricks给出91%对45%-58%的基准与Token减半，并叠加仓库内上下文降本、上下文压缩等机制。语义层本体继续被反复当作Agent前提，但多为同一供应商自证。",
  "signals": [
   {
-   "signal_id": "ontology-as-agent-context-layer",
-   "title": "本体成为Data Agent独立上下文层",
+   "signal_id": "grounded-semantic-agent-benchmark",
+   "title": "受治理语义上下文被量化为Agent准确率优势",
    "change_type": "early_signal",
    "confidence": "medium",
-   "confidence_reason": "Databricks多篇均为同一source_family，不算独立证据；OpenAI合作与CEO公开使用只提供第二方向而非独立复现，故为early_signal。",
-   "anchor": "Genie Ontology支撑91%通过率基准、Slack GA中@Genie按Unity Catalog上下文作答、OpenAI接入ChatGPT、CEO用它分析员工满意度；对照组仅45%/58%。",
-   "mechanism": "把业务定义、指标口径、关系与组织知识抽成独立本体层，供Agent在取数前解析语义并受权限约束，区别于纯表结构或临时RAG检索。",
-   "baseline_comparison": "W43-W44已讨论语义层可移植性与金融本体四要素，但当时停留在选型与建设路线；本期首次出现同一本体层同时服务基准评测、聊天入口、自主任务与外部模型。",
+   "confidence_reason": "有基准数字与多个落地案例，但基准由Databricks与Turing自建，多篇Databricks来源非独立；跨厂商对照仅一处",
+   "anchor": "Databricks与Turing在真实工作区用notebook、看板、已保存SQL、文档等分析资产做基准，Genie+Genie Ontology通过率91%，两个前沿Agent为45%和58%，Token不到一半",
+   "mechanism": "把业务定义、指标与计算规则作为Agent上下文输入，而非仅依赖表结构，从而提升多步分析任务的正确率并降低Token消耗",
+   "baseline_comparison": "W42-W45多以定性主张称语义层是Agent前提（如Snowflake、Metabase、Palantir案例），本周首次出现带对比基线的量化数字",
    "evidence_ids": [
     "cddab255c9b8",
     "b31a70ad0007",
     "dbffc02632d1",
-    "bb8c92a8b58c",
+    "bb8c92a8b58c"
+   ],
+   "counter_evidence": "基准为厂商自建、对手Agent配置未公开；91%与W43提到的银行投入数年语义层达99.5%不构成同一评测口径"
+  },
+  {
+   "signal_id": "context-in-warehouse-cost-control",
+   "title": "仓库内预置上下文压低Agent运行成本",
+   "change_type": "early_signal",
+   "confidence": "medium",
+   "confidence_reason": "dbt与Snowflake两方思路一致但均为厂商自述，缺少第三方复现与绝对成本数字",
+   "anchor": "dbt称把Agent所需上下文直接存入数据仓库而非动态检索，token成本降50%以上，并称单Agent和多Agent分别约消耗聊天界面的4倍和15倍token；Snowflake在CoCo/CoWork用Harness按需加载工具、并行调用并压缩工具结果",
+   "mechanism": "将上下文从每次动态检索改为仓库内预置，并在Agent运行时压缩工具返回结果，以降低token与注意力负担",
+   "baseline_comparison": "W42已有Snowflake Agent成本拆解与仓库/语义层杠杆的讨论，本周从“成本不可见”推进到具体降本手段与幅度",
+   "evidence_ids": [
+    "3f561cf8acad",
+    "46d64ed8a28b",
     "d5029ad349e5"
    ],
-   "counter_evidence": "全部锚点来自Databricks生态，Turing基准设计方与Databricks合作；无第三方复现或非Databricks平台对照。"
+   "counter_evidence": "50%降幅无基准方法与样本；Harness效果无量化；Slack内Genie属分发渠道而非成本机制"
   },
   {
-   "signal_id": "agent-observability-cost-pipeline",
-   "title": "Agent运行遥测与成本独立成管道",
+   "signal_id": "agent-observability-governed-telemetry",
+   "title": "Agent可观测性转向受治理遥测落仓",
    "change_type": "early_signal",
    "confidence": "low",
-   "confidence_reason": "仅Google与dbt/Snowflake两种互不相同的口径，前者是遥测落仓，后者是上下文入仓降token，机制不完全同构。",
-   "anchor": "Google将agent_events写入客户自有BigQuery表并fail-closed跳过敏感知识源；dbt称仓库优先上下文削减50%以上token；Snowflake CoWork用Harness按需加载工具。",
-   "mechanism": "把Agent的调用链、token与工具结果从运行时不透明状态转为可入仓、可审计、可计量的数据资产，据此做成本与漂移控制。",
-   "baseline_comparison": "W42已出现Snowflake Agent成本分摊失效与语义漂移运维讨论，但均为问题陈述；本周首次出现厂商交付的具体采集管道。",
+   "confidence_reason": "仅Google与GitLab两个厂商各自发布，机制相近但客户与部署未披露，方向一致度有限",
+   "anchor": "Google Cloud将Agent遥测默认排除提示词与生成SQL，Agent所有者可按需把会话日志经Storage Write API写入客户自有BigQuery表agent_events，继承IAM/CMEK/VPC-SC，遇行级安全时fail-closed；GitLab 19.5把外部智能体会话纳入AI治理仪表盘并可流式送SIEM",
+   "mechanism": "把Agent运行轨迹与工具调用写入受权限与合规约束的数据存储，供根因、漂移与审计分析，而非仅采集聚合指标",
+   "baseline_comparison": "W42-W45多为Agent治理原则与风险讨论（语义漂移、权限护栏），本周首次出现具体遥测落仓与审计管道产品",
    "evidence_ids": [
     "d4feae7931ae",
-    "3f561cf8acad",
-    "46d64ed8a28b"
+    "d8d9624543ad"
    ],
-   "counter_evidence": "Google方案为预览厂商声明，dbt数字为自家团队经验，两者无共同度量；无客户侧独立验证。"
-  },
-  {
-   "signal_id": "agent-facing-data-cli-and-mcp",
-   "title": "数据管道对外暴露Agent可调用接口",
-   "change_type": "early_signal",
-   "confidence": "low",
-   "confidence_reason": "Fivetran、GitLab、ClickHouse分属不同层次，仅共享“把平台能力暴露给外部编码Agent”这一宽泛方向，独立性不足。",
-   "anchor": "Fivetran CLI输出机器可读结果供Claude Code/Codex驱动管道；GitLab MCP服务器GA并按最小权限暴露工具集；ClickHouse经Iceberg REST回写结果供Agent使用。",
-   "mechanism": "数据与DevOps平台把操作面封装为CLI或MCP工具，使外部编码Agent可执行建管道、查表、改配置等动作，而平台保留权限与审计。",
-   "baseline_comparison": "W43 Fivetran Skills与Metabase MCP仅是单点;本期出现CLI化与MCP GA，但尚无统一协议实践证据。",
-   "evidence_ids": [
-    "f212c46d407d",
-    "d8d9624543ad",
-    "4ac69af9452b"
-   ],
-   "counter_evidence": "三者vendors与场景异构，缺乏同一机制下的连贯采用数据；GitLab版本日期与本周周期不完全对齐。"
+   "counter_evidence": "两者数据模型与存储目标不同（BigQuery vs GitLab审计），未共享标准；均无客户案例与延迟/成本数据"
   }
  ],
  "signals_not_promoted": [
   {
-   "label": "企业数据Agent基准标准化",
-   "reason": "仅Databricks-Turing单方基准，题目与评分未公开，缺乏第二独立基准对照。",
+   "label": "自然语言问数向聊天工作流分发",
+   "reason": "Genie登陆Slack与OpenAI接入ChatGPT虽同属分发，但均为Databricks单供应商，且W45 Google连接器已出现同类方向，缺乏独立证据",
    "evidence_ids": [
-    "cddab255c9b8",
-    "6a8d47b7dda4"
+    "d5029ad349e5",
+    "bb8c92a8b58c"
    ]
   },
   {
-   "label": "AI分析平台选型与治理话术",
-   "reason": "Hex两篇均为厂商选型指南，属营销内容而非产品机制变化。",
+   "label": "Lakehouse就地分析与外部表接入",
+   "reason": "ClickHouse接S3 Tables、SageMaker Terraform等属平台常规集成，未直接改变Agent或语义层设计",
    "evidence_ids": [
-    "226d8ed44293",
-    "64aa63f63ac1"
+    "4ac69af9452b",
+    "9afcb266341c"
    ]
   },
   {
-   "label": "多团队AI环境代码化",
-   "reason": "SageMaker两篇同源，且属平台配置治理，未直接改变Data Agent设计。",
+   "label": "Agent仿真与合成数据评估",
+   "reason": "Plurai为单笔融资单案例，未见产品可用性或第三方复现",
    "evidence_ids": [
-    "9afcb266341c",
-    "8b0f1d9ad23d"
+    "044ae80b3fc9"
    ]
   },
   {
-   "label": "Agent可靠性仿真训练",
-   "reason": "Plurai单一融资案例，无产品落地数据。",
+   "label": "本体/WBM推演平台",
+   "reason": "爱化身科技为单一厂商评估稿，WBM自认仍处测试阶段",
    "evidence_ids": [
-    "044ae80b3fc9",
-    "fac175fdd32b"
+    "7b3f78d72860"
    ]
   }
  ],
- "uncertainty": "Genie Ontology的效果全部来自Databricks自述与其合作方基准，缺少非Databricks平台或第三方复现；Agent遥测与成本管道也无可比度量。",
- "next_week_question": "是否有非Databricks厂商或独立评测复现本体层带来的准确率与token差异，并公开口径？",
+ "uncertainty": "关键缺口是缺少非Databricks来源的独立基准与客户侧成本实测；本周多个核心事件（基准、Genie升级、Slack GA、OpenAI合作）同属一家供应商，难以区分真实机制增益与营销口径。",
+ "next_week_question": "是否有第三方或非Databricks客户复现91%基准，或在仓库预置上下文方案上给出可核验的成本与准确率对比？",
  "evidence_index": [
   {
    "event_id": "cddab255c9b8",
@@ -215,55 +211,6 @@
    "week_id": "2026-W46"
   },
   {
-   "event_id": "d5029ad349e5",
-   "title": "Databricks Genie登陆Slack并正式可用：在工作流中提供受治理的AI问答",
-   "summary": "Databricks宣布其Genie应用面向Slack正式可用（GA），用户可在频道、线程或私信中@Genie提问，答案基于Unity Catalog的受治理业务上下文与权限，并逐条标注来源。产品强调仅在Genie被邀请的频道读取上下文、在提问线程内保持追问语境，并支持点击来源跳转Genie One深入探索。官方将其定位为解决跨数据平台、文档与工单等多源信息散落导致的分析延迟问题。",
-   "category": "agent",
-   "source": "Databricks Blog",
-   "source_family": "databricks",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://www.databricks.com/blog/genie-slack-now-generally-available-governed-ai-cowork-right-where-work-happens",
-   "published": "2026-11-12T23:00:00+08:00",
-   "heat": 34,
-   "importance": 49,
-   "vendors": [
-    "Databricks"
-   ],
-   "topics": [
-    "ChatBI",
-    "Data Agent"
-   ],
-   "body_review_required": false,
-   "week_id": "2026-W46"
-  },
-  {
-   "event_id": "d4feae7931ae",
-   "title": "Google Cloud 推出基于 BigQuery 与 Looker 的企业AI Agent可观测性方案",
-   "summary": "Google Cloud 发布面向企业 AI Agent 的可观测性方案，将运营遥测与对话内容分层治理。管理员可通过 Cloud Monitoring 和 Cloud Trace 采集请求量、延迟、Token 用量等聚合指标，且默认排除用户提示词、模型回复、内部思考与生成 SQL 等敏感内容。Agent 所有者可按需开启会话日志，由托管服务代理经 Storage Write API 将数据写入客户自有 BigQuery 表 agent_events，继承 IAM、CMEK 与 VPC Service Controls，并在知识源含行级安全或脱敏时 fail-closed 跳过记录。开发者还可通过开源 ADK 插件单行接入，将完整工具调用链路写入 BigQuery 做根因与漂移分析。",
-   "category": "platform",
-   "source": "Google Cloud Data Analytics Blog",
-   "source_family": "googleclouddataanalytics",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://cloud.google.com/blog/products/data-analytics/enterprise-ai-agent-observability-with-bigquery-and-looker",
-   "published": "2026-11-14T08:00:00+08:00",
-   "heat": 54,
-   "importance": 79,
-   "vendors": [
-    "Google",
-    "Google Cloud",
-    "BigQuery",
-    "Looker"
-   ],
-   "topics": [
-    "Data Agent",
-    "平台AI化"
-   ],
-   "body_review_required": false,
-   "week_id": "2026-W46"
-  },
-  {
    "event_id": "3f561cf8acad",
    "title": "仓库优先的AI上下文可削减超50% Token成本",
    "summary": "文章指出AI项目ROI通常需2-4年，而Agent的token账单每月发生，单Agent和多Agent分别约消耗聊天界面的4倍和15倍token。作者团队通过把Agent所需上下文直接存入数据仓库、而非动态检索，将token成本降低50%以上。文中引用Deloitte调查、Anthropic数据及2025年平均AI月支出预计增长36%等数字，解释仓库优先的AI上下文为何能控制运行成本。",
@@ -310,21 +257,46 @@
    "week_id": "2026-W46"
   },
   {
-   "event_id": "f212c46d407d",
-   "title": "Fivetran CLI：为AI Agent打造的数据管道组合工作流",
-   "summary": "Fivetran 推出 CLI 工具，将数据管道管理搬入终端，支持命令行创建连接、配置 schema、触发同步和部署自定义连接器，并输出机器可读结果。文章主张将 CLI 与 Claude Code、Codex、dbt Wizard 等编码 Agent 搭配，用自然语言驱动数据管道的搭建与修改，几分钟内完成重部署。作者还讨论了 MCP 提供上下文、CLI 负责执行的分工组合方式。",
-   "category": "platform",
-   "source": "Fivetran Blog",
-   "source_family": "fivetran",
+   "event_id": "d5029ad349e5",
+   "title": "Databricks Genie登陆Slack并正式可用：在工作流中提供受治理的AI问答",
+   "summary": "Databricks宣布其Genie应用面向Slack正式可用（GA），用户可在频道、线程或私信中@Genie提问，答案基于Unity Catalog的受治理业务上下文与权限，并逐条标注来源。产品强调仅在Genie被邀请的频道读取上下文、在提问线程内保持追问语境，并支持点击来源跳转Genie One深入探索。官方将其定位为解决跨数据平台、文档与工单等多源信息散落导致的分析延迟问题。",
+   "category": "agent",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
    "source_type": "vendor_claim",
    "source_count": 1,
-   "source_url": "https://www.fivetran.com/blog/composing-data-pipelines-in-an-ai-native-workflow",
-   "published": "2026-11-12T04:38:35+08:00",
+   "source_url": "https://www.databricks.com/blog/genie-slack-now-generally-available-governed-ai-cowork-right-where-work-happens",
+   "published": "2026-11-12T23:00:00+08:00",
    "heat": 34,
-   "importance": 56,
+   "importance": 49,
    "vendors": [
-    "Fivetran",
-    "dbt Labs"
+    "Databricks"
+   ],
+   "topics": [
+    "ChatBI",
+    "Data Agent"
+   ],
+   "body_review_required": false,
+   "week_id": "2026-W46"
+  },
+  {
+   "event_id": "d4feae7931ae",
+   "title": "Google Cloud 推出基于 BigQuery 与 Looker 的企业AI Agent可观测性方案",
+   "summary": "Google Cloud 发布面向企业 AI Agent 的可观测性方案，将运营遥测与对话内容分层治理。管理员可通过 Cloud Monitoring 和 Cloud Trace 采集请求量、延迟、Token 用量等聚合指标，且默认排除用户提示词、模型回复、内部思考与生成 SQL 等敏感内容。Agent 所有者可按需开启会话日志，由托管服务代理经 Storage Write API 将数据写入客户自有 BigQuery 表 agent_events，继承 IAM、CMEK 与 VPC Service Controls，并在知识源含行级安全或脱敏时 fail-closed 跳过记录。开发者还可通过开源 ADK 插件单行接入，将完整工具调用链路写入 BigQuery 做根因与漂移分析。",
+   "category": "platform",
+   "source": "Google Cloud Data Analytics Blog",
+   "source_family": "googleclouddataanalytics",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://cloud.google.com/blog/products/data-analytics/enterprise-ai-agent-observability-with-bigquery-and-looker",
+   "published": "2026-11-14T08:00:00+08:00",
+   "heat": 54,
+   "importance": 79,
+   "vendors": [
+    "Google",
+    "Google Cloud",
+    "BigQuery",
+    "Looker"
    ],
    "topics": [
     "Data Agent",
@@ -381,81 +353,6 @@
    "week_id": "2026-W46"
   },
   {
-   "event_id": "6a8d47b7dda4",
-   "title": "智能体分析基准第二轮：GPT-6与Claude新模型",
-   "summary": "Agentic Analytics Benchmark第二轮新增GPT-6 Astra、Luna、Sol以及Claude Opus 5.5、Claude Sonnet 5.5五个模型，均在34款模型榜单中部落于彼此1分以内。基准仍使用201道题、每题60轮预算和三家评委投票，结果比较通过列链接器处理列名差异。Sonnet 5.5在轮数、成本和截断运行方面变化最大。此次还更新了测试框架：固定查询引擎版本和时区、调用前检查凭证、将数值容差配置化，并修复宽结果集的列链接问题。",
-   "category": "agent",
-   "source": "ClickHouse Blog",
-   "source_family": "clickhouse",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://clickhouse.com/blog/agentic-analytics-benchmark-round-two",
-   "published": "2026-10-20T16:07:44+08:00",
-   "heat": 39,
-   "importance": 76,
-   "vendors": [
-    "ClickHouse"
-   ],
-   "topics": [
-    "Data Agent"
-   ],
-   "week_id": "2026-W43"
-  },
-  {
-   "event_id": "226d8ed44293",
-   "title": "如何评估AI分析平台：一份实用的POC清单",
-   "summary": "Hex 发布AI分析平台选型指南，将市场分为三类：带AI能力的传统BI（Power BI、Tableau、Sigma、Omni）、仓库原生的AI分析（Databricks、Snowflake）以及端到端AI分析平台。文章指出企业员工把数据导出到Claude、ChatGPT自行生成看板，导致“AI数据蔓延”——分析产物割裂、口径不一致、逻辑无人负责。评估维度涵盖仪表盘、集成、部署与定价，并强调共享业务语义、权限与准确性监控是选型关键。",
-   "category": "agent",
-   "source": "Hex Blog",
-   "source_family": "hex",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://hex.tech/blog/how-to-evaluate-ai-analytics-platforms/",
-   "published": "2026-11-13T08:00:00+08:00",
-   "heat": 52,
-   "importance": 77,
-   "vendors": [
-    "Hex",
-    "Power BI",
-    "Tableau",
-    "Sigma",
-    "Omni"
-   ],
-   "topics": [
-    "ChatBI",
-    "Data Agent",
-    "语义层"
-   ],
-   "body_review_required": false,
-   "week_id": "2026-W46"
-  },
-  {
-   "event_id": "64aa63f63ac1",
-   "title": "Hex发布BI选型指南：七款工具对比",
-   "summary": "Hex发布面向企业领导者的商业分析工具选型指南，从自主性与可信度两个维度对比七款BI工具。文章称生成式AI让业务用户能用自然语言追问指标变化，无需提工单等待数据团队，但31%的受访者把信任问题列为首要顾虑。文中还给出用自有KPI测试候选工具的方法，并提到Tableau Agent、ThoughtSpot Analyst Studio、Looker Studio更名等动态。",
-   "category": "bi",
-   "source": "Hex Blog",
-   "source_family": "hex",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://hex.tech/blog/business-analytics-for-leaders/",
-   "published": "2026-11-02T08:00:00+08:00",
-   "heat": 25,
-   "importance": 56,
-   "vendors": [
-    "Hex",
-    "Tableau",
-    "ThoughtSpot",
-    "Google"
-   ],
-   "topics": [
-    "BI变局",
-    "ChatBI"
-   ],
-   "body_review_required": false,
-   "week_id": "2026-W45"
-  },
-  {
    "event_id": "9afcb266341c",
    "title": "用 Terraform 在 SageMaker Unified Studio 搭建多团队 AI 与分析环境",
    "summary": "AWS 官方博客介绍如何用 Amazon SageMaker Unified Studio 的 Terraform 模块，在共享域上为数据分析、机器学习和 AI 开发三类团队统一搭建受治理的工作环境。各团队共用业务数据目录、安全模型与项目结构，IAM 角色、blueprint、项目配置文件与用户入驻均可代码化管理，新增团队项目只需再添加一个子模块块。文中以中型科技公司三类团队为例，列出湖仓、Redshift Serverless、Glue、MWAA 等服务组合。",
@@ -476,30 +373,6 @@
    ],
    "topics": [
     "湖仓",
-    "平台AI化"
-   ],
-   "body_review_required": false,
-   "week_id": "2026-W46"
-  },
-  {
-   "event_id": "8b0f1d9ad23d",
-   "title": "SageMaker Unified Studio推出目录之外治理合规评分卡",
-   "summary": "AWS官方博客介绍Amazon SageMaker Unified Studio的治理合规增强模式：将元数据完整度、数据质量分、术语表关联、订阅数据和可SQL查询的每日目录导出整合到单一视图。通过EventBridge定时触发的Lambda富化管道，构建可扩展维度和权重的资产评分卡，支持数据负责人、数据管家、平台团队和CDO按各自视角查询合规缺口。文章强调该模式提供基础管道，具体'合规'定义与业务逻辑由企业自行适配。",
-   "category": "platform",
-   "source": "AWS Big Data Blog",
-   "source_family": "awsbigdata",
-   "source_type": "vendor_claim",
-   "source_count": 1,
-   "source_url": "https://aws.amazon.com/blogs/big-data/governance-compliance-beyond-the-catalog-in-amazon-sagemaker-unified-studio/",
-   "published": "2026-11-12T00:08:47+08:00",
-   "heat": 42,
-   "importance": 74,
-   "vendors": [
-    "AWS",
-    "Amazon SageMaker Unified Studio"
-   ],
-   "topics": [
-    "语义层",
     "平台AI化"
    ],
    "body_review_required": false,
@@ -528,24 +401,24 @@
    "week_id": "2026-W46"
   },
   {
-   "event_id": "fac175fdd32b",
-   "title": "Leeroo开源Kapso：从企业数据中迭代学习的引擎",
-   "summary": "Leeroo团队开源Kapso，一个面向企业数据工作的实验引擎：给定目标和成功标准后，它自动运行实验、部署最优方案并从每次运行中学习。团队以某企业从旧数据栈迁移到湖仓为例，涉及30多个源系统族、数千张表和转换、数百份BI报表，强调只能通过探查仓库、dbt模型、文档和数据本身来迭代理解。作者认为RAG文档在具体环境中被验证前价值有限，学习应在沙箱中发生并逐项目复利。",
-   "category": "agent",
-   "source": "Hacker News（数据关键词）",
-   "source_family": "hacker",
+   "event_id": "7b3f78d72860",
+   "title": "爱分析评估爱化身科技本体平台：动态本体与WBM推演",
+   "summary": "爱分析发布对爱化身科技本体平台的市场厂商评估。爱化身科技成立于2021年，基于企业级AI操作系统Agentrix，以Data OS承载本体平台能力，将企业系统业务定义组织为统一语义，并通过Agent OS与Agent Workforce支持智能体协同和数字员工。文章介绍电网人资核验、轨道交通设备运维等场景，强调区分数据更新与业务定义变化，并探索WBM对行动结果推演。评估认为其将业务语义与状态、规则和行动衔接，WBM仍处特定领域数据积累与测试阶段。",
+   "category": "platform",
+   "source": "爱分析",
+   "source_family": "爱分析",
    "source_type": "other",
    "source_count": 1,
-   "source_url": "https://news.ycombinator.com/item?id=50471281",
-   "published": "2026-11-13T01:51:23+08:00",
-   "heat": 46,
+   "source_url": "https://www.ifenxi.com/research/content/7014",
+   "published": "2026-11-11T22:20:04.743277+08:00",
+   "heat": 37,
    "importance": 63,
    "vendors": [
-    "Leeroo"
+    "爱化身科技"
    ],
    "topics": [
-    "Data Agent",
-    "湖仓"
+    "语义层",
+    "平台AI化"
    ],
    "body_review_required": false,
    "week_id": "2026-W46"

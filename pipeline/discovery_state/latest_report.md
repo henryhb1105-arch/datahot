@@ -1,8 +1,8 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-11-15T19:02:14.183858+00:00
-- 本轮原始发现：9
-- 未收录文章候选：37
+- 生成时间：2026-11-16T22:12:11.317063+00:00
+- 本轮原始发现：7
+- 未收录文章候选：34
 - 新信源候选：80
 - 已收录链接去重：0
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
@@ -10,7 +10,7 @@
 ## 发现通道
 
 - openai_web_search: skipped · OPENAI_API_KEY 未配置
-- hn_official: ok · 2 条
+- hn_official: ok · 0 条
 - accepted_link_graph: ok · 7 条
 
 ## 优先检查的新信源
@@ -21,7 +21,6 @@
 - **www.imf.org** · PROBATION · 1 篇 · accepted_link_graph
 - **cdn.sanity.io** · PROBATION · 1 篇 · accepted_link_graph
 - **4906807.fs1.hubspotusercontent-na1.net** · PROBATION · 1 篇 · accepted_link_graph
-- **blog.cloudflare.com** · PROBATION · 1 篇 · hn
 - **developer.nvidia.com** · PROBATION · 1 篇 · accepted_link_graph
 - **peec.ai** · PROBATION · 1 篇 · hn
 - **philipotoole.com** · PROBATION · 1 篇 · hn
@@ -30,10 +29,11 @@
 - **www.interdb.jp** · PROBATION · 1 篇 · hn
 - **michael.bacarella.com** · PROBATION · 1 篇 · hn
 - **www.deloitte.com** · PROBATION · 1 篇 · accepted_link_graph
+- **www.reuters.com** · PROBATION · 1 篇 · hn
 
 ## 现有信源健康提醒
 
-- **Visier Blog** · DEGRADED · 连续失败 73 次
+- **Visier Blog** · DEGRADED · 连续失败 75 次
 
 ## 优先检查的文章
 
@@ -49,11 +49,11 @@
 - [Show HN: Wikihack – HackerTube, but for Wikipedia articles mentioned on HN](https://wikihack.netlify.app/) · hn
 - [Google cleared 300 hectares of Finnish forest](https://www.techspot.com/news/114100-google-cleared-300-hectares-finnish-forest-data-center.html) · hn
 - [The EPA Is Quietly Killing Its Web Archive](https://www.motherjones.com/environment/2026/10/epa-online-archive-deletion-zeldin-camp-lejeune-trump-clean-power) · hn
-- [Yandex outage: data shows that instead of going dark, malicious bots moved](https://blog.cloudflare.com/yandex-outage) · hn
 - [Google illegally cut down 250K trees in Finland for data center](https://nypost.com/2026/10/24/business/google-illegally-tore-down-250k-trees-for-finland-data-center-infuriating-locals-report) · hn
-- [The Folders Programming Language](https://danieltemkin.com/esolangs/folders) · hn
-- [Postgres 19 delayed after AI reviewers find more bugs than humans can fix](https://www.theregister.com/databases/2026/10/16/postgres-19-delayed-after-ai-reviewers-find-more-bugs-than-humans-can-fix/5303471) · hn
 - [AI, Lean, and the Future of Formal Verification, with Lean Creator Leo de Moura](https://thedataexchange.media/leo-de-moura-lean-aws) · hn
 - [Claude Whiteboards, Claude Sheets, and Claude Data](https://claude.com/resources/articles/sheets-whiteboards-data) · hn
 - [Moving our warehouse off DuckDB](https://posthog.com/blog/moving-off-duckdb) · hn
 - [Using thousands of AI agents to uncover new leads in biological data](https://openai.com/index/scaling-ai-research-for-complex-biological-data) · hn
+- [I'm Working on a FOSS Linux Pinbal Simulation Engine](https://www.getlazarus.org/forums/topic/17) · hn
+- [The Hypertext Transfer Protocol Status Code 483 (I'm Not a Freezer)](https://datatracker.ietf.org/doc/draft-banffy-httpbis-not-a-freezer) · hn
+- [Every processor die anyone has photographed and given away](https://sheets.works/data-viz/cpu-dies) · hn

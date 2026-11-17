@@ -1,17 +1,17 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-11-16T22:12:11.317063+00:00
-- 本轮原始发现：7
-- 未收录文章候选：34
-- 新信源候选：80
+- 生成时间：2026-11-17T21:03:08.092087+00:00
+- 本轮原始发现：10
+- 未收录文章候选：35
+- 新信源候选：82
 - 已收录链接去重：0
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
 
 ## 发现通道
 
 - openai_web_search: skipped · OPENAI_API_KEY 未配置
-- hn_official: ok · 0 条
-- accepted_link_graph: ok · 7 条
+- hn_official: ok · 1 条
+- accepted_link_graph: ok · 9 条
 
 ## 优先检查的新信源
 
@@ -33,12 +33,13 @@
 
 ## 现有信源健康提醒
 
-- **Visier Blog** · DEGRADED · 连续失败 75 次
+- **Visier Blog** · DEGRADED · 连续失败 77 次
 
 ## 优先检查的文章
 
 - [Anthropic S-1](https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm) · hn
 - [StackOverflow now gets fewer than 1000 questions a month](https://data.stackexchange.com/stackoverflow/query/1926661) · hn
+- [Windows 11 is collecting data on which coding agents and developer tools you use](https://xusheng.dev/posts/windows-coding-agent-telemetry) · hn
 - [A false smoke alarm almost drowned Jane Street's only NYC datacenter](https://michael.bacarella.com/2026/11/10/false-smoke-alarm-jane-street-datacenter) · hn
 - [Italy fines Meta $887M over Android users' data access](https://www.reuters.com/world/italy-fines-meta-887-million-over-android-users-data-access-2026-11-14) · hn
 - [Twelve years of distributed SQLite](https://philipotoole.com/twelve-years-of-distributed-sqlite) · hn
@@ -56,4 +57,3 @@
 - [Using thousands of AI agents to uncover new leads in biological data](https://openai.com/index/scaling-ai-research-for-complex-biological-data) · hn
 - [I'm Working on a FOSS Linux Pinbal Simulation Engine](https://www.getlazarus.org/forums/topic/17) · hn
 - [The Hypertext Transfer Protocol Status Code 483 (I'm Not a Freezer)](https://datatracker.ietf.org/doc/draft-banffy-httpbis-not-a-freezer) · hn
-- [Every processor die anyone has photographed and given away](https://sheets.works/data-viz/cpu-dies) · hn

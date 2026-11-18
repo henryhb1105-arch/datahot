@@ -1,17 +1,17 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-11-17T21:03:08.092087+00:00
-- 本轮原始发现：10
-- 未收录文章候选：35
-- 新信源候选：82
+- 生成时间：2026-11-18T20:41:41.064185+00:00
+- 本轮原始发现：12
+- 未收录文章候选：37
+- 新信源候选：84
 - 已收录链接去重：0
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
 
 ## 发现通道
 
 - openai_web_search: skipped · OPENAI_API_KEY 未配置
-- hn_official: ok · 1 条
-- accepted_link_graph: ok · 9 条
+- hn_official: ok · 2 条
+- accepted_link_graph: ok · 10 条
 
 ## 优先检查的新信源
 
@@ -33,7 +33,7 @@
 
 ## 现有信源健康提醒
 
-- **Visier Blog** · DEGRADED · 连续失败 77 次
+- **Visier Blog** · DEGRADED · 连续失败 79 次
 
 ## 优先检查的文章
 
@@ -54,6 +54,6 @@
 - [AI, Lean, and the Future of Formal Verification, with Lean Creator Leo de Moura](https://thedataexchange.media/leo-de-moura-lean-aws) · hn
 - [Claude Whiteboards, Claude Sheets, and Claude Data](https://claude.com/resources/articles/sheets-whiteboards-data) · hn
 - [Moving our warehouse off DuckDB](https://posthog.com/blog/moving-off-duckdb) · hn
+- [F-22 Next-Generation micro–Data Transfer Cartridge (mDTC)](https://sam.gov/workspace/contract/opp/8948e8601e964c6aba9c801eee16b1be/view) · hn
 - [Using thousands of AI agents to uncover new leads in biological data](https://openai.com/index/scaling-ai-research-for-complex-biological-data) · hn
 - [I'm Working on a FOSS Linux Pinbal Simulation Engine](https://www.getlazarus.org/forums/topic/17) · hn
-- [The Hypertext Transfer Protocol Status Code 483 (I'm Not a Freezer)](https://datatracker.ietf.org/doc/draft-banffy-httpbis-not-a-freezer) · hn

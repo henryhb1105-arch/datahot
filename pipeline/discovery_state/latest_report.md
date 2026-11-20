@@ -1,16 +1,16 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-11-19T20:43:32.698291+00:00
-- 本轮原始发现：12
-- 未收录文章候选：39
-- 新信源候选：85
+- 生成时间：2026-11-20T20:30:42.775990+00:00
+- 本轮原始发现：13
+- 未收录文章候选：41
+- 新信源候选：88
 - 已收录链接去重：0
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
 
 ## 发现通道
 
 - openai_web_search: skipped · OPENAI_API_KEY 未配置
-- hn_official: ok · 2 条
+- hn_official: ok · 3 条
 - accepted_link_graph: ok · 10 条
 
 ## 优先检查的新信源
@@ -33,7 +33,7 @@
 
 ## 现有信源健康提醒
 
-- **Visier Blog** · DEGRADED · 连续失败 81 次
+- **Visier Blog** · DEGRADED · 连续失败 83 次
 
 ## 优先检查的文章
 
@@ -45,6 +45,7 @@
 - [Twelve years of distributed SQLite](https://philipotoole.com/twelve-years-of-distributed-sqlite) · hn
 - [The Internals of PostgreSQL](https://www.interdb.jp/pg/index.html) · hn
 - [Now Google says it might use your Gmail and Google Photos data to target ads](https://www.theverge.com/tech/1017600/google-personal-intelligence-privacy-policy-ads-update) · hn
+- [PostgreSQL 19](https://www.postgresql.org/docs/release/19.0) · hn
 - [Publish fake stats, get cited in LLMs](https://peec.ai/blog/publish-stats-get-cited-the-tactic-that-put-my-data-all-over-the-web) · hn
 - [US voters roundly reject data centers in ballot measures](https://www.semafor.com/article/11/04/2026/us-voters-roundly-reject-data-centers-in-ballot-measures) · hn
 - [Show HN: Wikihack – HackerTube, but for Wikipedia articles mentioned on HN](https://wikihack.netlify.app/) · hn
@@ -56,4 +57,3 @@
 - [Pete warden on local AI, open models, voice interfaces, the future of hardware](https://thedataexchange.media/pete-warden-moonshine) · hn
 - [Claude Whiteboards, Claude Sheets, and Claude Data](https://claude.com/resources/articles/sheets-whiteboards-data) · hn
 - [Moving our warehouse off DuckDB](https://posthog.com/blog/moving-off-duckdb) · hn
-- [F-22 Next-Generation micro–Data Transfer Cartridge (mDTC)](https://sam.gov/workspace/contract/opp/8948e8601e964c6aba9c801eee16b1be/view) · hn

@@ -17,6 +17,8 @@ from check_links import check_site_links, format_broken_links
 from feed import build_atom_feed, validate_atom_feed
 from information_value import promotion_review_required, suppress_from_lists
 from pending_original import is_pending_original
+from editorial_picks import editorial_pick_event_ids
+from import_manual_batch import import_registered_batches
 from content_metadata import repair_content_metadata
 from lite_data import (
     DEFAULT_PAGE_SIZE, FIRST_PAGE_SOURCE_CAPS, HOME_WINDOW_DAYS,
@@ -3408,6 +3410,20 @@ def build_subscription_feed(events, generated_at):
     return build_atom_feed(qualified, generated_at, site_base=SITE_BASE)
 
 
+def load_build_catalog(latest_path):
+    """Materialize missing approved picks before all build/release checks.
+
+    A registry-only editorial change must build the same catalog in PR checks
+    and publication. Existing catalogs are untouched when no pick is missing.
+    """
+    payload = json.loads(Path(latest_path).read_text(encoding="utf-8"))
+    present = {event.get("event_id") for event in payload["events"]}
+    if editorial_pick_event_ids() - present:
+        import_registered_batches(Path(latest_path))
+        payload = json.loads(Path(latest_path).read_text(encoding="utf-8"))
+    return payload
+
+
 def main():
     SITE.mkdir(parents=True, exist_ok=True)
     remove_retired_public_pages()
@@ -3428,7 +3444,7 @@ def main():
     shutil.copyfile(ROOT / "pipeline/assets/design-studies.js", SITE / "design-studies.js")
     shutil.copytree(ROOT / "pipeline/assets/case-media", SITE / "case-media", dirs_exist_ok=True)
     shutil.copyfile(TTS_ASSET, SITE / "tts-player.js")
-    payload = json.load(open(SITE / "data" / "latest.json"))
+    payload = load_build_catalog(SITE / "data" / "latest.json")
     all_events = payload["events"]
     if repair_content_metadata(all_events):
         # Keep raw/lite feeds, social metadata and detail pages consistent.

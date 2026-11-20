@@ -3,11 +3,13 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'pipeline'))
 from import_manual_batch import import_batch, stable_id, validate_batch
 from editorial_picks import load_editorial_picks
+import build_site
 
 BATCH = ROOT / 'pipeline/manual_batches/2026-11-20-amap-data-agent.json'
 URLS = ['https://mp.weixin.qq.com/s/FAGAjEXd-dggWfBR-A0LLg',
@@ -40,3 +42,21 @@ class AmapEditorialTests(unittest.TestCase):
             new = [e for e in events if e['event_id'] != 'existing']
             self.assertTrue(all(e['editorial_pick'] for e in new))
             self.assertEqual({e['items'][0]['link'] for e in new}, set(URLS))
+
+    def test_build_materializes_missing_picks_preserving_old_ids_and_healthy_noop(self):
+        picks = [r for r in load_editorial_picks() if r['source_url'] in URLS]
+        ids = {stable_id(url) for url in URLS}
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'latest.json'
+            existing = {'event_id':'existing', 'zh_title':'已有条目', 'items':[]}
+            path.write_text(json.dumps({'events':[existing], 'generated_at':''}))
+            with patch('import_manual_batch.load_editorial_picks', return_value=picks):
+                payload = build_site.load_build_catalog(path)
+            self.assertEqual({r['event_id'] for r in payload['events']}, ids | {'existing'})
+            self.assertIn(existing, payload['events'])
+            before = path.read_bytes()
+            with patch('build_site.editorial_pick_event_ids', return_value=ids), \
+                 patch('build_site.import_registered_batches') as replay:
+                self.assertEqual(build_site.load_build_catalog(path), payload)
+                replay.assert_not_called()
+            self.assertEqual(path.read_bytes(), before)

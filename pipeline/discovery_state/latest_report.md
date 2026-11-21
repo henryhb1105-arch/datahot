@@ -1,16 +1,16 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-11-20T20:30:42.775990+00:00
-- 本轮原始发现：13
-- 未收录文章候选：41
-- 新信源候选：88
+- 生成时间：2026-11-21T19:26:49.513448+00:00
+- 本轮原始发现：14
+- 未收录文章候选：42
+- 新信源候选：91
 - 已收录链接去重：0
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
 
 ## 发现通道
 
 - openai_web_search: skipped · OPENAI_API_KEY 未配置
-- hn_official: ok · 3 条
+- hn_official: ok · 4 条
 - accepted_link_graph: ok · 10 条
 
 ## 优先检查的新信源
@@ -22,7 +22,6 @@
 - **cdn.sanity.io** · PROBATION · 1 篇 · accepted_link_graph
 - **4906807.fs1.hubspotusercontent-na1.net** · PROBATION · 1 篇 · accepted_link_graph
 - **developer.nvidia.com** · PROBATION · 1 篇 · accepted_link_graph
-- **peec.ai** · PROBATION · 1 篇 · hn
 - **philipotoole.com** · PROBATION · 1 篇 · hn
 - **www.sec.gov** · PROBATION · 1 篇 · hn
 - **www.motherjones.com** · PROBATION · 1 篇 · hn
@@ -30,23 +29,24 @@
 - **michael.bacarella.com** · PROBATION · 1 篇 · hn
 - **www.deloitte.com** · PROBATION · 1 篇 · accepted_link_graph
 - **www.reuters.com** · PROBATION · 1 篇 · hn
+- **www.uber.com** · PROBATION · 1 篇 · accepted_link_graph
 
 ## 现有信源健康提醒
 
-- **Visier Blog** · DEGRADED · 连续失败 83 次
+- **Visier Blog** · DEGRADED · 连续失败 85 次
 
 ## 优先检查的文章
 
 - [Anthropic S-1](https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm) · hn
 - [StackOverflow now gets fewer than 1000 questions a month](https://data.stackexchange.com/stackoverflow/query/1926661) · hn
 - [Windows 11 is collecting data on which coding agents and developer tools you use](https://xusheng.dev/posts/windows-coding-agent-telemetry) · hn
+- [Restricting AI agents in mobile operating systems platforms from capturing data](https://signal.org/blog/protecting-your-privacy) · hn
 - [A false smoke alarm almost drowned Jane Street's only NYC datacenter](https://michael.bacarella.com/2026/11/10/false-smoke-alarm-jane-street-datacenter) · hn
 - [Italy fines Meta $887M over Android users' data access](https://www.reuters.com/world/italy-fines-meta-887-million-over-android-users-data-access-2026-11-14) · hn
+- [PostgreSQL 19](https://www.postgresql.org/docs/release/19.0) · hn
 - [Twelve years of distributed SQLite](https://philipotoole.com/twelve-years-of-distributed-sqlite) · hn
 - [The Internals of PostgreSQL](https://www.interdb.jp/pg/index.html) · hn
 - [Now Google says it might use your Gmail and Google Photos data to target ads](https://www.theverge.com/tech/1017600/google-personal-intelligence-privacy-policy-ads-update) · hn
-- [PostgreSQL 19](https://www.postgresql.org/docs/release/19.0) · hn
-- [Publish fake stats, get cited in LLMs](https://peec.ai/blog/publish-stats-get-cited-the-tactic-that-put-my-data-all-over-the-web) · hn
 - [US voters roundly reject data centers in ballot measures](https://www.semafor.com/article/11/04/2026/us-voters-roundly-reject-data-centers-in-ballot-measures) · hn
 - [Show HN: Wikihack – HackerTube, but for Wikipedia articles mentioned on HN](https://wikihack.netlify.app/) · hn
 - [Google cleared 300 hectares of Finnish forest](https://www.techspot.com/news/114100-google-cleared-300-hectares-finnish-forest-data-center.html) · hn

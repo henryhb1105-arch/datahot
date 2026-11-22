@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-AKJnw2f49Q/aYdQzmIvX8HDTWnsxJd1wS8+C9Dr5Au8=' 'sha256-T5kUFAu2qcxAf9fXbXz8sgXwsrLTxUJS0WjxqCw+4Yc=' 'sha256-hMK4pCNFIOnT9bkXa+G+ICex5mxgl3XnYmU0DtzcOeM='; script-src-attr 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'; font-src 'self' data:; media-src 'self' blob:; img-src 'self' data: blob:; connect-src 'self' https://metrics.datahot.xiahongbin.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-AKJnw2f49Q/aYdQzmIvX8HDTWnsxJd1wS8+C9Dr5Au8=' 'sha256-HyIfwSGQ7b4Sc1J86MDjR1BIa7SjNlr1gr8udyxUyc0=' 'sha256-T5kUFAu2qcxAf9fXbXz8sgXwsrLTxUJS0WjxqCw+4Yc='; script-src-attr 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>实测Snowflake Postgres镜像同步两天：延迟、成本与源库影响 · DataHot</title>
@@ -1035,7 +1035,7 @@ ALTER ALERT MIRROR_LAG_ALERT RESUME;   -- a new alert starts suspended; needs EX
 if(window.CanvasRenderingContext2D&&!CanvasRenderingContext2D.prototype.roundRect){
   CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.rect(x,y,w,h);return this;};
 }
-var SH_EV = {"title":"实测Snowflake Postgres镜像同步两天：延迟、成本与源库影响","summary":"作者在支持镜像的最小实例上对Snowflake Postgres数据镜像进行了两天实测：新行进入$live表的中位延迟约26秒、p90约37秒，与30秒还是10分钟刷新间隔基本无关；30秒间隔下空载apply任务耗0.063 credits/h，持续写入下0.25 credits/h，改为2分钟和10分钟间隔后加载成本分别降73%和88%；小OLTP事务几乎无感，但批量插入镜像表慢20-30%。文章还给出SUSPEND/RESTART操作耗时、类型映射陷阱（numeric变FLOAT、json/jsonb变TEXT、二维数组变NULL）及无主键表退化为仅插入等问题。","reason":"用第一手实测数据量化了Snowflake Postgres镜像的延迟分布、刷新成本与源库开销，为正在评估用原生镜像替代Fivetran/Airbyte等ELT管道的团队提供了可直接对标的数字与运维陷阱清单。","topic":"湖仓","heat":48,"source":"Snowflake Engineering (Medium)","status":"","date":"2026-11-17","url":"https://datahot.xiahongbin.com/e/e632ecda9f14.html","qr":"../qr/e632ecda9f14.png"};
+var SH_EV = {"title":"实测Snowflake Postgres镜像同步两天：延迟、成本与源库影响","summary":"作者在支持镜像的最小实例上对Snowflake Postgres数据镜像进行了两天实测：新行进入$live表的中位延迟约26秒、p90约37秒，与30秒还是10分钟刷新间隔基本无关；30秒间隔下空载apply任务耗0.063 credits/h，持续写入下0.25 credits/h，改为2分钟和10分钟间隔后加载成本分别降73%和88%；小OLTP事务几乎无感，但批量插入镜像表慢20-30%。文章还给出SUSPEND/RESTART操作耗时、类型映射陷阱（numeric变FLOAT、json/jsonb变TEXT、二维数组变NULL）及无主键表退化为仅插入等问题。","reason":"用第一手实测数据量化了Snowflake Postgres镜像的延迟分布、刷新成本与源库开销，为正在评估用原生镜像替代Fivetran/Airbyte等ELT管道的团队提供了可直接对标的数字与运维陷阱清单。","topic":"湖仓","heat":47,"source":"Snowflake Engineering (Medium)","status":"","date":"2026-11-17","url":"https://datahot.xiahongbin.com/e/e632ecda9f14.html","qr":"../qr/e632ecda9f14.png"};
 function shClose(){
   document.getElementById('shMask').classList.remove('show');
   document.getElementById('shSheet').classList.remove('show');

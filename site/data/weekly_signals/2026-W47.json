@@ -1,0 +1,467 @@
+{
+ "schema_version": 1,
+ "kind": "weekly_signals",
+ "status": "ready",
+ "week_id": "2026-W47",
+ "period_start": "2026-11-16",
+ "period_end": "2026-11-22",
+ "generated_at": "2026-11-23T15:47:11.217808+08:00",
+ "ai_assisted": true,
+ "content_fingerprint": "90429a9ed7c8572bd84ec860ef9ba6d5bf8bd5d0a9f111ccd5b64a92468ada8b",
+ "input_hash": "e179f72a7f52acccb57f0e6ed045ec12207ebf6b0dfa9775302fef8a126f14b4",
+ "baseline_hash": "9b3bccab8142dbd33ef56250a24bfd6b57c7494fbad2eaf81c34a1ab46717e32",
+ "prompt_version": "weekly-signals-v4",
+ "model": "deepseek-v4-flash",
+ "baseline": {
+  "requested_weeks": 4,
+  "requested_week_ids": [
+   "2026-W46",
+   "2026-W45",
+   "2026-W44",
+   "2026-W43"
+  ],
+  "available_weeks": 4,
+  "available_week_ids": [
+   "2026-W46",
+   "2026-W45",
+   "2026-W44",
+   "2026-W43"
+  ],
+  "coverage": "complete"
+ },
+ "weekly_judgement": "本周信号从“能问答”转向“可控运行与可评测”：Databricks把Genie Ontology接入Teams/Excel/Copilot并发布口径冲突研究，Uber以MCP Gateway管理800个服务器、5000个工具，Datadog与Databricks推出Agent线上实验与轨迹成本分析，Google开源数据模拟器供Agent测试。",
+ "signals": [
+  {
+   "signal_id": "agent-tool-gateway-governance",
+   "title": "Data Agent工具接入转向网关化治理",
+   "change_type": "early_signal",
+   "confidence": "medium",
+   "confidence_reason": "Uber MCP Gateway与Datadog线上实验分属两家独立厂商，方向一致但都属单供应商自述；上周GitLab MCP仅为相邻证据，不构成同机制基线。",
+   "anchor": "Uber MCP Gateway管理800多个MCP服务器、5000多个工具，控制面Registry与执行面Proxy分离，新工具默认禁用待审核，服务器与工具两级鉴权、PII脱敏；Datadog在Agent Observability中新增Online Experiments，按Feature Flags以生产流量对比Agent版本并关联延迟、token、错误率。",
+   "mechanism": "两者都针对同一机制：Agent调用外部工具/版本变更时，把接入、权限、流量分配与效果度量从单点集成收敛为统一控制面，而非各自直连。",
+   "baseline_comparison": "过去4周可见的是GitLab MCP服务器GA、Fivetran CLI等单点工具接入，本周首次出现集中式网关与生产流量实验两类控制面机制。",
+   "evidence_ids": [
+    "b00a90055589",
+    "99e51aeb96a0"
+   ],
+   "counter_evidence": "两者均为单一厂商自述，缺第三方复现；Uber规模数字与Datadog实验效果均无独立审计，尚无第二家网关型产品对照。"
+  },
+  {
+   "signal_id": "genie-ontology-semantic-consumption",
+   "title": "受治理语义上下文成为Agent消费入口",
+   "change_type": "strengthening",
+   "confidence": "medium",
+   "confidence_reason": "Databricks多篇同源证据不能独立计数，但Underdog(dbt+Hex)与SAP TechEd从不同客户与厂商方向印证同一机制，故为strengthening而非high。",
+   "anchor": "Databricks Genie Ontology已GA并从既有仪表盘、查询、笔记本、语义模型学习Ontology Snippets，与Unity Catalog认证Metric Views、Domains结合，处理赔付率日历年/保单年/事故年口径冲突；Genie接入Teams正式可用并插件接入Copilot、Excel；Underdog以dbt项目定义、测试、元数据作为Hex对话Agent上下文，200多名员工发起超1万次对话。",
+   "mechanism": "同一机制：把业务定义、认证资产与口径冲突显式建模为受治理上下文层，供Agent在回答前选用正确口径，而非让模型从表结构自行推断。",
+   "baseline_comparison": "W46已有Genie企业基准91%通过率与Genie Ontology叙事，本周从基准扩展到Office/Teams分发入口与口径冲突案例，并出现dbt-as-context的客户侧实践，属延续增强。",
+   "evidence_ids": [
+    "ebe91710a990",
+    "50f1e28b5867",
+    "6caadce113ec",
+    "0b0d5083b536"
+   ],
+   "counter_evidence": "Genie证据多为Databricks自我验证，口径冲突案例为虚构车险公司；Underdog为单一客户案例；SAP为厂商立场，且三者语义层实现互不兼容。"
+  },
+  {
+   "signal_id": "agent-simulation-evaluation-loop",
+   "title": "Agent评测走向仿真环境与轨迹复盘",
+   "change_type": "early_signal",
+   "confidence": "low",
+   "confidence_reason": "Google数据模拟器与Databricks Unity Gateway Insights均属单一厂商首发性材料，机制相邻但不相同，且无第二个独立证据方向。",
+   "anchor": "Google Cloud数据模拟器用自然语言生成与真实数仓结构、因果关系一致的合成资产，供数据Agent在无敏感数据下开发测试；Databricks Unity Gateway Insights借Genie分析数百万条Agent轨迹，定位token浪费，称修复常见MCP错误每年约省120万美元。",
+   "mechanism": "两者共同点是让Agent效果判断脱离静态评测集：一个在仿真数据上预演，一个在生产轨迹上复盘成本与错误，形成开发期到运行期的闭环。",
+   "baseline_comparison": "W46有Leeroo Kapso沙箱实验与Plurai数字孪生仿真、Datadog线上实验，本周新增模拟数据风洞与轨迹成本归因两条具体实现，尚不足以判定趋热。",
+   "evidence_ids": [
+    "b02a34c6173a",
+    "912a0fbf557c"
+   ],
+   "counter_evidence": "模拟器为内部工具介绍，未给出映射到生产的量化验证；Insights的120万美元节省为官方口径，且与本周Datadog实验存在机制重叠，独立证据仍不足。"
+  }
+ ],
+ "signals_not_promoted": [
+  {
+   "label": "Data Agent记忆与服务分层",
+   "reason": "GroupAssistBench显示L1记忆高分但L2服务仅0.247，属单篇新基准，与Snowflake W43长期记忆不可直接归为同一机制，尚无可比基线。",
+   "evidence_ids": [
+    "907cbc4a5404"
+   ]
+  },
+  {
+   "label": "BI报表批量AI迁移",
+   "reason": "Genie Code按文件夹迁移Tableau/Power BI并GA，为单一厂商单次功能发布，无第二方向证据。",
+   "evidence_ids": [
+    "e3409e8c019c"
+   ]
+  },
+  {
+   "label": "湖仓目录联邦与语义随表流转",
+   "reason": "Unity Catalog与Google Cloud双向联邦、Iceberg catalog labels虽涉及语义，但机制是目录互操作而非Agent消费语义，且Databricks/AWS证据多为单一厂商。",
+   "evidence_ids": [
+    "0ce26977c9d2",
+    "7776d5f12621"
+   ]
+  },
+  {
+   "label": "高德与渊亭本体叙事",
+   "reason": "高德两篇正文未核验，渊亭为访谈观点，均缺产品机制事实锚点。",
+   "evidence_ids": [
+    "9073b083d299",
+    "7f753283bbd1",
+    "913c4795cc0b"
+   ]
+  }
+ ],
+ "uncertainty": "MCP Gateway、Genie Office分发、数据模拟器均来自单一厂商材料，缺独立客户复现；dbt v2 GA与SQLGlot编译加速等平台底层变化是否真正改变Data Agent产品设计，本期无可测证据。",
+ "next_week_question": "是否出现第二家厂商的MCP网关或Data Agent生产流量实验，以及Genie Ontology在非Databricks栈客户中的口径一致性验证？",
+ "evidence_index": [
+  {
+   "event_id": "b00a90055589",
+   "title": "Uber构建MCP Gateway：统一管理800个MCP服务器与5000个工具",
+   "summary": "Uber构建MCP Gateway，统一管理AI智能体对内部服务的调用，解决集成碎片化、重复建设与安全不一致问题。平台将控制平面MCP Registry与执行平面Proxy Gateway分离，支持800多个MCP服务器和5000多个工具，可把现有API零改造暴露为MCP工具，并完成HTTP/gRPC/TChannel协议转换。AutoCrawler基于Cadence自动发现IDL中的API定义并生成MCP Schema，新工具默认禁用待团队审核；网关在服务器和工具两级鉴权，并支持PII脱敏与第三方Token交换。为应对工具目录膨胀，Uber推出Omni MCP渐进式发现与Response Projection按需取字段。",
+   "category": "agent",
+   "source": "InfoQ 中文",
+   "source_family": "infoq",
+   "source_type": "media_report",
+   "source_count": 1,
+   "source_url": "https://www.infoq.cn/article/FrDlAvNIwkr8ttdvWMCC?utm_source=rss&utm_medium=article",
+   "published": "2026-11-18T15:39:16.172255+08:00",
+   "heat": 44,
+   "importance": 82,
+   "vendors": [
+    "Uber"
+   ],
+   "topics": [
+    "Data Agent",
+    "平台AI化"
+   ],
+   "body_review_required": false,
+   "week_id": "2026-W47"
+  },
+  {
+   "event_id": "99e51aeb96a0",
+   "title": "Datadog推出AI Agent线上实验，以生产流量验证Agent效果",
+   "summary": "Datadog在其Agent Observability平台中新增Online Experiments能力，允许团队用真实生产流量对比不同AI Agent版本，而不只依赖预设评测数据集。该能力把Agent评测分数与延迟、token消耗、执行成本、错误率等运行指标结合，并通过Feature Flags分配流量。Datadog称这能帮助团队判断模型、提示词、检索策略或工具变更是否真正改善Agent，并能发现在离线测试中未覆盖的新场景。",
+   "category": "platform",
+   "source": "InfoQ（AI/数据工程）",
+   "source_family": "infoq",
+   "source_type": "media_report",
+   "source_count": 1,
+   "source_url": "https://www.infoq.com/news/2026/11/datadog-ai-agent-observability/?utm_campaign=infoq_content&utm_source=infoq&utm_medium=feed&utm_term=AI%2C+ML+%26+Data+Engineering",
+   "published": "2026-11-17T20:00:00+08:00",
+   "heat": 39,
+   "importance": 74,
+   "vendors": [
+    "Datadog"
+   ],
+   "topics": [
+    "Data Agent"
+   ],
+   "body_review_required": false,
+   "week_id": "2026-W47"
+  },
+  {
+   "event_id": "ebe91710a990",
+   "title": "Genie One 准确率研究：受治理的语义上下文如何解决指标口径冲突",
+   "summary": "Databricks 官方博客以虚构商业车险公司为例，指出“赔付率是否改善”这一问题在财务与承保部门得出相反结论，因为二者分别采用日历年净再保与保单年毛再保剔除巨灾的口径，而准备金部门又用事故年最终赔付率。文章提出 Genie One 借助 Genie Ontology（已 GA）从既有仪表盘、查询、笔记本与语义模型中学习业务逻辑（Ontology Snippets），并与 Unity Catalog 中经认证的 Metric Views、Domains、Pages 等受治理定义结合，使 Text-to-SQL 在共享事实一致的前提下按提问场景选用正确口径。",
+   "category": "agent",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.databricks.com/blog/genie-one-accuracy-why-curated-agents-need-governed-context",
+   "published": "2026-11-20T04:15:41+08:00",
+   "heat": 42,
+   "importance": 66,
+   "vendors": [
+    "Databricks"
+   ],
+   "topics": [
+    "Data Agent",
+    "语义层"
+   ],
+   "body_review_required": false,
+   "week_id": "2026-W47"
+  },
+  {
+   "event_id": "50f1e28b5867",
+   "title": "Databricks Genie 接入微软 Teams、Excel 与 Copilot",
+   "summary": "Databricks 发布 Genie 在微软生态的更新：Genie Ontology 将团队定义的业务语义与日常工作中学习到的上下文结合，解决 AI 助手无法判断哪张收入表经过认证、财务如何定义净留存等问题。Unity Catalog 负责按用户执行数据权限，Unity Gateway 提供轨迹、MCP 策略与预算控制。Genie 应用已在 Microsoft Teams 正式可用，用户可在频道或群聊中 @Databricks Genie 获得受治理的回答，同时通过插件接入 Copilot、Copilot Cowork、Excel 与 Copilot Studio。",
+   "category": "agent",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.databricks.com/blog/whats-new-genie-microsoft-copilot-cowork-and-chat-microsoft-teams-and-excel",
+   "published": "2026-11-19T00:00:00+08:00",
+   "heat": 38,
+   "importance": 65,
+   "vendors": [
+    "Databricks",
+    "Microsoft"
+   ],
+   "topics": [
+    "Data Agent",
+    "语义层"
+   ],
+   "body_review_required": false,
+   "week_id": "2026-W47"
+  },
+  {
+   "event_id": "6caadce113ec",
+   "title": "Underdog如何用dbt和Hex支撑上万次数据对话",
+   "summary": "Underdog团队在Hex博客发文，介绍其以dbt项目作为基础语义上下文层、支撑Hex对话式分析Agent的实践。目前200多名员工已在Hex、Slack和Claude中发起超过1万次分析对话。作者指出，当人人都能直接提问后，难点从提供查询界面转为让Agent真正理解口径与表关系，因此他们将dbt项目中的定义、测试与元数据直接作为AI上下文，并让对话反过来暴露dbt项目的上下文缺口，形成双向改进闭环。",
+   "category": "agent",
+   "source": "Hex Blog",
+   "source_family": "hex",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://hex.tech/blog/how-underdog-powers-conversational-analytics-with-dbt-and-hex/",
+   "published": "2026-11-18T08:00:00+08:00",
+   "heat": 38,
+   "importance": 70,
+   "vendors": [
+    "dbt",
+    "Hex"
+   ],
+   "topics": [
+    "ChatBI",
+    "语义层"
+   ],
+   "body_review_required": false,
+   "week_id": "2026-W47"
+  },
+  {
+   "event_id": "0b0d5083b536",
+   "title": "SAP：Agent进生产失效，因业务语义断层",
+   "summary": "SAP在TechEd 2026上指出，企业AI Agent在POC阶段表现亮眼，但进入生产环境后常因数据分散、业务语义不一致、系统异构集成等问题失效。SAP提出需先做好Clean Core（数据与流程标准化、主数据治理）和语义就绪，并正将ERP积累的700多万字段、50多万张表、15000多个业务流程构建为知识图谱，为Agent提供企业上下文。Joule Work的财务预算案例展示了模型结合成本中心、审批流程等企业数据完成分析的能力。SAP认为Agent会改变ERP使用方式，但不会取代ERP。",
+   "category": "agent",
+   "source": "InfoQ 中文",
+   "source_family": "infoq",
+   "source_type": "media_report",
+   "source_count": 1,
+   "source_url": "https://www.infoq.cn/article/AsfcqUsutpSlPIBE1ok9?utm_source=rss&utm_medium=article",
+   "published": "2026-11-17T23:00:05+08:00",
+   "heat": 37,
+   "importance": 70,
+   "vendors": [
+    "SAP"
+   ],
+   "topics": [
+    "Data Agent",
+    "语义层"
+   ],
+   "body_review_required": false,
+   "week_id": "2026-W47"
+  },
+  {
+   "event_id": "b02a34c6173a",
+   "title": "Google Cloud开源数据模拟器，为数据Agent搭建测试风洞",
+   "summary": "Google Cloud Frontier AI团队介绍其内部数据模拟器（Data Simulator）：用一段自然语言描述生成与真实企业数仓结构、因果行为一致但内容全部合成的数据资产，供数据Agent在无敏感数据的环境下开发与测试。文章指出直接用生产数仓测试的困境：权限受限、目录描述不完整、缺乏答案键、难以系统调节数据复杂度。模拟器保留表间关系、业务事件与记录生成逻辑、机构知识分布等Agent推理所依赖的结构。其目标是让Agent在“风洞”中的表现能映射到生产数据上的表现。",
+   "category": "agent",
+   "source": "Google Cloud Data Analytics Blog",
+   "source_family": "googleclouddataanalytics",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://cloud.google.com/blog/products/data-analytics/a-data-simulator-to-test-agents",
+   "published": "2026-11-21T08:00:00+08:00",
+   "heat": 50,
+   "importance": 69,
+   "vendors": [
+    "Google",
+    "Google Cloud"
+   ],
+   "topics": [
+    "Data Agent"
+   ],
+   "body_review_required": false,
+   "week_id": "2026-W47"
+  },
+  {
+   "event_id": "912a0fbf557c",
+   "title": "Databricks推出Unity Gateway Insights：用Genie分析Agent调用轨迹降本",
+   "summary": "Databricks发布Unity Gateway Insights，借助Genie自动分析数百万条Agent轨迹并结合业务数据与本体，定位token浪费环节。官方披露的实践包括：回放显示从Opus 4.8升级到Opus 5无性能收益故维持低成本模型，修复常见MCP错误每年约省120万美元，以及将简单提示路由至廉价模型。Insights按成本对各类浪费排序，可生成将重复工作流转为共享skill的提示词，并支持自定义问题与Genie追问。",
+   "category": "platform",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.databricks.com/blog/introducing-unity-gateway-insights",
+   "published": "2026-11-19T04:41:43.825414+08:00",
+   "heat": 45,
+   "importance": 80,
+   "vendors": [
+    "Databricks"
+   ],
+   "topics": [
+    "Data Agent",
+    "平台AI化"
+   ],
+   "body_review_required": false,
+   "week_id": "2026-W47"
+  },
+  {
+   "event_id": "907cbc4a5404",
+   "title": "腾讯元宝×KCL发布首个群聊Agent记忆基准GroupAssistBench",
+   "summary": "腾讯元宝与伦敦国王学院NLP团队联合推出GroupAssistBench，基于50个真实群聊、80,299条历史消息构建2,395道评测题，分L1记忆召回与L2开放式服务两层，并区分单记忆、多记忆整合、更新冲突三类依赖。研究测试14组配置，发现EverMemOS在L1得分0.621高于完整上下文的0.570，但在L2仅0.247、低于完整上下文的0.431，说明“会回忆不等于会服务”。团队追踪497条配对记忆，发现已召回但未被有效使用的记忆中约36%未进入L2模型输入、约64%进入输入却未被有效应用，并提出RER等轻量干预。论文、代码与数据集已公开。",
+   "category": "agent",
+   "source": "量子位",
+   "source_family": "量子位",
+   "source_type": "other",
+   "source_count": 1,
+   "source_url": "https://www.qbitai.com/2026/11/511841.html",
+   "published": "2026-11-21T19:40:11+08:00",
+   "heat": 61,
+   "importance": 86,
+   "vendors": [
+    "腾讯元宝"
+   ],
+   "topics": [
+    "Data Agent"
+   ],
+   "body_review_required": false,
+   "week_id": "2026-W47"
+  },
+  {
+   "event_id": "e3409e8c019c",
+   "title": "Databricks推出Genie Code批量迁移仪表板至AI/BI",
+   "summary": "Databricks 的 Genie Code 新增批量迁移能力，可指向整个报表文件夹，一次运行将 Tableau 或 Power BI 报表转换为 AI/BI Dashboards，并映射到指定 catalog 与 schema。该功能已正式可用（GA），使用前需在账户和工作区层级启用合作伙伴驱动的 AI 功能。文章按准备、迁移等阶段给出端到端操作手册，面向已有存量报表、希望从逐份迁移转为可重复的按文件夹迁移的团队。",
+   "category": "bi",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.databricks.com/blog/bulk-migrate-your-dashboards-aibi-genie-code",
+   "published": "2026-11-20T00:00:00+08:00",
+   "heat": 45,
+   "importance": 73,
+   "vendors": [
+    "Databricks",
+    "Tableau",
+    "Power BI"
+   ],
+   "topics": [
+    "BI变局"
+   ],
+   "body_review_required": false,
+   "week_id": "2026-W47"
+  },
+  {
+   "event_id": "0ce26977c9d2",
+   "title": "Databricks与Google Cloud打通Unity Catalog目录互操作",
+   "summary": "Databricks与Google Cloud宣布实现Unity Catalog与Google Cloud无边界Lakehouse的双向目录联邦：用户可在Unity Catalog中挂载Google托管的Iceberg表并在Databricks、Serverless数仓或Genie中查询，反向也可让BigQuery等引擎零拷贝读取Unity Catalog管理的表。双方还推动Iceberg社区落地catalog labels，使业务与治理语义（如domain=finance、pii=ssn）随表联邦一起流转而非绑定单一厂商。",
+   "category": "platform",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.databricks.com/blog/advancing-catalog-interoperability-unity-catalog-and-google-clouds-borderless-lakehouse",
+   "published": "2026-11-18T00:30:00+08:00",
+   "heat": 37,
+   "importance": 69,
+   "vendors": [
+    "Databricks",
+    "Google Cloud",
+    "BigQuery"
+   ],
+   "topics": [
+    "湖仓",
+    "语义层"
+   ],
+   "body_review_required": false,
+   "week_id": "2026-W47"
+  },
+  {
+   "event_id": "7776d5f12621",
+   "title": "OpenSharing打通AWS HealthLake与Databricks，Genie One支持自然语言查临床数据",
+   "summary": "AWS HealthLake把临床FHIR数据以Iceberg表存放在服务侧S3桶，客户IAM角色无法直读，外部分析通常要建导出管道并复制数据。本文介绍基于Linux Foundation旗下OpenSharing项目实现HealthLake与Databricks的首个集成，可在Databricks中实时查询HealthLake数据并复用其治理、分析与AI能力。同一份临床数据还可通过Genie One用自然语言探索，免去专门技术流程和数据重复。文章同时回顾了临床数据分析当前的互操作与治理难题。",
+   "category": "platform",
+   "source": "Databricks Blog",
+   "source_family": "databricks",
+   "source_type": "vendor_claim",
+   "source_count": 1,
+   "source_url": "https://www.databricks.com/blog/talk-your-clinical-data-unlocking-aws-healthlake-opensharing-and-genie-one",
+   "published": "2026-11-17T02:30:00+08:00",
+   "heat": 34,
+   "importance": 67,
+   "vendors": [
+    "Databricks",
+    "AWS"
+   ],
+   "topics": [
+    "湖仓",
+    "Data Agent"
+   ],
+   "body_review_required": false,
+   "week_id": "2026-W47"
+  },
+  {
+   "event_id": "9073b083d299",
+   "title": "高德 Data Agent 实践：从业务问题到可信数据（上篇）",
+   "summary": "高德 Data Agent 实践系列上篇，标题关注从业务问题到可信数据。按读者提供的标题与原文链接收录，正文尚未核验。",
+   "category": "agent",
+   "source": "微信原文（读者推荐）",
+   "source_family": "微信原文",
+   "source_type": "other",
+   "source_count": 1,
+   "source_url": "https://mp.weixin.qq.com/s/FAGAjEXd-dggWfBR-A0LLg",
+   "published": "2026-11-20T07:00:00+00:00",
+   "heat": 51,
+   "importance": 80,
+   "vendors": [
+    "高德"
+   ],
+   "topics": [
+    "Data Agent"
+   ],
+   "body_review_required": false,
+   "week_id": "2026-W47"
+  },
+  {
+   "event_id": "7f753283bbd1",
+   "title": "高德 Data Agent 实践：从数字到业务决策（下篇）",
+   "summary": "高德 Data Agent 实践系列下篇，标题关注从数字到业务决策。按读者提供的标题与原文链接收录，正文尚未核验。",
+   "category": "agent",
+   "source": "微信原文（读者推荐）",
+   "source_family": "微信原文",
+   "source_type": "other",
+   "source_count": 1,
+   "source_url": "https://mp.weixin.qq.com/s/VEqScV_gXl5ZoOczul6nwA",
+   "published": "2026-11-20T07:00:00+00:00",
+   "heat": 51,
+   "importance": 80,
+   "vendors": [
+    "高德"
+   ],
+   "topics": [
+    "Data Agent"
+   ],
+   "body_review_required": false,
+   "week_id": "2026-W47"
+  },
+  {
+   "event_id": "913c4795cc0b",
+   "title": "渊亭科技洪万福谈动态本体与知识图谱如何支撑认知决策",
+   "summary": "爱分析访谈渊亭科技创始人洪万福，讨论动态本体如何在国防情报分析等场景中融合多源异构数据、支撑业务决策。文章指出大模型让概念建模、语义对齐与推理的自动化程度提升，但本体与知识图谱是层次配合而非替代关系。从专题应用走向行业级本体需要重新梳理数据标准、跨系统接口与权限审计，变更分级与版本绑定等治理机制是动态化的前提。文章还讨论了中国复制Palantir交付模式的难度。",
+   "category": "platform",
+   "source": "爱分析",
+   "source_family": "爱分析",
+   "source_type": "other",
+   "source_count": 1,
+   "source_url": "https://www.ifenxi.com/research/content/7029",
+   "published": "2026-11-18T05:03:10.016711+08:00",
+   "heat": 36,
+   "importance": 67,
+   "vendors": [
+    "渊亭科技",
+    "Palantir"
+   ],
+   "topics": [
+    "语义层",
+    "平台AI化"
+   ],
+   "body_review_required": false,
+   "week_id": "2026-W47"
+  }
+ ]
+}

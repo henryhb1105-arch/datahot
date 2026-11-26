@@ -1,17 +1,17 @@
 # DataHot 信源侦察（影子模式）
 
-- 生成时间：2026-11-25T21:52:23.709260+00:00
-- 本轮原始发现：11
-- 未收录文章候选：44
-- 新信源候选：97
+- 生成时间：2026-11-26T21:40:06.281692+00:00
+- 本轮原始发现：14
+- 未收录文章候选：47
+- 新信源候选：100
 - 已收录链接去重：0
 - 安全边界：候选不会自动进入公共时间轴，ACTIVE 仍需编辑确认。
 
 ## 发现通道
 
 - openai_web_search: skipped · OPENAI_API_KEY 未配置
-- hn_official: ok · 1 条
-- accepted_link_graph: ok · 10 条
+- hn_official: ok · 3 条
+- accepted_link_graph: ok · 11 条
 
 ## 优先检查的新信源
 
@@ -33,7 +33,7 @@
 
 ## 现有信源健康提醒
 
-- **Visier Blog** · DEGRADED · 连续失败 93 次
+- **Visier Blog** · DEGRADED · 连续失败 95 次
 
 ## 优先检查的文章
 
@@ -50,10 +50,10 @@
 - [Show HN: Wikihack – HackerTube, but for Wikipedia articles mentioned on HN](https://wikihack.netlify.app/) · hn
 - [The EPA Is Quietly Killing Its Web Archive](https://www.motherjones.com/environment/2026/10/epa-online-archive-deletion-zeldin-camp-lejeune-trump-clean-power) · hn
 - [Data Processing Incidents on Inference Providers](https://openrouter.ai/blog/announcements/data-processing-incidents-on-inference-providers) · hn
+- [Minipg: PostgreSQL as a Single Executable](https://progrium.github.io/minipg) · hn
+- [Lions' Commentary on Unix: Why It Was Secretly Copied for 20 Years](https://fosscomics.com/posts/17.%20Lions%27%20Commentary%20on%20Unix) · hn
 - [Distributed, high-performance blob storage on SQLite](https://zerodha.tech/blog/high-performance-distributed-blob-storage) · hn
 - [FBI reportedly investigating apparent hack of its criminal database](https://www.bbc.com/news/articles/cvze7de86pk3o) · hn
 - [AI, Lean, and the Future of Formal Verification, with Lean Creator Leo de Moura](https://thedataexchange.media/leo-de-moura-lean-aws) · hn
 - [Pete warden on local AI, open models, voice interfaces, the future of hardware](https://thedataexchange.media/pete-warden-moonshine) · hn
 - [Claude Whiteboards, Claude Sheets, and Claude Data](https://claude.com/resources/articles/sheets-whiteboards-data) · hn
-- [Moving our warehouse off DuckDB](https://posthog.com/blog/moving-off-duckdb) · hn
-- [F-22 Next-Generation micro–Data Transfer Cartridge (mDTC)](https://sam.gov/workspace/contract/opp/8948e8601e964c6aba9c801eee16b1be/view) · hn
